@@ -59,7 +59,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            TextField(controller: _nameController, decoration: const InputDecoration(labelText: '姓名', prefixIcon: Icon(Icons.badge_outline))),
+            TextField(controller: _nameController, decoration: const InputDecoration(labelText: '姓名', prefixIcon: Icon(Icons.person))),
             const SizedBox(height: 14),
             TextField(controller: _phoneController, decoration: const InputDecoration(labelText: '手机号', prefixIcon: Icon(Icons.phone_outlined))),
             const SizedBox(height: 14),

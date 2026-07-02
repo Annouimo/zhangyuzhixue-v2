@@ -44,7 +44,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     CircleAvatar(
                       radius: 28,
                       backgroundColor: AppTheme.primaryLight,
-                      child: Text(_user?['name']?.[0] ?? '?', style: const TextStyle(fontSize: 24, color: Colors.white)),
+                      child: Text(
+                        _user?['name'] != null && (_user!['name'] as String).isNotEmpty
+                            ? (_user!['name'] as String)[0]
+                            : '?',
+                        style: const TextStyle(fontSize: 24, color: Colors.white),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
