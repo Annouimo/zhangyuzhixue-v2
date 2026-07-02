@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'auth_repository.dart';
 
 /// 用户相关：信息、积分、流水
 class UserRepository {
-  /// 读取用户基本信息（静默 mock）
+  /// 读取用户基本信息（静默 mock，数据来自 AuthRepository）
   static Future<Map<String, dynamic>> getUserInfo() async {
     await Future.delayed(const Duration(milliseconds: 200));
-    return {
-      'name': '李小红',
-      'student_id': '2026001',
-      'points': 9.2,
-    };
+    return AuthRepository.getMockUser();
   }
 
   /// 读取做题历史列表（静默 mock）

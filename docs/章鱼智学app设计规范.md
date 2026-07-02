@@ -218,6 +218,16 @@ UI 设计图见 canvas 文件。UI 和交互逻辑代码分离。
 
 所有数据库操作通过 `repositories/` 层封装，页面/组件不直接调用 API。
 
+### `AuthRepository` — `lib/repositories/auth_repository.dart`
+
+| 方法 | 类型 | 说明 |
+|------|------|------|
+| `isLoggedIn()` | 📖 读取 | 检查是否已登录 |
+| `getMockUser()` | 📖 读取 | 返回 mock 用户信息（供 UserRepository 使用） |
+| `login(context, username, password)` | ✏️ 写入 | 验证身份，获取 Token |
+| `register(context, name, phone, invitationCode, password)` | ✏️ 写入 | 提交注册信息，创建用户 |
+| `logout(context)` | ✏️ 写入 | 清除登录状态 |
+
 ### `UserRepository` — `lib/repositories/user_repository.dart`
 
 | 方法 | 类型 | 说明 |
