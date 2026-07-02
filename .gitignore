@@ -1,0 +1,12 @@
+# Flutter
+flutter_app/.dart_tool/
+flutter_app/.idea/
+flutter_app/.packages
+flutter_app/.pub/
+flutter_app/build/
+flutter_app/.flutter-plugins
+flutter_app/.flutter-plugins-dependencies
+
+# Django
+Django_service/
+zhangyuzhixue_app_Django/
