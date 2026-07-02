@@ -57,7 +57,6 @@ class _ExamBuilderPageState extends State<ExamBuilderPage> {
           : ListView(
               padding: const EdgeInsets.all(AppTheme.paddingMedium),
               children: [
-                // 筛选
                 if (_filterOptions != null)
                   FilterPanel(options: _filterOptions!, onChanged: (_) {}),
                 const SizedBox(height: 12),
@@ -67,24 +66,18 @@ class _ExamBuilderPageState extends State<ExamBuilderPage> {
                   decoration: const InputDecoration(labelText: '试卷名称', prefixIcon: Icon(Icons.edit_outlined)),
                 ),
                 const SizedBox(height: 8),
-                // 已选计数
+                // 选题标题 + 已选计数
                 Row(
                   children: [
-                    Text('已选 ${_selectedIds.length} 题', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const Text('选题', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontSizeTitle)),
                     const Spacer(),
-                    Text('积分余额：10', style: const TextStyle(color: AppTheme.accentColor)),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: _selectedIds.isEmpty ? null : _confirmCreate,
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor, foregroundColor: Colors.white),
-                      child: const Text('确认组卷（10 积分）'),
-                    ),
+                    Text('已选 ${_selectedIds.length} 题', style: const TextStyle(color: AppTheme.primaryColor)),
+                    const SizedBox(width: 8),
+                    Text('积分余额：10', style: const TextStyle(color: AppTheme.accentColor, fontSize: AppTheme.fontSizeSmall)),
                   ],
                 ),
                 const Divider(),
                 // 题目列表
-                const Text('选题', style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.fontSizeTitle)),
-                const SizedBox(height: 8),
                 ...List.generate(_questions!.length, (i) {
                   final q = _questions![i];
                   return QuestionTile(
@@ -99,6 +92,21 @@ class _ExamBuilderPageState extends State<ExamBuilderPage> {
                     }),
                   );
                 }),
+                const SizedBox(height: 16),
+                // 确认组卷按钮（底部）
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _selectedIds.isEmpty ? null : _confirmCreate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('确认组卷（消耗 10 积分）'),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
     );

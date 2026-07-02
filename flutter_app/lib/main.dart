@@ -3,7 +3,9 @@ import 'theme/app_theme.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
 import 'pages/home_page.dart';
+import 'pages/recommend_list_page.dart';
 import 'pages/assignment_list_page.dart';
+import 'pages/assignment_questions_page.dart';
 import 'pages/solve_page.dart';
 import 'pages/exam_builder_page.dart';
 import 'pages/exam_preview_page.dart';
@@ -44,7 +46,6 @@ class ZhangyuzhixueApp extends StatelessWidget {
       ),
       initialRoute: AuthRepository.isLoggedIn() ? '/' : '/login',
       onGenerateRoute: (settings) {
-        // 解析路由参数 /solve/:id 等
         final uri = Uri.parse(settings.name ?? '/');
         final path = uri.path;
         final queryParams = uri.queryParameters;
@@ -59,6 +60,12 @@ class ZhangyuzhixueApp extends StatelessWidget {
             break;
           case '/':
             page = const MainShell();
+            break;
+          case '/recommend-list':
+            page = const RecommendListPage();
+            break;
+          case '/assignment-questions':
+            page = AssignmentQuestionsPage(assignmentId: int.tryParse(queryParams['id'] ?? '') ?? 1);
             break;
           case '/solve':
             page = SolvePage(questionId: int.tryParse(queryParams['id'] ?? '') ?? 1);

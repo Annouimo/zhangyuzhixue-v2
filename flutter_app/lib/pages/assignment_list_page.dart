@@ -27,17 +27,18 @@ class _AssignmentListPageState extends State<AssignmentListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('待办作业')),
-      body: RefreshIndicator(
-        onRefresh: _load,
-        child: _assignments == null
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
+      body: _assignments == null
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
                 padding: const EdgeInsets.all(AppTheme.paddingMedium),
-                itemCount: _assignments!.length,
-                itemBuilder: (_, i) {
-                  final a = _assignments![i];
-                  return Card(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 16),
+                    child: Text('待办作业', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  ),
+                  ..._assignments!.map((a) => Card(
                     margin: const EdgeInsets.only(bottom: AppTheme.paddingSmall),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.cardRadius)),
                     child: ListTile(
@@ -56,12 +57,12 @@ class _AssignmentListPageState extends State<AssignmentListPage> {
                         ),
                       ),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => Navigator.pushNamed(context, '/solve?id=${i + 1}'),
+                      onTap: () => Navigator.pushNamed(context, '/assignment-questions?id=${a['id'] ?? 1}'),
                     ),
-                  );
-                },
+                  )),
+                ],
               ),
-      ),
+            ),
     );
   }
 }
