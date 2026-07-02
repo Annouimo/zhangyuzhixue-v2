@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${_greeting}，${_user['name'] ?? ''}',
+                        Text('${_greeting()}，${_user['name'] ?? ''}',
                             style: const TextStyle(fontSize: AppTheme.fontSizeLarge, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Text('学号：${_user['student_id'] ?? ''}', style: const TextStyle(color: AppTheme.textSecondary)),
