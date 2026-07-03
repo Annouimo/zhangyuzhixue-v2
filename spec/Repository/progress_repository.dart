@@ -1,0 +1,40 @@
+﻿/// 章鱼智学 — ProgressRepository
+/// 对应页面：solve.html
+/// data-db: progress.getSteps.*, progress.submitFeedback()
+
+class Step {
+  final int stepNumber;
+  final String title;
+  final String analysis;
+  final List<String> cards;
+
+  const Step({
+    required this.stepNumber,
+    required this.title,
+    required this.analysis,
+    required this.cards,
+  });
+
+  factory Step.fromJson(Map<String, dynamic> json) => Step(
+        stepNumber: json['step_number'] as int,
+        title: json['title'] as String,
+        analysis: json['analysis'] as String,
+        cards: (json['cards'] as List).cast<String>(),
+      );
+}
+
+class ProgressRepository {
+  /// GET /api/questions/{questionId}/steps/
+  static Future<List<Step>> getSteps(int questionId) async {
+    throw UnimplementedError('ProgressRepository.getSteps');
+  }
+
+  /// POST /api/progress/step-feedback/
+  static Future<void> submitStepFeedback({
+    required int questionId,
+    required int stepNumber,
+    required String status,
+  }) async {
+    throw UnimplementedError('ProgressRepository.submitStepFeedback');
+  }
+}
