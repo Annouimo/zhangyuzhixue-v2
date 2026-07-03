@@ -9,7 +9,7 @@
 <body>
   <div class="page-header">
     <a href="homework.html" class="back-btn">← 返回</a>
-    <h1 data-db="assignment.title">导数第 1 讲课后练习</h1>
+    <h1 data-db="assign.getQuestions.title">导数第 1 讲课后练习</h1>
   </div>
 
   <div class="page" style="padding-top:8px;">
@@ -17,13 +17,13 @@
     <div class="card">
       <div class="flex items-center justify-between">
         <div>
-          <div class="subtitle text-secondary" data-db="assignment.course_name">所属课程：导数系统课</div>
+          <div class="subtitle text-secondary" data-db="assign.getQuestions.courseName">所属课程：导数系统课</div>
           <div class="progress-bar mt-2">
-            <span data-db="assignment.completed">2</span>/<span data-db="assignment.total">6</span>
+            <span data-db="assign.getQuestions.doneCount">2</span>/<span data-db="assign.getQuestions.totalCount">6</span>
             <div class="progress-track">
               <div class="progress-fill" style="width:33%"></div>
             </div>
-            <span class="text-secondary">还有 <span data-db="assignment.deadline_remaining">5</span> 天截止</span>
+            <span class="text-secondary">还有 <span data-db="assign.getQuestions.deadlineDays">5</span> 天截止</span>
           </div>
         </div>
       </div>
@@ -31,71 +31,71 @@
 
     <!-- 题目列表 -->
     <h3 style="font-size:15px;font-weight:600;margin:12px 0 8px;">题目列表</h3>
-    <div data-db-loop="question_list">
+    <div data-db-loop="assign.getQuestions">
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 3 题</span>
-            <span class="text-secondary" data-db="item.type">解答题</span>
+            <span data-db="assign.getQuestions[].number">第 3 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">解答题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+          <span class="status-tag in-progress" data-db="assign.getQuestions[].status">进行中</span>
         </div>
       </a>
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 6 题</span>
-            <span class="text-secondary" data-db="item.type">解答题</span>
+            <span data-db="assign.getQuestions[].number">第 6 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">解答题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+          <span class="status-tag in-progress" data-db="assign.getQuestions[].status">进行中</span>
         </div>
       </a>
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 2 题</span>
-            <span class="text-secondary" data-db="item.type">选择题</span>
+            <span data-db="assign.getQuestions[].number">第 2 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">选择题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag pending" data-db="item.status">未做</span>
+          <span class="status-tag pending" data-db="assign.getQuestions[].status">未做</span>
         </div>
       </a>
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 1 题</span>
-            <span class="text-secondary" data-db="item.type">填空题</span>
+            <span data-db="assign.getQuestions[].number">第 1 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">填空题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag done" data-db="item.status">已完成</span>
+          <span class="status-tag done" data-db="assign.getQuestions[].status">已完成</span>
         </div>
       </a>
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 4 题</span>
-            <span class="text-secondary" data-db="item.type">选择题</span>
+            <span data-db="assign.getQuestions[].number">第 4 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">选择题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag done" data-db="item.status">已完成</span>
+          <span class="status-tag done" data-db="assign.getQuestions[].status">已完成</span>
         </div>
       </a>
       <a href="solve.html" class="list-item">
         <div class="left">
           <div class="title">
-            <span data-db="item.number">第 5 题</span>
-            <span class="text-secondary" data-db="item.type">选择题</span>
+            <span data-db="assign.getQuestions[].number">第 5 题</span>
+            <span class="text-secondary" data-db="assign.getQuestions[].questionType">选择题</span>
           </div>
         </div>
         <div class="right">
-          <span class="status-tag done" data-db="item.status">已完成</span>
+          <span class="status-tag done" data-db="assign.getQuestions[].status">已完成</span>
         </div>
       </a>
     </div>

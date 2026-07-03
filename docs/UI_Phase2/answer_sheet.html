@@ -51,31 +51,31 @@
   <div class="page" style="padding-top:8px;">
     <!-- 试卷信息 -->
     <div class="card">
-      <div style="font-size:17px;font-weight:600;" data-db="exam.name">我的练习卷</div>
+      <div style="font-size:17px;font-weight:600;" data-db="exam.quickAnswer.name">我的练习卷</div>
       <div class="text-secondary" style="font-size:13px;margin-top:4px;">
-        共 <span data-db="exam.total_count">2</span> 题 · 仅展示答案，无解析
+        共 <span data-db="exam.quickAnswer.totalCount">2</span> 题 · 仅展示答案，无解析
       </div>
     </div>
 
     <!-- 答案列表 -->
     <p class="text-secondary" style="font-size:13px;margin:8px 0 4px;">点击题目可进入解题模式</p>
-    <div data-db-loop="exam.answer_sheet">
+    <div data-db-loop="exam.quickAnswer">
       <a href="solve.html" class="answer-row" style="text-decoration:none;color:inherit;">
         <div class="q-num">1</div>
         <div class="q-info">
-          <div data-db="item.title">2025 东城一模 第 1 题</div>
-          <div class="text-secondary" style="font-size:12px;" data-db="item.type">选择题</div>
+          <div data-db="exam.quickAnswer[].title">2025 东城一模 第 1 题</div>
+          <div class="text-secondary" style="font-size:12px;" data-db="exam.quickAnswer[].questionType">选择题</div>
         </div>
-        <div class="q-answer" data-db="item.answer">A</div>
+        <div class="q-answer" data-db="exam.quickAnswer[].answer">A</div>
       </a>
 
       <a href="solve.html" class="answer-row" style="text-decoration:none;color:inherit;">
         <div class="q-num">2</div>
         <div class="q-info">
-          <div data-db="item.title">2025 东城一模 第 2 题</div>
-          <div class="text-secondary" style="font-size:12px;" data-db="item.type">选择题</div>
+          <div data-db="exam.quickAnswer[].title">2025 东城一模 第 2 题</div>
+          <div class="text-secondary" style="font-size:12px;" data-db="exam.quickAnswer[].questionType">选择题</div>
         </div>
-        <div class="q-answer" data-db="item.answer">B</div>
+        <div class="q-answer" data-db="exam.quickAnswer[].answer">B</div>
       </a>
     </div>
 

@@ -69,18 +69,18 @@
 <body style="padding-bottom:calc(var(--nav-height) + 20px);">
   <div class="page-header">
     <a href="lecture_chapters.html" class="back-btn">← 返回</a>
-    <h1 data-db="lecture.title">第 2 讲 导数的几何意义</h1>
+    <h1 data-db="lecture.getContent.title">第 2 讲 导数的几何意义</h1>
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <div class="lecture-body" data-db="lecture.content">
+    <div class="lecture-body" data-db="lecture.getContent.body">
       <h2>一、导数的几何意义</h2>
       <p>函数 y = f(x) 在点 x₀ 处的导数 f'(x₀) 的几何意义是：曲线 y = f(x) 在点 (x₀, f(x₀)) 处的切线的斜率。</p>
-      <div class="formula" data-db="lecture.formula_1">k = f'(x₀) = tan α</div>
+      <div class="formula" data-db="lecture.getContent.formulas[0]">k = f'(x₀) = tan α</div>
 
       <h3>切线方程</h3>
       <p>曲线 y = f(x) 在点 (x₀, f(x₀)) 处的切线方程为：</p>
-      <div class="formula" data-db="lecture.formula_2">y - f(x₀) = f'(x₀)(x - x₀)</div>
+      <div class="formula" data-db="lecture.getContent.formulas[1]">y - f(x₀) = f'(x₀)(x - x₀)</div>
 
       <h3>典型例题</h3>
       <p><strong>例 1</strong> 求曲线 y = x³ 在点 (1, 1) 处的切线方程。</p>
@@ -90,9 +90,9 @@
   </div>
 
   <!-- 底部翻页控件 -->
-  <div class="lecture-pager" data-db-loop="lecture.pagination">
+  <div class="lecture-pager" data-db-loop="lecture.getContent.pagination">
     <a href="lecture_content.html" class="page-btn">⟨</a>
-    <span class="page-info" data-db="lecture.page_info">第 2 / 6 页</span>
+    <span class="page-info" data-db="lecture.getContent.pageInfo">第 2 / 6 页</span>
     <a href="lecture_content.html" class="page-btn">⟩</a>
   </div>
 </body>

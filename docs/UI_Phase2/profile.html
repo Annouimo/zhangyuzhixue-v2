@@ -10,10 +10,10 @@
   <!-- 用户信息卡片 -->
   <div class="card" style="margin:16px;text-align:center;padding:24px;">
     <div style="font-size:48px;margin-bottom:8px;">👤</div>
-    <h2 style="font-size:20px;font-weight:700;" data-db="user.real_name">李小红</h2>
+    <h2 style="font-size:20px;font-weight:700;" data-db="user.getInfo.realName">李小红</h2>
     <p class="text-secondary" style="font-size:14px;">
-      学号：<span data-db="user.student_id">2026001</span>
-      · 积分：<span data-db="user.points">9.2</span>
+      学号：<span data-db="user.getInfo.studentId">2026001</span>
+      · 积分：<span data-db="user.getInfo.points">9.2</span>
     </p>
   </div>
 
@@ -22,7 +22,7 @@
     <a href="question_history.html" class="list-item">
       <div class="left">
         <div class="title">做题历史</div>
-        <div class="subtitle" data-db="user.history_count">共 32 题</div>
+        <div class="subtitle" data-db="user.getAnswerHistory.count">共 32 题</div>
       </div>
       <div class="right">→</div>
     </a>
@@ -30,7 +30,7 @@
     <a href="paper_history.html" class="list-item">
       <div class="left">
         <div class="title">组卷历史</div>
-        <div class="subtitle" data-db="user.exam_count">共 3 张试卷</div>
+        <div class="subtitle" data-db="exam.getMyExams.count">共 3 张试卷</div>
       </div>
       <div class="right">→</div>
     </a>

@@ -18,12 +18,12 @@
         <div class="input-group">
           <label for="username">用户名</label>
           <input type="text" id="username" placeholder="输入用户名"
-                 data-db-bind="auth.username" required autofocus>
+                 data-db-bind="auth.login.username" required autofocus>
         </div>
         <div class="input-group">
           <label for="password">密码</label>
           <input type="password" id="password" placeholder="输入密码"
-                 data-db-bind="auth.password" required>
+                 data-db-bind="auth.login.password" required>
         </div>
         <button class="btn btn-primary btn-block mt-2" data-db-action="auth.login()">
           登录

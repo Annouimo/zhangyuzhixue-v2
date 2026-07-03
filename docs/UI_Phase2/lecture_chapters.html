@@ -9,48 +9,48 @@
 <body>
   <div class="page-header">
     <a href="lecture_courses.html" class="back-btn">← 返回</a>
-    <h1 data-db="course.name">导数系统课</h1>
+    <h1 data-db="lecture.getChapters.courseName">导数系统课</h1>
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <div data-db-loop="chapters" data-db-empty="暂无章节">
+    <div data-db-loop="lecture.getChapters" data-db-empty="暂无章节">
       <a href="lecture_content.html" class="list-item">
         <div class="left">
-          <div class="title" data-db="item.title">第 1 讲 导数的概念与运算</div>
-          <div class="subtitle" data-db="item.pages">共 8 页</div>
+          <div class="title" data-db="lecture.getChapters[].title">第 1 讲 导数的概念与运算</div>
+          <div class="subtitle" data-db="lecture.getChapters[].pageCount">共 8 页</div>
         </div>
         <div class="right">
-          <span class="status-tag done" data-db="item.status">已学</span>
+          <span class="status-tag done" data-db="lecture.getChapters[].studyStatus">已学</span>
         </div>
       </a>
 
       <a href="lecture_content.html" class="list-item">
         <div class="left">
-          <div class="title" data-db="item.title">第 2 讲 导数的几何意义</div>
-          <div class="subtitle" data-db="item.pages">共 6 页</div>
+          <div class="title" data-db="lecture.getChapters[].title">第 2 讲 导数的几何意义</div>
+          <div class="subtitle" data-db="lecture.getChapters[].pageCount">共 6 页</div>
         </div>
         <div class="right">
-          <span class="status-tag in-progress" data-db="item.status">学习中</span>
+          <span class="status-tag in-progress" data-db="lecture.getChapters[].studyStatus">学习中</span>
         </div>
       </a>
 
       <a href="lecture_content.html" class="list-item">
         <div class="left">
-          <div class="title" data-db="item.title">第 3 讲 导数与单调性</div>
-          <div class="subtitle" data-db="item.pages">共 10 页</div>
+          <div class="title" data-db="lecture.getChapters[].title">第 3 讲 导数与单调性</div>
+          <div class="subtitle" data-db="lecture.getChapters[].pageCount">共 10 页</div>
         </div>
         <div class="right">
-          <span class="status-tag pending" data-db="item.status">未学</span>
+          <span class="status-tag pending" data-db="lecture.getChapters[].studyStatus">未学</span>
         </div>
       </a>
 
       <a href="lecture_content.html" class="list-item">
         <div class="left">
-          <div class="title" data-db="item.title">第 4 讲 导数与极值最值</div>
-          <div class="subtitle" data-db="item.pages">共 10 页</div>
+          <div class="title" data-db="lecture.getChapters[].title">第 4 讲 导数与极值最值</div>
+          <div class="subtitle" data-db="lecture.getChapters[].pageCount">共 10 页</div>
         </div>
         <div class="right">
-          <span class="status-tag pending" data-db="item.status">未学</span>
+          <span class="status-tag pending" data-db="lecture.getChapters[].studyStatus">未学</span>
         </div>
       </a>
     </div>

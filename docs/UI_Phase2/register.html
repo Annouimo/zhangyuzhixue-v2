@@ -18,26 +18,26 @@
         <div class="input-group">
           <label for="invitation_code">邀请码</label>
           <input type="text" id="invitation_code" placeholder="输入邀请码，如 GR7X-K2P9-M4VB"
-                 data-db-bind="auth.invitation_code" required autocomplete="off" autofocus>
+                 data-db-bind="auth.register.inviteCode" required autocomplete="off" autofocus>
         </div>
         <div class="input-group">
           <label for="username">用户名（昵称）</label>
           <input type="text" id="username" placeholder="起个用户名，用于登录"
-                 data-db-bind="auth.username" required autocomplete="username">
+                 data-db-bind="auth.register.username" required autocomplete="username">
         </div>
         <div class="input-group">
           <label for="real_name">真实姓名</label>
           <input type="text" id="real_name" placeholder="输入真实姓名"
-                 data-db-bind="auth.real_name" required>
+                 data-db-bind="auth.register.realName" required>
         </div>
         <div class="input-group">
           <label for="phone">手机号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（用于找回账号）</span></label>
           <input type="tel" id="phone" placeholder="用于找回账号密码，11位手机号"
-                 data-db-bind="auth.phone" required autocomplete="tel">
+                 data-db-bind="auth.register.phone" required autocomplete="tel">
         </div>
         <div class="input-group">
           <label for="gaokao_year">高考年份</label>
-          <select id="gaokao_year" required data-db-bind="auth.gaokao_year"
+          <select id="gaokao_year" required data-db-bind="auth.register.gaokaoYear"
                   style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--card);outline:none;">
             <option value="">--- 请选择 ---</option>
             <option value="2025">2025 年</option>
@@ -49,12 +49,12 @@
         <div class="input-group">
           <label for="password1">密码</label>
           <input type="password" id="password1" placeholder="设置密码（至少8位）"
-                 data-db-bind="auth.password1" required autocomplete="new-password">
+                 data-db-bind="auth.register.password" required autocomplete="new-password">
         </div>
         <div class="input-group">
           <label for="password2">确认密码</label>
           <input type="password" id="password2" placeholder="再次输入密码"
-                 data-db-bind="auth.password2" required autocomplete="new-password">
+                 data-db-bind="auth.register.passwordConfirm" required autocomplete="new-password">
         </div>
         <button class="btn btn-primary btn-block mt-2" data-db-action="auth.register()">
           注册
