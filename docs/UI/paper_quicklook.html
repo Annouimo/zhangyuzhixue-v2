@@ -3,14 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>自主组卷 - 章鱼智学</title>
+  <title>试卷预览 - 章鱼智学</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    .selected-count {
-      font-size: 13px;
-      color: var(--primary);
-      font-weight: 600;
-    }
     .question-item {
       display: flex;
       align-items: center;
@@ -22,60 +17,68 @@
       font-size: 13px;
     }
     .question-item .q-info { flex: 1; }
-    .question-item .q-add {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-      background: var(--card);
-      cursor: pointer;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .question-item .q-add.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
   </style>
 </head>
 <body>
   <div class="page-header">
-    <a href="home.html" class="back-btn">← 返回</a>
-    <h1>我的试卷</h1>
+    <a href="paper_builder.html" class="back-btn">← 返回</a>
+    <h1>试卷预览</h1>
   </div>
-      <!-- 我的试卷预览 -->
-      <div class="card paper-preview-area">
-        <div class="text-secondary" style="font-size:13px;" data-db="exam.summary">
-          选择 <span data-db="exam.choice_count">2</span> 题
-          · 填空 <span data-db="exam.fill_count">0</span> 题
-          · 解答 <span data-db="exam.solve_count">0</span> 题
-          · 共 <span data-db="exam.total_count">2</span> 题
-        </div>
-        <div class="paper-questions mt-2" data-db-loop="exam.selected_questions">
-          <div class="question-item">
-            <div class="q-info">
-              <div data-db="item.title">2025 东城一模 第 1 题</div>
-            </div>
-          </div>
-          <div class="question-item">
-            <div class="q-info">
-              <div data-db="item.title">2025 东城一模 第 2 题</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="paper-actions">
-          <button class="btn btn-outline btn-sm" data-db-action="exam.download_pdf">下载 PDF</button>
-          <a href="solve.html" class="btn btn-outline btn-sm" data-db-action="exam.quick_answer">快对答案</a>
-          <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.delete">删除</button>
+  <div class="page" style="padding-top:8px;">
+    <!-- 试卷名称 -->
+    <div class="card">
+      <div style="font-size:17px;font-weight:600;" data-db="exam.name">我的练习卷</div>
+      <div class="text-secondary" style="font-size:13px;margin-top:4px;" data-db="exam.summary">
+        选择 <span data-db="exam.choice_count">2</span> 题
+        · 填空 <span data-db="exam.fill_count">0</span> 题
+        · 解答 <span data-db="exam.solve_count">0</span> 题
+        · 共 <span data-db="exam.total_count">2</span> 题
+      </div>
+    </div>
+
+    <!-- 题目列表 -->
+    <h3 style="font-size:15px;font-weight:600;margin:12px 0 8px;">已选题目</h3>
+    <div data-db-loop="exam.selected_questions">
+      <div class="question-item">
+        <div class="q-info">
+          <div data-db="item.title">2025 东城一模 第 1 题</div>
+          <div class="text-secondary" data-db="item.meta">选择题 · 难度 0.3 · 计算量 1.2</div>
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="q-info">
+          <div data-db="item.title">2025 东城一模 第 2 题</div>
+          <div class="text-secondary" data-db="item.meta">选择题 · 难度 0.5 · 计算量 1.8</div>
         </div>
       </div>
     </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex gap-2 mt-4">
+      <button class="btn btn-outline flex-1" data-db-action="exam.download_pdf">下载 PDF</button>
+      <a href="solve.html" class="btn btn-outline flex-1" data-db-action="exam.quick_answer">快对答案</a>
+      <button class="btn btn-ghost flex-1" style="color:var(--error);" data-db-action="exam.delete">删除</button>
+    </div>
   </div>
 
-  <script>
-    function toggleFilter(header) {
-      var section = header.parentElement;
-      section.classList.toggle('open');
-    }
-  </script>
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </a>
+    <a href="homework.html" class="nav-item">
+      <span class="nav-icon">📚</span>
+      <span>作业</span>
+    </a>
+    <a href="lecture_courses.html" class="nav-item">
+      <span class="nav-icon">📖</span>
+      <span>讲义</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
 </body>
 </html>
