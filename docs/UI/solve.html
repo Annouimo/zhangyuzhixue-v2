@@ -87,7 +87,7 @@
           <button class="feedback-btn wrong" onclick="selectFeedback(1, 'wrong')">不会</button>
         </div>
         <div class="step-nav">
-          <button class="next-btn" data-next="2" onclick="revealNext(1)">▶</button>
+          <button class="next-btn" data-next="2" onclick="onArrow(1)">▶</button>
         </div>
       </div>
 
@@ -117,7 +117,7 @@
           <button class="feedback-btn wrong" onclick="selectFeedback(2, 'wrong')">不会</button>
         </div>
         <div class="step-nav">
-          <button class="next-btn" data-next="3" onclick="revealNext(2)">▶</button>
+          <button class="next-btn" data-next="3" onclick="onArrow(2)">▶</button>
         </div>
       </div>
 
@@ -147,7 +147,7 @@
           <button class="feedback-btn wrong" onclick="selectFeedback(3, 'wrong')">不会</button>
         </div>
         <div class="step-nav">
-          <button class="next-btn" data-next="done" onclick="revealNext(3)">▶</button>
+          <button class="next-btn" data-next="done" onclick="onArrow(3)">▶</button>
         </div>
       </div>
     </div>
@@ -250,49 +250,57 @@
     </div>
   </div>
 
-  <script>
-    let currentStep = 1;
+    <script>
+    const TOTAL_STEPS = 3;
     let currentRating = { difficulty: 0, calculation: 0, elegance: 0 };
     let stepFeedbacks = {};
 
-    /**
-     * 揭示下一步：
-     * 1. 展开当前步的解析+反馈按钮
-     * 2. 显示下一步的卡片（标题+知识卡片，解析和按钮仍隐藏）
-     * 3. 如果当前步已经是最后一步且解析已展开，则进入恭喜完成
-     */
-    function revealNext(step) {
-      var content = document.getElementById('step-content-' + step);
-      var feedback = document.getElementById('feedback-' + step);
-      var btn = document.querySelector('.step-card[data-step="' + step + '"] .next-btn');
-      var nextStep = btn ? btn.getAttribute('data-next') : null;
+    /** 每个步骤的状态追踪 */
+    let stepState = {};
+    for (let i = 1; i <= TOTAL_STEPS; i++) {
+      stepState[i] = { card: i === 1, content: false, arrowHidden: false };
+    }
 
-      // 如果当前步的解析还没展开，先展开
-      if (content && content.style.display !== 'block') {
-        content.style.display = 'block';
-        feedback.style.display = 'flex';
-        return; // 等用户再点一次箭头才进入下一步
+    /** 点击箭头：展开当前步的解析+反馈，箭头隐藏 */
+    function onArrow(step) {
+      for (let i = step; i <= TOTAL_STEPS; i++) {
+        if (stepState[i].card && !stepState[i].content) {
+          document.getElementById('step-content-' + i).style.display = 'block';
+          document.getElementById('feedback-' + i).style.display = 'flex';
+          stepState[i].content = true;
+          break;
+        }
       }
+      var arrow = document.querySelector('.step-card[data-step="' + step + '"] .next-btn');
+      if (arrow) { arrow.style.display = 'none'; }
+    }
 
-      // 解析已经展开 → 进入下一步
-      if (nextStep === 'done') {
+    /** 点击反馈按钮 */
+    function onFeedback(step) {
+      if (step === TOTAL_STEPS) {
         goToDone();
         return;
       }
-
-      // 显示下一步卡片
-      var nextCard = document.querySelector('.step-card[data-step="' + nextStep + '"]');
+      // 显示下一步卡片并展开内容
+      var next = step + 1;
+      var nextCard = document.querySelector('.step-card[data-step="' + next + '"]');
       if (nextCard) {
         nextCard.style.display = 'block';
-        // 滚动到下一步
+        stepState[next].card = true;
+        document.getElementById('step-content-' + next).style.display = 'block';
+        document.getElementById('feedback-' + next).style.display = 'flex';
+        stepState[next].content = true;
         nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    }
-
-    function goToDone() {
-      document.getElementById('step-container').style.display = 'none';
-      document.getElementById('congrats-section').style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // 显示下下一步卡片（内容隐藏）
+      var next2 = step + 2;
+      if (next2 <= TOTAL_STEPS) {
+        var next2Card = document.querySelector('.step-card[data-step="' + next2 + '"]');
+        if (next2Card) {
+          next2Card.style.display = 'block';
+          stepState[next2].card = true;
+        }
+      }
     }
 
     function selectFeedback(step, type) {
@@ -309,6 +317,13 @@
           }
         });
       }
+      onFeedback(step);
+    }
+
+    function goToDone() {
+      document.getElementById('step-container').style.display = 'none';
+      document.getElementById('congrats-section').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showKnowledge(title, body) {
@@ -336,9 +351,7 @@
       });
     }
 
-    function resetStars(container) {
-      // 在 mouseleave 时恢复为已选值（不做额外处理）
-    }
+    function resetStars(container) {}
   </script>
 </body>
 </html>
