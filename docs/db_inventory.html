@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>章鱼智学 - 数据库操作清单</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #F5F7FA;
+      color: #1A1A2E;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .subtitle { color: #6B7280; font-size: 14px; margin-bottom: 20px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    th {
+      text-align: left;
+      padding: 12px 14px;
+      background: #4A6CF7;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #E5E7EB;
+      font-size: 13px;
+    }
+    tr:hover td { background: #EEF1FF; }
+    code {
+      font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-size: 12px;
+      background: #F3F4F6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .tag-read { background: #DBEAFE; color: #1E40AF; }
+    .tag-bind { background: #FEF3C7; color: #92400E; }
+    .tag-write { background: #D1FAE5; color: #065F46; }
+    .tag-loop { background: #F3E8FF; color: #6B21A8; }
+    .tag-empty { background: #FCE4EC; color: #C62828; }
+    .count { font-size: 13px; color: #6B7280; margin-bottom: 12px; }
+    .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>📊 章鱼智学 · 数据库操作总清单</h1>
+  <p class="subtitle">由 <code>scan_db_ops.py</code> 自动扫描生成 · 共 273 项</p>
+
+  <div class="legend">
+    <div class="legend-item"><span class="tag tag-read">📖 读取</span> 从数据库取数据显示</div>
+    <div class="legend-item"><span class="tag tag-bind">🔄 双向绑定</span> 表单输入，读取+写回</div>
+    <div class="legend-item"><span class="tag tag-write">✏️ 写入</span> 用户操作触发写入</div>
+    <div class="legend-item"><span class="tag tag-loop">🔁 循环列表</span> 列表循环渲染</div>
+    <div class="legend-item"><span class="tag tag-empty">📭 空状态</span> 列表为空时的文案</div>
+  </div>
+
+  <p class="count">按页面分组，共 17 个页面</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>页面</th>
+        <th>路径</th>
+        <th>类型</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>exam.name</code></td>
+      <td>📖 读取</td>
+      <td>试卷名称</td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>exam.total_count</code></td>
+      <td>📖 读取</td>
+      <td>总题数</td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.answer</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>item.answer</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>answer_sheet.html</td>
+      <td><code>exam.answer_sheet</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>home.html</td>
+      <td><code>user.greeting</code></td>
+      <td>📖 读取</td>
+      <td>问候语</td>
+    </tr>
+    <tr>
+      <td>home.html</td>
+      <td><code>user.real_name</code></td>
+      <td>📖 读取</td>
+      <td>用户姓名</td>
+    </tr>
+    <tr>
+      <td>home.html</td>
+      <td><code>user.school</code></td>
+      <td>📖 读取</td>
+      <td>学校标语</td>
+    </tr>
+    <tr>
+      <td>home.html</td>
+      <td><code>home.recommend_count</code></td>
+      <td>📖 读取</td>
+      <td>推荐说明</td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.course_name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.completed</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.total</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.deadline_remaining</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.course_name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.completed</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.total</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.deadline_remaining</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.course_name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.completed</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.total</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>pending_assignments</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework.html</td>
+      <td><code>暂无待办作业</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>assignment.title</code></td>
+      <td>📖 读取</td>
+      <td>作业标题</td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>assignment.course_name</code></td>
+      <td>📖 读取</td>
+      <td>所属课程</td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>assignment.completed</code></td>
+      <td>📖 读取</td>
+      <td>已完成数</td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>assignment.total</code></td>
+      <td>📖 读取</td>
+      <td>总题数</td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>assignment.deadline_remaining</code></td>
+      <td>📖 读取</td>
+      <td>剩余天数</td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.number</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>homework_detail.html</td>
+      <td><code>question_list</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>course.name</code></td>
+      <td>📖 读取</td>
+      <td>课程名</td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.pages</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.pages</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.pages</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.pages</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>chapters</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_chapters.html</td>
+      <td><code>暂无章节</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.title</code></td>
+      <td>📖 读取</td>
+      <td>讲义标题</td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.content</code></td>
+      <td>📖 读取</td>
+      <td>讲义正文</td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.formula_1</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.formula_2</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.page_info</code></td>
+      <td>📖 读取</td>
+      <td>页码信息</td>
+    </tr>
+    <tr>
+      <td>lecture_content.html</td>
+      <td><code>lecture.pagination</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.chapter_count</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.chapter_count</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>item.chapter_count</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>courses</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>lecture_courses.html</td>
+      <td><code>暂无课程</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>login.html</td>
+      <td><code>auth.username</code></td>
+      <td>🔄 双向绑定</td>
+      <td>用户名</td>
+    </tr>
+    <tr>
+      <td>login.html</td>
+      <td><code>auth.password</code></td>
+      <td>🔄 双向绑定</td>
+      <td>密码</td>
+    </tr>
+    <tr>
+      <td>login.html</td>
+      <td><code>auth.login()</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.difficulty_min</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.difficulty_max</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.calculation_min</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.calculation_max</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.total_questions</code></td>
+      <td>📖 读取</td>
+      <td>题目总数</td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.selected_count</code></td>
+      <td>📖 读取</td>
+      <td>已选计数</td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.calculation</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.calculation</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>item.calculation</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.points_cost</code></td>
+      <td>📖 读取</td>
+      <td>消耗积分</td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.' + name + '_min</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.' + name + '_max</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.name</code></td>
+      <td>🔄 双向绑定</td>
+      <td>试卷名称</td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.difficulty_min</code></td>
+      <td>🔄 双向绑定</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.difficulty_max</code></td>
+      <td>🔄 双向绑定</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.calculation_min</code></td>
+      <td>🔄 双向绑定</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.calculation_max</code></td>
+      <td>🔄 双向绑定</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.clear_filters</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.toggle_question(1)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.toggle_question(2)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>exam.toggle_question(3)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.years</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.regions</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.concept_tags</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>filter.knowledge_cards</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_builder.html</td>
+      <td><code>search_results</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.summary</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.summary</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.name</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>item.summary</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.download_pdf(1)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.quick_answer(1)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.delete(1)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.download_pdf(2)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.quick_answer(2)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.delete(2)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.download_pdf(3)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.quick_answer(3)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam.delete(3)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>exam_history_list</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_history.html</td>
+      <td><code>暂无组卷记录</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.name</code></td>
+      <td>📖 读取</td>
+      <td>试卷名称</td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.summary</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.choice_count</code></td>
+      <td>📖 读取</td>
+      <td>选择题数</td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.fill_count</code></td>
+      <td>📖 读取</td>
+      <td>填空题数</td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.solve_count</code></td>
+      <td>📖 读取</td>
+      <td>解答题数</td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.total_count</code></td>
+      <td>📖 读取</td>
+      <td>总题数</td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>item.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>item.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.download_pdf</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.quick_answer</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.delete</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.start_question(1)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.start_question(2)</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>paper_quicklook.html</td>
+      <td><code>exam.selected_questions</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>user.points</code></td>
+      <td>📖 读取</td>
+      <td>当前积分</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>table_header.time</code></td>
+      <td>📖 读取</td>
+      <td>表头-时间</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>table_header.type</code></td>
+      <td>📖 读取</td>
+      <td>表头-类型</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>table_header.change</code></td>
+      <td>📖 读取</td>
+      <td>表头-变动</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>table_header.balance</code></td>
+      <td>📖 读取</td>
+      <td>表头-余额</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>table_header.note</code></td>
+      <td>📖 读取</td>
+      <td>表头-说明</td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.time</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.change</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.balance</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.note</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.time</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.change</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.balance</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.note</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.time</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.change</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.balance</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.note</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.time</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.change</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.balance</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.note</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.time</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.change</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.balance</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>item.note</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>points_history</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>points.html</td>
+      <td><code>暂无流水记录</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>profile.html</td>
+      <td><code>user.real_name</code></td>
+      <td>📖 读取</td>
+      <td>用户姓名</td>
+    </tr>
+    <tr>
+      <td>profile.html</td>
+      <td><code>user.student_id</code></td>
+      <td>📖 读取</td>
+      <td>学号</td>
+    </tr>
+    <tr>
+      <td>profile.html</td>
+      <td><code>user.points</code></td>
+      <td>📖 读取</td>
+      <td>当前积分</td>
+    </tr>
+    <tr>
+      <td>profile.html</td>
+      <td><code>user.history_count</code></td>
+      <td>📖 读取</td>
+      <td>做题历史计数</td>
+    </tr>
+    <tr>
+      <td>profile.html</td>
+      <td><code>user.exam_count</code></td>
+      <td>📖 读取</td>
+      <td>组卷历史计数</td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.date</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>answer_history</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>question_history.html</td>
+      <td><code>暂无做题记录</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.title</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.type</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.difficulty</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>item.status</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>recommended_questions</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>recommend.html</td>
+      <td><code>暂无推荐题目</code></td>
+      <td>📭 空状态文案</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.invitation_code</code></td>
+      <td>🔄 双向绑定</td>
+      <td>邀请码</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.username</code></td>
+      <td>🔄 双向绑定</td>
+      <td>用户名</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.real_name</code></td>
+      <td>🔄 双向绑定</td>
+      <td>真实姓名</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.phone</code></td>
+      <td>🔄 双向绑定</td>
+      <td>手机号</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.gaokao_year</code></td>
+      <td>🔄 双向绑定</td>
+      <td>高考年份</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.password1</code></td>
+      <td>🔄 双向绑定</td>
+      <td>密码</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.password2</code></td>
+      <td>🔄 双向绑定</td>
+      <td>确认密码</td>
+    </tr>
+    <tr>
+      <td>register.html</td>
+      <td><code>auth.register()</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.title</code></td>
+      <td>📖 读取</td>
+      <td>解题页面标题</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.meta</code></td>
+      <td>📖 读取</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.number</code></td>
+      <td>📖 读取</td>
+      <td>题号</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.assignment_name</code></td>
+      <td>📖 读取</td>
+      <td>所属作业</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.stem</code></td>
+      <td>📖 读取</td>
+      <td>题干</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.concepts</code></td>
+      <td>📖 读取</td>
+      <td>相关概念</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.title</code></td>
+      <td>📖 读取</td>
+      <td>步骤标题</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.knowledge_card</code></td>
+      <td>📖 读取</td>
+      <td>知识卡片</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.content</code></td>
+      <td>📖 读取</td>
+      <td>步骤解析</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.title</code></td>
+      <td>📖 读取</td>
+      <td>步骤标题</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.knowledge_card</code></td>
+      <td>📖 读取</td>
+      <td>知识卡片</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.knowledge_card</code></td>
+      <td>📖 读取</td>
+      <td>知识卡片</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.content</code></td>
+      <td>📖 读取</td>
+      <td>步骤解析</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.title</code></td>
+      <td>📖 读取</td>
+      <td>步骤标题</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.knowledge_card</code></td>
+      <td>📖 读取</td>
+      <td>知识卡片</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>step.content</code></td>
+      <td>📖 读取</td>
+      <td>步骤解析</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.congrats_text</code></td>
+      <td>📖 读取</td>
+      <td>恭喜文字</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.user_difficulty</code></td>
+      <td>📖 读取</td>
+      <td>用户难度评分</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.algorithm_difficulty</code></td>
+      <td>📖 读取</td>
+      <td>算法难度分</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.user_calculation</code></td>
+      <td>📖 读取</td>
+      <td>用户计算量评分</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.algorithm_calculation</code></td>
+      <td>📖 读取</td>
+      <td>算法计算量分</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.user_elegance</code></td>
+      <td>📖 读取</td>
+      <td>用户优雅度评分</td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.set_difficulty</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.set_calculation</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.set_elegance</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>rating.submit()</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>question.next</code></td>
+      <td>✏️ 写入</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>solve.html</td>
+      <td><code>solution_steps</code></td>
+      <td>🔁 循环列表</td>
+      <td></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <p class="subtitle" style="margin-top:20px;">
+    更新方式：在项目根目录运行 <code>python docs/scan_db_ops.py</code>
+  </p>
+</body>
+</html>

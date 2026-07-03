@@ -104,7 +104,7 @@
     <!-- 试卷名称 -->
     <div class="input-group">
       <label>试卷名称</label>
-      <input type="text" placeholder="输入试卷名称" data-db="exam.name" value="我的练习卷">
+      <input type="text" placeholder="输入试卷名称" data-db-bind="exam.name" value="我的练习卷">
     </div>
 
     <!-- 筛选区域 -->
@@ -199,10 +199,10 @@
               <div class="fill" id="difficulty-fill"></div>
               <input type="range" min="0" max="10" value="2" step="0.5"
                      id="difficulty-min" oninput="syncDualRange('difficulty')"
-                     data-db="filter.difficulty_min">
+                     data-db-bind="filter.difficulty_min">
               <input type="range" min="0" max="10" value="8" step="0.5"
                      id="difficulty-max" oninput="syncDualRange('difficulty')"
-                     data-db="filter.difficulty_max">
+                     data-db-bind="filter.difficulty_max">
             </div>
             <div class="dual-labels">
               <span>最小值：<span id="difficulty-min-label" data-db="filter.difficulty_min">2</span></span>
@@ -216,10 +216,10 @@
               <div class="fill" id="calculation-fill"></div>
               <input type="range" min="0" max="10" value="1" step="0.5"
                      id="calculation-min" oninput="syncDualRange('calculation')"
-                     data-db="filter.calculation_min">
+                     data-db-bind="filter.calculation_min">
               <input type="range" min="0" max="10" value="7" step="0.5"
                      id="calculation-max" oninput="syncDualRange('calculation')"
-                     data-db="filter.calculation_max">
+                     data-db-bind="filter.calculation_max">
             </div>
             <div class="dual-labels">
               <span>最小值：<span id="calculation-min-label" data-db="filter.calculation_min">1</span></span>
