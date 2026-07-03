@@ -43,6 +43,7 @@
         <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-outline btn-sm" data-db-action="exam.download_pdf(1)">下载 PDF</button>
           <a href="solve.html" class="btn btn-outline btn-sm" data-db-action="exam.quick_answer(1)">快对答案</a>
+          <!-- 批语：“快对答案”指的是一个新页面，上面汇总这个试卷所有题目的简略答案（无解析，例如A，5等等）。你重新改。 -->
           <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.delete(1)">删除</button>
         </div>
       </div>
@@ -85,24 +86,5 @@
 
     </div>
   </div>
-
-  <nav class="bottom-nav">
-    <a href="home.html" class="nav-item">
-      <span class="nav-icon">🏠</span>
-      <span>首页</span>
-    </a>
-    <a href="homework.html" class="nav-item">
-      <span class="nav-icon">📚</span>
-      <span>作业</span>
-    </a>
-    <a href="lecture_courses.html" class="nav-item">
-      <span class="nav-icon">📖</span>
-      <span>讲义</span>
-    </a>
-    <a href="profile.html" class="nav-item active">
-      <span class="nav-icon">👤</span>
-      <span>我的</span>
-    </a>
-  </nav>
 </body>
 </html>
