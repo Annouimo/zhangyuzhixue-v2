@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 用户信息卡片 -->
+  <div class="card" style="margin:16px;text-align:center;padding:24px;">
+    <div style="font-size:48px;margin-bottom:8px;">👤</div>
+    <h2 style="font-size:20px;font-weight:700;" data-db="user.real_name">李小红</h2>
+    <p class="text-secondary" style="font-size:14px;">
+      学号：<span data-db="user.student_id">2026001</span>
+      · 积分：<span data-db="user.points">9.2</span>
+    </p>
+  </div>
+
+  <!-- 功能入口 -->
+  <div class="page" style="padding-top:0;">
+    <a href="history.html" class="list-item">
+      <div class="left">
+        <div class="title">做题历史</div>
+        <div class="subtitle" data-db="user.history_count">共 32 题</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="paper_builder.html" class="list-item">
+      <div class="left">
+        <div class="title">组卷历史</div>
+        <div class="subtitle" data-db="user.exam_count">共 3 张试卷</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="points.html" class="list-item">
+      <div class="left">
+        <div class="title">积分流水</div>
+        <div class="subtitle">查看积分变动记录</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </a>
+    <a href="homework.html" class="nav-item">
+      <span class="nav-icon">📚</span>
+      <span>作业</span>
+    </a>
+    <a href="lecture_courses.html" class="nav-item">
+      <span class="nav-icon">📖</span>
+      <span>讲义</span>
+    </a>
+    <a href="profile.html" class="nav-item active">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
+</body>
+</html>

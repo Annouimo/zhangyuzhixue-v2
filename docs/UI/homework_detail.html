@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业详情 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="homework.html" class="back-btn">← 返回</a>
+    <h1 data-db="assignment.title">导数第 1 讲课后练习</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 作业元信息 -->
+    <div class="card">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="subtitle text-secondary" data-db="assignment.course_name">所属课程：导数系统课</div>
+          <div class="progress-bar mt-2">
+            <span data-db="assignment.completed">2</span>/<span data-db="assignment.total">6</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:33%"></div>
+            </div>
+            <span class="text-secondary">还有 <span data-db="assignment.deadline_remaining">5</span> 天截止</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 题目列表 -->
+    <h3 style="font-size:15px;font-weight:600;margin:12px 0 8px;">题目列表</h3>
+    <div data-db-loop="question_list">
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 3 题</span>
+            <span class="text-secondary" data-db="item.type">解答题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+        </div>
+      </a>
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 6 题</span>
+            <span class="text-secondary" data-db="item.type">解答题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+        </div>
+      </a>
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 2 题</span>
+            <span class="text-secondary" data-db="item.type">选择题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag pending" data-db="item.status">未做</span>
+        </div>
+      </a>
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 1 题</span>
+            <span class="text-secondary" data-db="item.type">填空题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag done" data-db="item.status">已完成</span>
+        </div>
+      </a>
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 4 题</span>
+            <span class="text-secondary" data-db="item.type">选择题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag done" data-db="item.status">已完成</span>
+        </div>
+      </a>
+      <a href="solve.html" class="list-item">
+        <div class="left">
+          <div class="title">
+            <span data-db="item.number">第 5 题</span>
+            <span class="text-secondary" data-db="item.type">选择题</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag done" data-db="item.status">已完成</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </a>
+    <a href="homework.html" class="nav-item active">
+      <span class="nav-icon">📚</span>
+      <span>作业</span>
+    </a>
+    <a href="lecture_courses.html" class="nav-item">
+      <span class="nav-icon">📖</span>
+      <span>讲义</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
+</body>
+</html>

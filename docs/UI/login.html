@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <div class="auth-card">
+      <h2>章鱼智学</h2>
+      <p class="text-secondary text-center mb-4" style="margin-top:-12px;font-size:14px;">登录你的账号</p>
+
+      <form onsubmit="return false;">
+        <div class="input-group">
+          <label for="username">用户名 / 手机号</label>
+          <input type="text" id="username" placeholder="请输入用户名或手机号"
+                 data-db="auth.login_username">
+        </div>
+        <div class="input-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" placeholder="请输入密码"
+                 data-db="auth.login_password">
+        </div>
+        <button class="btn btn-primary btn-block mt-2" data-db-action="auth.login()">
+          登录
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <a href="register.html">没有账号？去注册</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题模式 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .solve-container { padding: 16px; }
+    .question-meta { margin-bottom: 12px; }
+    .question-stem {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .step-nav {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .step-nav .next-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 12px rgba(74,108,247,0.3);
+      transition: transform 0.15s;
+    }
+    .step-nav .next-btn:hover { transform: scale(1.05); }
+    .step-nav .next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1 data-db="question.title">解题模式</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- 题目元信息 -->
+    <div class="question-meta" data-db="question.meta">
+      第 <span data-db="question.number">3</span> 题
+      <span data-db="question.assignment_name">导数第 1 讲课后练习</span>
+    </div>
+
+    <!-- 题目题干 -->
+    <div class="question-stem" data-db="question.stem">
+      <p><strong>相关概念</strong>：<span data-db="question.concepts">体积，平面</span></p>
+      <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足
+      a² + b² - c² = ab。</p>
+      <p style="margin-top:4px;">(1) 求 cos C 的值；</p>
+      <p>(2) 若 c = 3，求 a + b 的最大值。</p>
+    </div>
+
+    <!-- 步骤序列 -->
+    <div id="step-container" data-db-loop="solution_steps">
+      <!-- 第 1 步 -->
+      <div class="step-card active" data-step="1">
+        <div class="step-header">
+          <span class="step-number" data-db="step.title">第 1 步</span>
+          <div>
+            <span class="knowledge-tag" data-db="step.knowledge_card" data-knowledge="三角恒等变形"
+                  onclick="showKnowledge('三角恒等变形', '由余弦定理 cos C = (a² + b² - c²) / (2ab)，代入已知条件 a² + b² - c² = ab，得 cos C = ab / (2ab) = 1/2。因此 C = 60°。')">
+              三角恒等变形
+            </span>
+          </div>
+        </div>
+        <div class="step-content" id="step-content-1">
+          <p data-db="step.content">由余弦定理 cos C = (a² + b² - c²) / (2ab)，<br>
+          代入已知条件 a² + b² - c² = ab，<br>
+          得 cos C = ab / (2ab) = 1/2。</p>
+        </div>
+        <div class="feedback-row" id="feedback-1">
+          <button class="feedback-btn correct" data-feedback="correct" onclick="selectFeedback(1, 'correct')">全对</button>
+          <button class="feedback-btn partial" data-feedback="partial" onclick="selectFeedback(1, 'partial')">过程对计算错</button>
+          <button class="feedback-btn wrong" data-feedback="wrong" onclick="selectFeedback(1, 'wrong')">不会</button>
+        </div>
+        <div class="step-nav" style="margin-top:8px;">
+          <button class="next-btn" data-next="2" onclick="goToStep(2)">▶</button>
+        </div>
+      </div>
+
+      <!-- 第 2 步（初始隐藏） -->
+      <div class="step-card" data-step="2" style="display:none;">
+        <div class="step-header">
+          <span class="step-number" data-db="step.title">第 2 步</span>
+          <div>
+            <span class="knowledge-tag" data-db="step.knowledge_card" data-knowledge="正弦定理"
+                  onclick="showKnowledge('正弦定理', '正弦定理：a / sin A = b / sin B = c / sin C = 2R（R 为外接圆半径）。用于已知两边及一角或两角及一边时解三角形。')">
+              正弦定理
+            </span>
+            <span class="knowledge-tag" data-db="step.knowledge_card" data-knowledge="化简"
+                  onclick="showKnowledge('化简', '代值后使用三角恒等式化简表达式，如 sin A + sin B = 2 sin((A+B)/2) cos((A-B)/2)。')">
+              化简
+            </span>
+          </div>
+        </div>
+        <div class="step-content" id="step-content-2">
+          <p data-db="step.content">由正弦定理：a = 2R sin A，b = 2R sin B，c = 2R sin C。<br>
+          c = 3，C = 60°，sin C = √3/2，得 2R = 3 / (√3/2) = 2√3。<br>
+          所以 a + b = 2R (sin A + sin B) = 2√3 (sin A + sin B)。</p>
+        </div>
+        <div class="feedback-row" id="feedback-2">
+          <button class="feedback-btn correct" onclick="selectFeedback(2, 'correct')">全对</button>
+          <button class="feedback-btn partial" onclick="selectFeedback(2, 'partial')">过程对计算错</button>
+          <button class="feedback-btn wrong" onclick="selectFeedback(2, 'wrong')">不会</button>
+        </div>
+        <div class="step-nav" style="margin-top:8px;">
+          <button class="next-btn" data-next="3" onclick="goToStep(3)">▶</button>
+        </div>
+      </div>
+
+      <!-- 第 3 步（初始隐藏） -->
+      <div class="step-card" data-step="3" style="display:none;">
+        <div class="step-header">
+          <span class="step-number" data-db="step.title">第 3 步</span>
+          <div>
+            <span class="knowledge-tag" data-db="step.knowledge_card" data-knowledge="辅助角公式"
+                  onclick="showKnowledge('辅助角公式', 'a sin θ + b cos θ = √(a² + b²) sin(θ + φ)，其中 tan φ = b/a。用于合并同名三角函数。')">
+              辅助角公式
+            </span>
+          </div>
+        </div>
+        <div class="step-content" id="step-content-3">
+          <p data-db="step.content">A + B = 120°，所以 B = 120° - A。<br>
+          sin A + sin B = sin A + sin(120° - A) <br>
+          = sin A + sin 120° cos A - cos 120° sin A <br>
+          = sin A + (√3/2) cos A + (1/2) sin A <br>
+          = (3/2) sin A + (√3/2) cos A <br>
+          = √3 sin(A + 30°)。<br>
+          所以 a + b = 2√3 × √3 sin(A + 30°) = 6 sin(A + 30°)。</p>
+        </div>
+        <div class="feedback-row" id="feedback-3">
+          <button class="feedback-btn correct" onclick="selectFeedback(3, 'correct')">全对</button>
+          <button class="feedback-btn partial" onclick="selectFeedback(3, 'partial')">过程对计算错</button>
+          <button class="feedback-btn wrong" onclick="selectFeedback(3, 'wrong')">不会</button>
+        </div>
+        <div class="step-nav" style="margin-top:8px;">
+          <button class="next-btn" data-next="done" onclick="goToDone()">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 恭喜完成（初始隐藏） -->
+    <div id="congrats-section" style="display:none;">
+      <div class="congrats-card">
+        <div class="icon">🎉</div>
+        <h2 data-db="question.congrats_text">恭喜完成本题！</h2>
+        <p class="text-secondary mt-2" data-db="question.score_text">得分评估已记录</p>
+      </div>
+
+      <!-- 评分区域 -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:12px;">题目评价</h3>
+
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span style="font-size:14px;">难度</span>
+            <span class="text-secondary" style="font-size:12px;">
+              用户：<span data-db="rating.user_difficulty">—</span>
+              算法：<span data-db="rating.algorithm_difficulty">6.6</span>
+            </span>
+          </div>
+          <div class="star-rating" data-db-action="rating.set_difficulty" onmouseleave="resetStars(this)">
+            <span class="star" data-value="1" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="2" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="3" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="4" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="5" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="6" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="7" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="8" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="9" onclick="setRating(this, 'difficulty')">★</span>
+            <span class="star" data-value="10" onclick="setRating(this, 'difficulty')">★</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span style="font-size:14px;">计算量</span>
+            <span class="text-secondary" style="font-size:12px;">
+              用户：<span data-db="rating.user_calculation">—</span>
+              算法：<span data-db="rating.algorithm_calculation">6.6</span>
+            </span>
+          </div>
+          <div class="star-rating" data-db-action="rating.set_calculation" onmouseleave="resetStars(this)">
+            <span class="star" data-value="1" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="2" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="3" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="4" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="5" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="6" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="7" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="8" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="9" onclick="setRating(this, 'calculation')">★</span>
+            <span class="star" data-value="10" onclick="setRating(this, 'calculation')">★</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <span style="font-size:14px;">优雅度</span>
+            <span class="text-secondary" style="font-size:12px;">
+              用户：<span data-db="rating.user_elegance">—</span>
+            </span>
+          </div>
+          <div class="star-rating" data-db-action="rating.set_elegance" onmouseleave="resetStars(this)">
+            <span class="star" data-value="1" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="2" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="3" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="4" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="5" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="6" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="7" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="8" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="9" onclick="setRating(this, 'elegance')">★</span>
+            <span class="star" data-value="10" onclick="setRating(this, 'elegance')">★</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" data-db-action="rating.submit()">提交评分</button>
+      </div>
+
+      <a href="homework_detail.html" class="btn btn-outline btn-block mt-4" data-db-action="question.next">下一题 →</a>
+    </div>
+  </div>
+
+  <!-- 知识卡片弹层 -->
+  <div class="knowledge-popup" id="knowledge-popup">
+    <div class="popup-content">
+      <button class="popup-close" onclick="closeKnowledge()">✕</button>
+      <div class="popup-title" id="knowledge-title">三角恒等变形</div>
+      <div class="popup-body" id="knowledge-body">内容占位</div>
+      <div class="card-feedback-row">
+        <button class="feedback-btn correct" onclick="closeKnowledge()">完全掌握</button>
+        <button class="feedback-btn partial" onclick="closeKnowledge()">了解</button>
+        <button class="feedback-btn wrong" onclick="closeKnowledge()">不理解</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    let currentRating = { difficulty: 0, calculation: 0, elegance: 0 };
+    let stepFeedbacks = {};
+
+    function goToStep(step) {
+      var current = document.querySelector('.step-card[data-step="' + currentStep + '"]');
+      if (current) { current.style.display = 'none'; }
+      var next = document.querySelector('.step-card[data-step="' + step + '"]');
+      if (next) {
+        next.style.display = 'block';
+        currentStep = step;
+      }
+    }
+
+    function goToDone() {
+      document.getElementById('step-container').style.display = 'none';
+      document.getElementById('congrats-section').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    function selectFeedback(step, type) {
+      stepFeedbacks[step] = type;
+      var row = document.getElementById('feedback-' + step);
+      if (row) {
+        var btns = row.querySelectorAll('.feedback-btn');
+        btns.forEach(function(b) {
+          b.classList.remove('selected');
+          if ((type === 'correct' && b.classList.contains('correct')) ||
+              (type === 'partial' && b.classList.contains('partial')) ||
+              (type === 'wrong' && b.classList.contains('wrong'))) {
+            b.classList.add('selected');
+          }
+        });
+      }
+      // 自动展开解析
+      var content = document.getElementById('step-content-' + step);
+      if (content) { content.classList.add('visible'); }
+      row.classList.add('visible');
+    }
+
+    function showKnowledge(title, body) {
+      document.getElementById('knowledge-title').textContent = title;
+      document.getElementById('knowledge-body').textContent = body;
+      document.getElementById('knowledge-popup').classList.add('show');
+    }
+
+    function closeKnowledge() {
+      document.getElementById('knowledge-popup').classList.remove('show');
+    }
+
+    function setRating(el, dimension) {
+      var container = el.parentElement;
+      var value = parseInt(el.getAttribute('data-value'));
+      var stars = container.querySelectorAll('.star');
+      currentRating[dimension] = value;
+      stars.forEach(function(s) {
+        var v = parseInt(s.getAttribute('data-value'));
+        if (v <= value) { s.classList.add('active'); }
+        else { s.classList.remove('active'); }
+      });
+    }
+
+    function resetStars(container) {
+      // 在 mouseleave 时恢复为已选值（不做额外处理）
+    }
+  </script>
+</body>
+</html>

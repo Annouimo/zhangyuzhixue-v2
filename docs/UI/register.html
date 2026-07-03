@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <div class="auth-card">
+      <h2>创建账号</h2>
+      <p class="text-secondary text-center mb-4" style="margin-top:-12px;font-size:14px;">填写信息加入章鱼智学</p>
+
+      <form onsubmit="return false;">
+        <div class="input-group">
+          <label for="real_name">姓名</label>
+          <input type="text" id="real_name" placeholder="请输入真实姓名"
+                 data-db="auth.register_real_name">
+        </div>
+        <div class="input-group">
+          <label for="phone">手机号</label>
+          <input type="tel" id="phone" placeholder="请输入手机号"
+                 data-db="auth.register_phone">
+        </div>
+        <div class="input-group">
+          <label for="student_id">学号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（选填）</span></label>
+          <input type="text" id="student_id" placeholder="————————"
+                 data-db="auth.register_student_id">
+        </div>
+        <div class="input-group">
+          <label for="invite_code">邀请码</label>
+          <input type="text" id="invite_code" placeholder="请输入邀请码"
+                 data-db="auth.register_invite_code">
+        </div>
+        <div class="input-group">
+          <label for="reg_password">密码</label>
+          <input type="password" id="reg_password" placeholder="请设置密码"
+                 data-db="auth.register_password">
+        </div>
+        <div class="input-group">
+          <label for="reg_password_confirm">确认密码</label>
+          <input type="password" id="reg_password_confirm" placeholder="请再次输入密码"
+                 data-db="auth.register_password_confirm">
+        </div>
+        <button class="btn btn-primary btn-block mt-2" data-db-action="auth.register()">
+          注册
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <a href="login.html">已有账号？去登录</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

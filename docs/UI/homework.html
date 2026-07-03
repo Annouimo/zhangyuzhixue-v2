@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>待办作业 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <h1>待办作业</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <div data-db-loop="pending_assignments" data-db-empty="暂无待办作业">
+      <a href="homework_detail.html" class="list-item">
+        <div class="left">
+          <div class="title" data-db="item.title">初始作业</div>
+          <div class="subtitle" data-db="item.course_name">所属课程：公益讲座</div>
+          <div class="progress-bar mt-2">
+            <span data-db="item.completed">5</span>/<span data-db="item.total">11</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:45%"></div>
+            </div>
+            <span class="text-secondary">还有 <span data-db="item.deadline_remaining">5</span> 天截止</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+        </div>
+      </a>
+
+      <a href="homework_detail.html" class="list-item">
+        <div class="left">
+          <div class="title" data-db="item.title">导数第 1 讲课后练习</div>
+          <div class="subtitle" data-db="item.course_name">所属课程：导数系统课</div>
+          <div class="progress-bar mt-2">
+            <span data-db="item.completed">2</span>/<span data-db="item.total">6</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:33%"></div>
+            </div>
+            <span class="text-secondary">还有 <span data-db="item.deadline_remaining">5</span> 天截止</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag in-progress" data-db="item.status">进行中</span>
+        </div>
+      </a>
+
+      <a href="homework_detail.html" class="list-item">
+        <div class="left">
+          <div class="title" data-db="item.title">集合基础测试</div>
+          <div class="subtitle" data-db="item.course_name">所属课程：公益讲座</div>
+          <div class="progress-bar mt-2">
+            <span data-db="item.completed">10</span>/<span data-db="item.total">10</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:100%"></div>
+            </div>
+            <span class="text-secondary">已完成</span>
+          </div>
+        </div>
+        <div class="right">
+          <span class="status-tag done" data-db="item.status">已完成</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a href="home.html" class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </a>
+    <a href="homework.html" class="nav-item active">
+      <span class="nav-icon">📚</span>
+      <span>作业</span>
+    </a>
+    <a href="lecture_courses.html" class="nav-item">
+      <span class="nav-icon">📖</span>
+      <span>讲义</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
+</body>
+</html>
