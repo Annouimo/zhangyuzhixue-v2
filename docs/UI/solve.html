@@ -19,7 +19,7 @@
     }
     .step-nav {
       text-align: center;
-      margin-top: 16px;
+      margin-top: 12px;
     }
     .step-nav .next-btn {
       width: 48px; height: 48px;
@@ -63,8 +63,8 @@
 
     <!-- 步骤序列 -->
     <div id="step-container" data-db-loop="solution_steps">
-      <!-- 第 1 步 -->
-      <div class="step-card active" data-step="1">
+      <!-- 第 1 步（初始可见） -->
+      <div class="step-card" data-step="1" style="display:block;">
         <div class="step-header">
           <span class="step-number" data-db="step.title">第 1 步</span>
           <div>
@@ -74,18 +74,20 @@
             </span>
           </div>
         </div>
-        <div class="step-content" id="step-content-1">
+        <!-- 解析（初始隐藏） -->
+        <div class="step-content" id="step-content-1" style="display:none;">
           <p data-db="step.content">由余弦定理 cos C = (a² + b² - c²) / (2ab)，<br>
           代入已知条件 a² + b² - c² = ab，<br>
           得 cos C = ab / (2ab) = 1/2。</p>
         </div>
-        <div class="feedback-row" id="feedback-1">
-          <button class="feedback-btn correct" data-feedback="correct" onclick="selectFeedback(1, 'correct')">全对</button>
-          <button class="feedback-btn partial" data-feedback="partial" onclick="selectFeedback(1, 'partial')">过程对计算错</button>
-          <button class="feedback-btn wrong" data-feedback="wrong" onclick="selectFeedback(1, 'wrong')">不会</button>
+        <!-- 反馈（初始隐藏） -->
+        <div class="feedback-row" id="feedback-1" style="display:none;">
+          <button class="feedback-btn correct" onclick="selectFeedback(1, 'correct')">全对</button>
+          <button class="feedback-btn partial" onclick="selectFeedback(1, 'partial')">过程对计算错</button>
+          <button class="feedback-btn wrong" onclick="selectFeedback(1, 'wrong')">不会</button>
         </div>
-        <div class="step-nav" style="margin-top:8px;">
-          <button class="next-btn" data-next="2" onclick="goToStep(2)">▶</button>
+        <div class="step-nav">
+          <button class="next-btn" data-next="2" onclick="revealNext(1)">▶</button>
         </div>
       </div>
 
@@ -104,18 +106,18 @@
             </span>
           </div>
         </div>
-        <div class="step-content" id="step-content-2">
+        <div class="step-content" id="step-content-2" style="display:none;">
           <p data-db="step.content">由正弦定理：a = 2R sin A，b = 2R sin B，c = 2R sin C。<br>
           c = 3，C = 60°，sin C = √3/2，得 2R = 3 / (√3/2) = 2√3。<br>
           所以 a + b = 2R (sin A + sin B) = 2√3 (sin A + sin B)。</p>
         </div>
-        <div class="feedback-row" id="feedback-2">
+        <div class="feedback-row" id="feedback-2" style="display:none;">
           <button class="feedback-btn correct" onclick="selectFeedback(2, 'correct')">全对</button>
           <button class="feedback-btn partial" onclick="selectFeedback(2, 'partial')">过程对计算错</button>
           <button class="feedback-btn wrong" onclick="selectFeedback(2, 'wrong')">不会</button>
         </div>
-        <div class="step-nav" style="margin-top:8px;">
-          <button class="next-btn" data-next="3" onclick="goToStep(3)">▶</button>
+        <div class="step-nav">
+          <button class="next-btn" data-next="3" onclick="revealNext(2)">▶</button>
         </div>
       </div>
 
@@ -130,7 +132,7 @@
             </span>
           </div>
         </div>
-        <div class="step-content" id="step-content-3">
+        <div class="step-content" id="step-content-3" style="display:none;">
           <p data-db="step.content">A + B = 120°，所以 B = 120° - A。<br>
           sin A + sin B = sin A + sin(120° - A) <br>
           = sin A + sin 120° cos A - cos 120° sin A <br>
@@ -139,13 +141,13 @@
           = √3 sin(A + 30°)。<br>
           所以 a + b = 2√3 × √3 sin(A + 30°) = 6 sin(A + 30°)。</p>
         </div>
-        <div class="feedback-row" id="feedback-3">
+        <div class="feedback-row" id="feedback-3" style="display:none;">
           <button class="feedback-btn correct" onclick="selectFeedback(3, 'correct')">全对</button>
           <button class="feedback-btn partial" onclick="selectFeedback(3, 'partial')">过程对计算错</button>
           <button class="feedback-btn wrong" onclick="selectFeedback(3, 'wrong')">不会</button>
         </div>
-        <div class="step-nav" style="margin-top:8px;">
-          <button class="next-btn" data-next="done" onclick="goToDone()">▶</button>
+        <div class="step-nav">
+          <button class="next-btn" data-next="done" onclick="revealNext(3)">▶</button>
         </div>
       </div>
     </div>
@@ -253,20 +255,44 @@
     let currentRating = { difficulty: 0, calculation: 0, elegance: 0 };
     let stepFeedbacks = {};
 
-    function goToStep(step) {
-      var current = document.querySelector('.step-card[data-step="' + currentStep + '"]');
-      if (current) { current.style.display = 'none'; }
-      var next = document.querySelector('.step-card[data-step="' + step + '"]');
-      if (next) {
-        next.style.display = 'block';
-        currentStep = step;
+    /**
+     * 揭示下一步：
+     * 1. 展开当前步的解析+反馈按钮
+     * 2. 显示下一步的卡片（标题+知识卡片，解析和按钮仍隐藏）
+     * 3. 如果当前步已经是最后一步且解析已展开，则进入恭喜完成
+     */
+    function revealNext(step) {
+      var content = document.getElementById('step-content-' + step);
+      var feedback = document.getElementById('feedback-' + step);
+      var btn = document.querySelector('.step-card[data-step="' + step + '"] .next-btn');
+      var nextStep = btn ? btn.getAttribute('data-next') : null;
+
+      // 如果当前步的解析还没展开，先展开
+      if (content && content.style.display !== 'block') {
+        content.style.display = 'block';
+        feedback.style.display = 'flex';
+        return; // 等用户再点一次箭头才进入下一步
+      }
+
+      // 解析已经展开 → 进入下一步
+      if (nextStep === 'done') {
+        goToDone();
+        return;
+      }
+
+      // 显示下一步卡片
+      var nextCard = document.querySelector('.step-card[data-step="' + nextStep + '"]');
+      if (nextCard) {
+        nextCard.style.display = 'block';
+        // 滚动到下一步
+        nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
     function goToDone() {
       document.getElementById('step-container').style.display = 'none';
       document.getElementById('congrats-section').style.display = 'block';
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function selectFeedback(step, type) {
@@ -283,10 +309,6 @@
           }
         });
       }
-      // 自动展开解析
-      var content = document.getElementById('step-content-' + step);
-      if (content) { content.classList.add('visible'); }
-      row.classList.add('visible');
     }
 
     function showKnowledge(title, body) {
@@ -297,6 +319,9 @@
 
     function closeKnowledge() {
       document.getElementById('knowledge-popup').classList.remove('show');
+      document.querySelectorAll('.knowledge-popup.show').forEach(function(el) {
+        el.classList.remove('show');
+      });
     }
 
     function setRating(el, dimension) {
