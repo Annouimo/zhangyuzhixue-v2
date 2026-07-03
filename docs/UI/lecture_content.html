@@ -26,9 +26,47 @@
       font-style: italic;
       font-size: 17px;
     }
+    /* 讲义底部翻页控件（固定在底部，替代原底部导航位置） */
+    .lecture-pager {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--max-width);
+      height: var(--nav-height);
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 100;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+    }
+    .lecture-pager .page-btn {
+      width: 40px; height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      cursor: pointer;
+      font-size: 18px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .lecture-pager .page-btn:hover { background: var(--bg); }
+    .lecture-pager .page-info {
+      font-size: 14px;
+      color: var(--text-secondary);
+      min-width: 100px;
+      text-align: center;
+    }
   </style>
 </head>
-<body>
+<body style="padding-bottom:calc(var(--nav-height) + 20px);">
   <div class="page-header">
     <a href="lecture_chapters.html" class="back-btn">← 返回</a>
     <h1 data-db="lecture.title">第 2 讲 导数的几何意义</h1>
@@ -51,10 +89,11 @@
     </div>
   </div>
 
-  <nav class="bottom-nav">
+  <!-- 底部翻页控件 -->
+  <div class="lecture-pager" data-db-loop="lecture.pagination">
     <a href="lecture_content.html" class="page-btn">⟨</a>
-      <span class="page-info" data-db="lecture.page_info">第 2 / 6 页</span>
-      <a href="lecture_content.html" class="page-btn">⟩</a>
-  </nav>
+    <span class="page-info" data-db="lecture.page_info">第 2 / 6 页</span>
+    <a href="lecture_content.html" class="page-btn">⟩</a>
+  </div>
 </body>
 </html>

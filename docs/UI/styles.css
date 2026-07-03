@@ -1,8 +1,7 @@
 /* =============================================
    章鱼智学 UI 原型 - 共享样式
-   最终会翻译为 Flutter/Dart 代码
-   data-db 属性标记所有动态数据来源
-   ============================================= */
+   最终会翻译�?Flutter/Dart 代码
+   data-db 属性标记所有动态数据来�?   ============================================= */
 
 :root {
   --primary: #4A6CF7;
@@ -40,7 +39,7 @@
   position: relative;
 }
 [data-db-empty]::after {
-  content: "⚡ " attr(data-db-empty);
+  content: "�?" attr(data-db-empty);
   font-size: 11px;
   color: #f90;
   display: block;
@@ -56,10 +55,10 @@ body {
   color: var(--text);
   line-height: 1.6;
   min-height: 100vh;
-  padding-bottom: calc(var(--nav-height) + 20px);
   max-width: var(--max-width);
   margin: 0 auto;
 }
+body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
 
 /* ----- 页面容器 ----- */
 .page {
@@ -167,7 +166,7 @@ body {
   margin-left: 12px;
 }
 
-/* ----- 进度条 ----- */
+/* ----- 进度�?----- */
 .progress-bar {
   display: inline-flex;
   align-items: center;
@@ -189,7 +188,7 @@ body {
   transition: width 0.3s;
 }
 
-/* ----- 状态标签 ----- */
+/* ----- 状态标�?----- */
 .status-tag {
   display: inline-block;
   font-size: 12px;
@@ -380,7 +379,7 @@ body {
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-danger { background: var(--error); color: #fff; }
 
-/* ----- 输入框 ----- */
+/* ----- 输入�?----- */
 .input-group {
   margin-bottom: 16px;
 }
@@ -403,7 +402,7 @@ body {
 .input-group input:focus { border-color: var(--primary); }
 .input-group input::placeholder { color: var(--text-muted); }
 
-/* ----- 筛选面板 ----- */
+/* ----- 筛选面�?----- */
 .filter-section {
   margin-bottom: 12px;
 }
@@ -501,7 +500,7 @@ body {
 }
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
-/* ----- 表单卡片（登录/注册） ----- */
+/* ----- 表单卡片（登�?注册�?----- */
 .auth-card {
   background: var(--card);
   border-radius: var(--radius);
@@ -524,7 +523,7 @@ body {
   text-decoration: none;
 }
 
-/* ----- 工具类 ----- */
+/* ----- 工具�?----- */
 .mt-4 { margin-top: 16px; }
 .mt-2 { margin-top: 8px; }
 .mb-4 { margin-bottom: 16px; }

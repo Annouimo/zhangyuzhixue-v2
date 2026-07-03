@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>答案速览 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .answer-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      box-shadow: var(--shadow);
+      font-size: 14px;
+    }
+    .answer-row .q-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .answer-row .q-info { flex: 1; }
+    .answer-row .q-answer {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--success);
+      padding: 4px 12px;
+      background: #D1FAE5;
+      border-radius: var(--radius-sm);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="paper_quicklook.html" class="back-btn">← 返回</a>
+    <h1>答案速览</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 试卷信息 -->
+    <div class="card">
+      <div style="font-size:17px;font-weight:600;" data-db="exam.name">我的练习卷</div>
+      <div class="text-secondary" style="font-size:13px;margin-top:4px;">
+        共 <span data-db="exam.total_count">2</span> 题 · 仅展示答案，无解析
+      </div>
+    </div>
+
+    <!-- 答案列表 -->
+    <p class="text-secondary" style="font-size:13px;margin:8px 0 4px;">点击题目可进入解题模式</p>
+    <div data-db-loop="exam.answer_sheet">
+      <a href="solve.html" class="answer-row" style="text-decoration:none;color:inherit;">
+        <div class="q-num">1</div>
+        <div class="q-info">
+          <div data-db="item.title">2025 东城一模 第 1 题</div>
+          <div class="text-secondary" style="font-size:12px;" data-db="item.type">选择题</div>
+        </div>
+        <div class="q-answer" data-db="item.answer">A</div>
+      </a>
+
+      <a href="solve.html" class="answer-row" style="text-decoration:none;color:inherit;">
+        <div class="q-num">2</div>
+        <div class="q-info">
+          <div data-db="item.title">2025 东城一模 第 2 题</div>
+          <div class="text-secondary" style="font-size:12px;" data-db="item.type">选择题</div>
+        </div>
+        <div class="q-answer" data-db="item.answer">B</div>
+      </a>
+    </div>
+
+    <a href="paper_quicklook.html" class="btn btn-outline btn-block mt-4">← 返回试卷预览</a>
+  </div>
+</body>
+</html>

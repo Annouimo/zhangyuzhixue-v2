@@ -3,45 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>注册 - 章鱼智学</title>
+  <title>注册 — 章鱼智学</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="page">
     <div class="auth-card">
-      <h2>创建账号</h2>
-      <p class="text-secondary text-center mb-4" style="margin-top:-12px;font-size:14px;">填写信息加入章鱼智学</p>
+      <p class="text-secondary text-center" style="font-size:14px;margin-bottom:4px;">
+        🐙 章鱼智学 — 北京高考数学 · 题库 · 讲义 · 解题训练
+      </p>
+      <h2>📝 学生注册</h2>
 
       <form onsubmit="return false;">
         <div class="input-group">
-          <label for="real_name">姓名</label>
-          <input type="text" id="real_name" placeholder="请输入真实姓名"
-                 data-db="auth.register_real_name">
+          <label for="invitation_code">邀请码</label>
+          <input type="text" id="invitation_code" placeholder="输入邀请码，如 GR7X-K2P9-M4VB"
+                 data-db="auth.invitation_code" required autocomplete="off" autofocus>
         </div>
         <div class="input-group">
-          <label for="phone">手机号</label>
-          <input type="tel" id="phone" placeholder="请输入手机号"
-                 data-db="auth.register_phone">
+          <label for="username">用户名（昵称）</label>
+          <input type="text" id="username" placeholder="起个用户名，用于登录"
+                 data-db="auth.username" required autocomplete="username">
         </div>
         <div class="input-group">
-          <label for="student_id">学号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（选填）</span></label>
-          <input type="text" id="student_id" placeholder="————————"
-                 data-db="auth.register_student_id">
+          <label for="real_name">真实姓名</label>
+          <input type="text" id="real_name" placeholder="输入真实姓名"
+                 data-db="auth.real_name" required>
         </div>
         <div class="input-group">
-          <label for="invite_code">邀请码</label>
-          <input type="text" id="invite_code" placeholder="请输入邀请码"
-                 data-db="auth.register_invite_code">
+          <label for="phone">手机号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（用于找回账号）</span></label>
+          <input type="tel" id="phone" placeholder="用于找回账号密码，11位手机号"
+                 data-db="auth.phone" required autocomplete="tel">
         </div>
         <div class="input-group">
-          <label for="reg_password">密码</label>
-          <input type="password" id="reg_password" placeholder="请设置密码"
-                 data-db="auth.register_password">
+          <label for="gaokao_year">高考年份</label>
+          <select id="gaokao_year" required data-db="auth.gaokao_year"
+                  style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--card);outline:none;">
+            <option value="">--- 请选择 ---</option>
+            <option value="2025">2025 年</option>
+            <option value="2026" selected>2026 年</option>
+            <option value="2027">2027 年</option>
+            <option value="2028">2028 年</option>
+          </select>
         </div>
         <div class="input-group">
-          <label for="reg_password_confirm">确认密码</label>
-          <input type="password" id="reg_password_confirm" placeholder="请再次输入密码"
-                 data-db="auth.register_password_confirm">
+          <label for="password1">密码</label>
+          <input type="password" id="password1" placeholder="设置密码（至少8位）"
+                 data-db="auth.password1" required autocomplete="new-password">
+        </div>
+        <div class="input-group">
+          <label for="password2">确认密码</label>
+          <input type="password" id="password2" placeholder="再次输入密码"
+                 data-db="auth.password2" required autocomplete="new-password">
         </div>
         <button class="btn btn-primary btn-block mt-2" data-db-action="auth.register()">
           注册
@@ -49,7 +62,7 @@
       </form>
 
       <div class="auth-links">
-        <a href="login.html">已有账号？去登录</a>
+        已有账号？<a href="login.html">去登录</a>
       </div>
     </div>
   </div>

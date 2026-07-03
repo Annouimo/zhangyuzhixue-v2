@@ -17,6 +17,19 @@
       font-size: 13px;
     }
     .question-item .q-info { flex: 1; }
+    .question-item .q-btn {
+      flex-shrink: 0;
+      margin-left: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--primary);
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .question-item .q-btn:hover { background: var(--primary-light); }
   </style>
 </head>
 <body>
@@ -37,33 +50,31 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
+    <!-- 操作按钮（放在题目列表前面，因题目较多时会很长） -->
     <div class="flex gap-2 mt-4">
       <button class="btn btn-outline flex-1" data-db-action="exam.download_pdf">下载 PDF</button>
-      <a href="solve.html" class="btn btn-outline flex-1" data-db-action="exam.quick_answer">快对答案</a>
+      <a href="answer_sheet.html" class="btn btn-outline flex-1" data-db-action="exam.quick_answer">快对答案</a>
       <button class="btn btn-ghost flex-1" style="color:var(--error);" data-db-action="exam.delete">删除</button>
     </div>
 
     <!-- 题目列表 -->
-     <!-- 批语：题目列表尽量往后放，因为题目可能比较多，显示起来很长 -->
     <h3 style="font-size:15px;font-weight:600;margin:12px 0 8px;">已选题目</h3>
     <div data-db-loop="exam.selected_questions">
       <div class="question-item">
         <div class="q-info">
           <div data-db="item.title">2025 东城一模 第 1 题</div>
           <div class="text-secondary" data-db="item.meta">选择题 · 难度 0.3 · 计算量 1.2</div>
-          <!-- 批语：增加：点击这个按钮，进入解题页面solve.html -->
         </div>
+        <a href="solve.html" class="q-btn" data-db-action="exam.start_question(1)">做题</a>
       </div>
       <div class="question-item">
         <div class="q-info">
           <div data-db="item.title">2025 东城一模 第 2 题</div>
           <div class="text-secondary" data-db="item.meta">选择题 · 难度 0.5 · 计算量 1.8</div>
         </div>
+        <a href="solve.html" class="q-btn" data-db-action="exam.start_question(2)">做题</a>
       </div>
     </div>
-
-    
   </div>
 </body>
 </html>
