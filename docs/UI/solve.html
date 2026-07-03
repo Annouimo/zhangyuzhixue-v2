@@ -275,31 +275,18 @@
       if (arrow) { arrow.style.display = 'none'; }
     }
 
-    /** 点击反馈按钮 */
+    /** 点击反馈按钮：显示下一步卡片（内容隐藏，箭头可见） */
     function onFeedback(step) {
       if (step === TOTAL_STEPS) {
         goToDone();
         return;
       }
-      // 显示下一步卡片并展开内容
       var next = step + 1;
       var nextCard = document.querySelector('.step-card[data-step="' + next + '"]');
       if (nextCard) {
         nextCard.style.display = 'block';
         stepState[next].card = true;
-        document.getElementById('step-content-' + next).style.display = 'block';
-        document.getElementById('feedback-' + next).style.display = 'flex';
-        stepState[next].content = true;
         nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      // 显示下下一步卡片（内容隐藏）
-      var next2 = step + 2;
-      if (next2 <= TOTAL_STEPS) {
-        var next2Card = document.querySelector('.step-card[data-step="' + next2 + '"]');
-        if (next2Card) {
-          next2Card.style.display = 'block';
-          stepState[next2].card = true;
-        }
       }
     }
 
