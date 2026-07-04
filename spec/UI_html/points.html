@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>积分流水 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .points-summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+    .points-summary .item {
+      flex: 1;
+    }
+    .points-summary .num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .points-summary .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .data-table th {
+      white-space: nowrap;
+    }
+    .data-table .change-positive { color: var(--success); }
+    .data-table .change-negative { color: var(--error); }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>积分流水</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 三种积分概览 -->
+    <div class="card">
+      <div class="points-summary">
+        <div class="item">
+          <div class="num" data-db="user.getInfo.accumulatedPoints">1250</div>
+          <div class="label">累计积分</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="user.getInfo.spentPoints">248</div>
+          <div class="label">消耗积分</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="user.getInfo.availablePoints">1002</div>
+          <div class="label">可用积分</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 积分流水表 -->
+    <div style="overflow-x:auto;margin-top:8px;">
+      <table class="data-table" data-db-loop="points.getHistory" data-db-empty="暂无流水记录">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>类型</th>
+            <th>变动</th>
+            <th>累计</th>
+            <th>消耗</th>
+            <th>可用</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-db="points.getHistory[].time">2025-03-15</td>
+            <td data-db="points.getHistory[].type">做题</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+1.5</td>
+            <td data-db="points.getHistory[].accumulated">1250</td>
+            <td data-db="points.getHistory[].spent">248</td>
+            <td data-db="points.getHistory[].available">1002</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">2025-03-14</td>
+            <td data-db="points.getHistory[].type">组卷</td>
+            <td class="change-negative" data-db="points.getHistory[].change">-10.0</td>
+            <td data-db="points.getHistory[].accumulated">1248</td>
+            <td data-db="points.getHistory[].spent">248</td>
+            <td data-db="points.getHistory[].available">1001</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">2025-03-10</td>
+            <td data-db="points.getHistory[].type">做题</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+2.0</td>
+            <td data-db="points.getHistory[].accumulated">1248</td>
+            <td data-db="points.getHistory[].spent">238</td>
+            <td data-db="points.getHistory[].available">1011</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">2025-03-08</td>
+            <td data-db="points.getHistory[].type">做题</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+1.0</td>
+            <td data-db="points.getHistory[].accumulated">1228</td>
+            <td data-db="points.getHistory[].spent">238</td>
+            <td data-db="points.getHistory[].available">1009</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">2025-03-01</td>
+            <td data-db="points.getHistory[].type">签到</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+0.5</td>
+            <td data-db="points.getHistory[].accumulated">1218</td>
+            <td data-db="points.getHistory[].spent">238</td>
+            <td data-db="points.getHistory[].available">1008</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-secondary" style="font-size:12px;padding:8px 0;">
+      💡 类型说明：做题/签到 → 累计+可用增加；组卷消费 → 消耗增加+可用减少
+    </div>
+  </div>
+</body>
+</html>

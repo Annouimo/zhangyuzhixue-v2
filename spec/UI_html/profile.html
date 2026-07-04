@@ -4,32 +4,52 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的 - 章鱼智学</title>
+  <!-- 等级徽章使用 CSS 变量 --primary: #4A6CF7 -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="has-nav">
-  <!-- 用户信息卡片 -->
-  <div class="card" style="margin:16px;text-align:center;padding:24px;">
+  <!-- 用户信息卡片（可点击→等级详情） -->
+  <a href="level_detail.html" class="card" style="margin:16px;display:block;text-decoration:none;color:inherit;text-align:center;padding:24px;cursor:pointer;">
     <div style="font-size:48px;margin-bottom:8px;">👤</div>
     <h2 style="font-size:20px;font-weight:700;" data-db="user.getInfo.realName">李小红</h2>
     <p class="text-secondary" style="font-size:14px;">
       学号：<span data-db="user.getInfo.studentId">2026001</span>
     </p>
-  </div>
+    <div style="margin-top:8px;font-size:14px;">
+      <span style="background:var(--primary);color:#fff;padding:2px 12px;border-radius:20px;font-weight:600;">
+        🏅 Lv.<span data-db="user.getInfo.level">5</span>
+      </span>
+      <span class="text-secondary" style="margin-left:12px;">
+        可用积分 <span data-db="user.getInfo.availablePoints">1002</span>
+      </span>
+    </div>
+    <div class="text-muted" style="font-size:12px;margin-top:6px;color:var(--text-muted);">
+      查看等级详情 →
+    </div>
+  </a>
 
   <!-- 功能入口 -->
   <div class="page" style="padding-top:0;">
-    <a href="lecture_courses.html" class="list-item">
-      <div class="left">
-        <div class="title">📖 讲义</div>
-        <div class="subtitle">浏览课程与讲义内容</div>
-      </div>
-      <div class="right">→</div>
-    </a>
-
     <a href="question_history.html" class="list-item">
       <div class="left">
         <div class="title">做题历史</div>
         <div class="subtitle" data-db="user.getAnswerHistory.count">共 32 题</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="points.html" class="list-item">
+      <div class="left">
+        <div class="title">积分流水</div>
+        <div class="subtitle">累计 <span data-db="user.getInfo.accumulatedPoints">1250</span> · 可用 <span data-db="user.getInfo.availablePoints">1002</span></div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="lecture_courses.html" class="list-item">
+      <div class="left">
+        <div class="title">📖 讲义</div>
+        <div class="subtitle">浏览课程与讲义内容</div>
       </div>
       <div class="right">→</div>
     </a>

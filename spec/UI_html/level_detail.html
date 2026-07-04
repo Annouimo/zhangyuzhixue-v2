@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>等级详情 - 章鱼智学</title>
+  <!-- 等级徽章和当前等级高亮使用 CSS 变量 --primary: #4A6CF7 -->
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      padding: 16px 32px;
+      border-radius: 50px;
+      margin-bottom: 12px;
+    }
+    .points-summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      margin: 16px 0;
+    }
+    .points-summary .item {
+      flex: 1;
+    }
+    .points-summary .num {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .points-summary .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .level-note {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .level-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .level-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .level-table .current {
+      background: var(--primary-light);
+      font-weight: 600;
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+    }
+    .level-table .current td:first-child {
+      border-top-left-radius: var(--radius-sm);
+      border-bottom-left-radius: var(--radius-sm);
+    }
+    .level-table .current td:last-child {
+      border-top-right-radius: var(--radius-sm);
+      border-bottom-right-radius: var(--radius-sm);
+    }
+    .level-table .marker {
+      color: var(--primary);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>等级详情</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 等级徽章 -->
+    <div class="text-center" style="padding:20px 0;">
+      <div class="level-badge">
+        🏅 Lv.<span data-db="user.getInfo.level">5</span>
+      </div>
+      <div class="text-secondary" style="font-size:13px;">
+        超过 <span data-db="user.getInfo.levelPercentile">75</span>% 的用户
+      </div>
+    </div>
+
+    <!-- 三种积分概览 -->
+    <div class="card">
+      <div class="points-summary">
+        <div class="item">
+          <div class="num" data-db="user.getInfo.accumulatedPoints">1250</div>
+          <div class="label">累计积分</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="user.getInfo.spentPoints">248</div>
+          <div class="label">消耗积分</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="user.getInfo.availablePoints">1002</div>
+          <div class="label">可用积分</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 等级说明 -->
+    <div class="level-note">
+      📌 等级依据累计积分计算
+    </div>
+
+    <!-- 等级对照表 -->
+    <div class="card" style="padding:12px 16px;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">等级对照</div>
+      <table class="level-table" data-db-loop="points.getLevels">
+        <tr data-db="points.getLevels[0]" class="current">
+          <td style="width:48px;font-weight:700;" data-db="points.getLevels[].level">Lv.1</td>
+          <td data-db="points.getLevels[].range">0 ~ 2</td>
+          <td style="width:24px;" class="marker" data-db="points.getLevels[].current">← 你在这里</td>
+        </tr>
+        <tr data-db="points.getLevels[1]">
+          <td style="font-weight:600;">Lv.2</td>
+          <td>3 ~ 5</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[2]">
+          <td style="font-weight:600;">Lv.3</td>
+          <td>6 ~ 10</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[3]">
+          <td style="font-weight:600;">Lv.4</td>
+          <td>11 ~ 16</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[4]">
+          <td style="font-weight:600;">Lv.5</td>
+          <td>17 ~ 24</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[5]">
+          <td style="font-weight:600;">Lv.6</td>
+          <td>25 ~ 35</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[6]">
+          <td style="font-weight:600;">Lv.7</td>
+          <td>36 ~ 50</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[7]">
+          <td style="font-weight:600;">Lv.8</td>
+          <td>51 ~ 70</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[8]">
+          <td style="font-weight:600;">Lv.9</td>
+          <td>71 ~ 100</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[9]">
+          <td style="font-weight:600;">Lv.10</td>
+          <td>101 ~ 145</td>
+          <td></td>
+        </tr>
+        <tr data-db="points.getLevels[10]" style="color:var(--text-muted);font-size:13px;">
+          <td colspan="3">更高等级待解锁...</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
