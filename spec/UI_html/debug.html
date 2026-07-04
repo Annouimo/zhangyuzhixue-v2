@@ -24,7 +24,7 @@
       border-radius: var(--radius);
       padding: 32px 24px 20px;
       width: 85%;
-      max-width: 320px;
+      max-width: 340px;
       text-align: center;
       box-shadow: 0 8px 32px rgba(0,0,0,0.15);
       animation: popup-enter 0.3s ease-out;
@@ -204,6 +204,61 @@
       opacity: 0.4;
       cursor: not-allowed;
     }
+
+    /* ---- 更新日志弹窗 ---- */
+    .changelog-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 85%;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+      text-align: left;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .changelog-card .cl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .changelog-card .cl-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .changelog-card .cl-header .cl-close {
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .changelog-card .cl-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .changelog-card .cl-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .changelog-card .cl-tag {
+      flex-shrink: 0;
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .changelog-card .cl-tag.feat { background: var(--primary); }
+    .changelog-card .cl-tag.refactor { background: var(--warning); }
   </style>
 </head>
 <body>
@@ -247,6 +302,17 @@
         显示首次登录偏好引导页
       </a>
     </div>
+
+    <!-- 更新日志 -->
+    <div class="debug-section">
+      <div class="debug-title">📋 更新日志</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        查看当日开发进度
+      </p>
+      <button class="btn btn-primary btn-block" onclick="showChangelog()">
+        显示今日更新日志
+      </button>
+    </div>
   </div>
 
   <!-- 成就解锁弹窗 -->
@@ -279,6 +345,50 @@
       <div class="rating-actions">
         <button class="rating-skip" onclick="closeRatingPopup()">跳过</button>
         <button class="rating-submit" id="rating-submit-btn" disabled onclick="submitRating()">提交评价</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 更新日志弹窗 -->
+  <div class="popup-overlay" id="changelog-popup" onclick="if(event.target===this)closeChangelog()">
+    <div class="changelog-card">
+      <div class="cl-header">
+        <h2>📋 更新日志</h2>
+        <button class="cl-close" onclick="closeChangelog()">✕</button>
+      </div>
+      <div class="cl-date">2026-07-04（周六）</div>
+
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>学习偏好系统 — 首次引导/管理编辑/推荐双模式</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>组卷分享 — 发现组卷/点赞/收藏/公开切换/页面重组</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>组卷升级 — 智能组卷(10积分)+自主选题(20积分)</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>退出页面评价弹窗 — 概率触发收集满意度</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>成就体系 — 成就解锁/学习统计/调试页</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag refactor">调整</span>
+        <span>UI重构：底栏改为作业/推荐/组卷/我的</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag refactor">调整</span>
+        <span>讲义入口从我的移至作业页顶部</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag refactor">调整</span>
+        <span>积分系统升级：等级+三种积分+流水</span>
       </div>
     </div>
   </div>
@@ -328,6 +438,14 @@
       console.log('[页面评价] 评分=' + selectedRating + ' 反馈="' + feedback + '"');
       alert('已提交评价：' + selectedRating + ' 分' + (feedback ? '（' + feedback + '）' : ''));
       closeRatingPopup();
+    }
+
+    /* ---- 更新日志 ---- */
+    function showChangelog() {
+      document.getElementById('changelog-popup').classList.add('show');
+    }
+    function closeChangelog() {
+      document.getElementById('changelog-popup').classList.remove('show');
     }
   </script>
 </body>
