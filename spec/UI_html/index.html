@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>章鱼智学 - 设计图总览</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { display: flex; background: #f0f2f5; }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 20px 16px 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .sidebar-header h1 { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+    .sidebar-header p { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .nav-group { margin-bottom: 4px; }
+    .nav-group-title {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 16px 7px 20px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #374151;
+      text-decoration: none;
+      transition: all 0.12s;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { background: #f3f4f6; }
+    .nav-item.active {
+      background: #eef1ff;
+      color: #4a6cf7;
+      border-left-color: #4a6cf7;
+      font-weight: 600;
+    }
+    .nav-item .badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #e5e7eb;
+      color: #6b7280;
+    }
+    .nav-item .badge.primary { background: #4a6cf7; color: #fff; }
+
+    /* 主内容区 */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .main-header .page-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+    .main-header .page-desc { font-size: 12px; color: #9ca3af; }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #f5f7fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>🐙 章鱼智学</h1>
+      <p>UI 设计图 · 共 28 页</p>
+    </div>
+    <div class="sidebar-nav" id="nav"></div>
+  </div>
+  <div class="main">
+    <div class="main-header">
+      <span class="page-title" id="page-title">选择一个页面</span>
+      <span class="page-desc" id="page-desc"></span>
+    </div>
+    <iframe id="viewer" src="about:blank"></iframe>
+  </div>
+
+  <script>
+    var pages = [
+      { group: '一级页', items: [
+        { name: '📚 作业', file: 'homework.html', desc: '作业列表 + 讲义入口' },
+        { name: '🔍 推荐', file: 'recommend.html', desc: '智能推荐 / 偏好推荐双模式' },
+        { name: '📄 组卷', file: 'exam.html', desc: '新组卷 + 三个功能入口' },
+        { name: '👤 我的', file: 'profile.html', desc: '个人信息 + 功能入口列表' }
+      ]},
+      { group: '登录注册', items: [
+        { name: '🔑 登录', file: 'login.html', desc: '' },
+        { name: '📝 注册', file: 'register.html', desc: '' }
+      ]},
+      { group: '作业', items: [
+        { name: '📋 作业详情', file: 'homework_detail.html', desc: '题目列表 + 进度' },
+        { name: '✏️ 解题模式', file: 'solve.html', desc: '步骤状态机 + 反馈' }
+      ]},
+      { group: '讲义', items: [
+        { name: '📖 课程列表', file: 'lecture_courses.html', desc: '讲义课程入口' },
+        { name: '📑 章节列表', file: 'lecture_chapters.html', desc: '' },
+        { name: '📖 讲义内容', file: 'lecture_content.html', desc: '含 LaTeX 公式' }
+      ]},
+      { group: '组卷', items: [
+        { name: '🤖 智能组卷', file: 'paper_auto.html', desc: '筛选+题型+难度调优' },
+        { name: '🖐 自主选题', file: 'paper_pick.html', desc: '筛选+逐题勾选' },
+        { name: '👁️ 预览（自己）', file: 'paper_quicklook.html', desc: '公开开关+删除' },
+        { name: '👁️ 预览（他人）', file: 'paper_quicklook_other.html', desc: '点赞+收藏' },
+        { name: '📋 我的组卷', file: 'paper_history.html', desc: '列表+公开/私密开关' },
+        { name: '🌐 发现组卷', file: 'paper_explore.html', desc: '4种排序+点赞+收藏' },
+        { name: '🔖 我的收藏', file: 'paper_favorites.html', desc: '收藏的他人试卷' },
+        { name: '✅ 快对答案', file: 'answer_sheet.html', desc: '答案速览' }
+      ]},
+      { group: '学习偏好', items: [
+        { name: '🎯 首次引导', file: 'preference_welcome.html', desc: '注册后创建偏好' },
+        { name: '📋 偏好管理', file: 'preference_list.html', desc: '列表+编辑/删除' },
+        { name: '✏️ 偏好编辑', file: 'preference_edit.html', desc: '新建/编辑偏好' }
+      ]},
+      { group: '我的', items: [
+        { name: '🏆 成就', file: 'achievement.html', desc: '成就解锁列表' },
+        { name: '📊 学习统计', file: 'statistics.html', desc: '统计数据' },
+        { name: '📝 做题历史', file: 'question_history.html', desc: '' },
+        { name: '💰 积分流水', file: 'points.html', desc: '累计/消耗/可用' },
+        { name: '🏅 等级详情', file: 'level_detail.html', desc: '' },
+        { name: '⚙️ 调试工具', file: 'debug.html', desc: '仅开发用' }
+      ]}
+    ];
+
+    var nav = document.getElementById('nav');
+    var viewer = document.getElementById('viewer');
+    var pageTitle = document.getElementById('page-title');
+    var pageDesc = document.getElementById('page-desc');
+
+    function loadPage(file, name, desc) {
+      viewer.src = file;
+      pageTitle.textContent = name;
+      pageDesc.textContent = desc || '';
+      document.querySelectorAll('.nav-item').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      var active = document.querySelector('[data-file="' + file + '"]');
+      if (active) active.classList.add('active');
+    }
+
+    pages.forEach(function(group) {
+      var g = document.createElement('div');
+      g.className = 'nav-group';
+      var title = document.createElement('div');
+      title.className = 'nav-group-title';
+      title.textContent = group.group;
+      g.appendChild(title);
+      group.items.forEach(function(item) {
+        var a = document.createElement('a');
+        a.className = 'nav-item';
+        a.setAttribute('data-file', item.file);
+        a.textContent = item.name;
+        a.href = 'javascript:void(0)';
+        a.onclick = function() { loadPage(item.file, item.name, item.desc); };
+        g.appendChild(a);
+      });
+      nav.appendChild(g);
+    });
+
+    // 默认打开第一个页面
+    var first = pages[0].items[0];
+    loadPage(first.file, first.name, first.desc);
+  </script>
+</body>
+</html>
