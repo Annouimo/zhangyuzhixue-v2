@@ -75,15 +75,15 @@
     <div class="card">
       <div class="points-summary">
         <div class="item">
-          <div class="num" data-db="user.getInfo.accumulatedPoints">1250</div>
+          <div class="num" data-db="user.getInfo.accumulatedPoints">22.0</div>
           <div class="label">累计积分</div>
         </div>
         <div class="item">
-          <div class="num" data-db="user.getInfo.spentPoints">248</div>
+          <div class="num" data-db="user.getInfo.spentPoints">5.0</div>
           <div class="label">消耗积分</div>
         </div>
         <div class="item">
-          <div class="num" data-db="user.getInfo.availablePoints">1002</div>
+          <div class="num" data-db="user.getInfo.availablePoints">17.0</div>
           <div class="label">可用积分</div>
         </div>
       </div>
@@ -94,47 +94,47 @@
       <div style="font-size:14px;font-weight:600;">等级对照</div>
       <div class="text-secondary" style="font-size:12px;margin-top:2px;margin-bottom:8px;">等级依据累计积分计算</div>
       <table class="level-table" data-db-loop="points.getLevels">
-        <tr data-db="points.getLevels[0]" class="current">
-          <td style="width:48px;font-weight:700;" data-db="points.getLevels[].level">Lv.1</td>
-          <td data-db="points.getLevels[].range">0 ~ 2</td>
+        <tr>
+          <td style="width:48px;font-weight:600;">Lv.1</td>
+          <td>0 ~ 2</td>
         </tr>
-        <tr data-db="points.getLevels[1]">
+        <tr>
           <td style="font-weight:600;">Lv.2</td>
           <td>3 ~ 5</td>
         </tr>
-        <tr data-db="points.getLevels[2]">
+        <tr>
           <td style="font-weight:600;">Lv.3</td>
           <td>6 ~ 10</td>
         </tr>
-        <tr data-db="points.getLevels[3]">
+        <tr>
           <td style="font-weight:600;">Lv.4</td>
           <td>11 ~ 16</td>
         </tr>
-        <tr data-db="points.getLevels[4]">
-          <td style="font-weight:600;">Lv.5</td>
+        <tr data-db="points.getLevels[4]" class="current">
+          <td style="font-weight:700;">Lv.5</td>
           <td>17 ~ 24</td>
         </tr>
-        <tr data-db="points.getLevels[5]">
+        <tr>
           <td style="font-weight:600;">Lv.6</td>
           <td>25 ~ 35</td>
         </tr>
-        <tr data-db="points.getLevels[6]">
+        <tr>
           <td style="font-weight:600;">Lv.7</td>
           <td>36 ~ 50</td>
         </tr>
-        <tr data-db="points.getLevels[7]">
+        <tr>
           <td style="font-weight:600;">Lv.8</td>
           <td>51 ~ 70</td>
         </tr>
-        <tr data-db="points.getLevels[8]">
+        <tr>
           <td style="font-weight:600;">Lv.9</td>
           <td>71 ~ 100</td>
         </tr>
-        <tr data-db="points.getLevels[9]">
+        <tr>
           <td style="font-weight:600;">Lv.10</td>
           <td>101 ~ 145</td>
         </tr>
-        <tr data-db="points.getLevels[10]" style="color:var(--text-muted);font-size:13px;">
+        <tr style="color:var(--text-muted);font-size:13px;">
           <td colspan="2">更高等级待解锁...</td>
         </tr>
       </table>
