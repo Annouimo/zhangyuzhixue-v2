@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>调试工具 - 章鱼智学</title>
+  <!-- ⚠️ 调试页面，正式版需删除此文件并移除 profile.html 中的调试入口 -->
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-overlay.show {
+      display: flex;
+    }
+    .popup-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 32px 24px 20px;
+      width: 85%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+    }
+    @keyframes popup-enter {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .popup-card .popup-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .popup-card .popup-badge {
+      display: inline-block;
+      background: #D1FAE5;
+      color: #065F46;
+      font-size: 12px;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .popup-card .popup-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .popup-card .popup-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .popup-card .popup-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .popup-card .popup-close {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .popup-card .popup-close:hover {
+      background: var(--bg);
+    }
+    .debug-section {
+      margin-bottom: 24px;
+    }
+    .debug-section .debug-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 16px 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>调试工具</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- ⚠️ 调试页面 - 正式版删除 -->
+
+    <!-- 成就解锁弹窗测试 -->
+    <div class="debug-section">
+      <div class="debug-title">🎯 成就系统</div>
+      <button class="btn btn-primary btn-block" onclick="showAchievementPopup()">
+        显示成就解锁弹窗
+      </button>
+    </div>
+
+    <!-- 预留更多调试按钮 -->
+    <div class="debug-section">
+      <div class="debug-title">📦 预留（添加更多调试按钮）</div>
+      <button class="btn btn-outline btn-block" disabled style="opacity:0.4;">
+        （暂无其他调试功能）
+      </button>
+    </div>
+  </div>
+
+  <!-- 成就解锁弹窗 -->
+  <div class="popup-overlay" id="achievement-popup">
+    <div class="popup-card">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-badge">🏆 新成就解锁</div>
+      <div class="popup-title">小试牛刀</div>
+      <div class="popup-desc">累计完成 10 道题目</div>
+      <div class="popup-time">2025-03-06 15:30 解锁</div>
+      <button class="popup-close" onclick="closeAchievementPopup()">太棒了</button>
+    </div>
+  </div>
+
+  <script>
+    function showAchievementPopup() {
+      document.getElementById('achievement-popup').classList.add('show');
+    }
+    function closeAchievementPopup() {
+      document.getElementById('achievement-popup').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

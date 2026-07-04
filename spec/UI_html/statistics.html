@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习统计 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .stat-summary {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      padding: 8px 0;
+    }
+    .stat-summary .item { flex: 1; }
+    .stat-summary .num { font-size: 22px; font-weight: 700; color: var(--primary); }
+    .stat-summary .label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+    .chart-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .chart-header .chart-title { font-size: 14px; font-weight: 600; }
+
+    /* 月历导航 */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .month-nav .arrow {
+      width: 28px; height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+    .month-nav .arrow:hover { background: var(--primary-light); color: var(--primary); }
+
+    /* 月历网格 */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .calendar-grid .weekday {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 4px 0;
+      font-weight: 500;
+    }
+    .calendar-grid .day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border-radius: 4px;
+      color: var(--text);
+      font-weight: 400;
+    }
+    .calendar-grid .day.empty { background: transparent; }
+    .calendar-grid .day.level-0 { background: var(--border); color: var(--text-muted); }
+    .calendar-grid .day.level-1 { background: #DBEAFE; }
+    .calendar-grid .day.level-2 { background: #60A5FA; color: #fff; }
+    .calendar-grid .day.level-3 { background: var(--primary); color: #fff; font-weight: 600; }
+    .calendar-grid .day.today { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+    /* 图例 */
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0 0 0;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .legend-row .swatch {
+      width: 14px; height: 14px;
+      border-radius: 3px;
+    }
+
+    /* 折线图 */
+    .chart-area { display: flex; gap: 6px; margin-top: 8px; }
+    .chart-yaxis {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-right: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+      width: 32px;
+      flex-shrink: 0;
+    }
+    .chart-body { flex: 1; position: relative; overflow: hidden; }
+
+    .chart-grid {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .chart-grid .gl { border-bottom: 1px solid var(--border); height: 0; }
+
+    .line-chart-wrap {
+      position: relative;
+      height: 120px;
+      z-index: 1;
+    }
+    .line-chart-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-xaxis {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0 0 38px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .stat-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+    .stat-row .stat-label { color: var(--text-secondary); }
+    .stat-row .stat-value { font-weight: 600; }
+
+    /* 环形图 */
+    .donut-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 12px 0;
+    }
+    .donut-placeholder .ring {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      position: relative;
+    }
+    .donut-placeholder .ring .inner {
+      position: absolute;
+      top: 12px; left: 12px;
+      width: 56px; height: 56px;
+      background: var(--card);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px; font-weight: 700;
+      color: var(--primary);
+    }
+    .donut-legend { font-size: 12px; }
+    .donut-legend .leg-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .donut-legend .leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>学习统计</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 概览卡片 -->
+    <div class="card">
+      <div class="stat-summary">
+        <div class="item">
+          <div class="num" data-db="stats.totalQuestions">32</div>
+          <div class="label">总做题</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="stats.accuracy">78%</div>
+          <div class="label">正确率</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="stats.currentStreak">4</div>
+          <div class="label">连续做题天</div>
+        </div>
+        <div class="item">
+          <div class="num" data-db="stats.monthActivityDays">14</div>
+          <div class="label">本月活跃天</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 每日学习（月历热力图） -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">每日学习</div>
+        <div class="month-nav">
+          <span class="arrow" data-db-action="stats.prevMonth">◀</span>
+          <span data-db="stats.currentMonth">2025年3月</span>
+          <span class="arrow" data-db-action="stats.nextMonth">▶</span>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="weekday">一</div>
+        <div class="weekday">二</div>
+        <div class="weekday">三</div>
+        <div class="weekday">四</div>
+        <div class="weekday">五</div>
+        <div class="weekday">六</div>
+        <div class="weekday">日</div>
+
+        <!-- 3月1日是周六，前面需要5个空位（一~五） -->
+        <div class="day empty"></div>
+        <div class="day empty"></div>
+        <div class="day empty"></div>
+        <div class="day empty"></div>
+        <div class="day empty"></div>
+        <div class="day level-3">1</div>
+        <div class="day level-0">2</div>
+
+        <div class="day level-1">3</div>
+        <div class="day level-1">4</div>
+        <div class="day level-0">5</div>
+        <div class="day level-2">6</div>
+        <div class="day level-2">7</div>
+        <div class="day level-0">8</div>
+        <div class="day level-3">9</div>
+
+        <div class="day level-3">10</div>
+        <div class="day level-1">11</div>
+        <div class="day level-2">12</div>
+        <div class="day level-0">13</div>
+        <div class="day level-0">14</div>
+        <div class="day level-1">15</div>
+        <div class="day level-3">16</div>
+
+        <div class="day level-3">17</div>
+        <div class="day level-1">18</div>
+        <div class="day level-0">19</div>
+        <div class="day level-0">20</div>
+        <div class="day level-1">21</div>
+        <div class="day level-2">22</div>
+        <div class="day level-3">23</div>
+
+        <div class="day level-2">24</div>
+        <div class="day level-0">25</div>
+        <div class="day level-2">26</div>
+        <div class="day level-1">27</div>
+        <div class="day level-1">28</div>
+        <div class="day level-3 today">29</div>
+        <div class="day level-1">30</div>
+
+        <div class="day level-0">31</div>
+      </div>
+
+      <div class="legend-row">
+        <span>少</span>
+        <span class="swatch" style="background:var(--border);"></span>
+        <span class="swatch" style="background:#DBEAFE;"></span>
+        <span class="swatch" style="background:#60A5FA;"></span>
+        <span class="swatch" style="background:var(--primary);"></span>
+        <span>多</span>
+        <span style="margin-left:auto;" data-db="stats.monthActivityDays">本月活跃 14 天</span>
+      </div>
+    </div>
+
+    <!-- 正确率趋势（折线图） -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">正确率趋势</div>
+      </div>
+      <div class="chart-area">
+        <div class="chart-yaxis">
+          <span class="yl">100%</span>
+          <span class="yl">75%</span>
+          <span class="yl">50%</span>
+          <span class="yl">25%</span>
+          <span class="yl">0%</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-grid">
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+          </div>
+          <div class="line-chart-wrap" data-db-loop="stats.accuracyTrend">
+            <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+              <polyline points="15,60 46,48 78,84 109,36 140,24 171,60 203,12 234,72 265,30 296,18"
+                fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="15" cy="60" r="3.5" fill="var(--success)"/>
+              <circle cx="46" cy="48" r="3.5" fill="var(--success)"/>
+              <circle cx="78" cy="84" r="3.5" fill="var(--warning)"/>
+              <circle cx="109" cy="36" r="3.5" fill="var(--success)"/>
+              <circle cx="140" cy="24" r="3.5" fill="var(--success)"/>
+              <circle cx="171" cy="60" r="3.5" fill="var(--success)"/>
+              <circle cx="203" cy="12" r="3.5" fill="var(--success)"/>
+              <circle cx="234" cy="72" r="3.5" fill="var(--warning)"/>
+              <circle cx="265" cy="30" r="3.5" fill="var(--success)"/>
+              <circle cx="296" cy="18" r="3.5" fill="var(--success)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="chart-xaxis">
+        <span>3/1</span><span>3/5</span><span>3/10</span><span>3/15</span><span>3/20</span><span>3/25</span>
+      </div>
+      <div class="stat-row" style="margin-top:4px;">
+        <span class="stat-label">整体正确率</span>
+        <span class="stat-value" style="color:var(--success);" data-db="stats.accuracy">78%</span>
+      </div>
+    </div>
+
+    <!-- 积分累计趋势（折线图） -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">积分累计趋势</div>
+      </div>
+      <div class="chart-area">
+        <div class="chart-yaxis">
+          <span class="yl" data-db="stats.pointsMax">22.0</span>
+          <span class="yl">16.5</span>
+          <span class="yl">11.0</span>
+          <span class="yl">5.5</span>
+          <span class="yl">0</span>
+        </div>
+        <div class="chart-body">
+          <div class="chart-grid">
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+            <div class="gl"></div>
+          </div>
+          <div class="line-chart-wrap" data-db-loop="stats.pointsTrend">
+            <svg viewBox="0 0 300 120" preserveAspectRatio="none">
+              <polyline points="15,108 36,102 58,98 80,90 102,88 124,76 146,72 168,60 190,30 212,36 234,20 256,22 278,12 300,0"
+                fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle cx="15" cy="108" r="3.5" fill="var(--primary)"/>
+              <circle cx="36" cy="102" r="3.5" fill="var(--primary)"/>
+              <circle cx="58" cy="98" r="3.5" fill="var(--primary)"/>
+              <circle cx="80" cy="90" r="3.5" fill="var(--primary)"/>
+              <circle cx="102" cy="88" r="3.5" fill="var(--primary)"/>
+              <circle cx="124" cy="76" r="3.5" fill="var(--primary)"/>
+              <circle cx="146" cy="72" r="3.5" fill="var(--primary)"/>
+              <circle cx="168" cy="60" r="3.5" fill="var(--primary)"/>
+              <circle cx="190" cy="30" r="3.5" fill="var(--primary)"/>
+              <circle cx="212" cy="36" r="3.5" fill="var(--primary)"/>
+              <circle cx="234" cy="20" r="3.5" fill="var(--primary)"/>
+              <circle cx="256" cy="22" r="3.5" fill="var(--primary)"/>
+              <circle cx="278" cy="12" r="3.5" fill="var(--primary)"/>
+              <circle cx="300" cy="0" r="3.5" fill="var(--primary)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="chart-xaxis">
+        <span>3/1</span><span>3/5</span><span>3/10</span><span>3/15</span><span>3/20</span><span>3/25</span>
+      </div>
+      <div class="stat-row" style="margin-top:4px;">
+        <span class="stat-label">累计积分</span>
+        <span class="stat-value" data-db="user.getInfo.accumulatedPoints">22.0</span>
+      </div>
+    </div>
+
+    <!-- 题型分布 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">题型分布</div>
+      </div>
+      <div class="donut-placeholder">
+        <div class="ring" style="background: conic-gradient(var(--primary) 0deg 144deg, #10B981 144deg 216deg, #F59E0B 216deg 360deg);">
+          <div class="inner" data-db="stats.totalQuestions">32 题</div>
+        </div>
+        <div class="donut-legend">
+          <div class="leg-item">
+            <span class="leg-dot" style="background:var(--primary);"></span>
+            <span>选择题 <span data-db="stats.choiceCount">13</span>（40%）</span>
+          </div>
+          <div class="leg-item">
+            <span class="leg-dot" style="background:#10B981;"></span>
+            <span>填空题 <span data-db="stats.fillCount">6</span>（19%）</span>
+          </div>
+          <div class="leg-item">
+            <span class="leg-dot" style="background:#F59E0B;"></span>
+            <span>解答题 <span data-db="stats.solutionCount">13</span>（41%）</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -30,6 +30,22 @@
 
   <!-- 功能入口 -->
   <div class="page" style="padding-top:0;">
+    <a href="achievement.html" class="list-item">
+      <div class="left">
+        <div class="title">🏆 成就</div>
+        <div class="subtitle" data-db="achievement.unlockedCount">已解锁 5 个</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="statistics.html" class="list-item">
+      <div class="left">
+        <div class="title">📊 学习统计</div>
+        <div class="subtitle">共 <span data-db="stats.totalQuestions">32</span> 题 · 正确率 <span data-db="stats.accuracy">78%</span></div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
     <a href="question_history.html" class="list-item">
       <div class="left">
         <div class="title">做题历史</div>
@@ -42,6 +58,15 @@
       <div class="left">
         <div class="title">积分流水</div>
         <div class="subtitle">累计 <span data-db="user.getInfo.accumulatedPoints">22.0</span> · 可用 <span data-db="user.getInfo.availablePoints">17.0</span></div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <!-- 调试入口 - 正式版删除 -->
+    <a href="debug.html" class="list-item" style="margin-top:16px;border:1px dashed var(--text-muted);opacity:0.5;">
+      <div class="left">
+        <div class="title" style="font-size:12px;color:var(--text-muted);">⚙️ 调试工具</div>
+        <div class="subtitle" style="font-size:10px;">仅开发用，正式版删除该入口</div>
       </div>
       <div class="right">→</div>
     </a>

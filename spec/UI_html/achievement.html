@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成就 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ach-summary {
+      text-align: center;
+      padding: 24px 16px;
+    }
+    .ach-summary .num {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .ach-summary .label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .ach-category {
+      margin-bottom: 16px;
+    }
+    .ach-category .cat-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 16px 4px;
+    }
+    .ach-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 4px;
+      box-shadow: var(--shadow);
+    }
+    .ach-item .ach-icon {
+      font-size: 24px;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .ach-item .ach-info {
+      flex: 1;
+      margin: 0 12px;
+      min-width: 0;
+    }
+    .ach-item .ach-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .ach-item .ach-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+    .ach-item .ach-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .ach-item .ach-progress {
+      font-size: 12px;
+      margin-top: 4px;
+      color: var(--text-muted);
+    }
+    .ach-item .ach-progress .bar {
+      display: inline-block;
+      width: 60px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      vertical-align: middle;
+      margin-right: 4px;
+      overflow: hidden;
+    }
+    .ach-item .ach-progress .bar .fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    .ach-item .ach-status {
+      flex-shrink: 0;
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .ach-status.unlocked { background: #D1FAE5; color: #065F46; }
+    .ach-status.in-progress { background: #DBEAFE; color: #1E40AF; }
+    .ach-status.locked { background: #F3F4F6; color: #9CA3AF; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>成就</h1>
+  </div>
+
+  <div class="page" style="padding-top:0;">
+    <!-- 成就概览 -->
+    <div class="ach-summary">
+      <div class="num">
+        <span data-db="achievement.summary.unlockedCount">5</span>
+        /
+        <span data-db="achievement.summary.totalCount">18</span>
+      </div>
+      <div class="label">已解锁成就</div>
+    </div>
+
+    <!-- 🔥 登录 - 分类循环 data-db-loop="achievement.getCategories" -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">🔥 登录</div>
+
+        <!-- 该类下的成就循环 -->
+        <div data-db-loop="achievement.getCategories[].list">
+
+          <div class="ach-item">
+            <div class="ach-icon" data-db="achievement.getCategories[].list[].iconEmoji">🌱</div>
+            <div class="ach-info">
+              <div class="ach-name" data-db="achievement.getCategories[].list[].name">开启旅程</div>
+              <div class="ach-desc" data-db="achievement.getCategories[].list[].description">初次登录</div>
+              <!-- 已解锁：显示解锁时间 -->
+              <div class="ach-time" style="" data-db-show="achievement.getCategories[].list[].status" data-db-show-value="unlocked">
+                <span data-db="achievement.getCategories[].list[].unlockedAt">2025-03-01</span> 解锁
+              </div>
+              <!-- 进行中：显示进度条 -->
+              <div class="ach-progress" style="display:none;" data-db-show="achievement.getCategories[].list[].status" data-db-show-value="in_progress">
+                <span class="bar"><span class="fill" style="width:71%" data-db-style-width="achievement.getCategories[].list[].progressPercent"></span></span>
+                <span data-db="achievement.getCategories[].list[].progress">5</span> / <span data-db="achievement.getCategories[].list[].threshold">7</span>
+              </div>
+            </div>
+            <span class="ach-status unlocked" data-db-class="achievement.getCategories[].list[].statusClass" data-db="achievement.getCategories[].list[].statusLabel">已解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">⭐</div>
+            <div class="ach-info">
+              <div class="ach-name" data-db="...name">一周佳话</div>
+              <div class="ach-desc">连续登录 7 天</div>
+              <div class="ach-time" style="display:none;" data-db-show="...status" data-db-show-value="unlocked"></div>
+              <div class="ach-progress" style="" data-db-show="...status" data-db-show-value="in_progress">
+                <span class="bar"><span class="fill" style="width:71%"></span></span>
+                <span data-db="...progress">5</span> / <span data-db="...threshold">7</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress" data-db-class="...statusClass" data-db="...statusLabel">进行中</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🌟</div>
+            <div class="ach-info">
+              <div class="ach-name">满月全勤</div>
+              <div class="ach-desc">连续登录 30 天</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🏆</div>
+            <div class="ach-info">
+              <div class="ach-name">百日筑基</div>
+              <div class="ach-desc">累计登录 100 天</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:14%"></span></span>
+                <span data-db="...progress">14</span> / <span data-db="...threshold">100</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎯 刷题 -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">🎯 刷题</div>
+        <div data-db-loop="achievement.getCategories[].list">
+
+          <div class="ach-item">
+            <div class="ach-icon">🎯</div>
+            <div class="ach-info">
+              <div class="ach-name">破零</div>
+              <div class="ach-desc">完成第 1 题</div>
+              <div class="ach-time" style="">
+                <span data-db="...unlockedAt">2025-03-01</span> 解锁
+              </div>
+            </div>
+            <span class="ach-status unlocked">已解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🗡️</div>
+            <div class="ach-info">
+              <div class="ach-name">小试牛刀</div>
+              <div class="ach-desc">完成 10 题</div>
+              <div class="ach-time" style="">
+                <span data-db="...unlockedAt">2025-03-06</span> 解锁
+              </div>
+            </div>
+            <span class="ach-status unlocked">已解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🏅</div>
+            <div class="ach-info">
+              <div class="ach-name">百题斩</div>
+              <div class="ach-desc">完成 100 题</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:32%"></span></span>
+                <span data-db="...progress">32</span> / <span data-db="...threshold">100</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">👑</div>
+            <div class="ach-info">
+              <div class="ach-name">刷题王</div>
+              <div class="ach-desc">完成 500 题</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">💎</div>
+            <div class="ach-info">
+              <div class="ach-name">千题不败</div>
+              <div class="ach-desc">完成 1000 题</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🔗</div>
+            <div class="ach-info">
+              <div class="ach-name">持之以恒</div>
+              <div class="ach-desc">连续 7 天有做题记录</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:57%"></span></span>
+                <span data-db="...progress">4</span> / <span data-db="...threshold">7</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 📚 课程 -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">📚 课程</div>
+        <div data-db-loop="achievement.getCategories[].list">
+
+          <div class="ach-item">
+            <div class="ach-icon">📜</div>
+            <div class="ach-info">
+              <div class="ach-name">学有所成</div>
+              <div class="ach-desc">完成 1 门课程</div>
+              <div class="ach-time" style="">
+                <span data-db="...unlockedAt">2025-03-10</span> 解锁
+              </div>
+            </div>
+            <span class="ach-status unlocked">已解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">📚</div>
+            <div class="ach-info">
+              <div class="ach-name">三好学生</div>
+              <div class="ach-desc">完成 3 门课程</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:33%"></span></span>
+                <span data-db="...progress">1</span> / <span data-db="...threshold">3</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">🎓</div>
+            <div class="ach-info">
+              <div class="ach-name">全面发展</div>
+              <div class="ach-desc">完成 5 门课程</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">📖</div>
+            <div class="ach-info">
+              <div class="ach-name">博览群书</div>
+              <div class="ach-desc">浏览 10 份讲义</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:40%"></span></span>
+                <span data-db="...progress">4</span> / <span data-db="...threshold">10</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 📝 组卷 -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">📝 组卷</div>
+        <div data-db-loop="achievement.getCategories[].list">
+
+          <div class="ach-item">
+            <div class="ach-icon">📝</div>
+            <div class="ach-info">
+              <div class="ach-name">出题人</div>
+              <div class="ach-desc">创建第 1 张组卷</div>
+              <div class="ach-time" style="">
+                <span data-db="...unlockedAt">2025-03-12</span> 解锁
+              </div>
+            </div>
+            <span class="ach-status unlocked">已解锁</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">✍️</div>
+            <div class="ach-info">
+              <div class="ach-name">组卷达人</div>
+              <div class="ach-desc">创建 5 张组卷</div>
+              <div class="ach-progress" style="">
+                <span class="bar"><span class="fill" style="width:20%"></span></span>
+                <span data-db="...progress">1</span> / <span data-db="...threshold">5</span>
+              </div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 🖊️ 评价 -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">🖊️ 评价</div>
+        <div data-db-loop="achievement.getCategories[].list">
+
+          <div class="ach-item">
+            <div class="ach-icon">🖊️</div>
+            <div class="ach-info">
+              <div class="ach-name">鉴赏家</div>
+              <div class="ach-desc">首次为题目评分</div>
+            </div>
+            <span class="ach-status in-progress">进行中</span>
+          </div>
+
+          <div class="ach-item">
+            <div class="ach-icon">✨</div>
+            <div class="ach-info">
+              <div class="ach-name">品题大师</div>
+              <div class="ach-desc">评分 10 次</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
