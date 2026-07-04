@@ -10,3 +10,6 @@ flutter_app/.flutter-plugins-dependencies
 # Django
 Django_service/
 zhangyuzhixue_app_Django/
+
+# 调试项目（已废弃，用 spec/md&LaTex/ 代替）
+debug/
