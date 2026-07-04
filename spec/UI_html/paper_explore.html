@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发现组卷 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>发现组卷</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 排序栏 -->
+    <div class="sort-bar">
+      <span class="sort-pill active" onclick="selectSort(this)">综合排序</span>
+      <span class="sort-pill" onclick="selectSort(this)">按收藏数</span>
+      <span class="sort-pill" onclick="selectSort(this)">按发布时间</span>
+      <span class="sort-pill" onclick="selectSort(this)">按发布者积分</span>
+    </div>
+
+    <!-- 组卷卡片列表 -->
+    <div data-db-loop="exam.explore.getList" data-db-empty="暂无公开组卷">
+
+      <div class="explore-card">
+        <div style="font-size:15px;font-weight:600;" data-db="exam.explore.getList[].name">导数冲刺 20 题</div>
+        <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.explore.getList[].authorInfo">
+          作者：李明 · Lv.8 · 总积分 234
+        </div>
+        <div class="text-secondary" style="font-size:12px;" data-db="exam.explore.getList[].summary">
+          选择 10 题 · 填空 5 题 · 解答 6 题 · 共 21 题
+        </div>
+        <div class="flex items-center gap-3" style="margin-top:6px;font-size:12px;color:var(--text-muted);" data-db="exam.explore.getList[].stats">
+          ❤️ <span data-db="exam.explore.getList[].likeCount">128</span>
+          · 🔖 <span data-db="exam.explore.getList[].collectCount">56</span>
+          · <span data-db="exam.explore.getList[].createdAt">2026-07-02</span>
+        </div>
+        <div class="explore-actions" style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-sm like-btn"
+                  data-db-action="exam.explore.toggleLike(1)"
+                  onclick="this.classList.toggle('liked')">❤️ 点赞</button>
+          <button class="btn btn-sm btn-outline collect-btn"
+                  data-db-action="exam.explore.toggleCollect(1)"
+                  onclick="toggleCollect(this)">🔖 收藏</button>
+          <a href="paper_quicklook_other.html" class="btn btn-sm btn-primary">查看试卷</a>
+        </div>
+      </div>
+
+      <div class="explore-card">
+        <div style="font-size:15px;font-weight:600;" data-db="exam.explore.getList[].name">三角函数专项训练</div>
+        <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.explore.getList[].authorInfo">
+          作者：王芳 · Lv.5 · 总积分 87
+        </div>
+        <div class="text-secondary" style="font-size:12px;" data-db="exam.explore.getList[].summary">
+          选择 5 题 · 填空 3 题 · 解答 2 题 · 共 10 题
+        </div>
+        <div class="flex items-center gap-3" style="margin-top:6px;font-size:12px;color:var(--text-muted);" data-db="exam.explore.getList[].stats">
+          ❤️ <span data-db="exam.explore.getList[].likeCount">42</span>
+          · 🔖 <span data-db="exam.explore.getList[].collectCount">12</span>
+          · <span data-db="exam.explore.getList[].createdAt">2026-06-28</span>
+        </div>
+        <div class="explore-actions" style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-sm like-btn liked"
+                  data-db-action="exam.explore.toggleLike(2)"
+                  onclick="this.classList.toggle('liked')">❤️ 已赞</button>
+          <button class="btn btn-sm btn-outline collect-btn collected"
+                  data-db-action="exam.explore.toggleCollect(2)"
+                  onclick="toggleCollect(this)">🔖 已收藏</button>
+          <a href="paper_quicklook_other.html" class="btn btn-sm btn-primary">查看试卷</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function selectSort(el) {
+      document.querySelectorAll('.sort-pill').forEach(function(p) { p.classList.remove('active'); });
+      el.classList.add('active');
+    }
+
+    function toggleCollect(btn) {
+      if (btn.classList.contains('collected')) {
+        btn.classList.remove('collected');
+        btn.textContent = '🔖 收藏';
+      } else {
+        btn.classList.add('collected');
+        btn.textContent = '🔖 已收藏';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -30,6 +30,33 @@
       text-decoration: none;
     }
     .question-item .q-btn:hover { background: var(--primary-light); }
+    .toggle-switch {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-switch .track {
+      width: 40px; height: 22px;
+      background: var(--border);
+      border-radius: 11px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle-switch .track .thumb {
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on .track { background: var(--primary); }
+    .toggle-switch.on .track .thumb { left: 20px; }
   </style>
 </head>
 <body>
@@ -42,7 +69,10 @@
     <!-- 试卷名称 -->
     <div class="card">
       <div style="font-size:17px;font-weight:600;" data-db="exam.preview.name">我的练习卷</div>
-      <div class="text-secondary" style="font-size:13px;margin-top:4px;" data-db="exam.preview.summary">
+      <div class="text-secondary" style="font-size:13px;margin-top:4px;" data-db="exam.preview.authorInfo">
+        作者：李小红 · 2026-07-04
+      </div>
+      <div class="text-secondary" style="font-size:13px;margin-top:2px;" data-db="exam.preview.summary">
         选择 <span data-db="exam.preview.choiceCount">2</span> 题
         · 填空 <span data-db="exam.preview.fillCount">0</span> 题
         · 解答 <span data-db="exam.preview.solutionCount">0</span> 题
@@ -50,11 +80,24 @@
       </div>
     </div>
 
-    <!-- 操作按钮（放在题目列表前面，因题目较多时会很长） -->
-    <div class="flex gap-2 mt-4">
-      <button class="btn btn-outline flex-1" data-db-action="exam.downloadPdf()">下载 PDF</button>
-      <a href="answer_sheet.html" class="btn btn-outline flex-1" data-db-action="exam.quickAnswer()">快对答案</a>
-      <button class="btn btn-ghost flex-1" style="color:var(--error);" data-db-action="exam.deleteExam()">删除</button>
+    <!-- 操作按钮 -->
+    <div class="flex gap-2 mt-4" style="flex-wrap:wrap;">
+      <button class="btn btn-outline flex-1" data-db-action="exam.preview.downloadPdf()">下载 PDF</button>
+      <a href="answer_sheet.html" class="btn btn-outline flex-1" data-db-action="exam.preview.quickAnswer()">快对答案</a>
+    </div>
+
+    <!-- 公开/私密开关 + 删除 -->
+    <div class="card mt-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span style="font-size:15px;font-weight:600;">公开状态</span>
+          <span class="toggle-switch on" data-db-action="exam.preview.togglePublic()" onclick="toggleSwitch(this)">
+            <span class="track"><span class="thumb"></span></span>
+            <span class="toggle-label">公开</span>
+          </span>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.preview.deleteExam()">删除</button>
+      </div>
     </div>
 
     <!-- 题目列表 -->
@@ -76,5 +119,13 @@
       </div>
     </div>
   </div>
+
+  <script>
+    function toggleSwitch(el) {
+      el.classList.toggle('on');
+      var label = el.querySelector('.toggle-label');
+      label.textContent = el.classList.contains('on') ? '公开' : '私密';
+    }
+  </script>
 </body>
 </html>

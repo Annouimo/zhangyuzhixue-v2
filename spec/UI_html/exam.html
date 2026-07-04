@@ -23,67 +23,33 @@
       </a>
     </div>
 
-    <!-- 组卷历史 -->
-    <div data-db-loop="exam.getMyExams" data-db-empty="暂无组卷记录">
-
-      <div class="card">
-        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
-          <div class="flex items-center justify-between">
-            <div>
-              <div style="font-size:15px;font-weight:600;" data-db="exam.getMyExams[].name">导数练习卷</div>
-              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.getMyExams[].createdAt">2025-03-14</div>
-            </div>
-            <div class="text-secondary" style="font-size:12px;" data-db="exam.getMyExams[].summary">
-              选择 2 题 · 填空 0 题 · 解答 1 题 · 共 3 题
-            </div>
-          </div>
-        </a>
-        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" data-db-action="exam.downloadPdf(1)">下载 PDF</button>
-          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.quickAnswer(1)">快对答案</a>
-          <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.deleteExam(1)">删除</button>
-        </div>
+    <!-- 组卷功能入口（列表项样式） -->
+    <a href="paper_history.html" class="list-item" style="text-decoration:none;">
+      <span style="font-size:24px;margin-right:12px;">📋</span>
+      <div class="left">
+        <div class="title">我的组卷</div>
+        <div class="subtitle">管理我创建的试卷</div>
       </div>
+      <span class="right" style="color:var(--text-muted);font-size:18px;">→</span>
+    </a>
 
-      <div class="card">
-        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
-          <div class="flex items-center justify-between">
-            <div>
-              <div style="font-size:15px;font-weight:600;" data-db="exam.getMyExams[].name">三角函数专项</div>
-              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.getMyExams[].createdAt">2025-03-10</div>
-            </div>
-            <div class="text-secondary" style="font-size:12px;" data-db="exam.getMyExams[].summary">
-              选择 5 题 · 填空 3 题 · 解答 0 题 · 共 8 题
-            </div>
-          </div>
-        </a>
-        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" data-db-action="exam.downloadPdf(2)">下载 PDF</button>
-          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.quickAnswer(2)">快对答案</a>
-          <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.deleteExam(2)">删除</button>
-        </div>
+    <a href="paper_explore.html" class="list-item" style="text-decoration:none;">
+      <span style="font-size:24px;margin-right:12px;">🌐</span>
+      <div class="left">
+        <div class="title">发现组卷</div>
+        <div class="subtitle">浏览他人分享的公开试卷</div>
       </div>
+      <span class="right" style="color:var(--text-muted);font-size:18px;">→</span>
+    </a>
 
-      <div class="card">
-        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
-          <div class="flex items-center justify-between">
-            <div>
-              <div style="font-size:15px;font-weight:600;" data-db="exam.getMyExams[].name">期末冲刺</div>
-              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.getMyExams[].createdAt">2025-03-01</div>
-            </div>
-            <div class="text-secondary" style="font-size:12px;" data-db="exam.getMyExams[].summary">
-              选择 3 题 · 填空 2 题 · 解答 4 题 · 共 9 题
-            </div>
-          </div>
-        </a>
-        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" data-db-action="exam.downloadPdf(3)">下载 PDF</button>
-          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.quickAnswer(3)">快对答案</a>
-          <button class="btn btn-ghost btn-sm" style="color:var(--error);" data-db-action="exam.deleteExam(3)">删除</button>
-        </div>
+    <a href="paper_favorites.html" class="list-item" style="text-decoration:none;">
+      <span style="font-size:24px;margin-right:12px;">🔖</span>
+      <div class="left">
+        <div class="title">我的收藏</div>
+        <div class="subtitle">收藏的他人试卷</div>
       </div>
-
-    </div>
+      <span class="right" style="color:var(--text-muted);font-size:18px;">→</span>
+    </a>
   </div>
 
   <nav class="bottom-nav">

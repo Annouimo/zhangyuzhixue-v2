@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的组卷 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .toggle-switch {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-switch .track {
+      width: 40px; height: 22px;
+      background: var(--border);
+      border-radius: 11px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle-switch .track .thumb {
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on .track { background: var(--primary); }
+    .toggle-switch.on .track .thumb { left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>我的组卷</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <div data-db-loop="exam.myExams.getList" data-db-empty="暂无组卷记录">
+
+      <div class="card">
+        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:15px;font-weight:600;" data-db="exam.myExams.getList[].name">导数练习卷</div>
+              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.myExams.getList[].createdAt">2025-03-14</div>
+            </div>
+            <div class="text-secondary" style="font-size:12px;text-align:right;" data-db="exam.myExams.getList[].summary">
+              选择 2 题 · 填空 0 题 · 解答 1 题 · 共 3 题
+            </div>
+          </div>
+        </a>
+        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span class="toggle-switch on" data-db-action="exam.myExams.togglePublic(1)" onclick="toggleSwitch(this)">
+            <span class="track"><span class="thumb"></span></span>
+            <span class="toggle-label">公开</span>
+          </span>
+          <button class="btn btn-outline btn-sm" data-db-action="exam.myExams.downloadPdf(1)">下载 PDF</button>
+          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.myExams.quickAnswer(1)">快对答案</a>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error);margin-left:auto;" data-db-action="exam.myExams.delete(1)">删除</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:15px;font-weight:600;" data-db="exam.myExams.getList[].name">三角函数专项</div>
+              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.myExams.getList[].createdAt">2025-03-10</div>
+            </div>
+            <div class="text-secondary" style="font-size:12px;text-align:right;" data-db="exam.myExams.getList[].summary">
+              选择 5 题 · 填空 3 题 · 解答 0 题 · 共 8 题
+            </div>
+          </div>
+        </a>
+        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span class="toggle-switch" data-db-action="exam.myExams.togglePublic(2)" onclick="toggleSwitch(this)">
+            <span class="track"><span class="thumb"></span></span>
+            <span class="toggle-label">私密</span>
+          </span>
+          <button class="btn btn-outline btn-sm" data-db-action="exam.myExams.downloadPdf(2)">下载 PDF</button>
+          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.myExams.quickAnswer(2)">快对答案</a>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error);margin-left:auto;" data-db-action="exam.myExams.delete(2)">删除</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <a href="paper_quicklook.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:15px;font-weight:600;" data-db="exam.myExams.getList[].name">期末冲刺</div>
+              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.myExams.getList[].createdAt">2025-03-01</div>
+            </div>
+            <div class="text-secondary" style="font-size:12px;text-align:right;" data-db="exam.myExams.getList[].summary">
+              选择 3 题 · 填空 2 题 · 解答 4 题 · 共 9 题
+            </div>
+          </div>
+        </a>
+        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <span class="toggle-switch on" data-db-action="exam.myExams.togglePublic(3)" onclick="toggleSwitch(this)">
+            <span class="track"><span class="thumb"></span></span>
+            <span class="toggle-label">公开</span>
+          </span>
+          <button class="btn btn-outline btn-sm" data-db-action="exam.myExams.downloadPdf(3)">下载 PDF</button>
+          <a href="answer_sheet.html" class="btn btn-outline btn-sm" data-db-action="exam.myExams.quickAnswer(3)">快对答案</a>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error);margin-left:auto;" data-db-action="exam.myExams.delete(3)">删除</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function toggleSwitch(el) {
+      el.classList.toggle('on');
+      var label = el.querySelector('.toggle-label');
+      label.textContent = el.classList.contains('on') ? '公开' : '私密';
+    }
+  </script>
+</body>
+</html>

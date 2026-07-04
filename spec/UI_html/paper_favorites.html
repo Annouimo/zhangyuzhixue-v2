@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的收藏 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>我的收藏</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <div data-db-loop="exam.favorites.getList" data-db-empty="暂无收藏的组卷">
+
+      <div class="card">
+        <a href="paper_quicklook_other.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:15px;font-weight:600;" data-db="exam.favorites.getList[].name">导数冲刺 20 题</div>
+              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.favorites.getList[].authorInfo">
+                作者：李明 · 2026-07-02
+              </div>
+            </div>
+            <div class="text-secondary" style="font-size:12px;" data-db="exam.favorites.getList[].summary">
+              选择 10 · 填空 5 · 解答 6 · 共 21 题
+            </div>
+          </div>
+        </a>
+        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm like-btn" data-db-action="exam.favorites.toggleLike(1)"
+                  onclick="this.classList.toggle('liked')">❤️ 点赞</button>
+          <button class="btn btn-outline btn-sm" data-db-action="exam.favorites.remove(1)">🔖 取消收藏</button>
+          <a href="paper_quicklook_other.html" class="btn btn-outline btn-sm">查看试卷</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <a href="paper_quicklook_other.html" style="display:block;text-decoration:none;color:inherit;cursor:pointer;">
+          <div class="flex items-center justify-between">
+            <div>
+              <div style="font-size:15px;font-weight:600;" data-db="exam.favorites.getList[].name">三角函数专项训练</div>
+              <div class="text-secondary" style="font-size:12px;margin-top:2px;" data-db="exam.favorites.getList[].authorInfo">
+                作者：王芳 · 2026-06-28
+              </div>
+            </div>
+            <div class="text-secondary" style="font-size:12px;" data-db="exam.favorites.getList[].summary">
+              选择 5 · 填空 3 · 解答 2 · 共 10 题
+            </div>
+          </div>
+        </a>
+        <div class="paper-actions mt-2" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm like-btn liked" data-db-action="exam.favorites.toggleLike(2)"
+                  onclick="this.classList.toggle('liked')">❤️ 已赞</button>
+          <button class="btn btn-outline btn-sm" data-db-action="exam.favorites.remove(2)">🔖 取消收藏</button>
+          <a href="paper_quicklook_other.html" class="btn btn-outline btn-sm">查看试卷</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

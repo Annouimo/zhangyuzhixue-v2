@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>试卷 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .question-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    .question-item .q-info { flex: 1; }
+    .question-item .q-btn {
+      flex-shrink: 0;
+      margin-left: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--primary);
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .question-item .q-btn:hover { background: var(--primary-light); }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>试卷</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 试卷名称 + 作者 -->
+    <div class="card">
+      <div style="font-size:17px;font-weight:600;" data-db="exam.previewOther.name">导数冲刺 20 题</div>
+      <div class="text-secondary" style="font-size:13px;margin-top:4px;" data-db="exam.previewOther.authorInfo">
+        作者：李明 · Lv.8 · 2026-07-02
+      </div>
+      <div class="text-secondary" style="font-size:13px;margin-top:2px;" data-db="exam.previewOther.summary">
+        选择 <span data-db="exam.previewOther.choiceCount">10</span> 题
+        · 填空 <span data-db="exam.previewOther.fillCount">5</span> 题
+        · 解答 <span data-db="exam.previewOther.solutionCount">6</span> 题
+        · 共 <span data-db="exam.previewOther.totalCount">21</span> 题
+      </div>
+      <div class="flex items-center gap-3" style="margin-top:6px;font-size:12px;color:var(--text-muted);">
+        ❤️ <span data-db="exam.previewOther.likeCount">128</span>
+        · 🔖 <span data-db="exam.previewOther.collectCount">56</span>
+      </div>
+    </div>
+
+    <!-- 交互按钮 -->
+    <div class="flex gap-2 mt-4">
+      <button class="btn btn-outline flex-1 like-btn" data-db-action="exam.previewOther.toggleLike()"
+              onclick="this.classList.toggle('liked')">❤️ 点赞</button>
+      <button class="btn btn-outline flex-1 collect-btn" data-db-action="exam.previewOther.toggleCollect()"
+              onclick="toggleCollect(this)">🔖 收藏</button>
+      <a href="answer_sheet.html" class="btn btn-outline flex-1">快对答案</a>
+    </div>
+
+    <!-- 题目列表 -->
+    <h3 style="font-size:15px;font-weight:600;margin:12px 0 8px;">试卷题目</h3>
+    <div data-db-loop="exam.previewOther.questions">
+      <div class="question-item">
+        <div class="q-info">
+          <div data-db="exam.previewOther.questions[].title">2025 东城一模 第 1 题</div>
+          <div class="text-secondary" data-db="exam.previewOther.questions[].meta">选择题 · 难度 0.3 · 计算量 1.2</div>
+        </div>
+        <a href="solve.html" class="q-btn" data-db-action="question.startSolve(1)">做题</a>
+      </div>
+      <div class="question-item">
+        <div class="q-info">
+          <div data-db="exam.previewOther.questions[].title">2025 东城一模 第 2 题</div>
+          <div class="text-secondary" data-db="exam.previewOther.questions[].meta">选择题 · 难度 0.5 · 计算量 1.8</div>
+        </div>
+        <a href="solve.html" class="q-btn" data-db-action="question.startSolve(2)">做题</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleCollect(btn) {
+      if (btn.classList.contains('collected')) {
+        btn.classList.remove('collected');
+        btn.textContent = '🔖 收藏';
+      } else {
+        btn.classList.add('collected');
+        btn.textContent = '🔖 已收藏';
+      }
+    }
+  </script>
+</body>
+</html>
