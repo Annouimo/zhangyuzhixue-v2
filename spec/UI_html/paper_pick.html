@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自主选题 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="has-sticky">
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>自主选题</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 试卷名称 -->
+    <div class="input-group">
+      <label>试卷名称</label>
+      <input type="text" placeholder="输入试卷名称" data-db-bind="exam.pick.name" value="我的练习卷">
+    </div>
+
+    <!-- 筛选条件（整块包裹在 card 中，视觉独立） -->
+    <div class="card">
+      <div class="flex items-center justify-between" style="margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:600;">筛选条件</span>
+        <button class="btn btn-sm btn-outline" data-db-action="exam.pick.clearFilters()">清除全部</button>
+      </div>
+
+      <!-- 筛选方案保存/读取 -->
+      <div class="filter-presets">
+        <button class="btn btn-sm btn-outline" data-db-action="exam.pick.saveFilterPreset()">
+          💾 保存方案
+        </button>
+        <select class="preset-select" data-db-bind="exam.pick.loadFilterPreset">
+          <option value="">📂 读取方案...</option>
+          <option data-db-loop="exam.pick.filterPresets" data-db="exam.pick.filterPresets[].name">导数专项</option>
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按来源筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <div class="mb-4">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">年份</label>
+            <div class="flex gap-2" data-db-loop="exam.pick.filter.years">
+              <label style="font-size:13px;"><input type="checkbox" checked> 2025</label>
+              <label style="font-size:13px;"><input type="checkbox"> 2024</label>
+              <label style="font-size:13px;"><input type="checkbox"> 2023</label>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">地区</label>
+            <div class="flex gap-2" data-db-loop="exam.pick.filter.regions">
+              <label style="font-size:13px;"><input type="checkbox" checked> 海淀</label>
+              <label style="font-size:13px;"><input type="checkbox" checked> 东城</label>
+              <label style="font-size:13px;"><input type="checkbox"> 西城</label>
+              <label style="font-size:13px;"><input type="checkbox"> 朝阳</label>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">考试</label>
+            <div class="flex gap-2">
+              <label style="font-size:13px;"><input type="checkbox" checked> 一模</label>
+              <label style="font-size:13px;"><input type="checkbox"> 二模</label>
+              <label style="font-size:13px;"><input type="checkbox"> 期末</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按概念标签筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <p class="text-secondary" style="font-size:13px;" data-db-loop="exam.pick.filter.conceptTags">
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 集合</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 函数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 导数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 三角函数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 数列</label>
+          </p>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按知识卡片筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <p class="text-secondary" style="font-size:13px;" data-db-loop="exam.pick.filter.knowledgeCards">
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 正弦定理</label>
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 余弦定理</label>
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 辅助角公式</label>
+          </p>
+        </div>
+      </div>
+
+      <div class="filter-section" style="margin-bottom:0;">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按难度/计算量筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <div class="mb-2">
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">难度</div>
+            <div class="dual-range" id="pick-difficulty-range">
+              <div class="rail"></div>
+              <div class="fill" id="pick-difficulty-fill"></div>
+              <input type="range" min="0" max="10" value="2" step="0.5"
+                     id="pick-difficulty-min" oninput="syncDualRange('pick-difficulty')"
+                     data-db-bind="exam.pick.filter.diffMin">
+              <input type="range" min="0" max="10" value="8" step="0.5"
+                     id="pick-difficulty-max" oninput="syncDualRange('pick-difficulty')"
+                     data-db-bind="exam.pick.filter.diffMax">
+            </div>
+            <div class="dual-labels">
+              <span>最小值：<span id="pick-difficulty-min-label">2</span></span>
+              <span>最大值：<span id="pick-difficulty-max-label">8</span></span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">计算量</div>
+            <div class="dual-range" id="pick-calculation-range">
+              <div class="rail"></div>
+              <div class="fill" id="pick-calculation-fill"></div>
+              <input type="range" min="0" max="10" value="1" step="0.5"
+                     id="pick-calculation-min" oninput="syncDualRange('pick-calculation')"
+                     data-db-bind="exam.pick.filter.calcMin">
+              <input type="range" min="0" max="10" value="7" step="0.5"
+                     id="pick-calculation-max" oninput="syncDualRange('pick-calculation')"
+                     data-db-bind="exam.pick.filter.calcMax">
+            </div>
+            <div class="dual-labels">
+              <span>最小值：<span id="pick-calculation-min-label">1</span></span>
+              <span>最大值：<span id="pick-calculation-max-label">7</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 题目列表 -->
+    <div style="margin-top:4px;">
+      <div class="flex items-center justify-between" style="padding:8px 0;">
+        <span style="font-size:15px;font-weight:600;">题目列表（共 <span data-db="exam.pick.totalCount">10</span> 题）</span>
+        <span style="font-size:13px;color:var(--text-secondary);">已选 <span data-db="exam.pick.selectedCount">2</span> 题</span>
+      </div>
+
+      <div data-db-loop="exam.pick.getList">
+        <div class="question-item" style="display:flex;align-items:center;padding:10px 12px;background:var(--card);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:var(--shadow);font-size:13px;">
+          <div style="flex:1;">
+            <div><strong data-db="exam.pick.getList[].title">2025 东城一模 第 1 题</strong></div>
+            <div class="text-secondary" data-db="exam.pick.getList[].meta">难度 <span data-db="exam.pick.getList[].difficulty">0.3</span> · 计算量 <span data-db="exam.pick.getList[].calculation">1.2</span></div>
+          </div>
+          <button class="q-add selected" data-db-action="exam.pick.toggleQuestion(1)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✓</button>
+        </div>
+        <div class="question-item" style="display:flex;align-items:center;padding:10px 12px;background:var(--card);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:var(--shadow);font-size:13px;">
+          <div style="flex:1;">
+            <div><strong data-db="exam.pick.getList[].title">2025 东城一模 第 2 题</strong></div>
+            <div class="text-secondary" data-db="exam.pick.getList[].meta">难度 <span data-db="exam.pick.getList[].difficulty">0.5</span> · 计算量 <span data-db="exam.pick.getList[].calculation">1.8</span></div>
+          </div>
+          <button class="q-add selected" data-db-action="exam.pick.toggleQuestion(2)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✓</button>
+        </div>
+        <div class="question-item" style="display:flex;align-items:center;padding:10px 12px;background:var(--card);border-radius:var(--radius-sm);margin-bottom:6px;box-shadow:var(--shadow);font-size:13px;">
+          <div style="flex:1;">
+            <div><strong data-db="exam.pick.getList[].title">2025 东城一模 第 3 题</strong></div>
+            <div class="text-secondary" data-db="exam.pick.getList[].meta">难度 <span data-db="exam.pick.getList[].difficulty">0.6</span> · 计算量 <span data-db="exam.pick.getList[].calculation">2.5</span></div>
+          </div>
+          <button class="q-add" data-db-action="exam.pick.toggleQuestion(3)" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部固定条 -->
+  <div class="sticky-bar">
+    <div class="bar-info">
+      已选 <span data-db="exam.pick.selectedCount">2</span> 题 / 共 <span data-db="exam.pick.totalCount">10</span> 题 · 消耗 20 积分
+    </div>
+    <button class="btn btn-primary bar-btn" data-db-action="exam.pick.confirm()"
+            onclick="location.href='paper_quicklook.html'">
+      确认组卷 →
+    </button>
+  </div>
+
+  <script>
+    function toggleFilter(header) {
+      var section = header.parentElement;
+      section.classList.toggle('open');
+    }
+
+    function syncDualRange(name) {
+      var minInput = document.getElementById(name + '-min');
+      var maxInput = document.getElementById(name + '-max');
+      if (!minInput || !maxInput) return;
+      var minVal = parseFloat(minInput.value);
+      var maxVal = parseFloat(maxInput.value);
+
+      if (minVal > maxVal) {
+        var tmp = minVal; minVal = maxVal; maxVal = tmp;
+        minInput.value = minVal; maxInput.value = maxVal;
+      }
+
+      document.getElementById(name + '-min-label').textContent = minVal;
+      document.getElementById(name + '-max-label').textContent = maxVal;
+
+      var totalMin = parseFloat(minInput.min);
+      var totalMax = parseFloat(minInput.max);
+      var range = totalMax - totalMin;
+      var leftPct = ((minVal - totalMin) / range) * 100;
+      var rightPct = ((maxVal - totalMin) / range) * 100;
+      var fill = document.getElementById(name + '-fill');
+      if (fill) {
+        fill.style.left = leftPct + '%';
+        fill.style.width = (rightPct - leftPct) + '%';
+      }
+    }
+
+    window.onload = function() {
+      syncDualRange('pick-difficulty');
+      syncDualRange('pick-calculation');
+    };
+  </script>
+</body>
+</html>

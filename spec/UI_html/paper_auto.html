@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能组卷 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="exam.html" class="back-btn">← 返回</a>
+    <h1>智能组卷</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 试卷名称 -->
+    <div class="input-group">
+      <label>试卷名称</label>
+      <input type="text" placeholder="输入试卷名称" data-db-bind="exam.auto.name" value="智能练习卷">
+    </div>
+
+    <!-- 筛选条件（整块包裹在 card 中，视觉独立） -->
+    <div class="card">
+      <div class="flex items-center justify-between" style="margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:600;">筛选条件</span>
+        <button class="btn btn-sm btn-outline" data-db-action="exam.auto.clearFilters()">清除全部</button>
+      </div>
+
+      <!-- 筛选方案保存/读取 -->
+      <div class="filter-presets">
+        <button class="btn btn-sm btn-outline" data-db-action="exam.auto.saveFilterPreset()">
+          💾 保存方案
+        </button>
+        <select class="preset-select" data-db-bind="exam.auto.loadFilterPreset">
+          <option value="">📂 读取方案...</option>
+          <option data-db-loop="exam.auto.filterPresets" data-db="exam.auto.filterPresets[].name">导数专项</option>
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按来源筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <div class="mb-4">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">年份</label>
+            <div class="flex gap-2" data-db-loop="exam.auto.filter.years">
+              <label style="font-size:13px;"><input type="checkbox" checked> 2025</label>
+              <label style="font-size:13px;"><input type="checkbox"> 2024</label>
+              <label style="font-size:13px;"><input type="checkbox"> 2023</label>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">地区</label>
+            <div class="flex gap-2" data-db-loop="exam.auto.filter.regions">
+              <label style="font-size:13px;"><input type="checkbox" checked> 海淀</label>
+              <label style="font-size:13px;"><input type="checkbox" checked> 东城</label>
+              <label style="font-size:13px;"><input type="checkbox"> 西城</label>
+              <label style="font-size:13px;"><input type="checkbox"> 朝阳</label>
+            </div>
+          </div>
+          <div class="mt-2">
+            <label style="font-size:13px;font-weight:500;display:block;margin-bottom:4px;">考试</label>
+            <div class="flex gap-2">
+              <label style="font-size:13px;"><input type="checkbox" checked> 一模</label>
+              <label style="font-size:13px;"><input type="checkbox"> 二模</label>
+              <label style="font-size:13px;"><input type="checkbox"> 期末</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按概念标签筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <p class="text-secondary" style="font-size:13px;" data-db-loop="exam.auto.filter.conceptTags">
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 集合</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 函数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 导数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 三角函数</label>
+            <label style="display:inline-block;margin-right:8px;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 数列</label>
+          </p>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按知识卡片筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <p class="text-secondary" style="font-size:13px;" data-db-loop="exam.auto.filter.knowledgeCards">
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 正弦定理</label>
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 余弦定理</label>
+            <label style="display:block;margin-bottom:4px;font-size:13px;">
+              <input type="checkbox"> 辅助角公式</label>
+          </p>
+        </div>
+      </div>
+
+      <div class="filter-section" style="margin-bottom:0;">
+        <div class="filter-header" onclick="toggleFilter(this)">
+          <span>按难度/计算量筛选</span>
+          <span>▾</span>
+        </div>
+        <div class="filter-body">
+          <div class="mb-2">
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">难度</div>
+            <div class="dual-range" id="auto-difficulty-range">
+              <div class="rail"></div>
+              <div class="fill" id="auto-difficulty-fill"></div>
+              <input type="range" min="0" max="10" value="2" step="0.5"
+                     id="auto-difficulty-min" oninput="syncDualRange('auto-difficulty')"
+                     data-db-bind="exam.auto.filter.diffMin">
+              <input type="range" min="0" max="10" value="8" step="0.5"
+                     id="auto-difficulty-max" oninput="syncDualRange('auto-difficulty')"
+                     data-db-bind="exam.auto.filter.diffMax">
+            </div>
+            <div class="dual-labels">
+              <span>最小值：<span id="auto-difficulty-min-label">2</span></span>
+              <span>最大值：<span id="auto-difficulty-max-label">8</span></span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">计算量</div>
+            <div class="dual-range" id="auto-calculation-range">
+              <div class="rail"></div>
+              <div class="fill" id="auto-calculation-fill"></div>
+              <input type="range" min="0" max="10" value="1" step="0.5"
+                     id="auto-calculation-min" oninput="syncDualRange('auto-calculation')"
+                     data-db-bind="exam.auto.filter.calcMin">
+              <input type="range" min="0" max="10" value="7" step="0.5"
+                     id="auto-calculation-max" oninput="syncDualRange('auto-calculation')"
+                     data-db-bind="exam.auto.filter.calcMax">
+            </div>
+            <div class="dual-labels">
+              <span>最小值：<span id="auto-calculation-min-label">1</span></span>
+              <span>最大值：<span id="auto-calculation-max-label">7</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 题型数量 -->
+    <div class="card" style="margin-top:4px;">
+      <div style="font-size:15px;font-weight:600;margin-bottom:12px;">设置各题型题数</div>
+
+      <div class="stepper-row">
+        <span>选择题</span>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepperChange(this, -1)">−</button>
+          <span class="stepper-val" data-db-bind="exam.auto.choiceCount">10</span>
+          <button class="stepper-btn" onclick="stepperChange(this, 1)">+</button>
+        </div>
+        <span class="text-secondary" style="font-size:12px;">（可用 <span data-db="exam.auto.availableChoice">28</span> 题）</span>
+      </div>
+
+      <div class="stepper-row">
+        <span>填空题</span>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepperChange(this, -1)">−</button>
+          <span class="stepper-val" data-db-bind="exam.auto.fillCount">5</span>
+          <button class="stepper-btn" onclick="stepperChange(this, 1)">+</button>
+        </div>
+        <span class="text-secondary" style="font-size:12px;">（可用 <span data-db="exam.auto.availableFill">15</span> 题）</span>
+      </div>
+
+      <div class="stepper-row">
+        <span>解答题</span>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="stepperChange(this, -1)">−</button>
+          <span class="stepper-val" data-db-bind="exam.auto.solutionCount">6</span>
+          <button class="stepper-btn" onclick="stepperChange(this, 1)">+</button>
+        </div>
+        <span class="text-secondary" style="font-size:12px;">（可用 <span data-db="exam.auto.availableSolution">20</span> 题）</span>
+      </div>
+
+      <p class="text-muted" style="font-size:12px;color:var(--text-muted);margin-top:4px;">
+        默认值参考高考题型分布（从数据库读取）
+      </p>
+    </div>
+
+    <!-- 难度调优 -->
+    <div class="card diff-tuning">
+      <div style="font-size:15px;font-weight:600;margin-bottom:8px;">难度调优（可选）</div>
+      <p class="text-secondary" style="font-size:13px;margin-bottom:12px;">
+        设置目标平均难度，系统自动挑选最接近的题目组合
+      </p>
+
+      <div class="flex items-center justify-between" style="margin-bottom:4px;">
+        <span style="font-size:13px;">目标平均难度</span>
+        <span style="font-size:16px;font-weight:700;color:var(--primary);" id="auto-diff-target">0.60</span>
+      </div>
+      <input type="range" class="diff-slider" min="0.1" max="0.95" step="0.05" value="0.6"
+             oninput="document.getElementById('auto-diff-target').textContent=parseFloat(this.value).toFixed(2)"
+             data-db-bind="exam.auto.targetDifficulty">
+
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted);line-height:1.8;">
+        <div>当前筛选池：<span data-db="exam.auto.poolDiffMin">0.20</span> — <span data-db="exam.auto.poolDiffMax">0.95</span></div>
+        <div>
+          高考全卷参考：
+          最小 <span data-db="exam.auto.gaokaoDiffMin">0.25</span>
+          · 平均 <span data-db="exam.auto.gaokaoDiffAvg">0.52</span>
+          · 最大 <span data-db="exam.auto.gaokaoDiffMax">0.88</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 确认按钮（路由到试卷预览） -->
+    <div style="margin-top:12px;padding-bottom:20px;">
+      <button class="btn btn-primary btn-block" data-db-action="exam.auto.generate()"
+              onclick="location.href='paper_quicklook.html'">
+        确认智能组卷（消耗 10 积分）
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function toggleFilter(header) {
+      var section = header.parentElement;
+      section.classList.toggle('open');
+    }
+
+    function syncDualRange(name) {
+      var prefix = name.replace('auto-', 'auto-');
+      var minInput = document.getElementById(name + '-min');
+      var maxInput = document.getElementById(name + '-max');
+      if (!minInput || !maxInput) return;
+      var minVal = parseFloat(minInput.value);
+      var maxVal = parseFloat(maxInput.value);
+
+      if (minVal > maxVal) {
+        var tmp = minVal; minVal = maxVal; maxVal = tmp;
+        minInput.value = minVal; maxInput.value = maxVal;
+      }
+
+      document.getElementById(name + '-min-label').textContent = minVal;
+      document.getElementById(name + '-max-label').textContent = maxVal;
+
+      var totalMin = parseFloat(minInput.min);
+      var totalMax = parseFloat(minInput.max);
+      var range = totalMax - totalMin;
+      var leftPct = ((minVal - totalMin) / range) * 100;
+      var rightPct = ((maxVal - totalMin) / range) * 100;
+      var fill = document.getElementById(name + '-fill');
+      if (fill) {
+        fill.style.left = leftPct + '%';
+        fill.style.width = (rightPct - leftPct) + '%';
+      }
+    }
+
+    function stepperChange(btn, delta) {
+      var valEl = btn.parentElement.querySelector('.stepper-val');
+      var val = parseInt(valEl.textContent) + delta;
+      if (val < 0) val = 0;
+      valEl.textContent = val;
+    }
+
+    window.onload = function() {
+      syncDualRange('auto-difficulty');
+      syncDualRange('auto-calculation');
+    };
+  </script>
+</body>
+</html>

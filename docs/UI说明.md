@@ -1,61 +1,28 @@
 ## 页面使用评价（退出弹窗）
 
-> 2026-07-04 新增
+弹出时机：返回按钮 20%概率（解题/试卷预览/讲义页面），同页 24h 冷却，停留>30s 触发。
 
-### 功能描述
-
-学生在点击退出/返回按钮时，按概率弹出评价对话框，收集页面使用体验反馈。
-
-### 触发条件
-
-- **目标页面**（T1 核心）：解题模式（solve）、试卷预览（paper_quicklook）、讲义阅读（lecture_content）
-- **可选页面**（T2）：作业详情（homework_detail）、答案速览（answer_sheet）、推荐页（recommend）
-- **跳过页面**：纯导航页（讲义目录、组卷工具）和个人中心数据子页（成就、统计等）
-- **概率**：20%（开发阶段可调）
-- **冷却**：同一页面类型 24 小时内不重复弹
-- **阈值**：页面停留 >30 秒才触发（过滤路过行为）
-
-### 对话框 UI
-
-```
-┌──────────────────────────────┐
-│  ✕ 离开前，说说你的体验       │
-│                              │
-│  【这个页面用得怎么样？】      │
-│                              │
-│  😫   😓   😐   🙂   😊    │
-│                              │
-│  ┌────────────────────────┐  │
-│  │ 还有什么想说的吗？（选填） │  │
-│  └────────────────────────┘  │
-│                              │
-│   [跳过]        [提交评价]   │
-└──────────────────────────────┘
-```
-
-- 5 级表情按钮（😫😓😐🙂😊），点击选中高亮，只能选一个
-- 选填文本框
-- 点击"跳过"或遮罩外 → 关闭，不记录
-- 点击"提交" → 关闭并记录数据
-
-### 数据流
-
-情绪值 → 数字映射：😫=1 😓=2 😐=3 🙂=4 😊=5
-
-```dart
-// Drift table: page_ratings
-// Fields: id, page_type, rating(1-5), feedback?, created_at
-```
-
-用户提交 → 写入本地 SQLite `page_ratings` 表 → 入 sync_queue → 服务器 POST `/api/sync/push`
-
-### Flutter 实现提示
-
-- 需要在 `rating_repository.dart` 补 `savePageRating()` 方法
+**Flutter 实现注意**：
+- `rating_repository.dart` 补 `savePageRating()` 方法
 - 退出逻辑：在目标页面的 `Navigator.pop()` / back 回调中插入概率判断
-- 冷却时间存本地（SharedPreferences 或 SQLite 的 metadata 表）
+- 冷却时间存本地 SharedPreferences 或 SQLite metadata
 - 对话框用 `showDialog` 或自定义 Overlay
 
-### 预览
+---
 
-对话框实体 HTML 已实现在 `spec/UI_html/debug.html`，点击"显示页面评价弹窗"按钮可查看效果。
+## 组卷功能升级（智能组卷 + 自主选题）
+
+`paper_builder.html` 已废弃，入口改到 `exam.html` 一级页的两个整宽按钮。
+
+| 页面 | 路径 | 积分 | 说明 |
+|------|------|------|------|
+| 智能组卷 | `paper_auto.html` | 10 | 筛选+题型数量+难度调优，系统自动生成 |
+| 自主选题 | `paper_pick.html` | 20 | 筛选+逐题勾选，底部固定条始终显示确认按钮 |
+
+**Flutter 实现注意**：
+- `exam_repository.dart` 新增 `autoGenerate(counts, targetDifficulty)`、`getFilterPoolStats()`、`saveFilterPreset()`、`loadFilterPresets()`、`getExamDefaultCounts()`、`getGaokaoDifficultyRef()` 方法
+- Drift 新增 `filter_presets` 表（name + JSON filters）
+- 自主选题的跨筛选保留：独立维护 `Set<int> selectedIds`，不依赖筛选结果列表
+- 难度调优上下限 = 当前筛选池中题目难度的实际极值，随筛选条件动态变化
+- 题型默认值（选10填5解6）从 DB 读取
+- 高考全卷参考难度（min/avg/max）从 DB 读取

@@ -12,10 +12,16 @@
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <!-- 新组卷按钮 -->
-    <a href="paper_builder.html" class="btn btn-primary btn-block" style="margin-bottom:16px;">
-      ＋ 新组卷
-    </a>
+    <!-- 新组卷入口 -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:600;margin-bottom:12px;">新组卷</div>
+      <a href="paper_auto.html" class="btn btn-primary btn-block" style="margin-bottom:8px;">
+        🤖 智能组卷 · 消耗 10 积分
+      </a>
+      <a href="paper_pick.html" class="btn btn-primary btn-block">
+        🖐 自主选题 · 消耗 20 积分
+      </a>
+    </div>
 
     <!-- 组卷历史 -->
     <div data-db-loop="exam.getMyExams" data-db-empty="暂无组卷记录">

@@ -1,7 +1,7 @@
 /* =============================================
    章鱼智学 UI 原型 - 共享样式
-   最终会翻译�?Flutter/Dart 代码
-   data-db 属性标记所有动态数据来�?   ============================================= */
+   最终会翻译成 Flutter/Dart 代码
+   data-db 属性标记所有动态数据来源   ============================================= */
 
 :root {
   --primary: #4A6CF7;
@@ -39,7 +39,7 @@
   position: relative;
 }
 [data-db-empty]::after {
-  content: "�?" attr(data-db-empty);
+  content: "空: " attr(data-db-empty);
   font-size: 11px;
   color: #f90;
   display: block;
@@ -166,7 +166,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
   margin-left: 12px;
 }
 
-/* ----- 进度�?----- */
+/* ----- 进度条 ----- */
 .progress-bar {
   display: inline-flex;
   align-items: center;
@@ -188,7 +188,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
   transition: width 0.3s;
 }
 
-/* ----- 状态标�?----- */
+/* ----- 状态标签 ----- */
 .status-tag {
   display: inline-block;
   font-size: 12px;
@@ -379,7 +379,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-danger { background: var(--error); color: #fff; }
 
-/* ----- 输入�?----- */
+/* ----- 输入框 ----- */
 .input-group {
   margin-bottom: 16px;
 }
@@ -402,7 +402,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
 .input-group input:focus { border-color: var(--primary); }
 .input-group input::placeholder { color: var(--text-muted); }
 
-/* ----- 筛选面�?----- */
+/* ----- 筛选面板 ----- */
 .filter-section {
   margin-bottom: 12px;
 }
@@ -500,7 +500,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
 }
 .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
-/* ----- 表单卡片（登�?注册�?----- */
+/* ----- 表单卡片（登录/注册用）----- */
 .auth-card {
   background: var(--card);
   border-radius: var(--radius);
@@ -523,7 +523,7 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
   text-decoration: none;
 }
 
-/* ----- 工具�?----- */
+/* ----- 工具类 ----- */
 .mt-4 { margin-top: 16px; }
 .mt-2 { margin-top: 8px; }
 .mb-4 { margin-bottom: 16px; }
@@ -547,3 +547,97 @@ body.has-nav { padding-bottom: calc(var(--nav-height) + 20px); }
 }
 .congrats-card .icon { font-size: 48px; margin-bottom: 8px; }
 .congrats-card h2 { font-size: 20px; font-weight: 700; color: var(--primary); }
+
+/* ----- 题型数量选择器 (stepper) ----- */
+.stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stepper-row:last-child { margin-bottom: 0; }
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.stepper-btn {
+  width: 32px; height: 32px;
+  border: none;
+  background: var(--bg);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  color: var(--text);
+}
+.stepper-btn:hover { background: var(--primary-light); }
+.stepper-val {
+  width: 36px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ----- 难度调优 ----- */
+.diff-tuning .diff-slider {
+  width: 100%;
+  margin: 4px 0;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+}
+.diff-tuning .diff-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+/* ----- 底部固定条 ----- */
+.sticky-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+}
+.sticky-bar .bar-info { font-size: 13px; color: var(--text-secondary); }
+.sticky-bar .bar-btn { margin: 0; flex-shrink: 0; }
+body.has-sticky { padding-bottom: 70px; }
+
+/* ----- 筛选方案保存/读取 ----- */
+.filter-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.filter-presets .preset-select {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--card);
+  color: var(--text);
+}
