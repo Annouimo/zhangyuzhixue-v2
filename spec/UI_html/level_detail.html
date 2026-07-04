@@ -38,15 +38,6 @@
       color: var(--text-secondary);
       margin-top: 2px;
     }
-    .level-note {
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-align: center;
-      padding: 8px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
     .level-table {
       width: 100%;
       border-collapse: collapse;
@@ -60,19 +51,6 @@
       background: var(--primary-light);
       font-weight: 600;
       color: var(--primary);
-      border-radius: var(--radius-sm);
-    }
-    .level-table .current td:first-child {
-      border-top-left-radius: var(--radius-sm);
-      border-bottom-left-radius: var(--radius-sm);
-    }
-    .level-table .current td:last-child {
-      border-top-right-radius: var(--radius-sm);
-      border-bottom-right-radius: var(--radius-sm);
-    }
-    .level-table .marker {
-      color: var(--primary);
-      font-weight: 700;
     }
   </style>
 </head>
@@ -111,67 +89,53 @@
       </div>
     </div>
 
-    <!-- 等级说明 -->
-    <div class="level-note">
-      📌 等级依据累计积分计算
-    </div>
-
     <!-- 等级对照表 -->
     <div class="card" style="padding:12px 16px;">
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">等级对照</div>
+      <div style="font-size:14px;font-weight:600;">等级对照</div>
+      <div class="text-secondary" style="font-size:12px;margin-top:2px;margin-bottom:8px;">等级依据累计积分计算</div>
       <table class="level-table" data-db-loop="points.getLevels">
         <tr data-db="points.getLevels[0]" class="current">
           <td style="width:48px;font-weight:700;" data-db="points.getLevels[].level">Lv.1</td>
           <td data-db="points.getLevels[].range">0 ~ 2</td>
-          <td style="width:24px;" class="marker" data-db="points.getLevels[].current">← 你在这里</td>
         </tr>
         <tr data-db="points.getLevels[1]">
           <td style="font-weight:600;">Lv.2</td>
           <td>3 ~ 5</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[2]">
           <td style="font-weight:600;">Lv.3</td>
           <td>6 ~ 10</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[3]">
           <td style="font-weight:600;">Lv.4</td>
           <td>11 ~ 16</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[4]">
           <td style="font-weight:600;">Lv.5</td>
           <td>17 ~ 24</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[5]">
           <td style="font-weight:600;">Lv.6</td>
           <td>25 ~ 35</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[6]">
           <td style="font-weight:600;">Lv.7</td>
           <td>36 ~ 50</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[7]">
           <td style="font-weight:600;">Lv.8</td>
           <td>51 ~ 70</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[8]">
           <td style="font-weight:600;">Lv.9</td>
           <td>71 ~ 100</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[9]">
           <td style="font-weight:600;">Lv.10</td>
           <td>101 ~ 145</td>
-          <td></td>
         </tr>
         <tr data-db="points.getLevels[10]" style="color:var(--text-muted);font-size:13px;">
-          <td colspan="3">更高等级待解锁...</td>
+          <td colspan="2">更高等级待解锁...</td>
         </tr>
       </table>
     </div>
