@@ -15,24 +15,36 @@
 
 | 页面 | 路径 | 说明 |
 |------|------|------|
-| 组卷（一级页） | `exam.html` | 新组卷入口 + 3个功能入口（列表项样式） |
+| 组卷（一级页） | `exam.html` | 新组卷入口 + 3个列表项入口 |
 | 智能组卷 | `paper_auto.html` | 筛选+题型 stepper+难度调优 |
 | 自主选题 | `paper_pick.html` | 筛选+逐题勾选+底部固定条 |
 | 发现组卷 | `paper_explore.html` | 浏览他人公开试卷+4种排序+点赞+收藏 |
 | 我的组卷 | `paper_history.html` | 自己创建的试卷列表+公开/私密开关 |
 | 我的收藏 | `paper_favorites.html` | 收藏的他人试卷 |
 | 试卷预览（自己） | `paper_quicklook.html` | 公开开关+删除 |
-| 试卷预览（他人） | `paper_quicklook_other.html` | 点赞+收藏+快对答案，无删除 |
-
-### 两版预览页面
-
-- `paper_quicklook.html` → 用户自己的试卷，有公开/私密开关、删除按钮
-- `paper_quicklook_other.html` → 别人的试卷，有❤️点赞、🔖收藏按钮，无删除
-- 区分方式：从 `paper_auto/paper_pick/paper_history` 链接到自己的，从 `paper_explore/paper_favorites` 链接到他人的
+| 试卷预览（他人） | `paper_quicklook_other.html` | 点赞+收藏+快对答案 |
 
 ### 注意
 
 - `paper_builder.html` 已废弃
 - 自主选题跨筛选保留：独立维护 `Set<int> selectedIds`
 - 题型默认值（选10填5解6）及高考参考难度从 DB 读取
-- 点赞和收藏需服务端接口（多人操作，非纯本地）
+- 点赞和收藏需服务端接口
+
+---
+
+## 学习偏好
+
+筛选方案功能统一更名为"学习偏好"。
+
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| 偏好管理 | `preference_list.html` | 列表 + 编辑/删除 |
+| 偏好编辑 | `preference_edit.html` | 新建/编辑偏好 |
+| 首次引导 | `preference_welcome.html` | 注册后无偏好时引导创建 |
+| 推荐页 | `recommend.html` | 两种模式切换：智能推荐 / 偏好推荐 |
+
+### 实现注意
+
+- 登录/注册成功 → 检查 `preference.count` → 0 则跳转 `preference_welcome.html`
+- 推荐页自动切换规则：做题<5题且存在偏好 → 默认偏好推荐；做题≥5 → 默认智能推荐

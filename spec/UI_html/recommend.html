@@ -12,73 +12,66 @@
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <div data-db-loop="recommend.getList" data-db-empty="暂无推荐题目">
+    <!-- 推荐模式切换 -->
+    <div class="sort-bar" style="margin-bottom:8px;">
+      <span class="sort-pill active" onclick="selectMode(this, 'smart')">🔮 智能推荐</span>
+      <span class="sort-pill" onclick="selectMode(this, 'preset')">📋 偏好推荐</span>
+    </div>
 
-      <a href="solve.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="recommend.getList[].title">2025 海淀一模 Q20</div>
-          <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.7</span></div>
-          <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-            🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">正弦定理</span>
+    <!-- 智能推荐模式 -->
+    <div id="mode-smart">
+      <p class="text-secondary" style="font-size:13px;margin-bottom:8px;">
+        根据你的做题记录和薄弱概念智能推送
+      </p>
+      <div data-db-loop="recommend.getList" data-db-empty="暂无推荐题目">
+        <a href="solve.html" class="list-item">
+          <div class="left">
+            <div class="title" data-db="recommend.getList[].title">2025 海淀一模 Q20</div>
+            <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.7</span></div>
+            <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
+              🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">正弦定理</span>
+            </div>
           </div>
-        </div>
-        <div class="right">
-          <span class="status-tag in-progress" data-db="recommend.getList[].status">进行中</span>
-        </div>
-      </a>
-
-      <a href="solve.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="recommend.getList[].title">2025 东城一模 Q6</div>
-          <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.5</span></div>
-          <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-            🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">辅助角公式</span>
+          <div class="right">
+            <span class="status-tag in-progress" data-db="recommend.getList[].status">进行中</span>
           </div>
-        </div>
-        <div class="right">
-          <span class="status-tag pending" data-db="recommend.getList[].status">未做</span>
-        </div>
-      </a>
-
-      <a href="solve.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="recommend.getList[].title">2025 西城一模 Q14</div>
-          <div class="subtitle" data-db="recommend.getList[].questionType">填空题 · 难度 <span data-db="recommend.getList[].difficulty">0.4</span></div>
-          <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-            🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">数列求和</span>
+        </a>
+        <a href="solve.html" class="list-item">
+          <div class="left">
+            <div class="title" data-db="recommend.getList[].title">2025 东城一模 Q6</div>
+            <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.5</span></div>
+            <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
+              🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">辅助角公式</span>
+            </div>
           </div>
-        </div>
-        <div class="right">
-          <span class="status-tag done" data-db="recommend.getList[].status">已完成</span>
-        </div>
-      </a>
-
-      <a href="solve.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="recommend.getList[].title">2025 朝阳一模 Q8</div>
-          <div class="subtitle" data-db="recommend.getList[].questionType">选择题 · 难度 <span data-db="recommend.getList[].difficulty">0.3</span></div>
-          <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-            🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">集合</span>
+          <div class="right">
+            <span class="status-tag pending" data-db="recommend.getList[].status">未做</span>
           </div>
-        </div>
-        <div class="right">
-          <span class="status-tag pending" data-db="recommend.getList[].status">未做</span>
-        </div>
-      </a>
+        </a>
+      </div>
+    </div>
 
-      <a href="solve.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="recommend.getList[].title">2024 海淀二模 Q19</div>
-          <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.8</span></div>
-          <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-            🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">体积</span>
+    <!-- 偏好推荐模式 -->
+    <div id="mode-preset" style="display:none;">
+      <div class="card" style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">选择学习偏好</label>
+        <select class="preset-select" style="width:100%;padding:10px 12px;font-size:14px;" data-db-bind="recommend.preset.selected">
+          <option value="">请选择...</option>
+          <option data-db-loop="recommend.preset.list" data-db="recommend.preset.list[].name">导数专项</option>
+          <option data-db-loop="recommend.preset.list" data-db="recommend.preset.list[].name">三角函数训练</option>
+        </select>
+      </div>
+      <div data-db-loop="recommend.preset.questions" data-db-empty="请选择学习偏好查看推荐">
+        <a href="solve.html" class="list-item">
+          <div class="left">
+            <div class="title" data-db="recommend.preset.questions[].title">2025 海淀一模 Q20</div>
+            <div class="subtitle" data-db="recommend.preset.questions[].questionType">导数 · 难度 <span data-db="recommend.preset.questions[].difficulty">0.7</span></div>
           </div>
-        </div>
-        <div class="right">
-          <span class="status-tag done" data-db="recommend.getList[].status">已完成</span>
-        </div>
-      </a>
-
+          <div class="right">
+            <span class="status-tag pending" data-db="recommend.preset.questions[].status">未做</span>
+          </div>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -100,5 +93,14 @@
       <span>我的</span>
     </a>
   </nav>
+
+  <script>
+    function selectMode(el, mode) {
+      document.querySelectorAll('.sort-pill').forEach(function(p) { p.classList.remove('active'); });
+      el.classList.add('active');
+      document.getElementById('mode-smart').style.display = mode === 'smart' ? 'block' : 'none';
+      document.getElementById('mode-preset').style.display = mode === 'preset' ? 'block' : 'none';
+    }
+  </script>
 </body>
 </html>
