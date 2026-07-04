@@ -83,6 +83,127 @@
       color: var(--text-muted);
       padding: 8px 16px 4px;
     }
+
+    /* ---- 页面评价弹窗专属样式 ---- */
+    .rating-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .rating-overlay.show {
+      display: flex;
+    }
+    .rating-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 24px 20px;
+      width: 85%;
+      max-width: 340px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+    }
+    .rating-card .rating-title {
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .rating-card .rating-label {
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+    .rating-emojis {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .rating-emojis .emoji-btn {
+      font-size: 32px;
+      cursor: pointer;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      background: var(--bg);
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .rating-emojis .emoji-btn:hover {
+      background: var(--primary-light);
+      transform: scale(1.15);
+    }
+    .rating-emojis .emoji-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: scale(1.15);
+    }
+    .rating-card .rating-input {
+      margin-bottom: 16px;
+    }
+    .rating-card .rating-input textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      height: 60px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .rating-card .rating-input textarea:focus {
+      border-color: var(--primary);
+    }
+    .rating-card .rating-input textarea::placeholder {
+      color: var(--text-muted);
+    }
+    .rating-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .rating-actions .rating-skip {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .rating-actions .rating-skip:hover {
+      background: var(--bg);
+    }
+    .rating-actions .rating-submit {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .rating-actions .rating-submit:hover {
+      opacity: 0.9;
+    }
+    .rating-actions .rating-submit:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -102,9 +223,22 @@
       </button>
     </div>
 
+    <!-- 页面评价弹窗测试 -->
+    <div class="debug-section">
+      <div class="debug-title">⭐ 页面评价</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        返回按钮 <strong>20%概率</strong> 弹出评价窗（解题/试卷预览/讲义页面），
+        同页面 <strong>24小时</strong> 内不重复弹，停留 <strong>&gt;30秒</strong> 才触发。
+        用于收集学生对页面使用的满意度。
+      </p>
+      <button class="btn btn-primary btn-block" onclick="showRatingPopup()">
+        显示页面评价弹窗
+      </button>
+    </div>
+
     <!-- 预留更多调试按钮 -->
     <div class="debug-section">
-      <div class="debug-title">📦 预留（添加更多调试按钮）</div>
+      <div class="debug-title">📦 预留</div>
       <button class="btn btn-outline btn-block" disabled style="opacity:0.4;">
         （暂无其他调试功能）
       </button>
@@ -123,12 +257,73 @@
     </div>
   </div>
 
+  <!-- 页面评价弹窗 -->
+  <div class="rating-overlay" id="rating-popup" onclick="closeRatingPopupOutside(event)">
+    <div class="rating-card">
+      <div class="rating-title">✕ 离开前，说说你的体验</div>
+      <div class="rating-label">这个页面用得怎么样？</div>
+      <div class="rating-emojis">
+        <span class="emoji-btn" data-rating="1" onclick="selectRating(this)">😫</span>
+        <span class="emoji-btn" data-rating="2" onclick="selectRating(this)">😓</span>
+        <span class="emoji-btn" data-rating="3" onclick="selectRating(this)">😐</span>
+        <span class="emoji-btn" data-rating="4" onclick="selectRating(this)">🙂</span>
+        <span class="emoji-btn" data-rating="5" onclick="selectRating(this)">😊</span>
+      </div>
+      <div class="rating-input">
+        <textarea id="rating-feedback" placeholder="还有什么想说的吗？（选填）"></textarea>
+      </div>
+      <div class="rating-actions">
+        <button class="rating-skip" onclick="closeRatingPopup()">跳过</button>
+        <button class="rating-submit" id="rating-submit-btn" disabled onclick="submitRating()">提交评价</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     function showAchievementPopup() {
       document.getElementById('achievement-popup').classList.add('show');
     }
     function closeAchievementPopup() {
       document.getElementById('achievement-popup').classList.remove('show');
+    }
+
+    /* ---- 页面评价 ---- */
+    var selectedRating = 0;
+
+    function showRatingPopup() {
+      selectedRating = 0;
+      document.getElementById('rating-popup').classList.add('show');
+      document.getElementById('rating-submit-btn').disabled = true;
+      document.getElementById('rating-feedback').value = '';
+      document.querySelectorAll('.emoji-btn').forEach(function(el) {
+        el.classList.remove('selected');
+      });
+    }
+
+    function closeRatingPopup() {
+      document.getElementById('rating-popup').classList.remove('show');
+    }
+
+    function closeRatingPopupOutside(e) {
+      if (e.target === e.currentTarget) {
+        closeRatingPopup();
+      }
+    }
+
+    function selectRating(el) {
+      document.querySelectorAll('.emoji-btn').forEach(function(btn) {
+        btn.classList.remove('selected');
+      });
+      el.classList.add('selected');
+      selectedRating = parseInt(el.getAttribute('data-rating'));
+      document.getElementById('rating-submit-btn').disabled = false;
+    }
+
+    function submitRating() {
+      var feedback = document.getElementById('rating-feedback').value.trim();
+      console.log('[页面评价] 评分=' + selectedRating + ' 反馈="' + feedback + '"');
+      alert('已提交评价：' + selectedRating + ' 分' + (feedback ? '（' + feedback + '）' : ''));
+      closeRatingPopup();
     }
   </script>
 </body>
