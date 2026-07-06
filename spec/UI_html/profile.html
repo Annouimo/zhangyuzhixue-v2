@@ -4,36 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>我的 - 章鱼智学</title>
-  <!-- 等级徽章使用 CSS 变量 --primary: #4A6CF7 -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="has-nav">
-  <!-- 用户信息卡片（可点击→等级详情） -->
-  <a href="level_detail.html" class="card" style="margin:16px;display:block;text-decoration:none;color:inherit;text-align:center;padding:24px;cursor:pointer;">
-    <div style="font-size:48px;margin-bottom:8px;">👤</div>
-    <h2 style="font-size:20px;font-weight:700;" data-db="user.getInfo.realName">李小红</h2>
-    <p class="text-secondary" style="font-size:14px;">
-      学号：<span data-db="user.getInfo.studentId">2026001</span>
-    </p>
-    <div style="margin-top:8px;font-size:14px;">
-      <span style="background:var(--primary);color:#fff;padding:2px 12px;border-radius:20px;font-weight:600;">
-        🏅 Lv.<span data-db="user.getInfo.level">5</span>
-      </span>
-      <span class="text-secondary" style="margin-left:12px;">
-        可用积分 <span data-db="user.getInfo.availablePoints">17.0</span>
-      </span>
+  <!-- 个人信息卡片 → 编辑页 -->
+  <a href="profile_edit.html" class="card" style="margin:16px 16px 8px;display:block;text-decoration:none;color:inherit;padding:20px 20px 12px;cursor:pointer;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:36px;">
+          👤
+        </div>
+        <span style="position:absolute;bottom:0;right:-2px;font-size:12px;background:var(--primary);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,0.2);">✏️</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:18px;font-weight:700;" data-db="user.getInfo.realName">李小红</div>
+        <div class="text-secondary" style="font-size:13px;margin-top:2px;">学号：<span data-db="user.getInfo.studentId">2026001</span></div>
+      </div>
     </div>
-    <div class="text-muted" style="font-size:12px;margin-top:6px;color:var(--text-muted);">
-      查看等级详情 →
+    <div class="text-muted" style="font-size:11px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);color:var(--text-muted);text-align:center;">
+      点击编辑个人信息 ✏️
     </div>
   </a>
 
-  <!-- 功能入口 -->
   <div class="page" style="padding-top:0;">
-    <a href="achievement.html" class="list-item">
+
+    <!-- ===== 学习 ===== -->
+    <div class="section-title">学习</div>
+
+    <a href="preference_list.html" class="list-item">
       <div class="left">
-        <div class="title">🏆 成就</div>
-        <div class="subtitle" data-db="achievement.unlockedCount">已解锁 5 个</div>
+        <div class="title">📋 学习偏好</div>
+        <div class="subtitle" data-db="preference.count">已设置 2 个偏好</div>
       </div>
       <div class="right">→</div>
     </a>
@@ -54,10 +55,21 @@
       <div class="right">→</div>
     </a>
 
-    <a href="preference_list.html" class="list-item">
+    <!-- ===== 成长 ===== -->
+    <div class="section-title">成长</div>
+
+    <a href="achievement.html" class="list-item">
       <div class="left">
-        <div class="title">📋 学习偏好</div>
-        <div class="subtitle" data-db="preference.count">已设置 2 个偏好</div>
+        <div class="title">🏆 成就</div>
+        <div class="subtitle" data-db="achievement.unlockedCount">已解锁 5 个</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <a href="level_detail.html" class="list-item">
+      <div class="left">
+        <div class="title">🏅 等级</div>
+        <div class="subtitle">Lv.<span data-db="user.getInfo.level">5</span> · 可用积分 <span data-db="user.getInfo.availablePoints">17.0</span></div>
       </div>
       <div class="right">→</div>
     </a>
@@ -70,8 +82,10 @@
       <div class="right">→</div>
     </a>
 
-    <!-- 调试入口 - 正式版删除 -->
-    <a href="debug.html" class="list-item" style="margin-top:16px;border:1px dashed var(--text-muted);opacity:0.5;">
+    <!-- ===== 系统 ===== -->
+    <div class="section-title">系统</div>
+
+    <a href="debug.html" class="list-item" style="border:1px dashed var(--text-muted);opacity:0.5;">
       <div class="left">
         <div class="title" style="font-size:12px;color:var(--text-muted);">⚙️ 调试工具</div>
         <div class="subtitle" style="font-size:10px;">仅开发用，正式版删除该入口</div>
@@ -85,10 +99,11 @@
       </div>
       <div class="right">→</div>
     </a>
+
   </div>
 
   <nav class="bottom-nav">
-    <a href="index.html" class="nav-item">
+    <a href="homework.html" class="nav-item">
       <span class="nav-icon">📚</span>
       <span>首页</span>
     </a>

@@ -899,3 +899,10 @@ body.has-sticky { padding-bottom: 70px; }
   border-radius: var(--radius-sm);
   line-height: 1.6;
 }
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 20px 16px 6px;
+  letter-spacing: 0.5px;
+}
