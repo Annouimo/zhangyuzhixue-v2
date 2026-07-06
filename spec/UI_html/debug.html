@@ -313,6 +313,17 @@
         显示今日更新日志
       </button>
     </div>
+
+    <!-- 欢迎语一览 -->
+    <div class="debug-section">
+      <div class="debug-title">📚 欢迎语</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        资源页顶部随机展示的欢迎语，每次刷新随机显示一条
+      </p>
+      <button class="btn btn-primary btn-block" onclick="showWelcomeMessages()">
+        查看所有欢迎语（共 10 条）
+      </button>
+    </div>
   </div>
 
   <!-- 成就解锁弹窗 -->
@@ -393,7 +404,21 @@
     </div>
   </div>
 
-  <script>
+  
+  <!-- 欢迎语一览弹窗 -->
+  <div class="popup-overlay" id="welcome-msgs-popup" onclick="if(event.target===this)closeWelcomeMessages()">
+    <div class="changelog-card">
+      <div class="cl-header">
+        <h2>📚 欢迎语一览</h2>
+        <button class="cl-close" onclick="closeWelcomeMessages()">✕</button>
+      </div>
+      <div class="cl-date">资源页顶部随机展示 · 共 10 条</div>
+      <div id="welcome-msg-list">
+        <!-- JS 填充 -->
+      </div>
+    </div>
+  </div>
+<script>
     function showAchievementPopup() {
       document.getElementById('achievement-popup').classList.add('show');
     }
@@ -447,6 +472,36 @@
     function closeChangelog() {
       document.getElementById('changelog-popup').classList.remove('show');
     }
-  </script>
+  
+    /* ---- 欢迎语一览 ---- */
+    var WELCOME_MESSAGES = [
+      '每一次练习，都在为高考蓄力 💪',
+      '一天一道好题，高考水到渠成 📚',
+      '数学没有捷径，但每一步都算数 ✨',
+      '欢迎回来，继续你的数学之旅 🌟',
+      '又见面啦，今天状态怎么样？🤔',
+      '今天的目标：搞懂一个薄弱知识点 🎯',
+      '坐下来，打开一道题，就是最好的开始 ✏️',
+      '别想太多，先做一道看看 👀',
+      '解出一道难题的快感，试过就知道 😎',
+      '数学是思维的体操，一起动起来吧 🏃'
+    ];
+
+    function showWelcomeMessages() {
+      var listEl = document.getElementById('welcome-msg-list');
+      var html = '';
+      for (var i = 0; i < WELCOME_MESSAGES.length; i++) {
+        html += '<div class="cl-item">';
+        html += '<span class="cl-tag feat">' + (i + 1) + '</span>';
+        html += '<span>' + WELCOME_MESSAGES[i] + '</span>';
+        html += '</div>';
+      }
+      listEl.innerHTML = html;
+      document.getElementById('welcome-msgs-popup').classList.add('show');
+    }
+    function closeWelcomeMessages() {
+      document.getElementById('welcome-msgs-popup').classList.remove('show');
+    }
+</script>
 </body>
 </html>

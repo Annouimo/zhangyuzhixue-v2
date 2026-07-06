@@ -3,82 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>待办作业 - 章鱼智学</title>
+  <title>资源 - 章鱼智学</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="has-nav">
   <div class="page-header">
-    <h1>待办作业</h1>
+    <h1>资源</h1>
   </div>
 
-  <!-- 讲义入口 -->
-  <a href="lecture_courses.html" class="list-item" style="margin:8px 16px 0;">
-    <div class="left">
-      <div class="title">📖 讲义</div>
-      <div class="subtitle">浏览课程与讲义内容</div>
+  <div class="page" style="padding-top:16px;">
+    <!-- 欢迎语卡片 -->
+    <div class="card" style="text-align:center;padding:28px 20px;margin-bottom:16px;">
+      <div id="welcome-text" style="font-size:17px;font-weight:600;color:var(--primary);line-height:1.6;">
+        <!-- JS 随机生成 -->
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">
+        每天一句，保持节奏
+      </div>
     </div>
-    <div class="right">→</div>
-  </a>
 
-  <div class="page" style="padding-top:8px;">
-    <div data-db-loop="assign.getPending" data-db-empty="暂无待办作业">
-      <a href="homework_detail.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="assign.getPending[].title">初始作业</div>
-          <div class="subtitle" data-db="assign.getPending[].courseName">所属课程：公益讲座</div>
-          <div class="progress-bar mt-2">
-            <span data-db="assign.getPending[].doneCount">5</span>/<span data-db="assign.getPending[].totalCount">11</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:45%"></div>
-            </div>
-            <span class="text-secondary">还有 <span data-db="assign.getPending[].deadlineDays">5</span> 天截止</span>
-          </div>
-        </div>
-        <div class="right">
-          <span class="status-tag in-progress" data-db="assign.getPending[].status">进行中</span>
-        </div>
-      </a>
+    <!-- 作业入口 -->
+    <a href="homework_list.html" class="list-item" style="margin-bottom:8px;">
+      <div class="left">
+        <div class="title">📝 待办作业</div>
+        <div class="subtitle"><span data-db="assign.pendingCount">3</span> 项未完成</div>
+      </div>
+      <div class="right">→</div>
+    </a>
 
-      <a href="homework_detail.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="assign.getPending[].title">导数第 1 讲课后练习</div>
-          <div class="subtitle" data-db="assign.getPending[].courseName">所属课程：导数系统课</div>
-          <div class="progress-bar mt-2">
-            <span data-db="assign.getPending[].doneCount">2</span>/<span data-db="assign.getPending[].totalCount">6</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:33%"></div>
-            </div>
-            <span class="text-secondary">还有 <span data-db="assign.getPending[].deadlineDays">5</span> 天截止</span>
-          </div>
-        </div>
-        <div class="right">
-          <span class="status-tag in-progress" data-db="assign.getPending[].status">进行中</span>
-        </div>
-      </a>
-
-      <a href="homework_detail.html" class="list-item">
-        <div class="left">
-          <div class="title" data-db="assign.getPending[].title">集合基础测试</div>
-          <div class="subtitle" data-db="assign.getPending[].courseName">所属课程：公益讲座</div>
-          <div class="progress-bar mt-2">
-            <span data-db="assign.getPending[].doneCount">10</span>/<span data-db="assign.getPending[].totalCount">10</span>
-            <div class="progress-track">
-              <div class="progress-fill" style="width:100%"></div>
-            </div>
-            <span class="text-secondary">已完成</span>
-          </div>
-        </div>
-        <div class="right">
-          <span class="status-tag done" data-db="assign.getPending[].status">已完成</span>
-        </div>
-      </a>
-    </div>
+    <!-- 讲义入口 -->
+    <a href="lecture_courses.html" class="list-item">
+      <div class="left">
+        <div class="title">📖 讲义</div>
+        <div class="subtitle">浏览课程与讲义内容</div>
+      </div>
+      <div class="right">→</div>
+    </a>
   </div>
 
+  <!-- 底栏导航 -->
   <nav class="bottom-nav">
     <a href="homework.html" class="nav-item active">
       <span class="nav-icon">📚</span>
-      <span>作业</span>
+      <span>首页</span>
     </a>
     <a href="recommend.html" class="nav-item">
       <span class="nav-icon">🔍</span>
@@ -93,5 +60,22 @@
       <span>我的</span>
     </a>
   </nav>
+
+  <script>
+    var WELCOME_MESSAGES = [
+      '每一次练习，都在为高考蓄力 💪',
+      '一天一道好题，高考水到渠成 📚',
+      '数学没有捷径，但每一步都算数 ✨',
+      '欢迎回来，继续你的数学之旅 🌟',
+      '又见面啦，今天状态怎么样？🤔',
+      '今天的目标：搞懂一个薄弱知识点 🎯',
+      '坐下来，打开一道题，就是最好的开始 ✏️',
+      '别想太多，先做一道看看 👀',
+      '解出一道难题的快感，试过就知道 😎',
+      '数学是思维的体操，一起动起来吧 🏃'
+    ];
+    document.getElementById('welcome-text').textContent =
+      WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
+  </script>
 </body>
 </html>
