@@ -94,7 +94,7 @@
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <!-- 调试区 -->
+    <!-- 调试区 (dev only) -->
     <div class="card" style="margin-bottom:12px;border:1px dashed var(--text-muted);opacity:0.6;">
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">⚙️ 调试：强制切换做题热力图模式</div>
       <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">
@@ -122,10 +122,10 @@
     <!-- 概览 -->
     <div class="card" style="margin-top:12px;">
       <div class="stat-summary" id="stat-summary">
-        <div class="item"><div class="num" id="stat-total">—</div><div class="label">总做题</div></div>
-        <div class="item"><div class="num" id="stat-acc">—</div><div class="label">正确率</div></div>
-        <div class="item"><div class="num" id="stat-streak">—</div><div class="label">连续做题天</div></div>
-        <div class="item"><div class="num" id="stat-active">—</div><div class="label">活跃天</div></div>
+        <div class="item"><div class="num" id="stat-total" data-db="stats.getOverview.totalQuestions">—</div><div class="label">总做题</div></div>
+        <div class="item"><div class="num" id="stat-acc" data-db="stats.getOverview.accuracyPercent">—</div><div class="label">正确率</div></div>
+        <div class="item"><div class="num" id="stat-streak" data-db="stats.getOverview.streakDays">—</div><div class="label">连续做题天</div></div>
+        <div class="item"><div class="num" id="stat-active" data-db="stats.getOverview.activeDays">—</div><div class="label">活跃天</div></div>
       </div>
     </div>
 
@@ -136,18 +136,18 @@
         <span class="text-secondary" style="font-size:11px;" id="daily-hint">—</span>
       </div>
       <div class="daily-chart show-bar" id="daily-chart">
-        <div class="dm-bar" id="dm-bar"><div class="bar-list"></div></div>
+        <div class="dm-bar" id="dm-bar"><div class="bar-list" data-db-loop="stats.getDailyRecords"></div></div>
         <div class="dm-cal" id="dm-cal">
           <div class="mode-hint">每格=1天 · 列头日期为该周周一</div>
-          <div class="cal-wrap"><div class="cal-flex"></div></div>
+          <div class="cal-wrap" data-db-loop="stats.getDailyRecords"><div class="cal-flex"></div></div>
         </div>
         <div class="dm-week" id="dm-week">
           <div class="mode-hint">每格=1周 · 下方为月份</div>
-          <div class="week-grid"></div>
+          <div class="week-grid" data-db-loop="stats.getDailyRecords"></div>
         </div>
         <div class="dm-month" id="dm-month">
           <div class="mode-hint">每格=1月</div>
-          <div class="month-grid"></div>
+          <div class="month-grid" data-db-loop="stats.getDailyRecords"></div>
         </div>
       </div>
       <div class="legend-row">
@@ -163,7 +163,7 @@
     <!-- 正确率趋势 -->
     <div class="chart-card">
       <div class="chart-header"><div class="chart-title">正确率趋势</div><span class="text-secondary" style="font-size:11px;" id="acc-label">—</span></div>
-      <div class="chart-area">
+      <div class="chart-area" data-db-loop="stats.getAccuracyTrend">
         <div class="chart-yaxis"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
         <div class="chart-body">
           <div class="chart-grid"><div class="gl"></div><div class="gl"></div><div class="gl"></div><div class="gl"></div><div class="gl"></div></div>
@@ -177,7 +177,7 @@
     <!-- 积分累计趋势 -->
     <div class="chart-card">
       <div class="chart-header"><div class="chart-title">积分累计趋势</div><span class="text-secondary" style="font-size:11px;" id="points-label">—</span></div>
-      <div class="chart-area">
+      <div class="chart-area" data-db-loop="stats.getPointsTrend">
         <div class="chart-yaxis"><span id="points-y-max">—</span><span>—</span><span>—</span><span>—</span><span>0</span></div>
         <div class="chart-body">
           <div class="chart-grid"><div class="gl"></div><div class="gl"></div><div class="gl"></div><div class="gl"></div><div class="gl"></div></div>
@@ -192,11 +192,11 @@
     <div class="chart-card">
       <div class="chart-header"><div class="chart-title">题型分布</div><span class="text-secondary" style="font-size:11px;" id="dist-label">—</span></div>
       <div class="donut-area">
-        <div class="ring" id="donut-ring" style="background: conic-gradient(var(--border) 0deg 360deg);"><div class="inner" id="donut-inner">0题</div></div>
+        <div class="ring" id="donut-ring" style="background: conic-gradient(var(--border) 0deg 360deg);"><div class="inner" id="donut-inner" data-db="stats.getDistribution.total">0题</div></div>
         <div class="donut-legend" id="donut-legend">
-          <div class="leg-item"><span class="leg-dot" style="background:var(--primary);"></span><span>选择题 <span id="dist-choice">—</span>（<span id="dist-choice-p">—</span>%）</span></div>
-          <div class="leg-item"><span class="leg-dot" style="background:#10B981;"></span><span>填空题 <span id="dist-fill">—</span>（<span id="dist-fill-p">—</span>%）</span></div>
-          <div class="leg-item"><span class="leg-dot" style="background:#F59E0B;"></span><span>解答题 <span id="dist-sol">—</span>（<span id="dist-sol-p">—</span>%）</span></div>
+          <div class="leg-item"><span class="leg-dot" style="background:var(--primary);"></span><span>选择题 <span id="dist-choice" data-db="stats.getDistribution.choiceCount">—</span>（<span id="dist-choice-p" data-db="stats.getDistribution.choicePercent">—</span>%）</span></div>
+          <div class="leg-item"><span class="leg-dot" style="background:#10B981;"></span><span>填空题 <span id="dist-fill" data-db="stats.getDistribution.fillCount">—</span>（<span id="dist-fill-p" data-db="stats.getDistribution.fillPercent">—</span>%）</span></div>
+          <div class="leg-item"><span class="leg-dot" style="background:#F59E0B;"></span><span>解答题 <span id="dist-sol" data-db="stats.getDistribution.solutionCount">—</span>（<span id="dist-sol-p" data-db="stats.getDistribution.solutionPercent">—</span>%）</span></div>
         </div>
       </div>
     </div>

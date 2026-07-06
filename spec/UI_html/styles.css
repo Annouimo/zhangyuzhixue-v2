@@ -27,7 +27,7 @@
 /* ----- 开发辅助：高亮 data-db 标记 ----- */
 [data-db] {
   background: rgba(255, 200, 0, 0.08);
-  border-bottom: 1px dashed #f90;
+  border-bottom: 2px solid #f90;
   padding: 0 2px;
 }
 [data-db-loop] {
