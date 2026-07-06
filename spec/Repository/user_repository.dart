@@ -4,7 +4,8 @@
 
 class UserInfo {
   final int id;
-  final String name;
+  final String name;           // 昵称/用户名，UI 统一展示
+  final String? realName;      // 真实姓名（只读，管理员使用）
   final String? studentId;
   final double points;
   final String? school;
@@ -12,6 +13,7 @@ class UserInfo {
   const UserInfo({
     required this.id,
     required this.name,
+    this.realName,
     this.studentId,
     required this.points,
     this.school,
@@ -20,6 +22,7 @@ class UserInfo {
   factory UserInfo.fromJson(Map<String, dynamic> json) => UserInfo(
         id: json['id'] as int,
         name: json['name'] as String,
+        realName: json['real_name'] as String?,
         studentId: json['student_id'] as String?,
         points: (json['points'] as num).toDouble(),
         school: json['school'] as String?,
@@ -72,7 +75,7 @@ class PointsRecord {
 }
 
 class UserRepository {
-  /// GET /api/user/info/  →  { id, name, student_id, points, school }
+  /// GET /api/user/info/  →  { id, name, real_name, student_id, points, school }
   static Future<UserInfo> getUserInfo() async {
     throw UnimplementedError('UserRepository.getUserInfo');
   }

@@ -26,13 +26,13 @@
                  data-db-bind="auth.register.username" required autocomplete="username">
         </div>
         <div class="input-group">
-          <label for="real_name">真实姓名</label>
+          <label for="real_name">真实姓名 <span class="text-secondary" style="font-weight:400;font-size:12px;">（提交后不可修改）</span></label>
           <input type="text" id="real_name" placeholder="输入真实姓名"
                  data-db-bind="auth.register.realName" required>
         </div>
         <div class="input-group">
-          <label for="phone">手机号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（用于找回账号）</span></label>
-          <input type="tel" id="phone" placeholder="用于找回账号密码，11位手机号"
+          <label for="phone">手机号 <span class="text-secondary" style="font-weight:400;font-size:12px;">（提交后不可修改）</span></label>
+          <input type="tel" id="phone" placeholder="11位手机号，用于找回账号"
                  data-db-bind="auth.register.phone" required autocomplete="tel">
         </div>
         <div class="input-group">
