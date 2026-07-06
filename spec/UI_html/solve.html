@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -63,7 +63,7 @@
 
     <!-- 步骤序列 -->
     <div id="step-container" data-db-loop="progress.getSteps">
-      <!-- 第 1 步（初始可见） -->
+      <!-- 第 1 步 -->
       <div class="step-card" data-step="1" style="display:block;">
         <div class="step-header">
           <span class="step-number" data-db="progress.getSteps[].title">第 1 步</span>
@@ -74,13 +74,11 @@
             </span>
           </div>
         </div>
-        <!-- 解析（初始隐藏） -->
         <div class="step-content" id="step-content-1" style="display:none;">
           <p data-db="progress.getSteps[].analysis">由余弦定理 cos C = (a² + b² - c²) / (2ab)，<br>
           代入已知条件 a² + b² - c² = ab，<br>
           得 cos C = ab / (2ab) = 1/2。</p>
         </div>
-        <!-- 反馈（初始隐藏） -->
         <div class="feedback-row" id="feedback-1" style="display:none;">
           <button class="feedback-btn correct" onclick="selectFeedback(1, 'correct')">全对</button>
           <button class="feedback-btn partial" onclick="selectFeedback(1, 'partial')">过程对计算错</button>
@@ -91,7 +89,7 @@
         </div>
       </div>
 
-      <!-- 第 2 步（初始隐藏） -->
+      <!-- 第 2 步 -->
       <div class="step-card" data-step="2" style="display:none;">
         <div class="step-header">
           <span class="step-number" data-db="progress.getSteps[].title">第 2 步</span>
@@ -121,7 +119,7 @@
         </div>
       </div>
 
-      <!-- 第 3 步（初始隐藏） -->
+      <!-- 第 3 步 -->
       <div class="step-card" data-step="3" style="display:none;">
         <div class="step-header">
           <span class="step-number" data-db="progress.getSteps[].title">第 3 步</span>
@@ -152,11 +150,18 @@
       </div>
     </div>
 
-    <!-- 恭喜完成（初始隐藏） -->
+    <!-- 恭喜完成 -->
     <div id="congrats-section" style="display:none;">
       <div class="congrats-card" style="padding:16px 16px;margin-bottom:8px;">
         <div class="icon" style="font-size:28px;margin-bottom:4px;">🎉</div>
         <h2 style="font-size:17px;" data-db="question.getDetail.congratsText">恭喜完成本题！</h2>
+      </div>
+
+      <!-- 🔔 积分获得行 -->
+      <div class="points-earned-bar">
+        本题难度 <span data-db="question.getDetail.difficulty">5.5</span>，获得 <strong style="color:var(--primary);">+<span data-db="question.getDetail.pointsEarned">0.5</span></strong> 学习积分
+        <br>
+        今日累计 <span data-db="user.getInfo.todayPoints" style="font-weight:600;">12.3</span> 分 · 📈 <span data-db="user.getInfo.levelProgress">Lv.5 → 还需 7.8</span>
       </div>
 
       <!-- 评分区域 -->
@@ -228,10 +233,20 @@
           </div>
         </div>
 
-        <button class="btn btn-primary btn-block" data-db-action="rating.submit()">提交评分</button>
+        <button class="btn btn-primary btn-block" data-db-action="rating.submit()" onclick="showToast('⭐', '题目评价已提交！+0.3 赠送积分');">
+        提交评分（可获得 +0.3 赠送积分）
+      </button>
       </div>
       <a href="" class="btn btn-outline btn-block mt-4" data-db-action="question.nextQuestion()">下一题 →</a>
-      <!-- 下一题按钮：指向下一题的解题页面，如 solve.html?id=xxx -->
+    </div>
+  </div>
+
+  <!-- Toast 容器 -->
+  <div class="toast-container" id="toast-container">
+    <div class="toast-bar" id="toast-bar">
+      <span class="toast-icon" id="toast-icon">📝</span>
+      <span class="toast-msg" id="toast-msg">小试牛刀（完成5题）完成！+1.0 学习积分</span>
+      <button class="toast-close" onclick="closeToast()">✕</button>
     </div>
   </div>
 
@@ -249,18 +264,16 @@
     </div>
   </div>
 
-    <script>
+  <script>
     const TOTAL_STEPS = 3;
     let currentRating = { difficulty: 0, calculation: 0, elegance: 0 };
     let stepFeedbacks = {};
 
-    /** 每个步骤的状态追踪 */
     let stepState = {};
     for (let i = 1; i <= TOTAL_STEPS; i++) {
       stepState[i] = { card: i === 1, content: false, arrowHidden: false };
     }
 
-    /** 点击箭头：展开当前步的解析+反馈，箭头隐藏 */
     function onArrow(step) {
       for (let i = step; i <= TOTAL_STEPS; i++) {
         if (stepState[i].card && !stepState[i].content) {
@@ -274,7 +287,6 @@
       if (arrow) { arrow.style.display = 'none'; }
     }
 
-    /** 点击反馈按钮：显示下一步卡片（内容隐藏，箭头可见） */
     function onFeedback(step) {
       if (step === TOTAL_STEPS) {
         goToDone();
@@ -337,6 +349,25 @@
     }
 
     function resetStars(container) {}
+
+    /* Toast 全局函数 */
+    var _toastTimer = null;
+    function showToast(icon, msg, duration) {
+      var bar = document.getElementById('toast-bar');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-msg').textContent = msg;
+      bar.classList.add('show');
+      if (duration === undefined) duration = 3000;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function() {
+        bar.classList.remove('show');
+      }, duration);
+    }
+    function closeToast() {
+      var bar = document.getElementById('toast-bar');
+      bar.classList.remove('show');
+      if (_toastTimer) clearTimeout(_toastTimer);
+    }
   </script>
 </body>
 </html>

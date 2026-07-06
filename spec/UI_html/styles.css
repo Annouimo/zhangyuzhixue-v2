@@ -1,4 +1,4 @@
-/* =============================================
+﻿/* =============================================
    章鱼智学 UI 原型 - 共享样式
    最终会翻译成 Flutter/Dart 代码
    data-db 属性标记所有动态数据来源   ============================================= */
@@ -801,4 +801,101 @@ body.has-sticky { padding-bottom: 70px; }
   display: inline-block;
   width: 3em;
   flex-shrink: 0;
+}
+
+/* ----- Toast 通知条 ----- */
+.toast-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  pointer-events: none;
+}
+.toast-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: #1F2937;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  pointer-events: auto;
+  max-width: 380px;
+  white-space: nowrap;
+  animation: toast-in 0.3s ease-out;
+}
+.toast-bar.show {
+  display: flex;
+}
+.toast-bar .toast-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.toast-bar .toast-msg {
+  flex: 1;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast-bar .toast-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.toast-bar .toast-close:hover {
+  color: #fff;
+}
+@keyframes toast-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ----- 今日任务卡片 ----- */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.task-item .task-status {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.task-item .task-label {
+  flex: 1;
+  color: var(--text);
+}
+.task-item .task-label.done {
+  color: var(--text-muted);
+}
+.task-item .task-points {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.task-item .task-points.done {
+  color: var(--text-muted);
+}
+
+/* ----- 解题完成区积分行 ----- */
+.points-earned-bar {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 8px;
+  padding: 10px;
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  line-height: 1.6;
 }

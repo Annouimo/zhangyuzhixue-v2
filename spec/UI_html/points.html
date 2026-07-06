@@ -15,12 +15,18 @@
       flex: 1;
     }
     .points-summary .num {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       color: var(--primary);
     }
+    .points-summary .num.bonus {
+      color: var(--warning);
+    }
+    .points-summary .num.spent {
+      color: var(--error);
+    }
     .points-summary .label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-secondary);
       margin-top: 2px;
     }
@@ -38,19 +44,23 @@
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <!-- 三种积分概览 -->
+    <!-- 四种积分概览 -->
     <div class="card">
       <div class="points-summary">
         <div class="item">
-          <div class="num" data-db="user.getInfo.accumulatedPoints">22.0</div>
-          <div class="label">累计积分</div>
+          <div class="num" data-db="user.getInfo.earnedPoints">22.0</div>
+          <div class="label">学习积分</div>
         </div>
         <div class="item">
-          <div class="num" data-db="user.getInfo.spentPoints">5.0</div>
+          <div class="num bonus" data-db="user.getInfo.bonusPoints">10.0</div>
+          <div class="label">赠送积分</div>
+        </div>
+        <div class="item">
+          <div class="num spent" data-db="user.getInfo.spentPoints">5.0</div>
           <div class="label">消耗积分</div>
         </div>
         <div class="item">
-          <div class="num" data-db="user.getInfo.availablePoints">17.0</div>
+          <div class="num" data-db="user.getInfo.availablePoints">27.0</div>
           <div class="label">可用积分</div>
         </div>
       </div>
@@ -64,7 +74,8 @@
             <th>时间</th>
             <th>类型</th>
             <th>变动</th>
-            <th>累计</th>
+            <th>学习</th>
+            <th>赠送</th>
             <th>消耗</th>
             <th>可用</th>
           </tr>
@@ -74,48 +85,72 @@
             <td data-db="points.getHistory[].time">03-15</td>
             <td data-db="points.getHistory[].type">做题</td>
             <td class="change-positive" data-db="points.getHistory[].change">+0.5</td>
-            <td data-db="points.getHistory[].accumulated">22.0</td>
+            <td data-db="points.getHistory[].earned">22.0</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
             <td data-db="points.getHistory[].spent">5.0</td>
-            <td data-db="points.getHistory[].available">17.0</td>
+            <td data-db="points.getHistory[].available">27.0</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">03-14</td>
+            <td data-db="points.getHistory[].type">签到</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+1.2</td>
+            <td data-db="points.getHistory[].earned">21.5</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
+            <td data-db="points.getHistory[].spent">5.0</td>
+            <td data-db="points.getHistory[].available">26.5</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">03-14</td>
+            <td data-db="points.getHistory[].type">首题奖励</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+0.5</td>
+            <td data-db="points.getHistory[].earned">20.3</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
+            <td data-db="points.getHistory[].spent">5.0</td>
+            <td data-db="points.getHistory[].available">25.3</td>
+          </tr>
+          <tr>
+            <td data-db="points.getHistory[].time">03-14</td>
+            <td data-db="points.getHistory[].type">完成任务</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+1.0</td>
+            <td data-db="points.getHistory[].earned">19.8</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
+            <td data-db="points.getHistory[].spent">5.0</td>
+            <td data-db="points.getHistory[].available">24.8</td>
           </tr>
           <tr>
             <td data-db="points.getHistory[].time">03-12</td>
             <td data-db="points.getHistory[].type">组卷</td>
             <td class="change-negative" data-db="points.getHistory[].change">-5.0</td>
-            <td data-db="points.getHistory[].accumulated">21.5</td>
+            <td data-db="points.getHistory[].earned">18.8</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
             <td data-db="points.getHistory[].spent">5.0</td>
-            <td data-db="points.getHistory[].available">16.5</td>
+            <td data-db="points.getHistory[].available">23.8</td>
           </tr>
           <tr>
             <td data-db="points.getHistory[].time">03-10</td>
             <td data-db="points.getHistory[].type">做题</td>
             <td class="change-positive" data-db="points.getHistory[].change">+0.6</td>
-            <td data-db="points.getHistory[].accumulated">21.5</td>
+            <td data-db="points.getHistory[].earned">18.8</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
             <td data-db="points.getHistory[].spent">0</td>
-            <td data-db="points.getHistory[].available">21.5</td>
-          </tr>
-          <tr>
-            <td data-db="points.getHistory[].time">03-06</td>
-            <td data-db="points.getHistory[].type">做题</td>
-            <td class="change-positive" data-db="points.getHistory[].change">+0.4</td>
-            <td data-db="points.getHistory[].accumulated">20.9</td>
-            <td data-db="points.getHistory[].spent">0</td>
-            <td data-db="points.getHistory[].available">20.9</td>
+            <td data-db="points.getHistory[].available">28.8</td>
           </tr>
           <tr>
             <td data-db="points.getHistory[].time">03-01</td>
-            <td data-db="points.getHistory[].type">做题</td>
-            <td class="change-positive" data-db="points.getHistory[].change">+0.5</td>
-            <td data-db="points.getHistory[].accumulated">20.5</td>
+            <td data-db="points.getHistory[].type">新人赠送</td>
+            <td class="change-positive" data-db="points.getHistory[].change">+10</td>
+            <td data-db="points.getHistory[].earned">0</td>
+            <td data-db="points.getHistory[].bonus">10.0</td>
             <td data-db="points.getHistory[].spent">0</td>
-            <td data-db="points.getHistory[].available">20.5</td>
+            <td data-db="points.getHistory[].available">10.0</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="text-secondary" style="font-size:12px;padding:8px 0;">
-      💡 类型说明：做题 → 累计+可用增加；组卷消费 → 消耗增加+可用减少
+      💡 类型说明：做题/签到/首题奖励/完成任务 → 学习积分增加；<br>
+      &nbsp;&nbsp;&nbsp;新人赠送 → 赠送积分增加；组卷消费 → 消耗增加+可用减少
     </div>
   </div>
 </body>

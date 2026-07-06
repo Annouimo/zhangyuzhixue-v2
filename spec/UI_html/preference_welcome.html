@@ -5,23 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>选择学习偏好 - 章鱼智学</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .welcome-overlay {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .welcome-overlay.hidden {
+      display: none;
+    }
+    .welcome-popup {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 32px 24px 20px;
+      width: 85%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+    }
+    @keyframes popup-enter {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .welcome-popup .big-icon { font-size: 56px; margin-bottom: 8px; }
+    .welcome-popup h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .welcome-popup .desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 4px; line-height: 1.6; }
+    .welcome-popup .bonus-amount { font-size: 32px; font-weight: 700; color: var(--primary); margin: 12px 0; }
+    .welcome-popup .bonus-label { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  </style>
 </head>
 <body>
+  <!-- 欢迎赠送弹窗（默认显示） -->
+  <div class="welcome-overlay" id="bonus-popup">
+    <div class="welcome-popup">
+      <div class="big-icon">🎉</div>
+      <h2>欢迎加入章鱼智学！</h2>
+      <div class="bonus-amount">+10</div>
+      <div class="bonus-label">赠送积分已到账 🎁</div>
+      <p class="desc">可用于组卷等消费功能<br>多做练习还能提升等级哦！</p>
+      <button class="btn btn-primary btn-block" onclick="closeBonus()" style="margin-top:16px;">
+        👌 开始设置学习偏好
+      </button>
+    </div>
+  </div>
+
+  <!-- 偏好设置表单（弹窗关闭后可见） -->
   <div class="page" style="padding-top:32px;">
-    <!-- 欢迎卡片 -->
     <div class="card" style="text-align:center;padding:32px 24px;margin-bottom:16px;">
       <div style="font-size:56px;margin-bottom:12px;">🎯</div>
-      <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">欢迎来到章鱼智学</h2>
-      <p class="text-secondary" style="font-size:14px;">选择你的学习偏好，我们为你推荐最合适的题目</p>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:8px;">选择你的学习偏好</h2>
+      <p class="text-secondary" style="font-size:14px;">我们为你推荐最合适的题目</p>
     </div>
 
-    <!-- 偏好名称 -->
     <div class="input-group">
       <label>偏好名称</label>
       <input type="text" placeholder="例如：导数专项、三角函数训练..." data-db-bind="preference.welcome.name" value="我的偏好">
     </div>
 
-    <!-- 筛选条件 -->
     <div class="card">
       <div style="font-size:15px;font-weight:600;margin-bottom:12px;">设置筛选条件</div>
 
@@ -75,7 +120,6 @@
         </div>
       </div>
 
-      <!-- ===== 难度/计算量筛选（分段版） ===== -->
       <div class="filter-section open">
         <div class="filter-header" onclick="toggleFilter(this)">
           <span>按难度/计算量筛选</span>
@@ -83,7 +127,6 @@
         </div>
         <div class="filter-body">
 
-          <!-- 难度 -->
           <div class="mb-4">
             <div style="font-size:13px;font-weight:500;margin-bottom:2px;">难度</div>
             <div class="dual-range" id="welcome-difficulty-range">
@@ -94,7 +137,6 @@
               <input type="range" min="0" max="10" value="8" step="0.5"
                      id="welcome-difficulty-max" oninput="syncDualRange('welcome-difficulty')">
             </div>
-            <!-- 分段标签 -->
             <div class="dual-marks" id="welcome-difficulty-marks">
               <span class="tick" style="left:30%;"></span>
               <span class="tick" style="left:50%;"></span>
@@ -106,11 +148,9 @@
               <span class="label" style="left:77.5%;">较难</span>
               <span class="label" style="left:92.5%;">压轴</span>
             </div>
-            <!-- 动态描述 -->
             <div class="dual-desc" id="welcome-difficulty-desc"></div>
           </div>
 
-          <!-- 计算量 -->
           <div>
             <div style="font-size:13px;font-weight:500;margin-bottom:2px;">计算量</div>
             <div class="dual-range" id="welcome-calculation-range">
@@ -121,7 +161,6 @@
               <input type="range" min="0" max="10" value="7" step="0.5"
                      id="welcome-calculation-max" oninput="syncDualRange('welcome-calculation')">
             </div>
-            <!-- 分段标签 -->
             <div class="dual-marks" id="welcome-calculation-marks">
               <span class="tick" style="left:20%;"></span>
               <span class="tick" style="left:40%;"></span>
@@ -133,7 +172,6 @@
               <span class="label" style="left:70%;">较多</span>
               <span class="label" style="left:90%;">繁琐</span>
             </div>
-            <!-- 动态描述 -->
             <div class="dual-desc" id="welcome-calculation-desc"></div>
           </div>
 
@@ -141,7 +179,6 @@
       </div>
     </div>
 
-    <!-- 操作按钮 -->
     <button class="btn btn-primary btn-block" data-db-action="preference.welcome.save()"
             onclick="location.href='recommend.html'">
       保存并开始学习
@@ -152,11 +189,14 @@
   </div>
 
   <script>
+    function closeBonus() {
+      document.getElementById('bonus-popup').classList.add('hidden');
+    }
+
     function toggleFilter(header) {
       header.parentElement.classList.toggle('open');
     }
 
-    // 分段配置
     var DIFFICULTY_SEGMENTS = [
       {max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'},
       {max: 5.0, label: '中档', sample: '单选4-6·填空12-13·常规解答'},
@@ -199,7 +239,6 @@
         fill.style.width = ((maxVal - minVal) / range * 100) + '%';
       }
 
-      // 更新分段描述
       var segments;
       var descEl = document.getElementById(name + '-desc');
       if (!descEl) return;
@@ -210,14 +249,12 @@
 
       var html = '';
       if (minSeg.index === maxSeg.index) {
-        // 同一段：无箭头
         html += '<div class="seg-line">';
         html += '<span class="seg-arrow"></span>';
         html += '<span class="seg-name">' + minSeg.data.label + '</span>';
         html += '<span class="seg-samples">' + minSeg.data.sample + '</span>';
         html += '</div>';
       } else {
-        // 跨段：← 起始 / → 结束
         html += '<div class="seg-line">';
         html += '<span class="seg-arrow">\u2190</span>';
         html += '<span class="seg-name">' + minSeg.data.label + '</span>';

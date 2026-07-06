@@ -29,22 +29,25 @@
       flex: 1;
     }
     .points-summary .num {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--primary);
     }
+    .points-summary .num.bonus {
+      color: var(--warning);
+    }
     .points-summary .label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-secondary);
       margin-top: 2px;
     }
     .level-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14px;
+      font-size: 13px;
     }
     .level-table td {
-      padding: 10px 8px;
+      padding: 8px 8px;
       border-bottom: 1px solid var(--border);
     }
     .level-table .current {
@@ -71,19 +74,23 @@
       </div>
     </div>
 
-    <!-- 三种积分概览 -->
+    <!-- 四种积分概览 -->
     <div class="card">
       <div class="points-summary">
         <div class="item">
-          <div class="num" data-db="user.getInfo.accumulatedPoints">22.0</div>
-          <div class="label">累计积分</div>
+          <div class="num" data-db="user.getInfo.earnedPoints">22.0</div>
+          <div class="label">学习积分</div>
+        </div>
+        <div class="item">
+          <div class="num bonus" data-db="user.getInfo.bonusPoints">10.0</div>
+          <div class="label">赠送积分</div>
         </div>
         <div class="item">
           <div class="num" data-db="user.getInfo.spentPoints">5.0</div>
           <div class="label">消耗积分</div>
         </div>
         <div class="item">
-          <div class="num" data-db="user.getInfo.availablePoints">17.0</div>
+          <div class="num" data-db="user.getInfo.availablePoints">27.0</div>
           <div class="label">可用积分</div>
         </div>
       </div>
@@ -92,10 +99,10 @@
     <!-- 等级对照表 -->
     <div class="card" style="padding:12px 16px;">
       <div style="font-size:14px;font-weight:600;">等级对照</div>
-      <div class="text-secondary" style="font-size:12px;margin-top:2px;margin-bottom:8px;">等级依据累计积分计算</div>
+      <div class="text-secondary" style="font-size:12px;margin-top:2px;margin-bottom:8px;">等级依据学习积分计算</div>
       <table class="level-table" data-db-loop="points.getLevels">
         <tr>
-          <td style="width:48px;font-weight:600;">Lv.1</td>
+          <td style="width:42px;font-weight:600;">Lv.1</td>
           <td>0 ~ 2</td>
         </tr>
         <tr>
@@ -134,8 +141,25 @@
           <td style="font-weight:600;">Lv.10</td>
           <td>101 ~ 145</td>
         </tr>
-        <tr style="color:var(--text-muted);font-size:13px;">
-          <td colspan="2">更高等级待解锁...</td>
+        <tr>
+          <td style="font-weight:600;color:var(--text-muted);">Lv.11</td>
+          <td style="color:var(--text-muted);">146 ~ 200</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--text-muted);">Lv.12</td>
+          <td style="color:var(--text-muted);">201 ~ 270</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--text-muted);">Lv.13</td>
+          <td style="color:var(--text-muted);">271 ~ 360</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--text-muted);">Lv.14</td>
+          <td style="color:var(--text-muted);">361 ~ 480</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;color:var(--text-muted);">Lv.15</td>
+          <td style="color:var(--text-muted);">481 ~ 650</td>
         </tr>
       </table>
     </div>

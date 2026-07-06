@@ -84,7 +84,7 @@
       padding: 8px 16px 4px;
     }
 
-    /* ---- 页面评价弹窗专属样式 ---- */
+    /* ---- 页面评价弹窗 ---- */
     .rating-overlay {
       display: none;
       position: fixed;
@@ -259,6 +259,16 @@
     }
     .changelog-card .cl-tag.feat { background: var(--primary); }
     .changelog-card .cl-tag.refactor { background: var(--warning); }
+
+
+
+    /* ---- 积分弹窗 ---- */
+    .bonus-amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 12px 0;
+    }
   </style>
 </head>
 <body>
@@ -269,6 +279,41 @@
 
   <div class="page" style="padding-top:8px;">
     <!-- ⚠️ 调试页面 - 正式版删除 -->
+
+    <!-- 💰 积分系统测试 -->
+    <div class="debug-section">
+      <div class="debug-title">💰 积分系统</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        模拟各种积分事件的通知展示。每次点击触发对应的 Toast 或弹窗。
+      </p>
+
+      <button class="btn btn-primary btn-block" onclick="testCheckin()" style="margin-bottom:6px;">
+        🔥 签到模拟 — 连续第8天 +3.0
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testFirstQuestion()" style="margin-bottom:6px;">
+        🧮 首题奖励模拟 — +0.5
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testTaskComplete()" style="margin-bottom:6px;">
+        📝 任务完成模拟 — 小试牛刀 +1.0
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testAllTasksDone()" style="margin-bottom:6px;">
+        🎯 全部任务完成 — 大满贯！
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testLevelUp()" style="margin-bottom:6px;">
+        🏆 升级弹窗 — Lv.5 → Lv.6
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testBonus()" style="margin-bottom:6px;">
+        🎁 新人赠送弹窗 — +10
+      <button class="btn btn-primary btn-block" onclick="testQuestionRating()" style="margin-bottom:6px;">
+        ⭐ 题目评价模拟 — +0.3 赠送积分
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testPageRating()" style="margin-bottom:6px;">
+        📋 页面评价模拟 — +1.0 赠送积分
+      </button>
+      </button>
+
+
+    </div>
 
     <!-- 成就解锁弹窗测试 -->
     <div class="debug-section">
@@ -283,8 +328,7 @@
       <div class="debug-title">⭐ 页面评价</div>
       <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
         返回按钮 <strong>20%概率</strong> 弹出评价窗（解题/试卷预览/讲义页面），
-        同页面 <strong>24小时</strong> 内不重复弹，停留 <strong>&gt;30秒</strong> 才触发。
-        用于收集学生对页面使用的满意度。
+        同页面 <strong>24小时</strong> 内不重复弹，停留 <strong>&gt;30秒</strong> 才触发。<br>提交评价可获得 <strong>+1.0 赠送积分</strong>。
       </p>
       <button class="btn btn-primary btn-block" onclick="showRatingPopup()">
         显示页面评价弹窗
@@ -296,10 +340,10 @@
       <div class="debug-title">🎯 新手引导</div>
       <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
         首次登录时，检测到无学习偏好则跳转到引导页。<br>
-        模拟：点击下方按钮查看引导页效果。
+        引导页前先弹出赠送积分欢迎弹窗。
       </p>
       <a href="preference_welcome.html" class="btn btn-primary btn-block">
-        显示首次登录偏好引导页
+        显示欢迎弹窗 → 偏好引导页
       </a>
     </div>
 
@@ -313,16 +357,14 @@
         显示今日更新日志
       </button>
     </div>
+  </div>
 
-    <!-- 欢迎语一览 -->
-    <div class="debug-section">
-      <div class="debug-title">📚 欢迎语</div>
-      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
-        资源页顶部随机展示的欢迎语，每次刷新随机显示一条
-      </p>
-      <button class="btn btn-primary btn-block" onclick="showWelcomeMessages()">
-        查看所有欢迎语（共 10 条）
-      </button>
+  <!-- Toast 容器 -->
+  <div class="toast-container" id="toast-container">
+    <div class="toast-bar" id="toast-bar">
+      <span class="toast-icon" id="toast-icon">🔥</span>
+      <span class="toast-msg" id="toast-msg">签到成功！</span>
+      <button class="toast-close" onclick="closeToast()">✕</button>
     </div>
   </div>
 
@@ -335,6 +377,29 @@
       <div class="popup-desc">累计完成 10 道题目</div>
       <div class="popup-time">2025-03-06 15:30 解锁</div>
       <button class="popup-close" onclick="closeAchievementPopup()">太棒了</button>
+    </div>
+  </div>
+
+  <!-- 升级弹窗 -->
+  <div class="popup-overlay" id="levelup-popup">
+    <div class="popup-card">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-badge" style="background:#EEF1FF;color:var(--primary);">🏆 等级提升</div>
+      <div class="popup-title">Lv.5 → <strong style="color:var(--primary);">Lv.6</strong> 🎊</div>
+      <div class="popup-desc">超过 78% 的用户</div>
+      <button class="popup-close" onclick="closeLevelupPopup()">👏 继续加油</button>
+    </div>
+  </div>
+
+  <!-- 新人赠送弹窗 -->
+  <div class="popup-overlay" id="bonus-popup">
+    <div class="popup-card">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-badge" style="background:#FEF3C7;color:#92400E;">🎁 新人福利</div>
+      <div class="popup-title">欢迎加入章鱼智学！</div>
+      <div class="bonus-amount">+10</div>
+      <div class="popup-desc" style="font-size:13px;">赠送积分已到账<br>可用于组卷等消费功能</div>
+      <button class="popup-close" onclick="closeBonusPopup()">👌 好的，开始学习</button>
     </div>
   </div>
 
@@ -352,6 +417,9 @@
       </div>
       <div class="rating-input">
         <textarea id="rating-feedback" placeholder="还有什么想说的吗？（选填）"></textarea>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:12px;">
+        提交评价可获得 <strong style="color:var(--warning);">+1.0 赠送积分</strong>
       </div>
       <div class="rating-actions">
         <button class="rating-skip" onclick="closeRatingPopup()">跳过</button>
@@ -387,7 +455,11 @@
       </div>
       <div class="cl-item">
         <span class="cl-tag feat">新增</span>
-        <span>成就体系 — 成就解锁/学习统计/调试页</span>
+        <span>成就体系 — 成就解锁/学习统计/解题页</span>
+      </div>
+      <div class="cl-item">
+        <span class="cl-tag feat">新增</span>
+        <span>积分系统升级 — 4种积分/连续登录/每日任务/Toast通知</span>
       </div>
       <div class="cl-item">
         <span class="cl-tag refactor">调整</span>
@@ -397,28 +469,62 @@
         <span class="cl-tag refactor">调整</span>
         <span>讲义入口从我的移至作业页顶部</span>
       </div>
-      <div class="cl-item">
-        <span class="cl-tag refactor">调整</span>
-        <span>积分系统升级：等级+三种积分+流水</span>
-      </div>
     </div>
   </div>
 
-  
-  <!-- 欢迎语一览弹窗 -->
-  <div class="popup-overlay" id="welcome-msgs-popup" onclick="if(event.target===this)closeWelcomeMessages()">
-    <div class="changelog-card">
-      <div class="cl-header">
-        <h2>📚 欢迎语一览</h2>
-        <button class="cl-close" onclick="closeWelcomeMessages()">✕</button>
-      </div>
-      <div class="cl-date">资源页顶部随机展示 · 共 10 条</div>
-      <div id="welcome-msg-list">
-        <!-- JS 填充 -->
-      </div>
-    </div>
-  </div>
-<script>
+  <script>
+    /* ===== Toast 全局 ===== */
+    var _toastTimer = null;
+    function showToast(icon, msg, duration) {
+      var bar = document.getElementById('toast-bar');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-msg').textContent = msg;
+      bar.classList.add('show');
+      if (duration === undefined) duration = 3000;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function() {
+        bar.classList.remove('show');
+      }, duration);
+    }
+    function closeToast() {
+      var bar = document.getElementById('toast-bar');
+      bar.classList.remove('show');
+      if (_toastTimer) clearTimeout(_toastTimer);
+    }
+
+    /* ===== 积分系统测试 ===== */
+    function testCheckin() {
+      showToast('🔥', '签到成功！连续第 8 天 · +3.0 学习积分');
+    }
+    function testFirstQuestion() {
+      showToast('🧮', '开张有礼！今日首题额外 +0.5 学习积分');
+    }
+    function testTaskComplete() {
+      showToast('📝', '小试牛刀（完成5题）完成！+1.0 学习积分');
+    }
+    function testAllTasksDone() {
+      showToast('🎯', '🎉 全部每日任务已完成！今日额外 +1.0 学习积分');
+    }
+    function testLevelUp() {
+      document.getElementById('levelup-popup').classList.add('show');
+    }
+    function closeLevelupPopup() {
+      document.getElementById('levelup-popup').classList.remove('show');
+    }
+    function testBonus() {
+      document.getElementById('bonus-popup').classList.add('show');
+    }
+    function closeBonusPopup() {
+      document.getElementById('bonus-popup').classList.remove('show');
+    }
+
+    function testQuestionRating() {
+      showToast('⭐', '题目评价已提交！+0.3 赠送积分');
+    }
+    function testPageRating() {
+      showToast('📋', '页面评价已提交！感谢反馈 +1.0 赠送积分');
+    }
+    /* ===== 成就 ===== */
     function showAchievementPopup() {
       document.getElementById('achievement-popup').classList.add('show');
     }
@@ -426,9 +532,8 @@
       document.getElementById('achievement-popup').classList.remove('show');
     }
 
-    /* ---- 页面评价 ---- */
+    /* ===== 页面评价 ===== */
     var selectedRating = 0;
-
     function showRatingPopup() {
       selectedRating = 0;
       document.getElementById('rating-popup').classList.add('show');
@@ -438,17 +543,14 @@
         el.classList.remove('selected');
       });
     }
-
     function closeRatingPopup() {
       document.getElementById('rating-popup').classList.remove('show');
     }
-
     function closeRatingPopupOutside(e) {
       if (e.target === e.currentTarget) {
         closeRatingPopup();
       }
     }
-
     function selectRating(el) {
       document.querySelectorAll('.emoji-btn').forEach(function(btn) {
         btn.classList.remove('selected');
@@ -457,51 +559,20 @@
       selectedRating = parseInt(el.getAttribute('data-rating'));
       document.getElementById('rating-submit-btn').disabled = false;
     }
-
     function submitRating() {
       var feedback = document.getElementById('rating-feedback').value.trim();
       console.log('[页面评价] 评分=' + selectedRating + ' 反馈="' + feedback + '"');
-      alert('已提交评价：' + selectedRating + ' 分' + (feedback ? '（' + feedback + '）' : ''));
+      showToast('📋', '页面评价已提交！感谢反馈 +1.0 赠送积分');
       closeRatingPopup();
     }
 
-    /* ---- 更新日志 ---- */
+    /* ===== 更新日志 ===== */
     function showChangelog() {
       document.getElementById('changelog-popup').classList.add('show');
     }
     function closeChangelog() {
       document.getElementById('changelog-popup').classList.remove('show');
     }
-  
-    /* ---- 欢迎语一览 ---- */
-    var WELCOME_MESSAGES = [
-      '每一次练习，都在为高考蓄力 💪',
-      '一天一道好题，高考水到渠成 📚',
-      '数学没有捷径，但每一步都算数 ✨',
-      '欢迎回来，继续你的数学之旅 🌟',
-      '又见面啦，今天状态怎么样？🤔',
-      '今天的目标：搞懂一个薄弱知识点 🎯',
-      '坐下来，打开一道题，就是最好的开始 ✏️',
-      '别想太多，先做一道看看 👀',
-      '解出一道难题的快感，试过就知道 😎',
-      '数学是思维的体操，一起动起来吧 🏃'
-    ];
-
-    function showWelcomeMessages() {
-      var listEl = document.getElementById('welcome-msg-list');
-      var html = '';
-      for (var i = 0; i < WELCOME_MESSAGES.length; i++) {
-        html += '<div class="cl-item">';
-        html += '<span class="cl-tag feat">' + (i + 1) + '</span>';
-        html += '<span>' + WELCOME_MESSAGES[i] + '</span>';
-        html += '</div>';
-      }
-      listEl.innerHTML = html;
-      document.getElementById('welcome-msgs-popup').classList.add('show');
-    }
-    function closeWelcomeMessages() {
-      document.getElementById('welcome-msgs-popup').classList.remove('show');
-    }
-</script>
+  </script>
 </body>
 </html>

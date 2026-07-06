@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="has-nav">
+  <div class="page-header">
+    <h1>首页</h1>
+  </div>
+
+  <div class="page" style="padding-top:16px;">
+    <!-- 欢迎语卡片 -->
+    <div class="card" style="text-align:center;padding:20px 20px;margin-bottom:12px;">
+      <div id="welcome-text" style="font-size:16px;font-weight:600;color:var(--primary);line-height:1.6;">
+        <!-- JS 随机生成 -->
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+        每天一句，保持节奏
+      </div>
+    </div>
+
+    <!-- 待办作业（优先级最高） -->
+    <a href="homework_list.html" class="list-item" style="margin-bottom:8px;">
+      <div class="left">
+        <div class="title">📝 待办作业</div>
+        <div class="subtitle"><span data-db="assign.pendingCount">3</span> 项未完成</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <!-- 讲义入口 -->
+    <a href="lecture_courses.html" class="list-item" style="margin-bottom:12px;">
+      <div class="left">
+        <div class="title">📖 讲义</div>
+        <div class="subtitle">浏览课程与讲义内容</div>
+      </div>
+      <div class="right">→</div>
+    </a>
+
+    <!-- 今日任务卡片（放底部，作业和讲义更重要） -->
+    <div class="card" style="padding:16px;margin-bottom:0;">
+      <!-- 签到行 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <span style="font-size:20px;">🔥</span>
+          <span style="font-size:15px;font-weight:600;margin-left:4px;">已连续签到 <span data-db="tasks.streakDays">7</span> 天</span>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="simulateCheckin()">签到</button>
+      </div>
+      <!-- 签到进度条 -->
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);">
+          <span>今日奖励 <strong data-db="tasks.todayReward" style="color:var(--primary);">+1.8</strong></span>
+          <span>明日奖励 <strong data-db="tasks.nextReward" style="color:var(--primary);">+3.0</strong> 🎉</span>
+        </div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;">
+          <div style="width:85%;height:100%;background:linear-gradient(90deg,var(--primary),#FF6B6B);border-radius:2px;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px;">
+          <span>第1天</span>
+          <span>第7天 🎯</span>
+        </div>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">
+
+      <!-- 任务列表 -->
+      <div>
+        <div class="task-item">
+          <span class="task-status">✅</span>
+          <span class="task-label done">开张有礼（完成第1题）</span>
+          <span class="task-points done">+0.5</span>
+        </div>
+        <div class="task-item">
+          <span class="task-status">✅</span>
+          <span class="task-label done">小试牛刀（完成5题）</span>
+          <span class="task-points done">+1.0</span>
+        </div>
+        <div class="task-item">
+          <span class="task-status">⬜</span>
+          <span class="task-label">精益求精（正确率≥60%）</span>
+          <span class="task-points">+1.0</span>
+        </div>
+        <div class="task-item">
+          <span class="task-status">⬜</span>
+          <span class="task-label">更进一步（完成15题）</span>
+          <span class="task-points">+2.0</span>
+        </div>
+      </div>
+
+      <!-- 等级进度 -->
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);">
+        <span data-db="tasks.levelProgress">🏅 Lv.5 → 升级还需 7.8</span>
+        <span data-db="tasks.todayEarned" style="color:var(--primary);font-weight:600;">今日学习积分 +3.5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 容器 -->
+  <div class="toast-container" id="toast-container">
+    <div class="toast-bar" id="toast-bar">
+      <span class="toast-icon" id="toast-icon">🔥</span>
+      <span class="toast-msg" id="toast-msg">签到成功！连续第 8 天 · +3.0 学习积分</span>
+      <button class="toast-close" onclick="closeToast()">✕</button>
+    </div>
+  </div>
+
+  <!-- 底栏导航 -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">
+      <span class="nav-icon">📚</span>
+      <span>首页</span>
+    </a>
+    <a href="recommend.html" class="nav-item">
+      <span class="nav-icon">🔍</span>
+      <span>推荐</span>
+    </a>
+    <a href="exam.html" class="nav-item">
+      <span class="nav-icon">📄</span>
+      <span>组卷</span>
+    </a>
+    <a href="profile.html" class="nav-item">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
+
+  <script>
+    var WELCOME_MESSAGES = [
+      '每一次练习，都在为高考蓄力 💪',
+      '一天一道好题，高考水到渠成 📚',
+      '数学没有捷径，但每一步都算数 ✨',
+      '欢迎回来，继续你的数学之旅 🌟',
+      '又见面啦，今天状态怎么样？🤔',
+      '今天的目标：搞懂一个薄弱知识点 🎯',
+      '坐下来，打开一道题，就是最好的开始 ✏️',
+      '别想太多，先做一道看看 👀',
+      '解出一道难题的快感，试过就知道 😎',
+      '数学是思维的体操，一起动起来吧 🏃'
+    ];
+    document.getElementById('welcome-text').textContent =
+      WELCOME_MESSAGES[Math.floor(Math.random() * WELCOME_MESSAGES.length)];
+
+    /* Toast 全局函数 */
+    var _toastTimer = null;
+    function showToast(icon, msg, duration) {
+      var bar = document.getElementById('toast-bar');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-msg').textContent = msg;
+      bar.classList.add('show');
+      if (duration === undefined) duration = 3000;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function() {
+        bar.classList.remove('show');
+      }, duration);
+    }
+    function closeToast() {
+      var bar = document.getElementById('toast-bar');
+      bar.classList.remove('show');
+      if (_toastTimer) clearTimeout(_toastTimer);
+    }
+
+    /* 签到模拟 */
+    function simulateCheckin() {
+      showToast('🔥', '签到成功！连续第 8 天 · +3.0 学习积分');
+    }
+  </script>
+</body>
+</html>
