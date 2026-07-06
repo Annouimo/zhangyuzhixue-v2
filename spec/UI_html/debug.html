@@ -261,13 +261,56 @@
     .changelog-card .cl-tag.refactor { background: var(--warning); }
 
 
-
     /* ---- 积分弹窗 ---- */
     .bonus-amount {
       font-size: 32px;
       font-weight: 700;
       color: var(--primary);
       margin: 12px 0;
+    }
+
+    /* ---- 更新弹窗 ---- */
+    .update-changelog {
+      text-align: left;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      padding: 0 4px;
+      margin-bottom: 12px;
+    }
+    .update-changelog li {
+      margin-bottom: 2px;
+    }
+    .update-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .update-actions .btn-secondary {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 15px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .update-actions .btn-secondary:hover {
+      background: var(--bg);
+    }
+    .update-actions .btn-update {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .update-actions .btn-update:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
@@ -355,6 +398,17 @@
       </p>
       <button class="btn btn-primary btn-block" onclick="showChangelog()">
         显示今日更新日志
+      </button>
+    </div>
+
+    <!-- 检查更新 -->
+    <div class="debug-section">
+      <div class="debug-title">🔄 软件更新</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        模拟检查软件版本更新
+      </p>
+      <button class="btn btn-primary btn-block" onclick="simulateUpdateCheck()">
+        🔍 检查软件更新
       </button>
     </div>
   </div>
@@ -472,6 +526,30 @@
     </div>
   </div>
 
+  <!-- 更新弹窗 -->
+  <div class="popup-overlay" id="update-popup" onclick="if(event.target===this)closeUpdatePopup()">
+    <div class="popup-card">
+      <div class="popup-icon">🚀</div>
+      <div class="popup-badge" style="background:#EEF1FF;color:var(--primary);">有新版本</div>
+      <div class="popup-title">章鱼智学 v1.3.0</div>
+      <div class="popup-desc">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">
+          当前版本 <span style="color:var(--text);">v1.2.0</span> → <strong style="color:var(--primary);">v1.3.0</strong>
+        </div>
+        <div class="update-changelog">
+          更新内容：<br>
+          · 新增同步队列查看<br>
+          · 优化解题体验<br>
+          · 问题修复
+        </div>
+      </div>
+      <div class="update-actions">
+        <button class="btn-secondary" onclick="closeUpdatePopup()">暂不更新</button>
+        <button class="btn-update" onclick="closeUpdatePopup()">去更新</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ===== Toast 全局 ===== */
     var _toastTimer = null;
@@ -572,6 +650,14 @@
     }
     function closeChangelog() {
       document.getElementById('changelog-popup').classList.remove('show');
+    }
+
+    /* ===== 检查更新 ===== */
+    function simulateUpdateCheck() {
+      document.getElementById('update-popup').classList.add('show');
+    }
+    function closeUpdatePopup() {
+      document.getElementById('update-popup').classList.remove('show');
     }
   </script>
 </body>

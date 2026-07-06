@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>同步状态 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="profile.html" class="back-btn">← 返回</a>
+    <h1>同步状态</h1>
+  </div>
+
+  <div class="page" style="padding-top:8px;">
+    <!-- 全部重试按钮（有失败时显示） -->
+    <button class="btn btn-primary btn-block" data-db-show="sync.hasFailed" data-db-action="sync.retryAll()" onclick="void(0)" style="margin-bottom:12px;">
+      🔄 全部重试
+    </button>
+
+    <!-- 同步列表 -->
+    <div data-db-loop="sync.getQueue">
+      <div class="list-item" style="border-left:3px solid transparent;">
+        <div class="left">
+          <div class="title">
+            <span data-db="sync.getQueue[].icon">📝</span>
+            <span data-db="sync.getQueue[].entityTypeName">提交答案</span>
+          </div>
+          <div class="subtitle" data-db="sync.getQueue[].timeAgo">2 分钟前</div>
+        </div>
+        <div class="right">
+          <span data-db-show="sync.getQueue[].status" data-db-show-value="pending" style="color:var(--text-muted);font-size:12px;">⏳ 等待中</span>
+          <span data-db-show="sync.getQueue[].status" data-db-show-value="inProgress" style="color:var(--primary);font-size:12px;">🔄 同步中</span>
+          <span data-db-show="sync.getQueue[].status" data-db-show-value="failed" style="color:var(--error);font-size:12px;">❌ 失败</span>
+          <span data-db-show="sync.getQueue[].status" data-db-show-value="permanentFailure" style="color:var(--error);font-size:12px;opacity:0.6;">⚠️ 已放弃</span>
+        </div>
+      </div>
+      <div class="list-empty" data-db-empty="暂无待同步数据">
+        <!-- 空状态由 data-db-empty 控制 -->
+      </div>
+    </div>
+
+    <!-- 全部正常空状态 -->
+    <div class="card" style="text-align:center;padding:48px 20px;" data-db-show="sync.isEmpty">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <div style="font-size:15px;color:var(--text-secondary);">所有数据已同步</div>
+    </div>
+  </div>
+</body>
+</html>
