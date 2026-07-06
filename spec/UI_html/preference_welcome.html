@@ -75,42 +75,68 @@
         </div>
       </div>
 
-      <div class="filter-section">
+      <!-- ===== 难度/计算量筛选（分段版） ===== -->
+      <div class="filter-section open">
         <div class="filter-header" onclick="toggleFilter(this)">
           <span>按难度/计算量筛选</span>
           <span>▾</span>
         </div>
         <div class="filter-body">
-          <div class="mb-2">
-            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">难度</div>
+
+          <!-- 难度 -->
+          <div class="mb-4">
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">难度</div>
             <div class="dual-range" id="welcome-difficulty-range">
-              <div class="rail"></div>
+              <div class="rail" id="welcome-difficulty-rail"></div>
               <div class="fill" id="welcome-difficulty-fill"></div>
               <input type="range" min="0" max="10" value="2" step="0.5"
                      id="welcome-difficulty-min" oninput="syncDualRange('welcome-difficulty')">
               <input type="range" min="0" max="10" value="8" step="0.5"
                      id="welcome-difficulty-max" oninput="syncDualRange('welcome-difficulty')">
             </div>
-            <div class="dual-labels">
-              <span>最小：<span id="welcome-difficulty-min-label">2</span></span>
-              <span>最大：<span id="welcome-difficulty-max-label">8</span></span>
+            <!-- 分段标签 -->
+            <div class="dual-marks" id="welcome-difficulty-marks">
+              <span class="tick" style="left:30%;"></span>
+              <span class="tick" style="left:50%;"></span>
+              <span class="tick" style="left:70%;"></span>
+              <span class="tick" style="left:85%;"></span>
+              <span class="label" style="left:15%;">基础</span>
+              <span class="label" style="left:40%;">中档</span>
+              <span class="label" style="left:60%;">中难</span>
+              <span class="label" style="left:77.5%;">较难</span>
+              <span class="label" style="left:92.5%;">压轴</span>
             </div>
+            <!-- 动态描述 -->
+            <div class="dual-desc" id="welcome-difficulty-desc"></div>
           </div>
+
+          <!-- 计算量 -->
           <div>
-            <div style="font-size:13px;font-weight:500;margin-bottom:4px;">计算量</div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:2px;">计算量</div>
             <div class="dual-range" id="welcome-calculation-range">
-              <div class="rail"></div>
+              <div class="rail" id="welcome-calculation-rail"></div>
               <div class="fill" id="welcome-calculation-fill"></div>
               <input type="range" min="0" max="10" value="1" step="0.5"
                      id="welcome-calculation-min" oninput="syncDualRange('welcome-calculation')">
               <input type="range" min="0" max="10" value="7" step="0.5"
                      id="welcome-calculation-max" oninput="syncDualRange('welcome-calculation')">
             </div>
-            <div class="dual-labels">
-              <span>最小：<span id="welcome-calculation-min-label">1</span></span>
-              <span>最大：<span id="welcome-calculation-max-label">7</span></span>
+            <!-- 分段标签 -->
+            <div class="dual-marks" id="welcome-calculation-marks">
+              <span class="tick" style="left:20%;"></span>
+              <span class="tick" style="left:40%;"></span>
+              <span class="tick" style="left:60%;"></span>
+              <span class="tick" style="left:80%;"></span>
+              <span class="label" style="left:10%;">少量</span>
+              <span class="label" style="left:30%;">较少</span>
+              <span class="label" style="left:50%;">适中</span>
+              <span class="label" style="left:70%;">较多</span>
+              <span class="label" style="left:90%;">繁琐</span>
             </div>
+            <!-- 动态描述 -->
+            <div class="dual-desc" id="welcome-calculation-desc"></div>
           </div>
+
         </div>
       </div>
     </div>
@@ -129,6 +155,30 @@
     function toggleFilter(header) {
       header.parentElement.classList.toggle('open');
     }
+
+    // 分段配置
+    var DIFFICULTY_SEGMENTS = [
+      {max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'},
+      {max: 5.0, label: '中档', sample: '单选4-6·填空12-13·常规解答'},
+      {max: 7.0, label: '中难', sample: '选填后半·填空14·解答多步推理'},
+      {max: 8.5, label: '较难', sample: '选填压轴·解答最后两问'},
+      {max: 10.0, label: '压轴', sample: '解答压轴问·创新综合题'}
+    ];
+    var WORKLOAD_SEGMENTS = [
+      {max: 2.0, label: '少量', sample: '心算即可，不需动笔'},
+      {max: 4.0, label: '较少', sample: '简单代入化简，2-3步'},
+      {max: 6.0, label: '适中', sample: '常规运算量，需完整步骤'},
+      {max: 8.0, label: '较多', sample: '多步代数运算，需仔细'},
+      {max: 10.0, label: '繁琐', sample: '大量代数变换，需耐心推导'}
+    ];
+
+    function getSegment(segments, value) {
+      for (var i = 0; i < segments.length; i++) {
+        if (value <= segments[i].max) return {index: i, data: segments[i]};
+      }
+      return {index: segments.length - 1, data: segments[segments.length - 1]};
+    }
+
     function syncDualRange(name) {
       var minInput = document.getElementById(name + '-min');
       var maxInput = document.getElementById(name + '-max');
@@ -139,8 +189,7 @@
         var tmp = minVal; minVal = maxVal; maxVal = tmp;
         minInput.value = minVal; maxInput.value = maxVal;
       }
-      document.getElementById(name + '-min-label').textContent = minVal;
-      document.getElementById(name + '-max-label').textContent = maxVal;
+
       var totalMin = parseFloat(minInput.min);
       var totalMax = parseFloat(minInput.max);
       var range = totalMax - totalMin;
@@ -149,7 +198,40 @@
         fill.style.left = ((minVal - totalMin) / range * 100) + '%';
         fill.style.width = ((maxVal - minVal) / range * 100) + '%';
       }
+
+      // 更新分段描述
+      var segments;
+      var descEl = document.getElementById(name + '-desc');
+      if (!descEl) return;
+      segments = name.indexOf('difficulty') !== -1 ? DIFFICULTY_SEGMENTS : WORKLOAD_SEGMENTS;
+
+      var minSeg = getSegment(segments, minVal);
+      var maxSeg = getSegment(segments, maxVal);
+
+      var html = '';
+      if (minSeg.index === maxSeg.index) {
+        // 同一段：无箭头
+        html += '<div class="seg-line">';
+        html += '<span class="seg-arrow"></span>';
+        html += '<span class="seg-name">' + minSeg.data.label + '</span>';
+        html += '<span class="seg-samples">' + minSeg.data.sample + '</span>';
+        html += '</div>';
+      } else {
+        // 跨段：← 起始 / → 结束
+        html += '<div class="seg-line">';
+        html += '<span class="seg-arrow">\u2190</span>';
+        html += '<span class="seg-name">' + minSeg.data.label + '</span>';
+        html += '<span class="seg-samples">' + minSeg.data.sample + '</span>';
+        html += '</div>';
+        html += '<div class="seg-line">';
+        html += '<span class="seg-arrow">\u2192</span>';
+        html += '<span class="seg-name">' + maxSeg.data.label + '</span>';
+        html += '<span class="seg-samples">' + maxSeg.data.sample + '</span>';
+        html += '</div>';
+      }
+      descEl.innerHTML = html;
     }
+
     window.onload = function() {
       syncDualRange('welcome-difficulty');
       syncDualRange('welcome-calculation');
