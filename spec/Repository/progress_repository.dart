@@ -1,25 +1,25 @@
-﻿/// 章鱼智学 — ProgressRepository
-/// 对应页面：solve.html
-/// data-db: progress.getSteps.*, progress.submitFeedback()
+/// 章鱼智学 — ProgressRepository
+/// data-db: progress.*
+/// 对应页面：solve.html(解题步骤)
 
 class Step {
   final int stepNumber;
   final String title;
   final String analysis;
-  final List<String> cards;
+  final List<String> cardTitles;
 
   const Step({
     required this.stepNumber,
     required this.title,
     required this.analysis,
-    required this.cards,
+    required this.cardTitles,
   });
 
   factory Step.fromJson(Map<String, dynamic> json) => Step(
         stepNumber: json['step_number'] as int,
         title: json['title'] as String,
         analysis: json['analysis'] as String,
-        cards: (json['cards'] as List).cast<String>(),
+        cardTitles: (json['card_titles'] as List).cast<String>(),
       );
 }
 

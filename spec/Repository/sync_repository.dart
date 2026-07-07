@@ -1,6 +1,6 @@
 /// 章鱼智学 — SyncRepository
-/// 对应页面：sync_queue.html, profile.html（副标题状态）
 /// data-db: sync.*
+/// 对应页面：sync_queue.html, profile.html(副标题状态)
 
 class SyncQueueItem {
   /// 实体类型：submissionDetail / stepFeedback / cardFeedback / rating / exam
@@ -46,31 +46,39 @@ class SyncQueueItem {
 }
 
 class SyncRepository {
-  /// 获取同步队列中所有待同步/失败/进行中的记录
   /// GET /api/sync/queue/
   static Future<List<SyncQueueItem>> getQueue() async {
     throw UnimplementedError('SyncRepository.getQueue');
   }
 
-  /// 是否有同步失败的记录（供 profile.html 副标题判断）
+  /// 失败记录数（供 profile.html 判断）
   static Future<int> getFailedCount() async {
     throw UnimplementedError('SyncRepository.getFailedCount');
   }
 
-  /// 同步队列是否为空（全部已同步）
+  /// 同步队列是否全部完成
   static Future<bool> isEmpty() async {
     throw UnimplementedError('SyncRepository.isEmpty');
   }
 
-  /// 是否有失败记录（供按钮显示判断）
+  /// 是否有失败记录
   static Future<bool> hasFailed() async {
     throw UnimplementedError('SyncRepository.hasFailed');
   }
 
-  /// 全部重试：重新推送所有 failed 状态的记录
+  /// 全部重试
   /// POST /api/sync/retry-all/
-  /// 实际触发 SyncManager().pushNow() 重推失败项
   static Future<void> retryAll() async {
     throw UnimplementedError('SyncRepository.retryAll');
+  }
+
+  /// 失败数文本（供 profile.html 副标题）
+  static Future<String> failedCountText() async {
+    throw UnimplementedError('SyncRepository.failedCountText');
+  }
+
+  /// 全部成功文本
+  static Future<String> allSuccessText() async {
+    throw UnimplementedError('SyncRepository.allSuccessText');
   }
 }

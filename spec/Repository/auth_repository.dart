@@ -1,6 +1,6 @@
-﻿/// 章鱼智学 — AuthRepository
+/// 章鱼智学 — AuthRepository
+/// data-db: auth.*
 /// 对应页面：login.html, register.html
-/// data-db: auth.login.*, auth.register.*
 
 class UserInfo {
   final int id;

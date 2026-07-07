@@ -1,6 +1,8 @@
-﻿/// 章鱼智学 — ExamRepository
-/// 对应页面：paper_builder.html, paper_quicklook.html, answer_sheet.html, paper_history.html
-/// data-db: exam.build.*, exam.preview.*, exam.quickAnswer.*, exam.getMyExams.*
+/// 章鱼智学 — ExamRepository
+/// data-db: exam.*
+/// 对应页面：paper_auto.html, paper_pick.html, paper_quicklook.html,
+///          paper_quicklook_other.html, paper_explore.html, paper_favorites.html,
+///          paper_history.html, answer_sheet.html
 
 class ExamBuildState {
   final String name;
@@ -20,9 +22,83 @@ class ExamBuildState {
       );
 }
 
+class ExamSummary {
+  final int id;
+  final String name;
+  final String createdAt;
+  final String summary;
+
+  const ExamSummary({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+    required this.summary,
+  });
+
+  factory ExamSummary.fromJson(Map<String, dynamic> json) => ExamSummary(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        createdAt: json['created_at'] as String,
+        summary: json['summary'] as String,
+      );
+}
+
+class ExploreExamSummary {
+  final int id;
+  final String name;
+  final String authorInfo;
+  final String summary;
+  final int likeCount;
+  final int collectCount;
+  final String createdAt;
+
+  const ExploreExamSummary({
+    required this.id,
+    required this.name,
+    required this.authorInfo,
+    required this.summary,
+    required this.likeCount,
+    required this.collectCount,
+    required this.createdAt,
+  });
+
+  factory ExploreExamSummary.fromJson(Map<String, dynamic> json) =>
+      ExploreExamSummary(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        authorInfo: json['author_info'] as String,
+        summary: json['summary'] as String,
+        likeCount: json['like_count'] as int,
+        collectCount: json['collect_count'] as int,
+        createdAt: json['created_at'] as String,
+      );
+}
+
+class FavoriteExamSummary {
+  final int id;
+  final String name;
+  final String authorInfo;
+  final String summary;
+
+  const FavoriteExamSummary({
+    required this.id,
+    required this.name,
+    required this.authorInfo,
+    required this.summary,
+  });
+
+  factory FavoriteExamSummary.fromJson(Map<String, dynamic> json) =>
+      FavoriteExamSummary(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        authorInfo: json['author_info'] as String,
+        summary: json['summary'] as String,
+      );
+}
+
 class ExamPreview {
   final String name;
-  final String summary;
+  final String authorInfo;
   final int choiceCount;
   final int fillCount;
   final int solutionCount;
@@ -31,7 +107,7 @@ class ExamPreview {
 
   const ExamPreview({
     required this.name,
-    required this.summary,
+    required this.authorInfo,
     required this.choiceCount,
     required this.fillCount,
     required this.solutionCount,
@@ -41,11 +117,50 @@ class ExamPreview {
 
   factory ExamPreview.fromJson(Map<String, dynamic> json) => ExamPreview(
         name: json['name'] as String,
-        summary: json['summary'] as String,
+        authorInfo: json['author_info'] as String,
         choiceCount: json['choice_count'] as int,
         fillCount: json['fill_count'] as int,
         solutionCount: json['solution_count'] as int,
         totalCount: json['total_count'] as int,
+        questions: (json['questions'] as List)
+            .map((e) => ExamQuestion.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+}
+
+class ExamPreviewOther {
+  final String name;
+  final String authorInfo;
+  final int choiceCount;
+  final int fillCount;
+  final int solutionCount;
+  final int totalCount;
+  final int likeCount;
+  final int collectCount;
+  final List<ExamQuestion> questions;
+
+  const ExamPreviewOther({
+    required this.name,
+    required this.authorInfo,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.totalCount,
+    required this.likeCount,
+    required this.collectCount,
+    required this.questions,
+  });
+
+  factory ExamPreviewOther.fromJson(Map<String, dynamic> json) =>
+      ExamPreviewOther(
+        name: json['name'] as String,
+        authorInfo: json['author_info'] as String,
+        choiceCount: json['choice_count'] as int,
+        fillCount: json['fill_count'] as int,
+        solutionCount: json['solution_count'] as int,
+        totalCount: json['total_count'] as int,
+        likeCount: json['like_count'] as int,
+        collectCount: json['collect_count'] as int,
         questions: (json['questions'] as List)
             .map((e) => ExamQuestion.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -82,63 +197,230 @@ class AnswerItem {
       );
 }
 
-class ExamSummary {
-  final int id;
-  final String name;
-  final String createdAt;
-  final String summary;
+class FilterOptions {
+  final List<String> years;
+  final List<String> regions;
+  final List<String> conceptTags;
+  final List<String> knowledgeCards;
 
-  const ExamSummary({
-    required this.id,
-    required this.name,
-    required this.createdAt,
-    required this.summary,
+  const FilterOptions({
+    required this.years,
+    required this.regions,
+    required this.conceptTags,
+    required this.knowledgeCards,
   });
 
-  factory ExamSummary.fromJson(Map<String, dynamic> json) => ExamSummary(
+  factory FilterOptions.fromJson(Map<String, dynamic> json) => FilterOptions(
+        years: (json['years'] as List).cast<String>(),
+        regions: (json['regions'] as List).cast<String>(),
+        conceptTags: (json['concept_tags'] as List).cast<String>(),
+        knowledgeCards: (json['knowledge_cards'] as List).cast<String>(),
+      );
+}
+
+class SearchFilters {
+  final String name;
+  final int choiceCount;
+  final int fillCount;
+  final int solutionCount;
+  final double targetDifficulty;
+  final List<String> years;
+  final List<String> regions;
+  final List<String> conceptTags;
+  final List<String> knowledgeCards;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
+  final List<int> selectedIds;
+
+  const SearchFilters({
+    required this.name,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.targetDifficulty,
+    required this.years,
+    required this.regions,
+    required this.conceptTags,
+    required this.knowledgeCards,
+    this.diffMin,
+    this.diffMax,
+    this.calcMin,
+    this.calcMax,
+    this.selectedIds = const [],
+  });
+}
+
+/// 筛选池统计
+class PoolStats {
+  final int availableChoice;
+  final int availableFill;
+  final int availableSolution;
+  final double poolDiffMin;
+  final double poolDiffMax;
+  final double gaokaoDiffMin;
+  final double gaokaoDiffAvg;
+  final double gaokaoDiffMax;
+
+  const PoolStats({
+    required this.availableChoice,
+    required this.availableFill,
+    required this.availableSolution,
+    required this.poolDiffMin,
+    required this.poolDiffMax,
+    required this.gaokaoDiffMin,
+    required this.gaokaoDiffAvg,
+    required this.gaokaoDiffMax,
+  });
+}
+
+class FilterPreset {
+  final int id;
+  final String name;
+
+  const FilterPreset({required this.id, required this.name});
+}
+
+class SearchQuestion {
+  final int id;
+  final String title;
+  final String meta;
+  final double difficulty;
+  final double calculation;
+
+  const SearchQuestion({
+    required this.id,
+    required this.title,
+    required this.meta,
+    required this.difficulty,
+    required this.calculation,
+  });
+
+  factory SearchQuestion.fromJson(Map<String, dynamic> json) => SearchQuestion(
         id: json['id'] as int,
-        name: json['name'] as String,
-        createdAt: json['created_at'] as String,
-        summary: json['summary'] as String,
+        title: json['title'] as String,
+        meta: json['meta'] as String,
+        difficulty: (json['difficulty'] as num).toDouble(),
+        calculation: (json['calculation'] as num).toDouble(),
       );
 }
 
 class ExamRepository {
-  /// GET /api/exams/build-session/
-  static Future<ExamBuildState> buildSession() async {
-    throw UnimplementedError('ExamRepository.buildSession');
+  // ---- 发现组卷 ----
+  static Future<List<ExploreExamSummary>> getExploreList() async {
+    throw UnimplementedError('ExamRepository.getExploreList');
   }
 
-  /// GET /api/exams/
+  static Future<void> toggleLike(int examId) async {
+    throw UnimplementedError('ExamRepository.toggleLike');
+  }
+
+  static Future<void> toggleCollect(int examId) async {
+    throw UnimplementedError('ExamRepository.toggleCollect');
+  }
+
+  // ---- 我的收藏 ----
+  static Future<List<FavoriteExamSummary>> getFavorites() async {
+    throw UnimplementedError('ExamRepository.getFavorites');
+  }
+
+  static Future<void> removeFavorite(int examId) async {
+    throw UnimplementedError('ExamRepository.removeFavorite');
+  }
+
+  // ---- 我的组卷历史 ----
   static Future<List<ExamSummary>> getMyExams() async {
     throw UnimplementedError('ExamRepository.getMyExams');
   }
 
-  /// GET /api/exams/{id}/preview/
-  static Future<ExamPreview> getPreview(int id) async {
-    throw UnimplementedError('ExamRepository.getPreview');
+  static Future<void> togglePublic(int examId) async {
+    throw UnimplementedError('ExamRepository.togglePublic');
   }
 
-  /// GET /api/exams/{id}/quick-answers/
-  static Future<List<AnswerItem>> getQuickAnswers(int id) async {
-    throw UnimplementedError('ExamRepository.getQuickAnswers');
-  }
-
-  /// POST /api/exams/  { name, question_ids }
-  static Future<void> createExam({
-    required String name,
-    required List<int> questionIds,
-  }) async {
-    throw UnimplementedError('ExamRepository.createExam');
-  }
-
-  /// DELETE /api/exams/{id}
-  static Future<void> deleteExam(int id) async {
+  static Future<void> deleteExam(int examId) async {
     throw UnimplementedError('ExamRepository.deleteExam');
   }
 
-  /// GET /api/exams/{id}/pdf/
-  static Future<void> downloadPdf(int id) async {
+  // ---- 预览 ----
+  static Future<ExamPreview> getPreview(int examId) async {
+    throw UnimplementedError('ExamRepository.getPreview');
+  }
+
+  static Future<ExamPreviewOther> getPreviewOther(int examId) async {
+    throw UnimplementedError('ExamRepository.getPreviewOther');
+  }
+
+  static Future<void> downloadPdf(int examId) async {
     throw UnimplementedError('ExamRepository.downloadPdf');
   }
+
+  // ---- 快对答案 ----
+  static Future<List<AnswerItem>> getQuickAnswers(int examId) async {
+    throw UnimplementedError('ExamRepository.getQuickAnswers');
+  }
+
+  // ---- 筛选预设（委托给 preference_repository） ----
+  static Future<List<FilterPreset>> getFilterPresets() async {
+    throw UnimplementedError('ExamRepository.getFilterPresets');
+  }
+
+  static Future<void> saveFilterPreset(String name) async {
+    throw UnimplementedError('ExamRepository.saveFilterPreset');
+  }
+
+  static Future<SearchFilters> loadFilterPreset(int presetId) async {
+    throw UnimplementedError('ExamRepository.loadFilterPreset');
+  }
+
+  // ---- 筛选选项（从本地题库/assets 读取） ----
+  static Future<FilterOptions> getFilterOptions() async {
+    throw UnimplementedError('ExamRepository.getFilterOptions');
+  }
+
+  // ---- 数据绑定/状态（手动选题模式） ----
+  static Future<ExamBuildState> getBuildSession() async {
+    throw UnimplementedError('ExamRepository.getBuildSession');
+  }
+
+  /// 筛选后的题目列表（本地题库实时过滤）
+  static Future<List<SearchQuestion>> getFilteredQuestions(
+      SearchFilters filters) async {
+    throw UnimplementedError('ExamRepository.getFilteredQuestions');
+  }
+
+  /// 筛选池统计（委托给 _ExamFilterEngine）
+  static Future<PoolStats> getPoolStats(SearchFilters filters) async {
+    throw UnimplementedError('ExamRepository.getPoolStats');
+  }
+
+  static Future<int> getTotalCount(SearchFilters filters) async {
+    throw UnimplementedError('ExamRepository.getTotalCount');
+  }
+
+  /// 确认组卷（委托给 _ExamGenerator）
+  static Future<int> confirm(SearchFilters filters) async {
+    throw UnimplementedError('ExamRepository.confirm');
+  }
+}
+
+// ---- 私有算法引擎 ----
+
+/// 实时过滤+计数+难度统计（从本地 assets SQLite 题库）
+class _ExamFilterEngine {
+  // availableChoice/Fill/Solution: SELECT COUNT(*) FROM questions WHERE type=? AND {filters}
+  // poolDiffMin: SELECT MIN(difficulty) FROM questions WHERE {filters}
+  // gaokaoDiffMin/Avg/Max: 从高考题子集计算
+}
+
+/// 智能组卷算法：按目标难度从筛选池选最佳组合
+class _ExamGenerator {
+  // 1. 筛选池按 difficulty 排序
+  // 2. 贪心/动态规划选 targetDifficulty 最接近的组合
+  // 3. 返回生成的 exam id
+}
+
+/// PDF 生成
+class _ExamPdfService {
+  // 用 flutter_html + KaTeX 或原生方式生成 PDF
 }

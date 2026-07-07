@@ -1,6 +1,6 @@
-﻿/// 章鱼智学 — RatingRepository
-/// 对应页面：solve.html
-/// data-db: rating.get.*, rating.submit()
+/// 章鱼智学 — RatingRepository
+/// data-db: rating.*
+/// 对应页面：solve.html(评分弹层)
 
 class Rating {
   final double? userDifficulty;

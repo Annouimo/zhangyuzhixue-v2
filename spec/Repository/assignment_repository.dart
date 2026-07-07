@@ -1,6 +1,6 @@
-﻿/// 章鱼智学 — AssignmentRepository
-/// 对应页面：homework.html, homework_detail.html
-/// data-db: assign.getPending.*, assign.getQuestions.*
+/// 章鱼智学 — AssignmentRepository
+/// data-db: assign.*
+/// 对应页面：homework_list.html, homework_detail.html, index.html(待办数)
 
 class AssignmentSummary {
   final int id;
@@ -29,6 +29,28 @@ class AssignmentSummary {
         doneCount: json['done_count'] as int,
         totalCount: json['total_count'] as int,
         deadlineDays: json['deadline_remaining'] as int,
+        status: json['status'] as String,
+      );
+}
+
+class QuestionSummary {
+  final int id;
+  final String number;
+  final String questionType;
+  final String status;
+
+  const QuestionSummary({
+    required this.id,
+    required this.number,
+    required this.questionType,
+    required this.status,
+  });
+
+  factory QuestionSummary.fromJson(Map<String, dynamic> json) =>
+      QuestionSummary(
+        id: json['id'] as int,
+        number: json['number'] as String,
+        questionType: json['question_type'] as String,
         status: json['status'] as String,
       );
 }
@@ -63,36 +85,19 @@ class AssignmentDetail {
       );
 }
 
-class QuestionSummary {
-  final int id;
-  final String number;
-  final String questionType;
-  final String status;
-
-  const QuestionSummary({
-    required this.id,
-    required this.number,
-    required this.questionType,
-    required this.status,
-  });
-
-  factory QuestionSummary.fromJson(Map<String, dynamic> json) =>
-      QuestionSummary(
-        id: json['id'] as int,
-        number: json['number'] as String,
-        questionType: json['question_type'] as String,
-        status: json['status'] as String,
-      );
-}
-
 class AssignmentRepository {
   /// GET /api/assignments/pending/
-  static Future<List<AssignmentSummary>> getPendingAssignments() async {
-    throw UnimplementedError('AssignmentRepository.getPendingAssignments');
+  static Future<List<AssignmentSummary>> getPending() async {
+    throw UnimplementedError('AssignmentRepository.getPending');
   }
 
   /// GET /api/assignments/{id}/questions/
-  static Future<AssignmentDetail> getAssignmentQuestions(int id) async {
-    throw UnimplementedError('AssignmentRepository.getAssignmentQuestions');
+  static Future<AssignmentDetail> getQuestions(int id) async {
+    throw UnimplementedError('AssignmentRepository.getQuestions');
+  }
+
+  /// GET /api/assignments/pending/count/  → 待办作业数
+  static Future<int> pendingCount() async {
+    throw UnimplementedError('AssignmentRepository.pendingCount');
   }
 }

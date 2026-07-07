@@ -1,6 +1,6 @@
-﻿/// 章鱼智学 — LectureRepository
+/// 章鱼智学 — LectureRepository
+/// data-db: lecture.*
 /// 对应页面：lecture_courses.html, lecture_chapters.html, lecture_content.html
-/// data-db: lecture.getCourses.*, lecture.getChapters.*, lecture.getContent.*
 
 class Course {
   final int id;
@@ -75,6 +75,10 @@ class LectureContent {
       );
 
   String get pageInfo => '第 $currentPage / $totalPages 页';
+
+  /// 分页列表（用于 data-db-loop），每页一个 id
+  List<int> get pagination =>
+      List.generate(totalPages, (i) => i + 1);
 }
 
 class LectureRepository {
