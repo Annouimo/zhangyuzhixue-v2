@@ -161,6 +161,20 @@
       margin-bottom: 12px;
     }
     .action-bar .btn { margin-bottom: 4px; }
+    .action-bar .fill-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .action-bar .fill-input:focus {
+      border-color: var(--primary);
+    }
 
     /* ====== 结果区 ====== */
     .result-area {
@@ -211,6 +225,49 @@
     /* ====== 题型分支容器（原型中显示当前选中题型，其他隐藏） ====== */
     .branch-container { display: none; }
     .branch-container.active { display: block; }
+
+    /* ====== 调试工具栏 ====== */
+    /* DEBUG: Flutter 落地时删除此工具栏样式 */
+    .debug-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      flex-wrap: wrap;
+    }
+    .debug-toolbar .debug-label {
+      font-weight: 600;
+      color: #f57f17;
+      white-space: nowrap;
+    }
+    .debug-toolbar .debug-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    .debug-toolbar .debug-btn {
+      padding: 3px 12px;
+      border: 1px solid #ffe082;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .debug-toolbar .debug-btn.active {
+      background: #f57f17;
+      color: #fff;
+      border-color: #f57f17;
+    }
+    .debug-toolbar .debug-current {
+      color: #795548;
+      font-size: 12px;
+    }
+    /* /DEBUG */
   </style>
 </head>
 <body>
@@ -220,6 +277,19 @@
   </div>
 
   <div class="solve-container">
+    <!-- ======== 调试工具栏 ======== -->
+    <!-- DEBUG: Flutter 落地时删除此区域 -->
+    <div class="debug-toolbar" id="debug-toolbar">
+      <span class="debug-label">🛠 调试模式</span>
+      <div class="debug-buttons">
+        <button class="debug-btn" data-type="选择" onclick="debugSwitch('选择')">选择</button>
+        <button class="debug-btn" data-type="填空" onclick="debugSwitch('填空')">填空</button>
+        <button class="debug-btn active" data-type="解答" onclick="debugSwitch('解答')">解答</button>
+      </div>
+      <span class="debug-current" id="debug-current">当前：解答</span>
+    </div>
+    <!-- /DEBUG -->
+
     <!-- ======== 题目元信息 ======== -->
     <div class="question-meta" data-db="question.getDetail.meta">
       第 <span data-db="question.getDetail.number">3</span> 题　
@@ -287,7 +357,7 @@
         <div class="analysis-text" style="text-align:left;margin-top:8px;">
           <p data-db="question.getDetail.analysis">由题意可得 a² + b² - c² = ab，由余弦定理 cos C = (a² + b² - c²) / (2ab) = ab / (2ab) = 1/2，故 C = 60°。</p>
         </div>
-        <a href="" class="btn btn-outline btn-block mt-4" data-db-action="question.nextQuestion()">下一题 →</a>
+        <button class="btn btn-outline btn-block mt-4" onclick="showToast('📝', '已进入下一题（Flutter 中执行路由跳转）')">下一题 →</button>
       </div>
     </div>
 
@@ -296,19 +366,22 @@
     <!-- data-db-condition: question.getDetail.questionType === '填空'    -->
     <!-- ================================================================ -->
     <div class="branch-container" id="branch-fill" data-db-condition="question.getDetail.questionType === '填空'">
-      <!-- 冷却区域 -->
+      <!-- 输入 + 冷却 + 提交 -->
       <div class="action-bar" id="fill-action">
-        <div class="cooldown-text" id="fill-cooldown">⏳ 倒计时 5 秒后自动展示答案</div>
+        <input type="text" class="fill-input" id="fill-input" placeholder="输入你的答案..." autocomplete="off">
+        <button class="btn btn-primary" id="fill-submit-btn" disabled onclick="submitFill()">提交答案</button>
+        <div class="cooldown-text" id="fill-cooldown">⏳ 还剩 5 秒可提交</div>
       </div>
 
-      <!-- 结果展示（自动显示） -->
+      <!-- 结果展示 -->
       <div class="result-area" id="fill-result" style="display:none;">
-        <div class="result-badge reveal">正确答案</div>
+        <div class="result-badge" id="fill-result-badge"></div>
+        <div class="answer-label">正确答案</div>
         <div class="answer-value" data-db="question.getDetail.answer">60°</div>
         <div class="analysis-text" style="text-align:left;margin-top:8px;">
           <p data-db="question.getDetail.analysis">由余弦定理 cos C = (a² + b² - c²) / (2ab) = ab / (2ab) = 1/2，故 C = 60°。</p>
         </div>
-        <a href="" class="btn btn-outline btn-block mt-4" data-db-action="question.nextQuestion()">下一题 →</a>
+        <button class="btn btn-outline btn-block mt-4" onclick="showToast('📝', '已进入下一题（Flutter 中执行路由跳转）')">下一题 →</button>
       </div>
     </div>
 
@@ -557,7 +630,7 @@
             提交评分（可获得 +0.3 赠送积分）
           </button>
         </div>
-        <a href="" class="btn btn-outline btn-block mt-4" data-db-action="question.nextQuestion()">下一题 →</a>
+        <button class="btn btn-outline btn-block mt-4" onclick="showToast('📝', '已进入下一题（Flutter 中执行路由跳转）')">下一题 →</button>
       </div>
     </div><!-- /解答题分支 -->
   </div>
@@ -590,6 +663,7 @@
     //  全局配置
     // =================================================================
     const COOLDOWN = 5; // 秒
+    var _cooldownTimers = {}; // 管理各题型计时器
 
     // 小问元数据（原型内嵌，Flutter 时由 Repository 提供）
     const SUB_QUESTIONS = [
@@ -601,16 +675,96 @@
     //  题型分支切换
     // =================================================================
     function activateBranch(type) {
+      // 停止所有计时器
+      Object.keys(_cooldownTimers).forEach(function(k) {
+        clearInterval(_cooldownTimers[k]);
+      });
+      _cooldownTimers = {};
+
       document.querySelectorAll('.branch-container').forEach(function(el) {
         el.classList.remove('active');
       });
       var map = { '选择': 'branch-choice', '填空': 'branch-fill', '解答': 'branch-solve' };
       var target = document.getElementById(map[type]);
       if (target) target.classList.add('active');
+
+      // 只启动当前题型的冷却
+      if (type === '选择') startChoiceCooldown();
+      else if (type === '填空') startFillCooldown();
+      // 解答题的冷却在步骤卡片层面处理（暂不实现完整 5s 冷却，原型通过箭头点击交互演示）
     }
 
-    // 默认解答题
-    activateBranch('解答');
+    // =================================================================
+    //  调试工具栏（Flutter 落地时删除）
+    // =================================================================
+    var _debugTimers = [];
+
+    function debugSwitch(type) {
+      // 更新 debug 按钮高亮
+      document.querySelectorAll('.debug-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.type === type);
+      });
+      document.getElementById('debug-current').textContent = '当前：' + type;
+
+      // 重置所有题型状态
+      resetChoiceState();
+      resetFillState();
+      resetSolveState();
+
+      // 重置元信息
+      var meta = {
+        '选择': { number: '2', type: '选择', assign: '三角函数小测', qtype: '选择' },
+        '填空': { number: '3', type: '填空', assign: '导数第 1 讲课后练习', qtype: '填空' },
+        '解答': { number: '3', type: '解答', assign: '导数第 1 讲课后练习', qtype: '解答' },
+      };
+      var d = meta[type];
+      document.querySelector('[data-db="question.getDetail.number"]').textContent = d.number;
+      var typeSpan = document.querySelector('[data-db="question.getDetail.questionType"]');
+      if (typeSpan) typeSpan.textContent = d.qtype;
+      var assignSpan = document.querySelector('[data-db="question.getDetail.assignName"]');
+      if (assignSpan) assignSpan.textContent = d.assign;
+
+      // 切换激活分支
+      activateBranch(type);
+    }
+
+    function resetChoiceState() {
+      choiceState = { selectedOption: null, submitted: false };
+      document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
+        b.classList.remove('selected');
+      });
+      document.getElementById('choice-action').style.display = '';
+      document.getElementById('choice-result').style.display = 'none';
+      document.getElementById('choice-submit-btn').disabled = true;
+      document.getElementById('choice-cooldown').textContent = '⏳ 还剩 5 秒可提交';
+    }
+
+    function resetFillState() {
+      fillState = { submitted: false };
+      document.getElementById('fill-input').value = '';
+      document.getElementById('fill-action').style.display = '';
+      document.getElementById('fill-result').style.display = 'none';
+      document.getElementById('fill-submit-btn').disabled = true;
+      document.getElementById('fill-cooldown').textContent = '⏳ 还剩 5 秒可提交';
+    }
+
+    function resetSolveState() {
+      solve = {
+        currentSubQIndex: 1,
+        subQOrder: [1, 2],
+        completedSubQs: {},
+        currentMethod: { '1': '余弦定理法', '2': '' },
+        stepState: {},
+        currentSubQIdx: 0,
+      };
+      initStepStates();
+      document.getElementById('congrats-section').style.display = 'none';
+      document.getElementById('subq-complete-toast').style.display = 'none';
+      document.getElementById('subq-locked-placeholder').style.display = 'none';
+      renderSubQTabs();
+      renderMethodToggle();
+      renderSteps();
+    }
 
     // =================================================================
     //  解答题状态机
@@ -783,8 +937,6 @@
         if (content) content.style.display = st.content ? 'block' : 'none';
         if (feedback) feedback.style.display = st.content ? 'flex' : 'none';
         if (arrow) arrow.style.display = st.arrowHidden ? 'none' : '';
-        // 如果已给反馈，箭头不可用（但显示反馈选中态）
-        if (st.feedbackGiven && arrow) arrow.disabled = true;
         // 第一步默认可展开，后续步骤需前一步完成才显示
         if (order > 0) {
           var prevKey = idx + '-' + method + '-' + order;
@@ -814,7 +966,7 @@
 
       if (!st.card) return;
 
-      // 展开内容 + 反馈
+      // 展开内容 + 反馈，箭头隐藏（一次性的，展开后消失）
       var cards = getStepsFor(idx, method);
       var cardEl = cards[order - 1];
       if (cardEl) {
@@ -936,6 +1088,7 @@
           cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
         }
       }, 1000);
+      _cooldownTimers['choice'] = timer;
     }
 
     function submitChoice() {
@@ -965,24 +1118,45 @@
     // =================================================================
     //  填空题交互
     // =================================================================
+    var fillState = { submitted: false };
+    var FILL_CORRECT_ANSWER = '60°';
+
     function startFillCooldown() {
+      var btn = document.getElementById('fill-submit-btn');
       var cd = document.getElementById('fill-cooldown');
+      btn.disabled = true;
       var remain = COOLDOWN;
-      cd.textContent = '⏳ 倒计时 ' + remain + ' 秒后自动展示答案';
+      cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
       var timer = setInterval(function() {
         remain--;
         if (remain <= 0) {
           clearInterval(timer);
-          revealFillAnswer();
+          btn.disabled = false;
+          cd.textContent = '✓ 可以提交了';
         } else {
-          cd.textContent = '⏳ 倒计时 ' + remain + ' 秒后自动展示答案';
+          cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
         }
       }, 1000);
+      _cooldownTimers['fill'] = timer;
     }
 
-    function revealFillAnswer() {
+    function submitFill() {
+      if (fillState.submitted) return;
+      var input = document.getElementById('fill-input');
+      var userAnswer = input.value.trim();
+      if (!userAnswer) {
+        showToast('⚠️', '请输入你的答案');
+        return;
+      }
+      fillState.submitted = true;
+
       document.getElementById('fill-action').style.display = 'none';
-      document.getElementById('fill-result').style.display = 'block';
+      var result = document.getElementById('fill-result');
+      result.style.display = 'block';
+      var badge = document.getElementById('fill-result-badge');
+      var isCorrect = (userAnswer === FILL_CORRECT_ANSWER);
+      badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + FILL_CORRECT_ANSWER;
+      badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
     }
 
     // =================================================================
@@ -1057,10 +1231,6 @@
       renderSubQTabs();
       renderMethodToggle();
       renderSteps();
-      // 选择题冷却
-      startChoiceCooldown();
-      // 填空题冷却
-      startFillCooldown();
     }
 
     document.addEventListener('DOMContentLoaded', initSolvePage);
