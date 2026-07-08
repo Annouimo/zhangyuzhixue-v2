@@ -64,6 +64,77 @@ class SolveProgressState {
   });
 }
 
+// ===================================================================
+//  复访重建（第二次及更多次进入解题页时，从 user.db 重建状态）
+//  数据源：submission_detail, step_feedback, card_feedback, question_rating
+// ===================================================================
+
+/// 步骤的历史记录
+class StepSolveRecord {
+  final int stepOrder;
+  final bool feedbackGiven;
+  final String? feedbackType; // 'correct' / 'partial' / 'wrong'
+
+  const StepSolveRecord({
+    required this.stepOrder,
+    required this.feedbackGiven,
+    this.feedbackType,
+  });
+}
+
+/// 一种解法下的步骤历史
+class MethodSolveRecord {
+  final String methodName; // '' = 唯一解法
+  final List<StepSolveRecord> steps;
+
+  const MethodSolveRecord({
+    required this.methodName,
+    required this.steps,
+  });
+}
+
+/// 一个小问的解题历史
+class SubQSolveRecord {
+  final int index;
+  final String activeMethod; // 上次离开时选中的解法
+  final bool completed;      // 该小问已用至少一种方法完成
+  final List<MethodSolveRecord> methods;
+
+  const SubQSolveRecord({
+    required this.index,
+    required this.activeMethod,
+    required this.completed,
+    required this.methods,
+  });
+}
+
+/// 完整的解题历史快照，由 ProgressRepository.getPreviousState() 返回
+///
+/// 根据 submission_detail / step_feedback / question_rating 重建。
+/// null = 首次进入（表中无该 question_id 的记录）。
+class PreviousSolveState {
+  // === 选择题 ===
+  final String? choiceSelected;   // 用户选的选项；null=未选即离开
+  final bool choiceSubmitted;     // 是否已提交
+
+  // === 填空题 ===
+  final bool fillRevealed;        // 是否已展示答案
+
+  // === 解答题 ===
+  final List<SubQSolveRecord> subQRecords;
+
+  // === 评分 ===
+  final bool isRated;             // 是否已评分
+
+  const PreviousSolveState({
+    this.choiceSelected,
+    required this.choiceSubmitted,
+    required this.fillRevealed,
+    required this.subQRecords,
+    required this.isRated,
+  });
+}
+
 class ProgressRepository {
   /// GET /api/questions/{questionId}/solve-state/
   /// 返回分组后的解题状态（含小问分组 + 解法分组）
@@ -78,5 +149,23 @@ class ProgressRepository {
     required String status,
   }) async {
     throw UnimplementedError('ProgressRepository.submitStepFeedback');
+  }
+
+  /// 查询 user.db 中该 question_id 的所有相关记录，重建解题状态。
+  ///
+  /// 查询路径：
+  ///   submission_detail → choiceSelected / choiceSubmitted / fillRevealed
+  ///   step_feedback     → 每步的 feedbackGiven + feedbackType
+  ///   question_rating   → isRated
+  ///
+  /// 返回 null 表示首次进入（无任何记录）。
+  ///
+  /// Flutter 实现参考：
+  ///   1. SELECT * FROM submission_detail WHERE question_id=?
+  ///   2. SELECT * FROM step_feedback WHERE question_id=? ORDER BY sub_question_index, method_id, step_number
+  ///   3. SELECT 1 FROM question_rating WHERE question_id=? LIMIT 1
+  ///   4. 组装为 PreviousSolveState
+  static Future<PreviousSolveState?> getPreviousState(int questionId) async {
+    throw UnimplementedError('ProgressRepository.getPreviousState');
   }
 }
