@@ -53,32 +53,25 @@ class ChapterList {
 
 class LectureContent {
   final String title;
-  final String body;
-  final List<String> formulas;
+  final List<String> blocks;  // blocks[0] 默认展开，blocks[1..] 为 REVEAL 块
   final int currentPage;
   final int totalPages;
 
   const LectureContent({
     required this.title,
-    required this.body,
-    required this.formulas,
+    required this.blocks,
     required this.currentPage,
     required this.totalPages,
   });
 
   factory LectureContent.fromJson(Map<String, dynamic> json) => LectureContent(
         title: json['title'] as String,
-        body: json['body'] as String,
-        formulas: (json['formulas'] as List).cast<String>(),
+        blocks: (json['blocks'] as List).cast<String>(),
         currentPage: json['current_page'] as int,
         totalPages: json['total_pages'] as int,
       );
 
-  String get pageInfo => '第 $currentPage / $totalPages 页';
-
-  /// 分页列表（用于 data-db-loop），每页一个 id
-  List<int> get pagination =>
-      List.generate(totalPages, (i) => i + 1);
+  int get totalBlocks => blocks.length;
 }
 
 class LectureRepository {
