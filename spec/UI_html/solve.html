@@ -161,20 +161,6 @@
       margin-bottom: 12px;
     }
     .action-bar .btn { margin-bottom: 4px; }
-    .action-bar .fill-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 15px;
-      margin-bottom: 8px;
-      box-sizing: border-box;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .action-bar .fill-input:focus {
-      border-color: var(--primary);
-    }
 
     /* ====== 结果区 ====== */
     .result-area {
@@ -348,7 +334,7 @@
         <button class="btn btn-primary" id="choice-submit-btn" disabled onclick="submitChoice()">
           提交答案
         </button>
-        <div class="cooldown-text" id="choice-cooldown">⏳ 还剩 5 秒可提交</div>
+        <div class="cooldown-text" id="choice-cooldown">⏳ 还剩 10 秒可提交</div>
       </div>
 
       <!-- 结果展示 -->
@@ -366,17 +352,17 @@
     <!-- data-db-condition: question.getDetail.questionType === '填空'    -->
     <!-- ================================================================ -->
     <div class="branch-container" id="branch-fill" data-db-condition="question.getDetail.questionType === '填空'">
-      <!-- 输入 + 冷却 + 提交 -->
+      <!-- 冷却 + 查看答案按钮 -->
       <div class="action-bar" id="fill-action">
-        <input type="text" class="fill-input" id="fill-input" placeholder="输入你的答案..." autocomplete="off">
-        <button class="btn btn-primary" id="fill-submit-btn" disabled onclick="submitFill()">提交答案</button>
-        <div class="cooldown-text" id="fill-cooldown">⏳ 还剩 5 秒可提交</div>
+        <button class="btn btn-primary" id="fill-reveal-btn" disabled onclick="showFillAnswer()">
+          查看答案
+        </button>
+        <div class="cooldown-text" id="fill-cooldown">⏳ 还剩 10 秒可查看</div>
       </div>
 
       <!-- 结果展示 -->
       <div class="result-area" id="fill-result" style="display:none;">
-        <div class="result-badge" id="fill-result-badge"></div>
-        <div class="answer-label">正确答案</div>
+        <div class="result-badge reveal">正确答案</div>
         <div class="answer-value" data-db="question.getDetail.answer">60°</div>
         <div class="analysis-text" style="text-align:left;margin-top:8px;">
           <p data-db="question.getDetail.analysis">由余弦定理 cos C = (a² + b² - c²) / (2ab) = ab / (2ab) = 1/2，故 C = 60°。</p>
@@ -662,8 +648,9 @@
     // =================================================================
     //  全局配置
     // =================================================================
-    const COOLDOWN = 5; // 秒
-    var _cooldownTimers = {}; // 管理各题型计时器
+    const CHOICE_COOLDOWN = 10; // 选择题冷却秒数
+    const FILL_COOLDOWN = 10;   // 填空题冷却秒数
+    var _cooldownTimers = {};
 
     // 小问元数据（原型内嵌，Flutter 时由 Repository 提供）
     const SUB_QUESTIONS = [
@@ -691,14 +678,11 @@
       // 只启动当前题型的冷却
       if (type === '选择') startChoiceCooldown();
       else if (type === '填空') startFillCooldown();
-      // 解答题的冷却在步骤卡片层面处理（暂不实现完整 5s 冷却，原型通过箭头点击交互演示）
     }
 
     // =================================================================
     //  调试工具栏（Flutter 落地时删除）
     // =================================================================
-    var _debugTimers = [];
-
     function debugSwitch(type) {
       // 更新 debug 按钮高亮
       document.querySelectorAll('.debug-btn').forEach(function(btn) {
@@ -736,19 +720,18 @@
       document.getElementById('choice-action').style.display = '';
       document.getElementById('choice-result').style.display = 'none';
       document.getElementById('choice-submit-btn').disabled = true;
-      document.getElementById('choice-cooldown').textContent = '⏳ 还剩 5 秒可提交';
+      document.getElementById('choice-cooldown').textContent = '⏳ 还剩 10 秒可提交';
     }
 
     function resetFillState() {
-      fillState = { submitted: false };
-      document.getElementById('fill-input').value = '';
       document.getElementById('fill-action').style.display = '';
       document.getElementById('fill-result').style.display = 'none';
-      document.getElementById('fill-submit-btn').disabled = true;
-      document.getElementById('fill-cooldown').textContent = '⏳ 还剩 5 秒可提交';
+      document.getElementById('fill-reveal-btn').disabled = true;
+      document.getElementById('fill-cooldown').textContent = '⏳ 还剩 10 秒可查看';
     }
 
     function resetSolveState() {
+      _goToDoneFired = false;
       solve = {
         currentSubQIndex: 1,
         subQOrder: [1, 2],
@@ -769,13 +752,15 @@
     // =================================================================
     //  解答题状态机
     // =================================================================
+    var _goToDoneFired = false;
+
     var solve = {
-      currentSubQIndex: 1,                // 当前小题 index
-      subQOrder: [1, 2],                 // 完成顺序
-      completedSubQs: {},                 // { 1: true, 2: true }
-      currentMethod: { '1': '余弦定理法', '2': '' },  // 每问当前解法
-      stepState: {},                      // { '1-余弦定理法-1': {card,content,arrowHidden} }
-      currentSubQIdx: 0,                  // 当前在 subQOrder 中的位置
+      currentSubQIndex: 1,
+      subQOrder: [1, 2],
+      completedSubQs: {},
+      currentMethod: { '1': '余弦定理法', '2': '' },
+      stepState: {},
+      currentSubQIdx: 0,
     };
 
     function getStepsFor(subQ, method) {
@@ -791,7 +776,7 @@
           cards.forEach(function(card, idx) {
             var key = sq.index + '-' + m + '-' + (idx + 1);
             solve.stepState[key] = {
-              card: (idx === 0),     // 第一张默认可见
+              card: (idx === 0),
               content: false,
               arrowHidden: false,
               feedbackGiven: false,
@@ -825,7 +810,6 @@
     }
 
     function isSubQUnlocked(index) {
-      // 按顺序解锁：只有上一问完成才能用下一问
       var pos = solve.subQOrder.indexOf(index);
       if (pos === 0) return true;
       var prev = solve.subQOrder[pos - 1];
@@ -868,14 +852,19 @@
     function switchMethod(method) {
       var idx = solve.currentSubQIndex;
       if (solve.currentMethod[idx] === method) return;
-      // 切换解法 → 重置该小题下该解法所有步骤状态
+
+      // 记住该小问在切方法前是否已完成（方案 B：完成不可逆）
+      var alreadyDone = !!solve.completedSubQs[idx];
+
+      // 清理旧解法步骤状态
       var oldMethod = solve.currentMethod[idx];
       var cards = getStepsFor(idx, oldMethod);
       cards.forEach(function(card, order) {
         var key = idx + '-' + oldMethod + '-' + (order + 1);
         delete solve.stepState[key];
       });
-      // 初始化新解法
+
+      // 初始化新解法步骤
       var newCards = getStepsFor(idx, method);
       newCards.forEach(function(card, order) {
         var key = idx + '-' + method + '-' + (order + 1);
@@ -886,9 +875,14 @@
           feedbackGiven: false,
         };
       });
-      // 清除当前小题已完成标记
-      delete solve.completedSubQs[idx];
+
       solve.currentMethod[idx] = method;
+
+      // 方案 B：完成不可逆——已完成的子问题不撤销完成标记
+      if (!alreadyDone) {
+        delete solve.completedSubQs[idx];
+      }
+
       renderMethodToggle();
       renderSteps();
       document.getElementById('subq-complete-toast').style.display = 'none';
@@ -903,7 +897,6 @@
       var idx = solve.currentSubQIndex;
       var method = solve.currentMethod[idx];
 
-      // 锁定状态
       var locked = document.getElementById('subq-locked-placeholder');
       if (!isSubQUnlocked(idx)) {
         if (locked) locked.style.display = 'block';
@@ -913,7 +906,6 @@
       if (locked) locked.style.display = 'none';
       document.getElementById('step-container').style.display = 'block';
 
-      // 显示/隐藏步骤卡片
       var allCards = document.querySelectorAll('.step-card');
       allCards.forEach(function(card) {
         var sq = card.dataset.subq;
@@ -925,7 +917,6 @@
         }
       });
 
-      // 应用每步状态（显示/隐藏内容、反馈、箭头）
       var visibleCards = getStepsFor(idx, method);
       visibleCards.forEach(function(card, order) {
         var key = idx + '-' + method + '-' + (order + 1);
@@ -937,7 +928,6 @@
         if (content) content.style.display = st.content ? 'block' : 'none';
         if (feedback) feedback.style.display = st.content ? 'flex' : 'none';
         if (arrow) arrow.style.display = st.arrowHidden ? 'none' : '';
-        // 第一步默认可展开，后续步骤需前一步完成才显示
         if (order > 0) {
           var prevKey = idx + '-' + method + '-' + order;
           var prevSt = solve.stepState[prevKey];
@@ -947,7 +937,7 @@
               st.card = true;
             }
           } else if (!st.feedbackGiven && !st.content) {
-            card.style.display = 'none'; // 前一步未完成，隐藏
+            card.style.display = 'none';
           }
         }
       });
@@ -961,12 +951,11 @@
       if (!st) return;
       var parts = key.split('-');
       var idx = parseInt(parts[0]);
-      var method = parts.slice(1, -1).join('-'); // 处理 '2--1' 情况
+      var method = parts.slice(1, -1).join('-');
       var order = parseInt(parts[parts.length - 1]);
 
       if (!st.card) return;
 
-      // 展开内容 + 反馈，箭头隐藏（一次性的，展开后消失）
       var cards = getStepsFor(idx, method);
       var cardEl = cards[order - 1];
       if (cardEl) {
@@ -991,7 +980,6 @@
       var method = parts.slice(1, -1).join('-');
       var order = parseInt(parts[parts.length - 1]);
 
-      // 反馈按钮高亮
       var cards = getStepsFor(idx, method);
       var cardEl = cards[order - 1];
       if (cardEl) {
@@ -1009,24 +997,30 @@
         }
       }
 
-      // 检查是否为该小题的最后一步
       var allCards = getStepsFor(idx, method);
       var isLastStep = (order >= allCards.length);
 
       if (isLastStep) {
-        // 该小问完成
-        solve.completedSubQs[idx] = true;
+        // 方案 B：小问完成不可逆——仅首次完成时标记
+        var newlyCompleted = !solve.completedSubQs[idx];
+        if (newlyCompleted) {
+          solve.completedSubQs[idx] = true;
+        }
         renderSubQTabs();
 
-        // 检查是否为最后一个小问
         var allDone = SUB_QUESTIONS.every(function(sq) {
           return !!solve.completedSubQs[sq.index];
         });
 
-        if (allDone) {
+        if (allDone && !_goToDoneFired) {
+          // 所有小问首次全部完成 → 触发完成流程
+          _goToDoneFired = true;
           goToDone();
-        } else {
-          // 显示小问完成提示，自动切到下一小问
+        } else if (allDone && _goToDoneFired) {
+          // 已完成后再切其他方法走完 → 不触发完成流程
+          renderSteps();
+        } else if (newlyCompleted) {
+          // 该小问首次完成（不是最后一个），切到下一小问
           var currentPos = solve.subQOrder.indexOf(idx);
           if (currentPos >= 0 && currentPos < solve.subQOrder.length - 1) {
             var nextIdx = solve.subQOrder[currentPos + 1];
@@ -1035,16 +1029,17 @@
             toast.textContent = '🎉 第' + sqLabel.label + '完成！继续第' +
               SUB_QUESTIONS.find(function(s) { return s.index === nextIdx; }).label;
             toast.style.display = 'block';
-
             setTimeout(function() {
               toast.style.display = 'none';
               switchSubQuestion(nextIdx);
               scrollToSteps();
             }, 1500);
           }
+        } else {
+          // 该小问之前已完成（切方法后走完另一种解法）→ 无操作
+          renderSteps();
         }
       } else {
-        // 不是最后一步 - 下一步卡片自动可见（由 renderSteps 处理）
         renderSteps();
       }
     }
@@ -1064,7 +1059,6 @@
 
     function selectOption(el) {
       if (choiceState.submitted) return;
-      // 清除其他选中
       document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
         b.classList.remove('selected');
       });
@@ -1076,7 +1070,7 @@
       var btn = document.getElementById('choice-submit-btn');
       var cd = document.getElementById('choice-cooldown');
       btn.disabled = true;
-      var remain = COOLDOWN;
+      var remain = CHOICE_COOLDOWN;
       cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
       var timer = setInterval(function() {
         remain--;
@@ -1099,7 +1093,6 @@
       if (choiceState.submitted) return;
       choiceState.submitted = true;
 
-      // 展示结果（示例：正确答案 A）
       var correctAnswer = 'A';
       var isCorrect = (choiceState.selectedOption === correctAnswer);
       document.getElementById('choice-action').style.display = 'none';
@@ -1109,7 +1102,6 @@
       badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + correctAnswer;
       badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
 
-      // 高亮正确答案
       document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
         if (b.dataset.option === correctAnswer) b.classList.add('selected');
       });
@@ -1118,45 +1110,28 @@
     // =================================================================
     //  填空题交互
     // =================================================================
-    var fillState = { submitted: false };
-    var FILL_CORRECT_ANSWER = '60°';
-
     function startFillCooldown() {
-      var btn = document.getElementById('fill-submit-btn');
+      var btn = document.getElementById('fill-reveal-btn');
       var cd = document.getElementById('fill-cooldown');
       btn.disabled = true;
-      var remain = COOLDOWN;
-      cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
+      var remain = FILL_COOLDOWN;
+      cd.textContent = '⏳ 还剩 ' + remain + ' 秒可查看';
       var timer = setInterval(function() {
         remain--;
         if (remain <= 0) {
           clearInterval(timer);
           btn.disabled = false;
-          cd.textContent = '✓ 可以提交了';
+          cd.textContent = '✓ 可以查看答案了';
         } else {
-          cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
+          cd.textContent = '⏳ 还剩 ' + remain + ' 秒可查看';
         }
       }, 1000);
       _cooldownTimers['fill'] = timer;
     }
 
-    function submitFill() {
-      if (fillState.submitted) return;
-      var input = document.getElementById('fill-input');
-      var userAnswer = input.value.trim();
-      if (!userAnswer) {
-        showToast('⚠️', '请输入你的答案');
-        return;
-      }
-      fillState.submitted = true;
-
+    function showFillAnswer() {
       document.getElementById('fill-action').style.display = 'none';
-      var result = document.getElementById('fill-result');
-      result.style.display = 'block';
-      var badge = document.getElementById('fill-result-badge');
-      var isCorrect = (userAnswer === FILL_CORRECT_ANSWER);
-      badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + FILL_CORRECT_ANSWER;
-      badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
+      document.getElementById('fill-result').style.display = 'block';
     }
 
     // =================================================================
@@ -1227,7 +1202,6 @@
     //  初始化
     // =================================================================
     function initSolvePage() {
-      // 解答题初始化
       renderSubQTabs();
       renderMethodToggle();
       renderSteps();
