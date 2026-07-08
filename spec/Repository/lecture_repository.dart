@@ -20,20 +20,17 @@ class Chapter {
   final int id;
   final String title;
   final int pageCount;
-  final String studyStatus;
 
   const Chapter({
     required this.id,
     required this.title,
     required this.pageCount,
-    required this.studyStatus,
   });
 
   factory Chapter.fromJson(Map<String, dynamic> json) => Chapter(
         id: json['id'] as int,
         title: json['title'] as String,
         pageCount: json['page_count'] as int,
-        studyStatus: json['study_status'] as String,
       );
 }
 
@@ -54,20 +51,17 @@ class ChapterList {
 class LectureContent {
   final String title;
   final List<String> blocks;  // blocks[0] 默认展开，blocks[1..] 为 REVEAL 块
-  final int currentPage;
   final int totalPages;
 
   const LectureContent({
     required this.title,
     required this.blocks,
-    required this.currentPage,
     required this.totalPages,
   });
 
   factory LectureContent.fromJson(Map<String, dynamic> json) => LectureContent(
         title: json['title'] as String,
         blocks: (json['blocks'] as List).cast<String>(),
-        currentPage: json['current_page'] as int,
         totalPages: json['total_pages'] as int,
       );
 

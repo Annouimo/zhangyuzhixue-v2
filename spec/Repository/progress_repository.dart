@@ -1,6 +1,13 @@
 /// 章鱼智学 — ProgressRepository
 /// data-db: progress.*
 /// 对应页面：solve.html(解题步骤)
+///
+/// SubQuestionBlock.index / label 推导规则（从 sub_question 自关联树 → 平铺序号）：
+/// 1. 取 question_id 下所有 parent_id IS NULL 的行，ORDER BY sort_order
+/// 2. index = 行号（1, 2, 3...），整题无小题时 index=0
+/// 3. label = "(index)"，如 "(1)"、"(2)"；index=0 时 label=""
+/// 4. 如果某行有 children（parent_id = 本行 id），递归，label 追加如 "(2)(i)"
+/// 5. 最终组装为 List<SubQuestionBlock>
 
 /// 单步数据
 class Step {

@@ -2,6 +2,9 @@
 /// data-db: question.*
 /// 对应页面：solve.html(题干), paper_quicklook.html(做题), paper_quicklook_other.html(做题)
 
+/// title 拼接规则：由 Repository 运行时拼接，公式为 "${year} ${region}${exam_type} ${number}"
+/// 例如 "2024 海淀一模 17"，本地不进 DB
+
 class QuestionDetail {
   final int id;
   final String title;
@@ -12,7 +15,6 @@ class QuestionDetail {
   final double difficulty;
   final double pointsEarned;
   final List<String> conceptTags;
-  final String congratsText;
   final String questionType;               // "选择" / "填空" / "解答"
   final Map<String, String>? options;      // 仅选择题: {"A":"x>1", "B":"x<1", ...}
   final String? answer;                    // 标准答案（选填题展示用）
@@ -27,7 +29,6 @@ class QuestionDetail {
     required this.difficulty,
     required this.pointsEarned,
     required this.conceptTags,
-    required this.congratsText,
     required this.questionType,
     this.options,
     this.answer,
@@ -43,7 +44,6 @@ class QuestionDetail {
         difficulty: (json['difficulty'] as num).toDouble(),
         pointsEarned: (json['points_earned'] as num).toDouble(),
         conceptTags: (json['concept_tags'] as List).cast<String>(),
-        congratsText: json['congrats_text'] as String,
         questionType: json['question_type'] as String,
         options: json['options'] != null
             ? Map<String, String>.from(json['options'] as Map)
