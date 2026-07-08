@@ -104,6 +104,24 @@ class UserRepository {
     throw UnimplementedError('UserRepository.saveProfile');
   }
 
+  /// 头像上传（不进同步队列）
+  ///
+  /// 流程：用户选图 → resize 200×200 → 存本地文件系统
+  ///       → POST multipart/form-data → /api/user/avatar/
+  ///       → 服务端返回 URL → 更新本地 avatar 字段
+  ///
+  /// 头像不走同步队列：同步队列设计用于 JSON 结构化数据批量提交。
+  /// 头像是二进制文件（multipart/form-data），队列 payload 只接受 JSON。
+  /// 头像走独立上传接口，URL 作为用户信息随下次 UserInfo 同步推送。
+  ///
+  /// 客户端渲染：优先展示本地缓存版本（cached_network_image），
+  /// 后台静默请求最新 URL。上传后立即用本地文件预览，不等待服务端返回。
+  ///
+  /// PUT /api/user/avatar/
+  static Future<String> uploadAvatar(String localPath) async {
+    throw UnimplementedError('UserRepository.uploadAvatar');
+  }
+
   /// GET /api/user/answer-history/
   static Future<List<HistoryItem>> getAnswerHistory() async {
     throw UnimplementedError('UserRepository.getAnswerHistory');
@@ -142,7 +160,7 @@ class UserRepository {
     throw UnimplementedError('UserRepository.todayPoints');
   }
 
-  // ---- 等级 ---- 
+  // ---- 等级 ----
 
   /// 等级对照表
   static Future<List<LevelRow>> getLevels() async {
@@ -159,7 +177,7 @@ class UserRepository {
     throw UnimplementedError('UserRepository.levelPercentile');
   }
 
-  // ---- 签到任务 ---- 
+  // ---- 签到任务 ----
 
   /// 已连续签到天数
   static Future<int> streakDays() async {

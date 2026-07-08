@@ -8,6 +8,7 @@ class QuestionDetail {
   final String number;
   final String assignName;
   final String stem;
+  final List<String> images;  // ← 新增：相对路径列表，如 ['一模/2024/海淀/q17.webp']
   final double difficulty;
   final double pointsEarned;
   final List<String> conceptTags;
@@ -19,6 +20,7 @@ class QuestionDetail {
     required this.number,
     required this.assignName,
     required this.stem,
+    this.images = const [],  // ← 新增，默认空
     required this.difficulty,
     required this.pointsEarned,
     required this.conceptTags,
@@ -31,6 +33,7 @@ class QuestionDetail {
         number: json['number'] as String,
         assignName: json['assign_name'] as String,
         stem: json['stem'] as String,
+        images: (json['images'] as List?)?.cast<String>() ?? [],  // ← 新增
         difficulty: (json['difficulty'] as num).toDouble(),
         pointsEarned: (json['points_earned'] as num).toDouble(),
         conceptTags: (json['concept_tags'] as List).cast<String>(),
