@@ -322,11 +322,7 @@
 
     <!-- ================================================================ -->
     <!-- ======== 选择题分支 ======== -->
-    <!-- data-db-condition: question.getDetail.questionType === '选择'    -->
-    <!-- ================================================================ -->
     <div class="branch-container" id="branch-choice" data-db-condition="question.getDetail.questionType === '选择'">
-      <!-- 选项区 -->
-      <!-- data-db-loop: question.getDetail.options -->
       <div class="options-grid" data-db-loop="question.getDetail.options">
         <div class="option-btn" data-option="A" onclick="selectOption(this)">
           <span class="option-label">A</span>
@@ -346,15 +342,11 @@
         </div>
       </div>
 
-      <!-- 冷却 + 提交 -->
       <div class="action-bar" id="choice-action">
-        <button class="btn btn-primary" id="choice-submit-btn" disabled onclick="submitChoice()">
-          提交答案
-        </button>
+        <button class="btn btn-primary" id="choice-submit-btn" disabled onclick="submitChoice()">提交答案</button>
         <div class="cooldown-text" id="choice-cooldown">⏳ 还剩 10 秒可提交</div>
       </div>
 
-      <!-- 结果展示 -->
       <div class="result-area" id="choice-result" style="display:none;">
         <div class="result-badge" id="choice-result-badge"></div>
         <div class="analysis-text" style="text-align:left;margin-top:8px;">
@@ -366,18 +358,12 @@
 
     <!-- ================================================================ -->
     <!-- ======== 填空题分支 ======== -->
-    <!-- data-db-condition: question.getDetail.questionType === '填空'    -->
-    <!-- ================================================================ -->
     <div class="branch-container" id="branch-fill" data-db-condition="question.getDetail.questionType === '填空'">
-      <!-- 冷却 + 查看答案按钮 -->
       <div class="action-bar" id="fill-action">
-        <button class="btn btn-primary" id="fill-reveal-btn" disabled onclick="showFillAnswer()">
-          查看答案
-        </button>
+        <button class="btn btn-primary" id="fill-reveal-btn" disabled onclick="showFillAnswer()">查看答案</button>
         <div class="cooldown-text" id="fill-cooldown">⏳ 还剩 10 秒可查看</div>
       </div>
 
-      <!-- 结果展示 -->
       <div class="result-area" id="fill-result" style="display:none;">
         <div class="result-badge reveal">正确答案</div>
         <div class="answer-value" data-db="question.getDetail.answer">60°</div>
@@ -390,36 +376,22 @@
 
     <!-- ================================================================ -->
     <!-- ======== 解答题分支 ======== -->
-    <!-- data-db-condition: question.getDetail.questionType === '解答'    -->
-    <!-- ================================================================ -->
     <div class="branch-container active" id="branch-solve" data-db-condition="question.getDetail.questionType === '解答'">
-      <!-- ---- 小问 tabs ---- -->
-      <!-- data-db-condition: progress.getSolveState.subQuestions.length > 1 -->
       <div class="subq-tabs" id="subq-tabs"
            data-db-condition="progress.getSolveState.subQuestions.length > 1"
            data-db-loop="progress.getSolveState.subQuestions">
-        <!-- 由 JS 动态渲染 -->
       </div>
 
-      <!-- ---- 解法切换 ---- -->
       <div class="method-toggle" id="method-toggle" style="display:none;">
         <span class="method-label">解法：</span>
         <div id="method-pills"></div>
       </div>
 
-      <!-- ---- 锁定占位（锁定的小问显示此区域） ---- -->
       <div class="subq-locked-placeholder" id="subq-locked-placeholder" style="display:none;">
         🔒 请先完成上一问
       </div>
 
-      <!-- ---- 步骤序列 ---- -->
       <div id="step-container" data-db-loop="progress.currentMethodSteps">
-        <!--
-          步骤卡片列表。每个 step-card 使用 data-subq / data-method / data-step-order 标识归属。
-          由 JS 控制显示/隐藏。
-          数据路径：progress.getSolveState.subQuestions[].solutions[].steps[]
-        -->
-
         <!-- (1) 余弦定理法 · 第 1 步 -->
         <div class="step-card" data-subq="1" data-method="余弦定理法" data-step-order="1">
           <div class="step-header">
@@ -546,24 +518,17 @@
         </div>
       </div><!-- /step-container -->
 
-      <!-- ---- 小问完成提示 ---- -->
       <div id="subq-complete-toast" class="subq-complete-toast" style="display:none;"></div>
 
-      <!-- ---- 恭喜完成 ---- -->
       <div id="congrats-section" style="display:none;">
         <div class="congrats-card" style="padding:16px;margin-bottom:8px;">
           <div class="icon" style="font-size:28px;margin-bottom:4px;">🎉</div>
           <h2 style="font-size:17px;" data-db="question.getDetail.congratsText">恭喜完成本题！</h2>
         </div>
-
-        <!-- 积分获得行 -->
         <div class="points-earned-bar">
-          本题难度 <span data-db="question.getDetail.difficulty">5.5</span>，获得 <strong style="color:var(--primary);">+<span data-db="question.getDetail.pointsEarned">0.5</span></strong> 学习积分
-          <br>
+          本题难度 <span data-db="question.getDetail.difficulty">5.5</span>，获得 <strong style="color:var(--primary);">+<span data-db="question.getDetail.pointsEarned">0.5</span></strong> 学习积分<br>
           今日累计 <span data-db="user.getInfo.todayPoints" style="font-weight:600;">12.3</span> 分 · 📈 <span data-db="user.getInfo.levelProgress">Lv.5 → 还需 7.8</span>
         </div>
-
-        <!-- 评分区域 -->
         <div class="card">
           <h3 style="font-size:15px;font-weight:600;margin-bottom:12px;">题目评价</h3>
           <div class="mb-4">
@@ -661,667 +626,9 @@
     </div>
   </div>
 
-  <script>
-    // =================================================================
-    //  全局配置
-    // =================================================================
-    const CHOICE_COOLDOWN = 10; // 选择题冷却秒数
-    const FILL_COOLDOWN = 10;   // 填空题冷却秒数
-
-    // 调试模式：复访演示开关（通过工具栏按钮切换，无需改代码）
-    var _demoPrevious = false;
-
-    var _cooldownTimers = {};
-
-    // 小问元数据（原型内嵌，Flutter 时由 Repository 提供）
-    const SUB_QUESTIONS = [
-      { index: 1, label: '(1)', methods: ['余弦定理法', '向量法'] },
-      { index: 2, label: '(2)', methods: [''] }   // '' = 唯一解法
-    ];
-
-    // =================================================================
-    //  题型分支切换
-    // =================================================================
-    function activateBranch(type) {
-      Object.keys(_cooldownTimers).forEach(function(k) {
-        clearInterval(_cooldownTimers[k]);
-      });
-      _cooldownTimers = {};
-
-      document.querySelectorAll('.branch-container').forEach(function(el) {
-        el.classList.remove('active');
-      });
-      var map = { '选择': 'branch-choice', '填空': 'branch-fill', '解答': 'branch-solve' };
-      var target = document.getElementById(map[type]);
-      if (target) target.classList.add('active');
-
-      if (type === '选择') startChoiceCooldown();
-      else if (type === '填空') startFillCooldown();
-    }
-
-    // =================================================================
-    //  调试工具栏（Flutter 落地时删除）
-    // =================================================================
-    function debugSwitch(type) {
-      document.querySelectorAll('.debug-btn').forEach(function(btn) {
-        btn.classList.toggle('active', btn.dataset.type === type);
-      });
-      document.getElementById('debug-current').textContent = '当前：' + type;
-
-      resetChoiceState();
-      resetFillState();
-      resetSolveState();
-
-      var meta = {
-        '选择': { number: '2', type: '选择', assign: '三角函数小测', qtype: '选择' },
-        '填空': { number: '3', type: '填空', assign: '导数第 1 讲课后练习', qtype: '填空' },
-        '解答': { number: '3', type: '解答', assign: '导数第 1 讲课后练习', qtype: '解答' },
-      };
-      var d = meta[type];
-      document.querySelector('[data-db="question.getDetail.number"]').textContent = d.number;
-      var typeSpan = document.querySelector('[data-db="question.getDetail.questionType"]');
-      if (typeSpan) typeSpan.textContent = d.qtype;
-      var assignSpan = document.querySelector('[data-db="question.getDetail.assignName"]');
-      if (assignSpan) assignSpan.textContent = d.assign;
-
-      activateBranch(type);
-    }
-
-    function toggleDemoMode() {
-      _demoPrevious = !_demoPrevious;
-      var btn = document.getElementById('debug-mode-btn');
-      btn.textContent = _demoPrevious ? '复访' : '首次';
-      btn.classList.toggle('revisit', _demoPrevious);
-
-      // 重新初始化当前题型
-      var currentType = '解答';
-      document.querySelectorAll('.debug-btn.active').forEach(function(b) {
-        currentType = b.dataset.type;
-      });
-      resetChoiceState();
-      resetFillState();
-      resetSolveState();
-      activateBranch(currentType);
-
-      if (_demoPrevious) {
-        // 复访模式：重建状态
-        // 停止所有冷却（复访不启动计时器）
-        Object.keys(_cooldownTimers).forEach(function(k) {
-          clearInterval(_cooldownTimers[k]);
-        });
-        _cooldownTimers = {};
-        reconstructFromPreviousState(DEMO_PREVIOUS_STATE);
-      }
-    }
-
-    function resetChoiceState() {
-      choiceState = { selectedOption: null, submitted: false };
-      document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
-        b.classList.remove('selected');
-      });
-      document.getElementById('choice-action').style.display = '';
-      document.getElementById('choice-result').style.display = 'none';
-      document.getElementById('choice-submit-btn').disabled = true;
-      document.getElementById('choice-cooldown').textContent = '⏳ 还剩 10 秒可提交';
-    }
-
-    function resetFillState() {
-      document.getElementById('fill-action').style.display = '';
-      document.getElementById('fill-result').style.display = 'none';
-      document.getElementById('fill-reveal-btn').disabled = true;
-      document.getElementById('fill-cooldown').textContent = '⏳ 还剩 10 秒可查看';
-    }
-
-    function resetSolveState() {
-      _goToDoneFired = false;
-      solve = {
-        currentSubQIndex: 1,
-        subQOrder: [1, 2],
-        completedSubQs: {},
-        currentMethod: { '1': '余弦定理法', '2': '' },
-        stepState: {},
-        currentSubQIdx: 0,
-      };
-      initStepStates();
-      document.getElementById('congrats-section').style.display = 'none';
-      document.getElementById('subq-complete-toast').style.display = 'none';
-      document.getElementById('subq-locked-placeholder').style.display = 'none';
-      renderSubQTabs();
-      renderMethodToggle();
-      renderSteps();
-    }
-
-    // =================================================================
-    //  解答题状态机
-    // =================================================================
-    var _goToDoneFired = false;
-
-    var solve = {
-      currentSubQIndex: 1,
-      subQOrder: [1, 2],
-      completedSubQs: {},
-      currentMethod: { '1': '余弦定理法', '2': '' },
-      stepState: {},
-      currentSubQIdx: 0,
-    };
-
-    function getStepsFor(subQ, method) {
-      return document.querySelectorAll(
-        '.step-card[data-subq="' + subQ + '"][data-method="' + method + '"]'
-      );
-    }
-
-    function initStepStates() {
-      SUB_QUESTIONS.forEach(function(sq) {
-        sq.methods.forEach(function(m) {
-          var cards = getStepsFor(sq.index, m);
-          cards.forEach(function(card, idx) {
-            var key = sq.index + '-' + m + '-' + (idx + 1);
-            solve.stepState[key] = {
-              card: (idx === 0),
-              content: false,
-              arrowHidden: false,
-              feedbackGiven: false,
-            };
-          });
-        });
-      });
-    }
-
-    // =================================================================
-    //  DEMO：复访重建（二次进入时从 step_feedback 恢复状态）
-    //  Flutter 落地时替换为 ProgressRepository.getPreviousState(questionId)
-    // =================================================================
-    var DEMO_PREVIOUS_STATE = {
-      subQRecords: [
-        {
-          index: 1,
-          activeMethod: '余弦定理法',
-          completed: true,
-          methods: [
-            {
-              methodName: '余弦定理法',
-              steps: [
-                { stepOrder: 1, feedbackGiven: true, feedbackType: 'correct' },
-                { stepOrder: 2, feedbackGiven: true, feedbackType: 'wrong' },
-              ]
-            },
-            {
-              methodName: '向量法',
-              steps: [
-                { stepOrder: 1, feedbackGiven: false, feedbackType: null },
-              ]
-            }
-          ]
-        },
-        {
-          index: 2,
-          activeMethod: '',
-          completed: false,
-          methods: [
-            {
-              methodName: '',
-              steps: [
-                { stepOrder: 1, feedbackGiven: true, feedbackType: 'correct' },
-                { stepOrder: 2, feedbackGiven: false, feedbackType: null },
-              ]
-            }
-          ]
-        }
-      ],
-      isRated: false,
-    };
-
-    function reconstructFromPreviousState(state) {
-      state.subQRecords.forEach(function(sq) {
-        var sqDone = sq.methods.some(function(m) {
-          return m.steps.every(function(s) { return s.feedbackGiven; });
-        });
-        if (sqDone) {
-          solve.completedSubQs[sq.index] = true;
-        }
-        solve.currentMethod[sq.index] = sq.activeMethod;
-        sq.methods.forEach(function(m) {
-          m.steps.forEach(function(step) {
-            var key = sq.index + '-' + m.methodName + '-' + step.stepOrder;
-            var hasFeedback = step.feedbackGiven;
-            solve.stepState[key] = {
-              card: true,
-              content: hasFeedback,
-              arrowHidden: hasFeedback,
-              feedbackGiven: hasFeedback,
-            };
-          });
-        });
-      });
-
-      var allDone = SUB_QUESTIONS.every(function(sq) {
-        return !!solve.completedSubQs[sq.index];
-      });
-
-      renderSubQTabs();
-      renderMethodToggle();
-      renderSteps();
-
-      if (allDone) {
-        _goToDoneFired = true;
-        document.getElementById('congrats-section').style.display = 'block';
-      }
-    }
-
-    // =================================================================
-    //  小问 tabs 渲染
-    // =================================================================
-    function renderSubQTabs() {
-      var container = document.getElementById('subq-tabs');
-      if (!container) return;
-      if (SUB_QUESTIONS.length <= 1) { container.style.display = 'none'; return; }
-      container.style.display = 'flex';
-      container.innerHTML = '';
-      SUB_QUESTIONS.forEach(function(sq, idx) {
-        var btn = document.createElement('button');
-        btn.className = 'subq-tab';
-        btn.dataset.subq = sq.index;
-        btn.textContent = sq.label;
-        if (solve.completedSubQs[sq.index]) btn.classList.add('done');
-        if (sq.index === solve.currentSubQIndex) btn.classList.add('active');
-        else if (!isSubQUnlocked(sq.index)) btn.classList.add('locked');
-        btn.onclick = function() { switchSubQuestion(sq.index); };
-        container.appendChild(btn);
-      });
-    }
-
-    function isSubQUnlocked(index) {
-      var pos = solve.subQOrder.indexOf(index);
-      if (pos === 0) return true;
-      var prev = solve.subQOrder[pos - 1];
-      return !!solve.completedSubQs[prev];
-    }
-
-    function switchSubQuestion(index) {
-      if (!isSubQUnlocked(index)) return;
-      solve.currentSubQIndex = index;
-      renderSubQTabs();
-      renderMethodToggle();
-      renderSteps();
-    }
-
-    // =================================================================
-    //  解法切换渲染
-    // =================================================================
-    function renderMethodToggle() {
-      var toggle = document.getElementById('method-toggle');
-      var pills = document.getElementById('method-pills');
-      if (!toggle || !pills) return;
-
-      var sq = SUB_QUESTIONS.find(function(s) { return s.index === solve.currentSubQIndex; });
-      if (!sq || sq.methods.length <= 1 || (sq.methods.length === 1 && sq.methods[0] === '')) {
-        toggle.style.display = 'none';
-        return;
-      }
-      toggle.style.display = 'flex';
-      pills.innerHTML = '';
-      sq.methods.forEach(function(m) {
-        var pill = document.createElement('button');
-        pill.className = 'method-pill';
-        if (m === solve.currentMethod[sq.index]) pill.classList.add('active');
-        pill.textContent = m;
-        pill.onclick = function() { switchMethod(m); };
-        pills.appendChild(pill);
-      });
-    }
-
-    function switchMethod(method) {
-      var idx = solve.currentSubQIndex;
-      if (solve.currentMethod[idx] === method) return;
-
-      var alreadyDone = !!solve.completedSubQs[idx];
-
-      var oldMethod = solve.currentMethod[idx];
-      var cards = getStepsFor(idx, oldMethod);
-      cards.forEach(function(card, order) {
-        var key = idx + '-' + oldMethod + '-' + (order + 1);
-        delete solve.stepState[key];
-      });
-
-      var newCards = getStepsFor(idx, method);
-      newCards.forEach(function(card, order) {
-        var key = idx + '-' + method + '-' + (order + 1);
-        solve.stepState[key] = {
-          card: (order === 0),
-          content: false,
-          arrowHidden: false,
-          feedbackGiven: false,
-        };
-      });
-
-      solve.currentMethod[idx] = method;
-
-      if (!alreadyDone) {
-        delete solve.completedSubQs[idx];
-      }
-
-      renderMethodToggle();
-      renderSteps();
-      document.getElementById('subq-complete-toast').style.display = 'none';
-      document.getElementById('congrats-section').style.display = 'none';
-      scrollToSteps();
-    }
-
-    // =================================================================
-    //  步骤渲染
-    // =================================================================
-    function renderSteps() {
-      var idx = solve.currentSubQIndex;
-      var method = solve.currentMethod[idx];
-
-      var locked = document.getElementById('subq-locked-placeholder');
-      if (!isSubQUnlocked(idx)) {
-        if (locked) locked.style.display = 'block';
-        document.getElementById('step-container').style.display = 'none';
-        return;
-      }
-      if (locked) locked.style.display = 'none';
-      document.getElementById('step-container').style.display = 'block';
-
-      var allCards = document.querySelectorAll('.step-card');
-      allCards.forEach(function(card) {
-        var sq = card.dataset.subq;
-        var m = card.dataset.method;
-        if (parseInt(sq) === idx && m === method) {
-          card.style.display = 'block';
-        } else {
-          card.style.display = 'none';
-        }
-      });
-
-      var visibleCards = getStepsFor(idx, method);
-      visibleCards.forEach(function(card, order) {
-        var key = idx + '-' + method + '-' + (order + 1);
-        var st = solve.stepState[key];
-        if (!st) return;
-        var content = card.querySelector('.step-content');
-        var feedback = card.querySelector('.feedback-row');
-        var arrow = card.querySelector('.next-btn');
-        if (content) content.style.display = st.content ? 'block' : 'none';
-        if (feedback) feedback.style.display = st.content ? 'flex' : 'none';
-        if (arrow) arrow.style.display = st.arrowHidden ? 'none' : '';
-        if (order > 0) {
-          var prevKey = idx + '-' + method + '-' + order;
-          var prevSt = solve.stepState[prevKey];
-          if (prevSt && prevSt.feedbackGiven) {
-            card.style.display = 'block';
-            if (st.card === false) {
-              st.card = true;
-            }
-          } else if (!st.feedbackGiven && !st.content) {
-            card.style.display = 'none';
-          }
-        }
-      });
-    }
-
-    // =================================================================
-    //  步骤交互（箭头→展开、反馈）
-    // =================================================================
-    function onArrow(key) {
-      var st = solve.stepState[key];
-      if (!st) return;
-      var parts = key.split('-');
-      var idx = parseInt(parts[0]);
-      var method = parts.slice(1, -1).join('-');
-      var order = parseInt(parts[parts.length - 1]);
-
-      if (!st.card) return;
-
-      var cards = getStepsFor(idx, method);
-      var cardEl = cards[order - 1];
-      if (cardEl) {
-        var content = cardEl.querySelector('.step-content');
-        var feedback = cardEl.querySelector('.feedback-row');
-        var arrow = cardEl.querySelector('.next-btn');
-        if (content) content.style.display = 'block';
-        if (feedback) feedback.style.display = 'flex';
-        st.content = true;
-        if (arrow) arrow.style.display = 'none';
-        st.arrowHidden = true;
-      }
-    }
-
-    function selectFeedback(key, type) {
-      var st = solve.stepState[key];
-      if (!st) return;
-      st.feedbackGiven = true;
-
-      var parts = key.split('-');
-      var idx = parseInt(parts[0]);
-      var method = parts.slice(1, -1).join('-');
-      var order = parseInt(parts[parts.length - 1]);
-
-      var cards = getStepsFor(idx, method);
-      var cardEl = cards[order - 1];
-      if (cardEl) {
-        var row = cardEl.querySelector('.feedback-row');
-        if (row) {
-          var btns = row.querySelectorAll('.feedback-btn');
-          btns.forEach(function(b) {
-            b.classList.remove('selected');
-            if ((type === 'correct' && b.classList.contains('correct')) ||
-                (type === 'partial' && b.classList.contains('partial')) ||
-                (type === 'wrong' && b.classList.contains('wrong'))) {
-              b.classList.add('selected');
-            }
-          });
-        }
-      }
-
-      var allCards = getStepsFor(idx, method);
-      var isLastStep = (order >= allCards.length);
-
-      if (isLastStep) {
-        var newlyCompleted = !solve.completedSubQs[idx];
-        if (newlyCompleted) {
-          solve.completedSubQs[idx] = true;
-        }
-        renderSubQTabs();
-
-        var allDone = SUB_QUESTIONS.every(function(sq) {
-          return !!solve.completedSubQs[sq.index];
-        });
-
-        if (allDone && !_goToDoneFired) {
-          _goToDoneFired = true;
-          goToDone();
-        } else if (allDone && _goToDoneFired) {
-          renderSteps();
-        } else if (newlyCompleted) {
-          var currentPos = solve.subQOrder.indexOf(idx);
-          if (currentPos >= 0 && currentPos < solve.subQOrder.length - 1) {
-            var nextIdx = solve.subQOrder[currentPos + 1];
-            var toast = document.getElementById('subq-complete-toast');
-            var sqLabel = SUB_QUESTIONS.find(function(s) { return s.index === idx; });
-            toast.textContent = '🎉 第' + sqLabel.label + '完成！继续第' +
-              SUB_QUESTIONS.find(function(s) { return s.index === nextIdx; }).label;
-            toast.style.display = 'block';
-            setTimeout(function() {
-              toast.style.display = 'none';
-              switchSubQuestion(nextIdx);
-              scrollToSteps();
-            }, 1500);
-          }
-        } else {
-          renderSteps();
-        }
-      } else {
-        renderSteps();
-      }
-    }
-
-    // =================================================================
-    //  完成 + 评分
-    // =================================================================
-    function goToDone() {
-      document.getElementById('congrats-section').style.display = 'block';
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }
-
-    // =================================================================
-    //  选择题交互
-    // =================================================================
-    var choiceState = { selectedOption: null, submitted: false };
-
-    function selectOption(el) {
-      if (choiceState.submitted) return;
-      document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
-        b.classList.remove('selected');
-      });
-      el.classList.add('selected');
-      choiceState.selectedOption = el.dataset.option;
-    }
-
-    function startChoiceCooldown() {
-      var btn = document.getElementById('choice-submit-btn');
-      var cd = document.getElementById('choice-cooldown');
-      btn.disabled = true;
-      var remain = CHOICE_COOLDOWN;
-      cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
-      var timer = setInterval(function() {
-        remain--;
-        if (remain <= 0) {
-          clearInterval(timer);
-          btn.disabled = false;
-          cd.textContent = '✓ 可以提交了';
-        } else {
-          cd.textContent = '⏳ 还剩 ' + remain + ' 秒可提交';
-        }
-      }, 1000);
-      _cooldownTimers['choice'] = timer;
-    }
-
-    function submitChoice() {
-      if (!choiceState.selectedOption) {
-        showToast('⚠️', '请先选择一个选项');
-        return;
-      }
-      if (choiceState.submitted) return;
-      choiceState.submitted = true;
-
-      var correctAnswer = 'A';
-      var isCorrect = (choiceState.selectedOption === correctAnswer);
-      document.getElementById('choice-action').style.display = 'none';
-      var result = document.getElementById('choice-result');
-      result.style.display = 'block';
-      var badge = document.getElementById('choice-result-badge');
-      badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + correctAnswer;
-      badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
-
-      document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
-        if (b.dataset.option === correctAnswer) b.classList.add('selected');
-      });
-    }
-
-    // =================================================================
-    //  填空题交互
-    // =================================================================
-    function startFillCooldown() {
-      var btn = document.getElementById('fill-reveal-btn');
-      var cd = document.getElementById('fill-cooldown');
-      btn.disabled = true;
-      var remain = FILL_COOLDOWN;
-      cd.textContent = '⏳ 还剩 ' + remain + ' 秒可查看';
-      var timer = setInterval(function() {
-        remain--;
-        if (remain <= 0) {
-          clearInterval(timer);
-          btn.disabled = false;
-          cd.textContent = '✓ 可以查看答案了';
-        } else {
-          cd.textContent = '⏳ 还剩 ' + remain + ' 秒可查看';
-        }
-      }, 1000);
-      _cooldownTimers['fill'] = timer;
-    }
-
-    function showFillAnswer() {
-      document.getElementById('fill-action').style.display = 'none';
-      document.getElementById('fill-result').style.display = 'block';
-    }
-
-    // =================================================================
-    //  Utils
-    // =================================================================
-    function scrollToSteps() {
-      var container = document.getElementById('step-container');
-      if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // =================================================================
-    //  知识卡片
-    // =================================================================
-    function showKnowledge(title, body) {
-      document.getElementById('knowledge-title').textContent = title;
-      document.getElementById('knowledge-body').textContent = body;
-      document.getElementById('knowledge-popup').classList.add('show');
-    }
-
-    function closeKnowledge() {
-      document.getElementById('knowledge-popup').classList.remove('show');
-      document.querySelectorAll('.knowledge-popup.show').forEach(function(el) {
-        el.classList.remove('show');
-      });
-    }
-
-    // =================================================================
-    //  评分
-    // =================================================================
-    var currentRating = { difficulty: 0, calculation: 0, elegance: 0 };
-
-    function setRating(el, dimension) {
-      var container = el.parentElement;
-      var value = parseInt(el.getAttribute('data-value'));
-      var stars = container.querySelectorAll('.star');
-      currentRating[dimension] = value;
-      stars.forEach(function(s) {
-        var v = parseInt(s.getAttribute('data-value'));
-        if (v <= value) s.classList.add('active');
-        else s.classList.remove('active');
-      });
-    }
-
-    function resetStars(container) {}
-
-    // =================================================================
-    //  Toast
-    // =================================================================
-    var _toastTimer = null;
-    function showToast(icon, msg, duration) {
-      var bar = document.getElementById('toast-bar');
-      document.getElementById('toast-icon').textContent = icon;
-      document.getElementById('toast-msg').textContent = msg;
-      bar.classList.add('show');
-      if (duration === undefined) duration = 3000;
-      if (_toastTimer) clearTimeout(_toastTimer);
-      _toastTimer = setTimeout(function() {
-        bar.classList.remove('show');
-      }, duration);
-    }
-    function closeToast() {
-      var bar = document.getElementById('toast-bar');
-      bar.classList.remove('show');
-      if (_toastTimer) clearTimeout(_toastTimer);
-    }
-
-    // =================================================================
-    //  初始化
-    // =================================================================
-    function initSolvePage() {
-      initStepStates();
-      renderSubQTabs();
-      renderMethodToggle();
-      renderSteps();
-    }
-
-    document.addEventListener('DOMContentLoaded', initSolvePage);
-  </script>
+  <!-- 脚本加载顺序：core（状态机）→ interact（交互）→ utils（工具） -->
+  <script src="solve-scripts/solve-core.js"></script>
+  <script src="solve-scripts/solve-interact.js"></script>
+  <script src="solve-scripts/solve-utils.js"></script>
 </body>
 </html>
