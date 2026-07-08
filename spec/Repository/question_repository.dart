@@ -8,11 +8,14 @@ class QuestionDetail {
   final String number;
   final String assignName;
   final String stem;
-  final List<String> images;  // ← 新增：相对路径列表，如 ['一模/2024/海淀/q17.webp']
+  final List<String> images;
   final double difficulty;
   final double pointsEarned;
   final List<String> conceptTags;
   final String congratsText;
+  final String questionType;               // "选择" / "填空" / "解答"
+  final Map<String, String>? options;      // 仅选择题: {"A":"x>1", "B":"x<1", ...}
+  final String? answer;                    // 标准答案（选填题展示用）
 
   const QuestionDetail({
     required this.id,
@@ -20,11 +23,14 @@ class QuestionDetail {
     required this.number,
     required this.assignName,
     required this.stem,
-    this.images = const [],  // ← 新增，默认空
+    this.images = const [],
     required this.difficulty,
     required this.pointsEarned,
     required this.conceptTags,
     required this.congratsText,
+    required this.questionType,
+    this.options,
+    this.answer,
   });
 
   factory QuestionDetail.fromJson(Map<String, dynamic> json) => QuestionDetail(
@@ -33,11 +39,16 @@ class QuestionDetail {
         number: json['number'] as String,
         assignName: json['assign_name'] as String,
         stem: json['stem'] as String,
-        images: (json['images'] as List?)?.cast<String>() ?? [],  // ← 新增
+        images: (json['images'] as List?)?.cast<String>() ?? [],
         difficulty: (json['difficulty'] as num).toDouble(),
         pointsEarned: (json['points_earned'] as num).toDouble(),
         conceptTags: (json['concept_tags'] as List).cast<String>(),
         congratsText: json['congrats_text'] as String,
+        questionType: json['question_type'] as String,
+        options: json['options'] != null
+            ? Map<String, String>.from(json['options'] as Map)
+            : null,
+        answer: json['answer'] as String?,
       );
 }
 
