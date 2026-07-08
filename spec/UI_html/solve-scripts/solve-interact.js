@@ -6,7 +6,7 @@
 // =================================================================
 //  题型分支切换
 // =================================================================
-function activateBranch(type) {
+function activateBranch(type, skipCooldown) {
   Object.keys(_cooldownTimers).forEach(function(k) {
     clearInterval(_cooldownTimers[k]);
   });
@@ -19,6 +19,7 @@ function activateBranch(type) {
   var target = document.getElementById(map[type]);
   if (target) target.classList.add('active');
 
+  if (skipCooldown) return;
   if (type === '选择') startChoiceCooldown();
   else if (type === '填空') startFillCooldown();
 }
@@ -48,7 +49,11 @@ function debugSwitch(type) {
   var assignSpan = document.querySelector('[data-db="question.getDetail.assignName"]');
   if (assignSpan) assignSpan.textContent = d.assign;
 
-  activateBranch(type);
+  // 复访模式：不启动冷却，直接重建状态
+  activateBranch(type, _demoPrevious);
+  if (_demoPrevious) {
+    reconstructFromPreviousState(DEMO_PREVIOUS_STATE);
+  }
 }
 
 function toggleDemoMode() {
@@ -64,13 +69,10 @@ function toggleDemoMode() {
   resetChoiceState();
   resetFillState();
   resetSolveState();
-  activateBranch(currentType);
 
+  // 复访不启动冷却，首次正常启动
+  activateBranch(currentType, _demoPrevious);
   if (_demoPrevious) {
-    Object.keys(_cooldownTimers).forEach(function(k) {
-      clearInterval(_cooldownTimers[k]);
-    });
-    _cooldownTimers = {};
     reconstructFromPreviousState(DEMO_PREVIOUS_STATE);
   }
 }
@@ -118,6 +120,12 @@ function resetSolveState() {
 var _goToDoneFired = false;
 
 var DEMO_PREVIOUS_STATE = {
+  // 选择题历史记录（供复访演示）
+  choiceSelected: 'A',
+  choiceSubmitted: true,
+  // 填空题历史记录
+  fillRevealed: true,
+  // 解答题历史记录
   subQRecords: [
     {
       index: 1, activeMethod: '余弦定理法', completed: true,
@@ -145,6 +153,29 @@ var DEMO_PREVIOUS_STATE = {
 };
 
 function reconstructFromPreviousState(state) {
+  // === 选择题重建 ===
+  if (state.choiceSubmitted && state.choiceSelected) {
+    var correctAnswer = 'A';
+    choiceState = { selectedOption: state.choiceSelected, submitted: true };
+    document.getElementById('choice-action').style.display = 'none';
+    var result = document.getElementById('choice-result');
+    result.style.display = 'block';
+    var badge = document.getElementById('choice-result-badge');
+    var isCorrect = (state.choiceSelected === correctAnswer);
+    badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + correctAnswer;
+    badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
+    document.querySelectorAll('#branch-choice .option-btn').forEach(function(b) {
+      if (b.dataset.option === correctAnswer) b.classList.add('selected');
+    });
+  }
+
+  // === 填空题重建 ===
+  if (state.fillRevealed) {
+    document.getElementById('fill-action').style.display = 'none';
+    document.getElementById('fill-result').style.display = 'block';
+  }
+
+  // === 解答题重建 ===
   state.subQRecords.forEach(function(sq) {
     var sqDone = sq.methods.some(function(m) {
       return m.steps.every(function(s) { return s.feedbackGiven; });
