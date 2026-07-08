@@ -17,7 +17,6 @@
     }
     .lecture-body h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
     .lecture-body h3 { font-size: 17px; font-weight: 600; margin-top: 16px; margin-bottom: 8px; }
-    .lecture-body p { margin-bottom: 12px; }
 
     .reveal-block {
       overflow: hidden;
@@ -71,96 +70,322 @@
     .lecture-pager .page-info {
       font-size: 14px;
       color: var(--text-secondary);
-      min-width: 160px;
+      min-width: 200px;
       text-align: center;
+    }
+    .lecture-pager .page-btn.nav-mode {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
     }
   </style>
 </head>
 <body style="padding-bottom:calc(var(--nav-height) + 20px);">
+  <!--
+    数据绑定说明：
+
+    1. LectureRepository.getContent(chapterId)
+       → 从本地 drift 表读取 LectureContent { chapterId, title, mdContent }
+
+    2. parseMdContent(mdContent) → LectureContentParsed { pages: [
+         { blocks: [block0, block1, ...] },  // block0 默认可见，block1.. 为 reveal
+         ...
+       ]}
+
+    3. 渲染层绑定：
+       - lecture.getContentParsed.pages[]   → 外层循环（每页）
+         - pages[].blocks[]                 → 内层循环（每页的 block）
+         - pages[].blocks[0]                → 默认可见的 block
+         - pages[].blocks[1..]              → 逐步展开的 reveal block
+  -->
   <div class="page-header">
     <a href="javascript:history.back()" class="back-btn">← 返回</a>
-    <h1 data-db="lecture.getContent.title">第 2 讲 导数的几何意义</h1>
+    <h1 data-db="lecture.getContentParsed.title">第 2 讲 导数的几何意义</h1>
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <!-- 内容区：blocks[0]默认可见，blocks[1..]为REVEAL块 -->
-    <div class="lecture-body" id="lecture-body" data-db-loop="lecture.getContent.blocks">
-      <div class="block" data-block-index="0" style="display:block;">
-        <h2>一、导数的几何意义</h2>
-        <p>函数 y = f(x) 在点 x₀ 处的导数 f'(x₀) 的几何意义是：曲线 y = f(x) 在点 (x₀, f(x₀)) 处的切线的斜率。</p>
-        <p>切线方程为：$y - f(x_0) = f'(x_0)(x - x_0)$</p>
+    <!--
+      data-db-loop 绑在 LectureContentParsed.pages 上，外层 Flutter
+      用 ListView/Column 迭代每页内容，每个 page 内部再迭代 blocks。
+
+      Flutter 实现要点：
+      - pages 不是懒加载的全部展示，而是用 currentPage 索引控制显示哪一页
+      - 每页内 blocks[0] 始终可见，blocks[1..] 逐步展开（展开状态由 revealedCount 控制）
+    -->
+    <div class="lecture-body" id="lecture-body" data-db-loop="lecture.getContentParsed.pages">
+
+      <!-- ====== 第 1 页 ====== -->
+      <div class="lecture-page" data-page-index="0">
+        <!-- blocks[0] 默认可见，不需要 reveal 过渡动画 -->
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>一、导数的几何意义</h2>
+          <p>函数 y = f(x) 在点 x₀ 处的导数 f'(x₀) 的几何意义是：曲线 y = f(x) 在点 (x₀, f(x₀)) 处的切线的斜率。</p>
+          <p>切线方程为：$y - f(x_0) = f'(x_0)(x - x_0)$</p>
+        </div>
+        <!-- blocks[1..] 为 reveal 块，初始隐藏 -->
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <h3>典型例题</h3>
+          <p><strong>例 1</strong> 求曲线 y = x³ 在点 (1, 1) 处的切线方程。</p>
+          <p><strong>解：</strong>y' = 3x²，所以 k = f'(1) = 3。<br>切线方程为 y - 1 = 3(x - 1)，即 y = 3x - 2。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>例 2</strong> 已知曲线 y = x² + 1，求过点 (1, 2) 的切线方程。</p>
+          <p><strong>解：</strong>y' = 2x，k = f'(1) = 2，切线方程为 y - 2 = 2(x - 1)，即 y = 2x。</p>
+        </div>
       </div>
-      <div class="reveal-block hidden" data-block-index="1">
-        <h3>典型例题</h3>
-        <p><strong>例 1</strong> 求曲线 y = x³ 在点 (1, 1) 处的切线方程。</p>
-        <p><strong>解：</strong>y' = 3x²，所以 k = f'(1) = 3。<br>切线方程为 y - 1 = 3(x - 1)，即 y = 3x - 2。</p>
+
+      <!-- ====== 第 2 页 ====== -->
+      <div class="lecture-page" data-page-index="1" style="display:none;">
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>二、常见题型——求切点坐标</h2>
+          <p>已知切线斜率（或切线方程），求切点坐标是导数几何意义的逆向应用。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <p><strong>例 3</strong> 曲线 y = x³ + x - 2 在点 P 处的切线平行于直线 y = 4x - 1，求 P 点坐标。</p>
+          <p><strong>解：</strong>y' = 3x² + 1，由 k = 4 得 3x² + 1 = 4，解得 x = ±1。<br>代入得 P(1, 0) 或 P(-1, -4)。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>例 4</strong> 求曲线 y = sin x 在点 (π/3, √3/2) 处的切线方程。</p>
+          <p><strong>解：</strong>y' = cos x，k = cos(π/3) = 1/2，切线方程为 y - √3/2 = (1/2)(x - π/3)。</p>
+        </div>
       </div>
-      <div class="reveal-block hidden" data-block-index="2">
-        <p><strong>例 2</strong> 已知曲线 y = x² + 1，求过点 (1, 2) 的切线方程。</p>
+
+      <!-- ====== 第 3 页 ====== -->
+      <div class="lecture-page" data-page-index="2" style="display:none;">
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>三、含参切线问题</h2>
+          <p>当曲线方程中含有参数时，需要通过切线条件建立方程求解参数。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <p><strong>例 5</strong> 若曲线 y = ax² + bx 在点 (1, 1) 处的切线方程为 y = 3x - 2，求 a, b。</p>
+          <p><strong>解：</strong>由过点 (1, 1) 得 a + b = 1。<br>y' = 2ax + b，k = 2a + b = 3。<br>联立得 a = 2, b = -1。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>例 6</strong> 曲线 y = x³ + ax 与直线 y = 2x 相切，求 a 的值。</p>
+          <p><strong>解：</strong>设切点 (t, t³ + at)，则 k = 3t² + a = 2，且 t³ + at = 2t。<br>消去 a 得 t³ = 0，t = 0，代入得 a = 2。</p>
+        </div>
       </div>
+
+      <!-- ====== 第 4 页 ====== -->
+      <div class="lecture-page" data-page-index="3" style="display:none;">
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>四、公切线问题</h2>
+          <p>公切线是指同时与两条曲线相切的直线。解题关键是设出切点，利用斜率相等且切线重合建立方程。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <p><strong>例 7</strong> 求曲线 C₁: y = x² 与 C₂: y = -x² + 4x - 4 的公切线方程。</p>
+          <p><strong>解：</strong>设 C₁ 上切点为 (a, a²)，则切线为 y - a² = 2a(x - a)。<br>与 C₂ 联立判别式 Δ = 0，解得 a = 1。<br>公切线为 y = 2x - 1。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>小结：</strong>公切线问题的一般步骤：<br>
+          ① 分别设两个切点；<br>
+          ② 写出两条切线方程；<br>
+          ③ 令两切线为同一直线（斜率相等、截距相等）；<br>
+          ④ 解方程组求得切点坐标。</p>
+        </div>
+      </div>
+
+      <!-- ====== 第 5 页 ====== -->
+      <div class="lecture-page" data-page-index="4" style="display:none;">
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>五、综合练习</h2>
+          <p>请独立完成以下练习，检验本讲掌握情况。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <p><strong>练习 1</strong> 求曲线 y = ln x 在点 (1, 0) 处的切线方程。<br>
+          <strong>练习 2</strong> 求曲线 y = eˣ 过原点的切线方程。<br>
+          <strong>练习 3</strong> 已知函数 f(x) = x³ - 3x，求过点 (2, 2) 的切线方程。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>参考答案</strong><br>
+          1. y = x - 1<br>
+          2. y = e·x（提示：设切点 (t, eᵗ)，联立过原点条件）<br>
+          3. y = 9x - 16 或 y = 2</p>
+        </div>
+      </div>
+
+      <!-- ====== 第 6 页 ====== -->
+      <div class="lecture-page" data-page-index="5" style="display:none;">
+        <div class="block" data-db="lecture.getContentParsed.pages[].blocks[0]" data-block-index="0">
+          <h2>六、课堂小结</h2>
+          <p>导数的几何意义是高考的高频考点，核心是"求切线三步法"。</p>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[1]" data-block-index="1">
+          <p><strong>求切线三步法：</strong></p>
+          <ol>
+            <li><strong>求导：</strong>f'(x) 即为切线斜率函数；</li>
+            <li><strong>代点：</strong>将切点横坐标代入得斜率 k = f'(x₀)；</li>
+            <li><strong>写方程：</strong>点斜式 y - f(x₀) = k(x - x₀)。</li>
+          </ol>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[2]" data-block-index="2">
+          <p><strong>注意事项</strong></p>
+          <ul>
+            <li>区分"在点 P 处"（P 为切点）与"过点 P"（P 不一定为切点）；</li>
+            <li>含参问题注意联立条件时不要遗漏切点在曲线上的条件；</li>
+            <li>公切线问题注意两条曲线可能对应不同切点。</li>
+          </ul>
+        </div>
+        <div class="reveal-block hidden" data-db="lecture.getContentParsed.pages[].blocks[3]" data-block-index="3">
+          <p style="color:var(--primary);font-weight:600;">🎉 本节内容到此结束，请点击下方练习巩固。</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <!-- 底部翻页控件 -->
-  <div class="lecture-pager" data-db="lecture.getContent">
+  <div class="lecture-pager" data-db="lecture.getContentParsed.pages">
     <button class="page-btn" id="prevBtn" onclick="handlePrev()">⟨</button>
     <span class="page-info" id="pageInfo">第 1 / 6 页 · 展开 1 / 3</span>
     <button class="page-btn" id="nextBtn" onclick="handleNext()">⟩</button>
   </div>
 
   <script>
-    // 当前展开块数（blocks[0] 始终可见，从 1 开始计数已展开的块数）
-    var revealedCount = 1;
+    // ========== 状态 ==========
+    var currentPage = 0; // 0-indexed
+    var totalPages = document.querySelectorAll('.lecture-page').length;
+    // 每页已展开的 block 数（含 block[0]），初始全部为 1
+    var revealedCounts = new Array(totalPages).fill(1);
 
-    function getTotalBlocks() {
-      return document.querySelectorAll('.lecture-body .reveal-block').length + 1;
+    // ========== DOM 辅助 ==========
+    function getPageBlocks(pageIndex) {
+      var page = document.querySelector('.lecture-page[data-page-index="' + pageIndex + '"]');
+      if (!page) return { total: 1, revealBlocks: [] };
+      var revealBlocks = page.querySelectorAll('.reveal-block');
+      return { total: revealBlocks.length + 1, revealBlocks: revealBlocks };
     }
 
+    function applyBlockState(pageIndex) {
+      var info = getPageBlocks(pageIndex);
+      var revealed = revealedCounts[pageIndex];
+      for (var i = 0; i < info.revealBlocks.length; i++) {
+        var block = info.revealBlocks[i];
+        var shouldShow = (i + 1) < revealed;
+        block.classList.remove(shouldShow ? 'hidden' : 'visible');
+        block.classList.add(shouldShow ? 'visible' : 'hidden');
+      }
+    }
+
+    // ========== 翻页控件 ==========
     function updatePager() {
-      var total = getTotalBlocks();
-      var canReveal = revealedCount < total;
+      var info = getPageBlocks(currentPage);
+      var revealed = revealedCounts[currentPage];
+      var canReveal = revealed < info.total;
+      var hasPrevPage = currentPage > 0;
+      var hasNextPage = currentPage < totalPages - 1;
 
-      // ▶：有未展开块或还有下一页
-      document.getElementById('nextBtn').disabled = !canReveal;
+      // 右箭头：有未展开 → 展开模式；全部展开且有下一页 → 翻页模式
+      var nextBtn = document.getElementById('nextBtn');
+      if (canReveal) {
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('nav-mode');
+        nextBtn.textContent = '⟩';
+      } else if (hasNextPage) {
+        nextBtn.disabled = false;
+        nextBtn.classList.add('nav-mode');
+        nextBtn.textContent = '→';
+      } else {
+        nextBtn.disabled = true;
+        nextBtn.classList.remove('nav-mode');
+        nextBtn.textContent = '⟩';
+      }
 
-      // ◀：有已展开块或还有上一页
-      document.getElementById('prevBtn').disabled = (revealedCount <= 1);
+      // 左箭头：有可收回 → 收回模式；无可收回且有上一页 → 翻页模式
+      var prevBtn = document.getElementById('prevBtn');
+      if (revealed > 1) {
+        prevBtn.disabled = false;
+        prevBtn.classList.remove('nav-mode');
+        prevBtn.textContent = '⟨';
+      } else if (hasPrevPage) {
+        prevBtn.disabled = false;
+        prevBtn.classList.add('nav-mode');
+        prevBtn.textContent = '←';
+      } else {
+        prevBtn.disabled = true;
+        prevBtn.classList.remove('nav-mode');
+        prevBtn.textContent = '⟨';
+      }
 
       document.getElementById('pageInfo').textContent =
-        '第 1 / 6 页 · 展开 ' + revealedCount + ' / ' + total;
+        '第 ' + (currentPage + 1) + ' / ' + totalPages + ' 页 · 展开 ' + revealed + ' / ' + info.total;
     }
 
+    function switchPage(newPage) {
+      // 隐藏旧页
+      var oldPage = document.querySelector('.lecture-page[data-page-index="' + currentPage + '"]');
+      if (oldPage) oldPage.style.display = 'none';
+
+      currentPage = newPage;
+
+      // 显示新页
+      var newPageEl = document.querySelector('.lecture-page[data-page-index="' + currentPage + '"]');
+      if (newPageEl) {
+        newPageEl.style.display = 'block';
+        // 恢复该页的展开状态（兼容首次访问 & 回访）
+        applyBlockState(currentPage);
+      }
+
+      // 滚动到顶部
+      document.getElementById('lecture-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      updatePager();
+    }
+
+    // ========== 事件处理 ==========
     function handleNext() {
-      var total = getTotalBlocks();
-      if (revealedCount < total) {
+      var info = getPageBlocks(currentPage);
+      var revealed = revealedCounts[currentPage];
+
+      if (revealed < info.total) {
         // 展开下一块
-        revealedCount++;
-        var block = document.querySelector('.reveal-block[data-block-index="' + (revealedCount - 1) + '"]');
+        revealedCounts[currentPage]++;
+        var block = document.querySelector(
+          '.lecture-page[data-page-index="' + currentPage + '"] .reveal-block[data-block-index="' + revealed + '"]'
+        );
         if (block) {
           block.classList.remove('hidden');
           block.classList.add('visible');
+          // 滚动到刚展开的 block
+          block.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+      } else if (currentPage < totalPages - 1) {
+        // 翻到下一页
+        switchPage(currentPage + 1);
       }
-      // 全部展开后翻页（原型：跳转到下一页 → 实际 Flutter 通过路由实现）
+
       updatePager();
     }
 
     function handlePrev() {
-      if (revealedCount > 1) {
+      var revealed = revealedCounts[currentPage];
+
+      if (revealed > 1) {
         // 收回最后一块
-        var block = document.querySelector('.reveal-block[data-block-index="' + (revealedCount - 1) + '"]');
+        var block = document.querySelector(
+          '.lecture-page[data-page-index="' + currentPage + '"] .reveal-block[data-block-index="' + (revealed - 1) + '"]'
+        );
         if (block) {
           block.classList.remove('visible');
           block.classList.add('hidden');
         }
-        revealedCount--;
+        revealedCounts[currentPage]--;
+      } else if (currentPage > 0) {
+        // 翻到上一页
+        switchPage(currentPage - 1);
       }
-      // 全部收回后翻上一页（原型：跳转到上一页 → 实际 Flutter 通过路由实现）
+
       updatePager();
     }
 
-    // 初始化：隐藏所有 REVEAL 块
+    // ========== 初始化 ==========
     document.addEventListener('DOMContentLoaded', function() {
+      // 隐藏所有页的 reveal-block（只保留 block[0]）
+      for (var p = 0; p < totalPages; p++) {
+        applyBlockState(p);
+      }
+      // 只显示第 1 页
+      document.querySelector('.lecture-page[data-page-index="0"]').style.display = 'block';
       updatePager();
     });
   </script>
