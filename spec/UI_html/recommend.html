@@ -21,7 +21,7 @@
     <!-- 智能推荐模式 -->
     <div id="mode-smart">
       <p class="text-secondary" style="font-size:13px;margin-bottom:8px;">
-        根据你的做题记录和薄弱概念智能推送
+        根据你的做题记录和薄弱项智能推送
       </p>
       <div data-db-loop="recommend.getList" data-db-empty="暂无推荐题目">
         <a href="solve.html" class="list-item">
@@ -29,7 +29,7 @@
             <div class="title" data-db="recommend.getList[].title">2025 海淀一模 Q20</div>
             <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.7</span></div>
             <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-              🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">正弦定理</span>
+              💡 推荐原因：<span data-db="recommend.getList[].recommendReason">正弦定理</span>
             </div>
           </div>
           <div class="right">
@@ -41,7 +41,7 @@
             <div class="title" data-db="recommend.getList[].title">2025 东城一模 Q6</div>
             <div class="subtitle" data-db="recommend.getList[].questionType">解答题 · 难度 <span data-db="recommend.getList[].difficulty">0.5</span></div>
             <div class="recommend-reason" style="font-size:12px;color:var(--warning);margin-top:4px;">
-              🏷 薄弱概念：<span data-db="recommend.getList[].weakConcept">辅助角公式</span>
+              💡 推荐原因：<span data-db="recommend.getList[].recommendReason">辅助角公式</span>
             </div>
           </div>
           <div class="right">

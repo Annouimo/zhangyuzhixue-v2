@@ -7,7 +7,7 @@ class RecommendedQuestion {
   final String title;
   final String questionType;
   final double difficulty;
-  final String weakConcept;
+  final String recommendReason;
   final String status;
 
   const RecommendedQuestion({
@@ -15,7 +15,7 @@ class RecommendedQuestion {
     required this.title,
     required this.questionType,
     required this.difficulty,
-    required this.weakConcept,
+    required this.recommendReason,
     required this.status,
   });
 
@@ -25,7 +25,7 @@ class RecommendedQuestion {
         title: json['title'] as String,
         questionType: json['question_type'] as String,
         difficulty: (json['difficulty'] as num).toDouble(),
-        weakConcept: json['weak_concept'] as String? ?? '',
+        recommendReason: json['recommend_reason'] as String? ?? '',
         status: json['status'] as String,
       );
 }
@@ -85,11 +85,13 @@ class RecommendRepository {
 }
 
 // ---- 推荐算法引擎 ----
-// 从答题记录分析薄弱概念 → 从本地题库推荐题目
+// 从答题记录分析薄弱项 → 从本地题库推荐题目
+// 选填题：按 concept_tag 统计正确率，取最低的作为推荐原因
+// 解答题：按知识卡片反向查 Step.cardTitles，取卡住率高的作为推荐原因
 class _RecommendationEngine {
   // 1. 读取用户答题记录（最近 N 条）
-  // 2. 按 concept_tag 统计正确率
-  // 3. 排序正确率最低的 concept 作为 weakConcept
-  // 4. 从本地题库选取覆盖薄弱概念的题目
+  // 2. 选填题：按 concept_tag 统计正确率，排序取最低
+  // 3. 解答题：按知识卡片卡住率（已揭示步数/总步数），反向查 Step.cardTitles
+  // 4. 从本地题库选取覆盖薄弱项的题目
   // 5. 按 difficulty 排序 + 去重已做题
 }
