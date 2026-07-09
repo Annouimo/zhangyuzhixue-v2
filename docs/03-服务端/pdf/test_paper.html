@@ -61,12 +61,15 @@ body {
 
 /* ===== 分页规则 ===== */
 /* 标题+选择+填空连续编排，不分页 */
-.section-choice,
-.section-fill {
+.section-choice {
   page-break-before: avoid;
+}
+.section-fill {
+  page-break-before: always;
 }
 /* 单题不跨页 */
 .question { display: flex; gap: 0.3em; align-items: baseline; page-break-inside: avoid; margin: 0.3em 0 0.5em; }
+.section .question:first-of-type { page-break-before: avoid; }
 /* 解答题区整区另起一页 */
 .section-solution { page-break-before: always; }
 /* 解答题每道独立起页（独占一页，天然手写区） */
