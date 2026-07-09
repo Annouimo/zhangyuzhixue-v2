@@ -399,9 +399,18 @@ POST /api/v1/pdf/request-token/
 **请求体：**
 ```json
 {
-  "paper_id": 123
+  "source_id": 123,
+  "source_type": "paper"
 }
 ```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `source_id` | int | 试卷或作业的 ID |
+| `source_type` | string | `"paper"` = 组卷（custom_paper），`"assignment"` = 作业 |
+
+`source_type` 为 `"assignment"` 时，`source_id` = assignment.id，服务端通过 `assignment_question` 中间表查出题目列表。
 
 **响应 `code=0`：**
 ```json
@@ -432,7 +441,8 @@ sig = hmac.new(PDF_SECRET_KEY.encode(), data.encode(), hashlib.sha256).hexdigest
 
 **说明：**
 - 服务端从 JWT access_token 解析 `student_id`（学生身份）
-- `paper_id` 必须属于该学生（`custom_paper.student = student`）或是公开试卷
+- `source_type=paper` 时：`source_id` 必须属于该学生（`custom_paper.student = student`）或是公开试卷
+- `source_type=assignment` 时：`source_id` 对应的作业必须属于该学生所在的班级
 - 生成的 sig 绑定 paper_id + student_id + expire_timestamp 三元组，不可跨学生使用
 - Flutter 端收到 sig 后应立即打开 URL，不缓存
 
@@ -440,7 +450,7 @@ sig = hmac.new(PDF_SECRET_KEY.encode(), data.encode(), hashlib.sha256).hexdigest
 | 错误码 | 条件 |
 |--------|------|
 | 40003 | 无权访问该试卷（不属于当前学生且非公开） |
-| 40201 | paper_id 不存在 |
+| 40201 | source_id 不存在（`source_type` 对应的记录未找到） |
 | 50001 | 服务端内部错误 |
 
 ---

@@ -58,11 +58,12 @@
     </div>
 
     <!-- 交互按钮 -->
-    <div class="flex gap-2 mt-4">
+    <div class="flex gap-2 mt-4" style="flex-wrap:wrap;">
       <button class="btn btn-outline flex-1 like-btn" data-db-action="exam.previewOther.toggleLike()"
               onclick="this.classList.toggle('liked')">❤️ 点赞</button>
       <button class="btn btn-outline flex-1 collect-btn" data-db-action="exam.previewOther.toggleCollect()"
               onclick="toggleCollect(this)">🔖 收藏</button>
+      <button class="btn btn-outline flex-1" data-db-action="exam.previewOther.downloadPdf()">下载 PDF</button>
       <a href="answer_sheet.html" class="btn btn-outline flex-1">快对答案</a>
     </div>
 

@@ -351,22 +351,7 @@ class ExamRepository {
     throw UnimplementedError('ExamRepository.getPreviewOther');
   }
 
-  /// 请求 PDF 浏览 URL（通过 /api/v1/pdf/request-token）
-  static Future<String> requestPdfUrl(int paperId) async {
-    throw UnimplementedError('ExamRepository.requestPdfUrl');
-  }
-
-  /// 下载/打印试卷
-  ///
-  /// 调用链：
-  ///   1. 检查 SharedPreferences pdf_guide_dismissed
-  ///      - false → 弹出 PdfGuideDialog
-  ///        - 用户取消 → 结束
-  ///        - 用户确认 → 继续
-  ///      - true → 跳过弹窗
-  ///   2. requestPdfUrl(paperId) → String url
-  ///   3. launchUrl(Uri.parse('https://$domain$url'),
-  ///        mode: LaunchMode.externalApplication)
+  /// 下载/打印试卷（委托给 PdfHelper）
   static Future<void> downloadPdf(int paperId) async {
     throw UnimplementedError('ExamRepository.downloadPdf');
   }

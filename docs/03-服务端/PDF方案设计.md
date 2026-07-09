@@ -103,22 +103,40 @@ Flutter 端打开 url_launcher(url)
 
 ### 2.2 视图流程
 
+```
+GET /pdf/view?pid={source_id}&type={source_type}&sig={signature}
+```
+
+URL 中 `type` 参数区分数据源：
+
+- `type=paper`（默认）— source_id = custom_paper.id
+- `type=assignment` — source_id = assignment.id
+
 ```python
 def pdf_view(request):
-    paper_id = request.GET["pid"]
+    source_id = request.GET["pid"]
+    source_type = request.GET.get("type", "paper")
     sig = request.GET["sig"]
 
     # 1. 验证签名
-    student = validate_pdf_sig(sig, paper_id)  # 返回 student 或抛出 403
+    student = validate_pdf_sig(sig, source_id)  # 返回 student 或抛出 403
 
     # 2. 查数据
-    paper = CustomPaper.objects.get(id=paper_id, student=student)
-    questions = CustomPaperQuestion.objects.filter(paper=paper).order_by("sort_order")
-    # ... 组装 sections, 查 choice_ext, 查图片路径
+    if source_type == "assignment":
+        assignment = Assignment.objects.get(id=source_id)
+        # 校验：该学生必须在 assignment 关联的班级中
+        questions = AssignmentQuestion.objects             .filter(assignment_id=source_id)             .order_by("sort_order")             .select_related("question")
+        title = assignment.title
+    else:
+        paper = CustomPaper.objects.get(id=source_id)
+        # 校验：自己的试卷或公开试卷
+        questions = CustomPaperQuestion.objects             .filter(paper=paper)             .order_by("sort_order")
+        title = paper.title
 
-    # 3. 渲染 HTML 模板
+    # 3. 组装 sections, 查 choice_ext, 查图片路径
+    # 4. 渲染 HTML 模板
     return render(request, "pdf/paper_view.html", {
-        "title": paper.title,
+        "title": title,
         "sections": sections,
     })
 ```
@@ -199,33 +217,67 @@ Timer(Duration(seconds: expireIn - 60), () {
 | `paper_history.html`（我的组卷列表） | `exam.myExams.downloadPdf(id)` | 自己的试卷列表 |
 | `paper_favorites.html`（我的收藏列表） | `exam.favorites.downloadPdf(id)` | 收藏的公开试卷 |
 | `paper_explore.html`（发现组卷列表） | 由各卡片 data-db-action 处理 | 公开试卷 |
-| `homework_detail.html`（作业详情） | 待定（作业是否有试卷预览页？） | 作业关联的试卷 |
-| `recommend.html`（推荐页） | 待定（推荐结果的组卷入口） | 自己的推荐 |
+| `homework_detail.html`（作业详情） | `assign.downloadPdf()` | 作业（source_type=assignment） |
 
 
-### 3.2 点击行为
+### 3.2 共享 PdfHelper
+
+PDF 逻辑抽取到 `lib/data/helpers/pdf_helper.dart`，与 `question_status_helper.dart` 同级，
+供多个 Repository 复用。
 
 ```dart
-// ExamRepository (或直接调 api)
-Future<String> requestPdfUrl(int paperId) async {
-  final response = await api.post('/api/pdf/request-token', body: {
-    'paper_id': paperId,
-  });
-  return response['url'];  // "/pdf/view?pid=123&sig=xxxx"
+// lib/data/helpers/pdf_helper.dart
+class PdfHelper {
+  static Future<String> requestPdfUrl({
+    required int sourceId,
+    required String sourceType,
+  }) async {
+    final response = await api.post('/api/v1/pdf/request-token', body: {
+      'source_id': sourceId,
+      'source_type': sourceType,
+    });
+    return response['url'];
+  }
+
+  /// 完整流程：弹窗引导 → 请求 URL → 打开浏览器
+  static Future<void> downloadPdf({
+    required int sourceId,
+    required String sourceType,
+  }) async {
+    // 1. 弹出操作引导弹窗
+    final shouldShowGuide = await _showPrintGuide();
+    if (shouldShowGuide == null) return;
+
+    // 2. 获取 URL
+    final url = await requestPdfUrl(
+      sourceId: sourceId,
+      sourceType: sourceType,
+    );
+
+    // 3. 打开系统浏览器
+    await launchUrl(Uri.parse('https://$domain$url'),
+        mode: LaunchMode.externalApplication);
+  }
+}
+```
+
+各 Repository 的 `downloadPdf()` 统一委托给 `PdfHelper`：
+
+```dart
+// 在 ExamRepository 中
+static Future<void> downloadPdf(int paperId) {
+  return PdfHelper.downloadPdf(
+    sourceId: paperId,
+    sourceType: 'paper',
+  );
 }
 
-// 在 downloadPdf 中
-Future<void> downloadPdf(int paperId) async {
-  // 1. 弹出操作引导弹窗
-  final shouldShowGuide = await _showPrintGuide();
-  if (shouldShowGuide == null) return; // 用户取消
-
-  // 2. 获取 URL
-  final url = await requestPdfUrl(paperId);
-
-  // 3. 打开系统浏览器
-  await launchUrl(Uri.parse('https://$domain$url'),
-      mode: LaunchMode.externalApplication);
+// 在 AssignmentRepository 中（作业详情页）
+static Future<void> downloadPdf(int assignmentId) {
+  return PdfHelper.downloadPdf(
+    sourceId: assignmentId,
+    sourceType: 'assignment',
+  );
 }
 ```
 

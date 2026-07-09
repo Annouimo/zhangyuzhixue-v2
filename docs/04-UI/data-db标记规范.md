@@ -38,6 +38,19 @@ data-db-action="exam.downloadPdf(1)"
                      downloadPdf  ← downloadPdf()
 ```
 
+**PDF 下载 action 一览：**
+
+| data-db-action | 页面 | source_type |
+|---------------|------|-------------|
+| `exam.preview.downloadPdf()` | `paper_quicklook.html`（自己的组卷预览） | paper |
+| `exam.previewOther.downloadPdf()` | `paper_quicklook_other.html`（公开试卷预览） | paper |
+| `exam.myExams.downloadPdf(id)` | `paper_history.html`（组卷列表） | paper |
+| `exam.favorites.downloadPdf(id)` | `paper_favorites.html`（收藏列表） | paper |
+| `exam.explore.downloadPdf(id)` | `paper_explore.html`（发现列表） | paper |
+| `assign.downloadPdf()` | `homework_detail.html`（作业详情） | assignment |
+
+所有 PDF 下载最终委托给 `lib/data/helpers/pdf_helper.dart` 的 `PdfHelper.downloadPdf()`。
+
 ## 三、标记颜色辅助（仅在原型中）
 
 `styles.css` 中对标记了 `data-db` 的元素加了背景高亮，仅用于原型开发阶段：
