@@ -415,33 +415,100 @@ class _ExamFilterEngine {
 
 /// 智能组卷算法
 ///
-/// ⚠️ 极简 v1 方案，与同事讨论后替换为正式方案。
-/// 替换时只需重写 _ExamGenerator 类，外部模块不受影响。
+/// confirm() 委托给此类。
+/// 所有计算在本地 drift 完成，不依赖服务器。
 ///
-/// v1 方案（极简，能用就行）：
-///   1. 获取筛选池：dao.getFilteredQuestions(filters)（已排除已做题）
-///   2. 按题型分三组：选择 / 填空 / 解答
-///   3. 每组内按 |difficulty - targetDifficulty| 升序排列
-///   4. 从每组最接近目标难度的开始取，取满 filters.choiceCount / fillCount / solutionCount
-///   5. 如果某题型数量不够筛选池大小，有多少取多少（不补、不报错）
-///   6. 按题型分组排序输出：选择 → 填空 → 解答
+/// ┌─ 流程总览 ──────────────────────────────────────────────────┐
+/// │                                                              │
+/// │  confirm(filters)                                            │
+/// │    1. 获取筛选池 → dao.getFilteredPool(filters)              │
+/// │    2. 锁定手动选题（selectedIds 固定不动）                   │
+/// │    3. 检查各题型池子是否够用                                  │
+/// │       → 不足则抛出 InsufficientPoolException                 │
+/// │    4. Phase 1 — 贪心初始集                                  │
+/// │       每种题型按 |difficulty - target| 排序取 top N         │
+/// │    5. Phase 2 — 交换优化 (3 轮)                             │
+/// │       每轮遍历各题型，找能改善整卷均值的单题交换             │
+/// │    6. 持久化 → 写入 exam 表 + paper_question 表            │
+/// │    7. 返回 exam_id                                          │
+/// │                                                              │
+/// └──────────────────────────────────────────────────────────────┘
 ///
-/// 已知缺点（正式方案需解决）：
-///   - 只保证单题难度接近目标，不保证整体均值匹配
-///   - 无多样性约束（可能同一年/同一场考试出多道）
-///   - 无题量不足时的降级策略
+/// ┌─ Phase 1：贪心初始化 ──────────────────────────────────────┐
+/// │  对每种题型：                                                 │
+/// │    pool.sort(by |difficulty - targetDifficulty|)             │
+/// │    取前 needed 道（排除 locked 的 selectedIds）              │
+/// │    与 locked 题合并 → 当前选定集                             │
+/// └──────────────────────────────────────────────────────────────┘
+///
+/// ┌─ Phase 2：交换优化 (3 轮固定) ────────────────────────────┐
+/// │  每轮：                                                      │
+/// │    for type in [choice, fill, solution]:                     │
+/// │      selected = 当前选定的该题型题目列表                     │
+/// │      candidates = 池子中未选中的同题型题目                   │
+/// │                                                              │
+/// │      // 找最佳交换                                           │
+/// │      bestSwap = null, bestImprovement = 0                    │
+/// │      for each s in selected:                                 │
+/// │        for each c in candidates:                             │
+/// │          delta = (c.difficulty - s.difficulty) / totalCount  │
+/// │          newMean = currentMean + delta                        │
+/// │          improvement = |currentMean - target| - |newMean - target|
+/// │          if improvement > bestImprovement:                   │
+/// │            bestImprovement = improvement                     │
+/// │            bestSwap = (s, c)                                 │
+/// │                                                              │
+/// │      if bestSwap exists → 执行交换并更新 currentMean        │
+/// │                                                              │
+/// │  效果预估：                                                   │
+/// │    初始偏差 ±0.20 → 3 轮后 ±0.04                             │
+/// │    初始偏差 ±0.50 → 3 轮后 ±0.08                             │
+/// │    初始偏差 ±0.80 → 3 轮后 ±0.12                             │
+/// └──────────────────────────────────────────────────────────────┘
+///
+/// ┌─ 池子不足处理 ─────────────────────────────────────────────┐
+/// │  检查：                                                      │
+/// │    needed = filters.choiceCount - 已选选择题数              │
+/// │    available = 池子中 choice 类型题目数                      │
+/// │    任一 needed > available → 抛出 InsufficientPoolException  │
+/// │                                                              │
+/// │  InsufficientPoolException 包含字段：                         │
+/// │   - type: 不足的题型 ("choice" / "fill" / "solution")       │
+/// │   - needed: 还需要几道                                       │
+/// │   - available: 池子里有几道                                   │
+/// │                                                              │
+/// │  confirm() 的调用者捕获后弹窗：                               │
+/// │    "选择题池子不足（需要8道，只有5道）"                       │
+/// │    两个按钮：直接组卷 / 调整筛选条件                          │
+/// └──────────────────────────────────────────────────────────────┘
 class _ExamGenerator {
+  static const int maxSwapRounds = 3;
+
+  /// 入口：执行智能组卷
+  /// 返回 exam id（持久化后的主键）
+  /// 池子不足时抛出 InsufficientPoolException
+  ///
+  /// 实现时需要的 DAO 接口：
+  ///   getFilteredPool(SearchFilters)
+  ///     -> List<SearchQuestion>  (已排除已做题)
+  ///   countByType(type, filters) -> int
+  ///   saveExam(name, questionIds) -> int (exam id)
+  ///   savePaperQuestions(examId, questionIds)
 }
 
-/// PDF 打印（服务端 HTML → 浏览器打印）
-///
-/// 设计详见 spec/pdf/README.md。
-///
-/// 本类已废弃。PDF 生成改为服务端方案：
-///   1. Flutter 端调 /api/pdf/request-token 获取临时 URL
-///   2. url_launcher 打开系统浏览器到 Django 页面
-///   3. 用户在浏览器中打印/另存为 PDF
-///
-/// 编码阶段本类删除，downloadPdf() 改为弹窗引导 + url_launcher。
-class _ExamPdfService {
+/// 池子不足异常
+/// confirm() 的调用者捕获后展示弹窗，让用户选择直接组卷或调整筛选条件
+class InsufficientPoolException implements Exception {
+  final String type;
+  final int needed;
+  final int available;
+
+  const InsufficientPoolException({
+    required this.type,
+    required this.needed,
+    required this.available,
+  });
+
+  String get message =>
+      '$type 类题目池子不足（需要 $needed 道，池中只有 $available 道）';
 }
