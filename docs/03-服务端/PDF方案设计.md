@@ -1,8 +1,6 @@
-﻿# PDF 试卷浏览/打印 · 设计稿
+# 章鱼智学 · PDF 方案设计
 
-## 状态
-
-本文件是**设计终稿**。方案已确定，可直接进入编码阶段。
+> 本文档是 PDF 试卷浏览/打印的设计终稿。方案已确定，可直接进入编码阶段。
 
 ---
 
@@ -72,7 +70,7 @@
 GET /pdf/view?pid={paper_id}&sig={signature}
 ```
 
-**sig 生成**：
+**sig 生成：**
 
 ```
 sig = HMAC-SHA256(
@@ -83,14 +81,14 @@ sig = HMAC-SHA256(
 
 - 有效期为 **5 分钟**
 - 一次性：可以使用但没用严格的防重放（只是 PDF 浏览，非敏感操作）
-- Flutter 端用当前 `access_token` 向 `/api/pdf/request-token` 换取临时 sig（也可直接本地计算——如果 Flutter 端持有 PDF_SECRET_KEY，但不安全，所以走 API）
+- Flutter 端用当前 `access_token` 向 `/api/pdf/request-token` 换取临时 sig
 
-**安全流程**：
+**安全流程：**
 
 ```
 Flutter 端（已登录）
   → POST /api/pdf/request-token
-     Header: Authorization: Bearer <access_token>
+     Header: Authorization: Bearer ***
      Body: { paper_id: 123 }
   ← 200: { sig: "xxxxx", expire_in: 300, url: "/pdf/view?pid=123&sig=xxxxx" }
 
@@ -121,8 +119,7 @@ def pdf_view(request):
 
 ### 2.3 HTML 模板
 
-复用 `D:\Hermes\pdf_test\test_paper.html` 的 CSS + 排版规范。服务端侧只需：
-
+复用 `pdf/test_paper.html` 的 CSS + 排版规范。服务端侧只需：
 - 将 KaTeX CDN 从 `cdn.jsdelivr.net` 改为**使用本地托管版本**（Django static/），避免 CDN 加载延迟
 - 图片引用改为 `{% static 'questions/images/' %}{{ img_path }}`
 - 去掉 `file:///` 相关逻辑
@@ -145,7 +142,7 @@ body {
 ```
 
 - Windows: SimSun（宋体）系统自带
-- macOS: STSong 系统自带  
+- macOS: STSong 系统自带
 - Android: Noto Serif CJK（如果系统有）
 - 回退到 serif
 
@@ -187,8 +184,6 @@ Future<void> downloadPdf(int paperId) async {
 
 ### 3.3 用户引导弹窗
 
-弹窗设计如下：
-
 ```
 ┌─────────────────────────────────────┐
 │  📄 准备打印试卷                     │
@@ -211,8 +206,6 @@ Future<void> downloadPdf(int paperId) async {
 └─────────────────────────────────────┘
 ```
 
-三个关键设计：
-
 | 元素 | 说明 |
 |------|------|
 | **「不再提示」复选框** | 勾选后下次直接打开浏览器，不再弹窗。存 `SharedPreferences` key `pdf_guide_dismissed` |
@@ -223,12 +216,10 @@ Future<void> downloadPdf(int paperId) async {
 
 ## 四、排版规范
 
-从 Phase 1 测试结果（`test_paper.html`）确认：
-
 | 项 | 设定 |
 |------|--------|
 | 纸张 | A4，CSS `@page { size: A4; margin: 2.5cm 2.0cm; }` |
-| 分页规则 | 同 Phase 1 验证：选择/填空连续，解答题每题独立起页 |
+| 分页规则 | 选择/填空连续，解答题每题独立起页 |
 | 图片 | 靠右浮动，max-width 180px |
 | 填空线 | CSS `.fill-blank { border-bottom: 1pt solid #333; }` |
 | 分值 | 不显示 |
@@ -273,3 +264,10 @@ Future<void> downloadPdf(int paperId) async {
 | 8 | HTML 模板（基于 `test_paper.html`） | `server/templates/pdf/paper_view.html` |
 | 9 | 构建脚本同步图片到 `static/questions/images/` | `server/scripts/build_assets.py` |
 | 10 | 配图 `static/` 路径确认 | 构建流程 |
+
+---
+
+> 相关文档：
+> - [API设计.md](API设计.md) — PDF 请求 token API
+> - [页面设计说明.md](../04-UI/页面设计说明.md) — 组卷页面交互
+> - [构建脚本设计.md](../02-数据/构建脚本设计.md) — 图片构建流程
