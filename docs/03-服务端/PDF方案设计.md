@@ -222,65 +222,19 @@ Timer(Duration(seconds: expireIn - 60), () {
 
 ### 3.2 共享 PdfHelper
 
-PDF 逻辑抽取到 `lib/data/helpers/pdf_helper.dart`，与 `question_status_helper.dart` 同级，
-供多个 Repository 复用。
+PDF 逻辑抽取到 `lib/data/helpers/pdf_helper.dart`（详见 [`helpers/README.md`](../05-Flutter/helpers/README.md)），与 `question_status_helper.dart` 同级，供多个 Repository 复用。
 
 ```dart
-// lib/data/helpers/pdf_helper.dart
-class PdfHelper {
-  static Future<String> requestPdfUrl({
-    required int sourceId,
-    required String sourceType,
-  }) async {
-    final response = await api.post('/api/v1/pdf/request-token', body: {
-      'source_id': sourceId,
-      'source_type': sourceType,
-    });
-    return response['url'];
-  }
-
-  /// 完整流程：弹窗引导 → 请求 URL → 打开浏览器
-  static Future<void> downloadPdf({
-    required int sourceId,
-    required String sourceType,
-  }) async {
-    // 1. 弹出操作引导弹窗
-    final shouldShowGuide = await _showPrintGuide();
-    if (shouldShowGuide == null) return;
-
-    // 2. 获取 URL
-    final url = await requestPdfUrl(
-      sourceId: sourceId,
-      sourceType: sourceType,
-    );
-
-    // 3. 打开系统浏览器
-    await launchUrl(Uri.parse('https://$domain$url'),
-        mode: LaunchMode.externalApplication);
-  }
-}
-```
-
-各 Repository 的 `downloadPdf()` 统一委托给 `PdfHelper`：
-
-```dart
-// 在 ExamRepository 中
+// ExamRepository 的 downloadPdf 委托给 PdfHelper
 static Future<void> downloadPdf(int paperId) {
   return PdfHelper.downloadPdf(
     sourceId: paperId,
     sourceType: 'paper',
   );
 }
-
-// 在 AssignmentRepository 中（作业详情页）
-static Future<void> downloadPdf(int assignmentId) {
-  return PdfHelper.downloadPdf(
-    sourceId: assignmentId,
-    sourceType: 'assignment',
-  );
-}
 ```
 
+具体实现见 `lib/data/helpers/pdf_helper.dart`。
 ### 3.3 用户引导弹窗
 
 ```

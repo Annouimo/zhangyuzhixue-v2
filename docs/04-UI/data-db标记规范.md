@@ -49,7 +49,7 @@ data-db-action="exam.downloadPdf(1)"
 | `exam.explore.downloadPdf(id)` | `paper_explore.html`（发现列表） | paper |
 | `assign.downloadPdf()` | `homework_detail.html`（作业详情） | assignment |
 
-所有 PDF 下载最终委托给 `lib/data/helpers/pdf_helper.dart` 的 `PdfHelper.downloadPdf()`。
+所有 PDF 下载最终委托给 `PdfHelper`，详见 [`helpers/README.md`](../05-Flutter/helpers/README.md)。
 
 ## 三、标记颜色辅助（仅在原型中）
 
