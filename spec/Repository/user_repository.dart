@@ -213,11 +213,28 @@ class UserRepository {
 }
 
 // ---- 积分计算引擎（私有，仅 UserRepository 内部使用） ----
-// 从本地 drift 交易表实时汇总四种积分
+// 通过 PointsDao 获取交易数据，在 Dart 侧做分类汇总。
+//
+// source 枚举与分类映射（数据来源：数据库结构设计.md §5.4）：
+//   LOGIN_BONUS      → earned（学习积分，每日签到奖励）
+//   PRACTICE_REWARD  → earned（学习积分，做题/首题奖励）
+//   TASK_REWARD      → earned（学习积分，完成任务奖励）
+//   SIGNUP_BONUS     → bonus（赠送积分，新用户注册赠送）
+//   PAPER_PURCHASE   → spent（消耗积分，组卷消费，amount 为负）
+//   ADMIN_ADJUST     → 管理端手动调整（不归入三类）
+//
+// 调用链：
+//   dao.getAllTransactions() → [{source, amount, createdAt}]
+//   → Dart 侧按 source 分类聚合
+//
+// 5 条公式（全部实时，不进缓存）：
+//   累计积分 = sum of amounts where source != PAPER_PURCHASE
+//   学习积分 = sum of amounts where source in (LOGIN_BONUS, PRACTICE_REWARD, TASK_REWARD)
+//   赠送积分 = sum of amounts where source = SIGNUP_BONUS
+//   消耗积分 = abs(sum of amounts where source = PAPER_PURCHASE)
+//   可用积分 = earned + bonus - spent
+//
+// 等级推算：从 assets_db.level_config 表查 min_xp <= 累计积分 的最高等级
+// 等级百分位（levelPercentile）必须调服务端 API，本地无法计算（需全量用户数据）
 class _PointsCalculator {
-  // 实现：SELECT type, SUM(change) FROM transactions GROUP BY type
-  // earned = SUM(where type in (做题,签到,首题奖励,完成任务))
-  // bonus = SUM(where type = 新人赠送)
-  // spent = SUM(where type = 组卷消费 AND change < 0) * -1
-  // available = earned + bonus - spent
 }

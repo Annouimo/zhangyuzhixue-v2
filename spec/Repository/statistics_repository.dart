@@ -121,14 +121,35 @@ class StatisticsRepository {
 }
 
 // ---- 统计聚合引擎 ----
-// 从本地 drift 做题记录表中聚合统计
+// 从 StatisticsDAO 获取原始数据，在 Dart 侧做聚合计算。
+// 渲染层设计见 spec/UI_html/statistics.html（含 4 种自适应模式 + 示例 JS）
+//
+// 4 个数据源（调用 StatisticsDAO，不走 API）：
+//
+//   getDailyRecords(rangeDays)
+//     → dao.getDailyRecords(rangeDays) 返回 [{date, count, correct}]
+//     → Dart 侧 levelOf() 按当期最大值归一化为 lv0~lv3
+//     → 渲染层按天数自动选择 条形图/7行周历/周格/月格
+//
+//   getAccuracyTrend(rangeDays)
+//     → dao.getDailyRecords(rangeDays) （复用每日记录）
+//     → Dart 侧按窗口滑动计算正确率
+//     → 点数 > 30 时降采样（取窗口均值）
+//
+//   getPointsTrend(rangeDays)
+//     → dao.getPointsByDay(rangeDays) 返回 [{date, amount}]
+//     → Dart 侧算累计值（cumulative sum）
+//
+//   getDistribution()
+//     → dao.getTypeDistribution() 返回 [{questionType, count}]
+//     → Dart 侧算百分比
+//
+// 概览（getOverview）：从上述数据计算：
+//   totalQuestions = sum of count
+//   accuracyPercent = sum(correct) / sum(count)
+//   streakDays = 从记录的连续有做题的天数推算（最长连续）
+//   activeDays = COUNT DISTINCT date
+//
+// 等级百分位（levelPercentile）需要全量用户数据，必须调服务端 API
 class _StatisticsAggregator {
-  // totalQuestions: SELECT COUNT(*) FROM answer_records
-  // accuracyPercent: SELECT SUM(is_correct)/COUNT(*) FROM answer_records
-  // streakDays: 从 daily_records 计算最长连续
-  // activeDays: SELECT COUNT(DISTINCT date) FROM daily_records
-  // dailyRecords: SELECT date, COUNT(*) FROM answer_records GROUP BY date
-  // accuracyTrend: 按日期窗口滑动计算正确率
-  // pointsTrend: 按日期窗口滑动计算积分
-  // distribution: 按 question_type 分组计数+算百分比
 }

@@ -383,7 +383,7 @@ class ExamRepository {
     throw UnimplementedError('ExamRepository.getBuildSession');
   }
 
-  /// 筛选后的题目列表（本地题库实时过滤）
+  /// 筛选后的题目列表（通过 ExamDao 从本地资产库查询）
   static Future<List<SearchQuestion>> getFilteredQuestions(
       SearchFilters filters) async {
     throw UnimplementedError('ExamRepository.getFilteredQuestions');
@@ -405,22 +405,30 @@ class ExamRepository {
 }
 
 // ---- 私有算法引擎 ----
+//
+// 这些算法不算复杂逻辑，不需要独立算法设计文档。
+// 筛选 = ExamDao.countByType(type, filters) + 内存排序
+// 自动生成 = 按题型数量约束 + 难度区间 + 随机选
+// PDF = 已有 Python 原型（D:\Hermes\pdf_test\exam_pdf.py）
 
-/// 实时过滤+计数+难度统计（从本地 assets SQLite 题库）
+/// 实时过滤+计数+难度统计（通过 ExamDao 从本地资产库查询）
 class _ExamFilterEngine {
-  // availableChoice/Fill/Solution: SELECT COUNT(*) FROM questions WHERE type=? AND {filters}
-  // poolDiffMin: SELECT MIN(difficulty) FROM questions WHERE {filters}
-  // gaokaoDiffMin/Avg/Max: 从高考题子集计算
+  // availableChoice/Fill/Solution: dao.countByType(type, filters)
+  // poolDiffMin/Max: dao.getDifficultyRange(filters)
+  // gaokaoDiffMin/Avg/Max: dao.getGaokaoStats(filters)
 }
 
 /// 智能组卷算法：按目标难度从筛选池选最佳组合
 class _ExamGenerator {
-  // 1. 筛选池按 difficulty 排序
-  // 2. 贪心/动态规划选 targetDifficulty 最接近的组合
-  // 3. 返回生成的 exam id
+  // 1. dao.getFiltered(filters) 获取筛选池
+  // 2. 按 difficulty 排序
+  // 3. 贪心/动态规划选 targetDifficulty 最接近的组合
+  // 4. 返回生成的 exam id
 }
 
 /// PDF 生成
+/// Python 原型：D:\Hermes\pdf_test\exam_pdf.py（HTML+KaTeX → headless → PDF）
+/// API：generate_pdf(title, sections, output_path)
+/// 数据类：Choice, Section, Question（已定义完整）
 class _ExamPdfService {
-  // 用 flutter_html + KaTeX 或原生方式生成 PDF
 }

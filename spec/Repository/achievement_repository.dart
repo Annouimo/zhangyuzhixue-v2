@@ -113,13 +113,29 @@ class AchievementRepository {
 }
 
 // ---- 成就引擎 ----
-// 按类型分组、判断解锁状态、计算进度百分比
+// 从 AchievementDao 获取定义和用户数据，在 Dart 侧推算状态。
+//
+// achievement_def 表结构（数据来源：数据库结构设计.md §5.6）：
+//   code          VARCHAR UNIQUE    标识（LOGIN_7, COURSE_MASTER 等）
+//   category      VARCHAR            5 类：LOGIN / PRACTICE / COURSE / PAPER / RATING
+//   trigger_type  VARCHAR            判定类型：LOGIN_STREAK / PRACTICE_COUNT / COURSE_COMPLETE / PAPER_COUNT / RATING_COUNT
+//   threshold     INTEGER            达成阈值（如连续签到 7 天、做题 100 道）
+//
+// 调用链（通过 DAO 获取，不在引擎内写 SQL）：
+//   LOGIN    → dao.getLoginStreak() 返回连续签到天数
+//   PRACTICE → dao.getSubmissionCount() 返回做题总数
+//   COURSE   → dao.getCompletedLectureCount() 返回已学完讲义数
+//   PAPER    → dao.getPaperCount() 返回组卷数
+//   RATING   → dao.getRatingCount() 返回评分数
+//
+// 判定：
+//   progress >= threshold → unlocked（同时写 student_achievement 缓存）
+//   progress > 0          → in_progress
+//   其余                    → locked
+//
+// 进度百分比：min(progress / threshold * 100, 100)
+//
+// student_achievement 表（数据库结构设计.md §5.7）仅缓存已解锁记录，
+// 引擎每次实时推算，不依赖缓存。
 class _AchievementEngine {
-  // 扫描用户数据判断每个成就的状态：
-  //   LOGIN → 签到记录数
-  //   PRACTICE → 做题数
-  //   COURSE → 已学讲义数
-  //   PAPER → 组卷数
-  //   RATING → 评分数
-  // 计算：progress / threshold * 100 = progressPercent
 }
