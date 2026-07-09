@@ -551,6 +551,105 @@
     .shortfall-actions .btn-force:hover {
       opacity: 0.9;
     }
+
+    /* ---- PDF 引导弹窗 ---- */
+    .pdf-guide-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 24px 20px;
+      width: 88%;
+      max-width: 380px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+    }
+    .pdf-guide-card .pg-icon {
+      font-size: 42px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .pdf-guide-card .pg-title {
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .pdf-guide-card .pg-step {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .pdf-guide-card .pg-step-num {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+    .pdf-guide-card .pg-step-text {
+      color: var(--text-secondary);
+    }
+    .pdf-guide-card .pg-platform {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .pdf-guide-card .pg-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 10px 0 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .pdf-guide-card .pg-checkbox input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .pdf-guide-card .pg-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .pdf-guide-card .pg-cancel {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 15px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .pdf-guide-card .pg-cancel:hover {
+      background: var(--bg);
+    }
+    .pdf-guide-card .pg-open {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .pdf-guide-card .pg-open:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -668,6 +767,17 @@
       </p>
       <button class="btn btn-primary btn-block" onclick="testShortfall()">
         📄 池子不足弹窗（模拟）
+      </button>
+    </div>
+
+    <!-- 🖨️ PDF 打印测试 -->
+    <div class="debug-section">
+      <div class="debug-title">🖨️ PDF 打印</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        点击「下载 PDF」按钮时弹出的操作引导弹窗。勾选「不再提示」后下次直接打开浏览器。
+      </p>
+      <button class="btn btn-primary btn-block" onclick="testPdfGuide()">
+        🖨️ 显示 PDF 引导弹窗
       </button>
     </div>
   </div>
@@ -870,6 +980,46 @@
     </div>
   </div>
 
+  <!-- 🖨️ PDF 引导弹窗 -->
+  <div class="popup-overlay" id="pdf-guide-popup">
+    <div class="pdf-guide-card">
+      <div class="pg-icon">🖨️</div>
+      <div class="pg-title">准备打印试卷</div>
+
+      <div class="pg-step">
+        <span class="pg-step-num">1</span>
+        <div class="pg-step-text">
+          <div class="pg-platform">💻 电脑用户</div>
+          按 <strong>Ctrl+P</strong> 打开打印对话框，选择「另存为 PDF」或直接打印
+        </div>
+      </div>
+
+      <div class="pg-step">
+        <span class="pg-step-num">2</span>
+        <div class="pg-step-text">
+          <div class="pg-platform">📱 手机用户</div>
+          点击浏览器菜单 (⋮) → 分享 → 打印 → 选择「保存为 PDF」
+        </div>
+      </div>
+
+      <div class="pg-step">
+        <span class="pg-step-num">3</span>
+        <div class="pg-step-text">
+          纸张选择 <strong>A4</strong>，取消勾选「页眉和页脚」
+        </div>
+      </div>
+
+      <label class="pg-checkbox">
+        <input type="checkbox" id="pdf-guide-no-more"> 不再提示
+      </label>
+
+      <div class="pg-actions">
+        <button class="pg-cancel" onclick="closePdfGuide()">取消</button>
+        <button class="pg-open" onclick="openPdfInBrowser()">打开浏览器</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ===== Toast 全局 ===== */
     var _toastTimer = null;
@@ -1063,6 +1213,25 @@
     function shortfallForce() {
       showToast('📄', '池子不足，按可用题目直接组卷');
       closeShortfallPopup();
+    }
+
+    /* ===== PDF 打印测试 ===== */
+
+    // 🖨️ 显示 PDF 引导弹窗
+    function testPdfGuide() {
+      document.getElementById('pdf-guide-popup').classList.add('show');
+    }
+
+    function closePdfGuide() {
+      document.getElementById('pdf-guide-popup').classList.remove('show');
+    }
+
+    // 用户点击 "打开浏览器" 时
+    function openPdfInBrowser() {
+      var noMore = document.getElementById('pdf-guide-no-more').checked;
+      console.log('[PDF] 打开浏览器. 不再提示=' + noMore);
+      showToast('🖨️', '已打开浏览器，请按 Ctrl+P 打印');
+      closePdfGuide();
     }
   </script>
 </body>

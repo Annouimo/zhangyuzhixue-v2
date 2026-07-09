@@ -383,8 +383,71 @@ POST /api/v1/sync/push/
 App 启动时 + 用户手动触发。"全部重试"按钮即遍历所有 `pending`/`failed` 状态的队列条目执行推送。
 
 ---
+---
 
-## 四、用户 API
+## 四、PDF API
+
+> 对应 App：新建 `pdf` App（建议独立，职责内聚）
+
+### 4.1 请求 PDF 浏览 token
+
+```
+POST /api/v1/pdf/request-token/
+```
+
+**认证：** 需要 Bearer token（JWT access_token）
+
+**请求体：**
+```json
+{
+  "paper_id": 123
+}
+```
+
+**响应 `code=0`：**
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "sig": "a1b2c3d4e5f67890abcdef1234567890abcdef12",
+    "expire_in": 300,
+    "url": "/pdf/view?pid=123&sig=a1b2c3d4e5f67890abcdef1234567890abcdef12"
+  }
+}
+```
+
+**字段说明：**
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `sig` | string | HMAC-SHA256 签名，hex 编码，40 字符 |
+| `expire_in` | int | 有效期秒数，固定 300（5 分钟） |
+| `url` | string | 相对路径，Flutter 端拼接域名后通过 `url_launcher` 打开 |
+
+**服务端 sig 生成逻辑：**
+```python
+import hmac, hashlib, time
+data = f"{paper_id}:{student_id}:{int(time.time()) + 300}"
+sig = hmac.new(PDF_SECRET_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
+```
+
+**说明：**
+- 服务端从 JWT access_token 解析 `student_id`（学生身份）
+- `paper_id` 必须属于该学生（`custom_paper.student = student`）或是公开试卷
+- 生成的 sig 绑定 paper_id + student_id + expire_timestamp 三元组，不可跨学生使用
+- Flutter 端收到 sig 后应立即打开 URL，不缓存
+
+**错误码：**
+| 错误码 | 条件 |
+|--------|------|
+| 40003 | 无权访问该试卷（不属于当前学生且非公开） |
+| 40201 | paper_id 不存在 |
+| 50001 | 服务端内部错误 |
+
+---
+
+## 五、用户 API
+
 
 > 对应 App：`accounts`
 
@@ -501,7 +564,7 @@ GET /api/v1/user/level-percentile/
 
 ---
 
-## 五、教师 API
+## 六、教师 API
 
 > 对应 App：`courses` + `accounts` + `interactions` 的跨 App 数据拼装
 
@@ -759,7 +822,7 @@ GET /api/v1/teacher/students/{id}/
 
 ---
 
-## 六、讲义 API
+## 七、讲义 API
 
 > 对应 App：`courses`
 
@@ -817,7 +880,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 
 ---
 
-## 七、共用端点汇总
+## 八、共用端点汇总
 
 ### 7.1 端点清单
 
@@ -866,7 +929,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 
 ---
 
-## 八、API 版本控制
+## 九、API 版本控制
 
 所有 API 端点统一使用 `/api/v1/` 前缀。理由：
 
@@ -887,7 +950,7 @@ GET  /api/v1/teacher/assignments/
 
 ---
 
-## 九、路由文件组织
+## 十、路由文件组织
 
 ```python
 # math_platform/urls.py
