@@ -95,6 +95,12 @@ Flutter 端（已登录）
 Flutter 端打开 url_launcher(url)
 ```
 
+**权限规则：**
+- 自己的组卷（`custom_paper.student = 当前学生`）— 允许
+- 他人的公开试卷（`custom_paper.is_public = True`）— 允许
+- 他人的私密试卷 — 拒绝，返回 403
+
+
 ### 2.2 视图流程
 
 ```python
@@ -184,7 +190,18 @@ Timer(Duration(seconds: expireIn - 60), () {
 
 ### 3.1 入口按钮
 
-保持不变：`paper_quicklook.html` 和 `paper_history.html` 中的「下载 PDF」按钮。
+在所有试卷预览页面添加「下载 PDF」按钮。**不额外消耗积分**（组卷时已扣）。
+
+| 页面 | data-db-action | 权限 |
+|------|---------------|------|
+| `paper_quicklook.html`（自己的组卷预览） | `exam.preview.downloadPdf()` | 自己的试卷 |
+| `paper_quicklook_other.html`（他人公开试卷预览） | `exam.previewOther.downloadPdf()` | 公开试卷 |
+| `paper_history.html`（我的组卷列表） | `exam.myExams.downloadPdf(id)` | 自己的试卷列表 |
+| `paper_favorites.html`（我的收藏列表） | `exam.favorites.downloadPdf(id)` | 收藏的公开试卷 |
+| `paper_explore.html`（发现组卷列表） | 由各卡片 data-db-action 处理 | 公开试卷 |
+| `homework_detail.html`（作业详情） | 待定（作业是否有试卷预览页？） | 作业关联的试卷 |
+| `recommend.html`（推荐页） | 待定（推荐结果的组卷入口） | 自己的推荐 |
+
 
 ### 3.2 点击行为
 
@@ -269,7 +286,9 @@ Future<void> downloadPdf(int paperId) async {
 | 配图存储 | Django static/ 目录 | 构建脚本同步，Flutter assets 和服务端共用同一份 |
 | 字体 | 系统字体 + 回退 | 不再打包字体，减少 App 体积 |
 | 用户引导 | 弹窗 + 不再提示 | 低频操作，引导一次后自动跳过 |
-| 入口按钮 | 保留在现有页面 | 与之前的 UI 原型一致 |
+| 入口按钮 | 全部试卷预览页 + 列表页 | 覆盖自己的组卷、公开试卷、收藏、作业、推荐 |
+| 公开试卷下载 | 允许 | 公开试卷可被任意登录学生下载 PDF |
+| PDF 下载扣分 | 不扣 | 组卷时已扣积分，PDF 是输出格式而非独立消费 |
 
 ---
 
