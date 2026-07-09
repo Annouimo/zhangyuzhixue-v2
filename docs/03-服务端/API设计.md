@@ -885,7 +885,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 }
 ```
 
-说明：`md_content` 为 `Document.md_content` 原样返回，不做解析。客户端渲染器 `parseMdContent()` 在本地按分隔符解析为分页+展开结构。
+说明：`md_content` 为 `Document.md_content` 原样返回，不做解析。客户端渲染器 `_parseMdContent()` 在本地按分隔符解析为分页+展开结构（详见 `lecture_repository.dart`）。
 
 ---
 

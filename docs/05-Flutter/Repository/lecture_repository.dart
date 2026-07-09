@@ -11,7 +11,7 @@
 /// 客户端存储：lecture_content 表镜像服务端，md_content 字段与原字段一致。
 /// 构建脚本和 API 均不做解析，直接存储/返回原始 markdown。
 ///
-/// 渲染时解析：通过 parseMdContent() 将 md_content 拆分为 pages[].blocks[]，
+/// 渲染时解析：通过 _parseMdContent() 将 md_content 拆分为 pages[].blocks[]，
 /// 结果用内存 Map 缓存（Map<int, LectureContentParsed>），避免重复解析。
 /// 解析结果不持久化到本地数据库。
 
@@ -51,21 +51,14 @@ class LectureContentParsed {
   const LectureContentParsed({required this.pages});
 }
 
-/// 将含分隔符的原始 markdown 解析为分页结构
-///
-/// 复习模式（review=true）忽略所有分隔符，将全部内容作为单页渲染。
-LectureContentParsed parseMdContent(String mdContent, {bool review = false}) {
-  if (review) {
-    return LectureContentParsed(
-      pages: [LecturePage(blocks: [mdContent])],
-    );
-  }
+// ---- 私有函数：分隔符解析，仅本文件内部调用 ----
+LectureContentParsed _parseMdContent(String mdContent) {
   final pages = mdContent
-      .split('<!-- pagebreak -->')
+      .split("<!-- pagebreak -->")
       .where((p) => p.trim().isNotEmpty)
       .map((pageMd) {
     final blocks = pageMd
-        .split('<!-- reveal -->')
+        .split("<!-- reveal -->")
         .map((b) => b.trim())
         .where((b) => b.isNotEmpty)
         .toList();
@@ -126,7 +119,7 @@ class ChapterList {
 /// 讲义 Repository
 ///
 /// 数据来源：本地 drift 表 lecture_content（镜像服务端 Document）。
-/// 本地读取 → 渲染器调用 parseMdContent() 完成结构化。
+/// 本地读取后通过 _parseMdContent() 完成结构化，结果用内存缓存。
 class LectureRepository {
   /// GET /api/lectures/courses/ 或 本地 drift course 表
   static Future<List<Course>> getCourses() async {
@@ -139,7 +132,7 @@ class LectureRepository {
   }
 
   /// 从本地 drift lecture_content 表读取该讲原始 markdown
-  /// 渲染层收到 LectureContent 后调用 parseMdContent() 解析
+  /// 渲染层收到 LectureContent 后调用 _parseMdContent() 解析
   static Future<LectureContent> getContent(int chapterId) async {
     throw UnimplementedError('LectureRepository.getContent');
   }
