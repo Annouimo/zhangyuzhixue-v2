@@ -14,11 +14,24 @@
   </div>
 
   <div class="solve-container">
-    <!-- 题目元信息 -->
+    <!-- 题目元信息 + 存档选择器 -->
     <div class="question-meta">
       第 <span>3</span> 题　
       <span>导数第 1 讲课后练习</span>
       <span class="text-secondary">[填空]</span>
+      <div class="attempt-selector" id="attempt-selector" style="display:none;">
+        <div class="attempt-trigger" id="attempt-trigger" onclick="toggleAttemptDropdown()">
+          <span id="attempt-label">第 1 次作答</span>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="attempt-dropdown" id="attempt-dropdown"></div>
+      </div>
+      <span class="attempt-badge" id="attempt-badge-single">第 1 次作答</span>
+    </div>
+
+    <!-- 回顾模式标识 -->
+    <div class="review-banner" id="review-banner" style="display:none;">
+      📋 回顾模式 · 只读浏览，不可修改
     </div>
 
     <!-- 题干 -->
@@ -55,12 +68,120 @@
   <script src="solve-utils.js"></script>
   <script>
   // =================================================================
-  //  填空题交互
+  //  填空题 — 存档切换
   // =================================================================
-  document.addEventListener('DOMContentLoaded', function() {
-    startCooldown(10, document.getElementById('reveal-btn'), document.getElementById('cooldown-text'));
+
+  var DEMO_ATTEMPTS = [
+    { id: 1, label: '第 1 次作答', completed: true, answerRevealed: true },
+    { id: 2, label: '第 2 次作答', completed: false, answerRevealed: false }
+  ];
+
+  var _currentAttemptId = 2;
+
+  function renderView() {
+    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
+    if (!att) return;
+
+    var isSingle = DEMO_ATTEMPTS.length <= 1;
+    document.getElementById('attempt-selector').style.display = isSingle ? 'none' : 'inline-block';
+    document.getElementById('attempt-badge-single').style.display = isSingle ? 'inline' : 'none';
+    document.getElementById('attempt-badge-single').textContent = att.label;
+    document.getElementById('attempt-label').textContent = att.label;
+
+    var banner = document.getElementById('review-banner');
+    var isOld = att.id < DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
+    banner.style.display = (att.completed && isOld) ? 'block' : 'none';
+
+    renderDropdown(att.id);
+
+    if (att.answerRevealed) {
+      // 回顾模式：直接显示答案
+      document.getElementById('fill-action').style.display = 'none';
+      document.getElementById('result-area').style.display = 'block';
+      document.getElementById('done-section').style.display = 'block';
+    } else {
+      // 首次模式：重置
+      document.getElementById('fill-action').style.display = 'block';
+      document.getElementById('result-area').style.display = 'none';
+      document.getElementById('done-section').style.display = 'none';
+      var btn = document.getElementById('reveal-btn');
+      var cd = document.getElementById('cooldown-text');
+      btn.disabled = true;
+      startCooldown(10, btn, cd);
+    }
+  }
+
+  function renderDropdown(activeId) {
+    var dd = document.getElementById('attempt-dropdown');
+    dd.innerHTML = '';
+    DEMO_ATTEMPTS.forEach(function(a) {
+      var opt = document.createElement('div');
+      opt.className = 'attempt-option' + (a.id === activeId ? ' active' : '');
+      var label = document.createElement('span');
+      label.textContent = a.label;
+      opt.appendChild(label);
+      var status = document.createElement('span');
+      if (a.completed) { status.className = 'opt-status review'; status.textContent = '回顾'; }
+      else if (a.id === activeId) { status.className = 'opt-status'; status.textContent = '当前'; }
+      else { status.className = 'opt-status'; status.textContent = '进行中'; }
+      opt.appendChild(status);
+      opt.onclick = function() { switchAttempt(a.id); };
+      dd.appendChild(opt);
+    });
+    var div = document.createElement('div');
+    div.className = 'attempt-divider';
+    dd.appendChild(div);
+    var newOpt = document.createElement('div');
+    newOpt.className = 'attempt-option';
+    var newLabel = document.createElement('span');
+    newLabel.textContent = '重新作答';
+    newOpt.appendChild(newLabel);
+    var newStatus = document.createElement('span');
+    newStatus.className = 'opt-status';
+    newStatus.textContent = '新存档';
+    newOpt.appendChild(newStatus);
+    newOpt.onclick = function() { createNewAttempt(); };
+    dd.appendChild(newOpt);
+  }
+
+  function switchAttempt(id) {
+    if (id === _currentAttemptId) { closeDropdown(); return; }
+    _currentAttemptId = id;
+    closeDropdown();
+    renderView();
+    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === id; });
+    if (att.completed) showToast('📋', att.label + ' · 回顾模式');
+  }
+
+  function createNewAttempt() {
+    closeDropdown();
+    var newId = DEMO_ATTEMPTS.length + 1;
+    DEMO_ATTEMPTS.push({
+      id: newId, label: '第 ' + newId + ' 次作答',
+      completed: false, answerRevealed: false
+    });
+    _currentAttemptId = newId;
+    renderView();
+    showToast('🆕', '已创建第 ' + newId + ' 次作答');
+  }
+
+  function toggleAttemptDropdown() {
+    var dd = document.getElementById('attempt-dropdown');
+    var trig = document.getElementById('attempt-trigger');
+    dd.classList.toggle('show');
+    trig.classList.toggle('open');
+    if (dd.classList.contains('show')) renderDropdown(_currentAttemptId);
+  }
+  function closeDropdown() {
+    document.getElementById('attempt-dropdown').classList.remove('show');
+    document.getElementById('attempt-trigger').classList.remove('open');
+  }
+  document.addEventListener('click', function(e) {
+    var sel = document.getElementById('attempt-selector');
+    if (sel && !sel.contains(e.target)) closeDropdown();
   });
 
+  // 交互相应
   document.getElementById('reveal-btn').addEventListener('click', function() {
     document.getElementById('fill-action').style.display = 'none';
     document.getElementById('result-area').style.display = 'block';
@@ -73,6 +194,8 @@
   function goRate() {
     location.href = 'solve-rate.html?from=solve-fill';
   }
+
+  document.addEventListener('DOMContentLoaded', renderView);
   </script>
 </body>
 </html>
