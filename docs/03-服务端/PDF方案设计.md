@@ -277,7 +277,7 @@ static Future<void> downloadPdf(int paperId) {
 | 填空线 | CSS `.fill-blank { border-bottom: 1pt solid #333; }` |
 | 分值 | 不显示 |
 | 姓名区 | 标题下方：姓名/班级/学号填空线 |
-| 页码 | 不加（浏览器打印对话框自带页码选项） |
+| 页码 | CSS `@page @bottom-center` 自动生成 |
 | 页眉页脚 | 学生在打印对话框中取消勾选即可 |
 
 ---
