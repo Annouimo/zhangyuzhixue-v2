@@ -54,7 +54,7 @@
 Authorization: Bearer <access_token>
 ```
 
-Flutter 端通过拦截器全局注入。Token 过期时返回 `code=40002`，客户端自动调用 `/api/auth/refresh/` 续期后重试。
+Flutter 端通过拦截器全局注入。Token 过期时返回 `code=40002`，客户端自动调用 `/api/v1/auth/refresh/` 续期后重试。
 
 ### 1.4 分页规范
 
@@ -96,7 +96,7 @@ Flutter 端通过拦截器全局注入。Token 过期时返回 `code=40002`，�
 ### 2.1 登录
 
 ```
-POST /api/auth/login/
+POST /api/v1/auth/login/
 ```
 
 **请求体：**
@@ -146,7 +146,7 @@ POST /api/auth/login/
 ### 2.2 注册（仅学生）
 
 ```
-POST /api/auth/register/
+POST /api/v1/auth/register/
 ```
 
 **请求体：**
@@ -184,7 +184,7 @@ POST /api/auth/register/
 ### 2.3 Token 刷新
 
 ```
-POST /api/auth/refresh/
+POST /api/v1/auth/refresh/
 ```
 
 **请求体：**
@@ -213,7 +213,7 @@ POST /api/auth/refresh/
 ### 2.4 登出
 
 ```
-POST /api/auth/logout/
+POST /api/v1/auth/logout/
 ```
 
 **说明：** JWT 无状态，服务端不做额外操作。客户端清除 SharedPreferences 中的 token 和 user 缓存即可。
@@ -227,7 +227,7 @@ POST /api/auth/logout/
 ### 3.1 题库版本检查
 
 ```
-GET /api/sync/qbank/version/
+GET /api/v1/sync/qbank/version/
 ```
 
 **说明：** 无参，无需认证（App 在登录前也可能检查版本）。
@@ -260,7 +260,7 @@ GET /api/sync/qbank/version/
 ### 3.2 讲义版本检查
 
 ```
-GET /api/sync/lecture/version/
+GET /api/v1/sync/lecture/version/
 ```
 
 **说明：** 与题库版本检查完全相同的响应格式，仅 data 含义不同。
@@ -285,7 +285,7 @@ GET /api/sync/lecture/version/
 ### 3.3 同步推送（学生端 → 服务端）
 
 ```
-POST /api/sync/push/
+POST /api/v1/sync/push/
 ```
 
 **认证：** 需要 Bearer token
@@ -362,7 +362,7 @@ POST /api/sync/push/
 客户端操作 → 写入 user.db（即时响应）
           → 追加 sync_queue 表（pending）
           → 下次启动或手动触发推送
-          → POST /api/sync/push/
+          → POST /api/v1/sync/push/
           → 服务端接收，写入 Django DB
           → 返回 server_ids
           → 客户端回填 server_id，标记 done
@@ -391,7 +391,7 @@ App 启动时 + 用户手动触发。"全部重试"按钮即遍历所有 `pendin
 ### 4.1 当前用户信息
 
 ```
-GET /api/user/me/
+GET /api/v1/user/me/
 ```
 
 **认证：** 需要 Bearer token
@@ -424,12 +424,12 @@ GET /api/user/me/
 
 **说明：**
 - 登录成功后，Flutter 端将 `user` 缓存到 SharedPreferences
-- `points_summary` 由服务端实时计算（`INSERT … ON CONFLICT` 可做到 O(1) 后计算）
+- `points_summary` 由服务端实时计算
 
 ### 4.2 更新用户信息
 
 ```
-PATCH /api/user/me/
+PATCH /api/v1/user/me/
 ```
 
 **请求体（仅传要修改的字段）：**
@@ -447,7 +447,7 @@ PATCH /api/user/me/
 ### 4.3 头像上传
 
 ```
-POST /api/user/avatar/
+POST /api/v1/user/avatar/
 ```
 
 **请求体：** `multipart/form-data`
@@ -475,7 +475,7 @@ avatar: <binary image data>
 ### 4.4 等级百分位
 
 ```
-GET /api/user/level-percentile/
+GET /api/v1/user/level-percentile/
 ```
 
 **认证：** 需要 Bearer token
@@ -508,7 +508,7 @@ GET /api/user/level-percentile/
 ### 5.1 作业列表
 
 ```
-GET /api/teacher/assignments/?page=1&page_size=20
+GET /api/v1/teacher/assignments/?page=1&page_size=20
 ```
 
 **认证：** 需要 Bearer token + user 是 teacher
@@ -544,7 +544,7 @@ GET /api/teacher/assignments/?page=1&page_size=20
 ### 5.2 发布作业
 
 ```
-POST /api/teacher/assignments/
+POST /api/v1/teacher/assignments/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -585,7 +585,7 @@ POST /api/teacher/assignments/
 ### 5.3 作业详情（按学生）
 
 ```
-GET /api/teacher/assignments/{id}/
+GET /api/v1/teacher/assignments/{id}/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -630,8 +630,8 @@ GET /api/teacher/assignments/{id}/
 ### 5.4 修改/删除作业
 
 ```
-PATCH /api/teacher/assignments/{id}/
-DELETE /api/teacher/assignments/{id}/
+PATCH /api/v1/teacher/assignments/{id}/
+DELETE /api/v1/teacher/assignments/{id}/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -641,7 +641,7 @@ DELETE /api/teacher/assignments/{id}/
 ### 5.5 作业催交
 
 ```
-POST /api/teacher/assignments/{id}/remind/
+POST /api/v1/teacher/assignments/{id}/remind/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -651,7 +651,7 @@ POST /api/teacher/assignments/{id}/remind/
 ### 5.6 班级列表
 
 ```
-GET /api/teacher/classes/
+GET /api/v1/teacher/classes/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -679,7 +679,7 @@ GET /api/teacher/classes/
 ### 5.7 学生列表
 
 ```
-GET /api/teacher/students/?search=张三&class_id=1&page=1&page_size=20
+GET /api/v1/teacher/students/?search=张三&class_id=1&page=1&page_size=20
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -718,7 +718,7 @@ GET /api/teacher/students/?search=张三&class_id=1&page=1&page_size=20
 ### 5.8 学生详情
 
 ```
-GET /api/teacher/students/{id}/
+GET /api/v1/teacher/students/{id}/
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -765,26 +765,26 @@ GET /api/teacher/students/{id}/
 
 | 方法 | 端点 | 角色 | 说明 |
 |------|------|------|------|
-| `POST` | `/api/auth/login/` | 无 | 登录 |
-| `POST` | `/api/auth/register/` | 无 | 注册 |
-| `POST` | `/api/auth/refresh/` | 无 | Token 刷新 |
-| `POST` | `/api/auth/logout/` | 任意 | 登出 |
-| `GET` | `/api/sync/qbank/version/` | 无 | 题库版本检查 |
-| `GET` | `/api/sync/lecture/version/` | 无 | 讲义版本检查 |
-| `POST` | `/api/sync/push/` | student | 同步推送 |
-| `GET` | `/api/user/me/` | 任意 | 当前用户信息 |
-| `PATCH` | `/api/user/me/` | 任意 | 更新用户信息 |
-| `POST` | `/api/user/avatar/` | 任意 | 上传头像 |
-| `GET` | `/api/user/level-percentile/` | student | 等级百分位 |
-| `GET` | `/api/teacher/assignments/` | teacher | 作业列表 |
-| `POST` | `/api/teacher/assignments/` | teacher | 发布作业 |
-| `GET` | `/api/teacher/assignments/{id}/` | teacher | 作业详情 |
-| `PATCH` | `/api/teacher/assignments/{id}/` | teacher | 修改作业 |
-| `DELETE` | `/api/teacher/assignments/{id}/` | teacher | 删除作业 |
-| `POST` | `/api/teacher/assignments/{id}/remind/` | teacher | 催交 |
-| `GET` | `/api/teacher/classes/` | teacher | 班级列表 |
-| `GET` | `/api/teacher/students/` | teacher | 学生列表 |
-| `GET` | `/api/teacher/students/{id}/` | teacher | 学生详情 |
+| `POST` | `/api/v1/auth/login/` | 无 | 登录 |
+| `POST` | `/api/v1/auth/register/` | 无 | 注册 |
+| `POST` | `/api/v1/auth/refresh/` | 无 | Token 刷新 |
+| `POST` | `/api/v1/auth/logout/` | 任意 | 登出 |
+| `GET` | `/api/v1/sync/qbank/version/` | 无 | 题库版本检查 |
+| `GET` | `/api/v1/sync/lecture/version/` | 无 | 讲义版本检查 |
+| `POST` | `/api/v1/sync/push/` | student | 同步推送 |
+| `GET` | `/api/v1/user/me/` | 任意 | 当前用户信息 |
+| `PATCH` | `/api/v1/user/me/` | 任意 | 更新用户信息 |
+| `POST` | `/api/v1/user/avatar/` | 任意 | 上传头像 |
+| `GET` | `/api/v1/user/level-percentile/` | student | 等级百分位 |
+| `GET` | `/api/v1/teacher/assignments/` | teacher | 作业列表 |
+| `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业 |
+| `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情 |
+| `PATCH` | `/api/v1/teacher/assignments/{id}/` | teacher | 修改作业 |
+| `DELETE` | `/api/v1/teacher/assignments/{id}/` | teacher | 删除作业 |
+| `POST` | `/api/v1/teacher/assignments/{id}/remind/` | teacher | 催交 |
+| `GET` | `/api/v1/teacher/classes/` | teacher | 班级列表 |
+| `GET` | `/api/v1/teacher/students/` | teacher | 学生列表 |
+| `GET` | `/api/v1/teacher/students/{id}/` | teacher | 学生详情 |
 
 ### 6.2 不需要 API 的功能（确认清单）
 
@@ -807,13 +807,22 @@ GET /api/teacher/students/{id}/
 
 ## 七、API 版本控制
 
-当前不引入 URL 前缀版本（如 `/api/v1/`）。理由：
+所有 API 端点统一使用 `/api/v1/` 前缀。理由：
 
-- 客户端与服务端同步发版（assets.db 版本号控制）
-- 兼容性破坏通常伴随 .db schema 变更（需要去商店更新 App）
-- 引入版本号会增加路由和维护复杂度
+- API 变更和 App 发版是两个节奏：App 要商店审核，API 随时可上线
+- 旧版 App 在用户手机上可能存在数周甚至数月，API 不一定能向下兼容
+- 加前缀是 Django 里 `include(prefix='v1/')` 一行的事，零维护成本
+- 行业惯例，清晰表达接口契约版本
 
-**未来若需要，策略：** 在 `/api/auth/login/` 的 `app_type` 参数旁边标注 `api_version`，或简单地在 URL 前加 `/api/v2/`。
+**示例：**
+```
+POST /api/v1/auth/login/
+GET  /api/v1/sync/qbank/version/
+POST /api/v1/sync/push/
+GET  /api/v1/teacher/assignments/
+```
+
+> 数据版本（assets.db 的 data_version）与 API 版本无关，各自独立演进。
 
 ---
 
@@ -823,12 +832,11 @@ GET /api/teacher/students/{id}/
 # math_platform/urls.py
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('accounts.urls')),
-    path('api/sync/', include('qbank.urls')),     # version check
-    path('api/sync/', include('interactions.urls')), # push
-    path('api/user/', include('accounts.urls')),
-    path('api/teacher/', include('courses.urls')),
-    path('api/teacher/', include('accounts.urls')),
+    path('api/v1/auth/', include('accounts.auth_urls')),
+    path('api/v1/sync/', include('qbank.urls')),
+    path('api/v1/sync/', include('interactions.urls')),
+    path('api/v1/user/', include('accounts.user_urls')),
+    path('api/v1/teacher/', include('courses.urls')),
 ]
 ```
 
