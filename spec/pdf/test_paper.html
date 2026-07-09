@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>试卷排版测试</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+<style>
+/* ===== 纸张 ===== */
+@page { size: A4; margin: 2.5cm 2.0cm 2.5cm 2.0cm; @bottom-center { content: "第 " counter(page) " 页 / 共 " counter(pages) " 页"; font-family: SimSun, serif; font-size: 9pt; color: #666; } }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'SimSun', 'STSong', 'Noto Serif CJK SC', serif;
+  font-size: 11pt;
+  line-height: 1.75;
+  color: #1a1a1a;
+}
+
+.paper-wrapper { padding: 0; }
+.paper { max-width: 100%; }
+
+/* ===== 标题区 ===== */
+.title-block {
+  text-align: center;
+  margin-bottom: 1.2em;
+  padding-bottom: 0.6em;
+  border-bottom: 2px solid #1a1a1a;
+}
+.paper-title {
+  font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
+  font-size: 18pt;
+  font-weight: 700;
+  letter-spacing: 2pt;
+  margin-bottom: 0.2em;
+}
+.info-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-top: 0.5em; }
+.info-table td { padding: 0.2em 0.5em; width: 33%; text-align: left; }
+.blank { display: inline-block; min-width: 6em; border-bottom: 0.5pt solid #333; margin-left: 0.3em; }
+
+/* ===== 大题区 ===== */
+.section { margin-bottom: 0.5em; }
+.section-title {
+  font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
+  font-size: 12pt;
+  font-weight: 700;
+  margin: 0.5em 0 0.3em 0;
+  padding: 0.2em 0 0.1em 0;
+  border-bottom: 0.5pt solid #999;
+}
+.score-info { font-weight: 400; font-size: 9pt; color: #666; margin-left: 0.5em; }
+
+/* ===== 分页规则 ===== */
+/* 标题+选择+填空连续编排，不分页 */
+.section-choice,
+.section-fill {
+  page-break-before: avoid;
+}
+/* 单题不跨页 */
+.question { page-break-inside: avoid; margin: 0.4em 0 0.6em 1.5em; }
+/* 解答题区整区另起一页 */
+.section-solution { page-break-before: always; }
+/* 解答题每道独立起页 */
+.section-solution .question { page-break-before: always; }
+/* 第一道解答题紧跟在标题后，不额外分页 */
+.section-solution .question:first-of-type { page-break-before: avoid; }
+
+/* ===== 题目样式 ===== */
+.qnum { float: left; width: 1.5em; margin-left: -1.5em; font-weight: 600; }
+.question::after { content: ''; display: table; clear: both; }
+.question-body p { margin: 0.15em 0; text-indent: 0; }
+.question-body::after { content: ''; display: table; clear: both; }
+.choice { margin: 0.1em 0 0.1em 1em; font-size: 10.5pt; }
+
+/* ===== 配图 ===== */
+.figure { float: right; margin: 0.5em 0 0.5em 1em; }
+.figure img { max-width: 180px; height: auto; }
+
+/* ===== 书写区（解答题留白） ===== */
+.writing-area { min-height: 300px; }
+
+/* ===== KaTeX ===== */
+.katex { font-size: 1.08em; }
+.fill-blank { display: inline-block; min-width: 6em; border-bottom: 1pt solid #333; margin: 0 0.2em; }
+.katex-display { margin: 0.3em 0; text-align: center; }
+
+@media print {
+  h2.section-title { page-break-after: avoid; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+</head>
+<body>
+<div class="paper-wrapper">
+<div class="paper">
+
+<!-- ============================================================ -->
+<!-- 标题区 -->
+<!-- ============================================================ -->
+<div class="title-block">
+  <h1 class="paper-title">2025 年北京高考数学模拟试卷</h1>
+  <p class="paper-subtitle">排版效果测试 · 学生卷</p>
+  <table class="info-table">
+    <tr>
+      <td>姓名：<span class="blank">&nbsp;</span></td>
+      <td>班级：<span class="blank">&nbsp;</span></td>
+      <td>学号：<span class="blank">&nbsp;</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 一、选择题（连续编排） -->
+<!-- ============================================================ -->
+<div class="section section-choice">
+  <h2 class="section-title">一、选择题</h2>
+
+  <div class="question">
+    <span class="qnum">1.</span>
+    <div class="question-body">
+      <p>已知集合 $A = \{x \mid x^2 - 3x + 2 \leq 0\}$，$B = \{x \mid \log_2 x > 0\}$，则 $A \cap B =$（　　）</p>
+      <div class="choice"><strong>(A)</strong> $[1, 2]$</div>
+      <div class="choice"><strong>(B)</strong> $(1, 2]$</div>
+      <div class="choice"><strong>(C)</strong> $[1, +\infty)$</div>
+      <div class="choice"><strong>(D)</strong> $(1, +\infty)$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">2.</span>
+    <div class="question-body">
+      <p>若复数 $z$ 满足 $z(1 + i) = 2i$，则 $z$ 的共轭复数为（　　）</p>
+      <div class="choice"><strong>(A)</strong> $1 + i$</div>
+      <div class="choice"><strong>(B)</strong> $1 - i$</div>
+      <div class="choice"><strong>(C)</strong> $-1 + i$</div>
+      <div class="choice"><strong>(D)</strong> $-1 - i$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">3.</span>
+    <div class="question-body">
+      <p>在 $\triangle ABC$ 中，$\sin A : \sin B : \sin C = 3 : 5 : 7$，则 $\cos C =$（　　）</p>
+      <div class="choice"><strong>(A)</strong> $\dfrac{1}{2}$</div>
+      <div class="choice"><strong>(B)</strong> $-\dfrac{1}{2}$</div>
+      <div class="choice"><strong>(C)</strong> $\dfrac{1}{3}$</div>
+      <div class="choice"><strong>(D)</strong> $-\dfrac{1}{3}$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">4.</span>
+    <div class="question-body">
+      <p>已知函数 $f(x) = \ln(x^2 + 1)$，则 $f'(x) =$（　　）</p>
+      <div class="choice"><strong>(A)</strong> $\dfrac{2x}{x^2 + 1}$</div>
+      <div class="choice"><strong>(B)</strong> $\dfrac{1}{x^2 + 1}$</div>
+      <div class="choice"><strong>(C)</strong> $\dfrac{2}{x^2 + 1}$</div>
+      <div class="choice"><strong>(D)</strong> $\dfrac{x}{x^2 + 1}$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">5.</span>
+    <div class="question-body">
+      <p>设 $a = \log_2 3$，$b = \log_4 5$，$c = \log_8 9$，则 $a, b, c$ 的大小关系为（　　）</p>
+      <div class="choice"><strong>(A)</strong> $a > b > c$</div>
+      <div class="choice"><strong>(B)</strong> $a > c > b$</div>
+      <div class="choice"><strong>(C)</strong> $c > a > b$</div>
+      <div class="choice"><strong>(D)</strong> $c > b > a$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">6.</span>
+    <div class="question-body">
+      <p>已知 $\tan \alpha = 2$，则 $\dfrac{\sin 2\alpha + \cos 2\alpha}{1 + \cos^2 \alpha} =$（　　）</p>
+      <div class="choice"><strong>(A)</strong> $\dfrac{3}{5}$</div>
+      <div class="choice"><strong>(B)</strong> $\dfrac{4}{5}$</div>
+      <div class="choice"><strong>(C)</strong> $1$</div>
+      <div class="choice"><strong>(D)</strong> $\dfrac{6}{5}$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">7.</span>
+    <div class="question-body">
+      <p>函数 $f(x) = \sin\left(2x - \dfrac{\pi}{3}\right)$ 在 $\left[0, \dfrac{\pi}{2}\right]$ 上的单调递增区间为（　　）</p>
+      <div class="choice"><strong>(A)</strong> $\left[0, \dfrac{5\pi}{12}\right]$</div>
+      <div class="choice"><strong>(B)</strong> $\left[\dfrac{\pi}{6}, \dfrac{2\pi}{3}\right]$</div>
+      <div class="choice"><strong>(C)</strong> $\left[0, \dfrac{\pi}{3}\right]$ 和 $\left[\dfrac{5\pi}{12}, \dfrac{\pi}{2}\right]$</div>
+      <div class="choice"><strong>(D)</strong> $\left[\dfrac{\pi}{6}, \dfrac{5\pi}{12}\right]$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">8.</span>
+    <div class="question-body">
+      <p>已知数列 $\{a_n\}$ 的前 $n$ 项和为 $S_n$，且 $S_n = 2a_n - 1$，则 $\displaystyle\sum_{k=1}^{10} a_k =$（　　）</p>
+      <div class="choice"><strong>(A)</strong> $1023$</div>
+      <div class="choice"><strong>(B)</strong> $1024$</div>
+      <div class="choice"><strong>(C)</strong> $2047$</div>
+      <div class="choice"><strong>(D)</strong> $2048$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">9.</span>
+    <div class="question-body">
+      <p>配图题：如图，在正方体 $ABCD - A_1B_1C_1D_1$ 中，$E$ 为 $CC_1$ 的中点，则异面直线 $AE$ 与 $BD$ 所成角的余弦值为（　　）</p>
+      <div class="figure"><img src="./images/q14.webp" alt="正方体示意图"></div>
+      <div class="choice"><strong>(A)</strong> $\dfrac{\sqrt{3}}{3}$</div>
+      <div class="choice"><strong>(B)</strong> $\dfrac{\sqrt{6}}{3}$</div>
+      <div class="choice"><strong>(C)</strong> $\dfrac{\sqrt{2}}{2}$</div>
+      <div class="choice"><strong>(D)</strong> $\dfrac{1}{2}$</div>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">10.</span>
+    <div class="question-body">
+      <p>设函数 $f(x) = \begin{cases} 2^x - 1, & x \leq 0 \\ \ln x, & x > 0 \end{cases}$，若 $f(a) + f(1) = 0$，则 $a$ 的值为（　　）</p>
+      <div class="choice"><strong>(A)</strong> $-1$</div>
+      <div class="choice"><strong>(B)</strong> $-\dfrac{1}{2}$</div>
+      <div class="choice"><strong>(C)</strong> $\dfrac{1}{2}$</div>
+      <div class="choice"><strong>(D)</strong> $1$</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 二、填空题（接续编排） -->
+<!-- ============================================================ -->
+<div class="section section-fill">
+  <h2 class="section-title">二、填空题</h2>
+
+  <div class="question">
+    <span class="qnum">11.</span>
+    <div class="question-body">
+      <p>在 $(2x - 1)^6$ 的展开式中，$x^3$ 的系数为 <span class="fill-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>（用数字作答）。</p>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">12.</span>
+    <div class="question-body">
+      <p>已知双曲线 $\dfrac{x^2}{a^2} - \dfrac{y^2}{b^2} = 1$（$a > 0, b > 0$）的离心率为 $\sqrt{3}$，则该双曲线的渐近线方程为 <span class="fill-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</p>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">13.</span>
+    <div class="question-body">
+      <p>已知向量 $\vec{a} = (1, 2)$，$\vec{b} = (2, -1)$，若 $\vec{a} \perp (\vec{a} + \lambda \vec{b})$，则 $\lambda = $ <span class="fill-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</p>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">14.</span>
+    <div class="question-body">
+      <p>函数 $f(x) = \dfrac{\ln x}{x}$ 在区间 $(0, +\infty)$ 上的最大值为 <span class="fill-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</p>
+    </div>
+  </div>
+
+  <div class="question">
+    <span class="qnum">15.</span>
+    <div class="question-body">
+      <p>$AB$ 是圆 $O$ 的直径，点 $C$ 在圆上，$CD \perp AB$ 于点 $D$。若 $AD = 2$，$DB = 8$，则 $CD = $ <span class="fill-blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 三、解答题（另起一页，每题独立起页） -->
+<!-- ============================================================ -->
+<div class="section section-solution">
+  <h2 class="section-title">三、解答题</h2>
+
+  <!-- 第16题 -->
+  <div class="question">
+    <span class="qnum">16.</span>
+    <div class="question-body">
+      <p>在 $\triangle ABC$ 中，角 $A, B, C$ 所对的边分别为 $a, b, c$，且满足 $b\cos C + c\cos B = 2a\cos A$。</p>
+      <p>（1）求角 $A$ 的大小；</p>
+      <p>（2）若 $a = 2\sqrt{3}$，$b = 2$，求 $\triangle ABC$ 的面积。</p>
+    </div>
+    <div class="writing-area"></div>
+  </div>
+
+  <!-- 第17题 -->
+  <div class="question">
+    <span class="qnum">17.</span>
+    <div class="question-body">
+      <p>如图，在四棱锥 $P - ABCD$ 中，底面 $ABCD$ 是正方形，$PA \perp$ 平面 $ABCD$，$PA = AB = 2$，$E$ 为 $PC$ 的中点。</p>
+      <p>（1）求证：$BD \perp$ 平面 $PAC$；</p>
+      <p>（2）求直线 $BE$ 与平面 $PAD$ 所成角的正弦值。</p>
+      <div class="figure"><img src="./images/q17.webp" alt="四棱锥示意图"></div>
+    </div>
+    <div class="writing-area"></div>
+  </div>
+
+  <!-- 第18题（复杂公式验证） -->
+  <div class="question">
+    <span class="qnum">18.</span>
+    <div class="question-body">
+      <p>已知函数 $f(x) = x^3 - 3ax^2 + 3bx + c$ 在 $x = 1$ 处取得极大值 $2$，在 $x = 2$ 处取得极小值。</p>
+      <p>（1）求 $a, b, c$ 的值；</p>
+      <p>（2）若函数 $g(x) = f(x) - m$ 有三个不同的零点，求实数 $m$ 的取值范围。</p>
+    </div>
+    <div class="writing-area"></div>
+  </div>
+
+  <!-- 第19题（矩阵+复杂公式） -->
+  <div class="question">
+    <span class="qnum">19.</span>
+    <div class="question-body">
+      <p>设椭圆 $C: \dfrac{x^2}{a^2} + \dfrac{y^2}{b^2} = 1$（$a > b > 0$）的左、右焦点分别为 $F_1, F_2$，离心率为 $\dfrac{\sqrt{2}}{2}$，点 $P\left(1, \dfrac{\sqrt{2}}{2}\right)$ 在椭圆上。</p>
+      <p>（1）求椭圆 $C$ 的方程；</p>
+      <p>（2）过点 $F_2$ 的直线 $l$ 与椭圆 $C$ 交于 $A, B$ 两点，若 $\triangle AF_1B$ 的面积为 $\dfrac{4\sqrt{6}}{5}$，求直线 $l$ 的方程。</p>
+    </div>
+    <div class="writing-area"></div>
+  </div>
+
+  <!-- 第20题（高级LaTeX验证） -->
+  <div class="question">
+    <span class="qnum">20.</span>
+    <div class="question-body">
+      <p>已知数列 $\{a_n\}$ 满足 $a_1 = 1$，$a_{n+1} = \dfrac{a_n}{a_n + 2}$。</p>
+      <p>（1）证明：数列 $\left\{\dfrac{1}{a_n} + 1\right\}$ 是等比数列；</p>
+      <p>（2）求数列 $\{a_n\}$ 的通项公式及前 $n$ 项和 $S_n$。</p>
+      <p>（3）证明：$\displaystyle\sum_{k=1}^{n} \dfrac{1}{a_k + 2} > \dfrac{n}{3}$ 对一切 $n \in \mathbb{N}^*$ 成立。</p>
+    </div>
+    <div class="writing-area"></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 验证说明（打印前删除此行） -->
+<!-- ============================================================ -->
+<div style="margin-top: 20px; padding: 10px; background: #f0f0f0; font-size: 9pt; page-break-before: avoid;">
+  <strong>PDF 验证清单：</strong><br>
+  □ 标题区正确（姓名/班级/学号填空线）<br>
+  □ 选择题 10 题连续编排，无额外分页<br>
+  □ 填空题 5 题连续编排，紧接选择题之后<br>
+  □ 选择题/填空题单题不跨页（page-break-inside: avoid）<br>
+  □ 解答题区从全新一页开始<br>
+  □ 第16题紧跟"三、解答题"标题<br>
+  □ 第17-20题每道独立起页<br>
+  □ 每道解答题下方留有至少 300px 书写区<br>
+  □ 配图正常显示（q14.webp, q17.webp）<br>
+  □ 行内公式 $...$ 渲染正确<br>
+  □ 块级公式 $$...$$ 渲染正确<br>
+  □ \begin{cases} 环境渲染正确（第10题）<br>
+  □ \displaystyle 渲染正确（第8题、第20题）<br>
+  □ \mathbb{N}^* 渲染正确（第20题）<br>
+  □ 中文+公式混排行高正常<br>
+  □ 纸张为 A4（210×297mm）
+</div>
+
+</body>
+</html>
