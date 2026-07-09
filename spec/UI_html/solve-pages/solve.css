@@ -210,6 +210,28 @@
   margin-top: 8px;
 }
 
+/* ====== 首次进入视图（全新存档） ====== */
+.fresh-welcome {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+.fresh-welcome .fresh-icon { font-size: 48px; margin-bottom: 12px; }
+.fresh-welcome .fresh-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.fresh-welcome .fresh-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
 /* =====================================================================
  *  解题地图页（solve-map.html）
  * ===================================================================== */

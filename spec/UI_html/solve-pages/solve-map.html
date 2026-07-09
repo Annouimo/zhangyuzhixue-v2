@@ -19,7 +19,6 @@
       第 <span>3</span> 题　
       <span>导数第 1 讲课后练习</span>
       <span class="text-secondary">[解答]</span>
-      <!-- 存档选择器 -->
       <div class="attempt-selector" id="attempt-selector" style="display:none;">
         <div class="attempt-trigger" id="attempt-trigger" onclick="toggleAttemptDropdown()">
           <span id="attempt-label">第 1 次作答</span>
@@ -27,7 +26,6 @@
         </div>
         <div class="attempt-dropdown" id="attempt-dropdown"></div>
       </div>
-      <!-- 单存档时显示普通 badge -->
       <span class="attempt-badge" id="attempt-badge-single">第 1 次作答</span>
     </div>
 
@@ -50,8 +48,18 @@
       </div>
     </div>
 
-    <!-- 解题流程树 -->
+    <!-- 解题流程树（有进度时显示） -->
     <div id="map-tree"></div>
+
+    <!-- 首次进入视图（全新存档，无进度时显示） -->
+    <div id="map-fresh-view" style="display:none;">
+      <div class="fresh-welcome">
+        <div class="fresh-icon">📝</div>
+        <div class="fresh-title">准备开始答题</div>
+        <div class="fresh-desc">本题为解答题，共 2 小问，支持多种解法。<br>点击下方按钮开始你的首次作答。</div>
+        <button class="btn btn-primary" onclick="startFirstStep()" style="margin-top:12px;">开始答题 ▶</button>
+      </div>
+    </div>
 
     <!-- 地图底栏 -->
     <div class="map-footer">
@@ -66,13 +74,13 @@
   <script src="solve-utils.js"></script>
   <script>
   // =================================================================
-  //  解题地图 — 存档切换
+  //  解题地图 — 存档切换 + 首次/有进度双视图
   // =================================================================
 
   // ============ 模拟数据 ============
   var DEMO_ATTEMPTS = [
     {
-      id: 1, label: '第 1 次作答', completed: true,
+      id: 1, label: '第 1 次作答', completed: true, started: true,
       subQuestions: [
         { index: 1, completed: true, statusLabel: '完全掌握',
           methods: [
@@ -104,7 +112,7 @@
       ]
     },
     {
-      id: 2, label: '第 2 次作答', completed: true,
+      id: 2, label: '第 2 次作答', completed: true, started: true,
       subQuestions: [
         { index: 1, completed: true, statusLabel: '已完成',
           methods: [
@@ -136,7 +144,7 @@
       ]
     },
     {
-      id: 3, label: '第 3 次作答', completed: false,
+      id: 3, label: '第 3 次作答', completed: false, started: true,
       subQuestions: [
         { index: 1, completed: false, statusLabel: '进行中...',
           methods: [
@@ -166,10 +174,47 @@
           ]
         }
       ]
+    },
+    {
+      id: 4, label: '第 4 次作答', completed: false, started: false,
+      subQuestions: [
+        { index: 1, completed: false, statusLabel: '待开始',
+          methods: [
+            { name: '余弦定理法', allStepsDone: false,
+              steps: [
+                { order: 1, title: '', state: 'untried' },
+                { order: 2, title: '', state: 'locked' },
+                { order: 3, title: '', state: 'locked' }
+              ]
+            },
+            { name: '向量法', allStepsDone: false,
+              steps: [
+                { order: 1, title: '', state: 'untried' },
+                { order: 2, title: '', state: 'locked' }
+              ]
+            }
+          ]
+        },
+        { index: 2, completed: false, statusLabel: '🔒',
+          methods: [
+            { name: '', allStepsDone: false,
+              steps: [
+                { order: 1, title: '', state: 'locked' },
+                { order: 2, title: '', state: 'locked' }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ];
 
-  var _currentAttemptId = 3;  // 默认显示最新的
+  var _currentAttemptId = 4;  // 默认显示最新的（第 4 次 = 全新）
+
+  // ============ 判断是否全新存档 ============
+  function isFreshAttempt(att) {
+    return !att.started;
+  }
 
   // ============ 渲染 ============
   function renderMap() {
@@ -194,8 +239,14 @@
     // 构建下拉菜单
     renderDropdown(att.id);
 
-    // 渲染树
-    renderTree(att);
+    // 判断显示首次视图还是树
+    var fresh = isFreshAttempt(att);
+    document.getElementById('map-tree').style.display = fresh ? 'none' : 'block';
+    document.getElementById('map-fresh-view').style.display = fresh ? 'block' : 'none';
+
+    if (!fresh) {
+      renderTree(att);
+    }
   }
 
   function renderDropdown(activeId) {
@@ -209,24 +260,19 @@
       opt.appendChild(label);
       var status = document.createElement('span');
       if (a.completed) {
-        status.className = 'opt-status review';
-        status.textContent = '回顾';
-      } else if (a.id === activeId) {
-        status.className = 'opt-status';
-        status.textContent = '当前';
+        status.className = 'opt-status review'; status.textContent = '回顾';
+      } else if (a.started) {
+        status.className = 'opt-status'; status.textContent = a.id === activeId ? '当前' : '进行中';
       } else {
-        status.className = 'opt-status';
-        status.textContent = '进行中';
+        status.className = 'opt-status'; status.textContent = '未开始';
       }
       opt.appendChild(status);
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    // 分割线
     var div = document.createElement('div');
     div.className = 'attempt-divider';
     dd.appendChild(div);
-    // 重新作答
     var newOpt = document.createElement('div');
     newOpt.className = 'attempt-option';
     var newLabel = document.createElement('span');
@@ -247,11 +293,10 @@
       var section = document.createElement('div');
       section.className = 'subq-section';
 
-      // header
       var hdr = document.createElement('div');
       hdr.className = 'subq-header';
       if (sq.completed) hdr.classList.add('completed');
-      else if (!sq.completed && sq.methods.some(function(m) { return m.steps.some(function(s) { return s.state === 'in-progress' || s.state === 'done'; }); }))
+      else if (sq.methods.some(function(m) { return m.steps.some(function(s) { return s.state === 'in-progress' || s.state === 'done'; }); }))
         hdr.classList.add('active');
       else
         hdr.classList.add('locked');
@@ -266,11 +311,9 @@
       hdr.appendChild(st);
       section.appendChild(hdr);
 
-      // methods
       sq.methods.forEach(function(m) {
         var mr = document.createElement('div');
         mr.className = 'method-row';
-
         var mhdr = document.createElement('div');
         mhdr.className = 'method-header';
         mhdr.onclick = function() {
@@ -288,7 +331,6 @@
         mhdr.appendChild(ms);
         mr.appendChild(mhdr);
 
-        // step list
         var sl = document.createElement('ul');
         sl.className = 'step-list';
         m.steps.forEach(function(s) {
@@ -297,7 +339,6 @@
           sn.className = 'step-node';
           sn.href = 'solve-step.html';
 
-          // dot
           var dot = document.createElement('span');
           dot.className = 'step-dot ' + s.state;
           if (s.state === 'done') dot.textContent = '✓';
@@ -308,7 +349,7 @@
 
           var stitle = document.createElement('span');
           stitle.className = 'step-title';
-          stitle.textContent = s.title;
+          stitle.textContent = s.title || '第 ' + s.order + ' 步';
           sn.appendChild(stitle);
 
           var arrow = document.createElement('span');
@@ -331,44 +372,50 @@
         mr.appendChild(sl);
         section.appendChild(mr);
       });
-
       container.appendChild(section);
     });
   }
 
+  // ============ 首次开始答题 ============
+  function startFirstStep() {
+    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
+    if (!att) return;
+    // 标记已开始，进入第 1 小问第 1 个可用解法的第 1 步
+    att.started = true;
+    att.subQuestions[0].statusLabel = '进行中...';
+    att.subQuestions[0].methods[0].steps[0].state = 'in-progress';
+    renderMap();
+    // 跳转到第一步详情
+    goStep(1, att.subQuestions[0].methods[0].name || '', 1);
+  }
+
   // ============ 切换存档 ============
   function switchAttempt(id) {
-    if (id === _currentAttemptId) {
-      closeDropdown();
-      return;
-    }
+    if (id === _currentAttemptId) { closeDropdown(); return; }
     _currentAttemptId = id;
     closeDropdown();
     renderMap();
-
     var att = DEMO_ATTEMPTS.find(function(a) { return a.id === id; });
-    if (att.completed) {
-      showToast('📋', att.label + ' · 回顾模式');
-    }
+    if (att.completed) showToast('📋', att.label + ' · 回顾模式');
   }
 
   function createNewAttempt() {
     closeDropdown();
     var newId = DEMO_ATTEMPTS.length + 1;
-    // 模拟从当前状态新建一个草稿
-    var last = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1];
-    var newAtt = JSON.parse(JSON.stringify(last));
+    var template = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1];
+    var newAtt = JSON.parse(JSON.stringify(template));
     newAtt.id = newId;
     newAtt.label = '第 ' + newId + ' 次作答';
     newAtt.completed = false;
-    // 重置所有步骤
-    newAtt.subQuestions.forEach(function(sq) {
+    newAtt.started = false;
+    newAtt.subQuestions.forEach(function(sq, si) {
       sq.completed = false;
-      sq.statusLabel = sq.index === 1 ? '进行中...' : '🔒 未解锁';
+      sq.statusLabel = si === 0 ? '待开始' : '🔒';
       sq.methods.forEach(function(m) {
         m.allStepsDone = false;
-        m.steps.forEach(function(s, si) {
-          if (si === 0) s.state = 'untried';
+        m.steps.forEach(function(s, si2) {
+          s.title = '';
+          if (si2 === 0) s.state = 'untried';
           else s.state = 'locked';
         });
       });
@@ -376,7 +423,7 @@
     DEMO_ATTEMPTS.push(newAtt);
     _currentAttemptId = newId;
     renderMap();
-    showToast('🆕', '已创建' + newAtt.label);
+    showToast('🆕', '已创建' + newAtt.label + '，全新未开始');
   }
 
   // ============ 下拉菜单 ============
@@ -386,15 +433,12 @@
     var isOpen = dd.classList.contains('show');
     dd.classList.toggle('show');
     trig.classList.toggle('open');
-    if (!isOpen) {
-      renderDropdown(_currentAttemptId);
-    }
+    if (!isOpen) renderDropdown(_currentAttemptId);
   }
   function closeDropdown() {
     document.getElementById('attempt-dropdown').classList.remove('show');
     document.getElementById('attempt-trigger').classList.remove('open');
   }
-  // 点击外部关闭
   document.addEventListener('click', function(e) {
     var sel = document.getElementById('attempt-selector');
     if (sel && !sel.contains(e.target)) closeDropdown();
