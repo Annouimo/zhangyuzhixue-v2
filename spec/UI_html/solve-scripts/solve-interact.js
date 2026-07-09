@@ -12,6 +12,12 @@ function activateBranch(type, skipCooldown) {
   });
   _cooldownTimers = {};
 
+  // 清理步骤冷却
+  Object.keys(_stepCooldowns).forEach(function(k) {
+    clearInterval(_stepCooldowns[k].timer);
+  });
+  _stepCooldowns = {};
+
   document.querySelectorAll('.branch-container').forEach(function(el) {
     el.classList.remove('active');
   });
@@ -96,6 +102,12 @@ function resetFillState() {
 }
 
 function resetSolveState() {
+  // 清理步骤冷却
+  Object.keys(_stepCooldowns).forEach(function(k) {
+    clearInterval(_stepCooldowns[k].timer);
+  });
+  _stepCooldowns = {};
+
   _goToDoneFired = false;
   solve = {
     currentSubQIndex: 1,
@@ -107,7 +119,7 @@ function resetSolveState() {
   };
   initStepStates();
   document.getElementById('congrats-section').style.display = 'none';
-  document.getElementById('subq-complete-toast').style.display = 'none';
+  document.getElementById('subq-complete-banner').style.display = 'none';
   document.getElementById('subq-locked-placeholder').style.display = 'none';
   renderSubQTabs();
   renderMethodToggle();
@@ -188,6 +200,7 @@ function reconstructFromPreviousState(state) {
         var hasFeedback = step.feedbackGiven;
         solve.stepState[key] = {
           card: true, content: hasFeedback, arrowHidden: hasFeedback, feedbackGiven: hasFeedback,
+          cooldownStarted: hasFeedback,  // 已展开的步骤不再需要冷却
         };
       });
     });
@@ -200,6 +213,7 @@ function reconstructFromPreviousState(state) {
   renderSubQTabs();
   renderMethodToggle();
   renderSteps();
+  renderCompleteBanner();
 
   if (allDone) {
     _goToDoneFired = true;
@@ -222,15 +236,30 @@ function onArrow(key) {
 
   var cards = getStepsFor(idx, method);
   var cardEl = cards[order - 1];
+  if (!cardEl) return;
+
+  // 冷却保护：按钮 disabled 时不可点击
+  var btn = cardEl.querySelector('.next-btn');
+  if (btn && btn.disabled) return;
+
+  // 展开步骤内容和反馈行
+  var content = cardEl.querySelector('.step-content');
+  var feedback = cardEl.querySelector('.feedback-row');
+  var arrow = cardEl.querySelector('.next-btn');
+  if (content) content.style.display = 'block';
+  if (feedback) feedback.style.display = 'flex';
+  st.content = true;
+  if (arrow) arrow.style.display = 'none';
+  st.arrowHidden = true;
+
+  // 清除该步骤的冷却状态
+  if (_stepCooldowns[key]) {
+    clearInterval(_stepCooldowns[key].timer);
+    delete _stepCooldowns[key];
+  }
   if (cardEl) {
-    var content = cardEl.querySelector('.step-content');
-    var feedback = cardEl.querySelector('.feedback-row');
-    var arrow = cardEl.querySelector('.next-btn');
-    if (content) content.style.display = 'block';
-    if (feedback) feedback.style.display = 'flex';
-    st.content = true;
-    if (arrow) arrow.style.display = 'none';
-    st.arrowHidden = true;
+    var cdText = cardEl.querySelector('.cooldown-text');
+    if (cdText) cdText.style.display = 'none';
   }
 }
 
@@ -269,6 +298,14 @@ function selectFeedback(key, type) {
     if (newlyCompleted) solve.completedSubQs[idx] = true;
     renderSubQTabs();
 
+    // 持久横幅：当前小问完成
+    var banner = document.getElementById('subq-complete-banner');
+    if (newlyCompleted) {
+      var sqLabel = SUB_QUESTIONS.find(function(s) { return s.index === idx; });
+      banner.textContent = '✅ 第' + sqLabel.label + '问已完成';
+      banner.style.display = 'block';
+    }
+
     var allDone = SUB_QUESTIONS.every(function(sq) {
       return !!solve.completedSubQs[sq.index];
     });
@@ -282,13 +319,8 @@ function selectFeedback(key, type) {
       var currentPos = solve.subQOrder.indexOf(idx);
       if (currentPos >= 0 && currentPos < solve.subQOrder.length - 1) {
         var nextIdx = solve.subQOrder[currentPos + 1];
-        var toast = document.getElementById('subq-complete-toast');
-        var sqLabel = SUB_QUESTIONS.find(function(s) { return s.index === idx; });
-        toast.textContent = '🎉 第' + sqLabel.label + '完成！继续第' +
-          SUB_QUESTIONS.find(function(s) { return s.index === nextIdx; }).label;
-        toast.style.display = 'block';
+        // 横幅已经持久显示，仅自动跳转到下一问
         setTimeout(function() {
-          toast.style.display = 'none';
           switchSubQuestion(nextIdx);
           scrollToSteps();
         }, 1500);
