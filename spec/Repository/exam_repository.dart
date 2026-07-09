@@ -433,20 +433,15 @@ class _ExamFilterEngine {
 class _ExamGenerator {
 }
 
-/// PDF 生成
+/// PDF 打印（服务端 HTML → 浏览器打印）
 ///
-/// 设计已定稿，详见 spec/pdf/README.md。
+/// 设计详见 spec/pdf/README.md。
 ///
-/// 关键决策（客户端方案）：
-///   1. 客户端 HTML+KaTeX → 浏览器 PDF（不走服务端，不消耗 3Mbps 带宽）
-///   2. 数据类已迁至 spec/pdf/pdf_exam_input.dart
-///   3. 实现位置：lib/services/pdf/（独立文件夹，不与 Repository 耦合）
+/// 本类已废弃。PDF 生成改为服务端方案：
+///   1. Flutter 端调 /api/pdf/request-token 获取临时 URL
+///   2. url_launcher 打开系统浏览器到 Django 页面
+///   3. 用户在浏览器中打印/另存为 PDF
 ///
-/// 数据流：
-///   ExamRepository.downloadPdf(id)
-///     → PdfExamInputBuilder.fromPaper(id) → PdfExamInput
-///     → PdfExamService.buildPdf(input) → Uint8List
-///
-/// 本类保留为占位，编码阶段替换为对 PdfExamService 的调用。
+/// 编码阶段本类删除，downloadPdf() 改为弹窗引导 + url_launcher。
 class _ExamPdfService {
 }
