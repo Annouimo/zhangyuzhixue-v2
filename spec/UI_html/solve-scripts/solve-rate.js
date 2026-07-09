@@ -8,6 +8,7 @@ var ratings = {
   elegance: 0,
 };
 var submitted = false;
+var fromPage = null;
 
 function getStars(dim) {
   return document.querySelectorAll('.star-rating[data-dim="' + dim + '"] .star');
@@ -63,6 +64,7 @@ function submitRating() {
 
 // 让 star 响应 hover
 document.addEventListener('DOMContentLoaded', function() {
+  fromPage = new URLSearchParams(window.location.search).get('from');
   document.querySelectorAll('.star').forEach(function(s) {
     s.addEventListener('mouseenter', function() { hoverStar(this); });
   });

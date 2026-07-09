@@ -241,11 +241,11 @@ function goToDone() {
 }
 
 function goNext() {
-  showToast('📝', '已进入下一题（Flutter 中执行路由跳转）');
+  showToast('📝', '进入下一题（Flutter 中执行路由跳转）');
 }
 
 function goRate() {
-  showToast('⭐', '跳转评分页（Flutter 中路由到评分页）');
+  location.href = 'solve-rate.html?from=solve-solve';
 }
 
 // =================================================================
