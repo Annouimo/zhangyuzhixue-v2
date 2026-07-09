@@ -1,5 +1,11 @@
 # 讲义 API 设计说明
 
+> ⚠️ **废弃标记**：本文档中的「版本更新检查」增量拉取方案已废弃。
+> 讲义内容现已拆分到独立的 `lectures.db`，版本检查走统一 `GET /api/sync/lecture/version` API，整体下载 .db 文件替换。
+> 详见 `docs/本地数据方案.md#二更新机制`。
+>
+> 其余内容（数据流、分隔符约定、客户端解析逻辑、本地表结构）仍为有效设计。
+
 ## 数据流（方案 B）
 
 ```
@@ -108,18 +114,7 @@ CREATE TABLE lecture_content (
 - API 同步时同样写入此表（覆盖 `chapter_id` 匹配的行）
 - 读取时 `SELECT ... WHERE chapter_id = ?`
 
-## 版本更新检查
+## ~~版本更新检查~~（已废弃）
 
-```
-客户端版本: lecture_content 表中每条记录的 updated_at
-服务端版本: GET /api/lectures/version/
-  响应: [{"chapter_id": 1, "updated_at": "2026-07-01T10:00:00Z"}, ...]
-
-比对逻辑:
-  1. 遍历服务端版本列表
-  2. 本地缺少的 chapter_id → 加入下载队列
-  3. 本地 updated_at 更旧的 → 加入下载队列
-  4. 下载后更新本地 lecture_content 表
-```
-
-下载时机：打开讲义页面时静默检查（不影响首屏展示），有更新时静默写入。
+> 此增量拉取方案已废弃，见文档顶部废弃说明。
+> 本地 lecture_content 表仍然存在，数据改为随 lectures.db 整体下载替换。

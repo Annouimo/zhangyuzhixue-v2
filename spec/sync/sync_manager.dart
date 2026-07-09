@@ -94,28 +94,25 @@ class SyncManager {
     );
   }
 
-  /// App 启动时调用：推送待同步数据 + 检查题库版本
+  /// App 启动时调用：推送待同步数据 + 检查版本
   ///
   /// 放在 App 初始化流程的最后一步：
   /// ```dart
   /// await SyncManager().onAppStart();
   /// ```
+  ///
+  /// 版本检查逻辑详见 docs/本地数据方案.md#二更新机制：
+  /// 1. 并发 GET /api/sync/qbank/version 和 GET /api/sync/lecture/version
+  /// 2. 按 force_update + 版本窗口规则决定是否提示用户下载新版 .db
   Future<void> onAppStart() async {
     _ensureInitialized();
 
     // 1. 推送本地积压的待同步记录
     final pushResult = await pushNow();
 
-    // 2. 检查题库版本（静默，失败不阻断）
-    // 定稿后替换为：
-    // try {
-    //   final version = await _api.checkVersion();
-    //   if (version.version > localVersion && version.forceUpdate) {
-    //     // 引导去商店更新
-    //   }
-    // } catch (_) {
-    //   // 版本检查失败不影响 App 使用
-    // }
+    // 2. 检查题库和讲义版本（定稿后实现）
+    // 另见 spec/sync/sync_types.dart 中扩展后的 VersionStatus 类
+    // 新增字段：schemaVersion, dataVersion, downloadUrl, checksum, sizeBytes
   }
 
   /// 手动触发推送（UI 下拉刷新时调用）

@@ -154,20 +154,47 @@ class PushBatchResult {
 }
 
 /// 版本检查响应
+///
+/// 详见 docs/本地数据方案.md#二更新机制
 class VersionStatus {
-  final int version;
+  /// 数据库结构版本（Flutter 端硬编码，不匹配时强制去商店更新 App）
+  final int schemaVersion;
+
+  /// 数据版本（管理员上传 .db 时标注）
+  final int dataVersion;
+
+  /// 是否强制更新
   final bool forceUpdate;
+
+  /// 更新说明文字
   final String? message;
 
+  /// .db 文件下载地址
+  final String? downloadUrl;
+
+  /// SHA256 校验值
+  final String? checksum;
+
+  /// 文件大小（字节）
+  final int? sizeBytes;
+
   const VersionStatus({
-    required this.version,
+    required this.schemaVersion,
+    required this.dataVersion,
     required this.forceUpdate,
     this.message,
+    this.downloadUrl,
+    this.checksum,
+    this.sizeBytes,
   });
 
   factory VersionStatus.fromJson(Map<String, dynamic> json) => VersionStatus(
-        version: json['version'] as int,
+        schemaVersion: json['schema_version'] as int,
+        dataVersion: json['data_version'] as int,
         forceUpdate: json['force_update'] as bool? ?? false,
         message: json['message'] as String?,
+        downloadUrl: json['download_url'] as String?,
+        checksum: json['checksum'] as String?,
+        sizeBytes: json['size_bytes'] as int?,
       );
 }
