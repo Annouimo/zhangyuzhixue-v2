@@ -15,13 +15,14 @@
   });"></script>
 <style>
 /* ===== 纸张 ===== */
-@page { size: A4; margin: 2.5cm 2.0cm 2.5cm 2.0cm; @bottom-center { content: "第 " counter(page) " 页 / 共 " counter(pages) " 页"; font-family: SimSun, serif; font-size: 9pt; color: #666; } }
+@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm; @bottom-center { content: "— " counter(page) " —"; font-family: SimSun, serif; font-size: 9pt; color: #666; } }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'SimSun', 'STSong', 'Noto Serif CJK SC', serif;
   font-size: 11pt;
-  line-height: 1.75;
+  line-height: 1.6;
+  text-align: justify;
   color: #1a1a1a;
 }
 
@@ -33,16 +34,16 @@ body {
   text-align: center;
   margin-bottom: 1.2em;
   padding-bottom: 0.6em;
-  border-bottom: 2px solid #1a1a1a;
+  border-bottom: 0.5pt solid #333;
 }
 .paper-title {
   font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
-  font-size: 18pt;
+  font-size: 16pt;
   font-weight: 700;
-  letter-spacing: 2pt;
+  letter-spacing: 3pt;
   margin-bottom: 0.2em;
 }
-.info-table { width: 100%; border-collapse: collapse; font-size: 10.5pt; margin-top: 0.5em; }
+.info-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 0.5em; }
 .info-table td { padding: 0.2em 0.5em; width: 33%; text-align: left; }
 .blank { display: inline-block; min-width: 6em; border-bottom: 0.5pt solid #333; margin-left: 0.3em; }
 
@@ -52,9 +53,7 @@ body {
   font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
   font-size: 12pt;
   font-weight: 700;
-  margin: 0.5em 0 0.3em 0;
-  padding: 0.2em 0 0.1em 0;
-  border-bottom: 0.5pt solid #999;
+  margin: 1em 0 0.5em 0;
 }
 .score-info { font-weight: 400; font-size: 9pt; color: #666; margin-left: 0.5em; }
 
@@ -65,7 +64,7 @@ body {
   page-break-before: avoid;
 }
 /* 单题不跨页 */
-.question { page-break-inside: avoid; margin: 0.4em 0 0.6em 1.5em; }
+.question { page-break-inside: avoid; margin: 0.3em 0 0.5em 1.8em; }
 /* 解答题区整区另起一页 */
 .section-solution { page-break-before: always; }
 /* 解答题每道独立起页 */
@@ -76,21 +75,22 @@ body {
 /* ===== 题目样式 ===== */
 .qnum { float: left; width: 1.5em; margin-left: -1.5em; font-weight: 600; }
 .question::after { content: ''; display: table; clear: both; }
-.question-body p { margin: 0.15em 0; text-indent: 0; }
+.question-body p { margin: 0; text-indent: 2em; }
+.question-body p:first-of-type { text-indent: 0; }
 .question-body::after { content: ''; display: table; clear: both; }
-.choice { margin: 0.1em 0 0.1em 1em; font-size: 10.5pt; }
+.choice { margin: 0.15em 0; font-size: 10.5pt; }
 
 /* ===== 配图 ===== */
 .figure { float: right; margin: 0.5em 0 0.5em 1em; }
 .figure img { max-width: 180px; height: auto; }
 
 /* ===== 书写区（解答题留白） ===== */
-.writing-area { min-height: 300px; }
+.writing-area { min-height: 5cm; }
 
 /* ===== KaTeX ===== */
 .katex { font-size: 1.08em; }
 .fill-blank { display: inline-block; min-width: 6em; border-bottom: 1pt solid #333; margin: 0 0.2em; }
-.katex-display { margin: 0.3em 0; text-align: center; }
+.katex-display { margin: 0.4em 0; text-align: center; }
 
 @media print {
   h2.section-title { page-break-after: avoid; }
