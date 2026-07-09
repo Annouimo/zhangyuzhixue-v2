@@ -49,9 +49,24 @@ function submitChoice() {
   badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + correctAnswer;
   badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
 
+  // 清除提交前的选中样式
   document.querySelectorAll('.option-btn').forEach(function(b) {
-    if (b.dataset.option === correctAnswer) b.classList.add('selected');
+    b.classList.remove('selected');
   });
+
+  // 正确答案标记绿色
+  document.querySelectorAll('.option-btn').forEach(function(b) {
+    if (b.dataset.option === correctAnswer) b.classList.add('correct');
+  });
+
+  // 用户选错则标记红色
+  if (!isCorrect) {
+    document.querySelectorAll('.option-btn').forEach(function(b) {
+      if (b.dataset.option === choiceState.selectedOption) {
+        b.classList.add('wrong');
+      }
+    });
+  }
 
   // 显示完成横幅
   document.getElementById('done-section').style.display = 'block';

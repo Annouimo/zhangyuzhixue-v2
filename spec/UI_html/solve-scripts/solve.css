@@ -199,6 +199,24 @@
 }
 .option-btn .option-text { font-size: 15px; }
 
+/* ====== 提交后选项颜色 ====== */
+.option-btn.correct {
+  border-color: var(--success);
+  background: rgba(16,185,129,0.06);
+}
+.option-btn.correct .option-label {
+  background: var(--success);
+  color: #fff;
+}
+.option-btn.wrong {
+  border-color: var(--error);
+  background: rgba(239,68,68,0.06);
+}
+.option-btn.wrong .option-label {
+  background: var(--error);
+  color: #fff;
+}
+
 /* ====== 答题操作栏 ====== */
 .action-bar {
   text-align: center;
