@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>章鱼智学 — 你的专属数学学习助手</title>
+<style>
+  :root {
+    --primary: #4A6CF7;
+    --bg: #F5F7FA;
+    --card: #FFFFFF;
+    --text: #1A1A2E;
+    --muted: #6B7280;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+  }
+  .container { max-width: 480px; width: 100%; }
+
+  /* 头部 */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    color: var(--muted);
+  }
+
+  /* 下载按钮 */
+  .download-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    background: var(--primary);
+    color: #fff;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn-outline {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid #E5E7EB;
+  }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-disabled {
+    background: #D1D5DB;
+    color: #9CA3AF;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .btn small {
+    font-weight: 400;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  /* 卡片 */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* 二维码占位 */
+  .qr-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px;
+    height: 160px;
+    background: #F0F0F5;
+    border-radius: 8px;
+    margin: 0 auto 12px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* 链接列表 */
+  .link-list { list-style: none; }
+  .link-list li { margin-bottom: 12px; }
+  .link-list li:last-child { margin-bottom: 0; }
+  .link-list a {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 15px;
+  }
+  .link-list a:hover { text-decoration: underline; }
+
+  /* 页脚 */
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 20px;
+    padding-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>章鱼智学</h1>
+    <p class="subtitle">你的专属数学学习助手</p>
+  </div>
+
+  <div class="download-group">
+    <a href="#" class="btn" onclick="alert('学生端 App 即将上架，敬请期待')">
+      📱 下载学生端 App
+      <small>iOS · Android</small>
+    </a>
+    <a href="#" class="btn btn-outline btn-disabled">
+      📱 下载教师端 App
+      <small>即将开放</small>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">联系方式</div>
+    <div class="qr-placeholder">微信二维码<br>扫码添加小助手进群</div>
+    <p style="text-align:center;font-size:14px;color:var(--muted);">
+      添加时备注「章鱼智学」
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">链接</div>
+    <ul class="link-list">
+      <li><a href="privacy.html">📄 隐私政策</a></li>
+      <li><a href="terms.html">📄 用户协议</a></li>
+      <li><a href="changelog.html">📋 更新日志</a></li>
+      <li><a href="mailto:admin@zhangyuzhixue.top">📬 联系管理员</a></li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    &copy; 2026 章鱼智学
+  </div>
+
+</div>
+</body>
+</html>
