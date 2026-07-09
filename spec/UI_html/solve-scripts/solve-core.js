@@ -242,6 +242,11 @@ function startStepCooldownTimer(key, btnEl, cdEl) {
   cdEl.textContent = '⏳ 还剩 ' + remain + ' 秒';
   cdEl.style.display = 'block';
   var timer = setInterval(function() {
+    // 安全守卫：如果该 key 已被清理（onArrow / reconstruct 等已清掉本计时器），立即停止
+    if (!_stepCooldowns[key]) {
+      clearInterval(timer);
+      return;
+    }
     remain--;
     if (remain <= 0) {
       clearInterval(timer);

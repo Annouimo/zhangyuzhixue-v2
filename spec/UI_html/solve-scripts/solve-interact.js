@@ -152,11 +152,11 @@ var DEMO_PREVIOUS_STATE = {
       ],
     },
     {
-      index: 2, activeMethod: '', completed: false,
+      index: 2, activeMethod: '', completed: true,
       methods: [
         { methodName: '', steps: [
           { stepOrder: 1, feedbackGiven: true, feedbackType: 'correct' },
-          { stepOrder: 2, feedbackGiven: false, feedbackType: null },
+          { stepOrder: 2, feedbackGiven: true, feedbackType: 'correct' },
         ]},
       ],
     },
@@ -165,6 +165,23 @@ var DEMO_PREVIOUS_STATE = {
 };
 
 function reconstructFromPreviousState(state) {
+  // 复位所有步骤卡的 DOM 冷却态
+  // (resetSolveState 内的 renderSteps 可能已触发 startStepCooldowns 并修改了 DOM：
+  //  按钮被 disabled、冷却文字被显示。需要手动复位)
+  document.querySelectorAll('.step-card .next-btn').forEach(function(btn) {
+    btn.disabled = false;
+    btn.classList.remove('cooldown');
+  });
+  document.querySelectorAll('.step-card .cooldown-text').forEach(function(el) {
+    el.style.display = 'none';
+  });
+
+  // 清理所有步骤冷却计时器
+  Object.keys(_stepCooldowns).forEach(function(k) {
+    clearInterval(_stepCooldowns[k].timer);
+  });
+  _stepCooldowns = {};
+
   // === 选择题重建 ===
   if (state.choiceSubmitted && state.choiceSelected) {
     var correctAnswer = 'A';
