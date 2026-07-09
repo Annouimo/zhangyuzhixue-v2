@@ -405,11 +405,6 @@ class ExamRepository {
 }
 
 // ---- 私有算法引擎 ----
-//
-// 这些算法不算复杂逻辑，不需要独立算法设计文档。
-// 筛选 = ExamDao.countByType(type, filters) + 内存排序
-// 自动生成 = 按题型数量约束 + 难度区间 + 随机选
-// PDF = 已有 Python 原型（D:\Hermes\pdf_test\exam_pdf.py）
 
 /// 实时过滤+计数+难度统计（通过 ExamDao 从本地资产库查询）
 class _ExamFilterEngine {
@@ -418,17 +413,42 @@ class _ExamFilterEngine {
   // gaokaoDiffMin/Avg/Max: dao.getGaokaoStats(filters)
 }
 
-/// 智能组卷算法：按目标难度从筛选池选最佳组合
+/// 智能组卷算法
+///
+/// ⚠️ 极简 v1 方案，与同事讨论后替换为正式方案。
+/// 替换时只需重写 _ExamGenerator 类，外部模块不受影响。
+///
+/// v1 方案（极简，能用就行）：
+///   1. 获取筛选池：dao.getFilteredQuestions(filters)（已排除已做题）
+///   2. 按题型分三组：选择 / 填空 / 解答
+///   3. 每组内按 |difficulty - targetDifficulty| 升序排列
+///   4. 从每组最接近目标难度的开始取，取满 filters.choiceCount / fillCount / solutionCount
+///   5. 如果某题型数量不够筛选池大小，有多少取多少（不补、不报错）
+///   6. 按题型分组排序输出：选择 → 填空 → 解答
+///
+/// 已知缺点（正式方案需解决）：
+///   - 只保证单题难度接近目标，不保证整体均值匹配
+///   - 无多样性约束（可能同一年/同一场考试出多道）
+///   - 无题量不足时的降级策略
 class _ExamGenerator {
-  // 1. dao.getFiltered(filters) 获取筛选池
-  // 2. 按 difficulty 排序
-  // 3. 贪心/动态规划选 targetDifficulty 最接近的组合
-  // 4. 返回生成的 exam id
 }
 
 /// PDF 生成
-/// Python 原型：D:\Hermes\pdf_test\exam_pdf.py（HTML+KaTeX → headless → PDF）
-/// API：generate_pdf(title, sections, output_path)
-/// 数据类：Choice, Section, Question（已定义完整）
+///
+/// 🚧 设计未完成。有 Python 原型（D:\Hermes\pdf_test\exam_pdf.py），
+/// 但融入项目的架构决策未定，Flutter 端能否跑通未验证。
+///
+/// Python 原型说明：
+///   - exam_pdf.py：HTML+KaTeX → headless Chrome → PDF
+///   - API：generate_pdf(title, sections, output_path)
+///   - 数据类：Choice, Section, Question 已定义
+///
+/// 待决架构问题（决定了才能编码）：
+///   1. PDF 生成放在客户端（Flutter）还是服务端（Django）？
+///      - 客户端：用 `pdf` 或 `flutter_html` 等 Dart 包。需验证 LaTeX 渲染支持
+///      - 服务端：调 Python 脚本 / 集成到 Django views，Flutter 端下载文件
+///   2. Flutter 端下载 PDF 后如何打开预览？用 url_launcher 跳外部 PDF 阅读器？
+///   3. 如果走服务端：同步队列要不要支持二进制下载（当前设计队列只推 JSON）？
+///   4. 如果走客户端：Flutter 生态中有什么包能渲染带 KaTeX 的 HTML 并导出 PDF？
 class _ExamPdfService {
 }
