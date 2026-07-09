@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题模式 · 选择 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="solve-scripts/solve.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1>解题模式</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- ======== 调试工具栏 ======== -->
+    <!-- DEBUG: Flutter 落地时删除 -->
+    <div class="debug-toolbar">
+      <span class="debug-label">🛠 调试模式</span>
+      <span class="debug-current">题型：选择</span>
+    </div>
+    <!-- /DEBUG -->
+
+    <!-- ======== 题目元信息 ======== -->
+    <div class="question-meta">
+      第 <span>2</span> 题　
+      <span>三角函数小测</span>
+      <span class="text-secondary" style="margin-left:8px;font-size:12px;">[选择]</span>
+    </div>
+
+    <!-- ======== 题目题干 ======== -->
+    <div class="question-stem">
+      <p><strong>相关概念</strong>：三角函数</p>
+      <p style="margin-top:8px;">若 sin α = 3/5，且 α 为锐角，则 cos α 的值为？</p>
+    </div>
+
+    <!-- ======== 选项 ======== -->
+    <div class="options-grid">
+      <div class="option-btn" data-option="A" onclick="selectOption(this)">
+        <span class="option-label">A</span>
+        <span class="option-text">4/5</span>
+      </div>
+      <div class="option-btn" data-option="B" onclick="selectOption(this)">
+        <span class="option-label">B</span>
+        <span class="option-text">-4/5</span>
+      </div>
+      <div class="option-btn" data-option="C" onclick="selectOption(this)">
+        <span class="option-label">C</span>
+        <span class="option-text">2/5</span>
+      </div>
+      <div class="option-btn" data-option="D" onclick="selectOption(this)">
+        <span class="option-label">D</span>
+        <span class="option-text">-2/5</span>
+      </div>
+    </div>
+
+    <!-- ======== 操作栏 ======== -->
+    <div class="action-bar" id="choice-action">
+      <button class="btn btn-primary" id="choice-submit-btn" disabled onclick="submitChoice()">提交答案</button>
+      <div class="cooldown-text" id="choice-cooldown">⏳ 还剩 10 秒可提交</div>
+    </div>
+
+    <!-- ======== 结果区 ======== -->
+    <div class="result-area" id="choice-result" style="display:none;">
+      <div class="result-badge" id="choice-result-badge"></div>
+      <div class="analysis-text" style="text-align:left;margin-top:8px;">
+        <p>由 sin²α + cos²α = 1，α 为锐角，cos α > 0，得 cos α = √(1 - 9/25) = 4/5。</p>
+      </div>
+    </div>
+
+    <!-- ======== 完成横幅 ======== -->
+    <div id="done-section" class="done-section" style="display:none;">
+      <div class="done-banner">🎉 已完成</div>
+      <div class="done-actions">
+        <button class="btn btn-outline" onclick="goNext()">下一题 →</button>
+        <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="solve-scripts/solve-utils.js"></script>
+  <script src="solve-scripts/solve-choice.js"></script>
+</body>
+</html>

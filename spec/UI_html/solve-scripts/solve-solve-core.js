@@ -1,16 +1,12 @@
 // =====================================================================
-//  solve-core.js — 解答题状态机、步骤渲染、方法切换
-//  解题模式核心逻辑，与题目类型无关的通用渲染层
+//  solve-solve-core.js — 解答题状态机、步骤渲染、方法切换
+//  依赖：无（纯逻辑，供 solve-solve-interact.js 调用）
 // =====================================================================
 
 // =================================================================
 //  全局配置
 // =================================================================
-const CHOICE_COOLDOWN = 10;
-const FILL_COOLDOWN = 10;
 const SOLVE_STEP_COOLDOWN = 5;
-var _demoPrevious = false;
-var _cooldownTimers = {};
 var _stepCooldowns = {};
 
 const SUB_QUESTIONS = [
@@ -121,9 +117,8 @@ function switchMethod(method) {
   var idx = solve.currentSubQIndex;
   if (solve.currentMethod[idx] === method) return;
 
-  // 保留旧解法的 stepState（不同 key 天然独立），切换回去时直接复用
+  // 保留旧解法的 stepState（不同 key 天然独立）
 
-  // 为新解法的步骤初始化 stepState（仅当尚未有记录时）
   var newCards = getStepsFor(idx, method);
   newCards.forEach(function(card, order) {
     var key = idx + '-' + method + '-' + (order + 1);
@@ -143,12 +138,12 @@ function switchMethod(method) {
   renderMethodToggle();
   renderSteps();
 
-  // 仅在未全部完成时隐藏 congrats
+  // 仅在未全部完成时隐藏 done-section
   var allDone = SUB_QUESTIONS.every(function(sq) {
     return !!solve.completedSubQs[sq.index];
   });
   if (!allDone) {
-    document.getElementById('congrats-section').style.display = 'none';
+    document.getElementById('done-section').style.display = 'none';
   }
 
   scrollToSteps();
@@ -223,7 +218,6 @@ function startStepCooldowns() {
     var key = idx + '-' + method + '-' + (order + 1);
     var st = solve.stepState[key];
     if (!st) return;
-    // 条件：卡片可见、未展开内容、箭头未隐藏、未给反馈、冷却尚未启动
     if (card.style.display !== 'none' && st.card && !st.content && !st.arrowHidden && !st.feedbackGiven && !st.cooldownStarted) {
       var btn = card.querySelector('.next-btn');
       var cdText = card.querySelector('.cooldown-text');
@@ -242,7 +236,6 @@ function startStepCooldownTimer(key, btnEl, cdEl) {
   cdEl.textContent = '⏳ 还剩 ' + remain + ' 秒';
   cdEl.style.display = 'block';
   var timer = setInterval(function() {
-    // 安全守卫：如果该 key 已被清理（onArrow / reconstruct 等已清掉本计时器），立即停止
     if (!_stepCooldowns[key]) {
       clearInterval(timer);
       return;

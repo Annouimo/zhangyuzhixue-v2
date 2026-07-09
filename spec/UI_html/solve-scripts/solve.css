@@ -1,6 +1,6 @@
 /* =====================================================================
  *  solve.css — 解题模式专用样式
- *  对应 solve.html，从 <style> 块提取后独立的文件
+ *  对应 solve-choice/fill/solve/rate 各页
  *  依赖 styles.css 中的 CSS 变量
  * ===================================================================== */
 
@@ -127,7 +127,7 @@
   opacity: 0.7 !important;
 }
 
-/* ====== 完成持久横幅 ====== */
+/* ====== 完成持久横幅（小问级） ====== */
 .subq-complete-banner {
   display: none;
   text-align: center;
@@ -138,6 +138,24 @@
   font-size: 14px;
   color: #1a7d1a;
   font-weight: 500;
+}
+
+/* ====== 完成横幅（题目级） ====== */
+.done-banner {
+  text-align: center;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background: #e6f7e6;
+  border-radius: var(--radius);
+  font-size: 16px;
+  color: #1a7d1a;
+  font-weight: 600;
+}
+.done-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
 }
 
 /* ====== 选择题选项 ====== */
@@ -226,9 +244,31 @@
   font-size: 14px;
 }
 
-/* ====== 题型分支容器 ====== */
-.branch-container { display: none; }
-.branch-container.active { display: block; }
+/* ====== 评分页 ====== */
+.rate-section { margin-bottom: 20px; }
+.rate-header {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.rate-compare {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.star-rating {
+  display: flex;
+  gap: 4px;
+  font-size: 24px;
+}
+.star-rating .star {
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.1s;
+  user-select: none;
+}
+.star-rating .star.active { color: #f5a623; }
+.star-rating .star.hover { color: #f7c948; }
 
 /* ====== 调试工具栏 ====== */
 /* DEBUG: Flutter 落地时删除此节 */

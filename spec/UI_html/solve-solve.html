@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题模式 · 解答 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="solve-scripts/solve.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1>解题模式</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- ======== 调试工具栏 ======== -->
+    <!-- DEBUG: Flutter 落地时删除 -->
+    <div class="debug-toolbar">
+      <span class="debug-label">🛠 调试</span>
+      <button class="debug-mode-btn" id="debug-mode-btn" onclick="toggleDemoMode()">首次</button>
+      <span class="debug-sep">|</span>
+      <span class="debug-current" id="debug-current">解答题</span>
+    </div>
+    <!-- /DEBUG -->
+
+    <!-- ======== 题目元信息 ======== -->
+    <div class="question-meta">
+      第 <span>3</span> 题　
+      <span>导数第 1 讲课后练习</span>
+      <span class="text-secondary" style="margin-left:8px;font-size:12px;">[解答]</span>
+    </div>
+
+    <!-- ======== 题目题干 ======== -->
+    <div class="question-stem">
+      <p><strong>相关概念</strong>：<span>体积，平面</span></p>
+      <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足
+      a² + b² - c² = ab。</p>
+      <p style="margin-top:4px;">(1) 求 cos C 的值；</p>
+      <p style="margin-top:4px;">(2) 若 c = 3，求 a + b 的最大值。</p>
+    </div>
+
+    <!-- ======== 配图区 ======== -->
+    <div style="margin-bottom:12px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;">
+      <div style="background:#e8ecf4;padding:24px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:8px;">📐</div>
+        <div style="font-size:13px;color:#666;">配图示例 · 一模/2024/海淀/q17.webp</div>
+      </div>
+    </div>
+
+    <!-- ======== 解答题 ======== -->
+    <div id="branch-solve">
+      <div class="subq-tabs" id="subq-tabs"
+           data-db-condition="progress.getSolveState.subQuestions.length > 1"
+           data-db-loop="progress.getSolveState.subQuestions">
+      </div>
+
+      <div class="method-toggle" id="method-toggle" style="display:none;">
+        <span class="method-label">解法：</span>
+        <div id="method-pills"></div>
+      </div>
+
+      <div class="subq-locked-placeholder" id="subq-locked-placeholder" style="display:none;">
+        🔒 请先完成上一问
+      </div>
+
+      <div id="step-container" data-db-loop="progress.currentMethodSteps">
+        <!-- (1) 余弦定理法 · 第 1 步 -->
+        <div class="step-card" data-subq="1" data-method="余弦定理法" data-step-order="1">
+          <div class="step-header">
+            <span class="step-number" data-db="progress.getSolveState.subQuestions[].solutions[].steps[].title">第 1 步 · 代值计算</span>
+            <div>
+              <span class="knowledge-tag" data-db="progress.getSolveState.subQuestions[].solutions[].steps[].cardTitles"
+                    data-knowledge="三角恒等变形"
+                    onclick="showKnowledge('三角恒等变形', '由余弦定理 cos C = (a² + b² - c²) / (2ab)，代入已知条件 a² + b² - c² = ab，得 cos C = ab / (2ab) = 1/2。因此 C = 60°。')">
+                三角恒等变形
+              </span>
+            </div>
+          </div>
+          <div class="step-content" style="display:none;">
+            <p data-db="progress.getSolveState.subQuestions[].solutions[].steps[].analysis">
+              由余弦定理 cos C = (a² + b² - c²) / (2ab)，<br>
+              代入 a² + b² - c² = ab，<br>
+              得 cos C = ab / (2ab) = 1/2，故 C = 60°。
+            </p>
+          </div>
+          <div class="feedback-row" style="display:none;">
+            <button class="feedback-btn correct" onclick="selectFeedback('1-余弦定理法-1', 'correct')">全对</button>
+            <button class="feedback-btn partial" onclick="selectFeedback('1-余弦定理法-1', 'partial')">过程对计算错</button>
+            <button class="feedback-btn wrong" onclick="selectFeedback('1-余弦定理法-1', 'wrong')">不会</button>
+          </div>
+          <div class="step-nav">
+            <button class="next-btn" onclick="onArrow('1-余弦定理法-1')">▶</button>
+            <div class="cooldown-text" style="display:none;">⏳ 还剩 5 秒</div>
+          </div>
+        </div>
+
+        <!-- (1) 向量法 · 第 1 步 -->
+        <div class="step-card" data-subq="1" data-method="向量法" data-step-order="1">
+          <div class="step-header">
+            <span class="step-number" data-db="progress.getSolveState.subQuestions[].solutions[].steps[].title">第 1 步 · 建系</span>
+            <div>
+              <span class="knowledge-tag" data-knowledge="向量点积"
+                    onclick="showKnowledge('向量点积', 'a · b = |a||b| cos θ，其中 θ 为两向量夹角。')">
+                向量点积
+              </span>
+            </div>
+          </div>
+          <div class="step-content" style="display:none;">
+            <p data-db="progress.getSolveState.subQuestions[].solutions[].steps[].analysis">
+              以 C 为原点，CA 为 x 轴正方向建立坐标系。<br>
+              设 CA = b，CB = a，则 C(0,0)，A(b,0)，B(a cos C, a sin C)。<br>
+              由 cos C = 1/2 得 sin C = √3/2，<br>
+              AB² = (b - a/2)² + (0 - a·√3/2)² = a² + b² - ab。<br>
+              已知 a² + b² - c² = ab，c = AB，代入得 a² + b² - ab = ab，<br>
+              即 a² + b² - 2ab = 0，... → cos C = 1/2。
+            </p>
+          </div>
+          <div class="feedback-row" style="display:none;">
+            <button class="feedback-btn correct" onclick="selectFeedback('1-向量法-1', 'correct')">全对</button>
+            <button class="feedback-btn partial" onclick="selectFeedback('1-向量法-1', 'partial')">过程对计算错</button>
+            <button class="feedback-btn wrong" onclick="selectFeedback('1-向量法-1', 'wrong')">不会</button>
+          </div>
+          <div class="step-nav">
+            <button class="next-btn" onclick="onArrow('1-向量法-1')">▶</button>
+            <div class="cooldown-text" style="display:none;">⏳ 还剩 5 秒</div>
+          </div>
+        </div>
+
+        <!-- (2) 第 1 步（唯一解法） -->
+        <div class="step-card" data-subq="2" data-method="" data-step-order="1">
+          <div class="step-header">
+            <span class="step-number" data-db="progress.getSolveState.subQuestions[].solutions[].steps[].title">第 1 步 · 代入</span>
+            <div>
+              <span class="knowledge-tag" data-knowledge="正弦定理"
+                    onclick="showKnowledge('正弦定理', '正弦定理：a / sin A = b / sin B = c / sin C = 2R（R 为外接圆半径）。')">
+                正弦定理
+              </span>
+              <span class="knowledge-tag" data-knowledge="化简"
+                    onclick="showKnowledge('化简', '代值后使用三角恒等式化简表达式。')">
+                化简
+              </span>
+            </div>
+          </div>
+          <div class="step-content" style="display:none;">
+            <p data-db="progress.getSolveState.subQuestions[].solutions[].steps[].analysis">
+              由正弦定理：a = 2R sin A，b = 2R sin B，c = 2R sin C。<br>
+              c = 3，C = 60°，sin C = √3/2，得 2R = 3 / (√3/2) = 2√3。<br>
+              所以 a + b = 2R (sin A + sin B) = 2√3 (sin A + sin B)。
+            </p>
+          </div>
+          <div class="feedback-row" style="display:none;">
+            <button class="feedback-btn correct" onclick="selectFeedback('2--1', 'correct')">全对</button>
+            <button class="feedback-btn partial" onclick="selectFeedback('2--1', 'partial')">过程对计算错</button>
+            <button class="feedback-btn wrong" onclick="selectFeedback('2--1', 'wrong')">不会</button>
+          </div>
+          <div class="step-nav">
+            <button class="next-btn" onclick="onArrow('2--1')">▶</button>
+            <div class="cooldown-text" style="display:none;">⏳ 还剩 5 秒</div>
+          </div>
+        </div>
+
+        <!-- (2) 第 2 步 -->
+        <div class="step-card" data-subq="2" data-method="" data-step-order="2">
+          <div class="step-header">
+            <span class="step-number" data-db="progress.getSolveState.subQuestions[].solutions[].steps[].title">第 2 步 · 结论</span>
+            <div>
+              <span class="knowledge-tag" data-knowledge="辅助角公式"
+                    onclick="showKnowledge('辅助角公式', 'a sin θ + b cos θ = √(a² + b²) sin(θ + φ)，其中 tan φ = b/a。')">
+                辅助角公式
+              </span>
+            </div>
+          </div>
+          <div class="step-content" style="display:none;">
+            <p data-db="progress.getSolveState.subQuestions[].solutions[].steps[].analysis">
+              A + B = 120°，所以 B = 120° - A。<br>
+              sin A + sin B = sin A + sin(120° - A)<br>
+              = sin A + sin 120° cos A - cos 120° sin A<br>
+              = sin A + (√3/2) cos A + (1/2) sin A<br>
+              = (3/2) sin A + (√3/2) cos A<br>
+              = √3 sin(A + 30°)。<br>
+              所以 a + b = 2√3 × √3 sin(A + 30°) = 6 sin(A + 30°)。<br>
+              当 A = 60° 时，a + b 取最大值 6。
+            </p>
+          </div>
+          <div class="feedback-row" style="display:none;">
+            <button class="feedback-btn correct" onclick="selectFeedback('2--2', 'correct')">全对</button>
+            <button class="feedback-btn partial" onclick="selectFeedback('2--2', 'partial')">过程对计算错</button>
+            <button class="feedback-btn wrong" onclick="selectFeedback('2--2', 'wrong')">不会</button>
+          </div>
+          <div class="step-nav">
+            <button class="next-btn" onclick="onArrow('2--2')">▶</button>
+            <div class="cooldown-text" style="display:none;">⏳ 还剩 5 秒</div>
+          </div>
+        </div>
+      </div><!-- /step-container -->
+
+      <div id="subq-complete-banner" class="subq-complete-banner"></div>
+
+      <!-- ======== 完成横幅 ======== -->
+      <div id="done-section" class="done-section" style="display:none;">
+        <div class="done-banner">🎉 已完成</div>
+        <div class="done-actions">
+          <button class="btn btn-outline" onclick="goNext()">下一题 →</button>
+          <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
+        </div>
+      </div>
+    </div><!-- /解答题 -->
+
+  </div>
+
+  <!-- Toast 容器 -->
+  <div class="toast-container" id="toast-container">
+    <div class="toast-bar" id="toast-bar">
+      <span class="toast-icon" id="toast-icon">📝</span>
+      <span class="toast-msg" id="toast-msg">小试牛刀（完成5题）完成！+1.0 学习积分</span>
+      <button class="toast-close" onclick="closeToast()">✕</button>
+    </div>
+  </div>
+
+  <!-- 知识卡片弹层 -->
+  <div class="knowledge-popup" id="knowledge-popup">
+    <div class="popup-content">
+      <button class="popup-close" onclick="closeKnowledge()">✕</button>
+      <div class="popup-title" id="knowledge-title">三角恒等变形</div>
+      <div class="popup-body" id="knowledge-body">内容占位</div>
+      <div class="card-feedback-row">
+        <button class="feedback-btn correct" onclick="closeKnowledge()">完全掌握</button>
+        <button class="feedback-btn partial" onclick="closeKnowledge()">了解</button>
+        <button class="feedback-btn wrong" onclick="closeKnowledge()">不理解</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="solve-scripts/solve-utils.js"></script>
+  <script src="solve-scripts/solve-solve-core.js"></script>
+  <script src="solve-scripts/solve-solve-interact.js"></script>
+</body>
+</html>

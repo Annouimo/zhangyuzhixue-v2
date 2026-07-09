@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题模式 · 填空 - 章鱼智学</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="solve-scripts/solve.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1>解题模式</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- ======== 调试工具栏 ======== -->
+    <!-- DEBUG: Flutter 落地时删除 -->
+    <div class="debug-toolbar">
+      <span class="debug-label">🛠 调试模式</span>
+      <span class="debug-current">题型：填空</span>
+    </div>
+    <!-- /DEBUG -->
+
+    <!-- ======== 题目元信息 ======== -->
+    <div class="question-meta">
+      第 <span>3</span> 题　
+      <span>导数第 1 讲课后练习</span>
+      <span class="text-secondary" style="margin-left:8px;font-size:12px;">[填空]</span>
+    </div>
+
+    <!-- ======== 题目题干 ======== -->
+    <div class="question-stem">
+      <p><strong>相关概念</strong>：余弦定理</p>
+      <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足 a² + b² - c² = ab，求 C 的大小。</p>
+    </div>
+
+    <!-- ======== 操作栏 ======== -->
+    <div class="action-bar" id="fill-action">
+      <button class="btn btn-primary" id="fill-reveal-btn" disabled onclick="showFillAnswer()">查看答案</button>
+      <div class="cooldown-text" id="fill-cooldown">⏳ 还剩 10 秒可查看</div>
+    </div>
+
+    <!-- ======== 结果区 ======== -->
+    <div class="result-area" id="fill-result" style="display:none;">
+      <div class="result-badge reveal">正确答案</div>
+      <div class="answer-value">60°</div>
+      <div class="analysis-text" style="text-align:left;margin-top:8px;">
+        <p>由余弦定理 cos C = (a² + b² - c²) / (2ab)，代入 a² + b² - c² = ab，得 cos C = 1/2，故 C = 60°。</p>
+      </div>
+    </div>
+
+    <!-- ======== 完成横幅 ======== -->
+    <div id="done-section" class="done-section" style="display:none;">
+      <div class="done-banner">🎉 已完成</div>
+      <div class="done-actions">
+        <button class="btn btn-outline" onclick="goNext()">下一题 →</button>
+        <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="solve-scripts/solve-utils.js"></script>
+  <script src="solve-scripts/solve-fill.js"></script>
+</body>
+</html>
