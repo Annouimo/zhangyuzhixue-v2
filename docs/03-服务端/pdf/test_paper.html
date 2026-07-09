@@ -15,7 +15,7 @@
   });"></script>
 <style>
 /* ===== 纸张 ===== */
-@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm; @bottom-center { content: "— " counter(page) " —"; font-family: SimSun, serif; font-size: 9pt; color: #666; } }
+@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm; @bottom-left { content: "章鱼智学"; font-family: SimSun, serif; font-size: 9pt; color: #999; } @bottom-center { content: "— " counter(page) " —"; font-family: SimSun, serif; font-size: 9pt; color: #666; } @bottom-right { content: "张三 G2026001"; font-family: SimSun, serif; font-size: 9pt; color: #999; } }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
@@ -32,8 +32,8 @@ body {
 /* ===== 标题区 ===== */
 .title-block {
   text-align: center;
-  margin-bottom: 1.2em;
-  padding-bottom: 0.6em;
+  margin-bottom: 1.5em;
+  padding-bottom: 0.8em;
   border-bottom: 0.5pt solid #333;
 }
 .paper-title {
@@ -43,9 +43,7 @@ body {
   letter-spacing: 3pt;
   margin-bottom: 0.2em;
 }
-.info-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-top: 0.5em; }
-.info-table td { padding: 0.2em 0.5em; width: 33%; text-align: left; }
-.blank { display: inline-block; min-width: 6em; border-bottom: 0.5pt solid #333; margin-left: 0.3em; }
+
 
 /* ===== 大题区 ===== */
 .section { margin-bottom: 0.5em; }
@@ -108,13 +106,6 @@ body {
 <div class="title-block">
   <h1 class="paper-title">2025 年北京高考数学模拟试卷</h1>
   <p class="paper-subtitle">排版效果测试 · 学生卷</p>
-  <table class="info-table">
-    <tr>
-      <td>姓名：<span class="blank">&nbsp;</span></td>
-      <td>班级：<span class="blank">&nbsp;</span></td>
-      <td>学号：<span class="blank">&nbsp;</span></td>
-    </tr>
-  </table>
 </div>
 
 <!-- ============================================================ -->
@@ -335,7 +326,6 @@ body {
     </div>
   </div>
 </div>
-
 </div>
 </div>
 
