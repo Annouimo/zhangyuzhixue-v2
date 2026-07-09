@@ -1,4 +1,4 @@
-# 章鱼智学 · Flutter 代码规范
+﻿# 章鱼智学 · Flutter 代码规范
 
 > 本文档定义 Flutter 端 Repository 层规范、页面 Dart 文件组织、Widget 复用规则、路由方案及编译常量规范。
 

@@ -1,4 +1,4 @@
-/// 章鱼智学 — PDF 试卷生成器输入数据类
+﻿/// 章鱼智学 — PDF 试卷服务端输入数据类（SVG 使用）
 ///
 /// 纯数据类，描述"要印什么"，不包含任何渲染/排版逻辑。
 ///
@@ -14,7 +14,7 @@
 /// - custom_paper 表（title）
 /// - custom_paper_question 表（sort_order → 重编号）
 ///
-/// 组装位置：PdfExamInputBuilder（`lib/services/pdf/pdf_exam_input_builder.dart`）
+/// 组装位置：Django 视图内（server/pdf/views.py）
 
 /// 输出 PDF 时包含的版本信息
 enum PdfVersion {
