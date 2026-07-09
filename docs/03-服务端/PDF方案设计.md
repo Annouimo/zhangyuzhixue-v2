@@ -30,8 +30,9 @@
 │  /pdf/view 视图                                 │
 │    ├── 验证 sig（HMAC，5 分钟有效期）             │
 │    ├── 查询 custom_paper + questions            │
+│    ├── 查询 student -> nickname + student_id      │
 │    ├── 查询 choice_ext（选项）、question（图片路径）│
-│    ├── 组装 HTML（KaTeX CDN + CSS 模板）         │
+│    ├── 组装 HTML（KaTeX + CSS + 页脚个人信息）    │
 │    └── 返回 HTML 页面                           │
 │                                                │
 └────────────────────────────────────────────────┘
@@ -132,11 +133,16 @@ def pdf_view(request):
         questions = CustomPaperQuestion.objects             .filter(paper=paper)             .order_by("sort_order")
         title = paper.title
 
-    # 3. 组装 sections, 查 choice_ext, 查图片路径
-    # 4. 渲染 HTML 模板
+    # 3. 查询 student 个人信息（页脚昵称+学号）
+    student_info = Student.objects.select_related("user").get(id=student.id)
+
+    # 4. 组装 sections, 查 choice_ext, 查图片路径
+    # 5. 渲染 HTML 模板
     return render(request, "pdf/paper_view.html", {
         "title": title,
         "sections": sections,
+        "student_nickname": student_info.user.username,
+        "student_id": student_info.student_id,
     })
 ```
 
@@ -315,8 +321,10 @@ static Future<void> downloadPdf(int paperId) {
 | 图片 | 靠右浮动，max-width 180px |
 | 填空线 | CSS `.fill-blank { border-bottom: 1pt solid #333; }` |
 | 分值 | 不显示 |
-| 姓名区 | 标题下方：姓名/班级/学号填空线 |
+| 姓名区 | 不在标题区展示，个人信息移至页脚 |
 | 页码 | CSS `@page @bottom-center` 自动生成，格式 `— N —` |
+| 页脚品牌 | `@page @bottom-left`：章鱼智学 |
+| 页脚个人信息 | `@page @bottom-right`：昵称+学号，服务端渲染注入 |
 | 页眉页脚 | 学生在打印对话框中取消勾选即可 |
 | 行距 | `line-height: 1.6` |
 | 段落 | 两端对齐，首行缩进 2em |
@@ -337,6 +345,8 @@ static Future<void> downloadPdf(int paperId) {
 | 入口按钮 | 全部试卷预览页 + 列表页 | 覆盖自己的组卷、公开试卷、收藏、作业、推荐 |
 | 公开试卷下载 | 允许 | 公开试卷可被任意登录学生下载 PDF |
 | PDF 下载扣分 | 不扣 | 组卷时已扣积分，PDF 是输出格式而非独立消费 |
+| 个人信息渲染 | 服务端从 JWT 解析 student_id 后查询，@page 模板变量注入 | sig 中已含 student_id，不额外 API 调用 |
+| 个人信息渲染 | 服务端从 JWT 解析 student_id 后查询，@page 模板变量注入 | sig 中已含 student_id，不额外 API 调用 |
 
 ---
 
@@ -358,7 +368,7 @@ static Future<void> downloadPdf(int paperId) {
 | 5 | `/api/pdf/request-token` 接口 | `server/interactions/views.py`（或新建 `server/pdf/`） |
 | 6 | `PDF_SECRET_KEY` 配置 | `server/math_platform/settings.py` |
 | 7 | `/pdf/view` 页面视图 + 签名验证 | `server/interactions/urls.py` + `views.py` |
-| 8 | HTML 模板（基于 `test_paper.html`） | `server/templates/pdf/paper_view.html` |
+| 8 | HTML 模板（基于 `test_paper.html`） + 个人信息注入 | `server/templates/pdf/paper_view.html` |
 | 9 | 构建脚本同步图片到 `static/questions/images/` | `server/scripts/build_assets.py` |
 | 10 | 配图 `static/` 路径确认 | 构建流程 |
 
