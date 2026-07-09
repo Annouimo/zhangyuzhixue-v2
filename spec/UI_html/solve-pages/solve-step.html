@@ -37,29 +37,30 @@
       </span>
     </div>
 
-    <!-- 首次模式：冷却 + 展开 -->
-    <div id="step-first-mode">
-      <div class="cooldown-wrapper">
+    <!-- 步骤卡片（白底始终显示，内容展开替换按钮） -->
+    <div class="step-content-card" id="step-card">
+      <!-- 未展开：按钮在卡片内居中 -->
+      <div class="cooldown-wrapper" id="cooldown-wrapper">
         <button class="reveal-btn" id="reveal-btn" disabled>▶</button>
         <div class="cooldown-text" id="cooldown-text">⏳ 还剩 5 秒可查看</div>
       </div>
 
-      <!-- 步骤内容（初始隐藏） -->
-      <div class="step-content-card hidden" id="step-content">
+      <!-- 展开后：内容区 -->
+      <div id="step-content" style="display:none;">
         <p>由余弦定理 cos C = (a² + b² - c²) / (2ab)，</p>
         <p>代入 a² + b² - c² = ab，</p>
         <p>得 cos C = ab / (2ab) = 1/2，故 C = 60°。</p>
       </div>
 
-      <!-- 反馈行（展开后显示） -->
-      <div class="feedback-row hidden" id="feedback-row">
+      <!-- 反馈行 -->
+      <div class="feedback-row" id="feedback-row" style="display:none;">
         <button class="feedback-btn correct" onclick="giveFeedback('correct')">全对</button>
         <button class="feedback-btn partial" onclick="giveFeedback('partial')">过程对计算错</button>
         <button class="feedback-btn wrong" onclick="giveFeedback('wrong')">不会</button>
       </div>
     </div>
 
-    <!-- 回顾模式：内容直接显示（替代上面） -->
+    <!-- 回顾模式：内容直接显示 -->
     <div id="step-review-mode" style="display:none;">
       <div class="review-banner" id="review-inner-banner">📋 回顾模式 · 只读浏览</div>
       <div class="step-content-card">
@@ -116,7 +117,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     if (_reviewMode) {
       // 回顾模式：直接显示内容，无冷却
-      document.getElementById('step-first-mode').style.display = 'none';
+      document.getElementById('step-card').style.display = 'none';
       document.getElementById('step-review-mode').style.display = 'block';
     } else {
       // 首次模式：启动 5s 冷却
@@ -138,15 +139,15 @@
     _stepState.revealed = true;
 
     // 隐藏冷却按钮
-    document.querySelector('.cooldown-wrapper').style.display = 'none';
+    document.getElementById('cooldown-wrapper').style.display = 'none';
 
-    // 显示步骤内容
-    document.getElementById('step-content').classList.remove('hidden');
+    // 在同一个卡片内显示内容
+    document.getElementById('step-content').style.display = 'block';
 
     // 显示反馈行
-    document.getElementById('feedback-row').classList.remove('hidden');
+    document.getElementById('feedback-row').style.display = 'flex';
 
-    // 如果冷却计时还在，清理掉
+    // 清理冷却计时
     if (_stepState.cooldownTimer) {
       clearInterval(_stepState.cooldownTimer);
     }
@@ -157,18 +158,15 @@
     if (_stepState.feedbackGiven) return;
     _stepState.feedbackGiven = true;
 
-    // 高亮选中按钮
-    document.querySelectorAll('.feedback-row .feedback-btn').forEach(function(b) {
+    document.querySelectorAll('#feedback-row .feedback-btn').forEach(function(b) {
       b.classList.remove('selected');
     });
-    document.querySelector('.feedback-btn.' + type).classList.add('selected');
+    document.querySelector('#feedback-row .feedback-btn.' + type).classList.add('selected');
 
-    // 禁用所有反馈按钮
-    document.querySelectorAll('.feedback-row .feedback-btn').forEach(function(b) {
+    document.querySelectorAll('#feedback-row .feedback-btn').forEach(function(b) {
       b.style.pointerEvents = 'none';
     });
 
-    // 显示"下一步"按钮
     document.getElementById('next-step-btn').style.display = 'inline-flex';
 
     showToast('✅', '已记录反馈');
@@ -176,14 +174,11 @@
 
   // 返回解题地图
   function goBackToMap() {
-    // Flutter 中 pop 回地图页
     location.href = 'solve-map.html';
   }
 
   // 下一步
   function goNextStep() {
-    // 实际 Flutter 中：从 URL 参数解析当前 subq/method/step，
-    // 加 1 后 push 到新的 solve-step.html
     showToast('📝', '进入下一步（Flutter 中执行路由跳转）');
   }
   </script>
