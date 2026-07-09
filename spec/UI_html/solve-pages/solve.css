@@ -4,6 +4,64 @@
  *  依赖 styles.css 中的 CSS 变量
  * ===================================================================== */
 
+/* ====== 存档选择器 ====== */
+.attempt-selector {
+  position: relative;
+  display: inline-block;
+}
+.attempt-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+  white-space: nowrap;
+}
+.attempt-trigger:hover { border-color: var(--primary); }
+.attempt-trigger .arrow { font-size: 10px; color: var(--text-muted); transition: transform 0.15s; }
+.attempt-trigger.open .arrow { transform: rotate(180deg); }
+.attempt-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 200px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  border: 1px solid var(--border);
+  z-index: 100;
+  padding: 4px 0;
+}
+.attempt-dropdown.show { display: block; }
+.attempt-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.attempt-option:hover { background: var(--bg); }
+.attempt-option.active { background: var(--primary-light); font-weight: 600; color: var(--primary); }
+.attempt-option .opt-status {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.attempt-option .opt-status.review { color: var(--primary); }
+.attempt-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
 /* ====== 公共 ====== */
 .solve-container { padding: 16px; }
 .question-meta {
@@ -14,15 +72,6 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-}
-.attempt-badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  background: var(--primary-light);
-  color: var(--primary);
-  font-weight: 500;
-  white-space: nowrap;
 }
 .question-stem {
   background: var(--card);
