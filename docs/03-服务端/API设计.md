@@ -383,11 +383,10 @@ POST /api/v1/sync/push/
 App 启动时 + 用户手动触发。"全部重试"按钮即遍历所有 `pending`/`failed` 状态的队列条目执行推送。
 
 ---
----
 
 ## 四、PDF API
 
-> 对应 App：新建 `pdf` App（建议独立，职责内聚）
+> 对应 App：`interactions`（新增 `pdf_urls.py` + `pdf_views.py`）
 
 ### 4.1 请求 PDF 浏览 token
 
