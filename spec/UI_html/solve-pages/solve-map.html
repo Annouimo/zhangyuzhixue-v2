@@ -10,11 +10,10 @@
 <body>
   <div class="page-header">
     <a href="javascript:history.back()" class="back-btn">← 返回</a>
-    <h1 data-db="question.getDetail.title">解题地图</h1>
+    <h1>解题地图</h1>
   </div>
 
   <div class="solve-container">
-    <!-- 题目元信息 -->
     <div class="question-meta">
       第 <span>3</span> 题　
       <span>导数第 1 讲课后练习</span>
@@ -29,29 +28,10 @@
       <span class="attempt-badge" id="attempt-badge-single">第 1 次作答</span>
     </div>
 
-    <!-- 回顾模式标识 -->
     <div class="review-banner" id="review-banner" style="display:none;">
       📋 回顾模式 · 只读浏览，不可修改
     </div>
 
-    <!-- 题干区（可折叠） -->
-    <div class="question-stem" id="stem-section">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <strong>题目</strong>
-        <button class="btn btn-sm btn-ghost" onclick="toggleStem()" style="font-size:12px;">折叠 ▲</button>
-      </div>
-      <div id="stem-body" style="margin-top:8px;">
-        <p><strong>相关概念</strong>：<span>体积，平面</span></p>
-        <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足 a² + b² - c² = ab。</p>
-        <p style="margin-top:4px;">(1) 求 cos C 的值；</p>
-        <p style="margin-top:4px;">(2) 若 c = 3，求 a + b 的最大值。</p>
-      </div>
-    </div>
-
-    <!-- 解题流程树（有进度时显示） -->
-    <div id="map-tree"></div>
-
-    <!-- 首次进入视图（全新存档，无进度时显示） -->
     <div id="map-fresh-view" style="display:none;">
       <div class="fresh-welcome">
         <div class="fresh-icon">📝</div>
@@ -61,407 +41,231 @@
       </div>
     </div>
 
-    <!-- 地图底栏 -->
+    <div id="map-tree"></div>
+
     <div class="map-footer">
       <button class="btn btn-outline" onclick="history.back()">← 返回</button>
       <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast-container"><div class="toast-bar" id="toast-bar"><span class="toast-icon" id="toast-icon"></span><span class="toast-msg" id="toast-msg"></span><button class="toast-close" onclick="closeToast()">✕</button></div></div>
 
   <script src="solve-utils.js"></script>
   <script>
   // =================================================================
-  //  解题地图 — 存档切换 + 首次/有进度双视图
+  //  解题地图 — URL 参数: ?mode=first|resume|review&attempt_id=X
   // =================================================================
 
-  // ============ 模拟数据 ============
   var DEMO_ATTEMPTS = [
-    {
-      id: 1, label: '第 1 次作答', completed: true, started: true,
-      subQuestions: [
-        { index: 1, completed: true, statusLabel: '完全掌握',
-          methods: [
-            { name: '余弦定理法', allStepsDone: true,
-              steps: [
-                { order: 1, title: '第 1 步 · 代值计算', state: 'done' },
-                { order: 2, title: '第 2 步 · 化简', state: 'done' },
-                { order: 3, title: '第 3 步 · 结论', state: 'done' }
-              ]
-            },
-            { name: '向量法', allStepsDone: true,
-              steps: [
-                { order: 1, title: '第 1 步 · 建系', state: 'done' },
-                { order: 2, title: '第 2 步 · 推导', state: 'done' }
-              ]
-            }
-          ]
-        },
-        { index: 2, completed: true, statusLabel: '已完成',
-          methods: [
-            { name: '', allStepsDone: true,
-              steps: [
-                { order: 1, title: '第 1 步 · 代入', state: 'done' },
-                { order: 2, title: '第 2 步 · 结论', state: 'done' }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 2, label: '第 2 次作答', completed: true, started: true,
-      subQuestions: [
-        { index: 1, completed: true, statusLabel: '已完成',
-          methods: [
-            { name: '余弦定理法', allStepsDone: true,
-              steps: [
-                { order: 1, title: '第 1 步 · 代值计算', state: 'done' },
-                { order: 2, title: '第 2 步 · 化简', state: 'done' },
-                { order: 3, title: '第 3 步 · 结论', state: 'done' }
-              ]
-            },
-            { name: '向量法', allStepsDone: false,
-              steps: [
-                { order: 1, title: '第 1 步 · 建系', state: 'done' },
-                { order: 2, title: '第 2 步 · 推导', state: 'untried' }
-              ]
-            }
-          ]
-        },
-        { index: 2, completed: false, statusLabel: '进行中...',
-          methods: [
-            { name: '', allStepsDone: false,
-              steps: [
-                { order: 1, title: '第 1 步 · 代入', state: 'done' },
-                { order: 2, title: '第 2 步 · 结论', state: 'in-progress' }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 3, label: '第 3 次作答', completed: false, started: true,
-      subQuestions: [
-        { index: 1, completed: false, statusLabel: '进行中...',
-          methods: [
-            { name: '余弦定理法', allStepsDone: false,
-              steps: [
-                { order: 1, title: '第 1 步 · 代值计算', state: 'done' },
-                { order: 2, title: '第 2 步 · 化简', state: 'in-progress' },
-                { order: 3, title: '第 3 步 · 结论', state: 'locked' }
-              ]
-            },
-            { name: '向量法', allStepsDone: false,
-              steps: [
-                { order: 1, title: '第 1 步 · 建系', state: 'untried' },
-                { order: 2, title: '第 2 步 · 推导', state: 'locked' }
-              ]
-            }
-          ]
-        },
-        { index: 2, completed: false, statusLabel: '🔒 未解锁',
-          methods: [
-            { name: '', allStepsDone: false,
-              steps: [
-                { order: 1, title: '第 1 步 · 代入', state: 'locked' },
-                { order: 2, title: '第 2 步 · 结论', state: 'locked' }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 4, label: '第 4 次作答', completed: false, started: false,
-      subQuestions: [
-        { index: 1, completed: false, statusLabel: '待开始',
-          methods: [
-            { name: '余弦定理法', allStepsDone: false,
-              steps: [
-                { order: 1, title: '', state: 'untried' },
-                { order: 2, title: '', state: 'locked' },
-                { order: 3, title: '', state: 'locked' }
-              ]
-            },
-            { name: '向量法', allStepsDone: false,
-              steps: [
-                { order: 1, title: '', state: 'untried' },
-                { order: 2, title: '', state: 'locked' }
-              ]
-            }
-          ]
-        },
-        { index: 2, completed: false, statusLabel: '🔒',
-          methods: [
-            { name: '', allStepsDone: false,
-              steps: [
-                { order: 1, title: '', state: 'locked' },
-                { order: 2, title: '', state: 'locked' }
-              ]
-            }
-          ]
-        }
-      ]
-    }
+    { id:1, label:'第 1 次作答', completed:true, started:true,
+      subQuestions:[
+        { index:1, completed:true, statusLabel:'完全掌握',
+          methods:[
+            { name:'余弦定理法', allStepsDone:true,
+              steps:[{order:1,title:'第 1 步 · 代值计算',state:'done'},{order:2,title:'第 2 步 · 化简',state:'done'},{order:3,title:'第 3 步 · 结论',state:'done'}] },
+            { name:'向量法', allStepsDone:true,
+              steps:[{order:1,title:'第 1 步 · 建系',state:'done'},{order:2,title:'第 2 步 · 推导',state:'done'}] }] },
+        { index:2, completed:true, statusLabel:'已完成',
+          methods:[{ name:'', allStepsDone:true,
+            steps:[{order:1,title:'第 1 步 · 代入',state:'done'},{order:2,title:'第 2 步 · 结论',state:'done'}] }] }] },
+    { id:2, label:'第 2 次作答', completed:true, started:true,
+      subQuestions:[
+        { index:1, completed:true, statusLabel:'已完成',
+          methods:[
+            { name:'余弦定理法', allStepsDone:true,
+              steps:[{order:1,title:'第 1 步 · 代值计算',state:'done'},{order:2,title:'第 2 步 · 化简',state:'done'},{order:3,title:'第 3 步 · 结论',state:'done'}] },
+            { name:'向量法', allStepsDone:false,
+              steps:[{order:1,title:'第 1 步 · 建系',state:'done'},{order:2,title:'第 2 步 · 推导',state:'untried'}] }] },
+        { index:2, completed:false, statusLabel:'进行中...',
+          methods:[{ name:'', allStepsDone:false,
+            steps:[{order:1,title:'第 1 步 · 代入',state:'done'},{order:2,title:'第 2 步 · 结论',state:'in-progress'}] }] }] },
+    { id:3, label:'第 3 次作答', completed:false, started:true,
+      subQuestions:[
+        { index:1, completed:false, statusLabel:'进行中...',
+          methods:[
+            { name:'余弦定理法', allStepsDone:false,
+              steps:[{order:1,title:'第 1 步 · 代值计算',state:'done'},{order:2,title:'第 2 步 · 化简',state:'in-progress'},{order:3,title:'第 3 步 · 结论',state:'locked'}] },
+            { name:'向量法', allStepsDone:false,
+              steps:[{order:1,title:'第 1 步 · 建系',state:'untried'},{order:2,title:'第 2 步 · 推导',state:'locked'}] }] },
+        { index:2, completed:false, statusLabel:'🔒 未解锁',
+          methods:[{ name:'', allStepsDone:false,
+            steps:[{order:1,title:'第 1 步 · 代入',state:'locked'},{order:2,title:'第 2 步 · 结论',state:'locked'}] }] }] },
+    { id:4, label:'第 4 次作答', completed:false, started:false,
+      subQuestions:[
+        { index:1, completed:false, statusLabel:'待开始',
+          methods:[
+            { name:'余弦定理法', allStepsDone:false, steps:[{order:1,title:'',state:'untried'},{order:2,title:'',state:'locked'},{order:3,title:'',state:'locked'}] },
+            { name:'向量法', allStepsDone:false, steps:[{order:1,title:'',state:'untried'},{order:2,title:'',state:'locked'}] }] },
+        { index:2, completed:false, statusLabel:'🔒',
+          methods:[{ name:'', allStepsDone:false, steps:[{order:1,title:'',state:'locked'},{order:2,title:'',state:'locked'}] }] }] }
   ];
 
-  var _currentAttemptId = 4;  // 默认显示最新的（第 4 次 = 全新）
+  var _currentAttemptId = null;
 
-  // ============ 判断是否全新存档 ============
-  function isFreshAttempt(att) {
-    return !att.started;
+  function getUrlParams() {
+    var p = {};
+    location.search.replace(/[?&]([^=]+)=([^&]*)/g, function(_, k, v) { p[k] = decodeURIComponent(v); });
+    return p;
   }
 
-  // ============ 渲染 ============
+  function initFromUrl() {
+    var p = getUrlParams();
+    var mode = p.mode || 'first';
+    var id = p.attempt_id ? parseInt(p.attempt_id) : null;
+    if (mode === 'first') {
+      var fresh = DEMO_ATTEMPTS.find(function(a) { return !a.started; });
+      if (fresh) _currentAttemptId = fresh.id;
+      else { createFreshAttempt(); }
+    } else if (id && DEMO_ATTEMPTS.find(function(a) { return a.id === id; })) {
+      _currentAttemptId = id;
+    } else {
+      _currentAttemptId = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
+    }
+  }
+
+  function createFreshAttempt() {
+    var newId = DEMO_ATTEMPTS.length + 1;
+    DEMO_ATTEMPTS.push({
+      id:newId, label:'第 '+newId+' 次作答', completed:false, started:false,
+      subQuestions:[
+        { index:1, completed:false, statusLabel:'待开始',
+          methods:[
+            { name:'余弦定理法', allStepsDone:false, steps:[{order:1,title:'',state:'untried'},{order:2,title:'',state:'locked'},{order:3,title:'',state:'locked'}] },
+            { name:'向量法', allStepsDone:false, steps:[{order:1,title:'',state:'untried'},{order:2,title:'',state:'locked'}] }] },
+        { index:2, completed:false, statusLabel:'🔒',
+          methods:[{ name:'', allStepsDone:false, steps:[{order:1,title:'',state:'locked'},{order:2,title:'',state:'locked'}] }] }]
+    });
+    _currentAttemptId = newId;
+  }
+
+  function isFreshAttempt(att) { return !att.started; }
+
   function renderMap() {
     var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
     if (!att) return;
 
-    // 更新选择器
     var isSingle = DEMO_ATTEMPTS.length <= 1;
     document.getElementById('attempt-selector').style.display = isSingle ? 'none' : 'inline-block';
     document.getElementById('attempt-badge-single').style.display = isSingle ? 'inline' : 'none';
     document.getElementById('attempt-badge-single').textContent = att.label;
     document.getElementById('attempt-label').textContent = att.label;
 
-    // 回顾模式标识
     var banner = document.getElementById('review-banner');
-    if (att.completed && att.id < DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id) {
-      banner.style.display = 'block';
-    } else {
-      banner.style.display = 'none';
-    }
+    var lastStarted = DEMO_ATTEMPTS.filter(function(a){return a.started;}).slice(-1)[0];
+    banner.style.display = (att.completed && lastStarted && att.id !== lastStarted.id) ? 'block' : 'none';
 
-    // 构建下拉菜单
     renderDropdown(att.id);
 
-    // 判断显示首次视图还是树
     var fresh = isFreshAttempt(att);
     document.getElementById('map-tree').style.display = fresh ? 'none' : 'block';
     document.getElementById('map-fresh-view').style.display = fresh ? 'block' : 'none';
-
-    if (!fresh) {
-      renderTree(att);
-    }
+    if (!fresh) renderTree(att);
   }
 
   function renderDropdown(activeId) {
-    var dd = document.getElementById('attempt-dropdown');
-    dd.innerHTML = '';
+    var dd = document.getElementById('attempt-dropdown'); dd.innerHTML = '';
     DEMO_ATTEMPTS.forEach(function(a) {
       var opt = document.createElement('div');
       opt.className = 'attempt-option' + (a.id === activeId ? ' active' : '');
-      var label = document.createElement('span');
-      label.textContent = a.label;
-      opt.appendChild(label);
-      var status = document.createElement('span');
-      if (a.completed) {
-        status.className = 'opt-status review'; status.textContent = '回顾';
-      } else if (a.started) {
-        status.className = 'opt-status'; status.textContent = a.id === activeId ? '当前' : '进行中';
-      } else {
-        status.className = 'opt-status'; status.textContent = '未开始';
-      }
-      opt.appendChild(status);
+      var l = document.createElement('span'); l.textContent = a.label; opt.appendChild(l);
+      var s = document.createElement('span');
+      if (a.completed) { s.className='opt-status review'; s.textContent='回顾'; }
+      else if (a.started) { s.className='opt-status'; s.textContent = a.id===activeId?'当前':'进行中'; }
+      else { s.className='opt-status'; s.textContent='未开始'; }
+      opt.appendChild(s);
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    var div = document.createElement('div');
-    div.className = 'attempt-divider';
-    dd.appendChild(div);
-    var newOpt = document.createElement('div');
-    newOpt.className = 'attempt-option';
-    var newLabel = document.createElement('span');
-    newLabel.textContent = '重新作答';
-    newOpt.appendChild(newLabel);
-    var newStatus = document.createElement('span');
-    newStatus.className = 'opt-status';
-    newStatus.textContent = '新存档';
-    newOpt.appendChild(newStatus);
-    newOpt.onclick = function() { createNewAttempt(); };
-    dd.appendChild(newOpt);
+    var div = document.createElement('div'); div.className='attempt-divider'; dd.appendChild(div);
+    var n = document.createElement('div'); n.className='attempt-option';
+    var nl = document.createElement('span'); nl.textContent='重新作答'; n.appendChild(nl);
+    var ns = document.createElement('span'); ns.className='opt-status'; ns.textContent='新存档'; n.appendChild(ns);
+    n.onclick = function() { createNewAttempt(); }; dd.appendChild(n);
   }
 
   function renderTree(att) {
-    var container = document.getElementById('map-tree');
-    container.innerHTML = '';
+    var container = document.getElementById('map-tree'); container.innerHTML = '';
     att.subQuestions.forEach(function(sq) {
-      var section = document.createElement('div');
-      section.className = 'subq-section';
-
-      var hdr = document.createElement('div');
-      hdr.className = 'subq-header';
+      var section = document.createElement('div'); section.className = 'subq-section';
+      var hdr = document.createElement('div'); hdr.className = 'subq-header';
       if (sq.completed) hdr.classList.add('completed');
-      else if (sq.methods.some(function(m) { return m.steps.some(function(s) { return s.state === 'in-progress' || s.state === 'done'; }); }))
-        hdr.classList.add('active');
-      else
-        hdr.classList.add('locked');
-      var title = document.createElement('span');
-      title.textContent = sq.index === 1 ? '(1) 求 cos C 的值' : '(2) 若 c = 3，求 a + b 的最大值';
-      hdr.appendChild(title);
-      var st = document.createElement('span');
-      st.className = 'subq-status';
-      if (sq.statusLabel.indexOf('完全掌握') >= 0) st.classList.add('mastered');
+      else if (sq.methods.some(function(m){return m.steps.some(function(s){return s.state==='in-progress'||s.state==='done';});})) hdr.classList.add('active');
+      else hdr.classList.add('locked');
+      var t = document.createElement('span'); t.textContent = sq.index===1?'(1) 求 cos C 的值':'(2) 若 c = 3，求 a + b 的最大值'; hdr.appendChild(t);
+      var st = document.createElement('span'); st.className = 'subq-status';
+      if (sq.statusLabel.indexOf('完全掌握')>=0) st.classList.add('mastered');
       else if (sq.completed) st.classList.add('done');
-      st.textContent = sq.statusLabel;
-      hdr.appendChild(st);
-      section.appendChild(hdr);
-
+      st.textContent = sq.statusLabel; hdr.appendChild(st); section.appendChild(hdr);
       sq.methods.forEach(function(m) {
-        var mr = document.createElement('div');
-        mr.className = 'method-row';
-        var mhdr = document.createElement('div');
-        mhdr.className = 'method-header';
-        mhdr.onclick = function() {
-          var list = mhdr.nextElementSibling;
-          if (list) list.style.display = list.style.display === 'none' ? 'block' : 'none';
-        };
-        var mn = document.createElement('span');
-        mn.className = 'method-name';
-        mn.textContent = m.name ? '📐 ' + m.name : '唯一解法';
-        mhdr.appendChild(mn);
-        var ms = document.createElement('span');
-        ms.className = 'method-status';
-        var doneCount = m.steps.filter(function(s) { return s.state === 'done'; }).length;
-        ms.textContent = doneCount + '/' + m.steps.length + ' 步';
-        mhdr.appendChild(ms);
-        mr.appendChild(mhdr);
-
-        var sl = document.createElement('ul');
-        sl.className = 'step-list';
+        var mr = document.createElement('div'); mr.className = 'method-row';
+        var mh = document.createElement('div'); mh.className = 'method-header';
+        mh.onclick = function(){var l=mh.nextElementSibling;if(l)l.style.display=l.style.display==='none'?'block':'none';};
+        var mn = document.createElement('span'); mn.className='method-name'; mn.textContent=m.name?'📐 '+m.name:'唯一解法'; mh.appendChild(mn);
+        var ms = document.createElement('span'); ms.className='method-status';
+        ms.textContent = m.steps.filter(function(s){return s.state==='done';}).length+'/'+m.steps.length+' 步'; mh.appendChild(ms); mr.appendChild(mh);
+        var sl = document.createElement('ul'); sl.className='step-list';
         m.steps.forEach(function(s) {
           var li = document.createElement('li');
-          var sn = document.createElement('a');
-          sn.className = 'step-node';
-          sn.href = 'solve-step.html';
-
-          var dot = document.createElement('span');
-          dot.className = 'step-dot ' + s.state;
-          if (s.state === 'done') dot.textContent = '✓';
-          else if (s.state === 'in-progress') dot.textContent = s.order;
-          else if (s.state === 'locked') dot.textContent = '🔒';
-          else dot.textContent = s.order;
+          var sn = document.createElement('a'); sn.className='step-node'; sn.href='solve-step.html';
+          var dot = document.createElement('span'); dot.className='step-dot '+s.state;
+          if (s.state==='done') dot.textContent='✓'; else if (s.state==='in-progress') dot.textContent=s.order; else if (s.state==='locked') dot.textContent='🔒'; else dot.textContent=s.order;
           sn.appendChild(dot);
-
-          var stitle = document.createElement('span');
-          stitle.className = 'step-title';
-          stitle.textContent = s.title || '第 ' + s.order + ' 步';
-          sn.appendChild(stitle);
-
-          var arrow = document.createElement('span');
-          arrow.className = 'step-arrow';
-          arrow.textContent = '→';
-          sn.appendChild(arrow);
-
-          if (s.state !== 'locked') {
-            sn.onclick = function() {
-              goStep(sq.index, m.name, s.order);
-              return false;
-            };
-          } else {
-            sn.style.cursor = 'default';
-            sn.onclick = function() { return false; };
-          }
-          li.appendChild(sn);
-          sl.appendChild(li);
+          var sti = document.createElement('span'); sti.className='step-title'; sti.textContent=s.title||'第 '+s.order+' 步'; sn.appendChild(sti);
+          var arr = document.createElement('span'); arr.className='step-arrow'; arr.textContent='→'; sn.appendChild(arr);
+          if (s.state!=='locked') { sn.onclick=function(){goStep(sq.index,m.name,s.order);return false;}; }
+          else { sn.style.cursor='default'; sn.onclick=function(){return false;}; }
+          li.appendChild(sn); sl.appendChild(li);
         });
-        mr.appendChild(sl);
-        section.appendChild(mr);
+        mr.appendChild(sl); section.appendChild(mr);
       });
       container.appendChild(section);
     });
   }
 
-  // ============ 首次开始答题 ============
   function startFirstStep() {
-    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
-    if (!att) return;
-    // 标记已开始，进入第 1 小问第 1 个可用解法的第 1 步
+    var att = DEMO_ATTEMPTS.find(function(a){return a.id===_currentAttemptId;}); if (!att) return;
     att.started = true;
     att.subQuestions[0].statusLabel = '进行中...';
     att.subQuestions[0].methods[0].steps[0].state = 'in-progress';
     renderMap();
-    // 跳转到第一步详情
-    goStep(1, att.subQuestions[0].methods[0].name || '', 1);
+    goStep(1, att.subQuestions[0].methods[0].name||'', 1);
   }
 
-  // ============ 切换存档 ============
   function switchAttempt(id) {
-    if (id === _currentAttemptId) { closeDropdown(); return; }
-    _currentAttemptId = id;
-    closeDropdown();
-    renderMap();
-    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === id; });
-    if (att.completed) showToast('📋', att.label + ' · 回顾模式');
+    if (id===_currentAttemptId) { closeDropdown(); return; }
+    _currentAttemptId = id; closeDropdown(); renderMap();
+    var a = DEMO_ATTEMPTS.find(function(x){return x.id===id;});
+    if (a.completed) showToast('📋', a.label+' · 回顾模式');
   }
 
   function createNewAttempt() {
-    closeDropdown();
-    var newId = DEMO_ATTEMPTS.length + 1;
-    var template = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1];
-    var newAtt = JSON.parse(JSON.stringify(template));
-    newAtt.id = newId;
-    newAtt.label = '第 ' + newId + ' 次作答';
-    newAtt.completed = false;
-    newAtt.started = false;
-    newAtt.subQuestions.forEach(function(sq, si) {
-      sq.completed = false;
-      sq.statusLabel = si === 0 ? '待开始' : '🔒';
-      sq.methods.forEach(function(m) {
-        m.allStepsDone = false;
-        m.steps.forEach(function(s, si2) {
-          s.title = '';
-          if (si2 === 0) s.state = 'untried';
-          else s.state = 'locked';
-        });
-      });
-    });
-    DEMO_ATTEMPTS.push(newAtt);
-    _currentAttemptId = newId;
-    renderMap();
-    showToast('🆕', '已创建' + newAtt.label + '，全新未开始');
+    closeDropdown(); createFreshAttempt();
+    renderMap(); showToast('🆕', '已创建全新未开始');
   }
 
-  // ============ 下拉菜单 ============
   function toggleAttemptDropdown() {
-    var dd = document.getElementById('attempt-dropdown');
-    var trig = document.getElementById('attempt-trigger');
-    var isOpen = dd.classList.contains('show');
-    dd.classList.toggle('show');
-    trig.classList.toggle('open');
-    if (!isOpen) renderDropdown(_currentAttemptId);
+    var dd=document.getElementById('attempt-dropdown'),tr=document.getElementById('attempt-trigger');
+    dd.classList.toggle('show'); tr.classList.toggle('open');
+    if (dd.classList.contains('show')) renderDropdown(_currentAttemptId);
   }
   function closeDropdown() {
     document.getElementById('attempt-dropdown').classList.remove('show');
     document.getElementById('attempt-trigger').classList.remove('open');
   }
-  document.addEventListener('click', function(e) {
-    var sel = document.getElementById('attempt-selector');
-    if (sel && !sel.contains(e.target)) closeDropdown();
-  });
+  document.addEventListener('click',function(e){var s=document.getElementById('attempt-selector');if(s&&!s.contains(e.target))closeDropdown();});
 
-  // ============ 其他功能 ============
   var _stemExpanded = true;
-  function toggleStem() {
-    _stemExpanded = !_stemExpanded;
-    document.getElementById('stem-body').style.display = _stemExpanded ? 'block' : 'none';
+  function toggleStem() { _stemExpanded=!_stemExpanded; document.getElementById('stem-body').style.display=_stemExpanded?'block':'none'; }
+
+  function goStep(subq,method,stepOrder) {
+    var qtype = '解答';
+    parent.goFile('solve-step.html');
   }
 
-  function goStep(subq, method, stepOrder) {
-    var params = '?subq=' + subq + '&method=' + encodeURIComponent(method || '') + '&step=' + stepOrder;
-    location.href = 'solve-step.html' + params;
-  }
+  function goRate() { parent.goFile('solve-rate.html'); }
 
-  function goRate() {
-    location.href = 'solve-rate.html?from=solve-map';
-  }
-
-  // ============ 初始化 ============
-  document.addEventListener('DOMContentLoaded', renderMap);
+  document.addEventListener('DOMContentLoaded', function() { initFromUrl(); renderMap(); });
   </script>
 </body>
 </html>

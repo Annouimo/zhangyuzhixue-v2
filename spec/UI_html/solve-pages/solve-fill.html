@@ -14,7 +14,6 @@
   </div>
 
   <div class="solve-container">
-    <!-- 题目元信息 + 存档选择器 -->
     <div class="question-meta">
       第 <span>3</span> 题　
       <span>导数第 1 讲课后练习</span>
@@ -29,24 +28,20 @@
       <span class="attempt-badge" id="attempt-badge-single">第 1 次作答</span>
     </div>
 
-    <!-- 回顾模式标识 -->
     <div class="review-banner" id="review-banner" style="display:none;">
       📋 回顾模式 · 只读浏览，不可修改
     </div>
 
-    <!-- 题干 -->
     <div class="question-stem">
       <p><strong>相关概念</strong>：余弦定理</p>
       <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足 a² + b² - c² = ab，求 C 的大小。</p>
     </div>
 
-    <!-- 操作栏 -->
     <div class="action-bar" id="fill-action">
       <button class="btn btn-primary" id="reveal-btn" disabled>查看答案</button>
       <div class="cooldown-text" id="cooldown-text">⏳ 还剩 10 秒可查看</div>
     </div>
 
-    <!-- 结果区 -->
     <div class="result-area" id="result-area" style="display:none;">
       <div class="result-badge reveal">正确答案</div>
       <div class="answer-value">60°</div>
@@ -55,7 +50,6 @@
       </div>
     </div>
 
-    <!-- 完成横幅 -->
     <div id="done-section" class="done-section" style="display:none;">
       <div class="done-banner">🎉 已完成</div>
       <div class="done-actions">
@@ -68,15 +62,37 @@
   <script src="solve-utils.js"></script>
   <script>
   // =================================================================
-  //  填空题 — 存档切换
+  //  填空题 — 支持 URL 参数: ?mode=first|resume|review&attempt_id=X
   // =================================================================
 
   var DEMO_ATTEMPTS = [
     { id: 1, label: '第 1 次作答', completed: true, answerRevealed: true },
-    { id: 2, label: '第 2 次作答', completed: false, answerRevealed: false }
+    { id: 2, label: '第 2 次作答', completed: false, answerRevealed: false },
+    { id: 3, label: '第 3 次作答', completed: false, answerRevealed: false }
   ];
 
-  var _currentAttemptId = 2;
+  var _currentAttemptId = null;
+
+  function getUrlParams() {
+    var p = {};
+    location.search.replace(/[?&]([^=]+)=([^&]*)/g, function(_, k, v) { p[k] = decodeURIComponent(v); });
+    return p;
+  }
+
+  function initFromUrl() {
+    var p = getUrlParams();
+    var mode = p.mode || 'first';
+    var id = p.attempt_id ? parseInt(p.attempt_id) : null;
+    if (mode === 'first') {
+      var newId = DEMO_ATTEMPTS.length + 1;
+      DEMO_ATTEMPTS.push({ id: newId, label: '第 ' + newId + ' 次作答', completed: false, answerRevealed: false });
+      _currentAttemptId = newId;
+    } else if (id && DEMO_ATTEMPTS.find(function(a) { return a.id === id; })) {
+      _currentAttemptId = id;
+    } else {
+      _currentAttemptId = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
+    }
+  }
 
   function renderView() {
     var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
@@ -88,114 +104,80 @@
     document.getElementById('attempt-badge-single').textContent = att.label;
     document.getElementById('attempt-label').textContent = att.label;
 
-    var banner = document.getElementById('review-banner');
-    var isOld = att.id < DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
-    banner.style.display = (att.completed && isOld) ? 'block' : 'none';
+    var allDone = DEMO_ATTEMPTS.filter(function(a) { return a.completed; });
+    var lastDone = allDone[allDone.length - 1];
+    document.getElementById('review-banner').style.display = (att.completed && lastDone && att.id !== lastDone.id) ? 'block' : 'none';
 
     renderDropdown(att.id);
 
     if (att.answerRevealed) {
-      // 回顾模式：直接显示答案
       document.getElementById('fill-action').style.display = 'none';
       document.getElementById('result-area').style.display = 'block';
       document.getElementById('done-section').style.display = 'block';
     } else {
-      // 首次模式：重置
       document.getElementById('fill-action').style.display = 'block';
       document.getElementById('result-area').style.display = 'none';
       document.getElementById('done-section').style.display = 'none';
-      var btn = document.getElementById('reveal-btn');
-      var cd = document.getElementById('cooldown-text');
-      btn.disabled = true;
-      startCooldown(10, btn, cd);
+      startCooldown(10, document.getElementById('reveal-btn'), document.getElementById('cooldown-text'));
     }
   }
 
   function renderDropdown(activeId) {
-    var dd = document.getElementById('attempt-dropdown');
-    dd.innerHTML = '';
+    var dd = document.getElementById('attempt-dropdown'); dd.innerHTML = '';
     DEMO_ATTEMPTS.forEach(function(a) {
       var opt = document.createElement('div');
       opt.className = 'attempt-option' + (a.id === activeId ? ' active' : '');
-      var label = document.createElement('span');
-      label.textContent = a.label;
-      opt.appendChild(label);
-      var status = document.createElement('span');
-      if (a.completed) { status.className = 'opt-status review'; status.textContent = '回顾'; }
-      else if (a.id === activeId) { status.className = 'opt-status'; status.textContent = '当前'; }
-      else { status.className = 'opt-status'; status.textContent = '进行中'; }
-      opt.appendChild(status);
+      var l = document.createElement('span'); l.textContent = a.label; opt.appendChild(l);
+      var s = document.createElement('span');
+      if (a.completed) { s.className='opt-status review'; s.textContent='回顾'; }
+      else { s.className='opt-status'; s.textContent=a.id===activeId?'当前':'未完成'; }
+      opt.appendChild(s);
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    var div = document.createElement('div');
-    div.className = 'attempt-divider';
-    dd.appendChild(div);
-    var newOpt = document.createElement('div');
-    newOpt.className = 'attempt-option';
-    var newLabel = document.createElement('span');
-    newLabel.textContent = '重新作答';
-    newOpt.appendChild(newLabel);
-    var newStatus = document.createElement('span');
-    newStatus.className = 'opt-status';
-    newStatus.textContent = '新存档';
-    newOpt.appendChild(newStatus);
-    newOpt.onclick = function() { createNewAttempt(); };
-    dd.appendChild(newOpt);
+    var div = document.createElement('div'); div.className='attempt-divider'; dd.appendChild(div);
+    var n = document.createElement('div'); n.className='attempt-option';
+    var nl = document.createElement('span'); nl.textContent='重新作答'; n.appendChild(nl);
+    var ns = document.createElement('span'); ns.className='opt-status'; ns.textContent='新存档'; n.appendChild(ns);
+    n.onclick = function() { createNewAttempt(); }; dd.appendChild(n);
   }
 
   function switchAttempt(id) {
     if (id === _currentAttemptId) { closeDropdown(); return; }
-    _currentAttemptId = id;
-    closeDropdown();
-    renderView();
-    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === id; });
-    if (att.completed) showToast('📋', att.label + ' · 回顾模式');
+    _currentAttemptId = id; closeDropdown(); renderView();
+    var a = DEMO_ATTEMPTS.find(function(x) { return x.id === id; });
+    if (a.completed) showToast('📋', a.label + ' · 回顾模式');
   }
 
   function createNewAttempt() {
     closeDropdown();
     var newId = DEMO_ATTEMPTS.length + 1;
-    DEMO_ATTEMPTS.push({
-      id: newId, label: '第 ' + newId + ' 次作答',
-      completed: false, answerRevealed: false
-    });
-    _currentAttemptId = newId;
-    renderView();
+    DEMO_ATTEMPTS.push({ id: newId, label: '第 ' + newId + ' 次作答', completed: false, answerRevealed: false });
+    _currentAttemptId = newId; renderView();
     showToast('🆕', '已创建第 ' + newId + ' 次作答');
   }
 
   function toggleAttemptDropdown() {
-    var dd = document.getElementById('attempt-dropdown');
-    var trig = document.getElementById('attempt-trigger');
-    dd.classList.toggle('show');
-    trig.classList.toggle('open');
+    var dd = document.getElementById('attempt-dropdown'), tr = document.getElementById('attempt-trigger');
+    dd.classList.toggle('show'); tr.classList.toggle('open');
     if (dd.classList.contains('show')) renderDropdown(_currentAttemptId);
   }
   function closeDropdown() {
     document.getElementById('attempt-dropdown').classList.remove('show');
     document.getElementById('attempt-trigger').classList.remove('open');
   }
-  document.addEventListener('click', function(e) {
-    var sel = document.getElementById('attempt-selector');
-    if (sel && !sel.contains(e.target)) closeDropdown();
-  });
+  document.addEventListener('click', function(e) { var s=document.getElementById('attempt-selector'); if(s&&!s.contains(e.target)) closeDropdown(); });
 
-  // 交互相应
   document.getElementById('reveal-btn').addEventListener('click', function() {
     document.getElementById('fill-action').style.display = 'none';
     document.getElementById('result-area').style.display = 'block';
     document.getElementById('done-section').style.display = 'block';
   });
 
-  function goNext() {
-    showToast('📝', '进入下一题（Flutter 中执行路由跳转）');
-  }
-  function goRate() {
-    location.href = 'solve-rate.html?from=solve-fill';
-  }
+  function goNext() { showToast('📝', '进入下一题（Flutter 中执行路由跳转）'); }
+  function goRate() { parent.goFile('solve-rate.html'); }
 
-  document.addEventListener('DOMContentLoaded', renderView);
+  document.addEventListener('DOMContentLoaded', function() { initFromUrl(); renderView(); });
   </script>
 </body>
 </html>

@@ -14,7 +14,6 @@
   </div>
 
   <div class="solve-container">
-    <!-- 题目元信息 + 存档选择器 -->
     <div class="question-meta">
       第 <span>2</span> 题　
       <span>三角函数小测</span>
@@ -29,44 +28,27 @@
       <span class="attempt-badge" id="attempt-badge-single">第 1 次作答</span>
     </div>
 
-    <!-- 回顾模式标识 -->
     <div class="review-banner" id="review-banner" style="display:none;">
       📋 回顾模式 · 只读浏览，不可修改
     </div>
 
-    <!-- 题干 -->
     <div class="question-stem">
       <p><strong>相关概念</strong>：三角函数</p>
       <p style="margin-top:8px;">若 sin α = 3/5，且 α 为锐角，则 cos α 的值为？</p>
     </div>
 
-    <!-- 选项 -->
     <div class="options-grid" id="options-grid">
-      <div class="option-btn" data-option="A">
-        <span class="option-label">A</span>
-        <span class="option-text">4/5</span>
-      </div>
-      <div class="option-btn" data-option="B">
-        <span class="option-label">B</span>
-        <span class="option-text">-4/5</span>
-      </div>
-      <div class="option-btn" data-option="C">
-        <span class="option-label">C</span>
-        <span class="option-text">2/5</span>
-      </div>
-      <div class="option-btn" data-option="D">
-        <span class="option-label">D</span>
-        <span class="option-text">-2/5</span>
-      </div>
+      <div class="option-btn" data-option="A"><span class="option-label">A</span><span class="option-text">4/5</span></div>
+      <div class="option-btn" data-option="B"><span class="option-label">B</span><span class="option-text">-4/5</span></div>
+      <div class="option-btn" data-option="C"><span class="option-label">C</span><span class="option-text">2/5</span></div>
+      <div class="option-btn" data-option="D"><span class="option-label">D</span><span class="option-text">-2/5</span></div>
     </div>
 
-    <!-- 操作栏 -->
     <div class="action-bar" id="choice-action">
       <button class="btn btn-primary" id="submit-btn" disabled>提交答案</button>
       <div class="cooldown-text" id="cooldown-text">⏳ 还剩 10 秒可提交</div>
     </div>
 
-    <!-- 结果区 -->
     <div class="result-area" id="result-area" style="display:none;">
       <div class="result-badge" id="result-badge"></div>
       <div class="analysis-text" style="text-align:left;margin-top:8px;">
@@ -74,7 +56,6 @@
       </div>
     </div>
 
-    <!-- 完成横幅 -->
     <div id="done-section" class="done-section" style="display:none;">
       <div class="done-banner">🎉 已完成</div>
       <div class="done-actions">
@@ -87,201 +68,153 @@
   <script src="solve-utils.js"></script>
   <script>
   // =================================================================
-  //  选择题 — 存档切换（共用逻辑 + 存档数据）
+  //  选择题 — 支持 URL 参数: ?mode=first|resume|review&attempt_id=X
+  //  选填题无欢迎视图，mode=first 直接显示正常答题界面
   // =================================================================
 
-  // ============ 模拟存档数据 ============
   var DEMO_ATTEMPTS = [
     { id: 1, label: '第 1 次作答', completed: true, selected: 'A', isCorrect: true, answerRevealed: true },
     { id: 2, label: '第 2 次作答', completed: true, selected: 'B', isCorrect: false, answerRevealed: true },
-    { id: 3, label: '第 3 次作答', completed: false, selected: null, isCorrect: null, answerRevealed: false }
+    { id: 3, label: '第 3 次作答', completed: false, selected: null, isCorrect: null, answerRevealed: false },
+    { id: 4, label: '第 4 次作答', completed: false, selected: null, isCorrect: null, answerRevealed: false }
   ];
 
   var CORRECT_ANSWER = 'A';
-  var _currentAttemptId = 3;
+  var _currentAttemptId = null;
   var choiceState = { selectedOption: null, submitted: false };
 
-  // ============ 渲染 ============
+  function getUrlParams() {
+    var p = {};
+    location.search.replace(/[?&]([^=]+)=([^&]*)/g, function(_, k, v) { p[k] = decodeURIComponent(v); });
+    return p;
+  }
+
+  function initFromUrl() {
+    var p = getUrlParams();
+    var mode = p.mode || 'first';
+    var id = p.attempt_id ? parseInt(p.attempt_id) : null;
+    if (mode === 'first') {
+      // 选填题：直接创建新存档，无需欢迎视图
+      var newId = DEMO_ATTEMPTS.length + 1;
+      DEMO_ATTEMPTS.push({ id: newId, label: '第 ' + newId + ' 次作答', completed: false, selected: null, isCorrect: null, answerRevealed: false });
+      _currentAttemptId = newId;
+    } else if (id && DEMO_ATTEMPTS.find(function(a) { return a.id === id; })) {
+      _currentAttemptId = id;
+    } else {
+      _currentAttemptId = DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
+    }
+  }
+
   function renderView() {
     var att = DEMO_ATTEMPTS.find(function(a) { return a.id === _currentAttemptId; });
     if (!att) return;
 
-    // 选择器
     var isSingle = DEMO_ATTEMPTS.length <= 1;
     document.getElementById('attempt-selector').style.display = isSingle ? 'none' : 'inline-block';
     document.getElementById('attempt-badge-single').style.display = isSingle ? 'inline' : 'none';
     document.getElementById('attempt-badge-single').textContent = att.label;
     document.getElementById('attempt-label').textContent = att.label;
 
-    // 回顾横幅
-    var banner = document.getElementById('review-banner');
-    var isOld = att.id < DEMO_ATTEMPTS[DEMO_ATTEMPTS.length - 1].id;
-    banner.style.display = (att.completed && isOld) ? 'block' : 'none';
+    var allStarted = DEMO_ATTEMPTS.filter(function(a) { return a.answerRevealed || a.selected; });
+    var lastStart = allStarted[allStarted.length - 1];
+    document.getElementById('review-banner').style.display = (att.completed && lastStart && att.id !== lastStart.id) ? 'block' : 'none';
 
-    // 下拉菜单
     renderDropdown(att.id);
-
-    // 重置所有选区
-    document.querySelectorAll('.option-btn').forEach(function(b) {
-      b.classList.remove('selected', 'correct', 'wrong');
-    });
+    document.querySelectorAll('.option-btn').forEach(function(b) { b.classList.remove('selected','correct','wrong'); });
 
     if (att.answerRevealed) {
-      // 回顾模式：直接显示结果
       document.getElementById('choice-action').style.display = 'none';
       document.getElementById('result-area').style.display = 'block';
       document.getElementById('done-section').style.display = 'block';
       var badge = document.getElementById('result-badge');
       badge.textContent = att.isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + CORRECT_ANSWER;
       badge.className = 'result-badge ' + (att.isCorrect ? 'correct' : 'wrong');
-      // 标记选项
-      document.querySelectorAll('.option-btn').forEach(function(b) {
-        if (b.dataset.option === CORRECT_ANSWER) b.classList.add('correct');
-      });
-      if (!att.isCorrect && att.selected) {
-        document.querySelectorAll('.option-btn').forEach(function(b) {
-          if (b.dataset.option === att.selected) b.classList.add('wrong');
-        });
-      }
+      document.querySelectorAll('.option-btn').forEach(function(b) { if (b.dataset.option === CORRECT_ANSWER) b.classList.add('correct'); });
+      if (!att.isCorrect && att.selected) { document.querySelectorAll('.option-btn').forEach(function(b) { if (b.dataset.option === att.selected) b.classList.add('wrong'); }); }
       choiceState.submitted = true;
     } else {
-      // 首次模式：重置到初期状态
       document.getElementById('choice-action').style.display = 'block';
       document.getElementById('result-area').style.display = 'none';
       document.getElementById('done-section').style.display = 'none';
-      choiceState.selectedOption = null;
-      choiceState.submitted = false;
-
-      // 重新冷却
-      var btn = document.getElementById('submit-btn');
-      var cd = document.getElementById('cooldown-text');
-      btn.disabled = true;
-      startCooldown(10, btn, cd);
+      choiceState.selectedOption = null; choiceState.submitted = false;
+      startCooldown(10, document.getElementById('submit-btn'), document.getElementById('cooldown-text'));
     }
   }
 
   function renderDropdown(activeId) {
-    var dd = document.getElementById('attempt-dropdown');
-    dd.innerHTML = '';
+    var dd = document.getElementById('attempt-dropdown'); dd.innerHTML = '';
     DEMO_ATTEMPTS.forEach(function(a) {
       var opt = document.createElement('div');
       opt.className = 'attempt-option' + (a.id === activeId ? ' active' : '');
-      var label = document.createElement('span');
-      label.textContent = a.label;
-      opt.appendChild(label);
-      var status = document.createElement('span');
-      if (a.completed) { status.className = 'opt-status review'; status.textContent = '回顾'; }
-      else if (a.id === activeId) { status.className = 'opt-status'; status.textContent = '当前'; }
-      else { status.className = 'opt-status'; status.textContent = '进行中'; }
-      opt.appendChild(status);
+      var l = document.createElement('span'); l.textContent = a.label; opt.appendChild(l);
+      var s = document.createElement('span');
+      if (a.completed) { s.className='opt-status review'; s.textContent='回顾'; }
+      else { s.className='opt-status'; s.textContent=a.id===activeId?'当前':'未完成'; }
+      opt.appendChild(s);
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    var div = document.createElement('div');
-    div.className = 'attempt-divider';
-    dd.appendChild(div);
-    var newOpt = document.createElement('div');
-    newOpt.className = 'attempt-option';
-    var newLabel = document.createElement('span');
-    newLabel.textContent = '重新作答';
-    newOpt.appendChild(newLabel);
-    var newStatus = document.createElement('span');
-    newStatus.className = 'opt-status';
-    newStatus.textContent = '新存档';
-    newOpt.appendChild(newStatus);
-    newOpt.onclick = function() { createNewAttempt(); };
-    dd.appendChild(newOpt);
+    var div = document.createElement('div'); div.className='attempt-divider'; dd.appendChild(div);
+    var n = document.createElement('div'); n.className='attempt-option';
+    var nl = document.createElement('span'); nl.textContent='重新作答'; n.appendChild(nl);
+    var ns = document.createElement('span'); ns.className='opt-status'; ns.textContent='新存档'; n.appendChild(ns);
+    n.onclick = function() { createNewAttempt(); }; dd.appendChild(n);
   }
 
   function switchAttempt(id) {
     if (id === _currentAttemptId) { closeDropdown(); return; }
-    _currentAttemptId = id;
-    closeDropdown();
-    renderView();
-    var att = DEMO_ATTEMPTS.find(function(a) { return a.id === id; });
-    if (att.completed) showToast('📋', att.label + ' · 回顾模式');
+    _currentAttemptId = id; closeDropdown(); renderView();
+    var a = DEMO_ATTEMPTS.find(function(x) { return x.id === id; });
+    if (a.completed) showToast('📋', a.label + ' · 回顾模式');
   }
 
   function createNewAttempt() {
     closeDropdown();
     var newId = DEMO_ATTEMPTS.length + 1;
-    DEMO_ATTEMPTS.push({
-      id: newId, label: '第 ' + newId + ' 次作答',
-      completed: false, selected: null, isCorrect: null, answerRevealed: false
-    });
-    _currentAttemptId = newId;
-    renderView();
+    DEMO_ATTEMPTS.push({ id: newId, label: '第 ' + newId + ' 次作答', completed: false, selected: null, isCorrect: null, answerRevealed: false });
+    _currentAttemptId = newId; renderView();
     showToast('🆕', '已创建第 ' + newId + ' 次作答');
   }
 
-  // ============ 下拉菜单 ============
   function toggleAttemptDropdown() {
-    var dd = document.getElementById('attempt-dropdown');
-    var trig = document.getElementById('attempt-trigger');
-    dd.classList.toggle('show');
-    trig.classList.toggle('open');
+    var dd = document.getElementById('attempt-dropdown'), tr = document.getElementById('attempt-trigger');
+    dd.classList.toggle('show'); tr.classList.toggle('open');
     if (dd.classList.contains('show')) renderDropdown(_currentAttemptId);
   }
   function closeDropdown() {
     document.getElementById('attempt-dropdown').classList.remove('show');
     document.getElementById('attempt-trigger').classList.remove('open');
   }
-  document.addEventListener('click', function(e) {
-    var sel = document.getElementById('attempt-selector');
-    if (sel && !sel.contains(e.target)) closeDropdown();
-  });
+  document.addEventListener('click', function(e) { var s=document.getElementById('attempt-selector'); if(s&&!s.contains(e.target)) closeDropdown(); });
 
-  // ============ 原选择交互 ============
   document.querySelectorAll('.option-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       if (choiceState.submitted) return;
-      document.querySelectorAll('.option-btn').forEach(function(b) {
-        b.classList.remove('selected');
-      });
-      btn.classList.add('selected');
-      choiceState.selectedOption = btn.dataset.option;
+      document.querySelectorAll('.option-btn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected'); choiceState.selectedOption = btn.dataset.option;
     });
   });
 
   document.getElementById('submit-btn').addEventListener('click', function() {
-    if (!choiceState.selectedOption) {
-      showToast('⚠️', '请先选择一个选项');
-      return;
-    }
+    if (!choiceState.selectedOption) { showToast('⚠️', '请先选择一个选项'); return; }
     if (choiceState.submitted) return;
     choiceState.submitted = true;
-
     var isCorrect = (choiceState.selectedOption === CORRECT_ANSWER);
     document.getElementById('choice-action').style.display = 'none';
-    var result = document.getElementById('result-area');
-    result.style.display = 'block';
+    document.getElementById('result-area').style.display = 'block';
     var badge = document.getElementById('result-badge');
     badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + CORRECT_ANSWER;
     badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
-
-    document.querySelectorAll('.option-btn').forEach(function(b) {
-      b.classList.remove('selected');
-    });
-    document.querySelectorAll('.option-btn').forEach(function(b) {
-      if (b.dataset.option === CORRECT_ANSWER) b.classList.add('correct');
-    });
-    if (!isCorrect) {
-      document.querySelectorAll('.option-btn').forEach(function(b) {
-        if (b.dataset.option === choiceState.selectedOption) b.classList.add('wrong');
-      });
-    }
+    document.querySelectorAll('.option-btn').forEach(function(b) { b.classList.remove('selected'); });
+    document.querySelectorAll('.option-btn').forEach(function(b) { if (b.dataset.option === CORRECT_ANSWER) b.classList.add('correct'); });
+    if (!isCorrect) { document.querySelectorAll('.option-btn').forEach(function(b) { if (b.dataset.option === choiceState.selectedOption) b.classList.add('wrong'); }); }
     document.getElementById('done-section').style.display = 'block';
   });
 
-  function goNext() {
-    showToast('📝', '进入下一题（Flutter 中执行路由跳转）');
-  }
-  function goRate() {
-    location.href = 'solve-rate.html?from=solve-choice';
-  }
+  function goNext() { showToast('📝', '进入下一题（Flutter 中执行路由跳转）'); }
+  function goRate() { parent.goFile('solve-rate.html'); }
 
-  // 初始化
-  document.addEventListener('DOMContentLoaded', renderView);
+  document.addEventListener('DOMContentLoaded', function() { initFromUrl(); renderView(); });
   </script>
 </body>
 </html>
