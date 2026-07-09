@@ -399,7 +399,8 @@ class ExamRepository {
   }
 
   /// 确认组卷（委托给 _ExamGenerator）
-  static Future<int> confirm(SearchFilters filters) async {
+  /// [allowShortfall] 为 true 时，池子不足不抛异常，有多少取多少
+  static Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
     throw UnimplementedError('ExamRepository.confirm');
   }
 }
@@ -420,11 +421,12 @@ class _ExamFilterEngine {
 ///
 /// ┌─ 流程总览 ──────────────────────────────────────────────────┐
 /// │                                                              │
-/// │  confirm(filters)                                            │
+/// │  confirm(filters, allowShortfall)                             │
 /// │    1. 获取筛选池 → dao.getFilteredPool(filters)              │
 /// │    2. 锁定手动选题（selectedIds 固定不动）                   │
 /// │    3. 检查各题型池子是否够用                                  │
-/// │       → 不足则抛出 InsufficientPoolException                 │
+/// │       → allowShortfall==false 且不足 → 抛异常                 │
+/// │       → allowShortfall==true  → 跳过检查，有多少取多少       │
 /// │    4. Phase 1 — 贪心初始集                                  │
 /// │       每种题型按 |difficulty - target| 排序取 top N         │
 /// │    5. Phase 2 — 交换优化 (3 轮)                             │
@@ -480,6 +482,7 @@ class _ExamFilterEngine {
 /// │  confirm() 的调用者捕获后弹窗：                               │
 /// │    "选择题池子不足（需要8道，只有5道）"                       │
 /// │    两个按钮：直接组卷 / 调整筛选条件                          │
+/// │    直接组卷 → 用 allowShortfall=true 再次调 confirm()        │
 /// └──────────────────────────────────────────────────────────────┘
 class _ExamGenerator {
   static const int maxSwapRounds = 3;

@@ -518,6 +518,39 @@
     .update-banner .bn-btn-update:hover {
       opacity: 0.9;
     }
+
+    /* ---- 池子不足弹窗（组卷） ---- */
+    .shortfall-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .shortfall-actions .btn-adjust {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .shortfall-actions .btn-adjust:hover {
+      background: var(--bg);
+    }
+    .shortfall-actions .btn-force {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .shortfall-actions .btn-force:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -624,6 +657,17 @@
       </button>
       <button class="btn btn-primary btn-block" onclick="testUpdateComplete()" style="margin-bottom:6px;">
         ✅ 更新完成 Toast
+      </button>
+    </div>
+
+    <!-- 📄 组卷系统测试 -->
+    <div class="debug-section">
+      <div class="debug-title">📄 组卷系统</div>
+      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
+        智能组卷时，若筛选池某题型数量不足，弹出降级提示。
+      </p>
+      <button class="btn btn-primary btn-block" onclick="testShortfall()">
+        📄 池子不足弹窗（模拟）
       </button>
     </div>
   </div>
@@ -810,6 +854,22 @@
     </div>
   </div>
 
+  <!-- 📄 池子不足弹窗（组卷） -->
+  <div class="popup-overlay" id="shortfall-popup">
+    <div class="popup-card">
+      <div class="popup-icon">⚠️</div>
+      <div class="popup-badge" style="background:#FEF3C7;color:#92400E;">池子不足</div>
+      <div class="popup-title">题库数量不足</div>
+      <div class="popup-desc" id="shortfall-desc">
+        选择题池子不足<br>（需要 8 道，池中只有 5 道）
+      </div>
+      <div class="shortfall-actions">
+        <button class="btn-adjust" onclick="shortfallAdjust()">调整筛选条件</button>
+        <button class="btn-force" onclick="shortfallForce()">直接组卷</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ===== Toast 全局 ===== */
     var _toastTimer = null;
@@ -980,6 +1040,29 @@
     }
     function closeUpdatePopup() {
       document.getElementById('update-popup').classList.remove('show');
+    }
+
+    /* ===== 组卷系统测试 ===== */
+
+    // 📄 显示池子不足弹窗
+    function testShortfall() {
+      document.getElementById('shortfall-popup').classList.add('show');
+    }
+
+    function closeShortfallPopup() {
+      document.getElementById('shortfall-popup').classList.remove('show');
+    }
+
+    // 用户点击 "调整筛选条件" 时
+    function shortfallAdjust() {
+      showToast('🔍', '已返回筛选页，请调整筛选条件');
+      closeShortfallPopup();
+    }
+
+    // 用户点击 "直接组卷" 时
+    function shortfallForce() {
+      showToast('📄', '池子不足，按可用题目直接组卷');
+      closeShortfallPopup();
     }
   </script>
 </body>

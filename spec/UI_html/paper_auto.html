@@ -237,6 +237,11 @@
     </div>
 
     <!-- 确认按钮（路由到试卷预览） -->
+    <!-- 批语：如果池子不足，此处应弹出 InsufficientPoolException 弹窗。
+         弹窗内容见 debug.html 中的 "池子不足" 弹窗设计（shortfall-popup）。
+         用户选择 "直接组卷" → 用现有池子生成（不足题型有多少取多少）
+         用户选择 "调整筛选条件" → 返回本页修改筛选条件
+         实现时：confirm() 捕获异常后弹窗，弹窗按钮分别对应两种降级路径 -->
     <div style="margin-top:12px;padding-bottom:20px;">
       <button class="btn btn-primary btn-block" data-db-action="exam.auto.generate()"
               onclick="location.href='paper_quicklook.html'">
