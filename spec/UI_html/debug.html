@@ -260,7 +260,6 @@
     .changelog-card .cl-tag.feat { background: var(--primary); }
     .changelog-card .cl-tag.refactor { background: var(--warning); }
 
-
     /* ---- 积分弹窗 ---- */
     .bonus-amount {
       font-size: 32px;
@@ -269,7 +268,7 @@
       margin: 12px 0;
     }
 
-    /* ---- 更新弹窗 ---- */
+    /* ---- 更新弹窗（非强制） ---- */
     .update-changelog {
       text-align: left;
       font-size: 13px;
@@ -310,6 +309,213 @@
       cursor: pointer;
     }
     .update-actions .btn-update:hover {
+      opacity: 0.9;
+    }
+
+    /* ---- 强制更新弹窗 ---- */
+    .force-update-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    .force-update-overlay.show {
+      display: flex;
+    }
+    .force-update-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 36px 28px 24px;
+      width: 88%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      animation: popup-enter 0.3s ease-out;
+    }
+    .force-update-card .fu-icon {
+      font-size: 56px;
+      margin-bottom: 12px;
+    }
+    .force-update-card .fu-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .force-update-card .fu-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+    .force-update-card .fu-version {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .force-update-card .fu-changelog {
+      text-align: left;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+    }
+    .force-update-card .fu-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .force-update-card .fu-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* ---- 下载进度弹窗 ---- */
+    .dl-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 250;
+      align-items: center;
+      justify-content: center;
+    }
+    .dl-overlay.show {
+      display: flex;
+    }
+    .dl-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 24px 20px;
+      width: 85%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      animation: popup-enter 0.3s ease-out;
+    }
+    .dl-card .dl-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+    .dl-card .dl-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .dl-card .dl-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .dl-card .dl-progress-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .dl-card .dl-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #7C3AED);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .dl-card .dl-progress-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .dl-card .dl-hint {
+      font-size: 12px;
+      color: var(--error);
+      font-weight: 500;
+    }
+
+    /* ---- 更新横幅（右下角） ---- */
+    .update-banner {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      left: 16px;
+      max-width: 440px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      z-index: 150;
+      animation: banner-slide-up 0.35s ease-out;
+      border-left: 4px solid var(--primary);
+      align-items: center;
+    }
+    @keyframes banner-slide-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .update-banner.show {
+      display: flex;
+    }
+    .update-banner .bn-icon {
+      font-size: 28px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .update-banner .bn-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .update-banner .bn-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .update-banner .bn-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .update-banner .bn-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+    .update-banner .bn-btn-skip {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+    .update-banner .bn-btn-skip:hover {
+      background: var(--bg);
+    }
+    .update-banner .bn-btn-update {
+      padding: 6px 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .update-banner .bn-btn-update:hover {
       opacity: 0.9;
     }
   </style>
@@ -401,14 +607,23 @@
       </button>
     </div>
 
-    <!-- 检查更新 -->
+    <!-- 📦 更新机制测试 -->
     <div class="debug-section">
-      <div class="debug-title">🔄 软件更新</div>
+      <div class="debug-title">📦 更新机制</div>
       <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
-        模拟检查软件版本更新
+        模拟题库/讲义 .db 下载更新的四种 UI 场景。
       </p>
-      <button class="btn btn-primary btn-block" onclick="simulateUpdateCheck()">
-        🔍 检查软件更新
+      <button class="btn btn-primary btn-block" onclick="testForceUpdate()" style="margin-bottom:6px;">
+        🔴 强制更新弹窗（不可关闭）
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testBannerUpdate()" style="margin-bottom:6px;">
+        🟡 非强制更新横幅（右下角）
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testDownloadProgress()" style="margin-bottom:6px;">
+        📥 下载进度弹窗
+      </button>
+      <button class="btn btn-primary btn-block" onclick="testUpdateComplete()" style="margin-bottom:6px;">
+        ✅ 更新完成 Toast
       </button>
     </div>
   </div>
@@ -482,7 +697,7 @@
     </div>
   </div>
 
-        <!-- 更新日志弹窗 -->
+  <!-- 更新日志弹窗 -->
   <div class="popup-overlay" id="changelog-popup" onclick="if(event.target===this)closeChangelog()">
     <div class="changelog-card">
       <div class="cl-header">
@@ -521,27 +736,77 @@
       </div>
     </div>
   </div>
-<!-- 更新弹窗 -->
+
+  <!-- 更新弹窗（非强制） -->
   <div class="popup-overlay" id="update-popup" onclick="if(event.target===this)closeUpdatePopup()">
     <div class="popup-card">
-      <div class="popup-icon">🚀</div>
-      <div class="popup-badge" style="background:#EEF1FF;color:var(--primary);">有新版本</div>
-      <div class="popup-title">章鱼智学 v1.3.0</div>
+      <div class="popup-icon">📦</div>
+      <div class="popup-badge" style="background:#EEF1FF;color:var(--primary);">题库有更新</div>
+      <div class="popup-title">题库 v5 可下载</div>
       <div class="popup-desc">
         <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">
-          当前版本 <span style="color:var(--text);">v1.2.0</span> → <strong style="color:var(--primary);">v1.3.0</strong>
+          当前版本 <span style="color:var(--text);">v3</span> → <strong style="color:var(--primary);">v5</strong>
         </div>
         <div class="update-changelog">
           更新内容：<br>
-          · 新增同步队列查看<br>
-          · 优化解题体验<br>
-          · 问题修复
+          · 新增 2025 年高考真题<br>
+          · 修正 3 处解析错误<br>
+          · 调整 12 道题难度值
         </div>
       </div>
       <div class="update-actions">
-        <button class="btn-secondary" onclick="closeUpdatePopup()">暂不更新</button>
-        <button class="btn-update" onclick="closeUpdatePopup()">去更新</button>
+        <button class="btn-secondary" onclick="closeUpdatePopup()">稍后</button>
+        <button class="btn-update" onclick="closeUpdatePopup();testDownloadProgress()">立即更新</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ⚠️ 强制更新弹窗（不可关闭） -->
+  <div class="force-update-overlay" id="force-update-popup">
+    <div class="force-update-card">
+      <div class="fu-icon">⚠️</div>
+      <div class="fu-title">题库需要更新</div>
+      <div class="fu-subtitle">
+        当前版本 <strong>v3</strong> → <strong>v5</strong><br>
+        更新后方可继续使用
+      </div>
+      <div class="fu-version">schema v1 · 强制更新</div>
+      <div class="fu-changelog">
+        <strong>更新内容：</strong><br>
+        · 修正第 24 题解析错误<br>
+        · 修正 2 处配图标注错误<br>
+        · 调整 5 道题难度值
+      </div>
+      <button class="fu-btn" onclick="closeForceUpdatePopup();testDownloadProgress()">
+        📥 立即更新
+      </button>
+    </div>
+  </div>
+
+  <!-- 📥 下载进度弹窗 -->
+  <div class="dl-overlay" id="dl-popup">
+    <div class="dl-card">
+      <div class="dl-icon">📥</div>
+      <div class="dl-title">正在更新题库</div>
+      <div class="dl-desc" id="dl-desc">下载中，请不要退出此页面</div>
+      <div class="dl-progress-bg">
+        <div class="dl-progress-bar" id="dl-progress-bar"></div>
+      </div>
+      <div class="dl-progress-text" id="dl-progress-text">0% · 0 KB / 4 MB</div>
+      <div class="dl-hint" id="dl-hint"></div>
+    </div>
+  </div>
+
+  <!-- 🟡 非强制更新横幅 -->
+  <div class="update-banner" id="update-banner">
+    <span class="bn-icon">📦</span>
+    <div class="bn-content">
+      <div class="bn-title">题库已更新至 v5</div>
+      <div class="bn-desc">新增 2025 高考真题，修正 3 处解析错误</div>
+    </div>
+    <div class="bn-actions">
+      <button class="bn-btn-skip" onclick="closeBanner()">稍后</button>
+      <button class="bn-btn-update" onclick="closeBanner();testDownloadProgress()">更新</button>
     </div>
   </div>
 
@@ -647,7 +912,69 @@
       document.getElementById('changelog-popup').classList.remove('show');
     }
 
-    /* ===== 检查更新 ===== */
+    /* ===== 更新机制测试 ===== */
+
+    // 🔴 强制更新弹窗
+    function testForceUpdate() {
+      document.getElementById('force-update-popup').classList.add('show');
+    }
+    function closeForceUpdatePopup() {
+      document.getElementById('force-update-popup').classList.remove('show');
+    }
+
+    // 🟡 非强制更新横幅
+    function testBannerUpdate() {
+      document.getElementById('update-banner').classList.add('show');
+      setTimeout(function() {
+        document.getElementById('update-banner').classList.remove('show');
+      }, 5000);
+    }
+    function closeBanner() {
+      document.getElementById('update-banner').classList.remove('show');
+    }
+
+    // 📥 下载进度模拟
+    var _dlTimer = null;
+    function testDownloadProgress() {
+      var bar = document.getElementById('dl-progress-bar');
+      var txt = document.getElementById('dl-progress-text');
+      var hint = document.getElementById('dl-hint');
+      var popup = document.getElementById('dl-popup');
+      hint.textContent = '';
+      bar.style.width = '0%';
+      txt.textContent = '0% · 0 KB / 4 MB';
+      popup.classList.add('show');
+
+      if (_dlTimer) clearInterval(_dlTimer);
+      var pct = 0;
+      var totalKB = 4096;
+      _dlTimer = setInterval(function() {
+        pct += Math.random() * 8 + 2;
+        if (pct >= 100) {
+          pct = 100;
+          clearInterval(_dlTimer);
+          _dlTimer = null;
+          bar.style.width = '100%';
+          txt.textContent = '100% · 4 MB / 4 MB';
+          hint.textContent = '';
+          setTimeout(function() {
+            popup.classList.remove('show');
+            testUpdateComplete();
+          }, 500);
+        } else {
+          bar.style.width = pct + '%';
+          var doneKB = Math.round(totalKB * pct / 100);
+          txt.textContent = Math.round(pct) + '% · ' + doneKB + ' KB / 4 MB';
+        }
+      }, 150);
+    }
+
+    // ✅ 更新完成
+    function testUpdateComplete() {
+      showToast('✅', '题库更新完成，共更新 12 道题目');
+    }
+
+    /* ===== 旧版检查更新（保留兼容） ===== */
     function simulateUpdateCheck() {
       document.getElementById('update-popup').classList.add('show');
     }
@@ -657,6 +984,3 @@
   </script>
 </body>
 </html>
-
-
-
