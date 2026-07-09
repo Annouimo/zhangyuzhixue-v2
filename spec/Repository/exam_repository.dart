@@ -1,4 +1,4 @@
-/// 章鱼智学 — ExamRepository
+﻿/// 章鱼智学 — ExamRepository
 /// data-db: exam.*
 /// 对应页面：paper_auto.html, paper_pick.html, paper_quicklook.html,
 ///          paper_quicklook_other.html, paper_explore.html, paper_favorites.html,
@@ -435,20 +435,18 @@ class _ExamGenerator {
 
 /// PDF 生成
 ///
-/// 🚧 设计未完成。有 Python 原型（D:\Hermes\pdf_test\exam_pdf.py），
-/// 但融入项目的架构决策未定，Flutter 端能否跑通未验证。
+/// 设计已定稿，详见 spec/pdf/README.md。
 ///
-/// Python 原型说明：
-///   - exam_pdf.py：HTML+KaTeX → headless Chrome → PDF
-///   - API：generate_pdf(title, sections, output_path)
-///   - 数据类：Choice, Section, Question 已定义
+/// 关键决策（客户端方案）：
+///   1. 客户端 HTML+KaTeX → 浏览器 PDF（不走服务端，不消耗 3Mbps 带宽）
+///   2. 数据类已迁至 spec/pdf/pdf_exam_input.dart
+///   3. 实现位置：lib/services/pdf/（独立文件夹，不与 Repository 耦合）
 ///
-/// 待决架构问题（决定了才能编码）：
-///   1. PDF 生成放在客户端（Flutter）还是服务端（Django）？
-///      - 客户端：用 `pdf` 或 `flutter_html` 等 Dart 包。需验证 LaTeX 渲染支持
-///      - 服务端：调 Python 脚本 / 集成到 Django views，Flutter 端下载文件
-///   2. Flutter 端下载 PDF 后如何打开预览？用 url_launcher 跳外部 PDF 阅读器？
-///   3. 如果走服务端：同步队列要不要支持二进制下载（当前设计队列只推 JSON）？
-///   4. 如果走客户端：Flutter 生态中有什么包能渲染带 KaTeX 的 HTML 并导出 PDF？
+/// 数据流：
+///   ExamRepository.downloadPdf(id)
+///     → PdfExamInputBuilder.fromPaper(id) → PdfExamInput
+///     → PdfExamService.buildPdf(input) → Uint8List
+///
+/// 本类保留为占位，编码阶段替换为对 PdfExamService 的调用。
 class _ExamPdfService {
 }
