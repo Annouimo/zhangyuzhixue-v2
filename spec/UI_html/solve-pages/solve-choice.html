@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题 · 选择 - 章鱼智学</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="solve.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1>解题模式</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- 题目元信息 -->
+    <div class="question-meta">
+      第 <span>2</span> 题　
+      <span>三角函数小测</span>
+      <span class="text-secondary">[选择]</span>
+    </div>
+
+    <!-- 题干 -->
+    <div class="question-stem">
+      <p><strong>相关概念</strong>：三角函数</p>
+      <p style="margin-top:8px;">若 sin α = 3/5，且 α 为锐角，则 cos α 的值为？</p>
+    </div>
+
+    <!-- 选项 -->
+    <div class="options-grid" id="options-grid">
+      <div class="option-btn" data-option="A">
+        <span class="option-label">A</span>
+        <span class="option-text">4/5</span>
+      </div>
+      <div class="option-btn" data-option="B">
+        <span class="option-label">B</span>
+        <span class="option-text">-4/5</span>
+      </div>
+      <div class="option-btn" data-option="C">
+        <span class="option-label">C</span>
+        <span class="option-text">2/5</span>
+      </div>
+      <div class="option-btn" data-option="D">
+        <span class="option-label">D</span>
+        <span class="option-text">-2/5</span>
+      </div>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="action-bar" id="choice-action">
+      <button class="btn btn-primary" id="submit-btn" disabled>提交答案</button>
+      <div class="cooldown-text" id="cooldown-text">⏳ 还剩 10 秒可提交</div>
+    </div>
+
+    <!-- 结果区 -->
+    <div class="result-area" id="result-area" style="display:none;">
+      <div class="result-badge" id="result-badge"></div>
+      <div class="analysis-text" style="text-align:left;margin-top:8px;">
+        <p>由 sin²α + cos²α = 1，α 为锐角，cos α > 0，得 cos α = √(1 - 9/25) = 4/5。</p>
+      </div>
+    </div>
+
+    <!-- 完成横幅 -->
+    <div id="done-section" class="done-section" style="display:none;">
+      <div class="done-banner">🎉 已完成</div>
+      <div class="done-actions">
+        <button class="btn btn-outline" onclick="goNext()">下一题 →</button>
+        <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="solve-utils.js"></script>
+  <script>
+  // =================================================================
+  //  选择题交互
+  // =================================================================
+  var CORRECT_ANSWER = 'A';
+  var choiceState = { selectedOption: null, submitted: false };
+
+  // 选项点击
+  document.querySelectorAll('.option-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (choiceState.submitted) return;
+      document.querySelectorAll('.option-btn').forEach(function(b) {
+        b.classList.remove('selected');
+      });
+      btn.classList.add('selected');
+      choiceState.selectedOption = btn.dataset.option;
+    });
+  });
+
+  // 冷却
+  document.addEventListener('DOMContentLoaded', function() {
+    startCooldown(10, document.getElementById('submit-btn'), document.getElementById('cooldown-text'));
+  });
+
+  // 提交
+  document.getElementById('submit-btn').addEventListener('click', function() {
+    if (!choiceState.selectedOption) {
+      showToast('⚠️', '请先选择一个选项');
+      return;
+    }
+    if (choiceState.submitted) return;
+    choiceState.submitted = true;
+
+    var isCorrect = (choiceState.selectedOption === CORRECT_ANSWER);
+    document.getElementById('choice-action').style.display = 'none';
+    var result = document.getElementById('result-area');
+    result.style.display = 'block';
+    var badge = document.getElementById('result-badge');
+    badge.textContent = isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是 ' + CORRECT_ANSWER;
+    badge.className = 'result-badge ' + (isCorrect ? 'correct' : 'wrong');
+
+    // 清除选中样式
+    document.querySelectorAll('.option-btn').forEach(function(b) {
+      b.classList.remove('selected');
+    });
+    // 正确答案绿色
+    document.querySelectorAll('.option-btn').forEach(function(b) {
+      if (b.dataset.option === CORRECT_ANSWER) b.classList.add('correct');
+    });
+    // 用户选错则红色
+    if (!isCorrect) {
+      document.querySelectorAll('.option-btn').forEach(function(b) {
+        if (b.dataset.option === choiceState.selectedOption) b.classList.add('wrong');
+      });
+    }
+    document.getElementById('done-section').style.display = 'block';
+  });
+
+  function goNext() {
+    showToast('📝', '进入下一题（Flutter 中执行路由跳转）');
+  }
+  function goRate() {
+    location.href = 'solve-rate.html?from=solve-choice';
+  }
+  </script>
+</body>
+</html>

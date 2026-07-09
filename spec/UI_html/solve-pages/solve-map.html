@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解题地图 - 章鱼智学</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="solve.css">
+</head>
+<body>
+  <div class="page-header">
+    <a href="javascript:history.back()" class="back-btn">← 返回</a>
+    <h1 data-db="question.getDetail.title">解题地图</h1>
+  </div>
+
+  <div class="solve-container">
+    <!-- 题目元信息 -->
+    <div class="question-meta">
+      第 <span>3</span> 题　
+      <span>导数第 1 讲课后练习</span>
+      <span class="text-secondary">[解答]</span>
+      <span class="attempt-badge">第 1 次作答</span>
+    </div>
+
+    <!-- 回顾模式标识（仅回顾模式显示） -->
+    <div class="review-banner" id="review-banner" style="display:none;">
+      📋 回顾模式 · 只读浏览，不可修改
+    </div>
+
+    <!-- 题干区（可折叠） -->
+    <div class="question-stem" id="stem-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <strong>题目</strong>
+        <button class="btn btn-sm btn-ghost" onclick="toggleStem()" style="font-size:12px;">展开 ▼</button>
+      </div>
+      <div id="stem-body" style="margin-top:8px;">
+        <p><strong>相关概念</strong>：<span>体积，平面</span></p>
+        <p style="margin-top:8px;">在三角形 ABC 中，角 A、B、C 的对边分别是 a、b、c，且满足 a² + b² - c² = ab。</p>
+        <p style="margin-top:4px;">(1) 求 cos C 的值；</p>
+        <p style="margin-top:4px;">(2) 若 c = 3，求 a + b 的最大值。</p>
+      </div>
+    </div>
+
+    <!-- 解题流程树 -->
+    <div id="map-tree">
+      <!-- ====== 第(1)问 ====== -->
+      <div class="subq-section" data-subq="1">
+        <div class="subq-header active" id="sq-header-1">
+          <span>(1) 求 cos C 的值</span>
+          <span class="subq-status" id="sq-status-1">进行中...</span>
+        </div>
+
+        <!-- 解法：余弦定理法 -->
+        <div class="method-row" data-method="余弦定理法">
+          <div class="method-header" onclick="toggleMethod(this)">
+            <span class="method-name">📐 余弦定理法</span>
+            <span class="method-status" id="method-status-1-余弦定理法">3/3 步</span>
+          </div>
+          <ul class="step-list" id="method-steps-1-余弦定理法">
+            <li>
+              <a href="solve-step.html" class="step-node" id="step-1-余弦定理法-1" onclick="return goStep(1,'余弦定理法',1)">
+                <span class="step-dot done">✓</span>
+                <span class="step-title">第 1 步 · 代值计算</span>
+                <span class="step-arrow">→</span>
+              </a>
+            </li>
+            <li>
+              <a href="solve-step.html" class="step-node" id="step-1-余弦定理法-2" onclick="return goStep(1,'余弦定理法',2)">
+                <span class="step-dot in-progress">2</span>
+                <span class="step-title">第 2 步 · 化简</span>
+                <span class="step-arrow">→</span>
+              </a>
+            </li>
+            <li>
+              <a href="solve-step.html" class="step-node" id="step-1-余弦定理法-3" onclick="return goStep(1,'余弦定理法',3)">
+                <span class="step-dot locked">🔒</span>
+                <span class="step-title">第 3 步 · 结论</span>
+                <span class="step-arrow">→</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 解法：向量法（支线，未开始） -->
+        <div class="method-row" data-method="向量法">
+          <div class="method-header" onclick="toggleMethod(this)">
+            <span class="method-name">📐 向量法</span>
+            <span class="method-status" id="method-status-1-向量法">0/2 步</span>
+          </div>
+          <ul class="step-list" id="method-steps-1-向量法" style="display:none;">
+            <li>
+              <a href="solve-step.html" class="step-node" onclick="return goStep(1,'向量法',1)">
+                <span class="step-dot untried">1</span>
+                <span class="step-title">第 1 步 · 建系</span>
+                <span class="step-arrow">→</span>
+              </a>
+            </li>
+            <li>
+              <a href="solve-step.html" class="step-node" onclick="return goStep(1,'向量法',2)">
+                <span class="step-dot locked">🔒</span>
+                <span class="step-title">第 2 步 · 推导</span>
+                <span class="step-arrow">→</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ====== 第(2)问（未解锁示例） ====== -->
+      <div class="subq-section" data-subq="2">
+        <div class="subq-header locked" id="sq-header-2">
+          <span>(2) 若 c = 3，求 a + b 的最大值</span>
+          <span class="subq-status" id="sq-status-2">🔒 未解锁</span>
+        </div>
+
+        <div class="method-row" data-method="">
+          <div class="method-header" style="cursor:default;">
+            <span class="method-name">唯一解法</span>
+            <span class="method-status" id="method-status-2-">0/2 步</span>
+          </div>
+          <ul class="step-list" id="method-steps-2-">
+            <li>
+              <span class="step-node" style="cursor:default;">
+                <span class="step-dot locked">🔒</span>
+                <span class="step-title">第 1 步 · 代入</span>
+              </span>
+            </li>
+            <li>
+              <span class="step-node" style="cursor:default;">
+                <span class="step-dot locked">🔒</span>
+                <span class="step-title">第 2 步 · 结论</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 地图底栏 -->
+    <div class="map-footer">
+      <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+      <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container"><div class="toast-bar" id="toast-bar"><span class="toast-icon" id="toast-icon"></span><span class="toast-msg" id="toast-msg"></span><button class="toast-close" onclick="closeToast()">✕</button></div></div>
+
+  <script src="solve-utils.js"></script>
+  <script>
+  // =================================================================
+  //  解题地图交互
+  // =================================================================
+
+  // 题干折叠
+  var _stemExpanded = true;
+  function toggleStem() {
+    _stemExpanded = !_stemExpanded;
+    document.getElementById('stem-body').style.display = _stemExpanded ? 'block' : 'none';
+  }
+
+  // 解法行折叠
+  function toggleMethod(el) {
+    var list = el.nextElementSibling;
+    if (list && list.classList.contains('step-list')) {
+      list.style.display = list.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  // 跳转到步骤详情页
+  function goStep(subq, method, stepOrder) {
+    // Flutter 中执行路由: /solve-step?question=X&subq=Y&method=Z&step=W
+    // 原型中用参数传递
+    var params = '?subq=' + subq + '&method=' + encodeURIComponent(method) + '&step=' + stepOrder;
+    location.href = 'solve-step.html' + params;
+    return false;  // 阻止默认 <a> 跳转
+  }
+
+  function goRate() {
+    location.href = 'solve-rate.html?from=solve-map';
+  }
+
+  // 将来 Flutter 中这里会从 SolveArchive 加载实际数据
+  // 动态渲染 subq-header / method / step-node 的状态
+  </script>
+</body>
+</html>
