@@ -1,4 +1,4 @@
-# PDF 生成引擎 · 设计稿
+﻿# PDF 生成引擎 · 设计稿
 
 本目录包含 PDF 试卷生成器的设计文件：
 
@@ -146,13 +146,13 @@ A4（210mm × 297mm）。`@page { size: A4; margin: 2.5cm 2.0cm; }`
 
 | 规则 | CSS 实现 |
 |------|---------|
-| 每个大题区占 1 页 | `.section { page-break-before: always; }`<br>`.section:first-of-type { page-break-before: avoid; }` |
-| 选择题/填空题连续排列 | 自然流式排列 |
-| 单题不允许跨页 | `.question { page-break-inside: avoid; }` |
-| 第一道解答题另起一页 | `.section-solution { page-break-before: always; }` |
-| 大题剩余空间 = 学生书写区 | 不设 min-height，靠 `page-break-before: always` 保证每大题从新页开始 |
+| **标题+选择题+填空题连续编排**，从第1页开始自然流式排列 | 三个 section 均不强制分页 |
+| **单题不允许跨页**（全题型通用） | `.question { page-break-inside: avoid; }` |
+| **整个解答题区另起新页** | `.section-solution { page-break-before: always; }` |
+| **解答题内每道题独立起页** | `.section-solution .question { page-break-before: always; }` |
+| 但第一道解答题紧跟在 section 标题后，不额外分页 | `.section-solution .question:first-of-type { page-break-before: avoid; }` |
 
-**注意**：`page-break-inside: avoid` 在 headless Chrome 和 WKWebView createPDF 中均支持；如果某题内容过长，Chrome 会自动调整同一大题内其他题目的分页来满足约束。
+**效果**：选择/填空题混排在一页或多页上，自然流动；单题不跨页。解答题从全新一页开始，每道解答题独占一页，剩余大量空白留给学生写过程。
 
 ### 4.4 配图
 
