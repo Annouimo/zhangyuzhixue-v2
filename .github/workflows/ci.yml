@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44'
+      - name: dart analyze
+        working-directory: flutter_app
+        run: dart analyze
+      - name: flutter test
+        working-directory: flutter_app
+        run: flutter test
+
+  django:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: install deps
+        working-directory: server
+        run: pip install -r requirements.txt -q
+      - name: flake8
+        working-directory: server
+        run: flake8 --config .flake8
+      - name: check --deploy
+        working-directory: server
+        run: python manage.py check --deploy
+      - name: makemigrations --check
+        working-directory: server
+        run: python manage.py makemigrations --check
