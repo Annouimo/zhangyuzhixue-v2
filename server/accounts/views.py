@@ -41,7 +41,7 @@ def register_view(request):
     if not serializer.is_valid():
         first_err = list(serializer.errors.values())[0]
         msg = str(first_err[0]) if isinstance(first_err, list) else str(first_err)
-        return _err(40001, msg)
+        return _err(40101, msg)
 
     data = serializer.validated_data
 
@@ -153,7 +153,7 @@ def user_me_view(request):
     if not serializer.is_valid():
         first_err = list(serializer.errors.values())[0]
         msg = str(first_err[0]) if isinstance(first_err, list) else str(first_err)
-        return _err(40001, msg)
+        return _err(40201, msg)
 
     data = serializer.validated_data
     user = request.user

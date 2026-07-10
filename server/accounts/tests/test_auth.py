@@ -117,7 +117,7 @@ class TestRegister:
         }, format='json')
 
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40101
         assert '无效' in resp.data['message']
 
     def test_register_expired_code(self, api_client, expired_invitation_code):
@@ -130,7 +130,7 @@ class TestRegister:
         }, format='json')
 
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40101
         assert '过期' in resp.data['message']
 
     def test_register_used_code(self, api_client, used_invitation_code):
@@ -143,7 +143,7 @@ class TestRegister:
         }, format='json')
 
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40101
         # 实际消息：'邀请码已被使用'
         assert '已被使用' in resp.data['message']
 
@@ -158,7 +158,7 @@ class TestRegister:
         }, format='json')
 
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40101
         assert '已存在' in resp.data['message']
 
 
