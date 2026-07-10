@@ -1,6 +1,5 @@
 """审计日志注册测试 — 验证 auditlog 已正确注册所有应审计模型"""
 
-import pytest
 from auditlog.registry import auditlog as auditlog_registry
 from django.contrib.auth.models import User
 

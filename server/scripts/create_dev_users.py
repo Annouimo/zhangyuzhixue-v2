@@ -8,14 +8,14 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'math_platform.settings')
 
-import django
+import django  # noqa: E402
 django.setup()
 
 # setup 之后才能导入 Django 模型
-from django.contrib.auth.models import User
-from django.utils import timezone
+from django.contrib.auth.models import User  # noqa: E402
+from django.utils import timezone  # noqa: E402
 
-from accounts.models import InvitationCode, Student, Teacher
+from accounts.models import InvitationCode, Student, Teacher  # noqa: E402
 
 # ── 配置 ──────────────────────────────────────────────────────
 
