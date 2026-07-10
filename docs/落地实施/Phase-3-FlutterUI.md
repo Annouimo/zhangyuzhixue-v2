@@ -117,7 +117,6 @@ dart run # 确认主题设置正确、启动无报错
 
 ### 注意事项
 
-- Phase 3 不启动总测试数验证——页面 Widget 测试本身是慢慢累加的
 - `go_router` 需加到 pubspec.yaml（非 Phase 0 定义的依赖列表，需 `flutter pub add go_router`）
 - 每个 Widget 覆盖 加载中 / 空状态 / 正常数据 / 错误状态 / 边界数据
 
