@@ -1,10 +1,21 @@
-from django.contrib import admin
 
+from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views import View
+
+from django.utils import timezone
 from .models import (
     AchievementDef, Announcement, AppVersion, DbVersion,
     LevelConfig, PointsTransaction, StudentAchievement,
     SystemConfig,
 )
+
+
+# ── 已有模型注册 ──────────────────────────────────────────────
 
 
 @admin.register(LevelConfig)
@@ -63,3 +74,116 @@ class AnnouncementAdmin(admin.ModelAdmin):
 class SystemConfigAdmin(admin.ModelAdmin):
     list_display = ['key', 'value', 'description']
     search_fields = ['key']
+
+
+# ── 工具页面 ──────────────────────────────────────────────────
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class ToolsView(View):
+    """系统管理工具页面 — 构建/邀请码/批量导入"""
+    template_name = 'admin/system/tools.html'
+
+    def get(self, request):
+        ctx = self._get_context(request)
+        return render(request, self.template_name, ctx)
+
+    def post(self, request):
+        action = request.POST.get('action', '')
+
+        if action == 'build_assets':
+            self._run_build('qbank', request.POST.get('mode') == 'test')
+        elif action == 'build_lectures':
+            self._run_build('lecture', request.POST.get('mode') == 'test')
+        elif action == 'generate_codes':
+            self._generate_codes(request)
+        elif action == 'batch_import':
+            pass  # 占位
+
+        return HttpResponseRedirect(reverse('admin-system-tools'))
+
+    def _get_context(self, request):
+        """准备模板上下文"""
+        from accounts.models import InvitationCode
+        return {
+            'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
+            'lecture_version': DbVersion.objects.filter(db_type='lecture').first(),
+            'invitation_codes': InvitationCode.objects.all().order_by('-created_at')[:50],
+            'has_error': False,
+            'messages': [],
+            'now': timezone.now(),
+        }
+
+    def _run_build(self, db_type, test_mode):
+        """执行构建"""
+        import io
+        import sys
+        from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+        from scripts.build_utils import build_database
+        from system.models import DbVersion
+
+        schema = ASSETS_TABLES if db_type == 'qbank' else LECTURE_TABLES
+
+        try:
+            ver = DbVersion.objects.get(db_type=db_type)
+            version_info = {
+                'schema_version': ver.schema_version,
+                'data_version': ver.data_version + (0 if test_mode else 1),
+            }
+        except DbVersion.DoesNotExist:
+            version_info = {'schema_version': 1, 'data_version': 1}
+
+        # 捕获 print 输出到日志
+        old_stdout = sys.stdout
+        sys.stdout = buf = io.StringIO()
+        try:
+            build_database(
+                schema=schema,
+                db_type=db_type,
+                version_info=version_info,
+                test_mode=test_mode,
+            )
+        except Exception as e:
+            buf.write(f'\nERROR: {e}')
+        finally:
+            sys.stdout = old_stdout
+        return buf.getvalue()
+
+    def _generate_codes(self, request):
+        """批量生成邀请码"""
+        from accounts.models import InvitationCode
+        import secrets
+        import string
+
+        try:
+            count = int(request.POST.get('count', 10))
+        except (ValueError, TypeError):
+            count = 10
+        count = max(1, min(100, count))
+
+        days = request.POST.get('days', '')
+        if days:
+            try:
+                expires = timezone.now() + timezone.timedelta(days=int(days))
+            except (ValueError, TypeError):
+                expires = None
+        else:
+            expires = None
+
+        chars = string.ascii_uppercase + string.digits
+        created = 0
+        for _ in range(count * 2):  # 最多尝试 2 倍次数去重
+            if created >= count:
+                break
+            code = '-'.join([
+                ''.join(secrets.choice(chars) for _ in range(4)),
+                ''.join(secrets.choice(chars) for _ in range(4)),
+                ''.join(secrets.choice(chars) for _ in range(4)),
+            ])
+            if not InvitationCode.objects.filter(code=code).exists():
+                InvitationCode.objects.create(
+                    code=code,
+                    is_used=False,
+                    expires_at=expires,
+                )
+                created += 1

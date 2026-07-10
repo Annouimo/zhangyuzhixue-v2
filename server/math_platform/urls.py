@@ -8,6 +8,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from interactions.pdf_views import pdf_view
+from system.admin import ToolsView
 
 api_v1 = [
     path('auth/', include('accounts.urls')),
@@ -28,6 +29,7 @@ api_v1 = [
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin/system/tools/', ToolsView.as_view(), name='admin-system-tools'),
     path('api/v1/', include(api_v1)),
 
     # PDF view (browser-facing, no api/v1 prefix)
