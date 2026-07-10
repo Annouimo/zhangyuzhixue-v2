@@ -150,6 +150,16 @@ REST_FRAMEWORK = {
         'math_platform.exceptions.custom_exception_handler',
 }
 
+# ── Security / CSRF / Proxy ──
+# Cloudflare Tunnel terminates TLS at edge, nginx receives HTTP.
+# Tell Django the original scheme was HTTPS via proxy header.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://zhangyuzhixue.top',
+    cast=lambda v: [s.strip() for s in v.split(',')],
+)
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
