@@ -51,7 +51,9 @@ flutter_app/lib/domain/
 └── domain.dart                # barrel export
 ```
 
-### 2.4.1 — 实现方式
+### 实现要点
+
+#### 2.4.1 — 实现方式
 
 将 `docs/05-Flutter/Repository/*.dart` 设计稿复制到 `lib/domain/`，并替换 `throw UnimplementedError` 为真实实现。
 
@@ -60,7 +62,7 @@ flutter_app/lib/domain/
 2. 去掉 `fromJson`（Repository 从本地 DB 读数据，不从 API 反序列化）
 3. 补充 import 和依赖注入
 
-### 2.4.2 — 依赖注入清单
+#### 2.4.2 — 依赖注入清单
 
 | Repository | 依赖的 DAO | 依赖的 API | 尾部算法类 |
 |------------|-----------|-----------|-----------|
@@ -78,7 +80,7 @@ flutter_app/lib/domain/
 | AchievementRepository | AchievementDao | — | `_AchievementEngine` |
 | SyncRepository | SyncQueueDao | SyncApi | — |
 
-### 2.4.3 — Repository 构造方式
+#### 2.4.3 — Repository 构造方式
 
 全量构造注入，无 DI 框架：
 
@@ -111,7 +113,7 @@ class ExamRepository {
 }
 ```
 
-### 2.4.4 — 5 个尾部算法类的实现要求
+#### 2.4.4 — 5 个尾部算法类的实现要求
 
 | 算法类 | 所属 Repository | 核心代码行数估算 |
 |--------|----------------|-----------------|
@@ -123,7 +125,7 @@ class ExamRepository {
 
 **合计算法代码：~390 行**
 
-### 2.4.5 — 测试计划
+### 验证方式
 
 每个 Repository 写集成测试（DAO + memory DB 或 mock DAO）：
 
@@ -158,7 +160,7 @@ class ExamRepository {
 
 **合计：~20 个测试用例**
 
-### 2.4.6 — 操作清单
+### 操作清单
 
 1. 在 `lib/domain/` 下创建 13 个 Repository 文件
 2. 每个文件：复制设计稿 + 替换 UnimplementedError + 改 static 为实例方法 + 构造注入
@@ -166,3 +168,10 @@ class ExamRepository {
 4. 编写 Repository 集成测试（memory DB）
 5. 编写尾部算法类单元测试
 6. `flutter test` 全部通过
+
+### 注意事项
+
+- Repository 方法从设计稿的 `static` 改为实例方法后，注意同步修改所有调用处（主要是测试文件）
+- `_ExamGenerator` 的组卷算法包含约 300 行逻辑（贪心选 + 交换 3 轮），单元测试需覆盖边界情况
+- `_RecommendationEngine` 冷启动（<5 条记录）应返回空列表而非全量，避免给新用户推荐无关内容
+- 尾部算法类通过 Repository 的公有方法间接测试，不暴露私有类

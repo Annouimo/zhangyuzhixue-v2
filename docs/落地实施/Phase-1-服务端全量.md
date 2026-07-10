@@ -60,7 +60,7 @@
 | `server/system/models.py` | 新增 DbVersion、AppVersion、Announcement、PointsTransaction、StudentAchievement、LevelConfig、AchievementDef |
 | `server/system/admin.py` | 注册全部模型，ToolsAdminView |
 
-### 模型实现要点
+### 实现要点
 
 **accounts/models.py：**
 - `Student`：OneToOneField → User，ForeignKey → ClassGroup（nullable）
@@ -153,7 +153,7 @@ python manage.py createsuperuser     # 创建管理员账号
 - `questions_question` 表含 **798 题**（3 条 year=2099 测试数据已排除）
 - 1.1 迁移完成，新版表结构就绪
 
-### 迁移脚本详细逻辑
+### 实现要点
 
 `migrate_questions.py` 以独立脚本运行（`python scripts/migrate_questions.py`），直接连接新旧两个 SQLite 数据库，不走 Django ORM 连接（避免环境依赖问题）。
 
@@ -198,7 +198,7 @@ python manage.py createsuperuser     # 创建管理员账号
     └── 配图数量记录
 ```
 
-### 注意点
+### 注意事项
 
 - **旧版字段名确认：** 迁移前需实际检查旧版 `PRAGMA table_info(questions_question)` 确认字段名与文档一致
 - **事务：** 每步操作在独立事务中，失败可回退单步
@@ -338,7 +338,7 @@ class IsTeacher(permissions.BasePermission):
 
 创建测试邀请码若干（有效不过期）。
 
-### 测试用例
+### 验证方式
 
 ```python
 # pytest 4 场景
@@ -440,7 +440,7 @@ class VersionCheckView(APIView):
 
 已在 Phase 0 登录实现中完成（`app_type` 不做角色校验）。sync/push 的 entity 分发逻辑统一在 SyncPushView 中处理，组卷走 `request.user`，提交数据走 submission 中的 student_id（从 token 解析），无需额外改动。
 
-### 测试用例
+### 验证方式
 
 ```python
 # pytest 场景
@@ -506,7 +506,7 @@ class VersionCheckView(APIView):
 - 教师可见全部课程，学生只可见自己班级关联的课程
 - 讲义内容返回 Document.md_content 原样
 
-### 测试用例
+### 验证方式
 
 ```python
 # pytest 场景

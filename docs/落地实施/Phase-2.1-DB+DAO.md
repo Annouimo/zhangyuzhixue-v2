@@ -55,7 +55,9 @@ flutter_app/lib/data/daos/
 └── user_dao.dart                 # user 库：user_profile + points_transaction
 ```
 
-### 2.1.1 — Drift Database 定义
+### 实现要点
+
+#### 2.1.1 — Drift Database 定义
 
 **原则：**
 - 表定义严格参照 `docs/02-数据/数据库结构设计.md` 和 `构建脚本设计.md` 中的 `ASSETS_TABLES`/`LECTURE_TABLES`
@@ -106,7 +108,7 @@ targets:
 
 运行 `dart run drift_dev build` 生成 `.g.dart` 文件。
 
-### 2.1.2 — 11 个 DAO
+#### 2.1.2 — 11 个 DAO
 
 **DAO 通用规则：** 构造注入，基础 CRUD 由 Drift 自动生成，DAO 封装更语义化的查询。
 
@@ -125,23 +127,7 @@ class QuestionDao {
 }
 ```
 
-**11 个 DAO 的方法清单：**
-
-| DAO 文件 | 数据库 | 核心方法 |
-|----------|--------|---------|
-| `question_dao.dart` | assets | `getById`, `search`, `getFilterOptions`, `countByType`, `getDifficultyRange`, `getGaokaoStats`, `getFilteredPool` |
-| `assignment_dao.dart` | assets | `listAll`, `getById`, `getQuestions` |
-| `lecture_dao.dart` | lectures | `getAllCourses`, `getChapters`, `getContent`, `searchByKeyword` |
-| `progress_dao.dart` | user | `getSubmissions`, `createSubmission`, `getDetail`, `getAttempts`, `createAttempt`, `getStepFeedbacks`, `insertStepFeedback`, `getCardFeedbacks`, `insertCardFeedback`, `updateSubmissionStatus` |
-| `rating_dao.dart` | user | `getRating`, `upsertRating` |
-| `preference_dao.dart` | user | `listAll`, `getById`, `save`, `delete`, `count` |
-| `sync_queue_dao.dart` | user | `enqueue`, `getPending`, `markInProgress`, `markSuccess`, `markFailed`, `clearAll`, `cleanup`, `getFailedCount`, `isEmpty`, `hasFailed` |
-| `achievement_dao.dart` | user | `getUnlockedCount`, `getAllProgress`, `upsertProgress`, `getLoginStreak`, `getSubmissionCount`, `getCompletedLectureCount`, `getPaperCount`, `getRatingCount` |
-| `statistics_dao.dart` | user+assets | `getDailyRecords`, `getPointsByDay`, `getTypeDistribution`, `getTotalQuestions`, `getAccuracy` |
-| `exam_dao.dart` | user+assets | `listCreated`, `listFavorites`, `listExplore`, `getPreview`, `savePaper`, `deletePaper`, `togglePublic`, `toggleLike`, `toggleCollect`, `getQuickAnswers` |
-| `user_dao.dart` | user | `getProfile`, `saveProfile`, `getPointsHistory`, `getEarnedPoints`, `getBonusPoints`, `getSpentPoints`, `getTodayPoints`, `getStreakDays`, `getTodayReward`, `getNextReward` |
-
-### 2.1.3 — 测试计划
+### 验证方式
 
 **类型：** DAO 单元测试（in-memory Drift）
 
@@ -182,7 +168,7 @@ void main() {
 
 **合计：~59 个测试用例**
 
-### 2.1.4 — 操作清单
+### 操作清单
 
 1. 在 `flutter_app/lib/data/database/` 下创建 `assets_database.dart`
 2. 在 `flutter_app/lib/data/database/` 下创建 `lectures_database.dart`
@@ -192,3 +178,9 @@ void main() {
 6. 在 `flutter_app/lib/data/daos/` 下逐个创建 11 个 DAO 文件
 7. 对每个 DAO 编写 memory DB 测试
 8. 运行 `flutter test` 确认全部测试通过
+
+### 注意事项
+
+- `autoIncrement()` 用于 Drift 语法兼容，实际 ID 由服务端分配
+- `assets.db` 和 `lectures.db` 中的 `course/assignment/assignment_question` 三表同时存在于两个库，客户端仅通过 lectures.db 读取，避免混淆
+- memory DB 测试用后必须 `tearDown(() => db.close())` 防止资源泄漏

@@ -43,7 +43,9 @@ flutter_app/lib/data/api/
 └── user_api.dart            # me/update/avatar
 ```
 
-### 2.2.1 — DatabaseProvider
+### 实现要点
+
+#### 2.2.1 — DatabaseProvider
 
 **位置：** `lib/data/database/database_provider.dart`
 
@@ -75,7 +77,7 @@ class DatabaseProvider {
 
 **首次启动：** `_ensureDefaultAssets()` 从 Flutter bundle（`assets/db/assets.db`）复制到应用文档目录。
 
-### 2.2.2 — ApiClient + 三个拦截器
+#### 2.2.2 — ApiClient + 三个拦截器
 
 **位置：** `lib/data/api/api_client.dart`
 
@@ -113,7 +115,7 @@ class ApiClient {
    - `code=0` → 正常通过
    - `code≠0` → 转为 `ApiException(code, message, httpStatus)`
 
-### 2.2.3 — API 类
+#### 2.2.3 — API 类
 
 **auth_api.dart：** `login(LoginRequest)` → `LoginResult`、`register(RegisterRequest)` → void、`refresh(String)` → `RefreshResult`
 
@@ -121,7 +123,7 @@ class ApiClient {
 
 **user_api.dart：** `getInfo()` → `UserInfo`、`updateProfile(Map)` → void、`uploadAvatar(String localPath)` → String（URL）
 
-### 2.2.4 — 测试计划
+### 验证方式
 
 | 测试 | 场景 | 数量 |
 |------|------|------|
@@ -135,7 +137,7 @@ class ApiClient {
 
 **合计：~19 个测试用例**
 
-### 2.2.5 — 操作清单
+### 操作清单
 
 1. 创建 `database_provider.dart`，实现三库生命周期
 2. 创建 `api_client.dart`，实现 Dio 单例 + 三个拦截器
@@ -155,7 +157,9 @@ flutter_app/lib/data/prefs/app_prefs.dart
 flutter_app/lib/data/network/connectivity_monitor.dart
 ```
 
-### 2.3.1 — AppPrefs
+### 实现要点
+
+#### 2.3.1 — AppPrefs
 
 **位置：** `lib/data/prefs/app_prefs.dart`
 
@@ -212,7 +216,7 @@ class Keys {
 }
 ```
 
-### 2.3.2 — ConnectivityMonitor
+#### 2.3.2 — ConnectivityMonitor
 
 **位置：** `lib/data/network/connectivity_monitor.dart`
 
@@ -238,7 +242,7 @@ class ConnectivityMonitor {
 }
 ```
 
-### 2.3.3 — 测试计划
+### 验证方式
 
 | 测试 | 数量 |
 |------|------|
@@ -250,9 +254,16 @@ class ConnectivityMonitor {
 
 **合计：~8 个测试用例**
 
-### 2.3.4 — 操作清单
+### 操作清单
 
 1. 创建 `app_prefs.dart`，实现所有全局 key 的读写
 2. 创建 `connectivity_monitor.dart`
 3. 编写 AppPrefs 和 ConnectivityMonitor 测试
 4. `flutter test` 全部通过
+
+### 注意事项
+
+- DatabaseProvider 在 `init()` 前调用 getter 会抛 `StateError`，测试中需覆盖此边界
+- RefreshInterceptor 的同步锁使用 `_isRefreshing` bool 而非锁对象，在异常路径中务必 `finally { _isRefreshing = false; }`
+- AppPrefs 的 `clearAll()` 会清空所有 key（含 token/version），登出后需重新引导用户登录
+- ConnectivityMonitor 使用 `BehaviorSubject.seeded(true)`，默认在线——首次值在 init 前不可信
