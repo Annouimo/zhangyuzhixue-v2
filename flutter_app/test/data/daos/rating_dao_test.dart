@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
-import '../../../lib/data/database/app_database.dart' as db;
-import '../../../lib/data/daos/rating_dao.dart';
+import 'package:flutter_app/data/database/app_database.dart' as db;
+import 'package:flutter_app/data/daos/rating_dao.dart';
 
 void main() {
   late db.AppDatabase database;

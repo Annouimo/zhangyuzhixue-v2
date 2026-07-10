@@ -33,7 +33,6 @@ class DatabaseProvider {
     _initialized = true;
   }
 
-  /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
   @visibleForTesting
   Future<void> initWithPath(String dirPath) async {
     if (_initialized) return;
@@ -48,21 +47,21 @@ class DatabaseProvider {
 
   Future<void> _openAll(Directory dir) async {
     _assetsDb = AssetsDatabase(LazyDatabase(() async {
-      return NativeDatabase(File(dir.path + '/assets.db'));
+      return NativeDatabase(File('${dir.path}/assets.db'));
     }));
     _lecturesDb = LecturesDatabase(LazyDatabase(() async {
-      return NativeDatabase(File(dir.path + '/lectures.db'));
+      return NativeDatabase(File('${dir.path}/lectures.db'));
     }));
     _appDb = AppDatabase(LazyDatabase(() async {
-      return NativeDatabase(File(dir.path + '/user.db'));
+      return NativeDatabase(File('${dir.path}/user.db'));
     }));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
   }
 
   Future<void> _ensureDefaultDb(Directory dir, String name) async {
-    final file = File(dir.path + '/' + name);
+    final file = File('${dir.path}/$name');
     if (!await file.exists()) {
-      final data = await rootBundle.load('assets/db/' + name);
+      final data = await rootBundle.load('assets/db/$name');
       await file.writeAsBytes(data.buffer.asUint8List());
     }
   }
@@ -84,21 +83,21 @@ class DatabaseProvider {
 
   Future<void> replaceAssetsDb(String newPath) async {
     await _assetsDb?.close();
-    final target = File(_dbDirPath! + '/assets.db');
+    final target = File('${_dbDirPath!}/assets.db');
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
   }
 
   Future<void> replaceLecturesDb(String newPath) async {
     await _lecturesDb?.close();
-    final target = File(_dbDirPath! + '/lectures.db');
+    final target = File('${_dbDirPath!}/lectures.db');
     await File(newPath).copy(target.path);
     _lecturesDb = LecturesDatabase(NativeDatabase(target));
   }
 
   Future<void> clearUserDb() async {
     await _appDb?.close();
-    final file = File(_dbDirPath! + '/user.db');
+    final file = File('${_dbDirPath!}/user.db');
     if (await file.exists()) {
       await file.delete();
     }
@@ -106,7 +105,6 @@ class DatabaseProvider {
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
   }
 
-  /// 重置状态（仅测试用）
   @visibleForTesting
   Future<void> reset() async {
     await _appDb?.close();

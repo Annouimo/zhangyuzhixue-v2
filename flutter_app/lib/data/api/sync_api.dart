@@ -51,7 +51,7 @@ class SyncApi {
   const SyncApi(this._client);
 
   Future<VersionStatus> checkVersion(String type) async {
-    final res = await _client.dio.get('/sync/' + type + '/version/');
+    final res = await _client.dio.get('/sync/\/version/');
     return VersionStatus.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 

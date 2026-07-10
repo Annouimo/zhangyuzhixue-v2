@@ -20,15 +20,34 @@ class ApiException implements Exception {
   String toString() => 'ApiException($code): $message';
 }
 
-/// HTTP 客户端单例，管理 Dio 连接池和拦截器链
+typedef TokenProvider = String? Function();
+typedef RefreshTokenProvider = String? Function();
+typedef OnTokenRefreshed = Future<void> Function(String newAccess);
+typedef OnRefreshFailed = void Function();
+typedef OnAuthFailure = void Function();
+
+TokenProvider _tokenProvider = () => null;
+void setTokenProvider(TokenProvider p) => _tokenProvider = p;
+
+RefreshTokenProvider _refreshTokenProvider = () => null;
+void setRefreshTokenProvider(RefreshTokenProvider p) => _refreshTokenProvider = p;
+
+OnTokenRefreshed _onTokenRefreshed = (_) async {};
+void setOnTokenRefreshed(OnTokenRefreshed cb) => _onTokenRefreshed = cb;
+
+OnRefreshFailed _onRefreshFailed = () {};
+void setOnRefreshFailed(OnRefreshFailed cb) => _onRefreshFailed = cb;
+
+OnAuthFailure _onAuthFailure = () {};
+void setOnAuthFailure(OnAuthFailure cb) => _onAuthFailure = cb;
+
+/// API 客户端（Dio 单例 + 3 拦截器）
 class ApiClient {
-  ApiClient._internal();
-  static final ApiClient _instance = ApiClient._internal();
-  factory ApiClient() => _instance;
-
   Dio? _dio;
+  bool _initialized = false;
 
-  void init({String baseUrl = 'https://zhangyuzhixue.top/api/v1/'}) {
+  void init({String baseUrl = 'https://zhangyuzhixue.top/api/v1'}) {
+    if (_initialized) return;
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 10),
@@ -40,42 +59,35 @@ class ApiClient {
       _RefreshInterceptor(),
       _ErrorInterceptor(),
     ]);
+    _initialized = true;
   }
 
-  Dio get dio => _dio!;
+  Dio get dio {
+    if (_dio == null) {
+      throw StateError('ApiClient not initialized. Call init() first.');
+    }
+    return _dio!;
+  }
 
   @visibleForTesting
   void setMockAdapter(HttpClientAdapter adapter) {
-    _dio!.httpClientAdapter = adapter;
+    dio.httpClientAdapter = adapter;
   }
 }
 
-// ═══════════════════════════════════════════════
-// 拦截器
-// ═══════════════════════════════════════════════
-
-/// 请求前附加 Authorization header
 class _AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = _tokenProvider?.call();
+    final token = _tokenProvider.call();
     if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer ' + token;
+      options.headers['Authorization'] = 'Bearer ${token}';
     }
     handler.next(options);
   }
 }
 
-typedef TokenProvider = String? Function();
-TokenProvider? _tokenProvider;
-void setTokenProvider(TokenProvider provider) {
-  _tokenProvider = provider;
-}
-
-/// 401 时自动刷新 token
 class _RefreshInterceptor extends Interceptor {
-  bool _isRefreshing = false;
-  final _pendingRequests = <_PendingRequest>[];
+  bool _refreshing = false;
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
@@ -83,80 +95,40 @@ class _RefreshInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    if (_isRefreshing) {
-      _pendingRequests.add(_PendingRequest(
-        options: err.requestOptions,
-        handler: handler,
-      ));
-      return;
-    }
-
-    _isRefreshing = true;
     try {
-      final refreshToken = _refreshTokenProvider?.call();
-      if (refreshToken == null || refreshToken.isEmpty) {
-        _redirectToLogin();
-        return handler.resolve(err.response!);
+      final refreshToken = _refreshTokenProvider.call();
+      if (refreshToken == null) {
+        _onAuthFailure.call();
+        return handler.reject(err);
       }
 
-      final response = await Dio().post(
-        err.requestOptions.baseUrl + '/auth/refresh/',
-        data: {'refresh': refreshToken},
-      );
+      if (_refreshing) return handler.next(err);
+      _refreshing = true;
 
-      final newAccess = response.data['access'] as String;
-      await _onTokenRefreshed?.call(newAccess);
+      try {
+        final response = await Dio().post(
+          '${err.requestOptions.baseUrl}/auth/refresh/',
+          data: {'refresh': refreshToken},
+        );
+        final newAccess = response.data['data']['access'] as String;
+        await _onTokenRefreshed.call(newAccess);
+        _refreshing = false;
 
-      err.requestOptions.headers['Authorization'] = 'Bearer ' + newAccess;
-      final retryResponse = await Dio().fetch(err.requestOptions);
-      handler.resolve(retryResponse);
-
-      _processPending(newAccess);
-    } catch (e) {
-      _onRefreshFailed?.call();
-      _redirectToLogin();
-      handler.next(err);
-    } finally {
-      _isRefreshing = false;
+        final retryOpts = err.requestOptions;
+        retryOpts.headers['Authorization'] = 'Bearer ${newAccess}';
+        final retryRes = await Dio().fetch(retryOpts);
+        handler.resolve(retryRes);
+      } catch (_) {
+        _refreshing = false;
+        _onRefreshFailed.call();
+        handler.reject(err);
+      }
+    } catch (_) {
+      handler.reject(err);
     }
-  }
-
-  void _processPending(String newToken) {
-    final pending = List<_PendingRequest>.from(_pendingRequests);
-    _pendingRequests.clear();
-    for (final p in pending) {
-      p.options.headers['Authorization'] = 'Bearer ' + newToken;
-      Dio().fetch(p.options).then((r) => p.handler.resolve(r));
-    }
-  }
-
-  void _redirectToLogin() {
-    _onAuthFailure?.call();
   }
 }
 
-class _PendingRequest {
-  final RequestOptions options;
-  final ErrorInterceptorHandler handler;
-  const _PendingRequest({required this.options, required this.handler});
-}
-
-typedef RefreshTokenProvider = String? Function();
-typedef OnTokenRefreshed = Future<void> Function(String newAccess);
-typedef OnRefreshFailed = void Function();
-typedef OnAuthFailure = void Function();
-
-RefreshTokenProvider? _refreshTokenProvider;
-OnTokenRefreshed? _onTokenRefreshed;
-OnRefreshFailed? _onRefreshFailed;
-OnAuthFailure? _onAuthFailure;
-
-void setRefreshTokenProvider(RefreshTokenProvider p) => _refreshTokenProvider = p;
-void setOnTokenRefreshed(OnTokenRefreshed cb) => _onTokenRefreshed = cb;
-void setOnRefreshFailed(OnRefreshFailed cb) => _onRefreshFailed = cb;
-void setOnAuthFailure(OnAuthFailure cb) => _onAuthFailure = cb;
-
-/// 统一解析 {code, message, data} 格式
 class _ErrorInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {

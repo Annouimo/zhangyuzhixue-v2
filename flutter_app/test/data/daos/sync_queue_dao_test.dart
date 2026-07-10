@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import '../../../lib/data/database/app_database.dart' as db;
-import '../../../lib/data/daos/sync_queue_dao.dart';
+import 'package:flutter_app/data/database/app_database.dart' as db;
+import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 
 void main() {
   late db.AppDatabase database;
@@ -59,7 +58,6 @@ void main() {
     test('markFailed sets status to failed and increments retry_count', () async {
       final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
       await dao.markFailed(id);
-      // Use typed API to verify
       var q = database.select(database.syncQueue);
       q.where((t) => t.id.equals(id));
       final r = await q.get();

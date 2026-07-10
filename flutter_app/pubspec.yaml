@@ -26,6 +26,10 @@ dependencies:
   # State management & storage
   flutter_riverpod: ^2.6.0
   shared_preferences: ^2.3.0
+  path_provider: ^2.1.0
+
+  # Annotations
+  meta: ^1.15.0
 
   # Network
   connectivity_plus: ^6.1.0

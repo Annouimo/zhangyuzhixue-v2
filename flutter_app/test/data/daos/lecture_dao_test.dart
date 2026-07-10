@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import '../../../lib/data/database/lectures_database.dart' as db;
-import '../../../lib/data/daos/lecture_dao.dart';
+import 'package:flutter_app/data/database/lectures_database.dart' as db;
+import 'package:flutter_app/data/daos/lecture_dao.dart';
 
 void main() {
   late db.LecturesDatabase database;

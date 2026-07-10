@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import '../../../lib/data/database/app_database.dart' as db;
-import '../../../lib/data/daos/achievement_dao.dart';
+import 'package:flutter_app/data/database/app_database.dart' as db;
+import 'package:flutter_app/data/daos/achievement_dao.dart';
 
 void main() {
   late db.AppDatabase database;

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dio/dio.dart';
-import '../../../lib/data/api/auth_api.dart';
-import '../../../lib/data/api/api_client.dart';
+import 'package:flutter_app/data/api/auth_api.dart';
+import 'package:flutter_app/data/api/api_client.dart';
 
 class _MockAdapter implements HttpClientAdapter {
   final Map<String, Function(RequestOptions)> handlers = {};

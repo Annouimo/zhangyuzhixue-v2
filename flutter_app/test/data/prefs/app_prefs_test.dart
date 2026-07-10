@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../lib/data/prefs/app_prefs.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
 
 void main() {
   group('AppPrefs', () {
