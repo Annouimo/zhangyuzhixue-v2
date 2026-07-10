@@ -9,13 +9,10 @@ on:
 jobs:
   flutter:
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/cirruslabs/flutter:3.44.4
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44'
-          channel: 'stable'
       - name: dart analyze
         working-directory: flutter_app
         run: dart analyze
@@ -30,19 +27,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Debug tools
-        run: |
-          echo "=== Python ==="
-          which python3 || echo "NO python3"
-          python3 --version || echo "NO python3 --version"
-          which python  || echo "NO python"
-          echo "=== Pip ==="
-          which pip3 || echo "NO pip3"
-          pip3 --version || echo "NO pip3 --version"
-          which pip || echo "NO pip"
-          echo "=== Workspace ==="
-          ls -la
-          ls -la server/ || echo "NO server dir"
       - name: Install deps
         working-directory: server
         run: pip3 install -r requirements.txt -q
