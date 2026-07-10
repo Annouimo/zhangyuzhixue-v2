@@ -12,7 +12,7 @@
 | **2.1** 🔧CI | 3 个 Drift Database（assets/lectures/user）+ 11 个 DAO | 1.5 天 | ✅ |
 | **2.2** | DatabaseProvider（生命周期）+ ApiClient（3 拦截器） | 0.5 天 | ✅ |
 | **2.3** | AppPrefs + ConnectivityMonitor | 0.5 天 | ✅ |
-| **2.4** | 13 个 Repository 全部实现 | 1.5 天 | ⬜ |
+| **2.4** | 13 个 Repository 全部实现 | 1.5 天 | ✅ |
 | **2.5** | 同步引擎 + 更新机制 | 1 天 | ✅ |
 | | **合计** | **~4.5 天** | |
 

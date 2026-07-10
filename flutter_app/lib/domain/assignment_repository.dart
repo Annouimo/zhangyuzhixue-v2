@@ -64,15 +64,20 @@ class AssignmentRepository {
 
   Future<List<AssignmentSummary>> getPending() async {
     final rows = await _assignmentDao.listAll();
-    return rows.map((r) => AssignmentSummary(
-      id: r.id,
-      title: r.title,
-      courseName: '',
-      doneCount: 0,
-      totalCount: _assignmentDao.getQuestions(r.id).then((q) => q.length).toString() as int,
-      deadlineDays: 0,
-      status: 'pending',
-    )).toList();
+    final result = <AssignmentSummary>[];
+    for (final r in rows) {
+      final questions = await _assignmentDao.getQuestions(r.id);
+      result.add(AssignmentSummary(
+        id: r.id,
+        title: r.title,
+        courseName: '',
+        doneCount: 0,
+        totalCount: questions.length,
+        deadlineDays: 0,
+        status: 'pending',
+      ));
+    }
+    return result;
   }
 
   Future<AssignmentDetail> getQuestions(int id) async {

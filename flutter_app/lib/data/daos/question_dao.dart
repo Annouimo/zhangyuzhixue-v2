@@ -98,4 +98,7 @@ class QuestionDao {
 
   Future<db.MetaRow?> getMeta() =>
       _db.select(_db.meta).getSingleOrNull();
+
+  Future<List<db.AchievementDefRow>> getAllAchievementDefs() =>
+      _db.select(_db.achievementDefs).get();
 }

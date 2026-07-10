@@ -72,7 +72,6 @@ class StatisticsRepository {
   Future<double> accuracy() => _dao.getAccuracy();
 
   Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
-    // v1: 简单实现，返回空
     return [];
   }
 
@@ -93,4 +92,24 @@ class StatisticsRepository {
   }
 }
 
-// ── 统计聚合引擎（预留） ──
+// ── 统计聚合引擎（待 DAO 扩充后接入） ──
+// ignore: unused_element
+class _StatisticsAggregator {
+  // ignore: unused_element
+  static List<DailyRecord> aggregateDailyRecords(
+    List<({String date, int count})> raw,
+  ) {
+    if (raw.isEmpty) return [];
+    final grouped = <String, int>{};
+    for (final r in raw) {
+      grouped[r.date] = (grouped[r.date] ?? 0) + r.count;
+    }
+    final list = grouped.entries.map((e) => DailyRecord(
+      date: e.key,
+      count: e.value,
+      level: e.value > 5 ? 3 : (e.value > 2 ? 2 : (e.value > 0 ? 1 : 0)),
+    )).toList();
+    list.sort((a, b) => a.date.compareTo(b.date));
+    return list;
+  }
+}

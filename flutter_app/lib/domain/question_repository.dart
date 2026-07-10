@@ -6,19 +6,27 @@ import '../data/daos/progress_dao.dart';
 /// 题目详情
 class QuestionDetail {
   final int id;
+  final String title;
+  final String number;
+  final String assignName;
   final String stem;
   final List<String> images;
   final double difficulty;
+  final double pointsEarned;
   final List<String> conceptTags;
-  final String questionType; // choice / fill / solution
+  final String questionType;
   final Map<String, String>? options;
   final String? answer;
 
   const QuestionDetail({
     required this.id,
+    this.title = '',
+    this.number = '',
+    this.assignName = '',
     required this.stem,
     this.images = const [],
     required this.difficulty,
+    this.pointsEarned = 0,
     required this.conceptTags,
     required this.questionType,
     this.options,
@@ -102,6 +110,9 @@ class QuestionRepository {
 
     return QuestionDetail(
       id: q.id,
+      title: '${q.year} ${q.examType} ${q.region}',
+      number: q.number,
+      assignName: '${q.examType} ${q.region}',
       stem: q.stem,
       images: _parseImages(q.images),
       difficulty: q.difficulty ?? 0,
