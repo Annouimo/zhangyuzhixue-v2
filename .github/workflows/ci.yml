@@ -9,10 +9,13 @@ on:
 jobs:
   flutter:
     runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/cirruslabs/flutter:3.44.4
     steps:
       - uses: actions/checkout@v4
+      - name: Install Flutter
+        run: |
+          git clone --depth 1 -b 3.44.4 https://github.com/flutter/flutter.git /opt/flutter
+          echo "/opt/flutter/bin" >> $GITHUB_PATH
+          echo "/opt/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
       - name: dart analyze
         working-directory: flutter_app
         run: dart analyze
