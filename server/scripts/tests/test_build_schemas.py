@@ -21,8 +21,10 @@ class TestAssetsTables:
     def test_question_has_core_columns(self):
         """question 表必须包含核心字段"""
         cols = dict(ASSETS_TABLES['question']['columns'])
-        for col in ['id', 'year', 'exam_type', 'region', 'number',
-                     'question_type', 'difficulty', 'calculation', 'stem']:
+        for col in [
+            'id', 'year', 'exam_type', 'region', 'number',
+            'question_type', 'difficulty', 'calculation', 'stem',
+        ]:
             assert col in cols, f'缺少字段: {col}'
 
     def test_each_table_has_primary_key(self):
