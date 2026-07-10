@@ -132,16 +132,16 @@ POST /api/v1/auth/login/
 ```
 
 **说明：**
-- `app_type` 取值 `student` / `teacher`，用于角色校验
+- `app_type` 取值 `student` / `teacher`，用于区分登录来源，**不做角色校验**
 - `user.role` 由服务端根据 `Student` / `Teacher` 表是否存在推断
 - 登录成功后，Flutter 端将 `user` 缓存到 SharedPreferences（快速路由用）
-- 管理员不登录 Flutter App，`app_type` 传 `student` 或 `teacher` 时管理员账号会被拒绝
+- 管理员不登录 Flutter App，任何 `app_type` 下管理员账号均会被拒绝
+- 角色权限仅在具体 API 端点通过 `IsTeacher` / `IsStudent` 权限类控制
 
 **错误码：**
 | 错误码 | 条件 |
 |--------|------|
-| 40001 | 用户名或密码错误 |
-| 40003 | `app_type` 与用户角色不匹配（如 student 账号尝试 teacher 登录）|
+| 40001 | 用户名或密码错误|
 
 ### 2.2 注册（仅学生）
 
