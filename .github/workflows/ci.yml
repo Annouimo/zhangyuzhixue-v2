@@ -44,3 +44,6 @@ jobs:
         run: |
           python3 manage.py check --deploy
           python3 manage.py makemigrations --check
+      - name: pytest
+        working-directory: server
+        run: pip install pytest pytest-django -q && pytest
