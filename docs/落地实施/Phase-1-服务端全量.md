@@ -13,7 +13,7 @@
 | **1.2** | 🏛 题库数据迁移（旧版→新版，798 题） | 1 天 | ✅ |
 | **1.3** 🔧CI | JWT 认证 API + 创建 dev 测试用户 + drf-spectacular 文档 | 0.5 天 | ✅ |
 | **1.4** | 同步 API（version check ×2 + sync push）+ 教师端服务端改动 | 1 天 | ✅ |
-| **1.5** | 用户/组卷/点赞/收藏/统计 API | 1.5 天 | ⏳ |
+| **1.5** | 用户/组卷/点赞/收藏/统计 API | 1.5 天 | ✅ |
 | **1.6** | 构建脚本（build_assets.py + build_lectures.py） | 1 天 | ⏳ |
 | **1.7** | PDF 视图（request-token + pdf/view + 模板 + 字体） | 1 天 | ⏳ |
 | **1.8** | Admin system/tools 页面（构建按钮、生成邀请码、批量导入） | 0.5 天 | ⏳ |

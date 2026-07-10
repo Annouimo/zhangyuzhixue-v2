@@ -9,10 +9,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 api_v1 = [
     path('auth/', include('accounts.urls')),
+    path('user/', include('accounts.urls')),
     path('qbank/', include('qbank.urls')),
     path('courses/', include('courses.urls')),
     path('interactions/', include('interactions.urls')),
     path('system/', include('system.urls')),
+    path('lectures/', include('courses.urls')),
 
     # sync: version check + push 统一在 system.urls 中
     path('sync/', include('system.urls')),
