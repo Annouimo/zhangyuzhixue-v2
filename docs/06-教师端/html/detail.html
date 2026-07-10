@@ -32,7 +32,6 @@
         <h1 data-db="assignment.detail.title">导数基础练习</h1>
       </div>
       <div class="page-actions">
-        <button class="btn btn-outline btn-sm" onclick="showToast('🔔', '催交通知已发送');">🔔 催交</button>
         <button class="btn btn-ghost btn-sm" onclick="showToast('ℹ️', '如需删除请联系管理员');">🗑️ 删除</button>
       </div>
     </div>
@@ -54,9 +53,7 @@
       </div>
     </div>
 
-    <!-- 按班级分组 -->
     <div data-db-loop="assignment.detail.classes">
-      <!-- 班级 1 -->
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <h3 class="card-title" style="margin-bottom:0;" data-db="assignment.detail.classes[].class_name">高三(1)班</h3>
@@ -64,7 +61,6 @@
             共 <span data-db="assignment.detail.classes[].summary.total">32</span> 人 · 已提交 <span data-db="assignment.detail.classes[].summary.submitted">18</span> · 平均正确率 <span data-db="assignment.detail.classes[].summary.average_accuracy">72.5</span>%
           </div>
         </div>
-
         <div style="border-top:1px solid var(--border);">
           <div data-db-loop="assignment.detail.classes[].students">
             <a href="student.html?id=1" class="student-row">
@@ -78,11 +74,10 @@
                 <div class="detail"><span data-db="assignment.detail.classes[].students[].correct_count">7</span>/<span data-db="assignment.detail.classes[].students[].total_count">8</span></div>
               </div>
             </a>
-
             <a href="student.html?id=2" class="student-row">
               <div class="avatar">李</div>
               <div class="info">
-                <div class="name" data-db="assignment.detail.classes[].students[].real_name">李明</div>
+                <div class="name">李明</div>
                 <div class="sub">已提交 · 2026-07-09 16:10</div>
               </div>
               <div class="score">
@@ -90,7 +85,6 @@
                 <div class="detail">5/8</div>
               </div>
             </a>
-
             <a href="student.html?id=3" class="student-row">
               <div class="avatar">陈</div>
               <div class="info">
@@ -102,7 +96,6 @@
                 <div class="detail">3/8</div>
               </div>
             </a>
-
             <a href="student.html?id=5" class="student-row">
               <div class="avatar">刘</div>
               <div class="info">
@@ -117,13 +110,10 @@
         </div>
       </div>
 
-      <!-- 班级 2 -->
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <h3 class="card-title" style="margin-bottom:0;" data-db="assignment.detail.classes[].class_name">高三(2)班</h3>
-          <div style="font-size:13px;color:var(--text-secondary);">
-            共 30 人 · 已提交 12 · 平均正确率 65.0%
-          </div>
+          <div style="font-size:13px;color:var(--text-secondary);">共 30 人 · 已提交 12 · 平均正确率 65.0%</div>
         </div>
         <div style="border-top:1px solid var(--border);">
           <div data-db-loop="assignment.detail.classes[].students">
@@ -138,7 +128,6 @@
                 <div class="detail">8/8</div>
               </div>
             </a>
-
             <a href="student.html?id=6" class="student-row">
               <div class="avatar">张</div>
               <div class="info">
