@@ -85,6 +85,7 @@ ASSETS_TABLES = {
         'columns': [
             ('id', 'INTEGER PRIMARY KEY'),
             ('title', 'TEXT NOT NULL'),
+            ('category', 'TEXT NOT NULL'),
             ('content', 'TEXT NOT NULL'),
         ],
         'source_model': 'qbank.KnowledgeCard',
