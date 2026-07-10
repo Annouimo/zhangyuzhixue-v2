@@ -85,7 +85,7 @@ class TestAvatarUpload:
         """无文件：返回错误"""
         resp = auth_client.post(reverse('user-avatar'), {}, format='multipart')
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40201
 
 
 class TestLevelPercentile:

@@ -67,7 +67,7 @@ class TestPdfRequestToken:
             'source_type': 'paper',
         }, format='json')
         assert resp.status_code == 400
-        assert resp.data['code'] == 40001
+        assert resp.data['code'] == 40201
 
     def test_request_token_unauthenticated(self, api_client):
         resp = api_client.post(reverse('pdf-request-token'), {

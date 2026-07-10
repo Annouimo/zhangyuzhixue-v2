@@ -57,10 +57,10 @@ def pdf_request_token(request):
     source_type = request.data.get('source_type', 'paper')
 
     if not source_id:
-        return _err(40001, '缺少 source_id')
+        return _err(40201, '缺少 source_id')
 
     if not PDF_KEY:
-        return _err(50000, 'PDF 功能未配置')
+        return _err(50001, 'PDF 功能未配置')
 
     student = getattr(request.user, 'student', None)
     if not student:
@@ -81,7 +81,7 @@ def pdf_request_token(request):
         if not has_access:
             return _err(40301, '无权访问该作业')
     else:
-        return _err(40001, '无效的 source_type')
+        return _err(40201, '无效的 source_type')
 
     expire = int(time.time()) + 300
     sig = _make_sig(source_id, source_type, student.pk, expire)

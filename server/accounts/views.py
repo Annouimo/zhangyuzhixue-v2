@@ -1,4 +1,4 @@
-﻿from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from rest_framework import status
@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from system.models import LevelConfig
 from accounts.models import InvitationCode, Student, UserLoginLog
 from accounts.serializers import (
     LoginSerializer,
@@ -130,9 +131,12 @@ def _get_points_summary(user):
     ).aggregate(total=Sum('amount'))
     total = agg['total'] or 0
 
-    # 简单等级计算：每 100 积分为一级
-    level = max(1, total // 100 + 1)
-    return {'total_points': total, 'level': level}
+    # 从 LevelConfig 表查询等级
+    config = LevelConfig.objects.filter(min_xp__lte=total).order_by('-min_xp').first()
+    if config:
+        return {'total_points': total, 'level': config.level,
+                'title': config.title, 'icon': config.icon_emoji}
+    return {'total_points': total, 'level': 1, 'title': '青铜学徒', 'icon': '🥉'}
 
 
 @api_view(['GET', 'PATCH'])
@@ -182,13 +186,13 @@ def avatar_upload_view(request):
         return _err(40301, '仅学生可上传头像')
 
     if 'avatar' not in request.FILES:
-        return _err(40001, '请选择图片文件')
+        return _err(40201, '请选择图片文件')
 
     file = request.FILES['avatar']
 
     # 大小检查（2MB）
     if file.size > 2 * 1024 * 1024:
-        return _err(40001, '图片大小不能超过 2MB')
+        return _err(40201, '图片大小不能超过 2MB')
 
     try:
         from PIL import Image
@@ -208,7 +212,7 @@ def avatar_upload_view(request):
 
         img.save(abs_path, 'WEBP', quality=85)
     except Exception:
-        return _err(50000, '图片处理失败',
+        return _err(50001, '图片处理失败',
                     http_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     url = f'{settings.MEDIA_URL}{rel_path}'
