@@ -18,10 +18,10 @@
 
 ### 前置条件
 
-- [ ] Git 环境就绪，本地 SSH key 已配置
-- [ ] Gitee 仓库已创建
-- [ ] GitHub 账号已登录
-- [ ] 已读取 `docs/07-工作流/开发工作流程.md`
+- [x] Git 环境就绪，本地 SSH key 已配置
+- [x] Gitee 仓库已创建
+- [x] GitHub 账号已登录
+- [x] 已读取 `docs/07-工作流/开发工作流程.md`
 
 ### 关键设计文档索引
 
@@ -168,9 +168,9 @@ flutter test             # All tests passed!
 
 ### 前置条件
 
-- [ ] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
-- [ ] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
-- [ ] 首次 push 触发 CI，确认两条流水线均通过
+- [x] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
+- [x] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
+- [x] 首次 push 触发 CI，确认两条流水线均通过
 
 ### 验证方式
 

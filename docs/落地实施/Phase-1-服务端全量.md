@@ -27,9 +27,9 @@
 ### 前置条件
 
 - [x] Phase 0 已完成：Django 5 App 骨架就绪、Flutter 骨架就绪、CI 全绿
-- [ ] 已读取 `docs/02-数据/数据库结构设计.md` 全部表定义
-- [ ] 已读取 `docs/03-服务端/API设计.md` 全部端点定义
-- [ ] 旧版 `D:\Hermes\math_platform\db.sqlite3` 可访问（798 题）
+- [x] 已读取 `docs/02-数据/数据库结构设计.md` 全部表定义
+- [x] 已读取 `docs/03-服务端/API设计.md` 全部端点定义
+- [x] 旧版 `D:\Hermes\math_platform\db.sqlite3` 可访问（798 题）
 
 ### 关键设计文档索引
 
