@@ -11,7 +11,7 @@ build/
 
 # Server
 server/.env
-server/db.sqlite3
+server/db.sqlite3*
 server/staticfiles/
 server/media/
 server/long_lines.txt
