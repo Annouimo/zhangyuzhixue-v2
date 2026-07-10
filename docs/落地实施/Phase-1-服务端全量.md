@@ -265,7 +265,7 @@ python scripts/migrate_questions.py
       "username": "zhangsan",
       "real_name": "张三",
       "role": "student",
-      "student_id": "G2026001",
+      "student_id": "20261058417",
       "class_group_id": 2,
       "school": "北京四中",
       "gaokao_year": 2026,

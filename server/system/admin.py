@@ -1,8 +1,9 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 
 from .models import (
     AchievementDef, Announcement, AppVersion, DbVersion,
     LevelConfig, PointsTransaction, StudentAchievement,
+    SystemConfig,
 )
 
 
@@ -56,3 +57,9 @@ class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ['title', 'is_active', 'created_at']
     list_filter = ['is_active']
     search_fields = ['title', 'content']
+
+
+@admin.register(SystemConfig)
+class SystemConfigAdmin(admin.ModelAdmin):
+    list_display = ['key', 'value', 'description']
+    search_fields = ['key']

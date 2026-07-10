@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 
 from accounts.models import Student
 
@@ -193,3 +193,18 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class SystemConfig(models.Model):
+    """系统级键值配置"""
+    key = models.CharField('键', max_length=64, unique=True)
+    value = models.TextField('值', blank=True, default='')
+    description = models.CharField('说明', max_length=255, blank=True, default='')
+
+    class Meta:
+        verbose_name = '系统配置'
+        verbose_name_plural = '系统配置'
+        ordering = ['key']
+
+    def __str__(self):
+        return self.key
