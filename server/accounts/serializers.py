@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from accounts.models import InvitationCode, Student, Teacher
+from accounts.models import InvitationCode
 
 
 class RegisterSerializer(serializers.Serializer):

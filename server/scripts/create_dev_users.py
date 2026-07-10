@@ -12,16 +12,15 @@ import os
 import sys
 
 import django
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+from accounts.models import InvitationCode, Student, Teacher
 
 # 设置 Django 环境
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'math_platform.settings')
 django.setup()
-
-from django.contrib.auth.models import User
-from django.utils import timezone
-
-from accounts.models import InvitationCode, Student, Teacher
 
 # ── 测试用户配置 ──────────────────────────────────────────────
 

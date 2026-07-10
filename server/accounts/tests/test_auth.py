@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from accounts.models import InvitationCode, Student
+from accounts.models import InvitationCode
 
 # ── 夹具 ──────────────────────────────────────────────────────
 
@@ -147,8 +147,8 @@ class TestRegister:
         # 实际消息：'邀请码已被使用'
         assert '已被使用' in resp.data['message']
 
-    def test_register_duplicate_username(self, api_client, registered_user,
-                                          fresh_invitation_code):
+    def test_register_duplicate_username(
+            self, api_client, registered_user, fresh_invitation_code):
         """重复用户名：应返回错误（用新的邀请码隔离）"""
         resp = api_client.post(reverse('auth-register'), {
             'invitation_code': 'FRESH-CODE-5678',  # 全新邀请码
