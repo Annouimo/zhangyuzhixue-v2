@@ -1,0 +1,216 @@
+import 'package:drift/drift.dart';
+
+part 'app_database.g.dart';
+
+// ═══════════════════════════════════════════════
+// 表定义
+// ═══════════════════════════════════════════════
+
+/// 用户信息缓存（本地专用）
+@DataClassName('UserProfileRow')
+class UserProfiles extends Table {
+  IntColumn get id => integer()();
+  TextColumn get name => text()();
+  TextColumn? get realName => text().nullable()();
+  TextColumn? get studentId => text().nullable()();
+  TextColumn? get avatar => text().nullable()();
+  TextColumn? get school => text().nullable()();
+  TextColumn? get gaokaoYear => text().nullable()();
+  IntColumn? get classGroupId => integer().nullable()();
+  TextColumn? get updatedAt => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// 登录轨迹
+@DataClassName('UserLoginLogRow')
+class UserLoginLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get loginDate => text().unique()();
+  TextColumn get createdAt => text()();
+}
+
+/// 积分流水
+@DataClassName('PointsTransactionRow')
+class PointsTransactions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get amount => integer()();
+  TextColumn get transactionType => text()();
+  TextColumn get source => text()();
+  IntColumn? get sourceObjectId => integer().nullable()();
+  TextColumn? get description => text().nullable()();
+  TextColumn get createdAt => text()();
+}
+
+/// 成就进度缓存
+@DataClassName('StudentAchievementRow')
+class StudentAchievements extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get achievementCode => text()();
+  IntColumn get progress => integer().withDefault(const Constant(0))();
+  IntColumn get isUnlocked =>
+      integer().withDefault(const Constant(0))();
+  TextColumn? get unlockedAt => text().nullable()();
+  TextColumn? get updatedAt => text().nullable()();
+}
+
+/// 提交头
+@DataClassName('SubmissionRow')
+class Submissions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  IntColumn get studentId => integer()();
+  IntColumn? get assignmentId => integer().nullable()();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+/// 提交明细
+@DataClassName('SubmissionDetailRow')
+class SubmissionDetails extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  IntColumn? get submissionId => integer().nullable()();
+  IntColumn get questionId => integer()();
+  IntColumn get attemptNumber => integer().withDefault(const Constant(1))();
+  TextColumn get status => text().withDefault(const Constant('in_progress'))();
+  TextColumn? get answerText => text().nullable()();
+  IntColumn? get isCorrect => integer().nullable()();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+/// 步骤反馈
+@DataClassName('StepFeedbackRow')
+class StepFeedbacks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  IntColumn get submissionDetailId => integer()();
+  IntColumn get questionId => integer()();
+  IntColumn? get subQuestionIndex => integer().nullable()();
+  IntColumn? get methodId => integer().nullable()();
+  IntColumn get stepNumber => integer()();
+  TextColumn get status => text()();
+  TextColumn get createdAt => text()();
+}
+
+/// 卡片反馈
+@DataClassName('CardFeedbackRow')
+class CardFeedbacks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  IntColumn get submissionDetailId => integer()();
+  IntColumn get questionId => integer()();
+  TextColumn get cardTitle => text()();
+  TextColumn get cardStatus => text()();
+  TextColumn get createdAt => text()();
+}
+
+/// 题目评分
+@DataClassName('QuestionRatingRow')
+class QuestionRatings extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  IntColumn get questionId => integer().unique()();
+  IntColumn get difficultyScore => integer()();
+  IntColumn get calculationScore => integer()();
+  IntColumn get eleganceScore => integer()();
+  TextColumn get createdAt => text()();
+}
+
+/// 个性化组卷
+@DataClassName('CustomPaperRow')
+class CustomPapers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  TextColumn get title => text()();
+  TextColumn? get description => text().nullable()();
+  TextColumn? get filterSnapshot => text().nullable()();
+  IntColumn get isPublic => integer().withDefault(const Constant(0))();
+  IntColumn get viewCount => integer().withDefault(const Constant(0))();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+}
+
+/// 组卷-题目中间表
+@DataClassName('CustomPaperQuestionRow')
+class CustomPaperQuestions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get paperId => integer()();
+  IntColumn get questionId => integer()();
+  IntColumn get sortOrder => integer()();
+}
+
+/// 组卷点赞
+@DataClassName('PaperLikeRow')
+class PaperLikes extends Table {
+  IntColumn get paperId => integer()();
+  TextColumn get createdAt => text()();
+
+  @override
+  Set<Column> get primaryKey => {paperId};
+}
+
+/// 组卷收藏
+@DataClassName('PaperCollectRow')
+class PaperCollects extends Table {
+  IntColumn get paperId => integer()();
+  TextColumn get createdAt => text()();
+
+  @override
+  Set<Column> get primaryKey => {paperId};
+}
+
+/// 筛选预设
+@DataClassName('PreferenceFilterRow')
+class PreferenceFilters extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get years => text()();
+  TextColumn get regions => text()();
+  TextColumn get conceptTags => text()();
+}
+
+/// 同步队列
+@DataClassName('SyncQueueRow')
+class SyncQueue extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get entityType => text()();
+  TextColumn get operationType => text()();
+  IntColumn get entityId => integer()();
+  TextColumn get payload => text()();
+  TextColumn get status =>
+      text().withDefault(const Constant('pending'))();
+  IntColumn get retryCount => integer().withDefault(const Constant(0))();
+  TextColumn get createdAt => text()();
+  TextColumn? get updatedAt => text().nullable()();
+}
+
+// ═══════════════════════════════════════════════
+// Database
+// ═══════════════════════════════════════════════
+
+@DriftDatabase(tables: [
+  UserProfiles,
+  UserLoginLogs,
+  PointsTransactions,
+  StudentAchievements,
+  Submissions,
+  SubmissionDetails,
+  StepFeedbacks,
+  CardFeedbacks,
+  QuestionRatings,
+  CustomPapers,
+  CustomPaperQuestions,
+  PaperLikes,
+  PaperCollects,
+  PreferenceFilters,
+  SyncQueue,
+])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase(super.e);
+
+  @override
+  int get schemaVersion => 1;
+}
