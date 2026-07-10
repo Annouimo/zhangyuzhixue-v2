@@ -165,11 +165,13 @@ dependencies:
     └─ python manage.py makemigrations --check
 ```
 
-### 待完成
+### 完成情况
 
-- [ ] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
-- [ ] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
-- [ ] 首次 push 触发 CI，验证两条流水线均通过
+- [x] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
+- [x] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
+- [x] 首次 push 触发 CI，验证两条流水线均通过 ✅
+
+> CI 调试过程经历了 7 轮修复（Node.js 兼容性→Flutter SDK 下载路径→`subosito/flutter-action` 缓存配置等），最终流水线全绿通过。
 
 **提交：** `ca44fe4`
 
@@ -201,4 +203,4 @@ zhangyuzhixue_app_v2/
 - ✅ Django 项目可编译、迁移通过、flake8 零问题
 - ✅ Flutter 项目 dart analyze 零问题、测试通过
 - ✅ 着陆页静态 HTML 就位
-- ✅ GitHub Actions CI 配置就位（待同步通道打通后自动触发）
+- ✅ GitHub Actions CI 配置就位，流水线全绿 ✅
