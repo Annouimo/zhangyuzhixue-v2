@@ -16,7 +16,7 @@ class StatisticsDao {
 
   Future<double> getAccuracy() async {
     final row = await _db.customSelect(
-      'SELECT CAST(SUM(is_correct) AS REAL) / COUNT(*) AS p FROM submission_details WHERE is_correct IS NOT NULL',
+      'SELECT CASE WHEN COUNT(*) > 0 THEN CAST(SUM(is_correct) AS REAL) / COUNT(*) ELSE 0.0 END AS p FROM submission_details WHERE is_correct IS NOT NULL',
       readsFrom: {_db.submissionDetails},
     ).getSingle();
     return row.read<double>('p') ?? 0.0;
