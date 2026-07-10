@@ -20,6 +20,9 @@ jobs:
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
           echo "$HOME/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
           $HOME/flutter/bin/flutter --version
+      - name: flutter pub get
+        working-directory: flutter_app
+        run: flutter pub get
       - name: dart analyze
         working-directory: flutter_app
         run: dart analyze
