@@ -1,6 +1,6 @@
 version: '1.0'
-name: ci-pipeline
-displayName: 章鱼智学 CI
+name: zhangyuzhixue-ci
+displayName: zhangyuzhixue-ci
 triggers:
   trigger: auto
   push:
@@ -9,10 +9,10 @@ triggers:
         - ''
 stages:
   - name: checks
-    displayName: 代码检查
+    displayName: checks
     jobs:
       - name: flutter-check
-        displayName: Flutter 检查
+        displayName: flutter-check
         steps:
           - step: git-clone
           - step: shell
@@ -25,11 +25,11 @@ stages:
               command: cd flutter_app && flutter test
 
       - name: django-check
-        displayName: Django 检查
+        displayName: django-check
         steps:
           - step: git-clone
           - step: shell
-            displayName: 安装依赖
+            displayName: install deps
             inputs:
               command: cd server && pip install -r requirements.txt -q
           - step: shell
