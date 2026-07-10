@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'dart:io';
+import '../../../lib/data/database/assets_database.dart' as assets_db;
+import '../../../lib/data/database/lectures_database.dart' as lectures_db;
+import '../../../lib/data/database/app_database.dart' as app_db;
 import '../../../lib/data/database/database_provider.dart';
 
 void main() {
@@ -45,15 +48,22 @@ void main() {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
 
-      // Write data
-      await provider.assetsDb.customInsert(
-        'INSERT INTO questions (year, exam_type, region, number, question_type, stem) VALUES (2024, ?, ?, ?, ?, ?)',
-        variables: [Variable('高考'), Variable('北京'), Variable('1'), Variable('choice'), Variable('旧')],
+      // Write a question via typed API
+      final now = DateTime.now().toIso8601String();
+      await provider.assetsDb.into(provider.assetsDb.questions).insert(
+        assets_db.QuestionsCompanion(
+          year: Value(2024),
+          examType: Value('高考'),
+          region: Value('北京'),
+          number: Value('1'),
+          questionType: Value('choice'),
+          difficulty: Value(5.0),
+          calculation: Value(5.0),
+          stem: Value('旧数据'),
+        ),
       );
-      final count = (await provider.assetsDb.customSelect(
-        'SELECT COUNT(*) AS c FROM questions',
-        readsFrom: {provider.assetsDb.questions},
-      ).getSingle()).read<int>('c')!;
+
+      var count = (await provider.assetsDb.select(provider.assetsDb.questions).get()).length;
       expect(count, 1);
 
       // Copy file and replace
@@ -62,10 +72,7 @@ void main() {
       await provider.replaceAssetsDb(newPath);
 
       // Still usable
-      final tables = await provider.assetsDb.customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='questions'",
-        readsFrom: {},
-      ).get();
+      final tables = await provider.assetsDb.select(provider.assetsDb.questions).get();
       expect(tables.length, 1);
     });
 
@@ -73,36 +80,34 @@ void main() {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
       // Trigger lazy open
-      await provider.lecturesDb.customSelect('SELECT 1', readsFrom: {}).get();
+      await provider.lecturesDb.select(provider.lecturesDb.courses).get();
       final newPath = tempDir.path + '/new_lectures.db';
       await File(tempDir.path + '/lectures.db').copy(newPath);
       await provider.replaceLecturesDb(newPath);
-      final tables = await provider.lecturesDb.customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table'",
-        readsFrom: {},
-      ).get();
-      expect(tables.isNotEmpty, true);
+      final courses = await provider.lecturesDb.select(provider.lecturesDb.courses).get();
+      expect(courses, isEmpty);
     });
 
     test('clearUserDb clears data', () async {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
-      await provider.appDb.customInsert(
-        'INSERT INTO user_profiles (id, name, updated_at) VALUES (?, ?, ?)',
-        variables: [Variable(1), Variable('小明'), Variable(DateTime.now().toIso8601String())],
+      final now = DateTime.now().toIso8601String();
+
+      // Write via typed API
+      await provider.appDb.into(provider.appDb.userProfiles).insert(
+        app_db.UserProfilesCompanion(
+          id: Value(1),
+          name: Value('小明'),
+          updatedAt: Value(now),
+        ),
       );
-      var rows = await provider.appDb.customSelect(
-        'SELECT * FROM user_profiles',
-        readsFrom: {provider.appDb.userProfiles},
-      ).get();
+
+      var rows = await provider.appDb.select(provider.appDb.userProfiles).get();
       expect(rows.length, 1);
 
       await provider.clearUserDb();
 
-      rows = await provider.appDb.customSelect(
-        'SELECT * FROM user_profiles',
-        readsFrom: {provider.appDb.userProfiles},
-      ).get();
+      rows = await provider.appDb.select(provider.appDb.userProfiles).get();
       expect(rows, isEmpty);
     });
   });
