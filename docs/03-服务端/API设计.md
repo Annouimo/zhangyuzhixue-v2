@@ -628,7 +628,7 @@ POST /api/v1/teacher/assignments/
   "description": "选填题为主，巩固导数概念",
   "course_id": 1,
   "class_ids": [1, 2],
-  "question_ids": [42, 43, 44, 45, 46, 47, 48, 49, 50, 51],
+  "paper_id": 1,
   "deadline": "2026-07-15T23:59:59+08:00"
 }
 ```
@@ -650,7 +650,7 @@ POST /api/v1/teacher/assignments/
 
 **服务端操作（事务内）：**
 1. 创建 `Assignment` 记录
-2. 为 `question_ids` 批量创建 `AssignmentQuestion`
+2. 根据 `paper_id` 从 `CustomPaperQuestion` 查出题目列表，批量创建 `AssignmentQuestion`
 3. 为 `class_ids` + `Assignment` 批量创建 `ClassCourseAssignment`
 4. `publish_at` 自动设为当前时间
 
@@ -911,8 +911,9 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `GET` | `/api/v1/lectures/courses/` | 任意（教师可见全部） | 课程列表 |
 | `GET` | `/api/v1/lectures/courses/{courseId}/chapters/` | 任意（教师可见全部） | 章节目录 |
 | `GET` | `/api/v1/lectures/chapters/{chapterId}/content/` | 任意（教师可见全部） | 讲义内容 |
+| `GET` | `/api/v1/teacher/papers/` | teacher | 教师组卷列表（含题数/创建时间） |
 | `GET` | `/api/v1/teacher/assignments/` | teacher | 作业列表 |
-| `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业 |
+| `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业（body: title, description, course_id, paper_id, class_ids, deadline） |
 | `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情 |
 | `PATCH` | `/api/v1/teacher/assignments/{id}/` | teacher | 修改作业 |
 | `DELETE` | `/api/v1/teacher/assignments/{id}/` | teacher | 删除作业 |

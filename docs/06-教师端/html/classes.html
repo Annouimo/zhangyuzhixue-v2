@@ -14,6 +14,7 @@
         <a href="index.html">作业</a>
         <a href="classes.html" class="active">班级</a>
         <a href="students.html">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -29,7 +30,6 @@
       <h1>班级概览</h1>
     </div>
 
-    <!-- 全校汇总 -->
     <div class="stats-row">
       <div class="stat-card">
         <div class="stat-value" data-db="classes.stats.totalStudents">90</div>
@@ -49,40 +49,28 @@
       </div>
     </div>
 
-    <!-- 各班卡片 -->
     <div data-db-loop="classes.list">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <h3 class="card-title" style="margin-bottom:0;" data-db="classes.list[].name">高三(1)班</h3>
           <a href="students.html?classId=1" class="btn btn-sm btn-outline">查看学生</a>
         </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
           <div>
             <div style="font-size:12px;color:var(--text-muted);">学生人数</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].studentCount">32</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].student_count">32</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);">关联课程</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].course_count">3</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">总做题量</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].totalQuestions">1,024</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].total_questions_done">1,024</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--success);" data-db="classes.list[].avgAccuracy">72%</div>
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--text-muted);">完成率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--primary);" data-db="classes.list[].avgCompletion">80%</div>
-          </div>
-        </div>
-
-        <!-- 题型表现 -->
-        <div style="border-top:1px solid var(--border);padding-top:12px;">
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">题型表现</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;">
-            <span>选择题 <strong style="color:var(--success);" data-db="classes.list[].choiceAccuracy">78%</strong></span>
-            <span>填空题 <strong style="color:var(--warning);" data-db="classes.list[].fillAccuracy">65%</strong></span>
-            <span>解答题 <strong style="color:var(--warning);" data-db="classes.list[].solveAccuracy">60%</strong></span>
+            <div style="font-size:20px;font-weight:700;color:var(--success);" data-db="classes.list[].average_accuracy">72%</div>
           </div>
         </div>
       </div>
@@ -92,30 +80,22 @@
           <h3 class="card-title" style="margin-bottom:0;" data-db="classes.list[].name">高三(2)班</h3>
           <a href="students.html?classId=2" class="btn btn-sm btn-outline">查看学生</a>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
           <div>
             <div style="font-size:12px;color:var(--text-muted);">学生人数</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].studentCount">30</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].student_count">30</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);">关联课程</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].course_count">2</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">总做题量</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].totalQuestions">860</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].total_questions_done">860</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--warning);" data-db="classes.list[].avgAccuracy">65%</div>
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--text-muted);">完成率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--primary);" data-db="classes.list[].avgCompletion">72%</div>
-          </div>
-        </div>
-        <div style="border-top:1px solid var(--border);padding-top:12px;">
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">题型表现</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;">
-            <span>选择题 <strong style="color:var(--success);" data-db="classes.list[].choiceAccuracy">72%</strong></span>
-            <span>填空题 <strong style="color:var(--warning);" data-db="classes.list[].fillAccuracy">60%</strong></span>
-            <span>解答题 <strong style="color:var(--error);" data-db="classes.list[].solveAccuracy">52%</strong></span>
+            <div style="font-size:20px;font-weight:700;color:var(--warning);" data-db="classes.list[].average_accuracy">65%</div>
           </div>
         </div>
       </div>
@@ -125,30 +105,22 @@
           <h3 class="card-title" style="margin-bottom:0;" data-db="classes.list[].name">高三(3)班</h3>
           <a href="students.html?classId=3" class="btn btn-sm btn-outline">查看学生</a>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
           <div>
             <div style="font-size:12px;color:var(--text-muted);">学生人数</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].studentCount">28</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].student_count">28</div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--text-muted);">关联课程</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].course_count">3</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">总做题量</div>
-            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].totalQuestions">700</div>
+            <div style="font-size:20px;font-weight:700;" data-db="classes.list[].total_questions_done">700</div>
           </div>
           <div>
             <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--success);" data-db="classes.list[].avgAccuracy">70%</div>
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--text-muted);">完成率</div>
-            <div style="font-size:20px;font-weight:700;color:var(--primary);" data-db="classes.list[].avgCompletion">78%</div>
-          </div>
-        </div>
-        <div style="border-top:1px solid var(--border);padding-top:12px;">
-          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">题型表现</div>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;">
-            <span>选择题 <strong style="color:var(--success);" data-db="classes.list[].choiceAccuracy">75%</strong></span>
-            <span>填空题 <strong style="color:var(--warning);" data-db="classes.list[].fillAccuracy">68%</strong></span>
-            <span>解答题 <strong style="color:var(--warning);" data-db="classes.list[].solveAccuracy">58%</strong></span>
+            <div style="font-size:20px;font-weight:700;color:var(--success);" data-db="classes.list[].average_accuracy">70%</div>
           </div>
         </div>
       </div>

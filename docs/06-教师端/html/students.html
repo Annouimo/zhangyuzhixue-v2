@@ -14,6 +14,7 @@
         <a href="index.html">作业</a>
         <a href="classes.html">班级</a>
         <a href="students.html" class="active">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -28,7 +29,7 @@
     <div class="page-header">
       <h1>学生列表</h1>
       <div class="page-actions">
-        <select style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);" data-db-bind="students.filter.class">
+        <select style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);" data-db-bind="students.filter.class_id">
           <option value="">全部班级</option>
           <option value="1">高三(1)班</option>
           <option value="2">高三(2)班</option>
@@ -37,12 +38,10 @@
       </div>
     </div>
 
-    <!-- 搜索 -->
     <div class="search-box">
-      <input type="text" placeholder="搜索学生姓名..." data-db-bind="students.searchQuery">
+      <input type="text" placeholder="搜索学生姓名..." data-db-bind="students.search">
     </div>
 
-    <!-- 表格 -->
     <div class="card" style="padding:0;overflow:hidden;">
       <table class="data-table">
         <thead>
@@ -50,70 +49,77 @@
             <th>姓名</th>
             <th>班级</th>
             <th>总做题量</th>
+            <th>正确数</th>
             <th>正确率</th>
-            <th>最近活跃</th>
+            <th>连续签到</th>
             <th></th>
           </tr>
         </thead>
         <tbody data-db-loop="students.list">
           <tr>
-            <td><a href="student.html?id=1" class="table-link" data-db="students.list[].name">王一帆</a></td>
-            <td data-db="students.list[].className">高三(1)班</td>
-            <td data-db="students.list[].totalQuestions">204</td>
+            <td><a href="student.html?id=1" class="table-link" data-db="students.list[].real_name">王一帆</a></td>
+            <td data-db="students.list[].class_name">高三(1)班</td>
+            <td data-db="students.list[].total_questions">204</td>
+            <td data-db="students.list[].correct_count">173</td>
             <td>
               <span style="font-weight:600;color:var(--success);" data-db="students.list[].accuracy">85%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">今天 09:30</td>
+            <td data-db="students.list[].streak_days">12</td>
             <td><a href="student.html?id=1" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
           <tr>
-            <td><a href="student.html?id=2" class="table-link" data-db="students.list[].name">李明</a></td>
-            <td data-db="students.list[].className">高三(1)班</td>
-            <td data-db="students.list[].totalQuestions">156</td>
+            <td><a href="student.html?id=2" class="table-link" data-db="students.list[].real_name">李明</a></td>
+            <td data-db="students.list[].class_name">高三(1)班</td>
+            <td data-db="students.list[].total_questions">156</td>
+            <td data-db="students.list[].correct_count">97</td>
             <td>
               <span style="font-weight:600;color:var(--warning);" data-db="students.list[].accuracy">62%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">昨天 16:45</td>
+            <td data-db="students.list[].streak_days">7</td>
             <td><a href="student.html?id=2" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
           <tr>
-            <td><a href="student.html?id=3" class="table-link" data-db="students.list[].name">陈思远</a></td>
-            <td data-db="students.list[].className">高三(1)班</td>
-            <td data-db="students.list[].totalQuestions">98</td>
+            <td><a href="student.html?id=3" class="table-link" data-db="students.list[].real_name">陈思远</a></td>
+            <td data-db="students.list[].class_name">高三(1)班</td>
+            <td data-db="students.list[].total_questions">98</td>
+            <td data-db="students.list[].correct_count">44</td>
             <td>
               <span style="font-weight:600;color:var(--error);" data-db="students.list[].accuracy">45%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">3 天前</td>
+            <td data-db="students.list[].streak_days">3</td>
             <td><a href="student.html?id=3" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
           <tr>
-            <td><a href="student.html?id=4" class="table-link" data-db="students.list[].name">赵雪</a></td>
-            <td data-db="students.list[].className">高三(1)班</td>
-            <td data-db="students.list[].totalQuestions">312</td>
+            <td><a href="student.html?id=4" class="table-link" data-db="students.list[].real_name">赵雪</a></td>
+            <td data-db="students.list[].class_name">高三(1)班</td>
+            <td data-db="students.list[].total_questions">312</td>
+            <td data-db="students.list[].correct_count">287</td>
             <td>
               <span style="font-weight:600;color:var(--success);" data-db="students.list[].accuracy">92%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">今天 14:20</td>
+            <td data-db="students.list[].streak_days">20</td>
             <td><a href="student.html?id=4" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
           <tr>
-            <td><a href="student.html?id=5" class="table-link" data-db="students.list[].name">刘浩</a></td>
-            <td data-db="students.list[].className">高三(2)班</td>
-            <td data-db="students.list[].totalQuestions">45</td>
+            <td><a href="student.html?id=5" class="table-link" data-db="students.list[].real_name">刘浩</a></td>
+            <td data-db="students.list[].class_name">高三(2)班</td>
+            <td data-db="students.list[].total_questions">45</td>
+            <td data-db="students.list[].correct_count">17</td>
             <td>
               <span style="font-weight:600;color:var(--error);" data-db="students.list[].accuracy">38%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">5 天前</td>
+            <td data-db="students.list[].streak_days">1</td>
             <td><a href="student.html?id=5" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
           <tr>
-            <td><a href="student.html?id=6" class="table-link" data-db="students.list[].name">张雨桐</a></td>
-            <td data-db="students.list[].className">高三(2)班</td>
-            <td data-db="students.list[].totalQuestions">178</td>
+            <td><a href="student.html?id=6" class="table-link" data-db="students.list[].real_name">张雨桐</a></td>
+            <td data-db="students.list[].class_name">高三(2)班</td>
+            <td data-db="students.list[].total_questions">178</td>
+            <td data-db="students.list[].correct_count">139</td>
             <td>
               <span style="font-weight:600;color:var(--success);" data-db="students.list[].accuracy">78%</span>
             </td>
-            <td style="color:var(--text-secondary);font-size:13px;" data-db="students.list[].lastActive">昨天 10:15</td>
+            <td data-db="students.list[].streak_days">9</td>
             <td><a href="student.html?id=6" class="btn btn-sm btn-ghost">详情</a></td>
           </tr>
         </tbody>

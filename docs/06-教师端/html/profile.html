@@ -14,6 +14,7 @@
         <a href="index.html">作业</a>
         <a href="classes.html">班级</a>
         <a href="students.html">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -30,7 +31,6 @@
     </div>
 
     <div class="card">
-      <!-- 头像 -->
       <div class="avatar-upload">
         <div class="avatar-preview">
           <span>张</span>
@@ -45,25 +45,13 @@
         <div class="form-row">
           <div class="input-group">
             <label for="name">姓名</label>
-            <input type="text" id="name" value="张老师" data-db-bind="profile.name">
+            <input type="text" id="name" value="张老师" data-db-bind="profile.real_name">
           </div>
           <div class="input-group">
             <label for="school">学校</label>
             <input type="text" id="school" value="北京四中" data-db-bind="profile.school">
           </div>
         </div>
-
-        <div class="form-row">
-          <div class="input-group">
-            <label for="phone">联系电话</label>
-            <input type="tel" id="phone" value="138****5678" data-db-bind="profile.phone">
-          </div>
-          <div class="input-group">
-            <label for="email">邮箱</label>
-            <input type="email" id="email" value="teacher@example.com" data-db-bind="profile.email">
-          </div>
-        </div>
-
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
           <button class="btn btn-ghost" onclick="history.back()">取消</button>
           <button class="btn btn-primary" data-db-action="profile.save()" onclick="showToast('✅', '资料已保存')">保存</button>
@@ -71,7 +59,6 @@
       </form>
     </div>
 
-    <!-- 账号安全 -->
     <div class="card">
       <div class="card-title">账号安全</div>
       <div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">
@@ -93,7 +80,6 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast-container" id="toast-container">
     <div class="toast-bar" id="toast-bar">
       <span class="toast-icon" id="toast-icon">✅</span>

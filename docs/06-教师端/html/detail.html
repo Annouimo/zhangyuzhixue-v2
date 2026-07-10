@@ -14,6 +14,7 @@
         <a href="index.html" class="active">作业</a>
         <a href="classes.html">班级</a>
         <a href="students.html">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -32,11 +33,10 @@
       </div>
       <div class="page-actions">
         <button class="btn btn-outline btn-sm" onclick="showToast('🔔', '催交通知已发送');">🔔 催交</button>
-        <button class="btn btn-ghost btn-sm" onclick="showToast('⚠️', '开发中：修改截止日期');">✏️ 编辑</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('ℹ️', '如需删除请联系管理员');">🗑️ 删除</button>
       </div>
     </div>
 
-    <!-- 概览卡片 -->
     <div class="card">
       <div style="display:flex;gap:24px;flex-wrap:wrap;">
         <div>
@@ -44,111 +44,117 @@
           <div style="font-size:16px;font-weight:600;" data-db="assignment.detail.deadline">2026-07-15</div>
         </div>
         <div>
-          <div style="font-size:13px;color:var(--text-secondary);">目标班级</div>
-          <div style="font-size:16px;font-weight:600;" data-db="assignment.detail.classes">高三(1)班</div>
-        </div>
-        <div>
           <div style="font-size:13px;color:var(--text-secondary);">题目数量</div>
-          <div style="font-size:16px;font-weight:600;" data-db="assignment.detail.questionCount">8 题</div>
+          <div style="font-size:16px;font-weight:600;" data-db="assignment.detail.question_count">8</div>
         </div>
         <div>
           <div style="font-size:13px;color:var(--text-secondary);">作业说明</div>
           <div style="font-size:14px;color:var(--text-secondary);" data-db="assignment.detail.description">请独立完成，注意规范</div>
         </div>
-        <div style="flex:1;text-align:right;">
-          <div style="font-size:13px;color:var(--text-secondary);">完成率</div>
-          <div style="font-size:24px;font-weight:700;color:var(--primary);" data-db="assignment.detail.completionRate">56%</div>
-        </div>
       </div>
     </div>
 
-    <!-- 学生状态一览 -->
-    <div class="card">
-      <div class="card-title">学生完成情况</div>
+    <!-- 按班级分组 -->
+    <div data-db-loop="assignment.detail.classes">
+      <!-- 班级 1 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 class="card-title" style="margin-bottom:0;" data-db="assignment.detail.classes[].class_name">高三(1)班</h3>
+          <div style="font-size:13px;color:var(--text-secondary);" data-db="assignment.detail.classes[].summary">
+            共 <span data-db="assignment.detail.classes[].summary.total">32</span> 人 · 已提交 <span data-db="assignment.detail.classes[].summary.submitted">18</span> · 平均正确率 <span data-db="assignment.detail.classes[].summary.average_accuracy">72.5</span>%
+          </div>
+        </div>
 
-      <!-- 筛选 -->
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <span class="sort-pill active" onclick="filterStatus(this, 'all')" style="padding:5px 14px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;background:var(--primary);color:#fff;">全部 <span data-db="assignment.stats.total">32</span></span>
-        <span class="sort-pill" onclick="filterStatus(this, 'done')" style="padding:5px 14px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;">已提交 <span data-db="assignment.stats.submitted">18</span></span>
-        <span class="sort-pill" onclick="filterStatus(this, 'pending')" style="padding:5px 14px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;">未提交 <span data-db="assignment.stats.pending">14</span></span>
+        <div style="border-top:1px solid var(--border);">
+          <div data-db-loop="assignment.detail.classes[].students">
+            <a href="student.html?id=1" class="student-row">
+              <div class="avatar">王</div>
+              <div class="info">
+                <div class="name" data-db="assignment.detail.classes[].students[].real_name">王一帆</div>
+                <div class="sub" data-db="assignment.detail.classes[].students[].submitted_at">已提交 · 2026-07-09 14:30</div>
+              </div>
+              <div class="score">
+                <div class="value high" data-db="assignment.detail.classes[].students[].accuracy">88%</div>
+                <div class="detail"><span data-db="assignment.detail.classes[].students[].correct_count">7</span>/<span data-db="assignment.detail.classes[].students[].total_count">8</span></div>
+              </div>
+            </a>
+
+            <a href="student.html?id=2" class="student-row">
+              <div class="avatar">李</div>
+              <div class="info">
+                <div class="name" data-db="assignment.detail.classes[].students[].real_name">李明</div>
+                <div class="sub">已提交 · 2026-07-09 16:10</div>
+              </div>
+              <div class="score">
+                <div class="value mid">62%</div>
+                <div class="detail">5/8</div>
+              </div>
+            </a>
+
+            <a href="student.html?id=3" class="student-row">
+              <div class="avatar">陈</div>
+              <div class="info">
+                <div class="name">陈思远</div>
+                <div class="sub">已提交 · 2026-07-10 09:05</div>
+              </div>
+              <div class="score">
+                <div class="value low">38%</div>
+                <div class="detail">3/8</div>
+              </div>
+            </a>
+
+            <a href="student.html?id=5" class="student-row">
+              <div class="avatar">刘</div>
+              <div class="info">
+                <div class="name">刘浩</div>
+                <div class="sub" style="color:var(--text-muted);">未提交</div>
+              </div>
+              <div class="score">
+                <span class="status-tag pending">未交</span>
+              </div>
+            </a>
+          </div>
+        </div>
       </div>
 
-      <!-- 学生列表 -->
-      <div data-db-loop="assignment.students">
-        <a href="student.html?id=1" class="student-row">
-          <div class="avatar">王</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">王一帆</div>
-            <div class="sub" data-db="assignment.students[].subInfo">已提交 · 用时 23min</div>
+      <!-- 班级 2 -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 class="card-title" style="margin-bottom:0;" data-db="assignment.detail.classes[].class_name">高三(2)班</h3>
+          <div style="font-size:13px;color:var(--text-secondary);">
+            共 30 人 · 已提交 12 · 平均正确率 65.0%
           </div>
-          <div class="score">
-            <div class="value high" data-db="assignment.students[].accuracy">88%</div>
-            <div class="detail"><span data-db="assignment.students[].correctCount">7</span>/<span data-db="assignment.students[].totalCount">8</span></div>
-          </div>
-        </a>
+        </div>
+        <div style="border-top:1px solid var(--border);">
+          <div data-db-loop="assignment.detail.classes[].students">
+            <a href="student.html?id=4" class="student-row">
+              <div class="avatar">赵</div>
+              <div class="info">
+                <div class="name">赵雪</div>
+                <div class="sub">已提交 · 2026-07-10 14:20</div>
+              </div>
+              <div class="score">
+                <div class="value high">100%</div>
+                <div class="detail">8/8</div>
+              </div>
+            </a>
 
-        <a href="student.html?id=2" class="student-row">
-          <div class="avatar">李</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">李明</div>
-            <div class="sub" data-db="assignment.students[].subInfo">已提交 · 用时 35min</div>
+            <a href="student.html?id=6" class="student-row">
+              <div class="avatar">张</div>
+              <div class="info">
+                <div class="name">张雨桐</div>
+                <div class="sub" style="color:var(--text-muted);">未提交</div>
+              </div>
+              <div class="score">
+                <span class="status-tag pending">未交</span>
+              </div>
+            </a>
           </div>
-          <div class="score">
-            <div class="value mid" data-db="assignment.students[].accuracy">62%</div>
-            <div class="detail"><span data-db="assignment.students[].correctCount">5</span>/<span data-db="assignment.students[].totalCount">8</span></div>
-          </div>
-        </a>
-
-        <a href="student.html?id=3" class="student-row">
-          <div class="avatar">陈</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">陈思远</div>
-            <div class="sub" data-db="assignment.students[].subInfo">已提交 · 用时 18min</div>
-          </div>
-          <div class="score">
-            <div class="value low" data-db="assignment.students[].accuracy">38%</div>
-            <div class="detail"><span data-db="assignment.students[].correctCount">3</span>/<span data-db="assignment.students[].totalCount">8</span></div>
-          </div>
-        </a>
-
-        <a href="student.html?id=4" class="student-row">
-          <div class="avatar">赵</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">赵雪</div>
-            <div class="sub" data-db="assignment.students[].subInfo">已提交 · 用时 40min</div>
-          </div>
-          <div class="score">
-            <div class="value high" data-db="assignment.students[].accuracy">100%</div>
-            <div class="detail"><span data-db="assignment.students[].correctCount">8</span>/<span data-db="assignment.students[].totalCount">8</span></div>
-          </div>
-        </a>
-
-        <a href="student.html?id=5" class="student-row">
-          <div class="avatar">刘</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">刘浩</div>
-            <div class="sub" style="color:var(--text-muted);">未提交</div>
-          </div>
-          <div class="score">
-            <span class="status-tag pending">未交</span>
-          </div>
-        </a>
-
-        <a href="student.html?id=6" class="student-row">
-          <div class="avatar">张</div>
-          <div class="info">
-            <div class="name" data-db="assignment.students[].name">张雨桐</div>
-            <div class="sub" style="color:var(--text-muted);">未提交</div>
-          </div>
-          <div class="score">
-            <span class="status-tag pending">未交</span>
-          </div>
-        </a>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast-container" id="toast-container">
     <div class="toast-bar" id="toast-bar">
       <span class="toast-icon" id="toast-icon">✅</span>
@@ -158,31 +164,6 @@
   </div>
 
   <script>
-    /* ---- 状态筛选 ---- */
-    function filterStatus(el, status) {
-      document.querySelectorAll('.sort-pill').forEach(function(p) {
-        p.classList.remove('active');
-        p.style.background = '';
-        p.style.color = '';
-      });
-      el.classList.add('active');
-      el.style.background = 'var(--primary)';
-      el.style.color = '#fff';
-
-      // 显示/隐藏学生行（模拟）
-      document.querySelectorAll('.student-row').forEach(function(row) {
-        var isPending = row.querySelector('.status-tag');
-        if (status === 'all') {
-          row.style.display = 'flex';
-        } else if (status === 'done') {
-          row.style.display = isPending ? 'none' : 'flex';
-        } else if (status === 'pending') {
-          row.style.display = isPending ? 'flex' : 'none';
-        }
-      });
-    }
-
-    /* ---- Toast ---- */
     var _toastTimer = null;
     function showToast(icon, msg, duration) {
       var bar = document.getElementById('toast-bar');

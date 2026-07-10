@@ -14,6 +14,7 @@
         <a href="index.html">作业</a>
         <a href="classes.html">班级</a>
         <a href="students.html">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -31,7 +32,6 @@
       <div></div>
     </div>
 
-    <!-- 步骤指示器 -->
     <div class="steps-indicator">
       <div class="step-dot active" id="step1-indicator">
         <div class="circle">1</div>
@@ -49,7 +49,6 @@
       </div>
     </div>
 
-    <!-- 步骤 1：选择组卷 -->
     <div class="step-body active" id="step1">
       <div class="card">
         <div class="card-title">选择要发布的组卷</div>
@@ -57,38 +56,36 @@
           请在学生 App 中先创建组卷（自动同步到服务端），然后在此选择发布。
         </p>
 
-        <!-- 搜索 -->
         <div class="search-box">
           <input type="text" placeholder="搜索组卷名称..." data-db-bind="publish.searchQuery">
         </div>
 
-        <!-- 组卷列表 -->
         <div data-db-loop="teacher.papers">
           <div class="paper-card" onclick="selectPaper(this, 1)">
             <div class="radio"></div>
             <div class="info">
-              <div class="name" data-db="teacher.papers[].name">导数基础练习</div>
-              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-08</div>
+              <div class="name" data-db="teacher.papers[].title">导数基础练习</div>
+              <div class="desc" data-db="teacher.papers[].created_at">创建于 2026-07-08</div>
             </div>
-            <div class="count"><span data-db="teacher.papers[].questionCount">8</span> 题</div>
+            <div class="count"><span data-db="teacher.papers[].question_count">8</span> 题</div>
           </div>
 
           <div class="paper-card" onclick="selectPaper(this, 2)">
             <div class="radio"></div>
             <div class="info">
-              <div class="name" data-db="teacher.papers[].name">集合 · 函数综合</div>
-              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-06</div>
+              <div class="name" data-db="teacher.papers[].title">集合 · 函数综合</div>
+              <div class="desc" data-db="teacher.papers[].created_at">创建于 2026-07-06</div>
             </div>
-            <div class="count"><span data-db="teacher.papers[].questionCount">12</span> 题</div>
+            <div class="count"><span data-db="teacher.papers[].question_count">12</span> 题</div>
           </div>
 
           <div class="paper-card" onclick="selectPaper(this, 3)">
             <div class="radio"></div>
             <div class="info">
-              <div class="name" data-db="teacher.papers[].name">数列专题 — 选择+填空</div>
-              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-03</div>
+              <div class="name" data-db="teacher.papers[].title">数列专题 — 选择+填空</div>
+              <div class="desc" data-db="teacher.papers[].created_at">创建于 2026-07-03</div>
             </div>
-            <div class="count"><span data-db="teacher.papers[].questionCount">10</span> 题</div>
+            <div class="count"><span data-db="teacher.papers[].question_count">10</span> 题</div>
           </div>
         </div>
 
@@ -98,7 +95,6 @@
       </div>
     </div>
 
-    <!-- 步骤 2：设置信息 -->
     <div class="step-body" id="step2">
       <div class="card">
         <div class="card-title">作业信息</div>
@@ -114,9 +110,14 @@
             <input type="date" id="assign-deadline" value="2026-07-20" data-db-bind="publish.deadline">
           </div>
           <div class="input-group">
-            <label for="assign-desc">作业说明（可选）</label>
-            <input type="text" id="assign-desc" placeholder="如：请独立完成，注意步骤规范" data-db-bind="publish.description">
+            <label for="assign-course">所属课程</label>
+            <input type="text" id="assign-course" placeholder="如：导数系统课" data-db-bind="publish.course_id">
           </div>
+        </div>
+
+        <div class="input-group">
+          <label for="assign-desc">作业说明（可选）</label>
+          <input type="text" id="assign-desc" placeholder="如：请独立完成，注意步骤规范" data-db-bind="publish.description">
         </div>
 
         <div style="margin-top:20px;">
@@ -130,19 +131,19 @@
 
           <div data-db-loop="teacher.classes">
             <div class="class-checkbox-row checked" onclick="toggleClass(this)">
-              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <input type="checkbox" checked data-db-bind="publish.class_ids[]">
               <span class="class-name" data-db="teacher.classes[].name">高三(1)班</span>
-              <span class="class-count"><span data-db="teacher.classes[].studentCount">32</span> 人</span>
+              <span class="class-count"><span data-db="teacher.classes[].student_count">32</span> 人</span>
             </div>
             <div class="class-checkbox-row checked" onclick="toggleClass(this)">
-              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <input type="checkbox" checked data-db-bind="publish.class_ids[]">
               <span class="class-name" data-db="teacher.classes[].name">高三(2)班</span>
-              <span class="class-count"><span data-db="teacher.classes[].studentCount">30</span> 人</span>
+              <span class="class-count"><span data-db="teacher.classes[].student_count">30</span> 人</span>
             </div>
             <div class="class-checkbox-row checked" onclick="toggleClass(this)">
-              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <input type="checkbox" checked data-db-bind="publish.class_ids[]">
               <span class="class-name" data-db="teacher.classes[].name">高三(3)班</span>
-              <span class="class-count"><span data-db="teacher.classes[].studentCount">28</span> 人</span>
+              <span class="class-count"><span data-db="teacher.classes[].student_count">28</span> 人</span>
             </div>
           </div>
         </div>
@@ -154,7 +155,6 @@
       </div>
     </div>
 
-    <!-- 步骤 3：确认发布 -->
     <div class="step-body" id="step3">
       <div class="card">
         <div class="card-title">确认作业信息</div>
@@ -162,11 +162,15 @@
         <table class="data-table">
           <tr>
             <td style="color:var(--text-secondary);width:100px;">组卷</td>
-            <td data-db="publish.confirm.paperName"><strong>导数基础练习</strong>（8 题）</td>
+            <td data-db="publish.confirm.paper_title"><strong>导数基础练习</strong>（8 题）</td>
           </tr>
           <tr>
             <td style="color:var(--text-secondary);">标题</td>
             <td data-db="publish.confirm.title">导数基础练习</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">课程</td>
+            <td data-db="publish.confirm.course">导数系统课</td>
           </tr>
           <tr>
             <td style="color:var(--text-secondary);">截止</td>
@@ -182,7 +186,7 @@
           </tr>
           <tr>
             <td style="color:var(--text-secondary);">覆盖学生</td>
-            <td data-db="publish.confirm.totalStudents"><strong>90</strong> 人</td>
+            <td data-db="publish.confirm.total_students"><strong>90</strong> 人</td>
           </tr>
         </table>
 
@@ -193,12 +197,11 @@
       </div>
     </div>
 
-    <!-- 发布成功结果页（初始隐藏） -->
     <div class="card" id="publish-result" style="display:none;">
       <div class="result-card">
         <div class="icon">✅</div>
         <h2>作业已发布</h2>
-        <p>作业「导数基础练习」已成功发布到 3 个班级，共 90 名学生。</p>
+        <p>作业已成功发布到 3 个班级，共 90 名学生。</p>
         <div style="display:flex;gap:12px;justify-content:center;">
           <a href="index.html" class="btn btn-primary">返回作业列表</a>
           <a href="detail.html?id=new" class="btn btn-outline">查看详情</a>
@@ -207,7 +210,6 @@
     </div>
   </div>
 
-  <!-- Toast -->
   <div class="toast-container" id="toast-container">
     <div class="toast-bar" id="toast-bar">
       <span class="toast-icon" id="toast-icon">✅</span>
@@ -217,14 +219,18 @@
   </div>
 
   <script>
-    /* ---- 步骤切换 ---- */
     var currentStep = 1;
     function goStep(n) {
       if (n === 2 && currentStep === 1) {
-        // 检查是否已选组卷
         if (!document.querySelector('.paper-card.selected')) {
           showToast('⚠️', '请先选择一个组卷');
           return;
+        }
+        /* 模拟：选中组卷后自动填充标题和课程 */
+        var selected = document.querySelector('.paper-card.selected');
+        if (selected) {
+          var title = selected.querySelector('.name').textContent;
+          document.getElementById('assign-title').value = title;
         }
       }
       document.querySelectorAll('.step-body').forEach(function(el) { el.classList.remove('active'); });
@@ -240,13 +246,11 @@
       currentStep = n;
     }
 
-    /* ---- 选组卷 ---- */
     function selectPaper(el, id) {
       document.querySelectorAll('.paper-card').forEach(function(p) { p.classList.remove('selected'); });
       el.classList.add('selected');
     }
 
-    /* ---- 班级勾选 ---- */
     function toggleClass(row) {
       var cb = row.querySelector('input[type="checkbox"]');
       cb.checked = !cb.checked;
@@ -260,14 +264,12 @@
       });
     }
 
-    /* ---- 发布成功 ---- */
     function publishSuccess() {
       document.getElementById('publish-result').style.display = 'block';
       document.getElementById('step3').style.display = 'none';
       showToast('✅', '作业发布成功！');
     }
 
-    /* ---- Toast ---- */
     var _toastTimer = null;
     function showToast(icon, msg, duration) {
       var bar = document.getElementById('toast-bar');

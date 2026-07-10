@@ -14,6 +14,7 @@
         <a href="index.html">作业</a>
         <a href="classes.html">班级</a>
         <a href="students.html" class="active">学生</a>
+        <a href="lecture.html">讲义</a>
         <a href="about.html">关于</a>
       </nav>
       <div class="user-info">
@@ -29,17 +30,19 @@
       <a href="students.html" class="btn btn-ghost" style="text-decoration:none;">← 学生列表</a>
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="avatar" style="width:40px;height:40px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--primary);">王</div>
-        <h1 data-db="student.detail.name">王一帆</h1>
+        <div>
+          <h1 data-db="student.detail.real_name">王一帆</h1>
+          <div style="font-size:13px;color:var(--text-muted);" data-db="student.detail.student_id">学号: 20261058417</div>
+        </div>
       </div>
       <div>
-        <span class="status-tag" style="background:var(--primary-light);color:var(--primary);" data-db="student.detail.className">高三(1)班</span>
+        <span class="status-tag" style="background:var(--primary-light);color:var(--primary);" data-db="student.detail.class_name">高三(1)班</span>
       </div>
     </div>
 
-    <!-- 统计卡片 -->
     <div class="stats-row">
       <div class="stat-card">
-        <div class="stat-value" data-db="student.stats.totalQuestions">204</div>
+        <div class="stat-value" data-db="student.stats.total_questions">204</div>
         <div class="stat-label">总做题量</div>
       </div>
       <div class="stat-card">
@@ -47,23 +50,18 @@
         <div class="stat-label">总正确率</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" data-db="student.stats.streakDays">12</div>
+        <div class="stat-value" data-db="student.stats.streak_days">12</div>
         <div class="stat-label">连续签到</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" style="color:var(--warning);" data-db="student.stats.ranking">3/32</div>
-        <div class="stat-label">班级排名</div>
       </div>
     </div>
 
-    <!-- 正确率趋势 -->
     <div class="card">
       <div class="card-title">正确率趋势（近 7 天）</div>
-      <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:10px 0;">
+      <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:10px 0;" data-db-loop="student.accuracy_trend">
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">70%</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;" data-db="student.accuracy_trend[].accuracy">70%</div>
           <div style="width:100%;max-width:36px;height:70px;background:var(--primary);border-radius:4px 4px 0 0;opacity:0.7;"></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">7/4</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" data-db="student.accuracy_trend[].date">7/4</div>
         </div>
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
           <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">75%</div>
@@ -98,113 +96,70 @@
       </div>
     </div>
 
-    <!-- 题型表现 -->
     <div class="card">
       <div class="card-title">各题型表现</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;" data-db-loop="student.question_type_breakdown">
         <div style="text-align:center;">
-          <div style="font-size:28px;font-weight:700;color:var(--success);" data-db="student.stats.choiceAccuracy">88%</div>
-          <div style="font-size:13px;color:var(--text-secondary);">选择题</div>
-          <div style="font-size:12px;color:var(--text-muted);" data-db="student.stats.choiceCount">86/98</div>
+          <div style="font-size:28px;font-weight:700;color:var(--success);" data-db="student.question_type_breakdown[].accuracy">88%</div>
+          <div style="font-size:13px;color:var(--text-secondary);" data-db="student.question_type_breakdown[].type">选择题</div>
+          <div style="font-size:12px;color:var(--text-muted);" data-db="student.question_type_breakdown[].count">86/98</div>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:28px;font-weight:700;color:var(--warning);" data-db="student.stats.fillAccuracy">72%</div>
+          <div style="font-size:28px;font-weight:700;color:var(--warning);">72%</div>
           <div style="font-size:13px;color:var(--text-secondary);">填空题</div>
-          <div style="font-size:12px;color:var(--text-muted);" data-db="student.stats.fillCount">23/32</div>
+          <div style="font-size:12px;color:var(--text-muted);">23/32</div>
         </div>
         <div style="text-align:center;">
-          <div style="font-size:28px;font-weight:700;color:var(--warning);" data-db="student.stats.solveAccuracy">60%</div>
+          <div style="font-size:28px;font-weight:700;color:var(--warning);">60%</div>
           <div style="font-size:13px;color:var(--text-secondary);">解答题</div>
-          <div style="font-size:12px;color:var(--text-muted);" data-db="student.stats.solveCount">44/74</div>
+          <div style="font-size:12px;color:var(--text-muted);">44/74</div>
         </div>
       </div>
     </div>
 
-    <!-- 薄弱知识点 -->
     <div class="card">
       <div class="card-title">薄弱知识点</div>
-      <div data-db-loop="student.weakTags" data-db-empty="暂无数据">
+      <div data-db-loop="student.weak_tags" data-db-empty="暂无数据">
         <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
           <div style="flex:1;">
-            <span class="tag" data-db="student.weakTags[].name">导数 · 参数讨论</span>
+            <span class="tag" data-db="student.weak_tags[].tag_name">导数 · 参数讨论</span>
           </div>
           <div style="text-align:right;margin-right:16px;">
             <div style="font-size:13px;color:var(--text-secondary);">正确率</div>
-            <div style="font-size:16px;font-weight:700;color:var(--error);" data-db="student.weakTags[].accuracy">35%</div>
+            <div style="font-size:16px;font-weight:700;color:var(--error);" data-db="student.weak_tags[].accuracy">35%</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:13px;color:var(--text-secondary);">做题量</div>
-            <div style="font-size:14px;" data-db="student.weakTags[].count">8</div>
+            <div style="font-size:14px;" data-db="student.weak_tags[].count">8</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
           <div style="flex:1;">
-            <span class="tag" data-db="student.weakTags[].name">数列 · 裂项相消</span>
+            <span class="tag" data-db="student.weak_tags[].tag_name">数列 · 裂项相消</span>
           </div>
           <div style="text-align:right;margin-right:16px;">
             <div style="font-size:13px;color:var(--text-secondary);">正确率</div>
-            <div style="font-size:16px;font-weight:700;color:var(--error);" data-db="student.weakTags[].accuracy">40%</div>
+            <div style="font-size:16px;font-weight:700;color:var(--error);">40%</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:13px;color:var(--text-secondary);">做题量</div>
-            <div style="font-size:14px;" data-db="student.weakTags[].count">6</div>
+            <div style="font-size:14px;">6</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;padding:8px 0;">
           <div style="flex:1;">
-            <span class="tag" data-db="student.weakTags[].name">三角函数 · 图像变换</span>
+            <span class="tag" data-db="student.weak_tags[].tag_name">三角函数 · 图像变换</span>
           </div>
           <div style="text-align:right;margin-right:16px;">
             <div style="font-size:13px;color:var(--text-secondary);">正确率</div>
-            <div style="font-size:16px;font-weight:700;color:var(--warning);" data-db="student.weakTags[].accuracy">50%</div>
+            <div style="font-size:16px;font-weight:700;color:var(--warning);">50%</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:13px;color:var(--text-secondary);">做题量</div>
-            <div style="font-size:14px;" data-db="student.weakTags[].count">12</div>
+            <div style="font-size:14px;">12</div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 近期做题历史 -->
-    <div class="card">
-      <div class="card-title">近期做题记录</div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>日期</th>
-            <th>题目</th>
-            <th>题型</th>
-            <th>结果</th>
-          </tr>
-        </thead>
-        <tbody data-db-loop="student.history">
-          <tr>
-            <td style="white-space:nowrap;" data-db="student.history[].date">2026-07-10</td>
-            <td><span class="table-link" data-db="student.history[].questionTitle">2025 北京高考 · T19</span></td>
-            <td data-db="student.history[].type">解答题</td>
-            <td><span class="status-tag done" data-db="student.history[].result">正确</span></td>
-          </tr>
-          <tr>
-            <td style="white-space:nowrap;" data-db="student.history[].date">2026-07-10</td>
-            <td><span class="table-link" data-db="student.history[].questionTitle">导数参数讨论 #1024</span></td>
-            <td data-db="student.history[].type">解答题</td>
-            <td><span class="status-tag" style="background:#FEF3C7;color:#92400E;" data-db="student.history[].result">部分正确</span></td>
-          </tr>
-          <tr>
-            <td style="white-space:nowrap;" data-db="student.history[].date">2026-07-09</td>
-            <td><span class="table-link" data-db="student.history[].questionTitle">裂项相消 #0876</span></td>
-            <td data-db="student.history[].type">填空题</td>
-            <td><span class="status-tag" style="background:#FEE2E2;color:#991B1B;" data-db="student.history[].result">错误</span></td>
-          </tr>
-          <tr>
-            <td style="white-space:nowrap;" data-db="student.history[].date">2026-07-09</td>
-            <td><span class="table-link" data-db="student.history[].questionTitle">集合基本运算 #0012</span></td>
-            <td data-db="student.history[].type">选择题</td>
-            <td><span class="status-tag done" data-db="student.history[].result">正确</span></td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
 </body>
