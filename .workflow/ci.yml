@@ -12,18 +12,36 @@ stages:
     displayName: flutter-check
     steps:
       - step: shell
-        run: cd flutter_app && dart analyze
+        displayName: dart analyze
+        inputs:
+          command: dart analyze
+          workDir: flutter_app
       - step: shell
-        run: cd flutter_app && flutter test
+        displayName: flutter test
+        inputs:
+          command: flutter test
+          workDir: flutter_app
 
   - name: django-check
     displayName: django-check
     steps:
       - step: shell
-        run: cd server && pip install -r requirements.txt -q
+        displayName: install deps
+        inputs:
+          command: pip install -r requirements.txt -q
+          workDir: server
       - step: shell
-        run: flake8 --config server/.flake8 server/
+        displayName: flake8
+        inputs:
+          command: flake8 --config .flake8 server/
+          workDir: .
       - step: shell
-        run: cd server && python manage.py check --deploy
+        displayName: check --deploy
+        inputs:
+          command: python manage.py check --deploy
+          workDir: server
       - step: shell
-        run: cd server && python manage.py makemigrations --check
+        displayName: makemigrations --check
+        inputs:
+          command: python manage.py makemigrations --check
+          workDir: server
