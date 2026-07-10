@@ -11,12 +11,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Install Flutter
+      - name: Install Flutter SDK
         run: |
+          set -x
+          mkdir -p $HOME/flutter
           curl -sSL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.4-stable.tar.xz \
-            | tar xJ -C /opt
-          echo "/opt/flutter/bin" >> $GITHUB_PATH
-          echo "/opt/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
+            | tar xJ -C $HOME/flutter --strip-components=1
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
+          echo "$HOME/flutter/bin/cache/dart-sdk/bin" >> $GITHUB_PATH
+          $HOME/flutter/bin/flutter --version
       - name: dart analyze
         working-directory: flutter_app
         run: dart analyze
