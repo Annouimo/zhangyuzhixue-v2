@@ -45,11 +45,15 @@ pip install drf-spectacular django-auditlog
 pip list | findstr <package-name>
 ```
 
+### 注意事项
+
+- 如果在中国大陆网络环境，pip install 可能超时，可添加 `-i https://mirrors.aliyun.com/pypi/simple/` 镜像源
+
 ---
 
 ## 0.2 — Django 脚手架
 
-### 步骤
+### 实现要点
 
 1. `django-admin startproject math_platform server/`
 2. 创建 5 个 App（`accounts/qbank/courses/interactions/system`）
@@ -76,11 +80,16 @@ python manage.py migrate              # 34 个迁移全部 OK
 flake8                                # 零问题
 ```
 
+### 注意事项
+
+- SQLite 不支持 `ALTER TABLE ... RENAME COLUMN`，models.py 必须一次写准
+- `SECRET_KEY` 先用本地生成的 key，staging 部署时需生成新 key
+
 ---
 
 ## 0.3 — Flutter 脚手架
 
-### 步骤
+### 实现要点
 
 1. `flutter create flutter_app`（项目根下生成）
 2. **pubspec.yaml 添加依赖：**
@@ -110,9 +119,16 @@ dart analyze             # No issues found!
 flutter test             # All tests passed!
 ```
 
+### 注意事项
+
+- `build.yaml` 需配置 `sqlite: {version: 3.35, modules: {json1: true}}` 确保 JSON 函数可用
+- GitHub Releases 下载超时（国内网络）时，在 `build.yaml` 中设置 `source: system` 使用系统 sqlite3 库
+
 ---
 
 ## 0.4 — 着陆页
+
+### 实现要点
 
 从 `docs/07-工作流/landing/` 复制到项目根目录 `landing/`，nginx 直出，不走 Django。
 
@@ -134,11 +150,18 @@ flutter test             # All tests passed!
 - 微信二维码图片显示
 - 隐私政策和用户协议页面可跳转
 
+### 注意事项
+
+- `landing/` 在开发阶段仅源码维护，不部署到服务器，由 Phase 6.7 部署脚本统一处理
+- 下载链接先用 `#` 占位，正式版本发布后替换
+
 ---
 
 ## 0.5 — GitHub Actions CI
 
-### 方案说明
+### 实现要点
+
+**方案说明**
 
 | 组件 | 方案 |
 |------|------|
@@ -177,6 +200,12 @@ flutter test             # All tests passed!
 - GitHub Actions 页面两流水线（Flutter + Django）全绿
 - `python manage.py check --deploy` 通过
 - `dart analyze` No issues found
+
+### 注意事项
+
+- Gitee→GitHub 镜像同步可能有 1-5 分钟延迟，push 后稍等再检查 CI
+- CI 中 Flutter 使用 `subosito/flutter-action@v2`，需指定 Flutter 版本与本地一致（3.44+）
+- `--deploy` 检查在本地 dev 环境也可能有 warning，staging 环境需零问题
 
 ---
 

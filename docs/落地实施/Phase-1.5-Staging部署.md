@@ -43,7 +43,7 @@
 
 ## 服务器现状
 
-### 2.1 服务器（ECS 123.57.85.160）
+### ECS 服务器配置
 
 | 项目 | 值 |
 |:-----|:----|
@@ -55,14 +55,14 @@
 | 内存 | 1.6G / 可用 1.1G |
 | CPU | 2 核 |
 
-### 2.2 当前运行状态
+### 当前运行状态
 
 - Cloudflare Tunnel 指向 `http://localhost:8080`（nginx loopback）
 - nginx 当前在 8080 端口仅 serve 一个**维护页面**（`/var/www/maintenance/index.html`）
 - 服务端旧版项目 `math_platform` 已不存在（`/opt/` 为空）
 - **连接链：** `用户 → Cloudflare → tunnel → localhost:8080 → nginx → 维护页面`
 
-### 2.3 新版需求
+### 新版部署需求
 
 | 组件 | 说明 |
 |:-----|:------|
