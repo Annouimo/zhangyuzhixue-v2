@@ -6,60 +6,44 @@ class LectureDao {
   final db.LecturesDatabase _db;
   const LectureDao(this._db);
 
-  Future<List<db.CourseRow>> getAllCourses() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM courses',
-      readsFrom: {_db.courses},
-    ).get();
-    return rows.map((r) => _db.courses.map(r.data)).toList();
-  }
+  // ── 课程 ──
+
+  Future<List<db.CourseRow>> getAllCourses() =>
+      _db.select(_db.courses).get();
 
   Future<db.CourseRow?> getCourseById(int id) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM courses WHERE id = ?',
-      variables: [Variable(id)],
-      readsFrom: {_db.courses},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.courses.map(rows.first.data);
+    final q = _db.select(_db.courses)
+      ..where((t) => t.id.equals(id));
+    return q.getSingleOrNull();
   }
 
+  // ── 章节 ──
+
   Future<List<db.ChapterRow>> getChapters(int courseId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM chapters WHERE course_id = ? ORDER BY "index"',
-      variables: [Variable(courseId)],
-      readsFrom: {_db.chapters},
-    ).get();
-    return rows.map((r) => _db.chapters.map(r.data)).toList();
+    final q = _db.select(_db.chapters)
+      ..where((t) => t.courseId.equals(courseId));
+    q.orderBy([(t) => OrderingTerm(expression: t.index)]);
+    return q.get();
   }
 
   Future<db.ChapterRow?> getChapterById(int id) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM chapters WHERE id = ?',
-      variables: [Variable(id)],
-      readsFrom: {_db.chapters},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.chapters.map(rows.first.data);
+    final q = _db.select(_db.chapters)
+      ..where((t) => t.id.equals(id));
+    return q.getSingleOrNull();
   }
+
+  // ── 讲义内容 ──
 
   Future<db.LectureContentRow?> getContent(int chapterId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM lecture_contents WHERE chapter_id = ?',
-      variables: [Variable(chapterId)],
-      readsFrom: {_db.lectureContents},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.lectureContents.map(rows.first.data);
+    final q = _db.select(_db.lectureContents)
+      ..where((t) => t.chapterId.equals(chapterId));
+    return q.getSingleOrNull();
   }
 
-  Future<int> courseCount() async {
-    final row = await _db.customSelect(
-      'SELECT COUNT(*) AS c FROM courses',
-      readsFrom: {_db.courses},
-    ).getSingle();
-    return row.read<int>('c');
-  }
+  // ── 统计 ──
+
+  Future<int> courseCount() =>
+      _db.select(_db.courses).get().then((r) => r.length);
 
   Future<int> chapterCount(int courseId) async {
     final rows = await getChapters(courseId);

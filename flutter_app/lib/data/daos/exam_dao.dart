@@ -6,24 +6,15 @@ class ExamDao {
   final db.AppDatabase _db;
   const ExamDao(this._db);
 
-  // ── 我创建的组卷 ──
-
   Future<List<db.CustomPaperRow>> listCreated() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM custom_papers ORDER BY created_at DESC',
-      readsFrom: {_db.customPapers},
-    ).get();
-    return rows.map((r) => _db.customPapers.map(r.data)).toList();
+    final q = _db.select(_db.customPapers)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);
+    return q.get();
   }
 
   Future<db.CustomPaperRow?> getById(int id) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM custom_papers WHERE id = ?',
-      variables: [Variable(id)],
-      readsFrom: {_db.customPapers},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.customPapers.map(rows.first.data);
+    final q = _db.select(_db.customPapers)..where((t) => t.id.equals(id));
+    return q.getSingleOrNull();
   }
 
   Future<int> savePaper({
@@ -42,64 +33,53 @@ class ExamDao {
   }
 
   Future<void> deletePaper(int id) async {
-    final q = _db.delete(_db.customPapers);
-    q.where((t) => t.id.equals(id));
+    final q = _db.delete(_db.customPapers)..where((t) => t.id.equals(id));
     await q.go();
   }
 
   Future<void> togglePublic(int id) async {
     final paper = await getById(id);
     if (paper != null) {
-      final q = _db.update(_db.customPapers);
-      q.where((t) => t.id.equals(id));
+      final q = _db.update(_db.customPapers)..where((t) => t.id.equals(id));
       await q.write(db.CustomPapersCompanion(
         isPublic: Value(paper.isPublic == 0 ? 1 : 0),
       ));
     }
   }
 
-  // ── 组卷题目 ──
-
   Future<List<db.CustomPaperQuestionRow>> getQuestions(int paperId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM custom_paper_questions WHERE paper_id = ? ORDER BY sort_order',
-      variables: [Variable(paperId)],
-      readsFrom: {_db.customPaperQuestions},
-    ).get();
-    return rows.map((r) => _db.customPaperQuestions.map(r.data)).toList();
+    final q = _db.select(_db.customPaperQuestions)
+      ..where((t) => t.paperId.equals(paperId));
+    q.orderBy([(t) => OrderingTerm(expression: t.sortOrder)]);
+    return q.get();
   }
 
   Future<void> savePaperQuestions(int paperId, List<int> questionIds) async {
-    // 先删后插
-    final dq = _db.delete(_db.customPaperQuestions);
-    dq.where((t) => t.paperId.equals(paperId));
+    final dq = _db.delete(_db.customPaperQuestions)
+      ..where((t) => t.paperId.equals(paperId));
     await dq.go();
     for (var i = 0; i < questionIds.length; i++) {
-      await _db.into(_db.customPaperQuestions).insert(db.CustomPaperQuestionsCompanion(
-        paperId: Value(paperId),
-        questionId: Value(questionIds[i]),
-        sortOrder: Value(i),
-      ));
+      await _db.into(_db.customPaperQuestions).insert(
+        db.CustomPaperQuestionsCompanion(
+          paperId: Value(paperId),
+          questionId: Value(questionIds[i]),
+          sortOrder: Value(i),
+        ),
+      );
     }
   }
 
-  // ── 点赞 ──
-
   Future<db.PaperLikeRow?> getLike(int paperId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM paper_likes WHERE paper_id = ?',
-      variables: [Variable(paperId)],
-      readsFrom: {_db.paperLikes},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.paperLikes.map(rows.first.data);
+    final q = _db.select(_db.paperLikes)
+      ..where((t) => t.paperId.equals(paperId));
+    return q.getSingleOrNull();
   }
 
   Future<void> toggleLike(int paperId) async {
-    final existing = await getLike(paperId);
+    final existing = await (_db.select(_db.paperLikes)
+      ..where((t) => t.paperId.equals(paperId))).getSingleOrNull();
     if (existing != null) {
-      final q = _db.delete(_db.paperLikes);
-      q.where((t) => t.paperId.equals(paperId));
+      final q = _db.delete(_db.paperLikes)..where((t) => t.paperId.equals(paperId));
       await q.go();
     } else {
       final now = DateTime.now().toIso8601String();
@@ -110,23 +90,17 @@ class ExamDao {
     }
   }
 
-  // ── 收藏 ──
-
   Future<db.PaperCollectRow?> getCollect(int paperId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM paper_collects WHERE paper_id = ?',
-      variables: [Variable(paperId)],
-      readsFrom: {_db.paperCollects},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.paperCollects.map(rows.first.data);
+    final q = _db.select(_db.paperCollects)
+      ..where((t) => t.paperId.equals(paperId));
+    return q.getSingleOrNull();
   }
 
   Future<void> toggleCollect(int paperId) async {
-    final existing = await getCollect(paperId);
+    final existing = await (_db.select(_db.paperCollects)
+      ..where((t) => t.paperId.equals(paperId))).getSingleOrNull();
     if (existing != null) {
-      final q = _db.delete(_db.paperCollects);
-      q.where((t) => t.paperId.equals(paperId));
+      final q = _db.delete(_db.paperCollects)..where((t) => t.paperId.equals(paperId));
       await q.go();
     } else {
       final now = DateTime.now().toIso8601String();

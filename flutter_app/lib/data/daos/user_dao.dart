@@ -7,12 +7,8 @@ class UserDao {
   const UserDao(this._db);
 
   Future<db.UserProfileRow?> getProfile() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM user_profiles LIMIT 1',
-      readsFrom: {_db.userProfiles},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.userProfiles.map(rows.first.data);
+    final rows = await _db.select(_db.userProfiles).get();
+    return rows.isEmpty ? null : rows.first;
   }
 
   Future<void> saveProfile({
@@ -26,94 +22,56 @@ class UserDao {
     int? classGroupId,
   }) async {
     final now = DateTime.now().toIso8601String();
-    final existing = await _db.customSelect(
-      'SELECT 1 FROM user_profiles WHERE id = ?',
-      variables: [Variable(id)],
-      readsFrom: {_db.userProfiles},
-    ).get();
+    final existing = await (_db.select(_db.userProfiles)
+      ..where((t) => t.id.equals(id))).get();
     if (existing.isNotEmpty) {
-      final q = _db.update(_db.userProfiles);
-      q.where((t) => t.id.equals(id));
+      final q = _db.update(_db.userProfiles)..where((t) => t.id.equals(id));
       await q.write(db.UserProfilesCompanion(
-        name: Value(name),
-        realName: Value(realName),
-        studentId: Value(studentId),
-        avatar: Value(avatar),
-        school: Value(school),
-        gaokaoYear: Value(gaokaoYear),
-        classGroupId: Value(classGroupId),
-        updatedAt: Value(now),
+        name: Value(name), realName: Value(realName),
+        studentId: Value(studentId), avatar: Value(avatar),
+        school: Value(school), gaokaoYear: Value(gaokaoYear),
+        classGroupId: Value(classGroupId), updatedAt: Value(now),
       ));
     } else {
       await _db.into(_db.userProfiles).insert(db.UserProfilesCompanion(
-        id: Value(id),
-        name: Value(name),
-        realName: Value(realName),
-        studentId: Value(studentId),
-        avatar: Value(avatar),
-        school: Value(school),
-        gaokaoYear: Value(gaokaoYear),
-        classGroupId: Value(classGroupId),
+        id: Value(id), name: Value(name),
+        realName: Value(realName), studentId: Value(studentId),
+        avatar: Value(avatar), school: Value(school),
+        gaokaoYear: Value(gaokaoYear), classGroupId: Value(classGroupId),
         updatedAt: Value(now),
       ));
     }
   }
 
-  // ── 积分 ──
-
   Future<List<db.PointsTransactionRow>> getPointsHistory() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM points_transactions ORDER BY created_at DESC',
-      readsFrom: {_db.pointsTransactions},
-    ).get();
-    return rows.map((r) => _db.pointsTransactions.map(r.data)).toList();
+    final q = _db.select(_db.pointsTransactions)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);
+    return q.get();
   }
 
   Future<int> getEarnedPoints() async {
-    final row = await _db.customSelect(
-      "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE source IN ('LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD')",
-      readsFrom: {_db.pointsTransactions},
-    ).getSingle();
-    return row.read<int>('s');
+    final rows = await (_db.select(_db.pointsTransactions)
+      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']))).get();
+    var total = 0;
+    for (final r in rows) { total += r.amount; }
+    return total;
   }
 
-  Future<int> getBonusPoints() async {
-    final row = await _db.customSelect(
-      "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE source = 'SIGNUP_BONUS'",
-      readsFrom: {_db.pointsTransactions},
-    ).getSingle();
-    return row.read<int>('s');
+  Future<List<db.PointsTransactionRow>> getTransactionsBySource(
+      List<String> sources) async {
+    final q = _db.select(_db.pointsTransactions)
+      ..where((t) => t.source.isIn(sources));
+    return q.get();
   }
-
-  Future<int> getSpentPoints() async {
-    final row = await _db.customSelect(
-      "SELECT COALESCE(ABS(SUM(amount)), 0) AS s FROM points_transactions WHERE source = 'PAPER_PURCHASE'",
-      readsFrom: {_db.pointsTransactions},
-    ).getSingle();
-    return row.read<int>('s');
-  }
-
-  Future<int> getTodayPoints() async {
-    final row = await _db.customSelect(
-      "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE DATE(created_at) = DATE('now')",
-      readsFrom: {_db.pointsTransactions},
-    ).getSingle();
-    return row.read<int>('s');
-  }
-
-  // ── 签到 ──
 
   Future<int> getStreakDays() async {
-    // 最长的连续签到天数
-    final rows = await _db.customSelect(
-      'SELECT login_date FROM user_login_logs ORDER BY login_date DESC',
-      readsFrom: {_db.userLoginLogs},
-    ).get();
+    final rows = await (_db.select(_db.userLoginLogs)
+      ..orderBy([(t) => OrderingTerm(expression: t.loginDate, mode: OrderingMode.desc)])).get();
     if (rows.isEmpty) return 0;
     var streak = 0;
     final today = DateTime.now();
-    for (var i = 0; i < rows.length; i++) {
-      final d = DateTime.parse(rows[i].read<String>('login_date'));
+    for (final row in rows) {
+      final d = DateTime.parse(row.loginDate);
       final expected = today.subtract(Duration(days: streak));
       if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
         streak++;

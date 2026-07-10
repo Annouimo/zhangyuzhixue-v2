@@ -7,8 +7,8 @@ class RatingDao {
   const RatingDao(this._db);
 
   Future<db.QuestionRatingRow?> getRating(int questionId) async {
-    final q = _db.select(_db.questionRatings);
-    q.where((t) => t.questionId.equals(questionId));
+    final q = _db.select(_db.questionRatings)
+      ..where((t) => t.questionId.equals(questionId));
     return q.getSingleOrNull();
   }
 
@@ -19,10 +19,11 @@ class RatingDao {
     required int eleganceScore,
   }) async {
     final now = DateTime.now().toIso8601String();
-    final existing = await getRating(questionId);
-    if (existing != null) {
-      final q = _db.update(_db.questionRatings);
-      q.where((t) => t.questionId.equals(questionId));
+    final existing = await (_db.select(_db.questionRatings)
+      ..where((t) => t.questionId.equals(questionId))).get();
+    if (existing.isNotEmpty) {
+      final q = _db.update(_db.questionRatings)
+        ..where((t) => t.questionId.equals(questionId));
       await q.write(db.QuestionRatingsCompanion(
         difficultyScore: Value(difficultyScore),
         calculationScore: Value(calculationScore),

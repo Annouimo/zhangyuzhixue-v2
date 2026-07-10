@@ -24,69 +24,52 @@ class SyncQueueDao {
   }
 
   Future<List<db.SyncQueueRow>> getPending({int limit = 20}) async {
-    final rows = await _db.customSelect(
-      "SELECT * FROM sync_queue WHERE status IN ('pending', 'inProgress') ORDER BY id LIMIT ?",
-      variables: [Variable(limit)],
-      readsFrom: {_db.syncQueue},
-    ).get();
-    return rows.map((r) => _db.syncQueue.map(r.data)).toList();
+    final q = _db.select(_db.syncQueue)
+      ..where((t) => t.status.isIn(['pending', 'inProgress']));
+    q.orderBy([(t) => OrderingTerm(expression: t.id)]);
+    q.limit(limit);
+    return q.get();
   }
 
   Future<void> markInProgress(int id) async {
-    await _db.customUpdate(
-      'UPDATE sync_queue SET status = ? WHERE id = ?',
-      variables: [Variable('inProgress'), Variable(id)],
-    );
+    final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(id));
+    await q.write(db.SyncQueueCompanion(status: Value('inProgress')));
   }
 
   Future<void> markSuccess(int id) async {
-    await _db.customUpdate('DELETE FROM sync_queue WHERE id = ?', variables: [Variable(id)]);
+    final q = _db.delete(_db.syncQueue)..where((t) => t.id.equals(id));
+    await q.go();
   }
 
   Future<void> markFailed(int id) async {
-    await _db.customUpdate(
-      'UPDATE sync_queue SET status = ?, retry_count = retry_count + 1 WHERE id = ?',
-      variables: [Variable('failed'), Variable(id)],
-    );
+    final existing = await (_db.select(_db.syncQueue)
+      ..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) return;
+    final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(id));
+    await q.write(db.SyncQueueCompanion(
+      status: Value('failed'),
+      retryCount: Value(existing.retryCount + 1),
+    ));
   }
 
   Future<void> clearAll() async {
-    await _db.customUpdate('DELETE FROM sync_queue');
-  }
-
-  Future<void> cleanup() async {
-    // 清理 done 和过期永久失败
-    await _db.customUpdate("DELETE FROM sync_queue WHERE status = 'done'");
-    await _db.customUpdate(
-      "DELETE FROM sync_queue WHERE status = 'permanentFailure' AND created_at < datetime('now', '-7 days')",
-    );
-    // failed 超次数 → permanentFailure
-    await _db.customUpdate(
-      "UPDATE sync_queue SET status = 'permanentFailure' WHERE status = 'failed' AND retry_count >= 5",
-    );
+    await _db.delete(_db.syncQueue).go();
   }
 
   Future<int> getFailedCount() async {
-    final row = await _db.customSelect(
-      "SELECT COUNT(*) AS c FROM sync_queue WHERE status = 'failed' OR status = 'permanentFailure'",
-      readsFrom: {_db.syncQueue},
-    ).getSingle();
-    return row.read<int>('c');
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
+    return rows.length;
   }
 
   Future<bool> isEmpty() async {
-    final rows = await _db.customSelect(
-      'SELECT 1 FROM sync_queue LIMIT 1',
-      readsFrom: {_db.syncQueue},
-    ).get();
+    final rows = await _db.select(_db.syncQueue).get();
     return rows.isEmpty;
   }
 
   Future<bool> hasFailed() async {
-    final rows = await _db.customSelect(
-      "SELECT 1 FROM sync_queue WHERE status IN ('failed', 'permanentFailure') LIMIT 1",
-      readsFrom: {_db.syncQueue},
-    ).get();
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
     return rows.isNotEmpty;
   }
 }

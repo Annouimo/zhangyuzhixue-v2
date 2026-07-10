@@ -59,15 +59,13 @@ void main() {
     test('markFailed sets status to failed and increments retry_count', () async {
       final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
       await dao.markFailed(id);
-      // query directly since markFailed sets status to 'failed' (not pending)
-      final rows = await database.customSelect(
-        'SELECT * FROM sync_queue WHERE id = ?',
-        variables: [Variable(id)],
-        readsFrom: {database.syncQueue},
-      ).get();
-      expect(rows.length, 1);
-      expect(rows.first.data['status'], 'failed');
-      expect(rows.first.data['retry_count'], 1);
+      // Use typed API to verify
+      var q = database.select(database.syncQueue);
+      q.where((t) => t.id.equals(id));
+      final r = await q.get();
+      expect(r.length, 1);
+      expect(r.first.status, 'failed');
+      expect(r.first.retryCount, 1);
     });
 
     test('hasFailed returns true when failed exists', () async {

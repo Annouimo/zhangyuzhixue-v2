@@ -20,22 +20,19 @@ class ProgressDao {
   }
 
   Future<List<db.SubmissionDetailRow>> getAttempts(int questionId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM submission_details WHERE question_id = ? ORDER BY attempt_number',
-      variables: [Variable(questionId)],
-      readsFrom: {_db.submissionDetails},
-    ).get();
-    return rows.map((r) => _db.submissionDetails.map(r.data)).toList();
+    final q = _db.select(_db.submissionDetails)
+      ..where((t) => t.questionId.equals(questionId));
+    q.orderBy([(t) => OrderingTerm(expression: t.attemptNumber)]);
+    return q.get();
   }
 
   Future<db.SubmissionDetailRow?> getLatestAttempt(int questionId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM submission_details WHERE question_id = ? ORDER BY attempt_number DESC LIMIT 1',
-      variables: [Variable(questionId)],
-      readsFrom: {_db.submissionDetails},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.submissionDetails.map(rows.first.data);
+    final q = _db.select(_db.submissionDetails)
+      ..where((t) => t.questionId.equals(questionId));
+    q.orderBy([(t) => OrderingTerm(expression: t.attemptNumber, mode: OrderingMode.desc)]);
+    q.limit(1);
+    final rows = await q.get();
+    return rows.isEmpty ? null : rows.first;
   }
 
   Future<int> createAttempt({
@@ -43,12 +40,11 @@ class ProgressDao {
     int? submissionId,
   }) async {
     final now = DateTime.now().toIso8601String();
-    final row = await _db.customSelect(
-      'SELECT COALESCE(MAX(attempt_number), 0) AS max_n FROM submission_details WHERE question_id = ?',
-      variables: [Variable(questionId)],
-      readsFrom: {_db.submissionDetails},
-    ).getSingle();
-    final attemptNumber = row.read<int>('max_n') + 1;
+    final existing = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.questionId.equals(questionId))).get();
+    final attemptNumber = existing.isEmpty
+        ? 1
+        : existing.map((e) => e.attemptNumber).reduce((a, b) => a > b ? a : b) + 1;
     return _db.into(_db.submissionDetails).insert(db.SubmissionDetailsCompanion(
       submissionId: Value(submissionId),
       questionId: Value(questionId),
@@ -61,8 +57,7 @@ class ProgressDao {
 
   Future<void> updateAttemptStatus(int id, String status) async {
     final now = DateTime.now().toIso8601String();
-    final q = _db.update(_db.submissionDetails);
-    q.where((t) => t.id.equals(id));
+    final q = _db.update(_db.submissionDetails)..where((t) => t.id.equals(id));
     await q.write(db.SubmissionDetailsCompanion(
       status: Value(status),
       updatedAt: Value(now),
@@ -71,8 +66,7 @@ class ProgressDao {
 
   Future<void> updateAttemptAnswer(int id, String answerText, int isCorrect) async {
     final now = DateTime.now().toIso8601String();
-    final q = _db.update(_db.submissionDetails);
-    q.where((t) => t.id.equals(id));
+    final q = _db.update(_db.submissionDetails)..where((t) => t.id.equals(id));
     await q.write(db.SubmissionDetailsCompanion(
       answerText: Value(answerText),
       isCorrect: Value(isCorrect),
@@ -102,12 +96,10 @@ class ProgressDao {
   }
 
   Future<List<db.StepFeedbackRow>> getStepFeedbacks(int submissionDetailId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM step_feedbacks WHERE submission_detail_id = ? ORDER BY step_number',
-      variables: [Variable(submissionDetailId)],
-      readsFrom: {_db.stepFeedbacks},
-    ).get();
-    return rows.map((r) => _db.stepFeedbacks.map(r.data)).toList();
+    final q = _db.select(_db.stepFeedbacks)
+      ..where((t) => t.submissionDetailId.equals(submissionDetailId));
+    q.orderBy([(t) => OrderingTerm(expression: t.stepNumber)]);
+    return q.get();
   }
 
   Future<int> insertCardFeedback({
@@ -127,20 +119,14 @@ class ProgressDao {
   }
 
   Future<List<db.CardFeedbackRow>> getCardFeedbacks(int submissionDetailId) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM card_feedbacks WHERE submission_detail_id = ?',
-      variables: [Variable(submissionDetailId)],
-      readsFrom: {_db.cardFeedbacks},
-    ).get();
-    return rows.map((r) => _db.cardFeedbacks.map(r.data)).toList();
+    final q = _db.select(_db.cardFeedbacks)
+      ..where((t) => t.submissionDetailId.equals(submissionDetailId));
+    return q.get();
   }
 
   Future<bool> hasAttempt(int questionId) async {
-    final row = await _db.customSelect(
-      'SELECT COUNT(*) AS c FROM submission_details WHERE question_id = ?',
-      variables: [Variable(questionId)],
-      readsFrom: {_db.submissionDetails},
-    ).getSingle();
-    return row.read<int>('c') > 0;
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.questionId.equals(questionId))).get();
+    return rows.isNotEmpty;
   }
 }

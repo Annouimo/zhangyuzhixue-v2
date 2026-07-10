@@ -7,21 +7,15 @@ class PreferenceDao {
   const PreferenceDao(this._db);
 
   Future<List<db.PreferenceFilterRow>> listAll() async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM preference_filters ORDER BY id',
-      readsFrom: {_db.preferenceFilters},
-    ).get();
-    return rows.map((r) => _db.preferenceFilters.map(r.data)).toList();
+    final q = _db.select(_db.preferenceFilters)
+      ..orderBy([(t) => OrderingTerm(expression: t.id)]);
+    return q.get();
   }
 
   Future<db.PreferenceFilterRow?> getById(int id) async {
-    final rows = await _db.customSelect(
-      'SELECT * FROM preference_filters WHERE id = ?',
-      variables: [Variable(id)],
-      readsFrom: {_db.preferenceFilters},
-    ).get();
-    if (rows.isEmpty) return null;
-    return _db.preferenceFilters.map(rows.first.data);
+    final q = _db.select(_db.preferenceFilters)
+      ..where((t) => t.id.equals(id));
+    return q.getSingleOrNull();
   }
 
   Future<int> save({
@@ -38,16 +32,10 @@ class PreferenceDao {
       ));
 
   Future<void> delete(int id) async {
-    final q = _db.delete(_db.preferenceFilters);
-    q.where((t) => t.id.equals(id));
+    final q = _db.delete(_db.preferenceFilters)..where((t) => t.id.equals(id));
     await q.go();
   }
 
-  Future<int> count() async {
-    final row = await _db.customSelect(
-      'SELECT COUNT(*) AS c FROM preference_filters',
-      readsFrom: {_db.preferenceFilters},
-    ).getSingle();
-    return row.read<int>('c');
-  }
+  Future<int> count() =>
+      _db.select(_db.preferenceFilters).get().then((r) => r.length);
 }
