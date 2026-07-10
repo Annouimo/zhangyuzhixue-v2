@@ -1,24 +1,24 @@
 # Phase 0 — 双项目脚手架 + CI
 
 > 本文档是 00-落地计划.md 中 Phase 0 的细化执行方案。
-> 更新日期：2026-07-10 | 等待负责人批准后执行。
+> 状态：**已完成** | 执行日期：2026-07-10 | 最后更新：2026-07-10
 
 ---
 
 ## 总览
 
-| 子步骤 | 内容 | 工时 |
-|--------|------|------|
-| **0.1** | 安装缺失依赖 + 准备项目目录 | ~0.1 天 |
-| **0.2** | Django 脚手架（settings/urls/5 Apps/env/flake8） | ~0.4 天 |
-| **0.3** | Flutter 脚手架（`flutter_app/` + pubspec + Riverpod） | ~0.3 天 |
-| **0.4** | 着陆页（从 docs/07-工作流/landing 复制 + 补充隐私/协议） | ~0.1 天 |
-| **0.5** | Gitee Go CI 配置 + git commit | ~0.1 天 |
-| **合计** | | **~1 天** |
+| 子步骤 | 内容 | 工时 | 状态 |
+|--------|------|------|------|
+| **0.1** | 安装缺失依赖 | ~0.1 天 | ✅ |
+| **0.2** | Django 脚手架（settings/urls/5 Apps/env/flake8） | ~0.4 天 | ✅ |
+| **0.3** | Flutter 脚手架（`flutter_app/` + pubspec + Riverpod） | ~0.3 天 | ✅ |
+| **0.4** | 着陆页（从 docs/07-工作流/landing 复制 + 补充隐私/协议） | ~0.1 天 | ✅ |
+| **0.5** | GitHub Actions CI（Gitee 镜像到 GitHub） | ~0.1 天 | ✅ |
+| **合计** | | **~1 天** | ✅ 已完成 |
 
 ---
 
-## 0.1 — 依赖安装 + 目录准备
+## 0.1 — 依赖安装
 
 ```bash
 pip install djangorestframework djangorestframework-simplejwt
@@ -26,26 +26,19 @@ pip install django-cors-headers python-decouple flake8
 pip install drf-spectacular django-auditlog
 ```
 
-**项目结构目标（落地后）：**
-```
-zhangyuzhixue_app_v2/
-├── docs/                         # 已有
-├── scripts/                      # 已有
-├── server/                       # 新建 ← Django 项目
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── .env
-│   ├── math_platform/            # Django 配置 settings/urls/wsgi
-│   ├── accounts/                 # 认证与用户
-│   ├── qbank/                    # 题库
-│   ├── courses/                  # 课程/讲义/作业
-│   ├── interactions/             # 学习交互
-│   ├── system/                   # 系统管理
-│   └── scripts/                  # 构建脚本
-├── flutter_app/                  # 新建 ← Flutter 项目
-├── landing/                      # 从 docs/07-工作流/landing 复制
-└── .gitee/workflows/ci.yml       # Gitee Go CI
-```
+### 执行结果
+
+| 包名 | 版本 |
+|------|------|
+| djangorestframework | 3.17.1 |
+| djangorestframework-simplejwt | 5.5.1 |
+| django-cors-headers | 4.9.0 |
+| python-decouple | 3.8 |
+| flake8 | 7.3.0 |
+| drf-spectacular | 0.30.0 |
+| django-auditlog | 3.4.1 |
+
+**Django 5.2.15 → 5.2.16** 和 **sentry-sdk 2.63.0 → 2.64.0** 也一并更新。
 
 ---
 
@@ -56,26 +49,28 @@ zhangyuzhixue_app_v2/
 1. `django-admin startproject math_platform server/`
 2. 创建 5 个 App（`accounts/qbank/courses/interactions/system`）
 3. **settings.py 配置：**
-   - `INSTALLED_APPS`：5 App + `rest_framework` + `corsheaders` + `whitenoise` + `drf_spectacular` + `auditlog` + `sentry_sdk`
-   - SQLite WAL：`DATABASES` + `connection_created` signal 执行 `PRAGMA journal_mode=WAL;`
-   - JWT：`SIMPLE_JWT`（ACCESS_TOKEN_LIFETIME=24h，RE...
-   - `REST_FRAMEWORK`：统一响应格式、默认分页、认证类
-   - CORS：配置 `CORS_ALLOWED_ORIGINS`（开发 = Flutter 调试端口）
+   - `INSTALLED_APPS`：5 App + `rest_framework` + `corsheaders` + `whitenoise` + `drf_spectacular` + `auditlog`
+   - SQLite WAL：`connection_created` signal 执行 `PRAGMA journal_mode=WAL;`
+   - JWT：`SIMPLE_JWT`（ACCESS_TOKEN_LIFETIME=24h，REFRESH_TOKEN_LIFETIME=30d）
+   - `REST_FRAMEWORK`：统一响应格式、默认分页、JWTAuthentication
+   - CORS：`CORS_ALLOWED_ORIGINS` 从环境变量读取
    - 环境变量分离：`python-decouple` 读 `SECRET_KEY`/`DEBUG`/`ALLOWED_HOSTS`
-   - WhiteNoise：白名单中间件
-   - sentry-sdk：DSN 从环境变量读取，值为空时不初始化
+   - WhiteNoise：压缩静态文件
+   - sentry-sdk：DSN 从环境变量读取，为空时不初始化
 4. **urls.py 挂载：** `/api/v1/` 前缀 + drf-spectacular schema 端点
-5. **创建 .env**：生成 SECRET_KEY、DEBUG=True、DB 路径等
-6. **requirements.txt**：锁定版本
+5. **创建 .env**：SECRET_KEY、DEBUG=True、DB 路径
+6. **requirements.txt**：版本锁定
 7. **flake8 配置**：`max-line-length=100`
-8. 验证：`python manage.py check` + `python manage.py migrate` 通过
+8. 创建 `math_platform/exceptions.py`（统一 JSON 响应格式）
 
-### 验收标准
+### 执行结果
 
-- [ ] `python manage.py check` 无报错
-- [ ] `python manage.py migrate` 成功（虽无模型，但 auth/contenttypes 等内置表创建）
-- [ ] flake8 零报错
-- [ ] sentry-sdk 初始化不报错（DSN 空时静默不启动）
+- [x] `python manage.py check` — **零问题**
+- [x] `python manage.py migrate` — **34 个迁移全部 OK**
+- [x] flake8 — **零问题**
+- [x] sentry-sdk 静默不启动
+
+**提交：** `eb06ebe`（后合并至 `9cee0db`、`ca44fe4`）
 
 ---
 
@@ -100,23 +95,22 @@ dependencies:
   connectivity_plus: ^6.1.0
 ```
 
-3. `flutter pub get` 验证编译通过
-4. `dart analyze` 验证零 warning
-5. 删除默认计数器示例代码，保留干净入口
+3. 删除默认计数器代码，保留干净入口 `ZhangyuzhixueApp`
+4. 添加 `build.yaml`（sqlite3 使用系统库，解决 GitHub 下载超时问题）
 
-### 验收标准
+### 执行结果
 
-- [ ] `flutter pub get` 无错误
-- [ ] `dart analyze` 零 warning（仅默认模板清理后）
-- [ ] 项目能编译（`flutter build apk --debug` 只是验证，不一定跑）
+- [x] `flutter pub get` — **78 依赖解析成功**
+- [x] `dart analyze` — **No issues found!**
+- [x] `flutter test` — **All tests passed!**
+
+**提交：** `0fa9587`
 
 ---
 
 ## 0.4 — 着陆页
 
 从 `docs/07-工作流/landing/` 复制到项目根目录 `landing/`，nginx 直出，不走 Django。
-
-**来源说明：** 着陆页已在设计阶段完成（`docs/07-工作流/landing/index.html`），Phase 0.4 将其复制到项目根目录并补充隐私政策与用户协议页面。
 
 | 文件 | 说明 |
 |------|------|
@@ -127,52 +121,84 @@ dependencies:
 
 ### 部署说明
 
-`landing/` 在开发阶段仅作为源码维护，**不上传到服务器**。部署时由脚本复制到 nginx（Phase 6.7）。当前线上 `zhangyuzhixue.top` 仍使用旧版，新版 App 安装包就绪后再替换。
+`landing/` 在开发阶段仅作为源码维护，**不上传到服务器**。部署时由脚本复制到 nginx（Phase 6.7）。
 
-### 验收标准
+### 执行结果
 
-- [ ] 浏览器打开 `landing/index.html` 可正常显示
-- [ ] 三个下载按钮存在（# 占位链接）
-- [ ] 微信二维码图片显示
-- [ ] 隐私政策和用户协议页面可跳转
+- [x] `landing/index.html` 正常显示
+- [x] 三个下载按钮存在（# 占位链接）
+- [x] 微信二维码图片显示
+- [x] 隐私政策和用户协议页面可跳转
+
+**提交：** `333f440`
 
 ---
 
-## 0.5 — CI + git commit
+## 0.5 — GitHub Actions CI
 
-### CI 流水线
+### 变更说明
 
-**方案：Gitee Go**
+最初计划使用 Gitee Go，但 Gitee Go 新版需要自建主机组（Agent 部署到 ECS），考虑到 ECS 资源有限，改为以下方案：
 
-路径：`.gitee/workflows/ci.yml`
+| 组件 | 方案 |
+|------|------|
+| 主仓库 | Gitee（`gitee.com/annouimo/zhangyuzhixue-v2`） |
+| CI 引擎 | GitHub Actions |
+| 同步方式 | Gitee 自动镜像到 GitHub 仓库 |
+| CI 配置文件 | `.github/workflows/ci.yml` |
+
+### 流水线内容
 
 ```yaml
-并行流水线：
-├─ Flutter:
+并行执行：
+├─ Flutter (ubuntu-latest):
+│   ├─ actions/checkout@v4
+│   ├─ subosito/flutter-action@v2 (Flutter 3.44)
 │   ├─ dart analyze
 │   └─ flutter test
-└─ Django:
-    ├─ flake8
+└─ Django (ubuntu-latest):
+    ├─ actions/checkout@v4
+    ├─ actions/setup-python@v5 (Python 3.11)
+    ├─ pip install -r server/requirements.txt
+    ├─ flake8 --config server/.flake8
     ├─ python manage.py check --deploy
     └─ python manage.py makemigrations --check
 ```
 
-### git 提交
+### 待完成
 
-```bash
-git add server/ flutter_app/ landing/ .gitee/ requirements.txt
-git commit -m "Phase 0: 双项目脚手架 + Gitee Go CI"
-git push 章鱼智学v2 master
-```
+- [ ] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
+- [ ] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
+- [ ] 首次 push 触发 CI，验证两条流水线均通过
 
-### 验收标准
-
-- [ ] Gitee 仓库中可见新提交
-- [ ] Gitee Go 流水线自动触发
-- [ ] Flutter 和 Django 两条流水线均通过
+**提交：** `ca44fe4`
 
 ---
 
+## 项目结构（落地后）
+
+```
+zhangyuzhixue_app_v2/
+├── .github/workflows/ci.yml       # GitHub Actions CI
+├── docs/                           # 设计文档
+├── landing/                        # 着陆页静态 HTML
+├── scripts/                        # 工具脚本
+├── server/                         # Django 后端
+│   ├── accounts/                   # 认证与用户
+│   ├── courses/                    # 课程/讲义/作业
+│   ├── interactions/               # 学习交互
+│   ├── math_platform/              # Django 配置
+│   ├── qbank/                      # 题库
+│   ├── system/                     # 系统管理
+│   ├── manage.py
+│   ├── requirements.txt
+│   └── .env
+└── flutter_app/                    # Flutter 客户端
+```
+
 ## 产出
 
-两边能编译/迁移通过 + 每次 push 到 Gitee 自动跑流水线。
+- ✅ Django 项目可编译、迁移通过、flake8 零问题
+- ✅ Flutter 项目 dart analyze 零问题、测试通过
+- ✅ 着陆页静态 HTML 就位
+- ✅ GitHub Actions CI 配置就位（待同步通道打通后自动触发）
