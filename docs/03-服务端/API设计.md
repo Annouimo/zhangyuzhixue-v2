@@ -837,6 +837,8 @@ GET /api/v1/teacher/students/{id}/
 
 讲义 API 用于课程列表、章节目录和讲义内容的获取。客户端以 lectures.db 作为主要数据源，API 用于首次获取或更新。
 
+> **教师角色：** 当请求用户为教师（存在 Teacher 记录）时，课程列表返回全部课程，不做班级过滤。学生用户仍按原权限链路（Student → ClassGroup → ClassCourse → Course）过滤。
+
 ### 6.1 课程列表
 
 ```
@@ -906,9 +908,9 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `PATCH` | `/api/v1/user/me/` | 任意 | 更新用户信息 |
 | `POST` | `/api/v1/user/avatar/` | 任意 | 上传头像 |
 | `GET` | `/api/v1/user/level-percentile/` | student | 等级百分位 |
-| `GET` | `/api/v1/lectures/courses/` | student | 课程列表 |
-| `GET` | `/api/v1/lectures/courses/{courseId}/chapters/` | student | 章节目录 |
-| `GET` | `/api/v1/lectures/chapters/{chapterId}/content/` | student | 讲义内容 |
+| `GET` | `/api/v1/lectures/courses/` | 任意（教师可见全部） | 课程列表 |
+| `GET` | `/api/v1/lectures/courses/{courseId}/chapters/` | 任意（教师可见全部） | 章节目录 |
+| `GET` | `/api/v1/lectures/chapters/{chapterId}/content/` | 任意（教师可见全部） | 讲义内容 |
 | `GET` | `/api/v1/teacher/assignments/` | teacher | 作业列表 |
 | `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业 |
 | `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情 |
