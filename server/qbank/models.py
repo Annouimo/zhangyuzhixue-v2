@@ -19,7 +19,12 @@ class ConceptTag(models.Model):
 
 class KnowledgeCard(models.Model):
     """知识卡片"""
+    CATEGORY_CHOICES = [
+        ('流程', '流程'),
+        ('定理', '定理'),
+    ]
     title = models.CharField('标题', max_length=128)
+    category = models.CharField('分类', max_length=16, choices=CATEGORY_CHOICES)
     content = models.TextField('内容')
 
     class Meta:
