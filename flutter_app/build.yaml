@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      hooks|hook:
+        options:
+          sqlite3:
+            source: system
+            name: sqlite3
