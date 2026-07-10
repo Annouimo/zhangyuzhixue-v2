@@ -11,12 +11,12 @@ stages:
   - name: flutter-check
     displayName: flutter-check
     steps:
-      - step: shell
+      - step: shell@agent
         displayName: dart analyze
         inputs:
           command: dart analyze
           workDir: flutter_app
-      - step: shell
+      - step: shell@agent
         displayName: flutter test
         inputs:
           command: flutter test
@@ -25,22 +25,22 @@ stages:
   - name: django-check
     displayName: django-check
     steps:
-      - step: shell
+      - step: shell@agent
         displayName: install deps
         inputs:
           command: pip install -r requirements.txt -q
           workDir: server
-      - step: shell
+      - step: shell@agent
         displayName: flake8
         inputs:
           command: flake8 --config .flake8 server/
-          workDir: .
-      - step: shell
+          workDir: server
+      - step: shell@agent
         displayName: check --deploy
         inputs:
           command: python manage.py check --deploy
           workDir: server
-      - step: shell
+      - step: shell@agent
         displayName: makemigrations --check
         inputs:
           command: python manage.py makemigrations --check
