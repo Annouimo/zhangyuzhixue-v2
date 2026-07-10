@@ -1,7 +1,7 @@
 # Phase 1 — 服务端全量（7 天，每步测）
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 1 的细化执行方案。
-> 状态：**未开始** | 计划日期：2026-07-10 | 最后更新：2026-07-10
+> 状态：**已完成** | 执行日期：2026-07-10 | 最后更新：2026-07-10
 
 ---
 
@@ -825,14 +825,14 @@ class InvitationCodeAdmin(admin.ModelAdmin):
 
 ## 产出检查清单
 
-- [ ] 1.1 — 5 App 全部 models.py 实现，零 check 问题，40+ 自定义迁移
-- [ ] 1.2 — 798 题迁移完成，配图 300+ 张到 `static/questions/images/`
-- [ ] 1.3 — 4 个认证端点可调用，dev 测试用户就绪，Swagger 文档可访问
-- [ ] 1.4 — 版本检查（qbank/lecture）+ sync push 可工作
-- [ ] 1.5 — 用户/课程/组卷 API 全部可调用
-- [ ] 1.6 — assets.db.gz + lectures.db.gz 可构建，验证通过
-- [ ] 1.7 — PDF 视图可打开，含 KaTeX 公式渲染
-- [ ] 1.8 — Admin tools 页面可用，构建按钮+邀请码生成
+- [x] 1.1 — 5 App 全部 models.py 实现，零 check 问题，40+ 自定义迁移
+- [x] 1.2 — 798 题迁移完成，配图 300+ 张到 `static/questions/images/`
+- [x] 1.3 — 4 个认证端点可调用，dev 测试用户就绪，Swagger 文档可访问
+- [x] 1.4 — 版本检查（qbank/lecture）+ sync push 可工作
+- [x] 1.5 — 用户/课程/组卷 API 全部可调用
+- [x] 1.6 — assets.db.gz + lectures.db.gz 可构建，验证通过
+- [x] 1.7 — PDF 视图可打开，含 KaTeX 公式渲染
+- [x] 1.8 — Admin tools 页面可用，构建按钮+邀请码生成
 
 ---
 

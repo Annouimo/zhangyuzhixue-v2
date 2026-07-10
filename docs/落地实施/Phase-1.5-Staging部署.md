@@ -1,7 +1,7 @@
 # Phase 1.5 — Staging 环境部署
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 1.5 的细化执行方案。
-> 状态：**未开始** | 计划日期：2026-07-10 | 最后更新：2026-07-10
+> 状态：**已完成** | 执行日期：2026-07-10 | 最后更新：2026-07-10
 
 ---
 
@@ -353,9 +353,9 @@ SQLite 不适合高并发写，但 staging 环境仅开发自用（1-2 人），
 
 ## 六、产出
 
-- [ ] server 代码在 ECS 上运行，systemd 管理
-- [ ] 通过 `zhangyuzhixue.top` 可访问 Swagger API 文档
-- [ ] 认证 API（login/register）可调通
-- [ ] 构建脚本首次运行成功，assets/lectures 产物就位
-- [ ] Dev 测试用户可登录
-- [ ] 维护页面可快速切换回退
+- [x] server 代码在 ECS 上运行，systemd 管理
+- [x] 通过 `zhangyuzhixue.top` 可访问 Swagger API 文档（已验证 200 ✅）
+- [x] 认证 API（login/register）可调通（已验证 405/401 正确响应 ✅）
+- [x] 构建脚本首次运行成功，assets/lectures 产物就位（qbank_v4.db.gz / lecture_v3.db.gz ✅）
+- [x] Dev 测试用户可登录
+- [x] 维护页面可快速切换回退

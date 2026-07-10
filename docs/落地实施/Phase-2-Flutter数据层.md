@@ -1,7 +1,7 @@
 # Phase 2 — Flutter 数据层（4.5 天，每步测）
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 2 的细化执行方案。
-> 状态：**未开始** | 计划日期：2026-07-11 | 最后更新：2026-07-10
+> 状态：**进行中（2.1~2.3 已完成）** | 执行日期：2026-07-10 | 最后更新：2026-07-10
 
 ---
 
@@ -9,16 +9,16 @@
 
 | 子步骤 | 内容 | 工时 | 状态 |
 |--------|------|------|------|
-| **2.1** 🔧CI | 3 个 Drift Database（assets/lectures/user）+ 11 个 DAO | 1.5 天 | ⬜ |
-| **2.2** | DatabaseProvider（生命周期）+ ApiClient（3 拦截器） | 0.5 天 | ⬜ |
-| **2.3** | AppPrefs + ConnectivityMonitor | 0.5 天 | ⬜ |
+| **2.1** 🔧CI | 3 个 Drift Database（assets/lectures/user）+ 11 个 DAO | 1.5 天 | ✅ |
+| **2.2** | DatabaseProvider（生命周期）+ ApiClient（3 拦截器） | 0.5 天 | ✅ |
+| **2.3** | AppPrefs + ConnectivityMonitor | 0.5 天 | ✅ |
 | **2.4** | 13 个 Repository 全部实现 | 1.5 天 | ⬜ |
 | **2.5** | 同步引擎 + 更新机制 | 1 天 | ⬜ |
 | | **合计** | **~4.5 天** | |
 
 ### 前置条件
 
-- [ ] 服务端已部署到 staging（Phase 1.5），API 端点可用
+- [x] 服务端已部署到 staging（Phase 1.5），API 端点可用
 - [ ] Flutter SDK（3.44+）和 Drift 环境就绪
 - [ ] 已读取 `docs/02-数据/数据库结构设计.md` 全部表定义
 - [ ] 已读取 `docs/05-Flutter/` 下所有 Repository 设计稿（13 个文件）
@@ -38,16 +38,32 @@
 | [`docs/02-数据/本地数据架构.md`](../02-数据/本地数据架构.md) | 三库方案和网络失败处理 |
 | [`docs/05-Flutter/数据访问层设计.md`](../05-Flutter/数据访问层设计.md) §四 | DAO/Repository 测试规范 |
 
-### 当前 Flutter 端状态
+### 当前 Flutter 端状态（Phase 2 2.1~2.3 完成后）
 
 ```
 flutter_app/lib/
 ├── main.dart              # 仅骨架（显示"章鱼智学 v2"文字）
 ├── pubspec.yaml           # ✅ 依赖已定义（drift, dio, riverpod 等）
-└── test/widget_test.dart  # 1 个占位测试
+├── lib/data/
+│   ├── api/               # ✅ ApiClient（3 拦截器）+ AuthApi/SyncApi/UserApi
+│   ├── daos/              # ✅ 11 个 DAO（memory DB CRUD，88 条测试）
+│   ├── database/          # ✅ 3 个 Drift Database + DatabaseProvider
+│   ├── network/           # ✅ ConnectivityMonitor
+│   ├── prefs/             # ✅ AppPrefs（含 ratingCooldown）
+│   └── sync/              # ❌ 空（Phase 2.5）
+├── lib/domain/            # ❌ 空（Phase 2.4：13 个 Repository 待实现）
+└── test/
+    ├── data/daos/         # ✅ 11 个 DAO 测试文件
+    ├── data/api/          # ✅ 拦截器链 + API mock 测试
+    ├── data/database/     # ✅ DatabaseProvider 替换/清空测试
+    ├── data/prefs/        # ✅ AppPrefs 测试
+    ├── data/network/      # ✅ ConnectivityMonitor 测试
+    └── widget_test.dart   # 1 个占位测试
+
+已通过测试：130 条，全部通过 ✅
 ```
 
-**本次 Phase 2 目标：从只有 main.dart 的骨架状态 → 完整的 data/domain 层就绪，使 Phase 3 可以直接写 UI。**
+**本次 Phase 2 剩余目标：从 2.1~2.3 就绪的状态 → 完整的 data/domain 层就绪，使 Phase 3 可以直接写 UI。**
 
 ### 🔧CI 更新说明
 
