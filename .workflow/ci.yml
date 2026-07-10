@@ -1,0 +1,46 @@
+version: '1.0'
+name: ci-pipeline
+displayName: 章鱼智学 CI
+triggers:
+  trigger: auto
+  push:
+    branches:
+      prefix:
+        - ''
+stages:
+  - name: checks
+    displayName: 代码检查
+    jobs:
+      - name: flutter-check
+        displayName: Flutter 检查
+        steps:
+          - step: git-clone
+          - step: shell
+            displayName: dart analyze
+            inputs:
+              command: cd flutter_app && dart analyze
+          - step: shell
+            displayName: flutter test
+            inputs:
+              command: cd flutter_app && flutter test
+
+      - name: django-check
+        displayName: Django 检查
+        steps:
+          - step: git-clone
+          - step: shell
+            displayName: 安装依赖
+            inputs:
+              command: cd server && pip install -r requirements.txt -q
+          - step: shell
+            displayName: flake8
+            inputs:
+              command: flake8 --config server/.flake8 server/
+          - step: shell
+            displayName: check --deploy
+            inputs:
+              command: cd server && python manage.py check --deploy
+          - step: shell
+            displayName: makemigrations --check
+            inputs:
+              command: cd server && python manage.py makemigrations --check
