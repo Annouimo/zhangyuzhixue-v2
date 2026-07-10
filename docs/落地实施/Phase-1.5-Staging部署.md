@@ -37,11 +37,11 @@
 
 ---
 
-## 一、目标
+## 部署目标
 
 将 Phase 1 完成的 Django 服务端部署到 ECS，接入现有 Cloudflare Tunnel，搭建 `stage.zhangyuzhixue.top`（或复用主域名）staging 环境，供 Phase 2 Flutter 数据层开发时对接。
 
-## 二、现状
+## 服务器现状
 
 ### 2.1 服务器（ECS 123.57.85.160）
 
@@ -74,7 +74,7 @@
 
 ---
 
-## 三、执行步骤
+## 执行步骤
 
 ### 步骤 0 — 前置准备（一次性）
 
