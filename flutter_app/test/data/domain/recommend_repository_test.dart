@@ -41,12 +41,10 @@ void main() {
       expect(await repo.getPresetQuestions(1), isEmpty);
     });
 
-    test('getSmartList with questions returns suggestions', () async {
-      // 插入一个概念标签
+    test('getSmartList cold start returns empty when <5 attempts', () async {
       await aDb.into(aDb.conceptTags).insert(adb.ConceptTagsCompanion(
         id: const Value(1), name: const Value('函数'),
       ));
-      // 插入一道题并关联标签
       await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
         id: const Value(1), year: const Value(2024),
         examType: const Value('一模'), region: const Value('海淀'),
@@ -57,13 +55,39 @@ void main() {
         questionId: const Value(1), conceptTagId: const Value(1),
       ));
       final list = await repo.getSmartList();
-      expect(list.length, 1);
-      expect(list.first.id, 1);
+      expect(list, isEmpty); // < 5 attempts → cold start
     });
 
-    test('getSmartList cold start returns empty when no tags', () async {
+    test('getSmartList with >5 attempted questions returns suggestions', () async {
+      await aDb.into(aDb.conceptTags).insert(adb.ConceptTagsCompanion(
+        id: const Value(1), name: const Value('函数'),
+      ));
+      // 插入 5 道题 + 各自有尝试记录
+      for (var i = 1; i <= 5; i++) {
+        await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
+          id: Value(i), year: const Value(2024),
+          examType: const Value('一模'), region: const Value('海淀'),
+          number: Value(i.toString()), questionType: const Value('choice'),
+          stem: Value('题 $i'),
+        ));
+        await aDb.into(aDb.questionConceptTags).insert(adb.QuestionConceptTagsCompanion(
+          questionId: Value(i), conceptTagId: const Value(1),
+        ));
+        // 为每道题创建尝试记录（跨越冷启动阈值）
+        await pDao.createAttempt(questionId: i);
+      }
+      // 再插入一道未做的题
+      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
+        id: const Value(6), year: const Value(2024),
+        examType: const Value('一模'), region: const Value('海淀'),
+        number: const Value('6'), questionType: const Value('choice'),
+        stem: const Value('未做题'),
+      ));
+      await aDb.into(aDb.questionConceptTags).insert(adb.QuestionConceptTagsCompanion(
+        questionId: const Value(6), conceptTagId: const Value(1),
+      ));
       final list = await repo.getSmartList();
-      expect(list, isEmpty);
+      expect(list, isNotEmpty);
     });
   });
 }

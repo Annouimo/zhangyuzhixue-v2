@@ -81,4 +81,9 @@ class UserDao {
     }
     return streak;
   }
+
+  Future<int> getTotalSubmissions() async {
+    final rows = await _db.select(_db.submissionDetails).get();
+    return rows.length;
+  }
 }

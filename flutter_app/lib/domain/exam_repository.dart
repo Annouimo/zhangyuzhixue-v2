@@ -217,10 +217,13 @@ class ExamRepository {
 
   // ── 收藏 ──
   Future<List<FavoriteExamSummary>> getFavorites() async {
+    // 从 paper_collect 表查询收藏的试卷（当前本地无公开试卷数据，返回空）
     return [];
   }
 
-  Future<void> removeFavorite(int examId) async {}
+  Future<void> removeFavorite(int examId) async {
+    await _examDao.toggleCollect(examId);
+  }
 
   // ── 我的组卷 ──
   Future<List<ExamSummary>> getMyExams() async {
@@ -260,12 +263,32 @@ class ExamRepository {
   }
 
   Future<ExamPreviewOther> getPreviewOther(int examId) async {
-    throw UnimplementedError('ExamRepository.getPreviewOther');
+    final paper = await _examDao.getById(examId);
+    if (paper == null) throw Exception('Paper not found: $examId');
+    final questions = await _examDao.getQuestions(examId);
+    final qIds = questions.map((q) => q.questionId).toList();
+    final qRows = await _questionDao.getByIds(qIds);
+    final like = await _examDao.getLike(examId);
+    final collect = await _examDao.getCollect(examId);
+    return ExamPreviewOther(
+      name: paper.title,
+      authorInfo: '',
+      choiceCount: qRows.where((q) => q.questionType == 'choice').length,
+      fillCount: qRows.where((q) => q.questionType == 'fill').length,
+      solutionCount: qRows.where((q) => q.questionType == 'solution').length,
+      totalCount: qRows.length,
+      likeCount: like != null ? 1 : 0,
+      collectCount: collect != null ? 1 : 0,
+      questions: qRows.map((q) => ExamQuestion(
+        title: '${q.number} ${q.examType} ${q.region}',
+        meta: q.questionType,
+      )).toList(),
+    );
   }
 
   Future<void> downloadPdf(int paperId) async {
-    // 委托 PdfHelper（后续由 Service 层实现）
-    throw UnimplementedError('ExamRepository.downloadPdf');
+    // 委托 PdfHelper（Service 层实现）
+    throw UnimplementedError('ExamRepository.downloadPdf — 由 PdfHelper 在 Service 层实现');
   }
 
   // ── 快对答案 ──
@@ -293,7 +316,8 @@ class ExamRepository {
   Future<void> saveFilterPreset(String name) async {}
 
   Future<SearchFilters> loadFilterPreset(int presetId) async {
-    throw UnimplementedError('ExamRepository.loadFilterPreset');
+    // 由 PreferenceRepository 提供筛选预设数据
+    throw UnimplementedError('ExamRepository.loadFilterPreset — 由 PreferenceRepository 实现');
   }
 
   // ── 筛选 ──
@@ -310,6 +334,7 @@ class ExamRepository {
   }
 
   Future<ExamBuildState> getBuildSession() async {
+    // 手动选题模式的状态由 UI 层维护，不持久化
     return const ExamBuildState(name: '', selectedCount: 0, pointsCost: 0);
   }
 
@@ -423,11 +448,51 @@ class _ExamGenerator {
       return pool.take(needed).toList();
     }
 
-    final selected = [
-      ...pick(choicePool, filters.choiceCount),
-      ...pick(fillPool, filters.fillCount),
-      ...pick(solutionPool, filters.solutionCount),
-    ];
+    final selectedChoice = pick(choicePool, filters.choiceCount);
+    final selectedFill = pick(fillPool, filters.fillCount);
+    final selectedSolution = pick(solutionPool, filters.solutionCount);
+    var selected = [...selectedChoice, ...selectedFill, ...selectedSolution];
+
+    // 5. 3 轮交换优化：遍历各题型，找能改善整体均值的最优交换
+    final target = filters.targetDifficulty;
+    const maxSwapRounds = 3;
+
+    for (var round = 0; round < maxSwapRounds; round++) {
+      for (final entry in [
+        {'type': 'choice', 'pool': choicePool, 'selected': selectedChoice},
+        {'type': 'fill', 'pool': fillPool, 'selected': selectedFill},
+        {'type': 'solution', 'pool': solutionPool, 'selected': selectedSolution},
+      ]) {
+        final sel = entry['selected'] as List;
+        final cand = (entry['pool'] as List).where((c) => !sel.contains(c)).toList();
+        if (sel.isEmpty || cand.isEmpty) continue;
+
+        final curMean = selected.fold<double>(0, (s, q) => s + ((q as dynamic).difficulty ?? 0.0)) / selected.length;
+
+        double bestImprovement = 0;
+        int bestSelIdx = -1;
+        dynamic bestCand;
+
+        for (var si = 0; si < sel.length; si++) {
+          final s = sel[si];
+          for (final c in cand) {
+            final delta = (((c as dynamic).difficulty ?? 0.0) - ((s as dynamic).difficulty ?? 0.0)) / selected.length;
+            final newMean = curMean + delta;
+            final improvement = (curMean - target).abs() - (newMean - target).abs();
+            if (improvement > bestImprovement) {
+              bestImprovement = improvement;
+              bestSelIdx = si;
+              bestCand = c;
+            }
+          }
+        }
+
+        if (bestSelIdx >= 0 && bestCand != null) {
+          sel[bestSelIdx] = bestCand;
+          selected = [...selectedChoice, ...selectedFill, ...selectedSolution];
+        }
+      }
+    }
 
     // 5. 持久化
     final paperId = await _examDao.savePaper(title: filters.name.isNotEmpty ? filters.name : '智能组卷');

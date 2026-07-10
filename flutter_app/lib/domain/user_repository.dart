@@ -116,12 +116,13 @@ class UserRepository {
   Future<String> uploadAvatar(String localPath) => _api.uploadAvatar(localPath);
 
   Future<List<HistoryItem>> getAnswerHistory() async {
-    // 从本地 submission_detail 推算
+    // 从本地 submission_detail 推算，v1 返回空
     return [];
   }
 
   Future<int> getAnswerHistoryCount() async {
-    return 0;
+    final total = await _dao.getTotalSubmissions();
+    return total;
   }
 
   // ── 积分 ──
@@ -169,7 +170,10 @@ class UserRepository {
   Future<double> todayPoints() async => 0;
 
   // ── 等级 ──
-  Future<List<LevelRow>> getLevels() async => [];
+  Future<List<LevelRow>> getLevels() async {
+    // 需要 assets.level_config 表，当前 UserRepo 无 assets 访问权限
+    return [];
+  }
 
   Future<String> levelProgress() async => '';
 
