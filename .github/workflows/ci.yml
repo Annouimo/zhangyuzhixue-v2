@@ -8,7 +8,7 @@ on:
 
 jobs:
   flutter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -22,7 +22,7 @@ jobs:
         run: flutter test
 
   django:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
