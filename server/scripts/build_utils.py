@@ -1,0 +1,340 @@
+"""
+构建脚本共享工具
+
+- create_db / write_meta / compute_checksum / gzip_db
+- copy_direct / copy_m2m / copy_relation
+- write_chapters / write_lecture_content: 讲义专用
+- build_database: 完整构建流程
+"""
+
+import json
+import os
+import sqlite3
+import tempfile
+import time
+from hashlib import sha256
+
+
+# ── SQL 模板辅助 ────────────────────────────────────────────
+
+
+def _sql_insert(table_name, cols, or_ignore=False):
+    ignore = ' OR IGNORE' if or_ignore else ''
+    return (f'INSERT{ignore} INTO {table_name} '
+            f'({chr(34)}' + ', '.join(cols) + '' + chr(34) + '}) '
+            f'VALUES ({chr(34)}' + ', '.join('?' * len(cols)) + '' + chr(34) + '})')
+
+
+def _sql_insert_id(table_name, cols, or_ignore=False):
+    ignore = ' OR IGNORE' if or_ignore else ''
+    c = ', '.join(cols)
+    p = ', '.join('?' * len(cols))
+    return f'INSERT{ignore} INTO {table_name} (id, {c}) VALUES (?, {p})'
+
+
+def create_db(schema):
+    """创建临时 SQLite 数据库并建表，返回 (conn, db_path)"""
+    tmp = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+    tmp.close()
+    conn = sqlite3.connect(tmp.name)
+    conn.execute('PRAGMA journal_mode=OFF;')
+    conn.execute('PRAGMA synchronous=OFF;')
+
+    for table_name, table_def in schema.items():
+        cols = ', '.join(f'{cname} {ctype}' for cname, ctype in table_def['columns'])
+        conn.execute(f'CREATE TABLE {table_name} ({cols});')
+    conn.commit()
+    return conn, tmp.name
+
+
+def write_meta(conn, schema_version, data_version, checksum=''):
+    """写入 _meta 表"""
+    conn.execute(
+        'CREATE TABLE _meta ('
+        'schema_version INTEGER NOT NULL,'
+        'data_version INTEGER NOT NULL,'
+        'checksum TEXT NOT NULL,'
+        'built_at TEXT NOT NULL'
+        ');'
+    )
+    now = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
+    conn.execute(
+        'INSERT INTO _meta (schema_version, data_version, checksum, built_at) '
+        'VALUES (?, ?, ?, ?)',
+        (schema_version, data_version, checksum, now),
+    )
+    conn.commit()
+
+
+def compute_checksum(file_path):
+    h = sha256()
+    with open(file_path, 'rb') as f:
+        while True:
+            chunk = f.read(65536)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def gzip_db(src_path, dst_path):
+    import gzip
+    os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+    with open(src_path, 'rb') as f_in, gzip.open(dst_path, 'wb') as f_out:
+        while True:
+            chunk = f_in.read(65536)
+            if not chunk:
+                break
+            f_out.write(chunk)
+
+
+def _target_cols(schema, table_name):
+    return {col[0] for col in schema[table_name]['columns']}
+
+
+def _serialize(v):
+    if isinstance(v, (dict, list)):
+        return json.dumps(v, ensure_ascii=False)
+    return v
+
+
+def copy_direct(conn, schema, table_name, source_model, filter_kwargs=None):
+    """direct 转换：字段名一致的直接复制"""
+    from django.apps import apps
+    model_cls = apps.get_model(source_model)
+    cols = sorted(_target_cols(schema, table_name))
+
+    qs = model_cls.objects.all()
+    if filter_kwargs:
+        qs = qs.filter(**filter_kwargs)
+
+    rows = []
+    for obj in qs.iterator():
+        row = {}
+        for c in cols:
+            if c == 'id':
+                row[c] = obj.pk
+            elif hasattr(obj, c):
+                row[c] = _serialize(getattr(obj, c))
+        rows.append(row)
+
+    if not rows:
+        return
+
+    sql = f'INSERT OR IGNORE INTO {table_name} ({", ".join(cols)}) VALUES ({", ".join("?" * len(cols))})'  # noqa: E501
+    conn.executemany(sql, [[r.get(c) for c in cols] for r in rows])
+    conn.commit()
+
+
+def copy_m2m(conn, schema, table_name, source_spec):
+    """m2m 转换：通过 Django through 模型直接复制中间表"""
+    from django.apps import apps
+    # source_spec: 'm2m:ModelName.field_name'
+    model_path = source_spec.split(':', 1)[1]
+    model_name, field_name = model_path.rsplit('.', 1)
+    model_cls = apps.get_model(model_name)
+    through = getattr(model_cls, field_name).through
+
+    cols = sorted(_target_cols(schema, table_name) - {'id'})
+    fk_fields = [f.name for f in through._meta.fields if f.name != 'id']
+
+    rows = []
+    for obj in through.objects.all().iterator():
+        row = {}
+        for c in cols:
+            # 尝试匹配字段名
+            for fk in fk_fields:
+                if c.endswith(fk) or fk.endswith(c):
+                    row[c] = getattr(obj, fk + '_id', None)
+                    break
+            # 如果没匹配到，看下值
+            if c not in row:
+                if hasattr(obj, c):
+                    row[c] = getattr(obj, c)
+        rows.append(row)
+
+    if not rows:
+        return
+
+    sql = f'INSERT INTO {table_name} ({", ".join(cols)}) VALUES ({", ".join("?" * len(cols))})'
+    for i, row in enumerate(rows):
+        vals = [row.get(c) for c in cols]
+        conn.execute(sql, vals)
+    conn.commit()
+
+
+def copy_relation(conn, schema, table_name):
+    """relation 转换：从 SolutionStep.card_titles → question_knowledge_card"""
+    from qbank.models import KnowledgeCard, SolutionStep
+    cols = sorted(_target_cols(schema, table_name) - {'id'})
+
+    seen, rows = set(), []
+    for step in SolutionStep.objects.filter(card_titles__isnull=False) \
+                                    .exclude(card_titles='').iterator():
+        titles = step.card_titles
+        if isinstance(titles, str):
+            try:
+                titles = json.loads(titles)
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if not isinstance(titles, (list, tuple)):
+            continue
+
+        for title in titles:
+            for card in KnowledgeCard.objects.filter(title=title).iterator():
+                key = (step.method.sub_question.question_id, card.pk)
+                if key not in seen:
+                    seen.add(key)
+                    rows.append({'question_id': key[0], 'knowledge_card_id': key[1]})
+
+    if not rows:
+        return
+
+    sql = f'INSERT INTO {table_name} (id, {", ".join(cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
+    for i, row in enumerate(rows):
+        conn.execute(sql, [i + 1] + [row[c] for c in cols])
+    conn.commit()
+
+
+def write_chapters(conn, schema):
+    """从 Document 生成 chapter 表"""
+    from courses.models import Document
+    table_name = 'chapter'
+    cols = sorted(_target_cols(schema, table_name) - {'id'})
+
+    seen = set()
+    rows = []
+    for doc in Document.objects.values('course_id', 'chapter', 'title') \
+                               .distinct().order_by('course_id', 'chapter'):
+        key = (doc['course_id'], doc['chapter'])
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            idx = int(doc['chapter'])
+        except (ValueError, TypeError):
+            idx = len(seen)
+        rows.append({'course_id': doc['course_id'], 'index': idx, 'title': doc['title']})
+
+    if not rows:
+        return
+
+    sql = f'INSERT INTO {table_name} (id, {", ".join(cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
+    for i, row in enumerate(rows):
+        conn.execute(sql, [i + 1] + [row[c] for c in cols])
+    conn.commit()
+    return rows  # 供 lecture_content 使用
+
+
+def write_lecture_content(conn, schema, chapters):
+    """lecture_transform: Document → lecture_content"""
+    from courses.models import Document
+    table_name = 'lecture_content'
+    cols = sorted(_target_cols(schema, table_name) - {'id'})
+
+    # 构建 chapter_id 查找表: (course_id, chapter) → pk
+    ch_map = {}
+    for i, ch in enumerate(chapters):
+        ch_map[(ch['course_id'], ch['index'])] = i + 1
+
+    rows = []
+    for doc in Document.objects.all().order_by('course_id', 'chapter').iterator():
+        try:
+            ch_idx = int(doc.chapter)
+        except (ValueError, TypeError):
+            continue
+        ch_id = ch_map.get((doc.course_id, ch_idx))
+        if ch_id is None:
+            continue
+        updated = doc.updated_at.isoformat() if doc.updated_at else ''
+        rows.append({
+            'chapter_id': ch_id,
+            'title': doc.title,
+            'md_content': doc.md_content,
+            'updated_at': updated,
+        })
+
+    if not rows:
+        return
+
+    sql = f'INSERT OR IGNORE INTO {table_name} ({", ".join(cols)}) VALUES ({", ".join("?" * len(cols))})'  # noqa: E501
+    for row in rows:
+        conn.execute(sql, [row[c] for c in cols])
+    conn.commit()
+
+
+def build_database(schema, db_type, version_info, test_mode=False):
+    """
+    完整构建流程
+    version_info: {'schema_version': int, 'data_version': int}
+    """
+    import os
+    from django.conf import settings
+
+    conn, db_path = create_db(schema)
+    table_count = len(schema)
+
+    try:
+        chapters = None
+
+        for table_name, table_def in schema.items():
+            tf = table_def.get('transform')
+            source = table_def.get('source')
+
+            if tf == 'direct':
+                copy_direct(conn, schema, table_name, table_def['source_model'])
+            elif source and source.startswith('m2m:'):
+                copy_m2m(conn, schema, table_name, source)
+            elif source == 'relation':
+                copy_relation(conn, schema, table_name)
+            elif source == 'generate:from_document_chapter':
+                chapters = write_chapters(conn, schema)
+            elif tf == 'lecture_transform':
+                write_lecture_content(conn, schema, chapters or [])
+
+        # 计算 checksum + 写入 _meta
+        conn.commit()
+        conn.close()
+
+        checksum = compute_checksum(db_path)
+        conn2 = sqlite3.connect(db_path)
+        write_meta(conn2, version_info['schema_version'],
+                   version_info['data_version'], checksum)
+        conn2.close()
+
+        final_checksum = compute_checksum(db_path)
+        file_size = os.path.getsize(db_path)
+
+        # gzip
+        output_dir = os.path.join(settings.MEDIA_ROOT, 'db')
+        output_name = f'{db_type}_v{version_info["data_version"]}.db.gz'
+        output_path = os.path.join(output_dir, output_name)
+        gzip_db(db_path, output_path)
+        gz_size = os.path.getsize(output_path)
+
+        print(f'  ✅ {table_count} 表处理完成')
+        print(f'  📦 大小: {file_size:,} bytes → gz: {gz_size:,} bytes')
+        print(f'  🔑 SHA-256: {final_checksum}')
+
+        if not test_mode:
+            from system.models import DbVersion
+            ver, _ = DbVersion.objects.get_or_create(db_type=db_type)
+            ver.schema_version = version_info['schema_version']
+            ver.data_version = version_info['data_version']
+            ver.checksum = final_checksum
+            ver.size_bytes = gz_size
+            ver.download_url = f'/media/db/{output_name}'
+            ver.built_at = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
+            ver.save()
+            print(f'  💾 DbVersion 已更新 (v{version_info["data_version"]})')
+
+        print(f'  📄 输出: {output_path}')
+        return output_path
+
+    except Exception:
+        if os.path.exists(db_path):
+            os.unlink(db_path)
+        raise
+    finally:
+        if os.path.exists(db_path):
+            os.unlink(db_path)
