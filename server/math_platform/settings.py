@@ -174,3 +174,10 @@ if SENTRY_DSN:
             cast=float,
         ),
     )
+
+# PDF signature secret key
+
+# PDF signature key
+
+# PDF signature key (set via env var in production)
+PDF_SECRET_KEY = "dev-pdf-key-for-testing"

@@ -1,0 +1,84 @@
+{% load static %}<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }} — 章鱼智学</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    throwOnError: false
+  });"></script>
+<style>
+@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm;
+  @bottom-left { content: "章鱼智学"; font-family: SimSun, serif; font-size: 9pt; color: #999; }
+  @bottom-center { content: "— " counter(page) " —"; font-family: SimSun, serif; font-size: 9pt; color: #666; }
+  @bottom-right { content: "{{ student_nickname }} {{ student_id_code }}"; font-family: SimSun, serif; font-size: 9pt; color: #999; }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'SimSun', 'STSong', 'Noto Serif CJK SC', serif;
+  font-size: 11pt; line-height: 1.6; text-align: justify; color: #1a1a1a;
+}
+.title-block { text-align: center; margin-bottom: 1.5em; padding-bottom: 0.8em; border-bottom: 0.5pt solid #333; }
+.paper-title { font-family: 'SimHei', 'Microsoft YaHei', sans-serif; font-size: 16pt; font-weight: 700; letter-spacing: 3pt; }
+.section { margin-bottom: 0.5em; }
+.section-title {
+  page-break-after: avoid;
+  font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
+  font-size: 12pt; font-weight: 700; margin: 1em 0 0.5em 0;
+}
+.section-fill { page-break-before: always; }
+.section-solution { page-break-before: always; }
+.section-solution .question { page-break-before: always; }
+.section-solution .question:first-of-type { page-break-before: avoid; }
+.question { display: flex; gap: 0.3em; align-items: baseline; page-break-inside: avoid; margin: 0.3em 0 0.5em; }
+.qnum { flex-shrink: 0; width: 1.5em; font-weight: 600; }
+.question-body { flex: 1; }
+.question-body p { margin: 0; }
+.choice { margin: 0.15em 0; font-size: 10.5pt; }
+.figure { float: right; margin: 0.5em 0 0.5em 1em; }
+.figure img { max-width: 180px; height: auto; }
+.katex { font-size: 1.08em; }
+.katex-display { margin: 0.4em 0; text-align: center; }
+@media print { p { orphans: 3; widows: 3; } }
+</style>
+</head>
+<body>
+<div class="paper-wrapper">
+<div class="paper">
+
+<div class="title-block">
+  <h1 class="paper-title">{{ title }}</h1>
+</div>
+
+{% for section in sections %}
+<div class="section section-{{ section.type }}">
+  <h2 class="section-title">{{ section.label }}</h2>
+  {% for question in section.questions %}
+  <div class="question">
+    <span class="qnum">{{ forloop.counter }}.</span>
+    <div class="question-body">
+      <p>{{ question.stem|safe }}</p>
+      {% for opt in question.options %}
+      <div class="choice">{{ opt|safe }}</div>
+      {% endfor %}
+      {% for img in question.images %}
+      <div class="figure">
+        <img src="{% static 'questions/images/' %}{{ img }}" alt="配图">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+
+</div>
+</div>
+</body>
+</html>

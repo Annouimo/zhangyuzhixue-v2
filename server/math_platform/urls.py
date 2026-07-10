@@ -7,6 +7,8 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from interactions.pdf_views import pdf_view
+
 api_v1 = [
     path('auth/', include('accounts.urls')),
     path('user/', include('accounts.urls')),
@@ -16,7 +18,7 @@ api_v1 = [
     path('system/', include('system.urls')),
     path('lectures/', include('courses.urls')),
 
-    # sync: version check + push 统一在 system.urls 中
+    # sync: version check + push
     path('sync/', include('system.urls')),
 
     # API documentation
@@ -27,4 +29,7 @@ api_v1 = [
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(api_v1)),
+
+    # PDF view (browser-facing, no api/v1 prefix)
+    path('pdf/view/', pdf_view, name='pdf-view'),
 ]
