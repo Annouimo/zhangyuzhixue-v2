@@ -1,0 +1,13 @@
+export 'auth_repository.dart';
+export 'preference_repository.dart';
+export 'sync_repository.dart';
+export 'assignment_repository.dart';
+export 'lecture_repository.dart';
+export 'rating_repository.dart';
+export 'achievement_repository.dart';
+export 'question_repository.dart';
+export 'progress_repository.dart';
+export 'user_repository.dart';
+export 'statistics_repository.dart';
+export 'recommend_repository.dart';
+export 'exam_repository.dart';

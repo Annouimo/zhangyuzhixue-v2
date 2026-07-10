@@ -1,0 +1,406 @@
+
+import '../data/daos/question_dao.dart';
+import '../data/daos/exam_dao.dart';
+
+/// 组卷构建状态
+
+/// 组卷构建状态
+class ExamBuildState {
+  final String name;
+  final int selectedCount;
+  final int pointsCost;
+
+  const ExamBuildState({
+    required this.name,
+    required this.selectedCount,
+    required this.pointsCost,
+  });
+}
+
+/// 组卷摘要
+class ExamSummary {
+  final int id;
+  final String name;
+  final String createdAt;
+  final String summary;
+  const ExamSummary({required this.id, required this.name, required this.createdAt, required this.summary});
+}
+
+/// 发现组卷摘要
+class ExploreExamSummary {
+  final int id;
+  final String name;
+  final String authorInfo;
+  final String summary;
+  final int likeCount;
+  final int collectCount;
+  final String createdAt;
+  const ExploreExamSummary({
+    required this.id, required this.name, required this.authorInfo,
+    required this.summary, required this.likeCount, required this.collectCount,
+    required this.createdAt,
+  });
+}
+
+/// 收藏组卷摘要
+class FavoriteExamSummary {
+  final int id;
+  final String name;
+  final String authorInfo;
+  final String summary;
+  const FavoriteExamSummary({required this.id, required this.name, required this.authorInfo, required this.summary});
+}
+
+/// 组卷预览
+class ExamPreview {
+  final String name;
+  final String authorInfo;
+  final int choiceCount;
+  final int fillCount;
+  final int solutionCount;
+  final int totalCount;
+  final List<ExamQuestion> questions;
+  const ExamPreview({
+    required this.name, required this.authorInfo,
+    required this.choiceCount, required this.fillCount,
+    required this.solutionCount, required this.totalCount,
+    required this.questions,
+  });
+}
+
+/// 他人组卷预览
+class ExamPreviewOther {
+  final String name;
+  final String authorInfo;
+  final int choiceCount;
+  final int fillCount;
+  final int solutionCount;
+  final int totalCount;
+  final int likeCount;
+  final int collectCount;
+  final List<ExamQuestion> questions;
+  const ExamPreviewOther({
+    required this.name, required this.authorInfo,
+    required this.choiceCount, required this.fillCount,
+    required this.solutionCount, required this.totalCount,
+    required this.likeCount, required this.collectCount,
+    required this.questions,
+  });
+}
+
+/// 组卷中的题目
+class ExamQuestion {
+  final String title;
+  final String meta;
+  const ExamQuestion({required this.title, required this.meta});
+}
+
+/// 答案项
+class AnswerItem {
+  final String title;
+  final String questionType;
+  final String answer;
+  const AnswerItem({required this.title, required this.questionType, required this.answer});
+}
+
+/// 筛选选项
+class FilterOptions {
+  final List<String> years;
+  final List<String> regions;
+  final List<String> conceptTags;
+  final List<String> knowledgeCards;
+  const FilterOptions({
+    required this.years, required this.regions,
+    required this.conceptTags, required this.knowledgeCards,
+  });
+}
+
+/// 筛选条件
+class SearchFilters {
+  final String name;
+  final int choiceCount;
+  final int fillCount;
+  final int solutionCount;
+  final double targetDifficulty;
+  final List<String> years;
+  final List<String> regions;
+  final List<String> conceptTags;
+  final List<String> knowledgeCards;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
+  final List<int> selectedIds;
+
+  const SearchFilters({
+    required this.name,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.targetDifficulty,
+    required this.years,
+    required this.regions,
+    required this.conceptTags,
+    required this.knowledgeCards,
+    this.diffMin, this.diffMax, this.calcMin, this.calcMax,
+    this.selectedIds = const [],
+  });
+}
+
+/// 筛选池统计
+class PoolStats {
+  final int availableChoice;
+  final int availableFill;
+  final int availableSolution;
+  final double poolDiffMin;
+  final double poolDiffMax;
+  final double gaokaoDiffMin;
+  final double gaokaoDiffAvg;
+  final double gaokaoDiffMax;
+
+  const PoolStats({
+    required this.availableChoice, required this.availableFill, required this.availableSolution,
+    required this.poolDiffMin, required this.poolDiffMax,
+    required this.gaokaoDiffMin, required this.gaokaoDiffAvg, required this.gaokaoDiffMax,
+  });
+}
+
+/// 筛选预设摘要
+class FilterPreset {
+  final int id;
+  final String name;
+  const FilterPreset({required this.id, required this.name});
+}
+
+/// 搜索到的题目
+class SearchQuestion {
+  final int id;
+  final String title;
+  final String meta;
+  final double difficulty;
+  final double calculation;
+  const SearchQuestion({required this.id, required this.title, required this.meta, required this.difficulty, required this.calculation});
+}
+
+/// 池子不足异常
+class InsufficientPoolException implements Exception {
+  final String type;
+  final int needed;
+  final int available;
+  const InsufficientPoolException({required this.type, required this.needed, required this.available});
+  String get message => '$type 类题目池子不足（需要 $needed 道，池中只有 $available 道）';
+}
+
+/// 组卷 Repository — 本地 + API
+class ExamRepository {
+  final QuestionDao _questionDao;
+  final ExamDao _examDao;
+
+  const ExamRepository(this._questionDao, this._examDao);
+
+  // ── 发现组卷 ──
+  Future<List<ExploreExamSummary>> getExploreList() async {
+    final rows = await _examDao.listCreated();
+    return rows.map((r) => ExploreExamSummary(
+      id: r.id, name: r.title, authorInfo: '', summary: '',
+      likeCount: 0, collectCount: 0, createdAt: r.createdAt,
+    )).toList();
+  }
+
+  Future<void> toggleLike(int paperId) async {
+    await _examDao.toggleLike(paperId);
+  }
+
+  Future<void> toggleCollect(int paperId) async {
+    await _examDao.toggleCollect(paperId);
+  }
+
+  // ── 收藏 ──
+  Future<List<FavoriteExamSummary>> getFavorites() async {
+    return [];
+  }
+
+  Future<void> removeFavorite(int examId) async {}
+
+  // ── 我的组卷 ──
+  Future<List<ExamSummary>> getMyExams() async {
+    final rows = await _examDao.listCreated();
+    return rows.map((r) => ExamSummary(
+      id: r.id, name: r.title, createdAt: r.createdAt, summary: r.filterSnapshot ?? '',
+    )).toList();
+  }
+
+  Future<void> togglePublic(int paperId) async {
+    await _examDao.togglePublic(paperId);
+  }
+
+  Future<void> deleteExam(int paperId) async {
+    await _examDao.deletePaper(paperId);
+  }
+
+  // ── 预览 ──
+  Future<ExamPreview> getPreview(int examId) async {
+    final paper = await _examDao.getById(examId);
+    if (paper == null) throw Exception('Paper not found: $examId');
+    final questions = await _examDao.getQuestions(examId);
+    final qIds = questions.map((q) => q.questionId).toList();
+    final qRows = await _questionDao.getByIds(qIds);
+    return ExamPreview(
+      name: paper.title,
+      authorInfo: '',
+      choiceCount: qRows.where((q) => q.questionType == 'choice').length,
+      fillCount: qRows.where((q) => q.questionType == 'fill').length,
+      solutionCount: qRows.where((q) => q.questionType == 'solution').length,
+      totalCount: qRows.length,
+      questions: qRows.map((q) => ExamQuestion(
+        title: '${q.number} ${q.examType} ${q.region}',
+        meta: q.questionType,
+      )).toList(),
+    );
+  }
+
+  Future<ExamPreviewOther> getPreviewOther(int examId) async {
+    throw UnimplementedError('ExamRepository.getPreviewOther');
+  }
+
+  Future<void> downloadPdf(int paperId) async {
+    // 委托 PdfHelper（后续由 Service 层实现）
+    throw UnimplementedError('ExamRepository.downloadPdf');
+  }
+
+  // ── 快对答案 ──
+  Future<List<AnswerItem>> getQuickAnswers(int examId) async {
+    final questions = await _examDao.getQuestions(examId);
+    final result = <AnswerItem>[];
+    for (final q in questions) {
+      final subs = await _questionDao.getSubQuestions(q.questionId);
+      final answer = subs.isNotEmpty ? subs.first.answer : null;
+      result.add(AnswerItem(
+        title: '#${q.sortOrder}',
+        questionType: '',
+        answer: answer ?? '',
+      ));
+    }
+    return result;
+  }
+
+  // ── 筛选预设（委托给 PreferenceRepository） ──
+  Future<List<FilterPreset>> getFilterPresets() async {
+    // 外部通过 PreferenceRepository.getList() 获取
+    return [];
+  }
+
+  Future<void> saveFilterPreset(String name) async {}
+
+  Future<SearchFilters> loadFilterPreset(int presetId) async {
+    throw UnimplementedError('ExamRepository.loadFilterPreset');
+  }
+
+  // ── 筛选 ──
+  Future<FilterOptions> getFilterOptions() async {
+    final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
+    final regions = await _questionDao.getDistinctRegions();
+    final tags = await _questionDao.getAllConceptTags();
+    return FilterOptions(
+      years: years,
+      regions: regions,
+      conceptTags: tags.map((t) => t.name).toList(),
+      knowledgeCards: [],
+    );
+  }
+
+  Future<ExamBuildState> getBuildSession() async {
+    return const ExamBuildState(name: '', selectedCount: 0, pointsCost: 0);
+  }
+
+  Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters) async {
+    final q = _questionDao.search(
+      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      diffMin: filters.diffMin,
+      diffMax: filters.diffMax,
+      calcMin: filters.calcMin,
+      calcMax: filters.calcMax,
+    );
+    return (await q).map((r) => SearchQuestion(
+      id: r.id,
+      title: r.stem.length > 80 ? '${r.stem.substring(0, 80)}...' : r.stem,
+      meta: '${r.year} ${r.examType} ${r.region}',
+      difficulty: r.difficulty ?? 0,
+      calculation: r.calculation ?? 0,
+    )).toList();
+  }
+
+  Future<PoolStats> getPoolStats(SearchFilters filters) async {
+    return const PoolStats(
+      availableChoice: 0, availableFill: 0, availableSolution: 0,
+      poolDiffMin: 0, poolDiffMax: 0,
+      gaokaoDiffMin: 0, gaokaoDiffAvg: 0, gaokaoDiffMax: 0,
+    );
+  }
+
+  Future<int> getTotalCount(SearchFilters filters) async {
+    final questions = await getFilteredQuestions(filters);
+    return questions.length;
+  }
+
+  Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
+    final engine = _ExamGenerator(_questionDao, _examDao);
+    return engine.confirm(filters, allowShortfall: allowShortfall);
+  }
+}
+
+// ── 智能组卷算法（极简 v1） ──
+// ⚠️ 极简 v1 方案，仅做贪心初始化，无交换优化。
+class _ExamGenerator {
+  final QuestionDao _questionDao;
+  final ExamDao _examDao;
+  const _ExamGenerator(this._questionDao, this._examDao);
+
+  Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
+    // 1. 获取筛选池
+    final pool = await _questionDao.search(
+      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      diffMin: filters.diffMin,
+      diffMax: filters.diffMax,
+      calcMin: filters.calcMin,
+      calcMax: filters.calcMax,
+    );
+
+    // 2. 按题型分类
+    var choicePool = pool.where((q) => q.questionType == 'choice').toList();
+    var fillPool = pool.where((q) => q.questionType == 'fill').toList();
+    var solutionPool = pool.where((q) => q.questionType == 'solution').toList();
+
+    // 3. 检查池子
+    void checkPool(List list, int needed, String type) {
+      if (!allowShortfall && needed > list.length) {
+        throw InsufficientPoolException(type: type, needed: needed, available: list.length);
+      }
+    }
+    checkPool(choicePool, filters.choiceCount, 'choice');
+    checkPool(fillPool, filters.fillCount, 'fill');
+    checkPool(solutionPool, filters.solutionCount, 'solution');
+
+    // 4. 贪心选择（按难度差排序）
+    List pick(List pool, int needed) {
+      pool.sort((a, b) => (((a as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()
+          .compareTo((((b as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()));
+      return pool.take(needed).toList();
+    }
+
+    final selected = [
+      ...pick(choicePool, filters.choiceCount),
+      ...pick(fillPool, filters.fillCount),
+      ...pick(solutionPool, filters.solutionCount),
+    ];
+
+    // 5. 持久化
+    final paperId = await _examDao.savePaper(title: filters.name.isNotEmpty ? filters.name : '智能组卷');
+    await _examDao.savePaperQuestions(paperId, selected.map((q) => (q as dynamic).id as int).toList());
+    return paperId;
+  }
+}
+
+// ── 智能组卷算法（极简 v1）
