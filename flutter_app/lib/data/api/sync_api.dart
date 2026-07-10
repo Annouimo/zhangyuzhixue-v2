@@ -33,18 +33,16 @@ class VersionStatus {
 
 /// 推送结果
 class PushBatchResult {
-  final int successCount;
-  final int failCount;
+  final Map<int, int> serverIds;
 
-  const PushBatchResult({
-    required this.successCount,
-    required this.failCount,
-  });
+  const PushBatchResult({required this.serverIds});
 
-  factory PushBatchResult.fromJson(Map<String, dynamic> json) => PushBatchResult(
-        successCount: json['success_count'] as int,
-        failCount: json['fail_count'] as int,
-      );
+  factory PushBatchResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['server_ids'] as Map<String, dynamic>? ?? {};
+    return PushBatchResult(
+      serverIds: raw.map((k, v) => MapEntry(int.parse(k), v as int)),
+    );
+  }
 }
 
 /// 同步 API

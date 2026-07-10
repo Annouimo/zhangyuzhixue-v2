@@ -1,5 +1,4 @@
 import 'api_client.dart';
-
 /// 认证请求模型
 class LoginRequest {
   final String username;
@@ -92,5 +91,9 @@ class AuthApi {
       'refresh': refreshToken,
     });
     return RefreshResult.fromJson(res.data['data'] as Map<String, dynamic>);
+  }
+
+  Future<void> logout() async {
+    await _client.dio.post('/auth/logout/');
   }
 }
