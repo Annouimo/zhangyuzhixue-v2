@@ -56,9 +56,7 @@ class AppPrefs {
     final raw = p.getString(PrefKeys.userCache);
     if (raw == null) return null;
     try {
-      // JSON decode handled by caller — stored as raw string
       return Map<String, dynamic>.from(
-        // ignore: avoid_dynamic_calls
         (Uri.tryParse(raw)?.queryParametersAll ?? <String, List<String>>{}).map(
           (k, v) => MapEntry(k, v.first as dynamic),
         ),
@@ -98,6 +96,21 @@ class AppPrefs {
   int? get lastUpdatePromptTimestamp => p.getInt(PrefKeys.lastUpdatePrompt);
   Future<bool> setLastUpdatePromptTimestamp(int ts) =>
       p.setInt(PrefKeys.lastUpdatePrompt, ts);
+
+  // ── 评价弹窗冷却（Phase 4）──
+
+  /// 判断指定页面的评价弹窗冷却是否活跃（24 小时内）
+  bool isRatingCooldownActive(String pageUrl) {
+    final ts = p.getInt(PrefKeys.ratingCooldownPrefix + pageUrl);
+    if (ts == null) return false;
+    final elapsed = DateTime.now().millisecondsSinceEpoch - ts;
+    return elapsed < const Duration(hours: 24).inMilliseconds;
+  }
+
+  /// 设置评价弹窗冷却时间戳
+  Future<bool> setRatingCooldown(String pageUrl) =>
+      p.setInt(PrefKeys.ratingCooldownPrefix + pageUrl,
+          DateTime.now().millisecondsSinceEpoch);
 
   // ── 全局共享 key 查询 ──
 

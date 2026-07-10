@@ -73,5 +73,22 @@ void main() {
       final b = AppPrefs();
       expect(identical(a, b), true);
     });
+
+    group('ratingCooldown', () {
+      test('isRatingCooldownActive returns false when never set', () {
+        expect(AppPrefs().isRatingCooldownActive('solve_42'), false);
+      });
+
+      test('setRatingCooldown and isRatingCooldownActive', () async {
+        await AppPrefs().setRatingCooldown('solve_42');
+        expect(AppPrefs().isRatingCooldownActive('solve_42'), true);
+      });
+
+      test('cooldown is per page URL', () async {
+        await AppPrefs().setRatingCooldown('page_a');
+        expect(AppPrefs().isRatingCooldownActive('page_a'), true);
+        expect(AppPrefs().isRatingCooldownActive('page_b'), false);
+      });
+    });
   });
 }
