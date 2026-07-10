@@ -1,3 +1,7 @@
-﻿from django.urls import path  # noqa: F401
+﻿from django.urls import path
 
-urlpatterns = []
+from interactions.views import SyncPushView
+
+urlpatterns = [
+    path('push/', SyncPushView.as_view(), name='sync-push'),
+]

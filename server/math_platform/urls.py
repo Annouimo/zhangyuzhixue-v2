@@ -14,6 +14,9 @@ api_v1 = [
     path('interactions/', include('interactions.urls')),
     path('system/', include('system.urls')),
 
+    # sync: version check + push 统一在 system.urls 中
+    path('sync/', include('system.urls')),
+
     # API documentation
     path('docs/', SpectacularAPIView.as_view(), name='schema'),
     path('docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
