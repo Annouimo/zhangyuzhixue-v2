@@ -332,11 +332,8 @@ class ExamRepository {
   }
 
   Future<PoolStats> getPoolStats(SearchFilters filters) async {
-    return const PoolStats(
-      availableChoice: 0, availableFill: 0, availableSolution: 0,
-      poolDiffMin: 0, poolDiffMax: 0,
-      gaokaoDiffMin: 0, gaokaoDiffAvg: 0, gaokaoDiffMax: 0,
-    );
+    final engine = ExamFilterEngine(_questionDao);
+    return engine.compute(filters);
   }
 
   Future<int> getTotalCount(SearchFilters filters) async {
@@ -352,6 +349,42 @@ class ExamRepository {
 
 // ── 智能组卷算法（极简 v1） ──
 // ⚠️ 极简 v1 方案，仅做贪心初始化，无交换优化。
+
+/// 筛选池统计引擎
+class ExamFilterEngine {
+  final QuestionDao _dao;
+  const ExamFilterEngine(this._dao);
+
+  Future<PoolStats> compute(SearchFilters filters) async {
+    final pool = await _dao.search(
+      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      diffMin: filters.diffMin,
+      diffMax: filters.diffMax,
+      calcMin: filters.calcMin,
+      calcMax: filters.calcMax,
+    );
+
+    var choicePool = pool.where((q) => q.questionType == 'choice').toList();
+    var fillPool = pool.where((q) => q.questionType == 'fill').toList();
+    var solutionPool = pool.where((q) => q.questionType == 'solution').toList();
+
+    final allDiff = pool.map((q) => q.difficulty ?? 0).toList();
+    final gaokaoAll = pool.where((q) => q.examType == '高考').map((q) => q.difficulty ?? 0).toList();
+
+    return PoolStats(
+      availableChoice: choicePool.length,
+      availableFill: fillPool.length,
+      availableSolution: solutionPool.length,
+      poolDiffMin: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a < b ? a : b),
+      poolDiffMax: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a > b ? a : b),
+      gaokaoDiffMin: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a < b ? a : b),
+      gaokaoDiffAvg: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a + b) / gaokaoAll.length,
+      gaokaoDiffMax: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a > b ? a : b),
+    );
+  }
+}
+
 class _ExamGenerator {
   final QuestionDao _questionDao;
   final ExamDao _examDao;

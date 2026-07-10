@@ -122,4 +122,51 @@ void main() {
       expect(qs.first.id, 1);
     });
   });
+
+  group('ExamFilterEngine', () {
+    test('empty pool returns zeros', () async {
+      final engine = ExamFilterEngine(qDao);
+      final stats = await engine.compute(const SearchFilters(
+        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
+        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
+      ));
+      expect(stats.availableChoice, 0);
+      expect(stats.availableFill, 0);
+      expect(stats.availableSolution, 0);
+      expect(stats.poolDiffMin, 0);
+    });
+
+    test('normal pool returns correct counts', () async {
+      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
+        id: const Value(1), year: const Value(2024),
+        examType: const Value('一模'), region: const Value('海淀'),
+        number: const Value('1'), questionType: const Value('choice'),
+        stem: const Value('c1'), difficulty: const Value(3.0),
+      ));
+      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
+        id: const Value(2), year: const Value(2024),
+        examType: const Value('一模'), region: const Value('海淀'),
+        number: const Value('2'), questionType: const Value('fill'),
+        stem: const Value('f1'), difficulty: const Value(5.0),
+      ));
+      final engine = ExamFilterEngine(qDao);
+      final stats = await engine.compute(const SearchFilters(
+        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
+        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
+      ));
+      expect(stats.availableChoice, 1);
+      expect(stats.availableFill, 1);
+      expect(stats.availableSolution, 0);
+      expect(stats.poolDiffMin, 3.0);
+      expect(stats.poolDiffMax, 5.0);
+    });
+    test('confirm allowShortfall skips pool check', () async {
+      final id = await repo.confirm(const SearchFilters(
+        name: '不足但允许', choiceCount: 5, fillCount: 0, solutionCount: 0,
+        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
+      ), allowShortfall: true);
+      expect(id, greaterThan(0));
+      expect((await repo.getMyExams()).length, 1);
+    });
+  });
 }

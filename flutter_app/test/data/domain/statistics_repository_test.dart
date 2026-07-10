@@ -36,4 +36,31 @@ void main() {
       expect(await repo.getDailyRecords(7), isEmpty);
     });
   });
+
+  group('StatisticsAggregator', () {
+    test('empty raw returns empty', () {
+      final result = StatisticsAggregator.aggregateDailyRecords([], 7);
+      expect(result, isEmpty);
+    });
+
+    test('single record grouped by date', () {
+      final result = StatisticsAggregator.aggregateDailyRecords(
+        [(date: '2026-07-10', count: 3)], 7,
+      );
+      expect(result.length, 1);
+      expect(result.first.date, '2026-07-10');
+      expect(result.first.count, 3);
+      expect(result.first.level, 2);
+    });
+
+    test('multiple same date merged', () {
+      final result = StatisticsAggregator.aggregateDailyRecords([
+        (date: '2026-07-10', count: 2),
+        (date: '2026-07-10', count: 3),
+      ], 7);
+      expect(result.length, 1);
+      expect(result.first.count, 5);
+      expect(result.first.level, 2);
+    });
+  });
 }

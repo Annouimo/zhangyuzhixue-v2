@@ -60,5 +60,10 @@ void main() {
       expect(list.length, 1);
       expect(list.first.id, 1);
     });
+
+    test('getSmartList cold start returns empty when no tags', () async {
+      final list = await repo.getSmartList();
+      expect(list, isEmpty);
+    });
   });
 }
