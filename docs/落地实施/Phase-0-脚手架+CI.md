@@ -1,7 +1,7 @@
 # Phase 0 — 双项目脚手架 + CI
 
-> 本文档是 00-落地计划.md 中 Phase 0 的细化执行方案。
-> 状态：**已完成** | 执行日期：2026-07-10 | 最后更新：2026-07-10
+> 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 0 的细化执行方案。
+> 状态：**已完成** | 最后更新：2026-07-10
 
 ---
 
@@ -26,19 +26,11 @@ pip install django-cors-headers python-decouple flake8
 pip install drf-spectacular django-auditlog
 ```
 
-### 执行结果
+### 验证方式
 
-| 包名 | 版本 |
-|------|------|
-| djangorestframework | 3.17.1 |
-| djangorestframework-simplejwt | 5.5.1 |
-| django-cors-headers | 4.9.0 |
-| python-decouple | 3.8 |
-| flake8 | 7.3.0 |
-| drf-spectacular | 0.30.0 |
-| django-auditlog | 3.4.1 |
-
-**Django 5.2.15 → 5.2.16** 和 **sentry-sdk 2.63.0 → 2.64.0** 也一并更新。
+```bash
+pip list | findstr <package-name>
+```
 
 ---
 
@@ -63,14 +55,13 @@ pip install drf-spectacular django-auditlog
 7. **flake8 配置**：`max-line-length=100`
 8. 创建 `math_platform/exceptions.py`（统一 JSON 响应格式）
 
-### 执行结果
+### 验证方式
 
-- [x] `python manage.py check` — **零问题**
-- [x] `python manage.py migrate` — **34 个迁移全部 OK**
-- [x] flake8 — **零问题**
-- [x] sentry-sdk 静默不启动
-
-**提交：** `eb06ebe`（后合并至 `9cee0db`、`ca44fe4`）
+```bash
+python manage.py check               # 零问题
+python manage.py migrate              # 34 个迁移全部 OK
+flake8                                # 零问题
+```
 
 ---
 
@@ -98,13 +89,13 @@ dependencies:
 3. 删除默认计数器代码，保留干净入口 `ZhangyuzhixueApp`
 4. 添加 `build.yaml`（sqlite3 使用系统库，解决 GitHub 下载超时问题）
 
-### 执行结果
+### 验证方式
 
-- [x] `flutter pub get` — **78 依赖解析成功**
-- [x] `dart analyze` — **No issues found!**
-- [x] `flutter test` — **All tests passed!**
-
-**提交：** `0fa9587`
+```bash
+flutter pub get          # 78 依赖解析成功
+dart analyze             # No issues found!
+flutter test             # All tests passed!
+```
 
 ---
 
@@ -123,29 +114,26 @@ dependencies:
 
 `landing/` 在开发阶段仅作为源码维护，**不上传到服务器**。部署时由脚本复制到 nginx（Phase 6.7）。
 
-### 执行结果
+### 验证方式
 
-- [x] `landing/index.html` 正常显示
-- [x] 三个下载按钮存在（# 占位链接）
-- [x] 微信二维码图片显示
-- [x] 隐私政策和用户协议页面可跳转
-
-**提交：** `333f440`
+- `landing/index.html` 正常显示
+- 三个下载按钮存在（# 占位链接）
+- 微信二维码图片显示
+- 隐私政策和用户协议页面可跳转
 
 ---
 
 ## 0.5 — GitHub Actions CI
 
-### 变更说明
-
-最初计划使用 Gitee Go，但 Gitee Go 新版需要自建主机组（Agent 部署到 ECS），考虑到 ECS 资源有限，改为以下方案：
+### 方案说明
 
 | 组件 | 方案 |
 |------|------|
 | 主仓库 | Gitee（`gitee.com/annouimo/zhangyuzhixue-v2`） |
-| CI 引擎 | GitHub Actions |
-| 同步方式 | Gitee 自动镜像到 GitHub 仓库 |
+| CI 引擎 | GitHub Actions（Gitee 自动镜像到 GitHub 仓库） |
 | CI 配置文件 | `.github/workflows/ci.yml` |
+
+> 最初计划使用 Gitee Go，但 Gitee Go 新版需要自建主机组（Agent 部署到 ECS），考虑到 ECS 资源有限，改为以上方案。
 
 ### 流水线内容
 
@@ -165,15 +153,17 @@ dependencies:
     └─ python manage.py makemigrations --check
 ```
 
-### 完成情况
+### 前置条件
 
-- [x] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
-- [x] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
-- [x] 首次 push 触发 CI，验证两条流水线均通过 ✅
+- [ ] 用户创建空 GitHub 仓库（同名 `zhangyuzhixue-v2`）
+- [ ] 用户在 Gitee 仓库设置中配置自动同步到 GitHub
+- [ ] 首次 push 触发 CI，确认两条流水线均通过
 
-> CI 调试过程经历了 7 轮修复（Node.js 兼容性→Flutter SDK 下载路径→`subosito/flutter-action` 缓存配置等），最终流水线全绿通过。
+### 验证方式
 
-**提交：** `ca44fe4`
+- GitHub Actions 页面两流水线（Flutter + Django）全绿
+- `python manage.py check --deploy` 通过
+- `dart analyze` No issues found
 
 ---
 
@@ -197,10 +187,3 @@ zhangyuzhixue_app_v2/
 │   └── .env
 └── flutter_app/                    # Flutter 客户端
 ```
-
-## 产出
-
-- ✅ Django 项目可编译、迁移通过、flake8 零问题
-- ✅ Flutter 项目 dart analyze 零问题、测试通过
-- ✅ 着陆页静态 HTML 就位
-- ✅ GitHub Actions CI 配置就位，流水线全绿 ✅

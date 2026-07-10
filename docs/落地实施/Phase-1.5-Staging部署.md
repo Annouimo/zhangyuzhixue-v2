@@ -5,6 +5,38 @@
 
 ---
 
+## 总览
+
+| 子步骤 | 内容 | 工时 | 状态 |
+|--------|------|------|------|
+| **0** | 服务器安装 Python 3.11 | ~5 分钟 | ✅ |
+| **1** | 服务器创建 bare repo + post-receive hook | ~10 分钟 | ✅ |
+| **1b** | 本地添加 server remote + `git push` | ~2 分钟 | ✅ |
+| **2** | scp `.env` 到服务器并配置 | ~5 分钟 | ✅ |
+| **3** | systemd gunicorn 服务 | ~10 分钟 | ✅ |
+| **4** | nginx 配置（新增 Django 路由，保留维护页） | ~5 分钟 | ✅ |
+| **5** | 验证部署（curl API） | ~5 分钟 | ✅ |
+| **6** | 首次构建 assets/lectures.db | ~5 分钟 | ✅ |
+| **7** | 创建 Dev 用户 + 全量验证 | ~10 分钟 | ✅ |
+| | **合计** | **~1 小时** | ✅ |
+
+### 前置条件
+
+- [x] Phase 1（服务端全量）已完成，本地可运行
+- [x] Cloudflare Tunnel 已配置运行，指向 localhost:8080
+- [x] ECS 服务器 123.57.85.160 可 SSH 登录
+- [x] 旧版 math_platform 项目已不存在（/opt/ 为空）
+
+### 关键设计文档索引
+
+| 文档 | 用途 |
+|------|------|
+| [`服务端架构.md`](../03-服务端/服务端架构.md) | 部署方案、nginx/gunicorn 配置 |
+| [`API设计.md`](../03-服务端/API设计.md) | 所有端点路径，用于 curl 验证 |
+| [`00-落地计划.md`](../00-落地计划.md) §Phase 1.5 | Staging 部署总览 |
+
+---
+
 ## 一、目标
 
 将 Phase 1 完成的 Django 服务端部署到 ECS，接入现有 Cloudflare Tunnel，搭建 `stage.zhangyuzhixue.top`（或复用主域名）staging 环境，供 Phase 2 Flutter 数据层开发时对接。
@@ -309,53 +341,25 @@ systemctl stop gunicorn-math-platform
 
 ---
 
-## 四、任务清单
+## 四、注意事项
 
-| # | 子步骤 | 预估工时 | 验证方式 |
-|:--|:-------|:--------:|:---------|
-| **0** | 服务器安装 Python 3.11 | ~5 分钟 | `python3.11 --version` |
-| **1** | 服务器创建 bare repo + post-receive hook | ~10 分钟 | `ls /opt/zhangyuzhixue-v2.git/` |
-| **1b** | 本地添加 server remote + `git push` | ~2 分钟 | push 成功 |
-| **2** | scp `.env` 到服务器并配置 | ~5 分钟 | `cat /opt/zhangyuzhixue-v2/server/.env` |
-| **3** | systemd gunicorn 服务 | ~10 分钟 | `systemctl status` active |
-| **4** | nginx 配置（新增 Django 路由，保留维护页） | ~5 分钟 | `curl localhost:8080/api/v1/docs/` → 200 |
-| **5** | 验证部署（curl API） | ~5 分钟 | 登录返回 token |
-| **6** | 首次构建 assets/lectures.db | ~5 分钟 | `sqlite3` 行数匹配 |
-| **7** | 创建 Dev 用户 + 全量验证 | ~10 分钟 | Swagger 可访问 |
-| | **合计** | **~1 小时** | |
-
----
-
-## 五、风险 & 注意事项
-
-### 5.1 Python 版本差异
+### 4.1 Python 版本差异
 
 本地用 Python 3.11.15，服务器 Ubuntu 22.04 默认 3.10.12。虽然 Django 5.2 官方支持 3.10，但需确认全量依赖兼容。使用 `deadsnakes` PPA 装 3.11 是最稳妥方案。
 
-### 5.2 SQLite 版本
+### 4.2 SQLite 版本
 
 服务器 `sqlite3 --version` 可能需要确认≥3.25（Django 5.2 窗口函数支持）。Ubuntu 22.04 默认 sqlite3 3.37+，大概率满足。
 
-### 5.3 SQLite 在 nginx/gunicorn 下的并发
+### 4.3 SQLite 在 nginx/gunicorn 下的并发
 
 SQLite 不适合高并发写，但 staging 环境仅开发自用（1-2 人），完全够用。上线前如需要可切换 PostgreSQL，但不在 Phase 1.5 范围内。
 
-### 5.4 CORS 与域名
+### 4.4 CORS 与域名
 
 - `CORS_ALLOWED_ORIGINS` 必须包含 Cloudflare 代理后的域名（`https://zhangyuzhixue.top`），否则 Flutter App 发 API 请求会被浏览器 CORS 拦截
 - 如果使用 `stage.zhangyuzhixue.top` 域名，需先在 Cloudflare DNS 添加 A 记录
 
-### 5.5 Memory/CPU
+### 4.5 Memory/CPU
 
 2C2G ECS，gunicorn 2 workers 是保守值。如果看到 OOM（gunicorn worker 被 kill），可改为 1 worker 或加 swap。
-
----
-
-## 六、产出
-
-- [x] server 代码在 ECS 上运行，systemd 管理
-- [x] 通过 `zhangyuzhixue.top` 可访问 Swagger API 文档（已验证 200 ✅）
-- [x] 认证 API（login/register）可调通（已验证 405/401 正确响应 ✅）
-- [x] 构建脚本首次运行成功，assets/lectures 产物就位（qbank_v4.db.gz / lecture_v3.db.gz ✅）
-- [x] Dev 测试用户可登录
-- [x] 维护页面可快速切换回退

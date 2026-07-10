@@ -24,27 +24,22 @@
 > **⚙️ SystemConfig 标记说明：** 冷却时长、重试次数、积分奖励值、组卷价格等业务参数已抽入 `SystemConfig` 表（详见 [数据库结构设计 §5.10](../02-数据/数据库结构设计.md#510-systemconfig--系统配置-服务器)），通过 `system/config_reader.py` 读取。实现时直接调用 `get_config_int()` / `get_config_float()`，不再在代码中硬编码。
 > **🔧CI 标记说明：** 执行到该步骤时，需同步更新 CI 配置（详见 [00-落地计划.md §CI/CD](../00-落地计划.md#cicdphase-0-搭建贯穿全程)）。
 
-## 当前状态（Phase 0 产出）
+### 前置条件
 
-```
-server/
-├── accounts/          # models.py → 空，admin.py → 空，views.py → 空
-├── qbank/             # models.py → 空，admin.py → 空，views.py → 空
-├── courses/           # models.py → 空，admin.py → 空，views.py → 空
-├── interactions/      # models.py → 空，admin.py → 空，views.py → 空
-├── system/            # models.py → 空，admin.py → 空，views.py → 空
-├── math_platform/     # settings.py ✅, urls.py ✅, exceptions.py ✅
-├── scripts/           # 空目录
-├── templates/         # 空目录
-├── media/             # 空目录
-├── static/            # 空目录
-├── .env ✅
-├── .flake8 ✅
-├── requirements.txt ✅
-└── db.sqlite3        # 仅 Django 内置表（34 个迁移）
-```
+- [x] Phase 0 已完成：Django 5 App 骨架就绪、Flutter 骨架就绪、CI 全绿
+- [ ] 已读取 `docs/02-数据/数据库结构设计.md` 全部表定义
+- [ ] 已读取 `docs/03-服务端/API设计.md` 全部端点定义
+- [ ] 旧版 `D:\Hermes\math_platform\db.sqlite3` 可访问（798 题）
 
-所有 models.py、admin.py、views.py、urls.py 均为 Django 生成的空模板文件，**未包含任何业务代码**。
+### 关键设计文档索引
+
+| 文档 | 用途 |
+|------|------|
+| [`数据库结构设计.md`](../02-数据/数据库结构设计.md) | 所有表定义（5 App × ~40 表） |
+| [`API设计.md`](../03-服务端/API设计.md) | 全部端点规范（984 行） |
+| [`服务端架构.md`](../03-服务端/服务端架构.md) | App 划分与部署 |
+| [`构建脚本设计.md`](../02-数据/构建脚本设计.md) | 构建流程与 ASSETS_TABLES 定义 |
+| [`PDF方案设计.md`](../03-服务端/PDF方案设计.md) | PDF 渲染流程
 
 ---
 
@@ -821,43 +816,12 @@ class InvitationCodeAdmin(admin.ModelAdmin):
 | 1.7 | sig 验证、HTML 渲染、权限错误 | 手动 | 浏览器操作 |
 | 1.8 | 页面加载、按钮功能 | 手动 | Admin 页面操作 |
 
----
-
-## 产出检查清单
-
-- [x] 1.1 — 5 App 全部 models.py 实现，零 check 问题，40+ 自定义迁移
-- [x] 1.2 — 798 题迁移完成，配图 300+ 张到 `static/questions/images/`
-- [x] 1.3 — 4 个认证端点可调用，dev 测试用户就绪，Swagger 文档可访问
-- [x] 1.4 — 版本检查（qbank/lecture）+ sync push 可工作
-- [x] 1.5 — 用户/课程/组卷 API 全部可调用
-- [x] 1.6 — assets.db.gz + lectures.db.gz 可构建，验证通过
-- [x] 1.7 — PDF 视图可打开，含 KaTeX 公式渲染
-- [x] 1.8 — Admin tools 页面可用，构建按钮+邀请码生成
 
 ---
 
-## 附录：旧版字段名确认
-
-1.2 实施前需运行以下命令确认旧版数据库字段名与设计文档一致：
-
-```sql
--- 连接旧版 db.sqlite3
-.tables                               -- 确认表名
-PRAGMA table_info(questions_question); -- 确认字段名
-PRAGMA table_info(questions_questionstep);
-PRAGMA table_info(questions_concepttag);
-PRAGMA table_info(questions_knowledgecard);
-PRAGMA table_info(questions_choiceext);
-SELECT COUNT(*) FROM questions_question;  -- 确认 798 题
-```
-
-如果旧版字段名与设计文档有差异，迁移脚本需做对应映射。
-
----
-
-> 相关文档：
-> - [数据库结构设计.md](../02-数据/数据库结构设计.md) — 表定义
-> - [API设计.md](../03-服务端/API设计.md) — 全部端点规范
-> - [服务端架构.md](../03-服务端/服务端架构.md) — App 划分与部署
-> - [构建脚本设计.md](../02-数据/构建脚本设计.md) — 构建流程
-> - [PDF方案设计.md](../03-服务端/PDF方案设计.md) — PDF 渲染流程
+**相关文档：**
+- [数据库结构设计.md](../02-数据/数据库结构设计.md) — 表定义
+- [API设计.md](../03-服务端/API设计.md) — 全部端点规范
+- [服务端架构.md](../03-服务端/服务端架构.md) — App 划分与部署
+- [构建脚本设计.md](../02-数据/构建脚本设计.md) — 构建流程
+- [PDF方案设计.md](../03-服务端/PDF方案设计.md) — PDF 渲染流程
