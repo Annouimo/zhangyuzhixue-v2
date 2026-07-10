@@ -12,7 +12,7 @@
 | **0.1** | 安装缺失依赖 + 准备项目目录 | ~0.1 天 |
 | **0.2** | Django 脚手架（settings/urls/5 Apps/env/flake8） | ~0.4 天 |
 | **0.3** | Flutter 脚手架（`flutter_app/` + pubspec + Riverpod） | ~0.3 天 |
-| **0.4** | 着陆页占位 HTML | ~0.1 天 |
+| **0.4** | 着陆页（从 docs/07-工作流/landing 复制 + 补充隐私/协议） | ~0.1 天 |
 | **0.5** | Gitee Go CI 配置 + git commit | ~0.1 天 |
 | **合计** | | **~1 天** |
 
@@ -43,7 +43,7 @@ zhangyuzhixue_app_v2/
 │   ├── system/                   # 系统管理
 │   └── scripts/                  # 构建脚本
 ├── flutter_app/                  # 新建 ← Flutter 项目
-├── landing/                      # 新建 ← 着陆页静态 HTML
+├── landing/                      # 从 docs/07-工作流/landing 复制
 └── .gitee/workflows/ci.yml       # Gitee Go CI
 ```
 
@@ -114,23 +114,26 @@ dependencies:
 
 ## 0.4 — 着陆页
 
-创建 `landing/` 目录，nginx 直出，不走 Django：
+从 `docs/07-工作流/landing/` 复制到项目根目录 `landing/`，nginx 直出，不走 Django。
 
-| 文件 | 内容 |
+**来源说明：** 着陆页已在设计阶段完成（`docs/07-工作流/landing/index.html`），Phase 0.4 将其复制到项目根目录并补充隐私政策与用户协议页面。
+
+| 文件 | 说明 |
 |------|------|
-| `index.html` | App 下载按钮 + 微信二维码 + 产品简介（占位符） |
-| `privacy.html` | 隐私政策（占位符） |
-| `terms.html` | 用户协议（占位符） |
+| `index.html` | App 下载按钮 + 微信二维码 + 产品简介（已有设计） |
+| `privacy.html` | 隐私政策（占位内容） |
+| `terms.html` | 用户协议（占位内容） |
+| `images/wechat-qr.jpg` | 微信二维码图片 |
 
-页面要求：
-- 极简 HTML（无框架依赖）
-- 中文字体用系统字体
-- `index.html` 底部留版本号占位
+### 部署说明
+
+`landing/` 在开发阶段仅作为源码维护，**不上传到服务器**。部署时由脚本复制到 nginx（Phase 6.7）。当前线上 `zhangyuzhixue.top` 仍使用旧版，新版 App 安装包就绪后再替换。
 
 ### 验收标准
 
 - [ ] 浏览器打开 `landing/index.html` 可正常显示
-- [ ] 包含下载按钮和二维码占位
+- [ ] 三个下载按钮存在（# 占位链接）
+- [ ] 微信二维码图片显示
 - [ ] 隐私政策和用户协议页面可跳转
 
 ---
