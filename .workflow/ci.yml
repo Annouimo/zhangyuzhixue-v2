@@ -10,11 +10,10 @@ triggers:
 stages:
   - name: checks
     displayName: checks
-    jobs:
+    tasks:
       - name: flutter-check
         displayName: flutter-check
         steps:
-          - step: git-clone
           - step: shell
             displayName: dart analyze
             inputs:
@@ -27,7 +26,6 @@ stages:
       - name: django-check
         displayName: django-check
         steps:
-          - step: git-clone
           - step: shell
             displayName: install deps
             inputs:
