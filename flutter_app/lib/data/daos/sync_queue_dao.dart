@@ -41,6 +41,30 @@ class SyncQueueDao {
     await q.go();
   }
 
+  /// 清理：删除已 done 和过期的永久失败记录（保留 7 天）
+  Future<void> cleanup() async {
+    final all = await _db.select(_db.syncQueue).get();
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
+    for (final row in all) {
+      if (row.status == 'done' || (row.status == 'permanentFailure' && row.createdAt.compareTo(sevenDaysAgo) < 0)) {
+        final q = _db.delete(_db.syncQueue)..where((t) => t.id.equals(row.id));
+        await q.go();
+      }
+    }
+  }
+
+  /// 将超过最大重试次数的 failed 标记为 permanentFailure
+  Future<void> markPermanentFailures(int maxRetries) async {
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.equals('failed'))).get();
+    for (final row in rows) {
+      if (row.retryCount >= maxRetries) {
+        final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(row.id));
+        await q.write(db.SyncQueueCompanion(status: const Value('permanentFailure')));
+      }
+    }
+  }
+
   Future<void> markFailed(int id) async {
     final existing = await (_db.select(_db.syncQueue)
       ..where((t) => t.id.equals(id))).getSingleOrNull();

@@ -79,5 +79,16 @@ void main() {
       await dao.clearAll();
       expect(await dao.isEmpty(), true);
     });
+
+    test('markPermanentFailures converts expired retries', () async {
+      final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      // 模拟 5 次重试
+      for (var i = 0; i < 5; i++) {
+        await dao.markFailed(id);
+      }
+      await dao.markPermanentFailures(5);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.first.status, 'permanentFailure');
+    });
   });
 }
