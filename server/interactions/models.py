@@ -220,3 +220,29 @@ class PaperLike(models.Model):
 
     def __str__(self):
         return f'{self.student_id} 赞 组卷 {self.paper_id}'
+
+
+class PaperCollect(models.Model):
+    """组卷收藏"""
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE,
+        related_name='paper_collects'
+    )
+    paper = models.ForeignKey(
+        CustomPaper, on_delete=models.CASCADE,
+        related_name='collects'
+    )
+    created_at = models.DateTimeField('收藏时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '组卷收藏'
+        verbose_name_plural = '组卷收藏'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'paper'],
+                name='uq_student_paper_collect'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.student_id} 收藏 组卷 {self.paper_id}'

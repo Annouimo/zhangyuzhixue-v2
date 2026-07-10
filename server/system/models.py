@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from accounts.models import Student
 
@@ -137,10 +138,12 @@ class DbVersion(models.Model):
     data_version = models.IntegerField('数据版本', default=1)
     checksum = models.CharField('SHA256校验和', max_length=128, blank=True, default='')
     size_bytes = models.IntegerField('文件大小', default=0)
-    download_url = models.CharField('下载路径', max_length=256, blank=True, default='')
+    download_url = models.CharField('下载路径', max_length=500, blank=True, default='')
     force_update = models.BooleanField('强制更新', default=False)
-    message = models.CharField('更新说明', max_length=256, blank=True, default='')
+    message = models.TextField('更新说明', blank=True, default='')
     built_at = models.DateTimeField('构建时间', null=True, blank=True)
+    created_at = models.DateTimeField('创建时间', default=timezone.now)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
 
     class Meta:
         verbose_name = '数据库版本'

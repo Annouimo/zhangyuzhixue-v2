@@ -9,6 +9,7 @@ from interactions.models import (
     CardFeedback,
     CustomPaper,
     CustomPaperQuestion,
+    PaperCollect,
     PaperLike,
     QuestionRating,
     StepFeedback,
@@ -24,6 +25,7 @@ ENTITY_ORDER = [
     'question_rating',
     'custom_paper',
     'paper_like',
+    'paper_collect',
 ]
 
 # ── 响应工具 ──────────────────────────────────────────────────
@@ -162,3 +164,10 @@ class SyncPushView(APIView):
             paper_id=data['paper_id'],
         )
         return like
+
+    def _handle_paper_collect(self, data, student, server_ids, detail_cache):
+        collect, _ = PaperCollect.objects.get_or_create(
+            student=student,
+            paper_id=data['paper_id'],
+        )
+        return collect
