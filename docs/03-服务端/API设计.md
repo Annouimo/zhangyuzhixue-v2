@@ -391,7 +391,7 @@ App 启动时 + 用户手动触发。"全部重试"按钮即遍历所有 `pendin
 ### 4.1 请求 PDF 浏览 token
 
 ```
-POST /api/v1/pdf/request-token/
+POST /api/v1/interactions/pdf/request-token/
 ```
 
 **认证：** 需要 Bearer token（JWT access_token）

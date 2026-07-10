@@ -1,7 +1,7 @@
 ﻿from django.contrib import admin
 
 from .models import (
-    CardFeedback, CustomPaper, CustomPaperQuestion, PaperLike,
+    CardFeedback, CustomPaper, CustomPaperQuestion, PaperCollect, PaperLike,
     QuestionRating, StepFeedback, StudentSubmission, SubmissionDetail,
 )
 
@@ -76,6 +76,12 @@ class CustomPaperAdmin(admin.ModelAdmin):
 class CustomPaperQuestionAdmin(admin.ModelAdmin):
     list_display = ['id', 'paper', 'question', 'sort_order']
     list_select_related = ['paper', 'question']
+
+
+@admin.register(PaperCollect)
+class PaperCollectAdmin(admin.ModelAdmin):
+    list_display = ['id', 'student', 'paper', 'created_at']
+    list_select_related = ['student', 'paper']
 
 
 @admin.register(PaperLike)

@@ -81,6 +81,7 @@ class SubQuestionAdmin(admin.ModelAdmin):
     list_display = ['id', 'question', 'parent', 'sort_order', 'answer']
     list_select_related = ['question']
     search_fields = ['answer']
+    inlines = [SolutionMethodInline]
 
 
 @admin.register(SolutionMethod)

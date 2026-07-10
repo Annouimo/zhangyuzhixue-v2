@@ -82,13 +82,13 @@ sig = HMAC-SHA256(
 
 - 有效期为 **5 分钟**
 - 一次性：可以使用但没用严格的防重放（只是 PDF 浏览，非敏感操作）
-- Flutter 端用当前 `access_token` 向 `/api/pdf/request-token` 换取临时 sig
+- Flutter 端用当前 `access_token` 向 `/api/v1/interactions/pdf/request-token/` 换取临时 sig
 
 **安全流程：**
 
 ```
 Flutter 端（已登录）
-  → POST /api/pdf/request-token
+  → POST /api/v1/interactions/pdf/request-token/
      Header: Authorization: Bearer ***     Body: { paper_id: 123 }
   ← 200: { sig: "xxxxx", expire_in: 300, url: "/pdf/view?pid=123&sig=xxxxx" }
 
@@ -365,7 +365,7 @@ static Future<void> downloadPdf(int paperId) {
 
 | # | 内容 | 文件 |
 |---|------|------|
-| 5 | `/api/pdf/request-token` 接口 | `server/interactions/views.py`（或新建 `server/pdf/`） |
+| 5 | `/api/v1/interactions/pdf/request-token/` 接口 | `server/interactions/views.py`（或新建 `server/pdf/`） |
 | 6 | `PDF_SECRET_KEY` 配置 | `server/math_platform/settings.py` |
 | 7 | `/pdf/view` 页面视图 + 签名验证 | `server/interactions/urls.py` + `views.py` |
 | 8 | HTML 模板（基于 `test_paper.html`） + 个人信息注入 | `server/templates/pdf/paper_view.html` |
