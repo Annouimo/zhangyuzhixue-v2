@@ -11,9 +11,11 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.44'
+          channel: 'stable'
       - name: dart analyze
         working-directory: flutter_app
         run: dart analyze
@@ -28,15 +30,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: install deps
+      - name: Debug tools
+        run: |
+          echo "=== Python ==="
+          which python3 || echo "NO python3"
+          python3 --version || echo "NO python3 --version"
+          which python  || echo "NO python"
+          echo "=== Pip ==="
+          which pip3 || echo "NO pip3"
+          pip3 --version || echo "NO pip3 --version"
+          which pip || echo "NO pip"
+          echo "=== Workspace ==="
+          ls -la
+          ls -la server/ || echo "NO server dir"
+      - name: Install deps
         working-directory: server
-        run: pip install -r requirements.txt -q
+        run: pip3 install -r requirements.txt -q
       - name: flake8
         working-directory: server
-        run: flake8 --config .flake8
-      - name: check --deploy
+        run: pip3 install flake8 -q && flake8 --config .flake8
+      - name: Django checks
         working-directory: server
-        run: python manage.py check --deploy
-      - name: makemigrations --check
-        working-directory: server
-        run: python manage.py makemigrations --check
+        run: |
+          python3 manage.py check --deploy
+          python3 manage.py makemigrations --check
