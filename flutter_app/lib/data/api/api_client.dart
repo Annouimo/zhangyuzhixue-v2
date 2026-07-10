@@ -20,6 +20,8 @@ class ApiException implements Exception {
   String toString() => 'ApiException($code): $message';
 }
 
+// ── 全局状态（拦截器回调）──
+
 typedef TokenProvider = String? Function();
 typedef RefreshTokenProvider = String? Function();
 typedef OnTokenRefreshed = Future<void> Function(String newAccess);
@@ -41,8 +43,16 @@ void setOnRefreshFailed(OnRefreshFailed cb) => _onRefreshFailed = cb;
 OnAuthFailure _onAuthFailure = () {};
 void setOnAuthFailure(OnAuthFailure cb) => _onAuthFailure = cb;
 
-/// API 客户端（Dio 单例 + 3 拦截器）
+// ═══════════════════════════════════════════════
+// HTTP 客户端单例
+// ═══════════════════════════════════════════════
+
+/// 管理 Dio 连接池和拦截器链
 class ApiClient {
+  ApiClient._internal();
+  static final ApiClient _instance = ApiClient._internal();
+  factory ApiClient() => _instance;
+
   Dio? _dio;
   bool _initialized = false;
 
@@ -75,6 +85,11 @@ class ApiClient {
   }
 }
 
+// ═══════════════════════════════════════════════
+// 拦截器
+// ═══════════════════════════════════════════════
+
+/// 请求前注入 Authorization header
 class _AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -86,6 +101,7 @@ class _AuthInterceptor extends Interceptor {
   }
 }
 
+/// 401 时自动刷新 token（失败跳登录）
 class _RefreshInterceptor extends Interceptor {
   bool _refreshing = false;
 
@@ -129,6 +145,7 @@ class _RefreshInterceptor extends Interceptor {
   }
 }
 
+/// 将业务错误码转为 ApiException
 class _ErrorInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {

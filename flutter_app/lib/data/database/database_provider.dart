@@ -33,6 +33,12 @@ class DatabaseProvider {
     _initialized = true;
   }
 
+  /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
+  ///
+  /// 用指定目录路径初始化三库，跳过 getApplicationDocumentsDirectory()
+  /// 和 rootBundle 的默认资源复制。测试中请传入临时目录。
+  ///
+  /// 误传 /sdcard/ 等无权限路径会导致 App 崩溃。
   @visibleForTesting
   Future<void> initWithPath(String dirPath) async {
     if (_initialized) return;
@@ -105,6 +111,12 @@ class DatabaseProvider {
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
   }
 
+  /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
+  ///
+  /// 用指定目录路径初始化三库，跳过 getApplicationDocumentsDirectory()
+  /// 和 rootBundle 的默认资源复制。测试中请传入临时目录。
+  ///
+  /// 误传 /sdcard/ 等无权限路径会导致 App 崩溃。
   @visibleForTesting
   Future<void> reset() async {
     await _appDb?.close();
