@@ -1,2 +1,31 @@
 docs/ToDo.md
 docs/07-工作流/landing/images/wechat-qr.jpg
+
+# Python / Django
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Server
+server/.env
+server/db.sqlite3
+server/staticfiles/
+server/media/
+server/long_lines.txt
+
+# Flutter
+flutter_app/build/
+flutter_app/.dart_tool/
+flutter_app/.packages
+flutter_app/.pub/
+flutter_app/pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*~
+*.swp
