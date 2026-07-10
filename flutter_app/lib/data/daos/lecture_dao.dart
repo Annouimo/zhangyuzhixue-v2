@@ -26,7 +26,7 @@ class LectureDao {
 
   Future<List<db.ChapterRow>> getChapters(int courseId) async {
     final rows = await _db.customSelect(
-      'SELECT * FROM chapters WHERE course_id = ? ORDER BY index',
+      'SELECT * FROM chapters WHERE course_id = ? ORDER BY "index"',
       variables: [Variable(courseId)],
       readsFrom: {_db.chapters},
     ).get();
