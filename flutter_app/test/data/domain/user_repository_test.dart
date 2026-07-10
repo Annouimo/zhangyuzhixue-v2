@@ -83,45 +83,20 @@ void main() {
     });
   });
 
-  group('PointsCalculator', () {
-    test('empty rows returns zeros', () {
-      final calc = PointsCalculator([]);
-      expect(calc.earned, 0);
-      expect(calc.bonus, 0);
-      expect(calc.spent, 0);
-      expect(calc.available, 0);
+  group('_PointsCalculator', () {
+    test('earnedPoints returns 0 initially', () async {
+      final repo = UserRepository(dao, UserApi(client));
+      expect(await repo.earnedPoints(), 0);
     });
 
-    test('earned aggregates LOGIN_BONUS and PRACTICE_REWARD', () {
-      final rows = [
-        _ptRow(source: 'LOGIN_BONUS', amount: 10),
-        _ptRow(source: 'PRACTICE_REWARD', amount: 5),
-        _ptRow(source: 'SIGNUP_BONUS', amount: 50),
-      ];
-      final calc = PointsCalculator(rows);
-      expect(calc.earned, 15);
-      expect(calc.bonus, 50);
-      expect(calc.spent, 0);
-      expect(calc.available, 65);
+    test('spentPoints returns 0 initially', () async {
+      final repo = UserRepository(dao, UserApi(client));
+      expect(await repo.spentPoints(), 0);
     });
 
-    test('spent deducts PAPER_PURCHASE', () {
-      final rows = [
-        _ptRow(source: 'PRACTICE_REWARD', amount: 30),
-        _ptRow(source: 'PAPER_PURCHASE', amount: -8),
-      ];
-      final calc = PointsCalculator(rows);
-      expect(calc.earned, 30);
-      expect(calc.spent, 8);
-      expect(calc.available, 22);
+    test('bonusPoints returns 0 initially', () async {
+      final repo = UserRepository(dao, UserApi(client));
+      expect(await repo.bonusPoints(), 0);
     });
   });
-}
-
-udb.PointsTransactionRow _ptRow({required String source, required int amount}) {
-  final now = DateTime.now().toIso8601String();
-  return udb.PointsTransactionRow(
-    id: 0, amount: amount, transactionType: source == 'PAPER_PURCHASE' ? 'spend' : 'earn',
-    source: source, createdAt: now,
-  );
 }

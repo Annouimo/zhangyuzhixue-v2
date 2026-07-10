@@ -332,7 +332,7 @@ class ExamRepository {
   }
 
   Future<PoolStats> getPoolStats(SearchFilters filters) async {
-    final engine = ExamFilterEngine(_questionDao);
+    final engine = _ExamFilterEngine(_questionDao);
     return engine.compute(filters);
   }
 
@@ -351,9 +351,9 @@ class ExamRepository {
 // ⚠️ 极简 v1 方案，仅做贪心初始化，无交换优化。
 
 /// 筛选池统计引擎
-class ExamFilterEngine {
+class _ExamFilterEngine {
   final QuestionDao _dao;
-  const ExamFilterEngine(this._dao);
+  const _ExamFilterEngine(this._dao);
 
   Future<PoolStats> compute(SearchFilters filters) async {
     final pool = await _dao.search(

@@ -123,10 +123,9 @@ void main() {
     });
   });
 
-  group('ExamFilterEngine', () {
+  group('_ExamFilterEngine', () {
     test('empty pool returns zeros', () async {
-      final engine = ExamFilterEngine(qDao);
-      final stats = await engine.compute(const SearchFilters(
+      final stats = await repo.getPoolStats(const SearchFilters(
         name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
         targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
       ));
@@ -149,8 +148,7 @@ void main() {
         number: const Value('2'), questionType: const Value('fill'),
         stem: const Value('f1'), difficulty: const Value(5.0),
       ));
-      final engine = ExamFilterEngine(qDao);
-      final stats = await engine.compute(const SearchFilters(
+      final stats = await repo.getPoolStats(const SearchFilters(
         name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
         targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
       ));

@@ -127,7 +127,7 @@ class UserRepository {
   // ── 积分 ──
   Future<List<PointsRecord>> getPointsHistory() async {
     final rows = await _dao.getPointsHistory();
-    final calc = PointsCalculator(rows);
+    final calc = _PointsCalculator(rows);
     return rows.map((r) => PointsRecord(
       time: r.createdAt,
       type: r.source,
@@ -198,9 +198,9 @@ class UserRepository {
 }
 
 // ── 积分计算引擎 ──
-class PointsCalculator {
+class _PointsCalculator {
   final List<db.PointsTransactionRow> _rows;
-  PointsCalculator(this._rows);
+  _PointsCalculator(this._rows);
 
   int get earned {
     var total = 0;
