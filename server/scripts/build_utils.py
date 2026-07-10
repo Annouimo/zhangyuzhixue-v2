@@ -214,7 +214,7 @@ def write_chapters(conn, schema):
             idx = int(doc['chapter'])
         except (ValueError, TypeError):
             idx = len(seen)
-        rows.append({'course_id': doc['course_id'], 'index': idx, 'title': doc['title']})
+        rows.append({'course_id': doc['course_id'], 'sort_order': idx, 'title': doc['title']})
 
     if not rows:
         return
@@ -235,7 +235,7 @@ def write_lecture_content(conn, schema, chapters):
     # 构建 chapter_id 查找表: (course_id, chapter) → pk
     ch_map = {}
     for i, ch in enumerate(chapters):
-        ch_map[(ch['course_id'], ch['index'])] = i + 1
+        ch_map[(ch['course_id'], ch['sort_order'])] = i + 1
 
     rows = []
     for doc in Document.objects.all().order_by('course_id', 'chapter').iterator():
@@ -332,9 +332,14 @@ def build_database(schema, db_type, version_info, test_mode=False):
         return output_path
 
     except Exception:
+        conn.close()
         if os.path.exists(db_path):
             os.unlink(db_path)
         raise
     finally:
+        conn.close()
         if os.path.exists(db_path):
-            os.unlink(db_path)
+            try:
+                os.unlink(db_path)
+            except PermissionError:
+                pass

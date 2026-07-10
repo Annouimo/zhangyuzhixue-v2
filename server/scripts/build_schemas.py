@@ -19,7 +19,7 @@ ASSETS_TABLES = {
             ('images', 'TEXT'),          # JSON list
             ('default_score', 'REAL'),
         ],
-        'source_model': 'BaseQuestion',
+        'source_model': 'qbank.BaseQuestion',
         'transform': 'direct',
     },
 
@@ -29,7 +29,7 @@ ASSETS_TABLES = {
             ('question_id', 'INTEGER NOT NULL UNIQUE'),
             ('options', 'TEXT NOT NULL'),  # JSON
         ],
-        'source_model': 'ChoiceExt',
+        'source_model': 'qbank.ChoiceExt',
         'transform': 'direct',
     },
 
@@ -42,7 +42,7 @@ ASSETS_TABLES = {
             ('answer', 'TEXT'),
             ('sort_order', 'INTEGER NOT NULL'),
         ],
-        'source_model': 'SubQuestion',
+        'source_model': 'qbank.SubQuestion',
         'transform': 'direct',
     },
 
@@ -54,7 +54,7 @@ ASSETS_TABLES = {
             ('source', 'TEXT'),
             ('sort_order', 'INTEGER NOT NULL'),
         ],
-        'source_model': 'SolutionMethod',
+        'source_model': 'qbank.SolutionMethod',
         'transform': 'direct',
     },
 
@@ -67,7 +67,7 @@ ASSETS_TABLES = {
             ('content', 'TEXT NOT NULL'),
             ('card_titles', 'TEXT'),      # JSON list
         ],
-        'source_model': 'SolutionStep',
+        'source_model': 'qbank.SolutionStep',
         'transform': 'direct',
     },
 
@@ -77,7 +77,7 @@ ASSETS_TABLES = {
             ('name', 'TEXT NOT NULL UNIQUE'),
             ('parent_id', 'INTEGER'),
         ],
-        'source_model': 'ConceptTag',
+        'source_model': 'qbank.ConceptTag',
         'transform': 'direct',
     },
 
@@ -87,7 +87,7 @@ ASSETS_TABLES = {
             ('title', 'TEXT NOT NULL'),
             ('content', 'TEXT NOT NULL'),
         ],
-        'source_model': 'KnowledgeCard',
+        'source_model': 'qbank.KnowledgeCard',
         'transform': 'direct',
     },
 
@@ -98,7 +98,7 @@ ASSETS_TABLES = {
             ('question_id', 'INTEGER NOT NULL'),
             ('concept_tag_id', 'INTEGER NOT NULL'),
         ],
-        'source': 'm2m:BaseQuestion.concept_tags',
+        'source': 'm2m:qbank.BaseQuestion.concept_tags',
     },
 
     'question_knowledge_card': {
@@ -116,7 +116,7 @@ ASSETS_TABLES = {
             ('name', 'TEXT NOT NULL'),
             ('description', 'TEXT'),
         ],
-        'source_model': 'Course',
+        'source_model': 'courses.Course',
         'transform': 'direct',
     },
 
@@ -127,7 +127,7 @@ ASSETS_TABLES = {
             ('description', 'TEXT'),
             ('course_id', 'INTEGER'),
         ],
-        'source_model': 'Assignment',
+        'source_model': 'courses.Assignment',
         'transform': 'direct',
     },
 
@@ -138,7 +138,7 @@ ASSETS_TABLES = {
             ('question_id', 'INTEGER NOT NULL'),
             ('sort_order', 'INTEGER NOT NULL'),
         ],
-        'source_model': 'AssignmentQuestion',
+        'source_model': 'courses.AssignmentQuestion',
         'transform': 'direct',
     },
 
@@ -156,7 +156,7 @@ ASSETS_TABLES = {
             ('trigger_type', 'TEXT'),
             ('threshold', 'INTEGER'),
         ],
-        'source_model': 'AchievementDef',
+        'source_model': 'system.AchievementDef',
         'transform': 'direct',
     },
 
@@ -167,7 +167,7 @@ ASSETS_TABLES = {
             ('title', 'TEXT NOT NULL'),
             ('icon_emoji', 'TEXT'),
         ],
-        'source_model': 'LevelConfig',
+        'source_model': 'system.LevelConfig',
         'transform': 'direct',
     },
 }
@@ -179,7 +179,7 @@ LECTURE_TABLES = {
             ('name', 'TEXT NOT NULL'),
             ('description', 'TEXT'),
         ],
-        'source_model': 'Course',
+        'source_model': 'courses.Course',
         'transform': 'direct',
     },
 
@@ -187,7 +187,7 @@ LECTURE_TABLES = {
         'columns': [
             ('id', 'INTEGER PRIMARY KEY AUTOINCREMENT'),
             ('course_id', 'INTEGER NOT NULL'),
-            ('index', 'INTEGER NOT NULL'),
+            ('sort_order', 'INTEGER NOT NULL'),
             ('title', 'TEXT NOT NULL'),
         ],
         'source': 'generate:from_document_chapter',
@@ -201,7 +201,7 @@ LECTURE_TABLES = {
             ('md_content', 'TEXT NOT NULL'),
             ('updated_at', 'TEXT'),
         ],
-        'source_model': 'Document',
+        'source_model': 'courses.Document',
         'transform': 'lecture_transform',
     },
 
@@ -212,7 +212,7 @@ LECTURE_TABLES = {
             ('description', 'TEXT'),
             ('course_id', 'INTEGER'),
         ],
-        'source_model': 'Assignment',
+        'source_model': 'courses.Assignment',
         'transform': 'direct',
     },
 
@@ -223,7 +223,7 @@ LECTURE_TABLES = {
             ('question_id', 'INTEGER NOT NULL'),
             ('sort_order', 'INTEGER NOT NULL'),
         ],
-        'source_model': 'AssignmentQuestion',
+        'source_model': 'courses.AssignmentQuestion',
         'transform': 'direct',
     },
 }
