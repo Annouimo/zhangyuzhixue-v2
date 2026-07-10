@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业列表 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <!-- 顶栏 -->
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html" class="active">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <div class="avatar" data-db="user.name">张</div>
+        <span class="username" data-db="user.name">张老师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 作业统计卡片 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" data-db="stats.totalAssignments">12</div>
+        <div class="stat-label">总发布作业</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--warning);" data-db="stats.activeAssignments">5</div>
+        <div class="stat-label">进行中</div>
+        <div class="stat-sub">未到截止日期</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--success);" data-db="stats.avgCompletionRate">76%</div>
+        <div class="stat-label">平均完成率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:#8B5CF6;" data-db="stats.avgAccuracy">68%</div>
+        <div class="stat-label">平均正确率</div>
+      </div>
+    </div>
+
+    <!-- 页面标题 + 发布按钮 -->
+    <div class="page-header">
+      <h1>已发布作业</h1>
+      <div class="page-actions">
+        <a href="publish.html" class="btn btn-primary">+ 发布作业</a>
+      </div>
+    </div>
+
+    <!-- 作业列表 -->
+    <div data-db-loop="teacher.assignments" data-db-empty="暂无已发布的作业">
+      <!-- 作业 1 -->
+      <a href="detail.html?id=1" class="assign-item">
+        <div class="left">
+          <div class="title" data-db="teacher.assignments[].title">导数基础练习</div>
+          <div class="meta">
+            <span>📚 <span data-db="teacher.assignments[].className">高三(1)班</span></span>
+            <span>⏰ 截止 <span data-db="teacher.assignments[].deadline">2026-07-15</span></span>
+            <span>📄 <span data-db="teacher.assignments[].questionCount">8</span> 题</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="progress-bar mb-2">
+            <span data-db="teacher.assignments[].doneCount">18</span>/<span data-db="teacher.assignments[].totalCount">32</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:56%"></div>
+            </div>
+            <span data-db="teacher.assignments[].completionRate">56%</span>
+          </div>
+          <span class="status-tag in-progress" data-db="teacher.assignments[].status">进行中</span>
+        </div>
+      </a>
+
+      <!-- 作业 2 -->
+      <a href="detail.html?id=2" class="assign-item">
+        <div class="left">
+          <div class="title" data-db="teacher.assignments[].title">集合 · 函数专题</div>
+          <div class="meta">
+            <span>📚 <span data-db="teacher.assignments[].className">高三(1)班, 高三(2)班</span></span>
+            <span>⏰ 截止 <span data-db="teacher.assignments[].deadline">2026-07-12</span></span>
+            <span>📄 <span data-db="teacher.assignments[].questionCount">12</span> 题</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="progress-bar mb-2">
+            <span data-db="teacher.assignments[].doneCount">40</span>/<span data-db="teacher.assignments[].totalCount">48</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:83%"></div>
+            </div>
+            <span data-db="teacher.assignments[].completionRate">83%</span>
+          </div>
+          <span class="status-tag in-progress">进行中</span>
+        </div>
+      </a>
+
+      <!-- 作业 3 — 已截止 -->
+      <a href="detail.html?id=3" class="assign-item">
+        <div class="left">
+          <div class="title" data-db="teacher.assignments[].title">数列综合测试</div>
+          <div class="meta">
+            <span>📚 <span data-db="teacher.assignments[].className">高三(1)班</span></span>
+            <span>⏰ 截止 <span data-db="teacher.assignments[].deadline">2026-07-05</span></span>
+            <span>📄 <span data-db="teacher.assignments[].questionCount">10</span> 题</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="progress-bar mb-2">
+            <span data-db="teacher.assignments[].doneCount">28</span>/<span data-db="teacher.assignments[].totalCount">30</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:93%"></div>
+            </div>
+            <span data-db="teacher.assignments[].completionRate">93%</span>
+          </div>
+          <span class="status-tag done">已截止</span>
+        </div>
+      </a>
+
+      <!-- 作业 4 -->
+      <a href="detail.html?id=4" class="assign-item">
+        <div class="left">
+          <div class="title" data-db="teacher.assignments[].title">三角函数每日一练</div>
+          <div class="meta">
+            <span>📚 <span data-db="teacher.assignments[].className">高三(2)班</span></span>
+            <span>⏰ 截止 <span data-db="teacher.assignments[].deadline">2026-07-18</span></span>
+            <span>📄 <span data-db="teacher.assignments[].questionCount">6</span> 题</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="progress-bar mb-2">
+            <span data-db="teacher.assignments[].doneCount">6</span>/<span data-db="teacher.assignments[].totalCount">30</span>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:20%"></div>
+            </div>
+            <span data-db="teacher.assignments[].completionRate">20%</span>
+          </div>
+          <span class="status-tag in-progress">进行中</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

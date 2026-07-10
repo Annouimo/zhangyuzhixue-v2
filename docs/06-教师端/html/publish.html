@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布作业 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <div class="avatar">张</div>
+        <span class="username">张老师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <a href="index.html" class="btn btn-ghost" style="text-decoration:none;">← 返回</a>
+      <h1>发布作业</h1>
+      <div></div>
+    </div>
+
+    <!-- 步骤指示器 -->
+    <div class="steps-indicator">
+      <div class="step-dot active" id="step1-indicator">
+        <div class="circle">1</div>
+        <span class="label">选择组卷</span>
+      </div>
+      <div class="step-connector" id="connector1"></div>
+      <div class="step-dot" id="step2-indicator">
+        <div class="circle">2</div>
+        <span class="label">设置信息</span>
+      </div>
+      <div class="step-connector" id="connector2"></div>
+      <div class="step-dot" id="step3-indicator">
+        <div class="circle">3</div>
+        <span class="label">确认发布</span>
+      </div>
+    </div>
+
+    <!-- 步骤 1：选择组卷 -->
+    <div class="step-body active" id="step1">
+      <div class="card">
+        <div class="card-title">选择要发布的组卷</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+          请在学生 App 中先创建组卷（自动同步到服务端），然后在此选择发布。
+        </p>
+
+        <!-- 搜索 -->
+        <div class="search-box">
+          <input type="text" placeholder="搜索组卷名称..." data-db-bind="publish.searchQuery">
+        </div>
+
+        <!-- 组卷列表 -->
+        <div data-db-loop="teacher.papers">
+          <div class="paper-card" onclick="selectPaper(this, 1)">
+            <div class="radio"></div>
+            <div class="info">
+              <div class="name" data-db="teacher.papers[].name">导数基础练习</div>
+              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-08</div>
+            </div>
+            <div class="count"><span data-db="teacher.papers[].questionCount">8</span> 题</div>
+          </div>
+
+          <div class="paper-card" onclick="selectPaper(this, 2)">
+            <div class="radio"></div>
+            <div class="info">
+              <div class="name" data-db="teacher.papers[].name">集合 · 函数综合</div>
+              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-06</div>
+            </div>
+            <div class="count"><span data-db="teacher.papers[].questionCount">12</span> 题</div>
+          </div>
+
+          <div class="paper-card" onclick="selectPaper(this, 3)">
+            <div class="radio"></div>
+            <div class="info">
+              <div class="name" data-db="teacher.papers[].name">数列专题 — 选择+填空</div>
+              <div class="desc" data-db="teacher.papers[].createdAt">创建于 2026-07-03</div>
+            </div>
+            <div class="count"><span data-db="teacher.papers[].questionCount">10</span> 题</div>
+          </div>
+        </div>
+
+        <div style="text-align:right;margin-top:16px;">
+          <button class="btn btn-primary" onclick="goStep(2)">下一步：设置信息</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步骤 2：设置信息 -->
+    <div class="step-body" id="step2">
+      <div class="card">
+        <div class="card-title">作业信息</div>
+
+        <div class="input-group">
+          <label for="assign-title">作业标题</label>
+          <input type="text" id="assign-title" placeholder="默认使用组卷名" data-db-bind="publish.title">
+        </div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label for="assign-deadline">截止日期</label>
+            <input type="date" id="assign-deadline" value="2026-07-20" data-db-bind="publish.deadline">
+          </div>
+          <div class="input-group">
+            <label for="assign-desc">作业说明（可选）</label>
+            <input type="text" id="assign-desc" placeholder="如：请独立完成，注意步骤规范" data-db-bind="publish.description">
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <div class="card-title">选择目标班级</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+            <label>
+              <input type="checkbox" id="select-all-classes" onchange="toggleAllClasses(this)" checked style="accent-color:var(--primary);">
+              全选
+            </label>
+          </div>
+
+          <div data-db-loop="teacher.classes">
+            <div class="class-checkbox-row checked" onclick="toggleClass(this)">
+              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <span class="class-name" data-db="teacher.classes[].name">高三(1)班</span>
+              <span class="class-count"><span data-db="teacher.classes[].studentCount">32</span> 人</span>
+            </div>
+            <div class="class-checkbox-row checked" onclick="toggleClass(this)">
+              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <span class="class-name" data-db="teacher.classes[].name">高三(2)班</span>
+              <span class="class-count"><span data-db="teacher.classes[].studentCount">30</span> 人</span>
+            </div>
+            <div class="class-checkbox-row checked" onclick="toggleClass(this)">
+              <input type="checkbox" checked data-db-bind="publish.classIds[]">
+              <span class="class-name" data-db="teacher.classes[].name">高三(3)班</span>
+              <span class="class-count"><span data-db="teacher.classes[].studentCount">28</span> 人</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px;">
+          <button class="btn btn-ghost" onclick="goStep(1)">← 上一步</button>
+          <button class="btn btn-primary" onclick="goStep(3)">下一步：确认发布</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步骤 3：确认发布 -->
+    <div class="step-body" id="step3">
+      <div class="card">
+        <div class="card-title">确认作业信息</div>
+
+        <table class="data-table">
+          <tr>
+            <td style="color:var(--text-secondary);width:100px;">组卷</td>
+            <td data-db="publish.confirm.paperName"><strong>导数基础练习</strong>（8 题）</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">标题</td>
+            <td data-db="publish.confirm.title">导数基础练习</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">截止</td>
+            <td data-db="publish.confirm.deadline">2026-07-20</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">说明</td>
+            <td data-db="publish.confirm.description"><span style="color:var(--text-muted);">（无）</span></td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">发布到</td>
+            <td data-db="publish.confirm.classes">高三(1)班（32人）、高三(2)班（30人）、高三(3)班（28人）</td>
+          </tr>
+          <tr>
+            <td style="color:var(--text-secondary);">覆盖学生</td>
+            <td data-db="publish.confirm.totalStudents"><strong>90</strong> 人</td>
+          </tr>
+        </table>
+
+        <div style="display:flex;justify-content:space-between;margin-top:20px;">
+          <button class="btn btn-ghost" onclick="goStep(2)">← 上一步</button>
+          <button class="btn btn-primary btn-lg" data-db-action="publish.submit()" onclick="publishSuccess()">确认发布</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发布成功结果页（初始隐藏） -->
+    <div class="card" id="publish-result" style="display:none;">
+      <div class="result-card">
+        <div class="icon">✅</div>
+        <h2>作业已发布</h2>
+        <p>作业「导数基础练习」已成功发布到 3 个班级，共 90 名学生。</p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <a href="index.html" class="btn btn-primary">返回作业列表</a>
+          <a href="detail.html?id=new" class="btn btn-outline">查看详情</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toast-container">
+    <div class="toast-bar" id="toast-bar">
+      <span class="toast-icon" id="toast-icon">✅</span>
+      <span class="toast-msg" id="toast-msg">操作成功</span>
+      <button class="toast-close" onclick="closeToast()">✕</button>
+    </div>
+  </div>
+
+  <script>
+    /* ---- 步骤切换 ---- */
+    var currentStep = 1;
+    function goStep(n) {
+      if (n === 2 && currentStep === 1) {
+        // 检查是否已选组卷
+        if (!document.querySelector('.paper-card.selected')) {
+          showToast('⚠️', '请先选择一个组卷');
+          return;
+        }
+      }
+      document.querySelectorAll('.step-body').forEach(function(el) { el.classList.remove('active'); });
+      document.getElementById('step' + n).classList.add('active');
+      document.querySelectorAll('.step-dot').forEach(function(el) { el.classList.remove('active', 'done'); });
+      document.querySelectorAll('.step-connector').forEach(function(el) { el.classList.remove('done'); });
+
+      for (var i = 1; i < n; i++) {
+        document.getElementById('step' + i + '-indicator').classList.add('done');
+        document.getElementById('connector' + i).classList.add('done');
+      }
+      document.getElementById('step' + n + '-indicator').classList.add('active');
+      currentStep = n;
+    }
+
+    /* ---- 选组卷 ---- */
+    function selectPaper(el, id) {
+      document.querySelectorAll('.paper-card').forEach(function(p) { p.classList.remove('selected'); });
+      el.classList.add('selected');
+    }
+
+    /* ---- 班级勾选 ---- */
+    function toggleClass(row) {
+      var cb = row.querySelector('input[type="checkbox"]');
+      cb.checked = !cb.checked;
+      row.classList.toggle('checked', cb.checked);
+    }
+    function toggleAllClasses(master) {
+      document.querySelectorAll('.class-checkbox-row').forEach(function(row) {
+        var cb = row.querySelector('input[type="checkbox"]');
+        cb.checked = master.checked;
+        row.classList.toggle('checked', master.checked);
+      });
+    }
+
+    /* ---- 发布成功 ---- */
+    function publishSuccess() {
+      document.getElementById('publish-result').style.display = 'block';
+      document.getElementById('step3').style.display = 'none';
+      showToast('✅', '作业发布成功！');
+    }
+
+    /* ---- Toast ---- */
+    var _toastTimer = null;
+    function showToast(icon, msg, duration) {
+      var bar = document.getElementById('toast-bar');
+      document.getElementById('toast-icon').textContent = icon;
+      document.getElementById('toast-msg').textContent = msg;
+      bar.classList.add('show');
+      if (duration === undefined) duration = 3000;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function() { bar.classList.remove('show'); }, duration);
+    }
+    function closeToast() {
+      document.getElementById('toast-bar').classList.remove('show');
+      if (_toastTimer) clearTimeout(_toastTimer);
+    }
+  </script>
+</body>
+</html>
