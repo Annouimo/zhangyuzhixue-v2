@@ -179,6 +179,7 @@ class SyncQueue extends Table {
   TextColumn get entityType => text()();
   TextColumn get operationType => text()();
   IntColumn get entityId => integer()();
+  IntColumn? get serverId => integer().nullable()();
   TextColumn get payload => text()();
   TextColumn get status =>
       text().withDefault(const Constant('pending'))();

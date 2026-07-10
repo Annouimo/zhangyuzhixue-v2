@@ -20,22 +20,19 @@ class SyncPusher {
 
   SyncPusher(this._dao, this._api);
 
-  /// 推送所有待同步数据，逐批处理
+  /// 推送所有待同步数据，逐批处理，逐条处理 server_ids
   Future<PushSummary> pushAll() async {
     var success = 0;
     var fail = 0;
 
     while (true) {
-      // 1. 取一批
       final batch = await _dao.getPending(limit: batchSize);
       if (batch.isEmpty) break;
 
-      // 2. 标记 inProgress
       for (final entry in batch) {
         await _dao.markInProgress(entry.id);
       }
 
-      // 3. 发送到服务器
       final items = batch.map((e) => {
         'entity_type': e.entityType,
         'operation': e.operationType,
@@ -44,28 +41,27 @@ class SyncPusher {
       }).toList();
 
       try {
-        await _api.pushBatch(items);
-
-        // 4. 逐条标记成功
+        final result = await _api.pushBatch(items);
+        // 逐条查 server_ids 映射：有的→成功，没有的→失败
         for (final entry in batch) {
-          await _dao.markSuccess(entry.id);
-          success++;
+          final sid = result.serverIds[entry.entityId];
+          await _dao.markSuccess(entry.id, serverId: sid);
+          if (sid != null) {
+            success++;
+          } else {
+            fail++;
+          }
         }
       } catch (_) {
-        // 网络错误：全部标记失败
         for (final entry in batch) {
           await _dao.markFailed(entry.id);
           fail++;
         }
-        // 网络失败时停止后续批次
         break;
       }
     }
 
-    // 5. 标记永久失败
     await _dao.markPermanentFailures(maxRetries);
-
-    // 6. 清理
     await _dao.cleanup();
 
     return PushSummary(successCount: success, failCount: fail);

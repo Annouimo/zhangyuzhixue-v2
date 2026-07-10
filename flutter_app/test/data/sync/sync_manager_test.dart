@@ -7,6 +7,8 @@ import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/data/sync/sync_types.dart';
 
+import 'package:flutter_app/data/database/database_provider.dart';
+
 /// 所有测试共享同一个内存 DB，避免单例重新 init 问题
 void main() {
   late db.AppDatabase database;
@@ -17,7 +19,7 @@ void main() {
     database = db.AppDatabase(NativeDatabase.memory());
     dao = SyncQueueDao(database);
     manager = SyncManager();
-    await manager.init(dao, SyncApi(ApiClient()));
+    await manager.init(dao, SyncApi(ApiClient()), DatabaseProvider());
   });
 
   tearDown(() {

@@ -49,10 +49,13 @@ void main() {
       expect(pending.first.status, 'inProgress');
     });
 
-    test('markSuccess deletes record', () async {
+    test('markSuccess sets status to done', () async {
       final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
-      await dao.markSuccess(id);
-      expect(await dao.isEmpty(), true);
+      await dao.markSuccess(id, serverId: 101);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.length, 1);
+      expect(rows.first.status, 'done');
+      expect(rows.first.serverId, 101);
     });
 
     test('markFailed sets status to failed and increments retry_count', () async {

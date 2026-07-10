@@ -5888,6 +5888,17 @@ class $SyncQueueTable extends SyncQueue
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<int> serverId = GeneratedColumn<int>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _payloadMeta = const VerificationMeta(
     'payload',
   );
@@ -5949,6 +5960,7 @@ class $SyncQueueTable extends SyncQueue
     entityType,
     operationType,
     entityId,
+    serverId,
     payload,
     status,
     retryCount,
@@ -5996,6 +6008,12 @@ class $SyncQueueTable extends SyncQueue
       );
     } else if (isInserting) {
       context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
     }
     if (data.containsKey('payload')) {
       context.handle(
@@ -6056,6 +6074,10 @@ class $SyncQueueTable extends SyncQueue
         DriftSqlType.int,
         data['${effectivePrefix}entity_id'],
       )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_id'],
+      ),
       payload: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}payload'],
@@ -6090,6 +6112,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
   final String entityType;
   final String operationType;
   final int entityId;
+  final int? serverId;
   final String payload;
   final String status;
   final int retryCount;
@@ -6100,6 +6123,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     required this.entityType,
     required this.operationType,
     required this.entityId,
+    this.serverId,
     required this.payload,
     required this.status,
     required this.retryCount,
@@ -6113,6 +6137,9 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     map['entity_type'] = Variable<String>(entityType);
     map['operation_type'] = Variable<String>(operationType);
     map['entity_id'] = Variable<int>(entityId);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<int>(serverId);
+    }
     map['payload'] = Variable<String>(payload);
     map['status'] = Variable<String>(status);
     map['retry_count'] = Variable<int>(retryCount);
@@ -6129,6 +6156,9 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       entityType: Value(entityType),
       operationType: Value(operationType),
       entityId: Value(entityId),
+      serverId: serverId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverId),
       payload: Value(payload),
       status: Value(status),
       retryCount: Value(retryCount),
@@ -6149,6 +6179,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       entityType: serializer.fromJson<String>(json['entityType']),
       operationType: serializer.fromJson<String>(json['operationType']),
       entityId: serializer.fromJson<int>(json['entityId']),
+      serverId: serializer.fromJson<int?>(json['serverId']),
       payload: serializer.fromJson<String>(json['payload']),
       status: serializer.fromJson<String>(json['status']),
       retryCount: serializer.fromJson<int>(json['retryCount']),
@@ -6164,6 +6195,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       'entityType': serializer.toJson<String>(entityType),
       'operationType': serializer.toJson<String>(operationType),
       'entityId': serializer.toJson<int>(entityId),
+      'serverId': serializer.toJson<int?>(serverId),
       'payload': serializer.toJson<String>(payload),
       'status': serializer.toJson<String>(status),
       'retryCount': serializer.toJson<int>(retryCount),
@@ -6177,6 +6209,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     String? entityType,
     String? operationType,
     int? entityId,
+    Value<int?> serverId = const Value.absent(),
     String? payload,
     String? status,
     int? retryCount,
@@ -6187,6 +6220,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     entityType: entityType ?? this.entityType,
     operationType: operationType ?? this.operationType,
     entityId: entityId ?? this.entityId,
+    serverId: serverId.present ? serverId.value : this.serverId,
     payload: payload ?? this.payload,
     status: status ?? this.status,
     retryCount: retryCount ?? this.retryCount,
@@ -6203,6 +6237,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           ? data.operationType.value
           : this.operationType,
       entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
       payload: data.payload.present ? data.payload.value : this.payload,
       status: data.status.present ? data.status.value : this.status,
       retryCount: data.retryCount.present
@@ -6220,6 +6255,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           ..write('entityType: $entityType, ')
           ..write('operationType: $operationType, ')
           ..write('entityId: $entityId, ')
+          ..write('serverId: $serverId, ')
           ..write('payload: $payload, ')
           ..write('status: $status, ')
           ..write('retryCount: $retryCount, ')
@@ -6235,6 +6271,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     entityType,
     operationType,
     entityId,
+    serverId,
     payload,
     status,
     retryCount,
@@ -6249,6 +6286,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           other.entityType == this.entityType &&
           other.operationType == this.operationType &&
           other.entityId == this.entityId &&
+          other.serverId == this.serverId &&
           other.payload == this.payload &&
           other.status == this.status &&
           other.retryCount == this.retryCount &&
@@ -6261,6 +6299,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
   final Value<String> entityType;
   final Value<String> operationType;
   final Value<int> entityId;
+  final Value<int?> serverId;
   final Value<String> payload;
   final Value<String> status;
   final Value<int> retryCount;
@@ -6271,6 +6310,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     this.entityType = const Value.absent(),
     this.operationType = const Value.absent(),
     this.entityId = const Value.absent(),
+    this.serverId = const Value.absent(),
     this.payload = const Value.absent(),
     this.status = const Value.absent(),
     this.retryCount = const Value.absent(),
@@ -6282,6 +6322,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     required String entityType,
     required String operationType,
     required int entityId,
+    this.serverId = const Value.absent(),
     required String payload,
     this.status = const Value.absent(),
     this.retryCount = const Value.absent(),
@@ -6297,6 +6338,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     Expression<String>? entityType,
     Expression<String>? operationType,
     Expression<int>? entityId,
+    Expression<int>? serverId,
     Expression<String>? payload,
     Expression<String>? status,
     Expression<int>? retryCount,
@@ -6308,6 +6350,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
       if (entityType != null) 'entity_type': entityType,
       if (operationType != null) 'operation_type': operationType,
       if (entityId != null) 'entity_id': entityId,
+      if (serverId != null) 'server_id': serverId,
       if (payload != null) 'payload': payload,
       if (status != null) 'status': status,
       if (retryCount != null) 'retry_count': retryCount,
@@ -6321,6 +6364,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     Value<String>? entityType,
     Value<String>? operationType,
     Value<int>? entityId,
+    Value<int?>? serverId,
     Value<String>? payload,
     Value<String>? status,
     Value<int>? retryCount,
@@ -6332,6 +6376,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
       entityType: entityType ?? this.entityType,
       operationType: operationType ?? this.operationType,
       entityId: entityId ?? this.entityId,
+      serverId: serverId ?? this.serverId,
       payload: payload ?? this.payload,
       status: status ?? this.status,
       retryCount: retryCount ?? this.retryCount,
@@ -6354,6 +6399,9 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     }
     if (entityId.present) {
       map['entity_id'] = Variable<int>(entityId.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<int>(serverId.value);
     }
     if (payload.present) {
       map['payload'] = Variable<String>(payload.value);
@@ -6380,6 +6428,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
           ..write('entityType: $entityType, ')
           ..write('operationType: $operationType, ')
           ..write('entityId: $entityId, ')
+          ..write('serverId: $serverId, ')
           ..write('payload: $payload, ')
           ..write('status: $status, ')
           ..write('retryCount: $retryCount, ')
@@ -9591,6 +9640,7 @@ typedef $$SyncQueueTableCreateCompanionBuilder =
       required String entityType,
       required String operationType,
       required int entityId,
+      Value<int?> serverId,
       required String payload,
       Value<String> status,
       Value<int> retryCount,
@@ -9603,6 +9653,7 @@ typedef $$SyncQueueTableUpdateCompanionBuilder =
       Value<String> entityType,
       Value<String> operationType,
       Value<int> entityId,
+      Value<int?> serverId,
       Value<String> payload,
       Value<String> status,
       Value<int> retryCount,
@@ -9636,6 +9687,11 @@ class $$SyncQueueTableFilterComposer
 
   ColumnFilters<int> get entityId => $composableBuilder(
     column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverId => $composableBuilder(
+    column: $table.serverId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9694,6 +9750,11 @@ class $$SyncQueueTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get payload => $composableBuilder(
     column: $table.payload,
     builder: (column) => ColumnOrderings(column),
@@ -9744,6 +9805,9 @@ class $$SyncQueueTableAnnotationComposer
 
   GeneratedColumn<int> get entityId =>
       $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<int> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
 
   GeneratedColumn<String> get payload =>
       $composableBuilder(column: $table.payload, builder: (column) => column);
@@ -9798,6 +9862,7 @@ class $$SyncQueueTableTableManager
                 Value<String> entityType = const Value.absent(),
                 Value<String> operationType = const Value.absent(),
                 Value<int> entityId = const Value.absent(),
+                Value<int?> serverId = const Value.absent(),
                 Value<String> payload = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
@@ -9808,6 +9873,7 @@ class $$SyncQueueTableTableManager
                 entityType: entityType,
                 operationType: operationType,
                 entityId: entityId,
+                serverId: serverId,
                 payload: payload,
                 status: status,
                 retryCount: retryCount,
@@ -9820,6 +9886,7 @@ class $$SyncQueueTableTableManager
                 required String entityType,
                 required String operationType,
                 required int entityId,
+                Value<int?> serverId = const Value.absent(),
                 required String payload,
                 Value<String> status = const Value.absent(),
                 Value<int> retryCount = const Value.absent(),
@@ -9830,6 +9897,7 @@ class $$SyncQueueTableTableManager
                 entityType: entityType,
                 operationType: operationType,
                 entityId: entityId,
+                serverId: serverId,
                 payload: payload,
                 status: status,
                 retryCount: retryCount,

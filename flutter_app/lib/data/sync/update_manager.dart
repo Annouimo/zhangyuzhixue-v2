@@ -1,18 +1,128 @@
-// 版本检查 + .db 下载 + 替换（预留）
+import 'dart:io';
+import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import '../api/sync_api.dart';
+import '../database/database_provider.dart';
+import '../prefs/app_prefs.dart';
 
-/// 检查是否需要强制更新
-bool shouldForceUpdate({
-  required int localVersion,
-  required int serverVersion,
-  required bool serverForceUpdate,
-}) {
-  return serverForceUpdate || (serverVersion - localVersion >= 3);
+/// 版本检查结果
+class UpdateSummary {
+  final String type;
+  final int localVersion;
+  final int serverVersion;
+  final bool forceUpdate;
+  final String? downloadUrl;
+  final String? checksum;
+  final int? sizeBytes;
+  final String? message;
+
+  const UpdateSummary({
+    required this.type,
+    required this.localVersion,
+    required this.serverVersion,
+    required this.forceUpdate,
+    this.downloadUrl,
+    this.checksum,
+    this.sizeBytes,
+    this.message,
+  });
 }
 
-/// 判断是否显示更新横幅
-bool shouldShowBanner({
-  required int localVersion,
-  required int serverVersion,
-}) {
-  return serverVersion > localVersion;
+/// 更新管理器：版本检查 + .db.gz 下载/校验/替换
+class UpdateManager {
+  final SyncApi _syncApi;
+  final DatabaseProvider _dbProvider;
+  final Dio _downloadClient;
+
+  UpdateManager(this._syncApi, this._dbProvider)
+      : _downloadClient = Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 120),
+        ));
+
+  /// 并发检查 qbank 和 lecture 版本
+  Future<List<UpdateSummary>> checkAll() async {
+    final results = await Future.wait([
+      _checkOne('qbank'),
+      _checkOne('lecture'),
+    ]);
+    return results;
+  }
+
+  Future<UpdateSummary> _checkOne(String type) async {
+    final status = await _syncApi.checkVersion(type);
+    final localVersion = type == 'qbank'
+        ? AppPrefs().qbankVersion
+        : AppPrefs().lectureVersion;
+    return UpdateSummary(
+      type: type,
+      localVersion: localVersion,
+      serverVersion: status.dataVersion,
+      forceUpdate: shouldForceUpdate(
+        localVersion: localVersion,
+        serverVersion: status.dataVersion,
+        serverForceUpdate: status.forceUpdate,
+      ),
+      downloadUrl: status.downloadUrl,
+      checksum: status.checksum,
+      sizeBytes: status.sizeBytes,
+      message: status.message,
+    );
+  }
+
+  /// 下载 .db.gz → 解压 → checksum 校验 → 替换
+  Future<void> downloadAndReplace({
+    required String type,
+    required String url,
+    required String expectedChecksum,
+    int newVersion = 0,
+    void Function(double progress)? onProgress,
+  }) async {
+    final tempDir = await getTemporaryDirectory();
+    final gzPath = '${tempDir.path}/${type}_temp.db.gz';
+
+    await _downloadClient.download(url, gzPath,
+        onReceiveProgress: (received, total) {
+      if (total > 0 && onProgress != null) onProgress(received / total);
+    });
+
+    final gzBytes = await File(gzPath).readAsBytes();
+    final decompressed = gzip.decode(gzBytes);
+    final digest = sha256.convert(decompressed);
+
+    if (digest.toString() != expectedChecksum) {
+      await File(gzPath).delete();
+      throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
+    }
+
+    final targetPath = '${tempDir.path}/${type}_temp.db';
+    await File(targetPath).writeAsBytes(decompressed);
+
+    if (type == 'qbank') {
+      await _dbProvider.replaceAssetsDb(targetPath);
+      await AppPrefs().setQbankVersion(newVersion);
+    } else {
+      await _dbProvider.replaceLecturesDb(targetPath);
+      await AppPrefs().setLectureVersion(newVersion);
+    }
+
+    await File(gzPath).delete();
+    await File(targetPath).delete();
+  }
+
+  static bool shouldForceUpdate({
+    required int localVersion,
+    required int serverVersion,
+    required bool serverForceUpdate,
+  }) {
+    return serverForceUpdate || (serverVersion - localVersion >= 3);
+  }
+
+  static bool shouldShowBanner({
+    required int localVersion,
+    required int serverVersion,
+  }) {
+    return serverVersion > localVersion;
+  }
 }

@@ -1,7 +1,9 @@
 import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
+import '../database/database_provider.dart';
 import 'sync_types.dart';
 import 'sync_pusher.dart';
+import 'update_manager.dart';
 
 /// 同步引擎总入口（单例）
 class SyncManager {
@@ -11,17 +13,20 @@ class SyncManager {
 
   SyncQueueDao? _queueDao;
   SyncPusher? _pusher;
+  UpdateManager? _updateManager;
   bool _initialized = false;
   DateTime _lastPushTime = DateTime(2000);
 
-  Future<void> init(SyncQueueDao queueDao, SyncApi api) async {
+  Future<void> init(SyncQueueDao queueDao, SyncApi api, DatabaseProvider dbProvider) async {
     if (_initialized) return;
     _queueDao = queueDao;
     _pusher = SyncPusher(queueDao, api);
+    _updateManager = UpdateManager(api, dbProvider);
     _initialized = true;
   }
 
-  /// 入队一条待同步记录
+  UpdateManager? get updateManager => _updateManager;
+
   Future<void> enqueue({
     required SyncEntityType entityType,
     required SyncOperationType operation,
@@ -37,13 +42,12 @@ class SyncManager {
     );
   }
 
-  /// App 启动时调用：推送积压
+  /// App 启动时推送积压（版本检查由 UI 层调 UpdateManager）
   Future<void> onAppStart() async {
     _ensureInitialized();
     await pushNow();
   }
 
-  /// 手动触发推送（冷却 30 秒）
   Future<PushSummary?> pushNow() async {
     _ensureInitialized();
     final now = DateTime.now();
@@ -52,7 +56,6 @@ class SyncManager {
     return _pusher!.pushAll();
   }
 
-  /// 清空队列（登出时调用）
   Future<void> clearQueue() async {
     _ensureInitialized();
     await _queueDao!.clearAll();

@@ -1,6 +1,7 @@
 import '../data/daos/achievement_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/assets_database.dart' as assets;
+import '../data/database/app_database.dart' as user_db;
 
 /// 成就摘要
 class AchievementSummary {
@@ -84,7 +85,7 @@ class _AchievementEngine {
   final AchievementDao _dao;
   const _AchievementEngine(this._dao);
 
-  Future<AchievementItem> compute(assets.AchievementDefRow def, dynamic cached) async {
+  Future<AchievementItem> compute(assets.AchievementDefRow def, user_db.StudentAchievementRow? cached) async {
     final threshold = def.threshold ?? 1;
 
     int progress;

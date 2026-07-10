@@ -32,11 +32,11 @@
 
 ---
 
-## 一、旧版数据库探查结果
+## 旧版数据库探查结果
 
 经实际探查，旧版 `D:\Hermes\math_platform\db.sqlite3` 情况如下：
 
-### 1.1 字段名差异
+### 字段名差异
 
 | 新版模型字段 | 旧版字段名 | 差异说明 |
 |:---|:---|:---|
@@ -49,7 +49,7 @@
 | `question.default_score` | `score` | 字段名不同 |
 | (无) | `answer_text` | 旧版答案文本，迁移至 SubQuestion.answer |
 
-### 1.2 表名差异
+### 表名差异
 
 | 新版表 | 旧版对应表 | 差异 |
 |:---|:---|:---|
@@ -61,14 +61,14 @@
 | `QuestionKnowledgeCard` | **无对应表** | 从 SolutionStep.card_titles JSON 反向解析 |
 | `SolutionStep.card_titles` | `questions_questionstep.card_refs` | 旧版存为 JSON（如 `[{"name":"正弦定理","type":"定理"}]`） |
 
-### 1.3 配图
+### 配图
 
 - 路径：`D:\Hermes\math_platform\static\questions\附图\`
 - 结构：`{exam_type}/{year}/{district}/q{question_number}.{png|webp}`
 - 共 **196 个文件**（98 张图 × PNG + WebP 双格式）
 - question_text 中**没有** `<img>` 标签，图片靠路径约定关联
 
-### 1.4 行数
+### 行数
 
 | 表 | 行数 | 说明 |
 |:---|:---:|:---|
@@ -83,7 +83,7 @@
 
 ---
 
-## 二、执行方案与设计决策
+## 执行方案与设计决策
 
 ### 执行原则
 
@@ -91,7 +91,7 @@
 2. **每步备份**：生成 `server/db_step_1_2X.bak`，可随时回滚
 3. **可回滚**：每步开始前备份当前新版数据库状态
 
-### 2.1 概念标签体系 — 三级分类重构（1.2a）
+### 概念标签体系 — 三级分类重构（1.2a）
 
 旧版 tags_concepttag（112 条扁平标签）+ tags_knowledgeboard（14 个板块）+ tags_concepttagboard（119 条关联），原始数据中标签与板块是多对多关系（6 个标签跨 2~3 个板块），且题目只引用标签不引用板块。
 
@@ -116,7 +116,7 @@
 
 **结果：** ConceptTag 127 条（3 一级 + 14 二级 + 110 三级，含复用）
 
-### 2.2 题目主表 — 按试卷重排 ID（1.2b）
+### 题目主表 — 按试卷重排 ID（1.2b）
 
 旧版题目 ID 是乱的（如 id=1 是 2025 高考，id=2 是 2025 一模海淀）。
 
@@ -128,28 +128,28 @@
 
 效果：id 1–21 = 2020高考北京，id 22–42 = 2021高考北京，... id 778–798 = 2026二模海淀。
 
-### 2.3 题目-标签关联（1.2c）
+### 题目-标签关联（1.2c）
 
 通过名称交叉引用建立旧→新标签 ID 映射，2247 条全部迁移，0 丢失。
 
-### 2.4 解题步骤（1.2d）
+### 解题步骤（1.2d）
 
 旧版 questionstep 3061 条 → SubQuestion 1092 + SolutionMethod 1152 + SolutionStep 3061。
 选填题 answer_text 写入对应 SubQuestion.answer。
 
-### 2.5 选择题选项 + 配图（1.2e）
+### 选择题选项 + 配图（1.2e）
 
 **ChoiceExt：** 从 stem 末尾解析 `(A)...(B)...(C)...(D)...` 格式，提取后从 stem 中移除选项文本。
 
 **配图：** 按 `{exam}/{year}/{district}/q{number}.{ext}` 路径匹配，图片文件复制到 `server/static/questions/images/`。
 
-### 2.6 卡片关联（1.2f）
+### 卡片关联（1.2f）
 
 从 SolutionStep.card_titles 反向建立 QuestionKnowledgeCard，107 种卡片名称全部匹配。
 
 ---
 
-## 三、迁移结果统计
+## 迁移结果统计
 
 | 步骤 | 旧版 | 新版 | 状态 |
 |:---|:---|:---|:---:|
@@ -173,7 +173,7 @@
 
 ---
 
-## 四、已知问题
+## 已知问题
 
 ### 4.1 选择题选项解析失败（30 题）
 
@@ -194,7 +194,7 @@
 
 ---
 
-## 五、审核文件清单
+## 审核文件清单
 
 所有文件在 `server/migration_audit/`：
 
@@ -228,7 +228,7 @@
 
 ---
 
-## 六、备份链
+## 备份链
 
 | 文件 | 包含 |
 |:---|:---|
