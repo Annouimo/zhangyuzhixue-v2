@@ -48,6 +48,6 @@ class PreferenceDao {
       'SELECT COUNT(*) AS c FROM preference_filters',
       readsFrom: {_db.preferenceFilters},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 }

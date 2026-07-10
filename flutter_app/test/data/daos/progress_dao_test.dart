@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import '../../../lib/data/database/app_database.dart' as db;
 import '../../../lib/data/daos/progress_dao.dart';

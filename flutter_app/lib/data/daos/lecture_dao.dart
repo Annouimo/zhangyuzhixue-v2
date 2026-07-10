@@ -58,7 +58,7 @@ class LectureDao {
       'SELECT COUNT(*) AS c FROM courses',
       readsFrom: {_db.courses},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<int> chapterCount(int courseId) async {

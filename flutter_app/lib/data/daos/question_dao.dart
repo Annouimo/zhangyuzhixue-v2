@@ -73,7 +73,7 @@ class QuestionDao {
       'SELECT DISTINCT year FROM questions ORDER BY year',
       readsFrom: {_db.questions},
     ).get();
-    return rows.map((r) => r.read<int>('year')!).toList();
+    return rows.map((r) => r.read<int>('year')).toList();
   }
 
   Future<List<String>> getDistinctRegions() async {
@@ -81,7 +81,7 @@ class QuestionDao {
       'SELECT DISTINCT region FROM questions',
       readsFrom: {_db.questions},
     ).get();
-    return rows.map((r) => r.read<String>('region')!).toList();
+    return rows.map((r) => r.read<String>('region')).toList();
   }
 
   Future<int> countByType(String type) async {
@@ -90,7 +90,7 @@ class QuestionDao {
       variables: [Variable(type)],
       readsFrom: {_db.questions},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<db.ChoiceExtRow?> getChoiceExt(int questionId) async {

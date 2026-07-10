@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import '../../../lib/data/database/assets_database.dart' as db;
 import '../../../lib/data/daos/question_dao.dart';
@@ -60,9 +60,9 @@ void main() {
 
     test('getByIds returns matching questions', () async {
       final id1 = await insertQuestion();
+      await insertQuestion();
       final id2 = await insertQuestion();
-      final id3 = await insertQuestion();
-      final result = await dao.getByIds([id1, id3]);
+      final result = await dao.getByIds([id1, id2]);
       expect(result.length, 2);
     });
 

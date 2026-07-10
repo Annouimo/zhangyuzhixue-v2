@@ -11,7 +11,7 @@ class StatisticsDao {
       'SELECT COUNT(*) AS c FROM submission_details WHERE is_correct IS NOT NULL',
       readsFrom: {_db.submissionDetails},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<double> getAccuracy() async {
@@ -19,7 +19,7 @@ class StatisticsDao {
       'SELECT CASE WHEN COUNT(*) > 0 THEN CAST(SUM(is_correct) AS REAL) / COUNT(*) ELSE 0.0 END AS p FROM submission_details WHERE is_correct IS NOT NULL',
       readsFrom: {_db.submissionDetails},
     ).getSingle();
-    return row.read<double>('p') ?? 0.0;
+    return row.read<double>('p');
   }
 
   Future<List<({String date, int count, int correct})>> getDailyRecords(int days) async {
@@ -30,9 +30,9 @@ class StatisticsDao {
       readsFrom: {_db.submissionDetails},
     ).get();
     return rows.map((r) => (
-      date: r.read<String>('d')!,
-      count: r.read<int>('cnt')!,
-      correct: r.read<int>('cor')!,
+      date: r.read<String>('d'),
+      count: r.read<int>('cnt'),
+      correct: r.read<int>('cor'),
     )).toList();
   }
 
@@ -44,8 +44,8 @@ class StatisticsDao {
       readsFrom: {_db.pointsTransactions},
     ).get();
     return rows.map((r) => (
-      date: r.read<String>('d')!,
-      amount: r.read<int>('amt')!,
+      date: r.read<String>('d'),
+      amount: r.read<int>('amt'),
     )).toList();
   }
 
@@ -53,12 +53,12 @@ class StatisticsDao {
     // 通过 question_id 联表
     final rows = await _db.customSelect(
       'SELECT q.question_type AS t, COUNT(*) AS c FROM submission_details sd '
-      'LEFT JOIN ... GROUP BY t',
+      'GROUP BY t',
       readsFrom: {_db.submissionDetails},
     ).get();
     return rows.map((r) => (
-      type: r.read<String>('t')!,
-      count: r.read<int>('c')!,
+      type: r.read<String>('t'),
+      count: r.read<int>('c'),
     )).toList();
   }
 }

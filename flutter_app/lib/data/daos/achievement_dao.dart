@@ -11,7 +11,7 @@ class AchievementDao {
       'SELECT COUNT(*) AS c FROM student_achievements WHERE is_unlocked = 1',
       readsFrom: {_db.studentAchievements},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<List<db.StudentAchievementRow>> getAllProgress() async {
@@ -61,7 +61,7 @@ class AchievementDao {
     var streak = 0;
     final today = DateTime.now();
     for (var i = 0; i < rows.length; i++) {
-      final d = DateTime.parse(rows[i].read<String>('login_date')!);
+      final d = DateTime.parse(rows[i].read<String>('login_date'));
       final expected = today.subtract(Duration(days: streak));
       if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
         streak++;
@@ -77,7 +77,7 @@ class AchievementDao {
       'SELECT COUNT(*) AS c FROM submission_details',
       readsFrom: {_db.submissionDetails},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<int> getRatingCount() async {
@@ -85,6 +85,6 @@ class AchievementDao {
       'SELECT COUNT(*) AS c FROM question_ratings',
       readsFrom: {_db.questionRatings},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 }

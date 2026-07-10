@@ -52,6 +52,6 @@ class AssignmentDao {
       'SELECT COUNT(*) AS c FROM assignments',
       readsFrom: {_db.assignments},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 }

@@ -48,7 +48,7 @@ class ProgressDao {
       variables: [Variable(questionId)],
       readsFrom: {_db.submissionDetails},
     ).getSingle();
-    final attemptNumber = row.read<int>('max_n')! + 1;
+    final attemptNumber = row.read<int>('max_n') + 1;
     return _db.into(_db.submissionDetails).insert(db.SubmissionDetailsCompanion(
       submissionId: Value(submissionId),
       questionId: Value(questionId),
@@ -141,6 +141,6 @@ class ProgressDao {
       variables: [Variable(questionId)],
       readsFrom: {_db.submissionDetails},
     ).getSingle();
-    return row.read<int>('c')! > 0;
+    return row.read<int>('c') > 0;
   }
 }

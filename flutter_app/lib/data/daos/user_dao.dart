@@ -74,7 +74,7 @@ class UserDao {
       "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE source IN ('LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD')",
       readsFrom: {_db.pointsTransactions},
     ).getSingle();
-    return row.read<int>('s')!;
+    return row.read<int>('s');
   }
 
   Future<int> getBonusPoints() async {
@@ -82,7 +82,7 @@ class UserDao {
       "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE source = 'SIGNUP_BONUS'",
       readsFrom: {_db.pointsTransactions},
     ).getSingle();
-    return row.read<int>('s')!;
+    return row.read<int>('s');
   }
 
   Future<int> getSpentPoints() async {
@@ -90,7 +90,7 @@ class UserDao {
       "SELECT COALESCE(ABS(SUM(amount)), 0) AS s FROM points_transactions WHERE source = 'PAPER_PURCHASE'",
       readsFrom: {_db.pointsTransactions},
     ).getSingle();
-    return row.read<int>('s')!;
+    return row.read<int>('s');
   }
 
   Future<int> getTodayPoints() async {
@@ -98,7 +98,7 @@ class UserDao {
       "SELECT COALESCE(SUM(amount), 0) AS s FROM points_transactions WHERE DATE(created_at) = DATE('now')",
       readsFrom: {_db.pointsTransactions},
     ).getSingle();
-    return row.read<int>('s')!;
+    return row.read<int>('s');
   }
 
   // ── 签到 ──
@@ -113,7 +113,7 @@ class UserDao {
     var streak = 0;
     final today = DateTime.now();
     for (var i = 0; i < rows.length; i++) {
-      final d = DateTime.parse(rows[i].read<String>('login_date')!);
+      final d = DateTime.parse(rows[i].read<String>('login_date'));
       final expected = today.subtract(Duration(days: streak));
       if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
         streak++;

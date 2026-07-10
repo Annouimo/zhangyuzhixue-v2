@@ -71,7 +71,7 @@ class SyncQueueDao {
       "SELECT COUNT(*) AS c FROM sync_queue WHERE status = 'failed' OR status = 'permanentFailure'",
       readsFrom: {_db.syncQueue},
     ).getSingle();
-    return row.read<int>('c')!;
+    return row.read<int>('c');
   }
 
   Future<bool> isEmpty() async {
