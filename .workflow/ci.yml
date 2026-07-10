@@ -7,7 +7,7 @@ triggers:
     branches:
       prefix:
         - ''
-jobs:
+stages:
   - name: flutter-check
     displayName: flutter-check
     steps:
@@ -19,7 +19,6 @@ jobs:
         displayName: flutter test
         inputs:
           command: cd flutter_app && flutter test
-
   - name: django-check
     displayName: django-check
     steps:
