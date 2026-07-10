@@ -11,7 +11,7 @@
 |--------|------|------|------|
 | **1.1** | 5 App 的 models.py → makemigrations → migrate | 0.5 天 | ⏳ |
 | **1.2** | 🏛 题库数据迁移（旧版→新版，798 题） | 1 天 | ⏳ |
-| **1.3** | JWT 认证 API + 创建 dev 测试用户 + drf-spectacular 文档 | 0.5 天 | ⏳ |
+| **1.3** 🔧CI | JWT 认证 API + 创建 dev 测试用户 + drf-spectacular 文档 | 0.5 天 | ⏳ |
 | **1.4** | 同步 API（version check ×2 + sync push）+ 教师端服务端改动 | 1 天 | ⏳ |
 | **1.5** | 用户/组卷/点赞/收藏/统计 API | 1.5 天 | ⏳ |
 | **1.6** | 构建脚本（build_assets.py + build_lectures.py） | 1 天 | ⏳ |
@@ -20,6 +20,8 @@
 | | **合计** | **~7 天** | |
 
 ---
+
+> **🔧CI 标记说明：** 执行到该步骤时，需同步更新 CI 配置（详见 [00-落地计划.md §CI/CD](../00-落地计划.md#cicdphase-0-搭建贯穿全程)）。
 
 ## 当前状态（Phase 0 产出）
 
@@ -349,6 +351,17 @@ class IsTeacher(permissions.BasePermission):
 3. Token 刷新（含 refresh 过期）
 4. 登出
 ```
+
+### CI 更新
+
+> **⏰ 到这一步了：** 第一次写 pytest 测试，CI 的 Django job 需要加上 `pytest` 命令。
+> 修改 `.github/workflows/ci.yml`，在 Django job 中新增一步：
+> ```yaml
+>       - name: pytest
+>         working-directory: server
+>         run: pip install pytest pytest-django -q && pytest
+> ```
+> 改一次后，后续 1.4~1.8 和 Phase 5 L6 的所有服务端测试自动进 CI，无需再改。
 
 ### API 文档
 
