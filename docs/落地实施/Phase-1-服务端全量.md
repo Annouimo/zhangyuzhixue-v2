@@ -21,6 +21,7 @@
 
 ---
 
+> **⚙️ SystemConfig 标记说明：** 冷却时长、重试次数、积分奖励值、组卷价格等业务参数已抽入 `SystemConfig` 表（详见 [数据库结构设计 §5.10](../02-数据/数据库结构设计.md#510-systemconfig--系统配置-服务器)），通过 `system/config_reader.py` 读取。实现时直接调用 `get_config_int()` / `get_config_float()`，不再在代码中硬编码。
 > **🔧CI 标记说明：** 执行到该步骤时，需同步更新 CI 配置（详见 [00-落地计划.md §CI/CD](../00-落地计划.md#cicdphase-0-搭建贯穿全程)）。
 
 ## 当前状态（Phase 0 产出）
