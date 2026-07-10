@@ -29,3 +29,6 @@ flutter_app/pubspec.lock
 .vscode/
 *~
 *.swp
+
+# Archive
+docs/_archive/
