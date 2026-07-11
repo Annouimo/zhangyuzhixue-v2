@@ -18,7 +18,7 @@
 
 ### 前置条件
 
-- [ ] Phase 3 UI 全部完成并验收通过（教师 UAT 签收）
+- [x] Phase 3 UI 代码已完成（验收在 Phase 5 进行）
 - [ ] 以下 Repository 已在 Phase 2.4 就绪：
   - `AchievementRepository`（含 `_AchievementEngine`）
   - `UserRepository`（含 `_PointsCalculator`）
