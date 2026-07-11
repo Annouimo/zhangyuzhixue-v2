@@ -35,8 +35,8 @@ class TestAssetsTables:
             assert pks, f'{name} 缺少 PRIMARY KEY'
 
     def test_all_tables_14(self):
-        """assets.db 应有 14 个表"""
-        assert len(ASSETS_TABLES) == 14
+        """assets.db 应有 15 个表"""
+        assert len(ASSETS_TABLES) == 15
 
     def test_each_table_has_valid_transform(self):
         """每个表必须有 transform 或 source"""

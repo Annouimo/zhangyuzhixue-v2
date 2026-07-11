@@ -87,6 +87,16 @@ class TestAvatarUpload:
         assert resp.status_code == 400
         assert resp.data['code'] == 40201
 
+    def test_avatar_too_large(self, auth_client):
+        """超过 2MB 的图片上传返回 400"""
+        large_file = io.BytesIO(b'x' * (2 * 1024 * 1024 + 1))
+        large_file.name = 'large.png'
+        resp = auth_client.post(reverse('user-avatar'), {
+            'avatar': large_file,
+        }, format='multipart')
+        assert resp.status_code == 400
+        assert resp.data['code'] == 40201
+
 
 class TestLevelPercentile:
     """等级百分位 API 测试"""

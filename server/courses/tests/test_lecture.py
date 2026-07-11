@@ -97,3 +97,14 @@ class TestLectureContent:
             reverse('lecture-content', args=[99999])
         )
         assert resp.status_code == 404
+
+    def test_content_empty(self, auth_client, sample_course):
+        """存在的讲义但内容为空：正常返回空字符串"""
+        doc = Document.objects.create(
+            course=sample_course, chapter='99', title='空内容', md_content='',
+        )
+        resp = auth_client.get(
+            reverse('lecture-content', args=[doc.id])
+        )
+        assert resp.status_code == 200
+        assert resp.data['data']['md_content'] == ''

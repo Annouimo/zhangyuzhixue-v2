@@ -382,3 +382,22 @@ class TestSyncMixedBatch:
         assert CardFeedback.objects.count() == 1
         assert QuestionRating.objects.count() == 1
         assert CustomPaper.objects.count() == 1
+
+
+class TestSyncEdgeCases:
+
+    def test_empty_batch(self, auth_client):
+        """空 batch：拒绝处理"""
+        resp = auth_client.post(reverse('sync-push'), {
+            'batch': [],
+        }, format='json')
+        assert resp.status_code == 400
+        assert resp.data['code'] == 40301
+
+    def test_invalid_entity_type(self, auth_client):
+        """不支持的 entity_type：返回 400"""
+        resp = auth_client.post(reverse('sync-push'), {
+            'batch': [{'entity_type': 'unknown_type', 'local_id': 1, 'data': {}}],
+        }, format='json')
+        assert resp.status_code == 400
+        assert resp.data['code'] == 40301
