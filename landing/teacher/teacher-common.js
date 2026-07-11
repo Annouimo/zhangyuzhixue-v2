@@ -1,6 +1,6 @@
 /* =============================================
    章鱼智学 · 教师端 — 通用 JS
-   JWT 认证 / API 封装 / 路由守卫
+   JWT 认证 / API 封装 / 路由守卫 / 教师 API
    ============================================= */
 
 // ── JWT 管理 ──
@@ -38,9 +38,9 @@ async function apiCall(path, options = {}) {
     },
   });
   const body = await resp.json();
-  if (body.code === 40002) {  // token 过期
+  if (body.code === 40002) {
     const refreshed = await tryRefresh();
-    if (refreshed) return apiCall(path, options); // 重试
+    if (refreshed) return apiCall(path, options);
     clearAuth();
   }
   if (body.code !== 0) throw new Error(body.message);
@@ -71,7 +71,17 @@ function requireAuth() {
   if (!getToken()) window.location.href = '/teacher/login.html';
 }
 
-// ── 错误显示 ──
+// ── 页面通用初始化 ──
+function initPage() {
+  requireAuth();
+  const user = getCachedUser();
+  if (user) {
+    const el = document.getElementById('header-username');
+    if (el) el.textContent = user.real_name || user.username;
+  }
+}
+
+// ── 错误/加载显示 ──
 function showError(msg) {
   const el = document.getElementById('error-msg');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -81,5 +91,105 @@ function hideError() {
   if (el) el.style.display = 'none';
 }
 
+function showLoading(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'block';
+}
+function hideLoading(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
 // ── 登出 ──
 function handleLogout() { clearAuth(); }
+
+// ── 教师 API 函数 ────────────────────────────────────────────
+
+/** 加载作业列表 + 统计汇总 */
+async function loadAssignments() {
+  const data = await apiCall('/teacher/assignments/');
+  const items = data.items || [];
+  // 统计卡片
+  setText('stat-total', data.totalAssignments ?? 0);
+  setText('stat-active', data.activeAssignments ?? 0);
+  setText('stat-rate', data.avgCompletionRate ?? '0%');
+  setText('stat-acc', data.avgAccuracy ?? '0%');
+  // 渲染列表
+  const container = document.getElementById('assign-list');
+  if (!container) return;
+  if (items.length === 0) {
+    container.innerHTML = '<div class="text-center" style="padding:40px;color:var(--text-muted);font-size:14px;">暂无已发布的作业</div>';
+    return;
+  }
+  container.innerHTML = items.map(a => `
+    <a href="detail.html?id=${a.id}" class="assign-item">
+      <div class="left">
+        <div class="title">${esc(a.title)}</div>
+        <div class="meta">
+          <span>📚 ${esc(a.className)}</span>
+          <span>⏰ 截止 ${esc(a.deadline)}</span>
+        </div>
+      </div>
+      <div class="right">
+        <div class="progress-bar">
+          ${esc(a.completedCount)}/${esc(a.totalStudents)}
+          <div class="progress-track"><div class="progress-fill" style="width:${a.totalStudents > 0 ? Math.round(a.completedCount / a.totalStudents * 100) : 0}%"></div></div>
+          ${esc(a.completionRate)}
+        </div>
+      </div>
+    </a>`).join('');
+}
+
+/** 加载组卷列表 */
+async function loadPapers() {
+  const data = await apiCall('/teacher/papers/');
+  renderList('paper-list', data, p => `
+    <div class="paper-card" data-paper-id="${p.id}" onclick="selectPaper(this)">
+      <div class="radio"></div>
+      <div class="info">
+        <div class="name">${esc(p.title)}</div>
+        <div class="desc">${p.questionCount} 题 · ${fmtDate(p.createdAt)}</div>
+      </div>
+    </div>`);
+  if (data.length === 0) {
+    document.getElementById('paper-list').innerHTML =
+      '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无组卷，请在学生 App 中创建</div>';
+  }
+}
+
+/** 加载班级列表 */
+async function loadClasses() {
+  const data = await apiCall('/teacher/classes/');
+  const items = data.items || [];
+  const container = document.getElementById('class-list');
+  if (!container) return;
+  if (items.length === 0) {
+    container.innerHTML = '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
+    return;
+  }
+  container.innerHTML = items.map(c => `
+    <label class="class-checkbox-row" onclick="toggleClass(this)">
+      <input type="checkbox" value="${esc(c.name)}" data-class-id="${esc(c.name)}">
+      <span class="class-name">${esc(c.name)}</span>
+      <span class="class-count">${c.studentCount ?? 0} 人</span>
+    </label>`).join('');
+}
+
+// ── UI 工具 ──────────────────────────────────────────────────
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return iso.slice(0, 10);
+}

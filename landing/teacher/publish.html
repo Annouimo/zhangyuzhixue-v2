@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布作业 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container" style="max-width:640px;">
+    <div class="page-header">
+      <a href="index.html" style="font-size:14px;color:var(--primary);text-decoration:none;">← 返回作业列表</a>
+      <h1>发布作业</h1>
+    </div>
+
+    <div id="error-msg" class="error-banner"></div>
+
+    <!-- 步骤 1: 选组卷 -->
+    <div class="card">
+      <div class="card-title">① 选择组卷</div>
+      <div id="paper-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载组卷列表...</div>
+      <div id="paper-list"></div>
+    </div>
+
+    <!-- 步骤 2: 填写信息 -->
+    <div class="card">
+      <div class="card-title">② 作业信息</div>
+      <div class="input-group">
+        <label for="title">标题</label>
+        <input type="text" id="title" placeholder="默认使用组卷名称">
+      </div>
+      <div class="input-group">
+        <label for="deadline">截止日期</label>
+        <input type="date" id="deadline" required>
+      </div>
+      <div class="input-group">
+        <label for="description">说明（可选）</label>
+        <textarea id="description" rows="2" placeholder="作业说明或备注"></textarea>
+      </div>
+    </div>
+
+    <!-- 步骤 3: 选班级 -->
+    <div class="card">
+      <div class="card-title">③ 选择发布班级</div>
+      <div id="class-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载班级列表...</div>
+      <div id="class-list"></div>
+    </div>
+
+    <!-- 发布按钮 -->
+    <button id="publish-btn" class="btn btn-primary btn-block btn-lg" onclick="handlePublish()">确认发布</button>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    let selectedPaperId = null;
+
+    window.selectPaper = function(el) {
+      document.querySelectorAll('.paper-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPaperId = parseInt(el.dataset.paperId);
+      // 自动填充标题
+      const titleInput = document.getElementById('title');
+      if (!titleInput.value.trim()) {
+        titleInput.value = el.querySelector('.name').textContent;
+      }
+    };
+
+    window.toggleClass = function(el) {
+      el.classList.toggle('checked');
+      const cb = el.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = !cb.checked;
+    };
+
+    window.handlePublish = async function() {
+      hideError();
+      if (!selectedPaperId) { showError('请选择一个组卷'); return; }
+      const deadline = document.getElementById('deadline').value;
+      if (!deadline) { showError('请选择截止日期'); return; }
+
+      const checkedBoxes = document.querySelectorAll('#class-list input[type="checkbox"]:checked');
+      if (checkedBoxes.length === 0) { showError('请至少选择一个班级'); return; }
+
+      // 解析班级 ID — 通过 API 已加载的班级列表映射
+      const classesData = window._cachedClasses || [];
+      const classNames = Array.from(checkedBoxes).map(cb => cb.value);
+      // 匹配名称→ID（API 返回的班级数据不含独立 ID，用序号代替）
+      const classIds = classNames.map((_, i) => i + 1);
+
+      const btn = document.getElementById('publish-btn');
+      btn.disabled = true; btn.textContent = '发布中...';
+
+      try {
+        await apiCall('/teacher/assignments/', {
+          method: 'POST',
+          body: JSON.stringify({
+            paper_id: selectedPaperId,
+            title: document.getElementById('title').value.trim(),
+            deadline: deadline,
+            description: document.getElementById('description').value.trim(),
+            class_ids: classIds,
+          }),
+        });
+        window.location.href = '/teacher/';
+      } catch (e) {
+        showError('发布失败: ' + e.message);
+        btn.disabled = false; btn.textContent = '确认发布';
+      }
+    };
+
+    // 加载数据
+    (async function init() {
+      try {
+        const [papers, classes] = await Promise.all([
+          apiCall('/teacher/papers/'),
+          apiCall('/teacher/classes/'),
+        ]);
+        hideLoading('paper-loading');
+        hideLoading('class-loading');
+
+        // 渲染组卷
+        const paperContainer = document.getElementById('paper-list');
+        if (papers.length === 0) {
+          paperContainer.innerHTML = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:14px;">暂无组卷，请在学生 App 中创建后再发布</div>';
+        } else {
+          paperContainer.innerHTML = papers.map(p => `
+            <div class="paper-card" data-paper-id="${p.id}" onclick="selectPaper(this)">
+              <div class="radio"></div>
+              <div class="info">
+                <div class="name">${esc(p.title)}</div>
+                <div class="desc">${p.questionCount} 题 · ${fmtDate(p.createdAt)}</div>
+              </div>
+            </div>`).join('');
+        }
+
+        // 渲染班级
+        const items = classes.items || [];
+        const classContainer = document.getElementById('class-list');
+        if (items.length === 0) {
+          classContainer.innerHTML = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
+        } else {
+          window._cachedClasses = items;
+          classContainer.innerHTML = items.map((c, i) => `
+            <label class="class-checkbox-row" onclick="toggleClass(this)">
+              <input type="checkbox" value="${esc(c.name)}" data-class-id="${i + 1}">
+              <span class="class-name">${esc(c.name)}</span>
+              <span class="class-count">${c.studentCount ?? 0} 人</span>
+            </label>`).join('');
+          // 默认全选
+          document.querySelectorAll('#class-list input[type="checkbox"]').forEach(cb => {
+            cb.checked = true;
+            cb.closest('.class-checkbox-row').classList.add('checked');
+          });
+        }
+      } catch (e) {
+        showError('加载数据失败: ' + e.message);
+        hideLoading('paper-loading');
+        hideLoading('class-loading');
+      }
+    })();
+  </script>
+</body>
+</html>

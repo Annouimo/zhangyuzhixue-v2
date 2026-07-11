@@ -179,6 +179,44 @@ body.has-header { padding-top: var(--header-height); }
 .status-tag.in-progress { background: #DBEAFE; color: #1E40AF; }
 .status-tag.closed { background: #F3F4F6; color: #6B7280; }
 
+/* ── 组卷列表卡片 ── */
+.paper-card {
+  display: flex; align-items: center; padding: 14px 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 8px; cursor: pointer; transition: all 0.15s;
+}
+.paper-card:hover { border-color: var(--primary); }
+.paper-card.selected { border-color: var(--primary); background: var(--primary-light); }
+.paper-card .radio {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--border); display: flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0; margin-right: 12px;
+}
+.paper-card.selected .radio { border-color: var(--primary); }
+.paper-card.selected .radio::after {
+  content: ''; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--primary);
+}
+.paper-card .info { flex: 1; }
+.paper-card .info .name { font-size: 14px; font-weight: 500; }
+.paper-card .info .desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── 班级复选框 ── */
+.class-checkbox-row {
+  display: flex; align-items: center; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+}
+.class-checkbox-row:hover { border-color: var(--primary); }
+.class-checkbox-row.checked { border-color: var(--primary); background: var(--primary-light); }
+.class-checkbox-row input[type="checkbox"] {
+  width: 18px; height: 18px; accent-color: var(--primary);
+  margin-right: 10px; flex-shrink: 0;
+}
+.class-checkbox-row .class-name { flex: 1; font-size: 14px; }
+.class-checkbox-row .class-count { font-size: 13px; color: var(--text-secondary); }
+
 /* ── 表格 ── */
 .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .data-table th {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>章鱼智学 · 教师端</title>
+  <title>作业列表 — 章鱼智学 · 教师端</title>
   <link rel="stylesheet" href="teacher-styles.css">
 </head>
 <body class="has-header">
@@ -31,41 +31,35 @@
       </div>
     </div>
 
-    <div class="stats-row" id="stats-row">
+    <div id="error-msg" class="error-banner"></div>
+
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div class="stats-row" id="stats-row" style="display:none;">
       <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">总发布作业</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--warning)" id="stat-active">—</div><div class="stat-label">进行中</div></div>
       <div class="stat-card"><div class="stat-value" style="color:var(--success)" id="stat-rate">—</div><div class="stat-label">平均完成率</div></div>
       <div class="stat-card"><div class="stat-value" style="color:#8B5CF6" id="stat-acc">—</div><div class="stat-label">平均正确率</div></div>
     </div>
 
-    <div id="assign-list">
-      <div class="text-center" style="padding:40px;color:var(--text-muted);font-size:14px;">
-        暂无已发布的作业
-      </div>
-    </div>
+    <div id="assign-list"></div>
   </div>
 
   <script src="teacher-common.js"></script>
   <script>
-    requireAuth();
+    initPage();
 
-    const user = getCachedUser();
-    if (user) {
-      document.getElementById('header-username').textContent = user.real_name || user.username;
-    }
-
-    // T.2 将实现：加载作业列表数据
-    async function loadAssignments() {
+    async function load() {
       try {
-        const data = await apiCall('/teacher/assignments/');
-        document.getElementById('stat-total').textContent = data.totalAssignments || 0;
-        document.getElementById('stat-active').textContent = data.activeAssignments || 0;
-        // 完成率/正确率将在 T.2 实现
+        await loadAssignments();
+        document.getElementById('stats-row').style.display = 'grid';
       } catch (e) {
-        // T.2 实现错误处理
+        showError('加载作业列表失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
       }
     }
-    loadAssignments();
+    load();
   </script>
 </body>
 </html>
