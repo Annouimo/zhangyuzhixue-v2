@@ -103,6 +103,7 @@ void main() {
           ratingRepository: _MockRatingRepo(),
         ),
       ));
+      await tester.pumpAndSettle();
       expect(find.text('难度'), findsOneWidget);
       expect(find.text('计算量'), findsOneWidget);
       expect(find.text('优雅度'), findsOneWidget);
@@ -115,6 +116,7 @@ void main() {
           ratingRepository: _MockRatingRepo(),
         ),
       ));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('提交评分'));
       await tester.pump();
       expect(find.text('已评分'), findsOneWidget);
