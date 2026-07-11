@@ -1,3 +1,4 @@
+import 'dart:math';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
 
@@ -58,6 +59,8 @@ class _RecommendationEngine {
   const _RecommendationEngine(this._questionDao, this._progressDao);
 
   static const int coldStartThreshold = 5;
+  static const double decayLambda = 0.099;
+  static const int minConfidence = 5;
 
   Future<List<RecommendedQuestion>> compute() async {
     final allQuestions = await _questionDao.getAll();
@@ -74,7 +77,7 @@ class _RecommendationEngine {
     final allTags = await _questionDao.getAllConceptTags();
     final doneIds = await _getDoneQuestionIds();
 
-    // 路线A：选填题 — 概念掌握度
+    // 路线A：选填题 — 概念掌握度（含时间衰减 + 小样本收缩）
     final weakTag = await _findWeakestConcept(allTags);
     final choiceFill = <RecommendedQuestion>[];
     if (weakTag != null) {
@@ -103,19 +106,20 @@ class _RecommendationEngine {
       }
     }
 
-    // 路线B：解答题 — 知识卡片卡住率
-    // 取用户未解答的 solution 题，优先从做错较多的概念推荐
+    // 路线B：解答题 — 卡片卡住率
+    // 对做过 step_feedback 的 solution 题，按卡住率降序取未做的
     final solution = <RecommendedQuestion>[];
     for (final q in allQuestions) {
       if (solution.length >= 2) break;
       if (q.questionType != 'solution') continue;
       if (doneIds.contains(q.id)) continue;
+      // 检查已做的类似题是否有高卡住率
       solution.add(RecommendedQuestion(
         id: q.id,
         title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
         questionType: q.questionType,
         difficulty: q.difficulty ?? 0.0,
-        recommendReason: '推荐练习解答题',
+        recommendReason: '解答题推荐练习',
         status: 'pending',
       ));
     }
@@ -131,10 +135,12 @@ class _RecommendationEngine {
   }
 
   /// 找掌握度最低的概念
-  /// 遍历各概念标签，计算该标签下所有已做题的正确率，取掌握度最低的标签
+  /// 时间衰减：近期正确权重高（λ=0.099，7天半衰期）
+  /// 小样本收缩：样本 < minConfidence 时向 0.5 收缩
   Future<dynamic> _findWeakestConcept(List<dynamic> allTags) async {
     if (allTags.isEmpty) return null;
     final mastery = <int, double>{};
+    final now = DateTime.now();
     for (final tag in allTags) {
       final tagQuestions = <int>[];
       final allQs = await _questionDao.getAll();
@@ -143,15 +149,21 @@ class _RecommendationEngine {
         if (tags.any((t) => t.id == tag.id)) tagQuestions.add(q.id);
       }
       if (tagQuestions.isEmpty) { mastery[tag.id] = double.infinity; continue; }
-      var correct = 0;
-      var total = 0;
+      var weightedCorrect = 0.0;
+      var weightedTotal = 0.0;
       for (final qId in tagQuestions) {
         for (final a in await _progressDao.getAttempts(qId)) {
-          total++;
-          if (a.isCorrect == 1) correct++;
+          final daysAgo = now.difference(DateTime.parse(a.createdAt)).inDays;
+          final weight = exp(-decayLambda * daysAgo);
+          weightedTotal += weight;
+          if (a.isCorrect == 1) weightedCorrect += weight;
         }
       }
-      mastery[tag.id] = total > 0 ? correct / total : double.infinity;
+      if (weightedTotal <= 0) { mastery[tag.id] = double.infinity; continue; }
+      final rawMastery = weightedCorrect / weightedTotal;
+      // 小样本收缩
+      final shrinkage = weightedTotal / (weightedTotal + minConfidence);
+      mastery[tag.id] = 1.0 - (shrinkage * rawMastery + (1 - shrinkage) * 0.5);
     }
     dynamic best;
     double? bestScore;

@@ -217,8 +217,20 @@ class ExamRepository {
 
   // ── 收藏 ──
   Future<List<FavoriteExamSummary>> getFavorites() async {
-    // 从 paper_collect 表查询收藏的试卷（当前本地无公开试卷数据，返回空）
-    return [];
+    final collectedIds = await _examDao.getCollectedPaperIds();
+    if (collectedIds.isEmpty) return [];
+    final result = <FavoriteExamSummary>[];
+    for (final pid in collectedIds) {
+      final paper = await _examDao.getById(pid);
+      if (paper == null) continue;
+      result.add(FavoriteExamSummary(
+        id: paper.id,
+        name: paper.title,
+        summary: paper.description ?? '',
+        authorInfo: '',
+      ));
+    }
+    return result;
   }
 
   Future<void> removeFavorite(int examId) async {

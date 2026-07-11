@@ -142,4 +142,17 @@ class ProgressDao {
     }
     return wrong;
   }
+
+  /// 获取某道题的 step_feedback 中被卡住的步数
+  Future<int> getStuckStepCount(int questionId) async {
+    final attempts = await getAttempts(questionId);
+    var stuck = 0;
+    for (final a in attempts) {
+      final steps = await getStepFeedbacks(a.id);
+      for (final s in steps) {
+        if (s.status == 'stuck' || s.status == 'wrong') stuck++;
+      }
+    }
+    return stuck;
+  }
 }

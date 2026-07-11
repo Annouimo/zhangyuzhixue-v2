@@ -100,14 +100,19 @@ class ExamDao {
     final existing = await (_db.select(_db.paperCollects)
       ..where((t) => t.paperId.equals(paperId))).getSingleOrNull();
     if (existing != null) {
-      final q = _db.delete(_db.paperCollects)..where((t) => t.paperId.equals(paperId));
-      await q.go();
+      await (_db.delete(_db.paperCollects)
+        ..where((t) => t.paperId.equals(paperId))).go();
     } else {
-      final now = DateTime.now().toIso8601String();
       await _db.into(_db.paperCollects).insert(db.PaperCollectsCompanion(
         paperId: Value(paperId),
-        createdAt: Value(now),
+        createdAt: Value(DateTime.now().toIso8601String()),
       ));
     }
+  }
+
+  /// 获取所有收藏的试卷 ID
+  Future<List<int>> getCollectedPaperIds() async {
+    final rows = await _db.select(_db.paperCollects).get();
+    return rows.map((r) => r.paperId).toList();
   }
 }
