@@ -12,6 +12,14 @@ import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
 import 'homework/homework_detail_page.dart';
+import 'exam/exam_auto_page.dart';
+import 'exam/exam_pick_page.dart';
+import 'exam/exam_quicklook_page.dart';
+import 'exam/exam_quicklook_other_page.dart';
+import 'exam/exam_history_page.dart';
+import 'exam/exam_explore_page.dart';
+import 'exam/exam_favorites_page.dart';
+import 'exam/answer_sheet_page.dart';
 
 /// 路由路径常量
 abstract final class AppRoutes {
@@ -26,6 +34,14 @@ abstract final class AppRoutes {
   static const lectureChapters = '/lecture/chapters';
   static const lectureContent = '/lecture/content';
   static const homeworkDetail = '/homework/detail';
+  static const examAuto = '/exam/auto';
+  static const examPick = '/exam/pick';
+  static const examQuicklook = '/exam/quicklook';
+  static const examQuicklookOther = '/exam/quicklook_other';
+  static const examHistory = '/exam/history';
+  static const examExplore = '/exam/explore';
+  static const examFavorites = '/exam/favorites';
+  static const answerSheet = '/exam/answersheet';
 }
 
 /// 从 query 参数解析 int
@@ -39,96 +55,41 @@ int? _intParam(Map<String, String> params, String key) {
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.login,
   routes: [
-    GoRoute(
-      path: AppRoutes.login,
-      name: 'login',
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: AppRoutes.register,
-      name: 'register',
-      builder: (context, state) => const RegisterPage(),
-    ),
-    GoRoute(
-      path: AppRoutes.mainShell,
-      name: 'home',
-      builder: (context, state) => const MainShell(),
-    ),
-    GoRoute(
-      path: AppRoutes.solveChoice,
-      name: 'solve-choice',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        final next = _intParam(state.uri.queryParameters, 'next');
-        return SolveChoicePage(questionId: id, nextQuestionId: next);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.solveFill,
-      name: 'solve-fill',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        final next = _intParam(state.uri.queryParameters, 'next');
-        return SolveFillPage(questionId: id, nextQuestionId: next);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.solveMap,
-      name: 'solve-map',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        return SolveMapPage(questionId: id);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.solveStep,
-      name: 'solve-step',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        final m = _intParam(state.uri.queryParameters, 'method') ?? 0;
-        final s = _intParam(state.uri.queryParameters, 'step') ?? 0;
-        return SolveStepPage(questionId: id, methodIndex: m, stepIndex: s);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.solveRate,
-      name: 'solve-rate',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        return SolveRatePage(questionId: id);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.lectureChapters,
-      name: 'lecture-chapters',
-      builder: (context, state) {
-        final courseId = _intParam(state.uri.queryParameters, 'courseId') ?? 0;
-        return LectureChaptersPage(courseId: courseId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.lectureContent,
-      name: 'lecture-content',
-      builder: (context, state) {
-        final chapterId = _intParam(state.uri.queryParameters, 'chapterId') ?? 0;
-        final page = _intParam(state.uri.queryParameters, 'page') ?? 1;
-        return LectureContentPage(chapterId: chapterId, initialPage: page);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.homeworkDetail,
-      name: 'homework-detail',
-      builder: (context, state) {
-        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
-        return HomeworkDetailPage(assignmentId: id);
-      },
-    ),
+    GoRoute(path: AppRoutes.login, name: 'login', builder: (_, __) => const LoginPage()),
+    GoRoute(path: AppRoutes.register, name: 'register', builder: (_, __) => const RegisterPage()),
+    GoRoute(path: AppRoutes.mainShell, name: 'home', builder: (_, __) => const MainShell()),
+    GoRoute(path: AppRoutes.solveChoice, name: 'solve-choice', builder: (_, state) {
+      return SolveChoicePage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, nextQuestionId: _intParam(state.uri.queryParameters, 'next')); }),
+    GoRoute(path: AppRoutes.solveFill, name: 'solve-fill', builder: (_, state) {
+      return SolveFillPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, nextQuestionId: _intParam(state.uri.queryParameters, 'next')); }),
+    GoRoute(path: AppRoutes.solveMap, name: 'solve-map', builder: (_, state) {
+      return SolveMapPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    GoRoute(path: AppRoutes.solveStep, name: 'solve-step', builder: (_, state) {
+      return SolveStepPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, methodIndex: _intParam(state.uri.queryParameters, 'method') ?? 0, stepIndex: _intParam(state.uri.queryParameters, 'step') ?? 0); }),
+    GoRoute(path: AppRoutes.solveRate, name: 'solve-rate', builder: (_, state) {
+      return SolveRatePage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    GoRoute(path: AppRoutes.lectureChapters, name: 'lecture-chapters', builder: (_, state) {
+      return LectureChaptersPage(courseId: _intParam(state.uri.queryParameters, 'courseId') ?? 0); }),
+    GoRoute(path: AppRoutes.lectureContent, name: 'lecture-content', builder: (_, state) {
+      return LectureContentPage(chapterId: _intParam(state.uri.queryParameters, 'chapterId') ?? 0, initialPage: _intParam(state.uri.queryParameters, 'page') ?? 1); }),
+    GoRoute(path: AppRoutes.homeworkDetail, name: 'homework-detail', builder: (_, state) {
+      return HomeworkDetailPage(assignmentId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    // 组卷路由
+    GoRoute(path: AppRoutes.examAuto, name: 'exam-auto', builder: (_, __) => const ExamAutoPage()),
+    GoRoute(path: AppRoutes.examPick, name: 'exam-pick', builder: (_, __) => const ExamPickPage()),
+    GoRoute(path: AppRoutes.examQuicklook, name: 'exam-quicklook', builder: (_, state) {
+      return ExamQuicklookPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    GoRoute(path: AppRoutes.examQuicklookOther, name: 'exam-quicklook-other', builder: (_, state) {
+      return ExamQuicklookOtherPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    GoRoute(path: AppRoutes.examHistory, name: 'exam-history', builder: (_, __) => const ExamHistoryPage()),
+    GoRoute(path: AppRoutes.examExplore, name: 'exam-explore', builder: (_, __) => const ExamExplorePage()),
+    GoRoute(path: AppRoutes.examFavorites, name: 'exam-favorites', builder: (_, __) => const ExamFavoritesPage()),
+    GoRoute(path: AppRoutes.answerSheet, name: 'answer-sheet', builder: (_, state) {
+      return AnswerSheetPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
   ],
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('页面未找到')),
-    body: Center(
-      child: Text('未找到页面: ${state.uri}'),
-    ),
+    body: Center(child: Text('未找到页面: ${state.uri}')),
   ),
 );
 
