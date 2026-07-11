@@ -12,6 +12,7 @@ class CreateAssignmentSerializer(serializers.Serializer):
         child=serializers.IntegerField(),
         min_length=1,
     )
+    course_id = serializers.IntegerField(required=False, allow_null=True)
 
 
 class PatchAssignmentSerializer(serializers.Serializer):

@@ -401,3 +401,58 @@ class TestSyncEdgeCases:
         }, format='json')
         assert resp.status_code == 400
         assert resp.data['code'] == 40301
+
+
+# ── 用户数据拉取 ──
+
+
+class TestSyncPullUserDB:
+
+    def test_unauthenticated_pull(self, api_client):
+        """未认证请求 → 401"""
+        resp = api_client.get(reverse('sync-user-pull'))
+        assert resp.status_code == 401
+
+    def test_non_student_pull(self, api_client, db):
+        """教师/无student用户 → 40003"""
+        from django.contrib.auth.models import User
+        from rest_framework_simplejwt.tokens import RefreshToken
+        user = User.objects.create_user('teacher', password='test123')
+        refresh = RefreshToken.for_user(user)
+        api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
+        resp = api_client.get(reverse('sync-user-pull'))
+        assert resp.status_code == 400
+        assert resp.data['code'] == 40003
+
+    def test_pull_success_empty(self, auth_client):
+        """学生无数据可拉 — 仍返回有效响应"""
+        resp = auth_client.get(reverse('sync-user-pull'))
+        assert resp.status_code == 200
+        assert resp.data['code'] == 0
+        data = resp.data['data']
+        assert 'download_url' in data
+        assert 'checksum' in data
+        assert 'size_bytes' in data
+        assert data['data_version'] == 1
+        assert data['size_bytes'] > 0  # gzip 压缩后的空数据库也有大小
+
+    def test_pull_success_with_data(self, auth_client, student_user, sample_question):
+        """学生有提交/评分记录 — 验证数据拉取成功"""
+        from interactions.models import StudentSubmission, SubmissionDetail, QuestionRating
+        sub = StudentSubmission.objects.create(student=student_user.student)
+        SubmissionDetail.objects.create(
+            submission=sub, question=sample_question,
+            attempt_number=1, status='completed', answer_text='A', is_correct=True,
+        )
+        QuestionRating.objects.create(
+            student=student_user.student, question=sample_question,
+            difficulty_score=7, calculation_score=5, elegance_score=8,
+        )
+        resp = auth_client.get(reverse('sync-user-pull'))
+        assert resp.status_code == 200
+        assert resp.data['code'] == 0
+        data = resp.data['data']
+        assert 'download_url' in data
+        assert 'checksum' in data
+        assert data['size_bytes'] > 0
+        assert data['data_version'] == 1

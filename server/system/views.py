@@ -18,6 +18,7 @@ class VersionCheckView(APIView):
         except DbVersion.DoesNotExist:
             return Response({
                 'code': 0,
+                'message': 'ok',
                 'data': {
                     'schema_version': 0,
                     'data_version': 0,
@@ -31,6 +32,7 @@ class VersionCheckView(APIView):
 
         return Response({
             'code': 0,
+            'message': 'ok',
             'data': {
                 'schema_version': version.schema_version,
                 'data_version': version.data_version,

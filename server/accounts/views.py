@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -161,18 +161,15 @@ def _get_points_summary(user):
         return {'earned': 0, 'bonus': 0, 'spent': 0, 'available': 0}
 
     student = user.student
-    earned_agg = PointsTransaction.objects.filter(
-        student=student, amount__gt=0
-    ).aggregate(total=Sum('amount'))
-    spent_agg = PointsTransaction.objects.filter(
-        student=student, amount__lt=0
-    ).aggregate(total=Sum('amount'))
-
-    earned = earned_agg['total'] or 0
-    spent = abs(spent_agg['total']) if spent_agg['total'] else 0
-    bonus = 0  # Phase 4: PointsTransaction.category 字段区分 earned/bonus
+    agg = PointsTransaction.objects.filter(student=student).aggregate(
+        earned=Sum('amount', filter=Q(source__in=['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'])),
+        bonus=Sum('amount', filter=Q(source='SIGNUP_BONUS')),
+        spent=Sum('amount', filter=Q(source='PAPER_PURCHASE')),
+    )
+    earned = agg['earned'] or 0
+    bonus = agg['bonus'] or 0
+    spent = abs(agg['spent']) if agg['spent'] else 0
     available = earned + bonus - spent
-
     return {'earned': earned, 'bonus': bonus, 'spent': spent, 'available': available}
 
 

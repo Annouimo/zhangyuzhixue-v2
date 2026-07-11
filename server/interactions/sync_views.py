@@ -290,9 +290,10 @@ def _dump_submissions(conn, student):
     submissions = StudentSubmission.objects.filter(
         student=student
     ).prefetch_related(
-        Prefetch('details', queryset=SubmissionDetail.objects.all()),
-        'step_feedbacks',
-        'card_feedbacks',
+        Prefetch('details', queryset=SubmissionDetail.objects.prefetch_related(
+            'step_feedbacks',
+            'card_feedbacks',
+        )),
     )
 
     for sub in submissions:

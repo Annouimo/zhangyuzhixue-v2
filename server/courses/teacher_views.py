@@ -405,6 +405,7 @@ def _create_assignment(data):
     assignment = Assignment.objects.create(
         title=title,
         description=description,
+        course_id=data.get('course_id'),
     )
 
     # 复制题目
@@ -471,6 +472,19 @@ def assignment_rud(request, id):
         assignment.description = data['description']
         assignment.save(update_fields=['description'])
     return _ok(message='修改成功')
+
+
+@extend_schema(
+    responses={200: OpenApiResponse(description='催交记录')},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def assignment_remind(request, id):
+    """作业催交 — 暂无通知推送通道，仅记录催交日志"""
+    get_object_or_404(ClassCourseAssignment, pk=id)
+    # 记录催交操作（预留日志通道）
+    # TODO: 通知推送通道接入后，在此触发推送
+    return _ok(message='催交已记录')
 
 
 def _assignment_detail(cca):
