@@ -604,6 +604,185 @@ def check_navigation_architecture(cfg: Config) -> list[Finding]:
                     detail=""
                 ))
     
+    # 检查 initialLocation 是否硬编码（H0 补充）
+    router_path = os.path.join(cfg.flutter_lib, "pages", "router.dart")
+    if path_exists(router_path):
+        router_content = read_file(router_path)
+        has_get_initial = "getInitialRoute()" in router_content
+        if not has_get_initial:
+            # 检查是否硬编码
+            init_match = re.search(r"initialLocation:\s*([^,\n]+)", router_content)
+            if init_match:
+                init_val = init_match.group(1).strip()
+                if init_val.startswith("'") or init_val.startswith('"') or init_val.startswith("AppRoutes."):
+                    findings.append(Finding(
+                        certainty=Certainty.SUSPICIOUS,
+                        issue=f"⚠️ initialLocation 硬编码 ({init_val})，未使用 getInitialRoute() 动态判断登录状态",
+                        source="H0: 初始化完整性规则",
+                        path="flutter_app/lib/pages/router.dart",
+                        evidence=f"Router initialLocation is hardcoded as {init_val}, use getInitialRoute() for auth-aware routing",
+                    ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 8: 入口初始化链完整性（H0）
+# ═══════════════════════════════════════════════
+
+def check_init_chain(cfg: Config) -> list[Finding]:
+    """检查 main.dart 中是否遗漏了 provider/callback 注册
+    
+    原理：在定义文件（如 api_client.dart）中枚举所有 setXxx 注册函数，
+    然后在 main.dart 中检查是否每个函数都被调用。
+    """
+    findings = []
+
+    # ── Flutter main.dart ──
+    main_path = os.path.join(cfg.workspace, "flutter_app", "lib", "main.dart")
+    if not path_exists(main_path):
+        return findings
+
+    main_content = read_file(main_path)
+
+    # (定义文件, 该文件中所有注册函数的模式)
+    init_sources = [
+        {
+            "file": "data/api/api_client.dart",
+            "prefix": "flutter_app/lib/",
+            "reg_pattern": r"void (set\w+)\(?"  # 匹配 setTokenProvider / setOnAuthFailure 等
+        },
+    ]
+
+    for src in init_sources:
+        src_path = os.path.join(cfg.workspace, "flutter_app", "lib", src["file"])
+        if not path_exists(src_path):
+            continue
+        src_content = read_file(src_path)
+        # 提取所有 setXxx 函数定义
+        for m in re.finditer(src["reg_pattern"], src_content):
+            func_name = m.group(1)
+            if func_name not in main_content:
+                findings.append(Finding(
+                    certainty=Certainty.CERTAIN,
+                    issue=f"❌ 初始化遗漏: {func_name}() 在 {src['file']} 中定义但 main() 中未调用",
+                    source=f"flutter_app/lib/{src['file']}",
+                    path="flutter_app/lib/main.dart",
+                    evidence=f"Function {func_name} defined in {src['file']} but never called in main()",
+                ))
+
+    # ── Django 入口（manage.py）──
+    # Django 的注册模式主要是 urls.py 中的 include()、settings.py 中的 INSTALLED_APPS
+    # 这部分在当前项目中已 v2 已稳定，暂不做自动化
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 9: API 响应类型安全（H1）
+# ═══════════════════════════════════════════════
+
+def check_api_type_safety(cfg: Config) -> list[Finding]:
+    """扫描 domain/ 和 data/api/ 中 unsafe 的 'as T' 强转
+    
+    API 响应是 Map<String, dynamic>，字段值运行时类型不确定。
+    remote['xxx'] as String? 在值为 int 时直接抛 TypeError。
+    应改用 (remote['xxx'] as Object?)?.toString()
+    """
+    findings = []
+
+    scan_dirs = [
+        (os.path.join(cfg.flutter_lib, "domain"), "flutter_app/lib/domain/"),
+        (os.path.join(cfg.flutter_lib, "data", "api"), "flutter_app/lib/data/api/"),
+    ]
+
+    for scan_dir, prefix in scan_dirs:
+        if not path_exists(scan_dir):
+            continue
+        # 匹配: remote['xxx'] as String / as String? / as int / as int? / as bool / as bool?
+        results = grep(r"""remote\[[^]]+\]\s+as\s+(String|int|bool)\??""", scan_dir, ".dart")
+        for rel, line_no, content in results:
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"⚠️ 不安全的 API 类型强转: {content.strip()[:80]}",
+                source="H1: 安全转型规则",
+                path=f"{prefix}{rel}:L{line_no}",
+                evidence=f"Use '(remote['xxx'] as Object?)?.toString()' instead of 'as T' to avoid TypeError at runtime",
+            ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 10: 跨层算法一致性（H2）
+# ═══════════════════════════════════════════════
+
+def check_cross_layer_algo(cfg: Config) -> list[Finding]:
+    """检查服务端与客户端之间相同算法的实现是否一致
+    
+    在设计文档中标明"两端一致"的算法，逐行对照两端实现。
+    引擎无法判定算法是否一致，但可以标记两端同时存在的
+    算法实现，提醒人工逐行对照。
+    """
+    findings = []
+
+    # 预定义的跨层算法清单（来源：设计文档 + 已知模式）
+    algos = [
+        {
+            "name": "checksum/hash 校验",
+            "server_files": ["server/scripts/build_utils.py", "server/scripts/build_assets.py", "server/scripts/build_lectures.py"],
+            "server_pattern": r"sha256|md5|hashlib\.|hash_",
+            "client_files": ["flutter_app/lib/data/sync/update_manager.dart"],
+            "client_pattern": r"sha256|md5|hash",
+            "source_doc": "02-数据/更新机制.md",
+        },
+        {
+            "name": "数据库版本号检查",
+            "server_files": ["server/system/views.py", "server/scripts/build_utils.py"],
+            "server_pattern": r"db_version|version.*check",
+            "client_files": ["flutter_app/lib/data/sync/update_manager.dart", "flutter_app/lib/data/database/"],
+            "client_pattern": r"dbVersion|version.*check",
+            "source_doc": "02-数据/更新机制.md",
+        },
+    ]
+
+    for algo in algos:
+        # 检查服务端
+        server_matches = []
+        for sf in algo["server_files"]:
+            full = os.path.join(cfg.workspace, sf)
+            if path_exists(full):
+                content = read_file(full)
+                if re.search(algo["server_pattern"], content, re.IGNORECASE):
+                    server_matches.append(sf)
+
+        # 检查客户端
+        client_matches = []
+        for cf in algo["client_files"]:
+            full = os.path.join(cfg.workspace, cf)
+            if path_exists(full):
+                content = read_file(full)
+                if re.search(algo["client_pattern"], content, re.IGNORECASE):
+                    client_matches.append(cf)
+
+        if server_matches and client_matches:
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"🔗 跨层算法: {algo['name']} — 两端均有实现，需人工逐行对照确认一致性",
+                source=algo["source_doc"],
+                path=f"Server: {', '.join(server_matches)} | Client: {', '.join(client_matches)}",
+                evidence=f"Server files: {server_matches}, Client files: {client_matches}",
+                detail="Open server and client code side by side, verify algorithm logic (hash target, field order, encoding) line by line"
+            ))
+        elif server_matches and not client_matches:
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"❓ 跨层算法仅服务端有实现: {algo['name']} — 客户端未匹配",
+                source=algo["source_doc"],
+                path=f"Server: {', '.join(server_matches)}",
+                evidence=f"Server files: {server_matches}, no client match found",
+            ))
+
     return findings
 
 
@@ -680,13 +859,13 @@ def generate_report(findings: list[Finding], output_path: str = ""):
 # ═══════════════════════════════════════════════
 
 TYPE_MODULES = {
-    "A": [1, 3, 4, 5],           # 服务端
-    "B": [1, 3, 4, 5, 6],        # Flutter 数据层
-    "C": [1, 2, 4, 5, 6, 7],     # Flutter UI
-    "D": [1, 3, 4, 5],           # 教师端
-    "E": [1, 3, 4],              # 部署
-    "F": [1, 4],                 # 数据迁移
-    "G": [4, 6],                 # 全项目横切
+    "A": [1, 3, 4, 5, 8],           # 服务端 (+H0 初始化链)
+    "B": [1, 3, 4, 5, 6, 9],        # Flutter 数据层 (+H1 API类型安全)
+    "C": [1, 2, 4, 5, 6, 7, 8],     # Flutter UI (+H0 初始化链)
+    "D": [1, 3, 4, 5, 8],           # 教师端 (+H0 初始化链)
+    "E": [1, 3, 4],                  # 部署
+    "F": [1, 4],                     # 数据迁移
+    "G": [4, 6, 10],                 # 全项目横切 (+H2 跨层算法)
 }
 
 MODULE_NAMES = {
@@ -697,6 +876,9 @@ MODULE_NAMES = {
     5: "测试文件覆盖率",
     6: "stub/TODO 扫描",
     7: "导航架构",
+    8: "入口初始化链完整性 (H0)",
+    9: "API 响应类型安全 (H1)",
+    10: "跨层算法一致性 (H2)",
 }
 
 def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
@@ -704,27 +886,36 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
     all_findings = []
 
     if 1 in modules:
-        log("[模块 1/7] 目录/文件存在性...")
+        log("[模块 1/10] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/7] HTML→Flutter 页面覆盖 + 元素清单提取...")
+        log("[模块 2/10] HTML→Flutter 页面覆盖 + 元素清单提取...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
     if 3 in modules:
-        log("[模块 3/7] pubspec.yaml 资产声明...")
+        log("[模块 3/10] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
     if 4 in modules:
-        log("[模块 4/7] 设计文档待完成标记...")
+        log("[模块 4/10] 设计文档待完成标记...")
         all_findings.extend(check_design_doc_pending_markers(cfg))
     if 5 in modules:
-        log("[模块 5/7] 测试文件覆盖率...")
+        log("[模块 5/10] 测试文件覆盖率...")
         all_findings.extend(check_test_coverage(cfg))
     if 6 in modules:
-        log("[模块 6/7] stub/TODO 扫描...")
+        log("[模块 6/10] stub/TODO 扫描...")
         all_findings.extend(check_stubs_and_todos(cfg))
     if 7 in modules:
-        log("[模块 7/7] 导航架构...")
+        log("[模块 7/10] 导航架构...")
         all_findings.extend(check_navigation_architecture(cfg))
+    if 8 in modules:
+        log("[模块 8/10] 入口初始化链完整性 (H0)...")
+        all_findings.extend(check_init_chain(cfg))
+    if 9 in modules:
+        log("[模块 9/10] API 响应类型安全 (H1)...")
+        all_findings.extend(check_api_type_safety(cfg))
+    if 10 in modules:
+        log("[模块 10/10] 跨层算法一致性 (H2)...")
+        all_findings.extend(check_cross_layer_algo(cfg))
 
     return all_findings
 

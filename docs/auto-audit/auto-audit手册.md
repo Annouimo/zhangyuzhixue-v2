@@ -26,13 +26,13 @@
 
 | 类别 | 名称 | 覆盖文件夹 | 引擎模块 | 权威来源文档 |
 |------|------|-----------|---------|-------------|
-| **A** | 服务端审计 — Django | `server/accounts/qbank/courses/interactions/system/math_platform/templates/static/` | ①存在性 ③声明 ④标记 ⑤测试 | `02-数据/数据库结构设计.md` + `03-服务端/API设计.md` |
-| **B** | Flutter 数据层 | `flutter_app/lib/data/` + `flutter_app/lib/domain/` + `flutter_app/pubspec.yaml` + `flutter_app/assets/` | ①存在性 ③声明 ④标记 ⑤测试 ⑥stub | `02-数据/数据库结构设计.md` + `05-Flutter/Repository/*.dart`（设计稿） + `05-Flutter/图片路由规范.md` |
-| **C** | Flutter UI 审计 | `flutter_app/lib/pages/` + `flutter_app/lib/widgets/` + `flutter_app/lib/main.dart` + `flutter_app/lib/app_theme.dart` | ①存在性 ②HTML→Flutter ④标记 ⑤测试 ⑥stub ⑦导航 | **`04-UI/html/*.html`（全部 31 个）** |
-| **D** | 教师端审计 | `server/` + `landing/` + `landing/teacher/` + **`docs/06-教师端/html/`** | ①存在性 ③声明 ④标记 ⑤测试 | `06-教师端/html/*.html` + `06-教师端/教师端功能边界.md` |
+| **A** | 服务端审计 — Django | `server/accounts/qbank/courses/interactions/system/math_platform/templates/static/` | ①存在性 ③声明 ④标记 ⑤测试 ⑧初始化链 | `02-数据/数据库结构设计.md` + `03-服务端/API设计.md` |
+| **B** | Flutter 数据层 | `flutter_app/lib/data/` + `flutter_app/lib/domain/` + `flutter_app/pubspec.yaml` + `flutter_app/assets/` | ①存在性 ③声明 ④标记 ⑤测试 ⑥stub ⑨API类型安全 | `02-数据/数据库结构设计.md` + `05-Flutter/Repository/*.dart`（设计稿） + `05-Flutter/图片路由规范.md` |
+| **C** | Flutter UI 审计 | `flutter_app/lib/pages/` + `flutter_app/lib/widgets/` + `flutter_app/lib/main.dart` + `flutter_app/lib/app_theme.dart` | ①存在性 ②HTML→Flutter ④标记 ⑤测试 ⑥stub ⑦导航 ⑧初始化链 | **`04-UI/html/*.html`（全部 31 个）** |
+| **D** | 教师端审计 | `server/` + `landing/` + `landing/teacher/` + **`docs/06-教师端/html/`** | ①存在性 ③声明 ④标记 ⑤测试 ⑧初始化链 | `06-教师端/html/*.html` + `06-教师端/教师端功能边界.md` |
 | **E** | 部署审计 | `.github/` + `server/scripts/`（备份/构建） | ①存在性 ③声明 ④标记 | `备份方案.md` + `03-服务端/服务端架构.md §五` |
 | **F** | 数据迁移审计 | `docs/_archive/migration_audit/` + `server/scripts/dump_data.py` + `server/scripts/load_data.py` | ①存在性 ④标记 | `落地实施/Phase-1.2-题库数据迁移.md` |
-| **G** | 全项目横切 | 全项目（不特定文件夹） | ④标记 ⑥stub | `07-工作流/开发工作流程.md` + `测试策略.md` + `备份方案.md` |
+| **G** | 全项目横切 | 全项目（不特定文件夹） | ④标记 ⑥stub ⑩跨层算法 | `07-工作流/开发工作流程.md` + `测试策略.md` + `备份方案.md` |
 
 ### 命令汇总
 
@@ -69,13 +69,13 @@ python docs/auto-audit/audit_engine.py <workspace>
 
 | 类型 | 人工重点 |
 |------|---------|
-| A | 模型字段值正确性、API 端点返回值链 |
-| B | Repository 方法签名 vs 设计稿、数据流追踪 |
-| C | HTML ↔ Flutter 元素感官比对、异常处理充分性、底部导航 |
-| D | 功能边界是否超出学生端范围、API 权限 |
+| A | 模型字段值正确性、API 端点返回值链、**入口初始化链（manage.py/wsgi.py）** |
+| B | Repository 方法签名 vs 设计稿、数据流追踪、**API 响应类型安全（H1）审查** |
+| C | HTML ↔ Flutter 元素感官比对、异常处理充分性、底部导航、**入口初始化链（main.dart）** |
+| D | 功能边界是否超出学生端范围、API 权限、**教师端初始化链** |
 | E | 服务器端实际配置（systemctl/crontab）— 引擎无法远程检查 |
 | F | 数据行数核对、字段内容随机抽样 |
-| G | 设计文档状态标记是否过时 |
+| G | 设计文档状态标记是否过时、**跨层算法一致性审查（H2）** |
 
 ---
 
@@ -95,7 +95,7 @@ python docs/auto-audit/audit_engine.py <workspace_path>
 python docs/auto-audit/audit_engine.py <workspace_path> --type C
 ```
 
-### 检查范围（7 个模块）
+### 检查范围（10 个模块）
 
 | 模块 | 检查内容 | 输出置信度 | 适用类型 |
 |------|---------|-----------|---------|
@@ -105,7 +105,10 @@ python docs/auto-audit/audit_engine.py <workspace_path> --type C
 | ④ | 设计文档"待完成/待定/预留"标记提取 | CERTAIN | A B C D E F G |
 | ⑤ | 测试文件覆盖率（每个 page 应有 test） | CERTAIN | A B C D |
 | ⑥ | 代码 stub/TODO/简化标注扫描 | SUSPICIOUS | B C G |
-| ⑦ | 导航架构（HTML 底栏 Tab vs Flutter MainShell） | CERTAIN | **C** |
+| ⑦ | 导航架构（HTML 底栏 Tab vs Flutter MainShell）+ initialLocation 硬编码检查 | CERTAIN + SUSPICIOUS | **C** |
+| ⑧ | **入口初始化链完整性（H0）** — main.dart provider/callback 注册差集 | CERTAIN | A C D |
+| ⑨ | **API 响应类型安全（H1）** — `remote['xxx'] as T` 不安全强转扫描 | SUSPICIOUS | **B** |
+| ⑩ | **跨层算法一致性（H2）** — 服务端与客户端相同算法检测 | LIKELY | **G** |
 
 ### 输出格式
 
@@ -206,6 +209,55 @@ Source → Step1 → Step2 → Step3 → Sink
 | 学生列表 | correct_count, streak_days, 分页 |
 | 发布作业响应 | title, question_count, target_class_count, target_student_count |
 
+### 4.8 入口初始化链检查（H0 — 新增）
+
+自动化引擎模块⑧做 CERTAIN 检查（函数定义 vs 调用差集），人工需要：
+
+1. 打开 `main.dart`，列出所有 `setXxx()` / `registerXxx()` 调用
+2. 打开 `api_client.dart`，列出所有已定义的 `void setXxx(...)` 函数
+3. 做差集：定义了的函数 - 已调用的函数 = 遗漏
+4. 对每个遗漏，判断影响：功能完全不可用 / 部分功能缺失 / 冷启动空指针
+
+典型高发区：
+
+| 定义文件 | 常被遗漏的注册函数 | 后果 |
+|---------|------------------|------|
+| `api_client.dart` | `setTokenProvider`, `setRefreshTokenProvider`, `setOnTokenRefreshed`, `setOnRefreshFailed`, `setOnAuthFailure` | API 无认证头、登录状态不持久、token 过期页面卡死 |
+
+### 4.9 API 响应类型安全审查（H1 — 新增）
+
+引擎模块⑨输出 SUSPICIOUS 级别告警。人工审核每个 `as T` 强转：
+
+1. **确认类型是否稳定** — 如果该 API 端点的 serializer 强制返回固定类型（如 `CharField` 保证字符串），且已有测试覆盖，可接受
+2. **否则统一替换** — `as String?` → `(remote['xxx'] as Object?)?.toString()`
+3. **对 int/bool 字段** — `as int` → `(remote['xxx'] as num?)?.toInt()`
+
+引擎扫描范围：`domain/` + `data/api/`，但同一问题也可能出现在 `data/daos/` 和 `data/sync/` 中，人工需额外检查。
+
+### 4.10 跨层算法一致性审查（H2 — 新增）
+
+引擎模块⑩检测到两端都有实现后输出 LIKELY。人工审查：
+
+1. **打开两端代码并排放置**
+2. **逐行追踪算法流程**：同样的输入 → 同样的输出？
+3. **特别注意**：
+   - hash 的对象是原始文件还是压缩包？
+   - 字段拼接顺序是否一致？
+   - 编码方式（UTF-8/ASCII/Base64）？
+   - 缺省 / null 处理是否一致？
+
+每发现一个差异，属于 ❌ 阻塞性问题（功能不工作），不是 ⚠️ 小问题。
+
+### 4.11 测试基础设施检查（H3 — 新增）
+
+自动化不做此检查（引擎不运行测试）。
+
+在每个 `_test.dart` 文件中，检查：
+- 如果使用了 `SharedPreferences` → 有 `setMockInitialValues({})`
+- 如果使用了 `DatabaseProvider` → 有 mock
+- 如果使用了 `Dio` → 有 mock adapter
+- `widget_test.dart` 是 CI 第一道关卡，尤其要确保 mock 完整
+
 ### 4.7 模型字段约束检查（Step 5 — 仅 Type A/D）
 
 引擎检查字段存在性，人工检查约束正确性：
@@ -303,5 +355,5 @@ skill_manage(action='delete', name='auto-project-owner-acceptance')
 
 ---
 
-> 版本：2.0 | 最后更新：2026-07-11
+> 版本：2.1 | 最后更新：2026-07-12
 > 对应 Hermes skill：`auto-project-owner-acceptance`
