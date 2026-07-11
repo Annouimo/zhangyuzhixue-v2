@@ -40,7 +40,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
     try {
       final l = await _repo.getExploreList();
       if (!mounted) return;
-      setState(() { _list = l..sort((a, b) => b.createdAt.compareTo(a.createdAt)); _loading = false; });
+      setState(() { _list = List.of(l)..sort((a, b) => b.createdAt.compareTo(a.createdAt)); _loading = false; });
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

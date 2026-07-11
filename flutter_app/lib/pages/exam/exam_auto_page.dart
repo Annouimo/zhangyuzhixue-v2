@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
@@ -24,8 +25,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   int _choiceCount = 10, _fillCount = 5, _solutionCount = 6;
   double _targetDifficulty = 5;
   bool _generating = false;
-  Set<String> _years = {}, _regions = {};
+  Set<String> _years = {}, _regions = {}, _conceptTags = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
+  PoolStats? _poolStats;
 
   @override
   void initState() {
@@ -43,6 +45,18 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
     } catch (_) { if (mounted) setState(() { _loadingOpts = false; }); }
+  }
+
+  Future<void> _updatePoolStats() async {
+    try {
+      final filters = SearchFilters(
+        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
+        knowledgeCards: [], diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+      );
+      final stats = await _repo.getPoolStats(filters);
+      if (mounted) setState(() => _poolStats = stats);
+    } catch (_) {}
   }
 
   Future<void> _confirm() async {
@@ -87,12 +101,27 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                       FilterPanel(
                         yearOptions: _filterOpts!.years,
                         regionOptions: _filterOpts!.regions,
-                        onChanged: (y, r, t, dmn, dmx, cmn, cmx) {
-                          setState(() { _years = y; _regions = r;
+                        conceptTagOptions: _filterOpts!.conceptTags,
+                        onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) async {
+                          setState(() { _years = y; _regions = r; _conceptTags = ct;
                             _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; });
+                          _updatePoolStats();
                         },
                       ),
                     const Divider(height: 1),
+                    if (_poolStats != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            _statChip('选择', _poolStats!.availableChoice),
+                            const SizedBox(width: 8),
+                            _statChip('填空', _poolStats!.availableFill),
+                            const SizedBox(width: 8),
+                            _statChip('解答', _poolStats!.availableSolution),
+                          ],
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -128,6 +157,17 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
             ],
           ),
   );
+
+  Widget _statChip(String label, int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
+    );
+  }
 
   Widget _countStepper(String label, int count, ValueChanged<int> onChanged) {
     return Padding(

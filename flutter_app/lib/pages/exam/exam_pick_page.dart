@@ -26,7 +26,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   bool _loadingQ = false;
   final _selectedIds = <int>{};
   bool _saving = false;
-  Set<String> _years = {}, _regions = {};
+  Set<String> _years = {}, _regions = {}, _conceptTags = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   @override
@@ -49,7 +49,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     setState(() => _loadingQ = true);
     try {
       final filters = SearchFilters(name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(), conceptTags: [], knowledgeCards: [],
+        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: [],
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax);
       final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
@@ -81,7 +81,8 @@ class _ExamPickPageState extends State<ExamPickPage> {
       Expanded(child: CustomScrollView(slivers: [
         SliverToBoxAdapter(child: _filterOpts != null
           ? FilterPanel(yearOptions: _filterOpts!.years, regionOptions: _filterOpts!.regions,
-              onChanged: (y, r, t, dmn, dmx, cmn, cmx) { _years = y; _regions = r; _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; })
+              conceptTagOptions: _filterOpts!.conceptTags,
+              onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) { _years = y; _regions = r; _conceptTags = ct; _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; })
           : const SizedBox.shrink()),
         if (_filterOpts != null) SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _search, child: const Text('搜索'))))),

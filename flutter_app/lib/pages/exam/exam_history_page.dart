@@ -65,6 +65,14 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
             title: e.name,
             subtitle: '创建于 ${e.createdAt}',
             onTap: () => context.push('/exam/quicklook?id=${e.id}'),
+            trailingWidget: IconButton(
+              icon: const Icon(Icons.public, size: 18),
+              tooltip: '公开/私密',
+              onPressed: () async {
+                await _repo.togglePublic(e.id);
+                _load();
+              },
+            ),
           );
         },
       ),
