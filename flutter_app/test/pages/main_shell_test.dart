@@ -57,7 +57,6 @@ void main() {
         find.byType(BottomNavigationBar),
       );
       expect(navBar.currentIndex, 1);
-      expect(find.text('作业列表（Phase 3d）'), findsOneWidget);
     });
 
     testWidgets('tapping profile tab switches content', (tester) async {

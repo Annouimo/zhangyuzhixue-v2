@@ -11,6 +11,7 @@ import 'solve/solve_step_page.dart';
 import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
+import 'homework/homework_detail_page.dart';
 
 /// 路由路径常量
 abstract final class AppRoutes {
@@ -24,6 +25,7 @@ abstract final class AppRoutes {
   static const solveRate = '/solve/rate';
   static const lectureChapters = '/lecture/chapters';
   static const lectureContent = '/lecture/content';
+  static const homeworkDetail = '/homework/detail';
 }
 
 /// 从 query 参数解析 int
@@ -111,6 +113,14 @@ final GoRouter appRouter = GoRouter(
         final chapterId = _intParam(state.uri.queryParameters, 'chapterId') ?? 0;
         final page = _intParam(state.uri.queryParameters, 'page') ?? 1;
         return LectureContentPage(chapterId: chapterId, initialPage: page);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.homeworkDetail,
+      name: 'homework-detail',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        return HomeworkDetailPage(assignmentId: id);
       },
     ),
   ],

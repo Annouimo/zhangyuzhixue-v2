@@ -35,4 +35,10 @@ class AssignmentDao {
 
   Future<int> count() =>
       _db.select(_db.assignments).get().then((r) => r.length);
+
+  Future<String?> getCourseName(int courseId) async {
+    final q = _db.select(_db.courses)..where((t) => t.id.equals(courseId));
+    final row = await q.getSingleOrNull();
+    return row?.name;
+  }
 }

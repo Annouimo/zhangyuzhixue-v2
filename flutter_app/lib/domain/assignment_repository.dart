@@ -59,7 +59,6 @@ class AssignmentDetail {
 /// 作业 Repository — 从 lectures 库读取作业定义
 class AssignmentRepository {
   final AssignmentDao _assignmentDao;
-  // unused: QuestionDao (预留)
   const AssignmentRepository(this._assignmentDao);
 
   Future<List<AssignmentSummary>> getPending() async {
@@ -67,10 +66,13 @@ class AssignmentRepository {
     final result = <AssignmentSummary>[];
     for (final r in rows) {
       final questions = await _assignmentDao.getQuestions(r.id);
+      final courseName = r.courseId != null
+          ? (await _assignmentDao.getCourseName(r.courseId!)) ?? ''
+          : '';
       result.add(AssignmentSummary(
         id: r.id,
         title: r.title,
-        courseName: '',
+        courseName: courseName,
         doneCount: 0,
         totalCount: questions.length,
         deadlineDays: 0,
@@ -84,6 +86,9 @@ class AssignmentRepository {
     final assignment = await _assignmentDao.getById(id);
     if (assignment == null) throw Exception('Assignment not found: $id');
     final qLinks = await _assignmentDao.getQuestions(id);
+    final courseName = assignment.courseId != null
+        ? (await _assignmentDao.getCourseName(assignment.courseId!)) ?? ''
+        : '';
     final questions = qLinks.map((ql) {
       return QuestionSummary(
         id: ql.questionId,
@@ -94,7 +99,7 @@ class AssignmentRepository {
     }).toList();
     return AssignmentDetail(
       title: assignment.title,
-      courseName: '',
+      courseName: courseName,
       doneCount: 0,
       totalCount: questions.length,
       deadlineDays: 0,
