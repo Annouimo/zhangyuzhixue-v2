@@ -218,6 +218,109 @@ def check_html_to_flutter_pages(cfg: Config) -> list[Finding]:
 
 
 # ═══════════════════════════════════════════════
+# 检查模块 2B: HTML 内 UI 元素提取（R0 扩展 — 对关键页面做区块级清单）
+# ═══════════════════════════════════════════════
+
+# 关键页面: 从中提取语义区块，供人工比对 Flutter 实现
+KEY_HTML_PAGES = {
+    "index.html": [
+        ("欢迎语卡片", "card", "欢迎/每天一句"),
+        ("待办作业入口", "a[href*=homework]", "📝 待办作业"),
+        ("讲义入口", "a[href*=lecture]", "📖 讲义"),
+        ("签到行(按钮+连续天数)", "button+span", "🔥 签到"),
+        ("签到进度条(7天奖励阶梯)", "progress bar", "第1天→第7天"),
+        ("任务列表(4项+积分)", "task-item", "✅/⬜ + 积分"),
+        ("等级进度+今日积分", "div", "🏅 Lv.X 今日积分"),
+        ("Toast签到反馈", "toast-container", "🔥 签到成功"),
+        ("底栏导航(首页/推荐/组卷/我的)", "nav.bottom-nav", "4个Tab"),
+    ],
+    "login.html": [
+        ("品牌标识", "text", "🐙 章鱼智学"),
+        ("用户名输入框", "input", "用户名"),
+        ("密码输入框", "input[type=password]", "密码"),
+        ("登录按钮", "button", "登录"),
+        ("注册链接", "a", "注册"),
+    ],
+    "profile.html": [
+        ("个人信息卡片(头像/姓名/学号)", "card", "头像+编辑"),
+        ("学习偏好入口", "a[href*=preference]", "📋 学习偏好"),
+        ("学习统计入口", "a[href*=statistics]", "📊 学习统计"),
+        ("做题历史入口", "a[href*=history]", "📝 做题历史"),
+        ("成就入口", "a[href*=achievement]", "🏆 成就"),
+        ("等级入口", "a[href*=level]", "🏅 等级"),
+        ("积分流水入口", "a[href*=points]", "💰 积分流水"),
+        ("同步状态入口", "a[href*=sync]", "📤 同步状态"),
+        ("关于入口", "a[href*=about]", "ℹ️ 关于"),
+        ("退出登录", "button/logout", "退出登录(红色)"),
+        ("底栏导航(首页/推荐/组卷/我的)", "nav.bottom-nav", "4个Tab"),
+    ],
+    "exam.html": [
+        ("标题", "h1", "组卷"),
+        ("智能组卷卡片", "card", "🤖 智能组卷"),
+        ("自主选题卡片", "card", "🖐 自主选题"),
+        ("我的组卷入ロ", "a", "📋 我的组卷"),
+        ("发现组卷入ロ", "a", "🌐 发现组卷"),
+        ("我的收藏入口", "a", "🔖 我的收藏"),
+    ],
+    "statistics.html": [
+        ("时间范围切换(pills)", "sort-pill", "5个时间选项"),
+        ("概览卡片(4项)", "card", "做题/正确率/连续/活跃"),
+        ("做题热力图", "chart", "Heatmap"),
+        ("正确率趋势", "chart", "折线图"),
+        ("积分累计趋势", "chart", "折线图"),
+        ("题型分布", "chart", "环形图"),
+    ],
+    "solve-choice.html": [
+        ("题目元信息(题号/题型)", "meta", "第X题·[选择]"),
+        ("作答次数选择器", "attempt-selector", "多存档"),
+        ("回顾模式banner", "review-banner", "回顾模式"),
+        ("题干(LaTeX)", "content", "MdLatexBody"),
+        ("选项网格(A/B/C/D)", "options", "4选项"),
+        ("提交按钮/冷却", "button", "提交+冷却"),
+        ("解析/结果区", "result", "正确/错误+解析"),
+        ("已完成+下一题/评分", "done", "下一题/⭐评分"),
+    ],
+    "solve-rate.html": [
+        ("难度评分(10星+算法分)", "star-rating", "难度对比"),
+        ("计算量评分(10星+算法分)", "star-rating", "计算量对比"),
+        ("优雅度评分(10星)", "star-rating", "优雅度"),
+        ("提交按钮", "button", "提交评分"),
+        ("积分奖励提示", "text", "+0.3 赠送积分"),
+    ],
+}
+
+
+def check_html_element_inventory(cfg: Config) -> list[Finding]:
+    """对关键 HTML 页面提取 UI 元素清单（R0 输出），供人工逐项 vs Flutter 验证"""
+    findings = []
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    solve_dir = os.path.join(html_dir, "solve-pages")
+
+    for page_name, elements in KEY_HTML_PAGES.items():
+        # 找到 HTML 文件
+        html_path = os.path.join(html_dir, page_name)
+        if not os.path.exists(html_path):
+            html_path = os.path.join(solve_dir, page_name)
+        if not os.path.exists(html_path):
+            continue
+
+        # 输出该页面的完整 UI 元素清单（由 KEY_HTML_PAGES 定义，来源是直接阅读 HTML）
+        # 每条为 LIKELY 级别，供人工比对 Flutter 实现
+        total = len(elements)
+        for i, (elem_name, elem_type, hint) in enumerate(elements, 1):
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"[{page_name}] 元素 {i}/{total}: {elem_name}",
+                source=f"C4: {page_name} §{elem_type}",
+                path=f"docs/04-UI/html/{page_name}",
+                evidence=f"HTML 原型定义了此元素（{hint}），需人工确认 Flutter 实现",
+                detail=f"Type: {elem_type}"
+            ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
 # 检查模块 3: pubspec.yaml 资产声明验证
 # ═══════════════════════════════════════════════
 
@@ -601,8 +704,9 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
         log("[模块 1/7] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/7] HTML→Flutter 页面覆盖...")
+        log("[模块 2/7] HTML→Flutter 页面覆盖 + 元素清单提取...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
+        all_findings.extend(check_html_element_inventory(cfg))
     if 3 in modules:
         log("[模块 3/7] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
