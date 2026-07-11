@@ -122,8 +122,10 @@ class TestClassList:
         assert resp.status_code == 200
         d = resp.data['data']
         assert d['totalClasses'] == 1
+        assert d['avgAccuracy'] == '0%'
         assert d['items'][0]['name'] == '高三(1)班'
         assert d['items'][0]['studentCount'] == 0
+        assert d['items'][0]['avgAccuracy'] == '0%'
 
 
 # ── Students ──────────────────────────────────────────────────
@@ -238,12 +240,16 @@ class TestAssignmentCreate:
             'paper_id': sample_paper.id,
             'title': '新作业',
             'deadline': '2026-07-20',
+            'description': '请认真完成',
             'class_ids': [sample_class_group.id],
         }, format='json')
         assert resp.status_code == 200
         assert resp.data['data']['id'] is not None
         # verify assignment created
         assert Assignment.objects.count() == 1
+        a = Assignment.objects.first()
+        assert a.title == '新作业'
+        assert a.description == '请认真完成'
         assert AssignmentQuestion.objects.count() == 1
         assert ClassCourseAssignment.objects.count() == 1
 
@@ -330,6 +336,25 @@ class TestAssignmentPatch:
         # Convert stored datetime to local date for comparison
         stored_date = timezone.localtime(cca.deadline).strftime('%Y-%m-%d')
         assert stored_date == new_date
+
+    def test_update_description(self, auth_client, sample_class_group, sample_question):
+        """PATCH description 应路由到 Assignment 模型"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='可修改描述')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        cca = ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.patch(f'/api/v1/teacher/assignments/{cca.id}/', {
+            'description': '更新后的描述',
+        }, format='json')
+        assert resp.status_code == 200
+        cca.assignment.refresh_from_db()
+        assert cca.assignment.description == '更新后的描述'
 
 
 # ── Auth guard ────────────────────────────────────────────────

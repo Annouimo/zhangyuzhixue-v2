@@ -76,6 +76,29 @@ def _class_accuracy(class_group_id, assignment_id):
     return f'{round(correct / total * 100)}%'
 
 
+def _calc_class_accuracy(class_group_id):
+    """该班级所有学生跨所有作业的平均正确率"""
+    details = SubmissionDetail.objects.filter(
+        submission__student__class_group_id=class_group_id,
+        is_correct__isnull=False,
+    )
+    total = details.count()
+    if total == 0:
+        return '0%'
+    correct = details.filter(is_correct=True).count()
+    return f'{round(correct / total * 100)}%'
+
+
+def _calc_overall_accuracy():
+    """全校平均正确率（所有班级/所有作业）"""
+    details = SubmissionDetail.objects.filter(is_correct__isnull=False)
+    total = details.count()
+    if total == 0:
+        return '0%'
+    correct = details.filter(is_correct=True).count()
+    return f'{round(correct / total * 100)}%'
+
+
 def _count_student_submissions(student_id):
     """学生总提交题数"""
     return SubmissionDetail.objects.filter(
@@ -145,10 +168,12 @@ def class_list(request):
         items.append({
             'name': g.name,
             'studentCount': g.s_count,
+            'avgAccuracy': _calc_class_accuracy(g.id),
         })
     return _ok(data={
         'totalClasses': groups.count(),
         'totalStudents': total_students,
+        'avgAccuracy': _calc_overall_accuracy(),
         'items': items,
     })
 
@@ -283,6 +308,7 @@ def student_detail(request, id):
 
 
 @extend_schema(
+    request=CreateAssignmentSerializer,
     responses={200: OpenApiResponse(description='作业列表/发布')},
 )
 @api_view(['GET', 'POST'])
@@ -351,7 +377,11 @@ def _create_assignment(data):
 
     # 创建作业
     title = data.get('title', '').strip() or paper.title
-    assignment = Assignment.objects.create(title=title)
+    description = data.get('description', '')
+    assignment = Assignment.objects.create(
+        title=title,
+        description=description,
+    )
 
     # 复制题目
     for pq in paper.paper_questions.select_related('question').order_by('sort_order'):
@@ -376,6 +406,7 @@ def _create_assignment(data):
 
 
 @extend_schema(
+    request=PatchAssignmentSerializer,
     responses={200: OpenApiResponse(description='作业详情/删除/修改')},
 )
 @api_view(['GET', 'DELETE', 'PATCH'])
@@ -404,9 +435,17 @@ def assignment_rud(request, id):
         msg = str(first_err[0]) if isinstance(first_err, list) else str(first_err)
         return _err(40201, msg)
 
-    for field, value in serializer.validated_data.items():
-        setattr(cca, field, value)
-    cca.save(update_fields=list(serializer.validated_data.keys()))
+    data = serializer.validated_data
+    cca_fields = []
+    if 'deadline' in data:
+        cca.deadline = data['deadline']
+        cca_fields.append('deadline')
+    if cca_fields:
+        cca.save(update_fields=cca_fields)
+    if 'description' in data:
+        assignment = cca.assignment
+        assignment.description = data['description']
+        assignment.save(update_fields=['description'])
     return _ok(message='修改成功')
 
 
