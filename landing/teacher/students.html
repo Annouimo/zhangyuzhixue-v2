@@ -48,13 +48,15 @@
               <th>姓名</th>
               <th>班级</th>
               <th>总做题量</th>
+              <th>正确数</th>
               <th>正确率</th>
+              <th>连续签到</th>
               <th>最近活跃</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="student-table-body">
-            <tr><td colspan="6" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无学生数据</td></tr>
+            <tr><td colspan="8" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无学生数据</td></tr>
           </tbody>
         </table>
       </div>
@@ -105,7 +107,9 @@
                 <td><a href="student.html?id=${s.id}" class="table-link">${esc(s.name)}</a></td>
                 <td>${esc(s.className)}</td>
                 <td>${s.totalQuestions ?? 0}</td>
+                <td>${s.correctCount ?? 0}</td>
                 <td><span style="font-weight:600;color:${color};">${(s.avgAccuracy ?? 0) + '%'}</span></td>
+                <td>${s.streakDays ?? 0}</td>
                 <td>${esc(s.lastActive) || '—'}</td>
                 <td><a href="student.html?id=${s.id}" class="btn btn-sm btn-ghost">详情</a></td>
               </tr>`;

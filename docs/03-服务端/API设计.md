@@ -714,7 +714,7 @@ POST /api/v1/teacher/assignments/
   "course_id": 1,
   "class_ids": [1, 2],
   "paper_id": 1,
-  "deadline": "2026-07-15T23:59:59+08:00"
+  "deadline": "2026-07-20"
 }
 ```
 
@@ -792,7 +792,53 @@ DELETE /api/v1/teacher/assignments/{id}/
 
 `PATCH` 允许修改字段：`title`, `description`, `deadline`（不允许修改题目列表和班级，如需修改建议删除重建）
 
-### 5.5 作业催交
+### 5.5 作业详情（按班级分组）
+
+```
+GET /api/v1/teacher/assignments/grouped/{assignment_id}/
+```
+
+**认证：** 需要 Bearer token + teacher
+
+**说明：** 当作业发布到多个班级时，按班级分组返回学生完成状态。
+
+**响应：**
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "id": 1,
+    "title": "导数基础练习",
+    "description": "选填题为主",
+    "deadline": "2026-07-20",
+    "totalStudents": 62,
+    "completedCount": 30,
+    "avgAccuracy": 68.5,
+    "classes": [
+      {
+        "class_name": "高三1班",
+        "total": 32,
+        "submitted": 18,
+        "average_accuracy": 72.5,
+        "students": [
+          {"id": 1, "name": "张三", "status": "completed", "accuracy": 80.0, "duration": "15分钟", "completedAt": "2026-07-09 14:30"},
+          {"id": 2, "name": "李四", "status": "pending", "accuracy": null, "duration": null, "completedAt": null}
+        ]
+      },
+      {
+        "class_name": "高三2班",
+        "total": 30,
+        "submitted": 12,
+        "average_accuracy": 65.0,
+        "students": []
+      }
+    ]
+  }
+}
+```
+
+### 5.6 作业催交
 
 ```
 POST /api/v1/teacher/assignments/{id}/remind/
@@ -802,7 +848,7 @@ POST /api/v1/teacher/assignments/{id}/remind/
 
 **说明：** 暂无通知推送通道，当前仅记录催交日志，预留未来扩展。 <!-- auto-audit: accepted-deferred 2026-07-11 项目Owner已知此限制，待推送通道就绪后实现 -->
 
-### 5.6 班级列表
+### 5.7 班级列表
 
 ```
 GET /api/v1/teacher/classes/
@@ -832,7 +878,7 @@ GET /api/v1/teacher/classes/
 }
 ```
 
-### 5.7 学生列表
+### 5.8 学生列表
 
 ```
 GET /api/v1/teacher/students/?search=张三&class_id=1
@@ -851,7 +897,9 @@ GET /api/v1/teacher/students/?search=张三&class_id=1
       "name": "张三",
       "className": "高三1班",
       "totalQuestions": 156,
+      "correctCount": 118,
       "avgAccuracy": 75.6,
+      "streakDays": 7,
       "lastActive": "2026-07-09"
     }
   ]
@@ -871,7 +919,7 @@ GET /api/v1/teacher/students/?search=张三&class_id=1
 | `search` | string | 按姓名/学号搜索 |
 | `class_id` | int | 按班级筛选 |
 
-### 5.8 学生详情
+### 5.9 学生详情
 
 ```
 GET /api/v1/teacher/students/{id}/
@@ -1009,7 +1057,8 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 || `GET` | `/api/v1/teacher/papers/` | teacher | 教师组卷列表（含题数/创建时间） |
 | `GET` | `/api/v1/teacher/assignments/` | teacher | 作业列表 |
 | `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业（body: title, description, course_id, paper_id, class_ids, deadline） |
-| `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情 |
+| `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情（按学生列完成状态） |
+| `GET` | `/api/v1/teacher/assignments/grouped/{assignment_id}/` | teacher | 作业详情（按班级分组，含学生列表） |
 | `PATCH` | `/api/v1/teacher/assignments/{id}/` | teacher | 修改作业 |
 | `DELETE` | `/api/v1/teacher/assignments/{id}/` | teacher | 删除作业 |
 | `POST` | `/api/v1/teacher/assignments/{id}/remind/` | teacher | 催交 |

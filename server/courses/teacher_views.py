@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from collections import OrderedDict
+
 from accounts.models import Student, UserLoginLog
 from accounts.permissions import IsTeacher
 from courses.models import (
@@ -103,6 +105,14 @@ def _count_student_submissions(student_id):
     """学生总提交题数"""
     return SubmissionDetail.objects.filter(
         submission__student_id=student_id,
+    ).count()
+
+
+def _count_student_correct(student_id):
+    """学生正确题数"""
+    return SubmissionDetail.objects.filter(
+        submission__student_id=student_id,
+        is_correct=True,
     ).count()
 
 
@@ -229,7 +239,9 @@ def student_list(request):
         'name': s.user.first_name or s.user.username,
         'className': s.class_group.name if s.class_group else '',
         'totalQuestions': _count_student_submissions(s.id),
+        'correctCount': _count_student_correct(s.id),
         'avgAccuracy': _calc_student_accuracy(s.id),
+        'streakDays': _calc_streak_days(s),
         'lastActive': _last_active_date(s.id),
     } for s in qs]
     return _ok(data=data)
@@ -387,41 +399,69 @@ def assignment_list_create(request):
 
 
 def _list_assignments():
-    """组装作业列表 + 统计汇总"""
-    ccas = ClassCourseAssignment.objects.filter(is_active=True).select_related(
+    """组装作业列表 + 统计汇总 — 按 assignment 分组（多班级合并）"""
+    ccas = list(ClassCourseAssignment.objects.filter(is_active=True).select_related(
         'assignment', 'class_course__class_group', 'class_course__course',
-    ).order_by('-publish_at')
+    ).order_by('-publish_at'))
+
+    # 按 assignment_id 分组
+    grouped = OrderedDict()
+    for cca in ccas:
+        aid = cca.assignment_id
+        if aid not in grouped:
+            grouped[aid] = {
+                'assignment': cca.assignment,
+                'ccas': [],
+            }
+        grouped[aid]['ccas'].append(cca)
 
     items = []
-    for cca in ccas:
-        cg_id = cca.class_course.class_group_id
-        a_id = cca.assignment_id
-        total_students = _count_class_students(cg_id)
-        completed = _class_completed_count(cg_id, a_id)
-        acc = _class_accuracy(cg_id, a_id)
+    for aid, g in grouped.items():
+        a = g['assignment']
+        class_names = []
+        total_students = 0
+        completed_count = 0
+        all_deadlines = []
+        accuracy_weighted_sum = 0.0
+
+        for cca in g['ccas']:
+            cg_id = cca.class_course.class_group_id
+            class_names.append(cca.class_course.class_group.name)
+            ts = _count_class_students(cg_id)
+            total_students += ts
+            completed = _class_completed_count(cg_id, a.id)
+            completed_count += completed
+            acc = _class_accuracy(cg_id, a.id)
+            accuracy_weighted_sum += acc * ts
+            if cca.deadline:
+                all_deadlines.append(cca.deadline)
+
+        latest_deadline = max(all_deadlines).strftime('%Y-%m-%d') if all_deadlines else ''
 
         items.append({
-            'id': cca.id,
-            'title': cca.assignment.title,
-            'className': cca.class_course.class_group.name,
-            'deadline': cca.deadline.strftime('%Y-%m-%d') if cca.deadline else '',
+            'id': aid,
+            'title': a.title,
+            'className': '、'.join(class_names),
+            'deadline': latest_deadline,
             'totalStudents': total_students,
-            'completedCount': completed,
+            'completedCount': completed_count,
             'completionRate': (
-                round(completed / total_students * 100, 1)
+                round(completed_count / total_students * 100, 1)
                 if total_students else 0.0),
-            'avgAccuracy': acc,
+            'avgAccuracy': (
+                round(accuracy_weighted_sum / total_students, 1)
+                if total_students else 0.0),
         })
 
     # 汇总统计
     total = len(items)
     today = timezone.now().date()
     active = sum(
-        1 for cca in ClassCourseAssignment.objects.filter(is_active=True)
+        1 for g in grouped.values()
+        for cca in g['ccas']
         if cca.deadline and cca.deadline >= today
     )
 
-    # 聚合完成率
     completed_sum = sum(item['completedCount'] for item in items)
     total_sum = sum(item['totalStudents'] for item in items)
     avg_completion = (
@@ -598,6 +638,116 @@ def _assignment_detail(cca):
         'avgAccuracy': acc,
         'students': student_items,
     })
+
+
+def _assignment_detail_by_assignment(ccas):
+    """按作业级别返回多班级分组的学生详情"""
+    if not ccas:
+        return _err(40201, '作业不存在')
+
+    a = ccas[0].assignment
+    classes = []
+    total_students = 0
+    completed_count = 0
+    accuracy_weighted_sum = 0.0
+    all_deadlines = []
+
+    for cca in ccas:
+        cg_id = cca.class_course.class_group_id
+        cg_name = cca.class_course.class_group.name
+
+        students = Student.objects.filter(
+            class_group_id=cg_id,
+        ).select_related('user')
+
+        student_items = []
+        for s in students:
+            details = SubmissionDetail.objects.filter(
+                submission__assignment_id=a.id,
+                submission__student=s,
+            ).order_by('created_at')
+
+            first = details.first()
+            if first:
+                last = details.last()
+                secs = int((last.created_at - first.created_at).total_seconds())
+                if secs < 60:
+                    duration = '少于1分钟'
+                elif secs < 3600:
+                    duration = f'{secs // 60}分钟'
+                else:
+                    duration = f'{secs // 3600}小时{(secs % 3600) // 60}分钟'
+
+                total = details.count()
+                correct = details.filter(is_correct=True).count()
+                acc = round(correct / total * 100, 1) if total else 0.0
+                student_items.append({
+                    'id': s.id,
+                    'name': s.user.first_name or s.user.username,
+                    'status': 'completed',
+                    'accuracy': acc,
+                    'duration': duration,
+                    'completedAt': last.created_at.strftime('%Y-%m-%d %H:%M'),
+                })
+            else:
+                student_items.append({
+                    'id': s.id,
+                    'name': s.user.first_name or s.user.username,
+                    'status': 'pending',
+                    'accuracy': None,
+                    'duration': None,
+                    'completedAt': None,
+                })
+
+        ts = _count_class_students(cg_id)
+        completed = _class_completed_count(cg_id, a.id)
+        acc_val = _class_accuracy(cg_id, a.id)
+        total_students += ts
+        completed_count += completed
+        accuracy_weighted_sum += acc_val * ts
+        if cca.deadline:
+            all_deadlines.append(cca.deadline)
+
+        classes.append({
+            'class_name': cg_name,
+            'total': ts,
+            'submitted': completed,
+            'average_accuracy': acc_val,
+            'students': student_items,
+        })
+
+    latest_deadline = max(all_deadlines).strftime('%Y-%m-%d') if all_deadlines else ''
+
+    return _ok(data={
+        'id': a.id,
+        'title': a.title,
+        'description': a.description,
+        'deadline': latest_deadline,
+        'totalStudents': total_students,
+        'completedCount': completed_count,
+        'avgAccuracy': (
+            round(accuracy_weighted_sum / total_students, 1)
+            if total_students else 0.0),
+        'classes': classes,
+    })
+
+
+# ── 分组作业详情 ─────────────────────────────────────────────
+
+
+@extend_schema(
+    responses={200: OpenApiResponse(description='分组作业详情')},
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def assignment_detail_grouped(request, assignment_id):
+    """按作业 ID 返回多班级分组的学生详情"""
+    ccas = list(ClassCourseAssignment.objects.filter(
+        assignment_id=assignment_id, is_active=True,
+    ).select_related(
+        'assignment', 'class_course__class_group', 'class_course__course',
+    ))
+    return _assignment_detail_by_assignment(ccas)
 
 
 # ── 关于页 ──────────────────────────────────────────────────

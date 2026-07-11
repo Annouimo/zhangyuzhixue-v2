@@ -139,6 +139,16 @@ class TestStudentList:
         data = resp.data['data']
         assert len(data) == 3
 
+    def test_returns_new_fields(self, auth_client, sample_students):
+        """验证 correctCount 和 streakDays 字段"""
+        resp = auth_client.get('/api/v1/teacher/students/')
+        assert resp.status_code == 200
+        s = resp.data['data'][0]
+        assert 'correctCount' in s
+        assert 'streakDays' in s
+        assert s['correctCount'] == 0
+        assert s['streakDays'] == 0
+
     def test_search_by_name(self, auth_client, sample_students):
         # student0's user.first_name is '' (default), search by username
         resp = auth_client.get('/api/v1/teacher/students/?search=student0')
@@ -369,6 +379,73 @@ class TestAssignmentDetail:
     def test_not_found(self, auth_client):
         resp = auth_client.get('/api/v1/teacher/assignments/99999/')
         assert resp.status_code == 404
+
+
+class TestAssignmentGroupedDetail:
+    """分组详情（按班级分组）"""
+
+    def test_single_class(self, auth_client, sample_class_group, sample_students,
+                          sample_paper, sample_question):
+        """单班级作业返回 grouped 结构"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='测试分组作业')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.get(
+            f'/api/v1/teacher/assignments/grouped/{assignment.id}/')
+        assert resp.status_code == 200
+        d = resp.data['data']
+        assert d['title'] == '测试分组作业'
+        assert 'classes' in d
+        assert len(d['classes']) == 1
+        assert d['classes'][0]['class_name'] == '高三(1)班'
+        assert d['classes'][0]['total'] == 3
+        assert 'students' in d['classes'][0]
+
+    def test_multi_class(self, auth_client, sample_class_group, sample_students,
+                         sample_paper, sample_question, db):
+        """多班级作业返回多个分组"""
+        from courses.models import Course, ClassCourse, Assignment, AssignmentQuestion, ClassCourseAssignment
+
+        # Create second class group
+        cg2 = ClassGroup.objects.create(
+            name='高三(2)班')
+
+        course = Course.objects.create(name='数学')
+        cc1 = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        cc2 = ClassCourse.objects.create(class_group=cg2, course=course)
+
+        assignment = Assignment.objects.create(title='跨班作业')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        ClassCourseAssignment.objects.create(
+            class_course=cc1, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        ClassCourseAssignment.objects.create(
+            class_course=cc2, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.get(
+            f'/api/v1/teacher/assignments/grouped/{assignment.id}/')
+        assert resp.status_code == 200
+        d = resp.data['data']
+        assert len(d['classes']) == 2
+        class_names = [c['class_name'] for c in d['classes']]
+        assert '高三(1)班' in class_names
+        assert '高三(2)班' in class_names
+
+    def test_not_found(self, auth_client):
+        resp = auth_client.get('/api/v1/teacher/assignments/grouped/99999/')
+        assert resp.status_code == 400
+        assert resp.data['code'] != 0
 
 
 class TestAssignmentDelete:

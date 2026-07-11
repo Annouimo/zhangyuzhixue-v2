@@ -30,7 +30,6 @@
     </div>
 
     <div id="error-msg" class="error-banner"></div>
-
     <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
 
     <div id="detail-content" style="display:none;">
@@ -38,12 +37,12 @@
       <div class="card">
         <div style="display:flex;gap:24px;flex-wrap:wrap;">
           <div>
-            <div style="font-size:13px;color:var(--text-secondary);">班级</div>
-            <div style="font-size:16px;font-weight:600;" id="detail-class"></div>
-          </div>
-          <div>
             <div style="font-size:13px;color:var(--text-secondary);">截止日期</div>
             <div style="font-size:16px;font-weight:600;" id="detail-deadline"></div>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">作业说明</div>
+            <div style="font-size:14px;color:var(--text-secondary);" id="detail-description"></div>
           </div>
           <div>
             <div style="font-size:13px;color:var(--text-secondary);">完成进度</div>
@@ -56,13 +55,8 @@
         </div>
       </div>
 
-      <!-- 学生列表 -->
-      <div class="card">
-        <div class="card-title">学生完成情况</div>
-        <div id="student-list">
-          <div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;" id="student-empty">暂无学生数据</div>
-        </div>
-      </div>
+      <!-- 按班级分组的学生列表 -->
+      <div id="class-groups"></div>
     </div>
   </div>
 
@@ -71,8 +65,7 @@
     initPage();
 
     function getParam(name) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(name);
+      return new URLSearchParams(window.location.search).get(name);
     }
 
     function accuracyClass(val) {
@@ -88,39 +81,61 @@
       if (!id) { showError('缺少作业 ID'); hideLoading('loading-indicator'); return; }
 
       try {
-        const data = await apiCall('/teacher/assignments/' + id + '/');
+        const data = await apiCall('/teacher/assignments/grouped/' + id + '/');
 
         document.getElementById('detail-title').textContent = data.title || '作业详情';
-        document.getElementById('detail-class').textContent = data.className || '—';
         document.getElementById('detail-deadline').textContent = data.deadline || '—';
+        document.getElementById('detail-description').textContent = data.description || '（无）';
         document.getElementById('detail-progress').textContent =
           (data.completedCount ?? 0) + '/' + (data.totalStudents ?? 0);
         document.getElementById('detail-accuracy').textContent = (data.avgAccuracy ?? 0) + '%';
 
-        const students = data.students || [];
-        const container = document.getElementById('student-list');
+        const classes = data.classes || [];
+        const container = document.getElementById('class-groups');
         container.innerHTML = '';
 
-        if (students.length === 0) {
-          container.innerHTML = '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无学生数据</div>';
+        if (classes.length === 0) {
+          container.innerHTML = '<div class="card"><div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无数据</div></div>';
         } else {
-          students.forEach(s => {
-            const initial = (s.name || '?').charAt(0);
-            const isPending = s.status === 'pending';
-            container.innerHTML += `
-              <a href="student.html?id=${s.id}" class="student-row">
-                <div class="avatar">${esc(initial)}</div>
-                <div class="info">
-                  <div class="name">${esc(s.name)}</div>
-                  <div class="sub">${isPending ? '<span style="color:var(--text-muted);">未提交</span>' : '已提交 · ' + esc(s.completedAt || '')}</div>
+          classes.forEach(cls => {
+            let studentsHtml = '';
+            const students = cls.students || [];
+
+            if (students.length === 0) {
+              studentsHtml = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:13px;">暂无学生数据</div>';
+            } else {
+              studentsHtml = students.map(s => {
+                const initial = (s.name || '?').charAt(0);
+                const isPending = s.status === 'pending';
+                return `
+                  <a href="student.html?id=${s.id}" class="student-row">
+                    <div class="avatar">${esc(initial)}</div>
+                    <div class="info">
+                      <div class="name">${esc(s.name)}</div>
+                      <div class="sub">${isPending ? '<span style="color:var(--text-muted);">未提交</span>' : '已提交 · ' + esc(s.completedAt || '')}</div>
+                    </div>
+                    <div class="score">
+                      ${isPending
+                        ? '<span class="status-tag pending">未交</span>'
+                        : '<div class="value ' + accuracyClass(s.accuracy) + '">' + (s.accuracy ?? 0) + '%</div>'
+                      }
+                    </div>
+                  </a>`;
+              }).join('');
+            }
+
+            const summaryHtml = `
+              <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                  <h3 class="card-title" style="margin-bottom:0;">${esc(cls.class_name)}</h3>
+                  <div style="font-size:13px;color:var(--text-secondary);">
+                    共 ${cls.total ?? 0} 人 · 已提交 ${cls.submitted ?? 0} · 平均正确率 ${(cls.average_accuracy ?? 0) + '%'}
+                  </div>
                 </div>
-                <div class="score">
-                  ${isPending
-                    ? '<span class="status-tag pending">未交</span>'
-                    : '<div class="value ' + accuracyClass(s.accuracy) + '">' + (s.accuracy ?? 0) + '%</div>'
-                  }
-                </div>
-              </a>`;
+                <div style="border-top:1px solid var(--border);">${studentsHtml}</div>
+              </div>`;
+
+            container.innerHTML += summaryHtml;
           });
         }
 
