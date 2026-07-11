@@ -95,12 +95,12 @@ class LevelRow {
 
 class UserRepository {
   /// GET /api/user/info/
-  static Future<UserInfo> getUserInfo() async {
+  Future<UserInfo> getUserInfo() async {
     throw UnimplementedError('UserRepository.getUserInfo');
   }
 
   /// PUT /api/user/info/
-  static Future<void> saveProfile(UserInfo data) async {
+  Future<void> saveProfile(UserInfo data) async {
     throw UnimplementedError('UserRepository.saveProfile');
   }
 
@@ -118,96 +118,96 @@ class UserRepository {
   /// 后台静默请求最新 URL。上传后立即用本地文件预览，不等待服务端返回。
   ///
   /// PUT /api/user/avatar/
-  static Future<String> uploadAvatar(String localPath) async {
+  Future<String> uploadAvatar(String localPath) async {
     throw UnimplementedError('UserRepository.uploadAvatar');
   }
 
   /// GET /api/user/answer-history/
-  static Future<List<HistoryItem>> getAnswerHistory() async {
+  Future<List<HistoryItem>> getAnswerHistory() async {
     throw UnimplementedError('UserRepository.getAnswerHistory');
   }
 
   /// 做题历史总数（profile.html 副标题）
-  static Future<int> getAnswerHistoryCount() async {
+  Future<int> getAnswerHistoryCount() async {
     throw UnimplementedError('UserRepository.getAnswerHistoryCount');
   }
 
   // ---- 积分相关（委托给 _PointsCalculator） ----
 
   /// GET /api/user/points/history/
-  static Future<List<PointsRecord>> getPointsHistory() async {
+  Future<List<PointsRecord>> getPointsHistory() async {
     throw UnimplementedError('UserRepository.getPointsHistory');
   }
 
   /// 四种积分汇总：从本地交易表计算或调 API
-  static Future<double> earnedPoints() async {
+  Future<double> earnedPoints() async {
     throw UnimplementedError('UserRepository.earnedPoints');
   }
 
-  static Future<double> bonusPoints() async {
+  Future<double> bonusPoints() async {
     throw UnimplementedError('UserRepository.bonusPoints');
   }
 
-  static Future<double> spentPoints() async {
+  Future<double> spentPoints() async {
     throw UnimplementedError('UserRepository.spentPoints');
   }
 
-  static Future<double> availablePoints() async {
+  Future<double> availablePoints() async {
     throw UnimplementedError('UserRepository.availablePoints');
   }
 
-  static Future<double> todayPoints() async {
+  Future<double> todayPoints() async {
     throw UnimplementedError('UserRepository.todayPoints');
   }
 
   // ---- 等级 ----
 
   /// 等级对照表
-  static Future<List<LevelRow>> getLevels() async {
+  Future<List<LevelRow>> getLevels() async {
     throw UnimplementedError('UserRepository.getLevels');
   }
 
   /// 等级进度文本，如 "🏅 Lv.5 → 升级还需 7.8"
-  static Future<String> levelProgress() async {
+  Future<String> levelProgress() async {
     throw UnimplementedError('UserRepository.levelProgress');
   }
 
   /// 超过百分之多少的用户
-  static Future<int> levelPercentile() async {
+  Future<int> levelPercentile() async {
     throw UnimplementedError('UserRepository.levelPercentile');
   }
 
   // ---- 签到任务 ----
 
   /// 已连续签到天数
-  static Future<int> streakDays() async {
+  Future<int> streakDays() async {
     throw UnimplementedError('UserRepository.streakDays');
   }
 
   /// 今日签到奖励
-  static Future<double> todayReward() async {
+  Future<double> todayReward() async {
     throw UnimplementedError('UserRepository.todayReward');
   }
 
   /// 明日签到奖励
-  static Future<double> nextReward() async {
+  Future<double> nextReward() async {
     throw UnimplementedError('UserRepository.nextReward');
   }
 
   /// 今日已获得的学习积分
-  static Future<double> todayEarned() async {
+  Future<double> todayEarned() async {
     throw UnimplementedError('UserRepository.todayEarned');
   }
 
   // ---- app 信息 ----
 
   /// App 版本号（about.html）
-  static Future<String> appVersion() async {
+  Future<String> appVersion() async {
     throw UnimplementedError('UserRepository.appVersion');
   }
 
   /// 题库版本号（about.html）
-  static Future<String> questionBankVersion() async {
+  Future<String> questionBankVersion() async {
     throw UnimplementedError('UserRepository.questionBankVersion');
   }
 }

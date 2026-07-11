@@ -87,17 +87,17 @@ class AssignmentDetail {
 
 class AssignmentRepository {
   /// GET /api/assignments/pending/
-  static Future<List<AssignmentSummary>> getPending() async {
+  Future<List<AssignmentSummary>> getPending() async {
     throw UnimplementedError('AssignmentRepository.getPending');
   }
 
   /// GET /api/assignments/{id}/questions/
-  static Future<AssignmentDetail> getQuestions(int id) async {
+  Future<AssignmentDetail> getQuestions(int id) async {
     throw UnimplementedError('AssignmentRepository.getQuestions');
   }
 
   /// GET /api/assignments/pending/count/  → 待办作业数
-  static Future<int> pendingCount() async {
+  Future<int> pendingCount() async {
     throw UnimplementedError('AssignmentRepository.pendingCount');
   }
 }

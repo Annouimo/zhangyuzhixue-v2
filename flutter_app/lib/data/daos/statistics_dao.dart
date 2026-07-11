@@ -46,17 +46,35 @@ class StatisticsDao {
     return dates.length;
   }
 
-  /// 按日期统计每日做题数
-  Future<List<({String date, int count})>> getDailyRecords(int rangeDays) async {
+  /// 按日期统计每日做题数和正确数
+  Future<List<({String date, int count, int correct})>> getDailyRecords(int rangeDays) async {
     final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
     final rows = await (_db.select(_db.submissionDetails)
       ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
-    final groups = <String, int>{};
+    final groups = <String, ({int count, int correct})>{};
     for (final r in rows) {
       final date = r.createdAt.substring(0, 10);
-      groups[date] = (groups[date] ?? 0) + 1;
+      final cur = groups[date] ?? (count: 0, correct: 0);
+      groups[date] = (count: cur.count + 1, correct: cur.correct + (r.isCorrect == 1 ? 1 : 0));
     }
-    return groups.entries.map((e) => (date: e.key, count: e.value)).toList();
+    return groups.entries.map((e) => (
+      date: e.key,
+      count: e.value.count,
+      correct: e.value.correct,
+    )).toList();
+  }
+
+  /// 按日期统计每日获得积分
+  Future<List<({String date, double amount})>> getPointsByDay(int rangeDays) async {
+    final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
+    final rows = await (_db.select(_db.pointsTransactions)
+      ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+    final groups = <String, double>{};
+    for (final r in rows) {
+      final date = r.createdAt.substring(0, 10);
+      groups[date] = (groups[date] ?? 0) + r.amount;
+    }
+    return groups.entries.map((e) => (date: e.key, amount: e.value)).toList();
   }
 
   /// 按题型统计答题数

@@ -1,4 +1,4 @@
-﻿/// 章鱼智学 — ExamRepository
+/// 章鱼智学 — ExamRepository
 /// data-db: exam.*
 /// 对应页面：paper_auto.html, paper_pick.html, paper_quicklook.html,
 ///          paper_quicklook_other.html, paper_explore.html, paper_favorites.html,
@@ -308,100 +308,100 @@ class SearchQuestion {
 
 class ExamRepository {
   // ---- 发现组卷 ----
-  static Future<List<ExploreExamSummary>> getExploreList() async {
+  Future<List<ExploreExamSummary>> getExploreList() async {
     throw UnimplementedError('ExamRepository.getExploreList');
   }
 
-  static Future<void> toggleLike(int examId) async {
+  Future<void> toggleLike(int examId) async {
     throw UnimplementedError('ExamRepository.toggleLike');
   }
 
-  static Future<void> toggleCollect(int examId) async {
+  Future<void> toggleCollect(int examId) async {
     throw UnimplementedError('ExamRepository.toggleCollect');
   }
 
   // ---- 我的收藏 ----
-  static Future<List<FavoriteExamSummary>> getFavorites() async {
+  Future<List<FavoriteExamSummary>> getFavorites() async {
     throw UnimplementedError('ExamRepository.getFavorites');
   }
 
-  static Future<void> removeFavorite(int examId) async {
+  Future<void> removeFavorite(int examId) async {
     throw UnimplementedError('ExamRepository.removeFavorite');
   }
 
   // ---- 我的组卷历史 ----
-  static Future<List<ExamSummary>> getMyExams() async {
+  Future<List<ExamSummary>> getMyExams() async {
     throw UnimplementedError('ExamRepository.getMyExams');
   }
 
-  static Future<void> togglePublic(int examId) async {
+  Future<void> togglePublic(int examId) async {
     throw UnimplementedError('ExamRepository.togglePublic');
   }
 
-  static Future<void> deleteExam(int examId) async {
+  Future<void> deleteExam(int examId) async {
     throw UnimplementedError('ExamRepository.deleteExam');
   }
 
   // ---- 预览 ----
-  static Future<ExamPreview> getPreview(int examId) async {
+  Future<ExamPreview> getPreview(int examId) async {
     throw UnimplementedError('ExamRepository.getPreview');
   }
 
-  static Future<ExamPreviewOther> getPreviewOther(int examId) async {
+  Future<ExamPreviewOther> getPreviewOther(int examId) async {
     throw UnimplementedError('ExamRepository.getPreviewOther');
   }
 
   /// 下载/打印试卷（委托给 PdfHelper）
-  static Future<void> downloadPdf(int paperId) async {
+  Future<void> downloadPdf(int paperId) async {
     throw UnimplementedError('ExamRepository.downloadPdf');
   }
 
   // ---- 快对答案 ----
-  static Future<List<AnswerItem>> getQuickAnswers(int examId) async {
+  Future<List<AnswerItem>> getQuickAnswers(int examId) async {
     throw UnimplementedError('ExamRepository.getQuickAnswers');
   }
 
   // ---- 筛选预设（委托给 preference_repository） ----
-  static Future<List<FilterPreset>> getFilterPresets() async {
+  Future<List<FilterPreset>> getFilterPresets() async {
     throw UnimplementedError('ExamRepository.getFilterPresets');
   }
 
-  static Future<void> saveFilterPreset(String name) async {
+  Future<void> saveFilterPreset(String name) async {
     throw UnimplementedError('ExamRepository.saveFilterPreset');
   }
 
-  static Future<SearchFilters> loadFilterPreset(int presetId) async {
+  Future<SearchFilters> loadFilterPreset(int presetId) async {
     throw UnimplementedError('ExamRepository.loadFilterPreset');
   }
 
   // ---- 筛选选项（从本地题库/assets 读取） ----
-  static Future<FilterOptions> getFilterOptions() async {
+  Future<FilterOptions> getFilterOptions() async {
     throw UnimplementedError('ExamRepository.getFilterOptions');
   }
 
   // ---- 数据绑定/状态（手动选题模式） ----
-  static Future<ExamBuildState> getBuildSession() async {
+  Future<ExamBuildState> getBuildSession() async {
     throw UnimplementedError('ExamRepository.getBuildSession');
   }
 
   /// 筛选后的题目列表（通过 ExamDao 从本地资产库查询）
-  static Future<List<SearchQuestion>> getFilteredQuestions(
+  Future<List<SearchQuestion>> getFilteredQuestions(
       SearchFilters filters) async {
     throw UnimplementedError('ExamRepository.getFilteredQuestions');
   }
 
   /// 筛选池统计（委托给 _ExamFilterEngine）
-  static Future<PoolStats> getPoolStats(SearchFilters filters) async {
+  Future<PoolStats> getPoolStats(SearchFilters filters) async {
     throw UnimplementedError('ExamRepository.getPoolStats');
   }
 
-  static Future<int> getTotalCount(SearchFilters filters) async {
+  Future<int> getTotalCount(SearchFilters filters) async {
     throw UnimplementedError('ExamRepository.getTotalCount');
   }
 
   /// 确认组卷（委托给 _ExamGenerator）
   /// [allowShortfall] 为 true 时，池子不足不抛异常，有多少取多少
-  static Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
+  Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
     throw UnimplementedError('ExamRepository.confirm');
   }
 }

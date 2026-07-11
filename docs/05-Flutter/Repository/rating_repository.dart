@@ -36,12 +36,12 @@ class Rating {
 
 class RatingRepository {
   /// GET /api/questions/{questionId}/rating/
-  static Future<Rating> getRating(int questionId) async {
+  Future<Rating> getRating(int questionId) async {
     throw UnimplementedError('RatingRepository.getRating');
   }
 
   /// POST /api/questions/{questionId}/rating/
-  static Future<void> submitRating({
+  Future<void> submitRating({
     required int questionId,
     required double difficulty,
     required double calculation,

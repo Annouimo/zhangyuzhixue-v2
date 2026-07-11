@@ -1,6 +1,7 @@
 
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
+import '../data/helpers/pdf_helper.dart';
 
 /// 组卷构建状态
 
@@ -299,7 +300,7 @@ class ExamRepository {
   }
 
   Future<void> downloadPdf(int paperId) async {
-    // 由 PdfHelper 在 Service 层实现，Repository 层不做 PDF 下载
+    await PdfHelper.downloadPdf(sourceId: paperId, sourceType: 'paper');
   }
 
   // ── 快对答案 ──

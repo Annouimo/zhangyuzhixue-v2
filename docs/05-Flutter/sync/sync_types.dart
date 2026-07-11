@@ -132,25 +132,19 @@ class PushItemResult {
 }
 
 /// 推送请求的汇总结果
+///
+/// 服务器返回格式匹配: {server_ids: {localId: serverId}}
 class PushBatchResult {
-  final int successCount;
-  final int failCount;
-  final List<PushItemResult> details;
+  final Map<int, int> serverIds;
 
-  const PushBatchResult({
-    required this.successCount,
-    required this.failCount,
-    required this.details,
-  });
+  const PushBatchResult({required this.serverIds});
 
-  factory PushBatchResult.fromJson(Map<String, dynamic> json) =>
-      PushBatchResult(
-        successCount: json['success_count'] as int,
-        failCount: json['fail_count'] as int,
-        details: (json['details'] as List)
-            .map((e) => PushItemResult.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      );
+  factory PushBatchResult.fromJson(Map<String, dynamic> json) {
+    final raw = json['server_ids'] as Map<String, dynamic>? ?? {};
+    return PushBatchResult(
+      serverIds: raw.map((k, v) => MapEntry(int.parse(k), v as int)),
+    );
+  }
 }
 
 /// 版本检查响应

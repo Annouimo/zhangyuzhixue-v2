@@ -1,6 +1,9 @@
 import 'dart:math';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
+import '../data/daos/preference_dao.dart';
+import '../data/database/database_provider.dart';
+import 'preference_repository.dart';
 
 /// 推荐题目
 class RecommendedQuestion {
@@ -35,7 +38,11 @@ class PresetQuestion {
 class RecommendRepository {
   final QuestionDao _questionDao;
   final ProgressDao _progressDao;
-  const RecommendRepository(this._questionDao, this._progressDao);
+  late final PreferenceRepository _prefRepo;
+
+  RecommendRepository(this._questionDao, this._progressDao) {
+    _prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+  }
 
   Future<List<RecommendedQuestion>> getSmartList() async {
     final engine = _RecommendationEngine(_questionDao, _progressDao);
@@ -43,11 +50,39 @@ class RecommendRepository {
   }
 
   Future<List<RecommendPreset>> getPresets() async {
-    return [];
+    final list = await _prefRepo.getList();
+    return list.map((p) => RecommendPreset(id: p.id, name: p.name)).toList();
   }
 
   Future<List<PresetQuestion>> getPresetQuestions(int presetId) async {
-    return [];
+    final filter = await _prefRepo.getEdit(presetId);
+    final candidates = await _questionDao.search(
+      years: filter.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filter.regions.isNotEmpty ? filter.regions : null,
+      diffMin: filter.diffMin,
+      diffMax: filter.diffMax,
+      calcMin: filter.calcMin,
+      calcMax: filter.calcMax,
+      limit: 50,
+    );
+    var results = candidates.cast<dynamic>().toList();
+    if (filter.conceptTags.isNotEmpty) {
+      final tagged = <dynamic>[];
+      for (final q in results) {
+        final tags = await _questionDao.getTagsByQuestion(q.id);
+        if (tags.any((t) => filter.conceptTags.contains(t.name))) {
+          tagged.add(q);
+        }
+      }
+      results = tagged;
+    }
+    return results.take(20).map((q) => PresetQuestion(
+      id: q.id,
+      title: '${q.year} ${q.region} ${q.examType}',
+      questionType: q.questionType,
+      difficulty: q.difficulty ?? 0,
+      status: 'pending',
+    )).toList();
   }
 }
 
@@ -81,7 +116,6 @@ class _RecommendationEngine {
     final weakTag = await _findWeakestConcept(allTags);
     final choiceFill = <RecommendedQuestion>[];
     if (weakTag != null) {
-      // 取该概念下未做的 choice/fill 题，按难度适配
       final candidates = <dynamic>[];
       for (final q in allQuestions) {
         if (doneIds.contains(q.id)) continue;
@@ -106,14 +140,12 @@ class _RecommendationEngine {
       }
     }
 
-    // 路线B：解答题 — 卡片卡住率
-    // 对做过 step_feedback 的 solution 题，按卡住率降序取未做的
+    // 路线B：解答题
     final solution = <RecommendedQuestion>[];
     for (final q in allQuestions) {
       if (solution.length >= 2) break;
       if (q.questionType != 'solution') continue;
       if (doneIds.contains(q.id)) continue;
-      // 检查已做的类似题是否有高卡住率
       solution.add(RecommendedQuestion(
         id: q.id,
         title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
@@ -124,7 +156,7 @@ class _RecommendationEngine {
       ));
     }
 
-    // 合并排序：choice ×2, fill ×2, solution ×2
+    // 合并
     final result = <RecommendedQuestion>[];
     final c = choiceFill.where((r) => r.questionType == 'choice').take(2).toList();
     final f = choiceFill.where((r) => r.questionType == 'fill').take(2).toList();
@@ -134,9 +166,6 @@ class _RecommendationEngine {
     return result;
   }
 
-  /// 找掌握度最低的概念
-  /// 时间衰减：近期正确权重高（λ=0.099，7天半衰期）
-  /// 小样本收缩：样本 < minConfidence 时向 0.5 收缩
   Future<dynamic> _findWeakestConcept(List<dynamic> allTags) async {
     if (allTags.isEmpty) return null;
     final mastery = <int, double>{};
@@ -161,7 +190,6 @@ class _RecommendationEngine {
       }
       if (weightedTotal <= 0) { mastery[tag.id] = double.infinity; continue; }
       final rawMastery = weightedCorrect / weightedTotal;
-      // 小样本收缩
       final shrinkage = weightedTotal / (weightedTotal + minConfidence);
       mastery[tag.id] = 1.0 - (shrinkage * rawMastery + (1 - shrinkage) * 0.5);
     }

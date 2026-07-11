@@ -85,37 +85,37 @@ class Distribution {
 
 class StatisticsRepository {
   /// GET /api/stats/overview/
-  static Future<StatsOverview> getOverview() async {
+  Future<StatsOverview> getOverview() async {
     throw UnimplementedError('StatisticsRepository.getOverview');
   }
 
   /// 总做题数（profile.html 快捷用法）
-  static Future<int> totalQuestions() async {
+  Future<int> totalQuestions() async {
     throw UnimplementedError('StatisticsRepository.totalQuestions');
   }
 
   /// 总体正确率（profile.html 快捷用法）
-  static Future<double> accuracy() async {
+  Future<double> accuracy() async {
     throw UnimplementedError('StatisticsRepository.accuracy');
   }
 
   /// GET /api/stats/daily-records?range={days}
-  static Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
+  Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
     throw UnimplementedError('StatisticsRepository.getDailyRecords');
   }
 
   /// GET /api/stats/accuracy-trend?range={days}
-  static Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
+  Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
     throw UnimplementedError('StatisticsRepository.getAccuracyTrend');
   }
 
   /// GET /api/stats/points-trend?range={days}
-  static Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
+  Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
     throw UnimplementedError('StatisticsRepository.getPointsTrend');
   }
 
   /// GET /api/stats/distribution/
-  static Future<Distribution> getDistribution() async {
+  Future<Distribution> getDistribution() async {
     throw UnimplementedError('StatisticsRepository.getDistribution');
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/database/app_database.dart' as db;
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
@@ -173,14 +174,54 @@ class ProgressRepository {
     final detail = match.first;
 
     // 查询该存档的步骤反馈
-    // feedbacks unused in v1
-    // 简化的状态重建
+    final feedbacks = await _dao.getStepFeedbacks(detail.id);
+    final feedbacksBySubQ = <int, List<db.StepFeedbackRow>>{};
+    for (final f in feedbacks) {
+      final idx = f.subQuestionIndex ?? 0;
+      feedbacksBySubQ.putIfAbsent(idx, () => []).add(f);
+    }
+
+    // 查询该题是否已评分
+    final hasRating = await _dao.hasRating(questionId);
+
+    // 重建 subQRecords
+    final subQRecords = <SubQSolveRecord>[];
+    // 从 assets 库读题目结构
+    final subQuestions = await _questionDao.getSubQuestions(questionId);
+    for (final sq in subQuestions) {
+      final methods = await _questionDao.getMethods(sq.id);
+      final methodRecords = <MethodSolveRecord>[];
+      for (final m in methods) {
+        final steps = await _questionDao.getSteps(m.id);
+        final stepRecords = <StepSolveRecord>[];
+        for (final s in steps) {
+          final feedbackList = feedbacksBySubQ[sq.sortOrder];
+          final fb = feedbackList?.where((f) => f.stepNumber == s.stepNumber).toList();
+          stepRecords.add(StepSolveRecord(
+            stepOrder: s.stepNumber,
+            feedbackGiven: fb != null && fb.isNotEmpty,
+            feedbackType: fb?.last.status,
+          ));
+        }
+        methodRecords.add(MethodSolveRecord(
+          methodName: m.methodName ?? '',
+          steps: stepRecords,
+        ));
+      }
+      subQRecords.add(SubQSolveRecord(
+        index: sq.sortOrder,
+        activeMethod: '',
+        completed: methodRecords.every((m) => m.steps.every((s) => s.feedbackGiven)),
+        methods: methodRecords,
+      ));
+    }
+
     return PreviousSolveState(
       attemptNumber: attemptNumber,
       choiceSubmitted: detail.status == 'completed',
       fillRevealed: detail.status == 'completed',
-      subQRecords: [],
-      isRated: false,
+      subQRecords: subQRecords,
+      isRated: hasRating,
     );
   }
 

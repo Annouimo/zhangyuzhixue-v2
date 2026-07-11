@@ -47,38 +47,38 @@ class SyncQueueItem {
 
 class SyncRepository {
   /// GET /api/sync/queue/
-  static Future<List<SyncQueueItem>> getQueue() async {
+  Future<List<SyncQueueItem>> getQueue() async {
     throw UnimplementedError('SyncRepository.getQueue');
   }
 
   /// 失败记录数（供 profile.html 判断）
-  static Future<int> getFailedCount() async {
+  Future<int> getFailedCount() async {
     throw UnimplementedError('SyncRepository.getFailedCount');
   }
 
   /// 同步队列是否全部完成
-  static Future<bool> isEmpty() async {
+  Future<bool> isEmpty() async {
     throw UnimplementedError('SyncRepository.isEmpty');
   }
 
   /// 是否有失败记录
-  static Future<bool> hasFailed() async {
+  Future<bool> hasFailed() async {
     throw UnimplementedError('SyncRepository.hasFailed');
   }
 
   /// 全部重试
   /// POST /api/sync/retry-all/
-  static Future<void> retryAll() async {
+  Future<void> retryAll() async {
     throw UnimplementedError('SyncRepository.retryAll');
   }
 
   /// 失败数文本（供 profile.html 副标题）
-  static Future<String> failedCountText() async {
+  Future<String> failedCountText() async {
     throw UnimplementedError('SyncRepository.failedCountText');
   }
 
   /// 全部成功文本
-  static Future<String> allSuccessText() async {
+  Future<String> allSuccessText() async {
     throw UnimplementedError('SyncRepository.allSuccessText');
   }
 }

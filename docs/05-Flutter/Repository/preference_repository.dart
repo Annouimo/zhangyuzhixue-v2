@@ -6,11 +6,21 @@ class PreferenceFilter {
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
+  final List<String> types;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
 
   const PreferenceFilter({
     required this.years,
     required this.regions,
     required this.conceptTags,
+    this.types = const [],
+    this.diffMin,
+    this.diffMax,
+    this.calcMin,
+    this.calcMax,
   });
 
   factory PreferenceFilter.fromJson(Map<String, dynamic> json) =>
@@ -18,12 +28,22 @@ class PreferenceFilter {
         years: (json['years'] as List).cast<String>(),
         regions: (json['regions'] as List).cast<String>(),
         conceptTags: (json['concept_tags'] as List).cast<String>(),
+        types: (json['types'] as List?)?.cast<String>() ?? [],
+        diffMin: (json['diff_min'] as num?)?.toDouble(),
+        diffMax: (json['diff_max'] as num?)?.toDouble(),
+        calcMin: (json['calc_min'] as num?)?.toDouble(),
+        calcMax: (json['calc_max'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
         'years': years,
         'regions': regions,
         'concept_tags': conceptTags,
+        if (types.isNotEmpty) 'types': types,
+        if (diffMin != null) 'diff_min': diffMin,
+        if (diffMax != null) 'diff_max': diffMax,
+        if (calcMin != null) 'calc_min': calcMin,
+        if (calcMax != null) 'calc_max': calcMax,
       };
 }
 
@@ -48,22 +68,22 @@ class PreferenceSummary {
 
 class PreferenceRepository {
   /// GET /api/preferences/
-  static Future<List<PreferenceSummary>> getList() async {
+  Future<List<PreferenceSummary>> getList() async {
     throw UnimplementedError('PreferenceRepository.getList');
   }
 
   /// GET /api/preferences/count/
-  static Future<int> getCount() async {
+  Future<int> getCount() async {
     throw UnimplementedError('PreferenceRepository.getCount');
   }
 
   /// GET /api/preferences/{id}/
-  static Future<PreferenceFilter> getEdit(int id) async {
+  Future<PreferenceFilter> getEdit(int id) async {
     throw UnimplementedError('PreferenceRepository.getEdit');
   }
 
   /// POST /api/preferences/
-  static Future<void> save({
+  Future<void> save({
     required String name,
     required PreferenceFilter filter,
   }) async {
@@ -71,7 +91,7 @@ class PreferenceRepository {
   }
 
   /// DELETE /api/preferences/{id}
-  static Future<void> delete(int id) async {
+  Future<void> delete(int id) async {
     throw UnimplementedError('PreferenceRepository.delete');
   }
 }

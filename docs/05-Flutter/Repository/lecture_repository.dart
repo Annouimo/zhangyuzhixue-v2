@@ -122,18 +122,18 @@ class ChapterList {
 /// 本地读取后通过 _parseMdContent() 完成结构化，结果用内存缓存。
 class LectureRepository {
   /// GET /api/lectures/courses/ 或 本地 drift course 表
-  static Future<List<Course>> getCourses() async {
+  Future<List<Course>> getCourses() async {
     throw UnimplementedError('LectureRepository.getCourses');
   }
 
   /// GET /api/lectures/courses/{courseId}/chapters/ 或 本地 drift chapter 表
-  static Future<ChapterList> getChapters(int courseId) async {
+  Future<ChapterList> getChapters(int courseId) async {
     throw UnimplementedError('LectureRepository.getChapters');
   }
 
   /// 从本地 drift lecture_content 表读取该讲原始 markdown
   /// 渲染层收到 LectureContent 后调用 _parseMdContent() 解析
-  static Future<LectureContent> getContent(int chapterId) async {
+  Future<LectureContent> getContent(int chapterId) async {
     throw UnimplementedError('LectureRepository.getContent');
   }
 }

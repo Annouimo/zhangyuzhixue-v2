@@ -138,22 +138,22 @@ class SolveRouteHelper {
 
 class QuestionRepository {
   /// GET /api/questions/{id}/
-  static Future<QuestionDetail> getDetail(int id) async {
+  Future<QuestionDetail> getDetail(int id) async {
     throw UnimplementedError('QuestionRepository.getDetail');
   }
 
   /// POST /api/questions/{id}/start-solve/
-  static Future<SolveAttempt> startSolve(int questionId) async {
+  Future<SolveAttempt> startSolve(int questionId) async {
     throw UnimplementedError('QuestionRepository.startSolve');
   }
 
   /// GET /api/questions/{id}/attempts/
-  static Future<List<SolveAttempt>> getAttempts(int questionId) async {
+  Future<List<SolveAttempt>> getAttempts(int questionId) async {
     throw UnimplementedError('QuestionRepository.getAttempts');
   }
 
   /// GET /api/questions/{id}/next/
-  static Future<int?> nextQuestion(int currentId) async {
+  Future<int?> nextQuestion(int currentId) async {
     throw UnimplementedError('QuestionRepository.nextQuestion');
   }
 }

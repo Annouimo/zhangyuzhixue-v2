@@ -78,11 +78,47 @@ class StatisticsRepository {
   }
 
   Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
-    return []; // 需要多日准确率数据
+    final raw = await _dao.getDailyRecords(rangeDays);
+    if (raw.isEmpty) return [];
+    // 每日正确率作为趋势点
+    final points = <TrendPoint>[];
+    for (final r in raw) {
+      if (r.count == 0) continue;
+      final acc = r.correct / r.count;
+      points.add(TrendPoint(label: r.date, value: acc * 100));
+    }
+    // 点数 > 30 时降采样
+    if (points.length > 30) {
+      final sampled = <TrendPoint>[];
+      final step = (points.length / 30).ceil();
+      for (var i = 0; i < points.length; i += step) {
+        sampled.add(points[i]);
+      }
+      return sampled;
+    }
+    return points;
   }
 
   Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
-    return [];
+    final raw = await _dao.getPointsByDay(rangeDays);
+    if (raw.isEmpty) return [];
+    // 累计求和
+    var cum = 0.0;
+    final points = <TrendPoint>[];
+    for (final r in raw) {
+      cum += r.amount;
+      points.add(TrendPoint(label: r.date, value: cum));
+    }
+    // 点数 > 30 时降采样
+    if (points.length > 30) {
+      final sampled = <TrendPoint>[];
+      final step = (points.length / 30).ceil();
+      for (var i = 0; i < points.length; i += step) {
+        sampled.add(points[i]);
+      }
+      return sampled;
+    }
+    return points;
   }
 
   Future<Distribution> getDistribution() async {
@@ -100,22 +136,21 @@ class StatisticsRepository {
   }
 }
 
-// ── 统计聚合引擎（待 DAO 扩充后接入） ──
-// ignore: unused_element
+// ── 统计聚合引擎 ──
 class _StatisticsAggregator {
-  // ignore: unused_element
   static List<DailyRecord> aggregateDailyRecords(
-    List<({String date, int count})> raw,
+    List<({String date, int count, int correct})> raw,
   ) {
     if (raw.isEmpty) return [];
-    final grouped = <String, int>{};
+    final grouped = <String, ({int count, int correct})>{};
     for (final r in raw) {
-      grouped[r.date] = (grouped[r.date] ?? 0) + r.count;
+      final cur = grouped[r.date] ?? (count: 0, correct: 0);
+      grouped[r.date] = (count: cur.count + r.count, correct: cur.correct + r.correct);
     }
     final list = grouped.entries.map((e) => DailyRecord(
       date: e.key,
-      count: e.value,
-      level: e.value > 5 ? 3 : (e.value > 2 ? 2 : (e.value > 0 ? 1 : 0)),
+      count: e.value.count,
+      level: e.value.count > 5 ? 3 : (e.value.count > 2 ? 2 : (e.value.count > 0 ? 1 : 0)),
     )).toList();
     list.sort((a, b) => a.date.compareTo(b.date));
     return list;

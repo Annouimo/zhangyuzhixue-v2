@@ -148,25 +148,25 @@ class PreviousSolveState {
 
 class ProgressRepository {
   /// GET /api/questions/{questionId}/solve-state/
-  static Future<SolveProgressState> getSolveState(int questionId) async {
+  Future<SolveProgressState> getSolveState(int questionId) async {
     throw UnimplementedError('ProgressRepository.getSolveState');
   }
 
   /// 获取某一题的所有存档列表
   /// 查询 user.db: SELECT * FROM submission_detail WHERE question_id=? ORDER BY attempt_number
-  static Future<List<AttemptSummary>> getAttempts(int questionId) async {
+  Future<List<AttemptSummary>> getAttempts(int questionId) async {
     throw UnimplementedError('ProgressRepository.getAttempts');
   }
 
   /// 创建新存档，返回 attempt_number
   /// 插入 user.db: INSERT INTO submission_detail (question_id, attempt_number, status) VALUES (?, ?, 'in_progress')
-  static Future<int> createAttempt(int questionId) async {
+  Future<int> createAttempt(int questionId) async {
     throw UnimplementedError('ProgressRepository.createAttempt');
   }
 
   /// 查询指定存档的解题状态
   /// 返回 null 表示该存档不存在。
-  static Future<PreviousSolveState?> getAttemptState(
+  Future<PreviousSolveState?> getAttemptState(
     int questionId,
     int attemptNumber,
   ) async {

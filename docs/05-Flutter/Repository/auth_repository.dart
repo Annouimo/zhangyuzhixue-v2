@@ -106,20 +106,20 @@ class AuthRepository {
   /// 请求体含 app_type 参数，服务端校验角色后返回 JWT pair。
   /// app_type = "student" → 仅允许 role=student 的用户登录
   /// app_type = "teacher" → 仅允许 role=teacher 的用户登录
-  static Future<LoginResult> login(LoginRequest request) async {
+  Future<LoginResult> login(LoginRequest request) async {
     throw UnimplementedError('AuthRepository.login');
   }
 
   /// POST /api/auth/register/
   /// 注册成功后不返回 token，跳转登录页。
   /// 仅限学生注册，教师账号由管理员在 Django Admin 创建。
-  static Future<void> register(RegisterRequest data) async {
+  Future<void> register(RegisterRequest data) async {
     throw UnimplementedError('AuthRepository.register');
   }
 
   /// POST /api/auth/refresh/
   /// 用 refresh token 换取新的 access token。
-  static Future<RefreshResult> refresh(String refreshToken) async {
+  Future<RefreshResult> refresh(String refreshToken) async {
     throw UnimplementedError('AuthRepository.refresh');
   }
 }

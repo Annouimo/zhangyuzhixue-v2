@@ -161,4 +161,12 @@ class ProgressDao {
     }
     return stuck;
   }
+
+  /// 查询某题是否有评分记录
+  Future<bool> hasRating(int questionId) async {
+    final q = _db.select(_db.questionRatings)
+      ..where((t) => t.questionId.equals(questionId));
+    final row = await q.getSingleOrNull();
+    return row != null;
+  }
 }

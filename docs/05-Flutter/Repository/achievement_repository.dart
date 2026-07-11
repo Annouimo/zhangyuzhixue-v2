@@ -97,17 +97,17 @@ class AchievementItem {
 
 class AchievementRepository {
   /// GET /api/achievements/summary/
-  static Future<AchievementSummary> getSummary() async {
+  Future<AchievementSummary> getSummary() async {
     throw UnimplementedError('AchievementRepository.getSummary');
   }
 
   /// 已解锁数（profile.html 快捷用法）
-  static Future<int> unlockedCount() async {
+  Future<int> unlockedCount() async {
     throw UnimplementedError('AchievementRepository.unlockedCount');
   }
 
   /// GET /api/achievements/categories/
-  static Future<List<AchievementCategory>> getCategories() async {
+  Future<List<AchievementCategory>> getCategories() async {
     throw UnimplementedError('AchievementRepository.getCategories');
   }
 }

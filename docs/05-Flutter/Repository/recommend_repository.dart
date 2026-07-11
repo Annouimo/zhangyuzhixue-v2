@@ -69,17 +69,17 @@ class PresetQuestion {
 
 class RecommendRepository {
   /// GET /api/recommend/smart/
-  static Future<List<RecommendedQuestion>> getSmartList() async {
+  Future<List<RecommendedQuestion>> getSmartList() async {
     throw UnimplementedError('RecommendRepository.getSmartList');
   }
 
   /// GET /api/recommend/presets/
-  static Future<List<RecommendPreset>> getPresets() async {
+  Future<List<RecommendPreset>> getPresets() async {
     throw UnimplementedError('RecommendRepository.getPresets');
   }
 
   /// GET /api/recommend/presets/{id}/questions/
-  static Future<List<PresetQuestion>> getPresetQuestions(int presetId) async {
+  Future<List<PresetQuestion>> getPresetQuestions(int presetId) async {
     throw UnimplementedError('RecommendRepository.getPresetQuestions');
   }
 }
