@@ -64,7 +64,7 @@ class IndexPage extends StatelessWidget {
         Wrap(
           spacing: 8, runSpacing: 8,
           children: [
-            _QuickEntryCard(icon: Icons.auto_awesome, label: '智能推荐', onTap: () => context.push('/exam/auto')),
+            _QuickEntryCard(icon: Icons.auto_awesome, label: '智能推荐', onTap: () => context.push('/recommend')),
             _QuickEntryCard(icon: Icons.edit_note, label: '自主选题', onTap: () => context.push('/exam/pick')),
             _QuickEntryCard(icon: Icons.history, label: '我的组卷', onTap: () => context.push('/exam/history')),
             _QuickEntryCard(icon: Icons.explore, label: '发现组卷', onTap: () => context.push('/exam/explore')),
