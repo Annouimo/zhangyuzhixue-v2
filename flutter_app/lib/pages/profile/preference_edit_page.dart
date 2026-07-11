@@ -29,13 +29,16 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
     super.initState();
     _repo = widget.preferenceRepository ??
         PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
-    if (widget.editId != null) _loadExisting();
-    else _loading = false;
+    if (widget.editId != null) {
+      _loadExisting();
+    } else {
+      _loading = false;
+    }
   }
 
   Future<void> _loadExisting() async {
     try {
-      final filter = await _repo.getEdit(widget.editId!);
+      await _repo.getEdit(widget.editId!);
       if (!mounted) return;
       _nameCtrl.text = '偏好 ${widget.editId}';
       setState(() => _loading = false);
