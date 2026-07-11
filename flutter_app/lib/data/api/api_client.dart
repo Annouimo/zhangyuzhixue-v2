@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 
 /// API 异常
 class ApiException implements Exception {
@@ -96,6 +96,9 @@ class _AuthInterceptor extends Interceptor {
     final token = _tokenProvider.call();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
+      debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — Auth: Bearer ${token.length > 20 ? "${token.substring(0, 20)}..." : token}');
+    } else {
+      debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — NO token');
     }
     handler.next(options);
   }

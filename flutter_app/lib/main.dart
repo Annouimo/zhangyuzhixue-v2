@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_app/app_theme.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/sync_api.dart';
@@ -24,9 +25,19 @@ void main() async {
   setOnTokenRefreshed((newAccess) async {
     await prefs.setAccessToken(newAccess);
   });
-  setOnAuthFailure(() {
-    // token 失效且 refresh 失败时清理本地状态
+  setOnRefreshFailed(() {
     prefs.clearAll();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = routerNavigatorKey.currentContext;
+      if (ctx != null) GoRouter.of(ctx).go('/login');
+    });
+  });
+  setOnAuthFailure(() {
+    prefs.clearAll();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = routerNavigatorKey.currentContext;
+      if (ctx != null) GoRouter.of(ctx).go('/login');
+    });
   });
 
   await DatabaseProvider().init();
