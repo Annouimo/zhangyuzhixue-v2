@@ -1,6 +1,8 @@
 import 'dart:convert';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/sync/sync_manager.dart';
+import '../data/sync/sync_types.dart';
 
 
 /// 单个步骤数据
@@ -191,12 +193,27 @@ class ProgressRepository {
     final all = await _dao.getAttempts(questionId);
     final match = all.where((a) => a.attemptNumber == attemptNumber).toList();
     if (match.isEmpty) return;
-    await _dao.insertStepFeedback(
+    final id = await _dao.insertStepFeedback(
       submissionDetailId: match.first.id,
       questionId: questionId,
       stepNumber: stepNumber,
       status: status,
     );
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.stepFeedback,
+        operation: SyncOperationType.upsert,
+        localId: id,
+        payload: jsonEncode({
+          'question_id': questionId,
+          'step_number': stepNumber,
+          'status': status,
+        }),
+      );
+    } catch (_) {
+      // 静默—队列写入失败不影响用户体验
+    }
   }
 
   List<String> _parseCardTitles(String? raw) {

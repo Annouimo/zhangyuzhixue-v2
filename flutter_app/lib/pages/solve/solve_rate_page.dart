@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../data/daos/rating_dao.dart';
+import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
 
@@ -32,7 +33,10 @@ class _SolveRatePageState extends State<SolveRatePage> {
   @override
   void initState() {
     super.initState();
-    _ratingRepo = widget.ratingRepository ?? RatingRepository(RatingDao(DatabaseProvider().appDb));
+    _ratingRepo = widget.ratingRepository ?? RatingRepository(
+      RatingDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider().assetsDb),
+    );
     _loadRating();
   }
 
