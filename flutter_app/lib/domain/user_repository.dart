@@ -13,6 +13,7 @@ class UserInfo {
   final String? avatar;
   final String? school;
   final String? gaokaoYear;
+  final String? phone;
 
   const UserInfo({
     required this.id,
@@ -22,6 +23,7 @@ class UserInfo {
     this.avatar,
     this.school,
     this.gaokaoYear,
+    this.phone,
   });
 }
 
@@ -86,6 +88,7 @@ class UserRepository {
         avatar: local.avatar,
         school: local.school,
         gaokaoYear: local.gaokaoYear,
+        phone: local.phone,
       );
     }
     // fallback: 从 API 获取
@@ -109,6 +112,7 @@ class UserRepository {
       avatar: data.avatar,
       school: data.school,
       gaokaoYear: data.gaokaoYear,
+      phone: data.phone,
     );
     await _api.updateProfile({
       if (data.realName != null) 'real_name': data.realName,

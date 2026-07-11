@@ -19,6 +19,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   final _nameCtrl = TextEditingController();
   final _schoolCtrl = TextEditingController();
   final _gaokaoCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   bool _loading = true;
 
   @override
@@ -36,20 +37,22 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _nameCtrl.text = info.realName ?? info.name;
       _schoolCtrl.text = info.school ?? '';
       _gaokaoCtrl.text = info.gaokaoYear ?? '';
+      _phoneCtrl.text = info.phone ?? '';
       setState(() => _loading = false);
     } catch (_) { if (mounted) setState(() => _loading = false); }
   }
 
   Future<void> _save() async {
     final info = await _repo.getUserInfo();
-    await _repo.saveProfile(UserInfo(id: info.id, name: info.name, realName: _nameCtrl.text, school: _schoolCtrl.text, gaokaoYear: _gaokaoCtrl.text));
+    await _repo.saveProfile(UserInfo(id: info.id, name: info.name, realName: _nameCtrl.text,
+      school: _schoolCtrl.text, gaokaoYear: _gaokaoCtrl.text, phone: _phoneCtrl.text));
     if (!mounted) return;
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('保存成功'), behavior: SnackBarBehavior.floating));
   }
 
   @override
-  void dispose() { _nameCtrl.dispose(); _schoolCtrl.dispose(); _gaokaoCtrl.dispose(); super.dispose(); }
+  void dispose() { _nameCtrl.dispose(); _schoolCtrl.dispose(); _gaokaoCtrl.dispose(); _phoneCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -59,6 +62,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     body: _loading ? const Center(child: CircularProgressIndicator())
         : ListView(padding: const EdgeInsets.all(16), children: [
       _field('姓名', _nameCtrl, hint: '请输入姓名'),
+      const SizedBox(height: 12),
+      _field('手机号', _phoneCtrl, hint: '请输入手机号', keyboardType: TextInputType.phone),
       const SizedBox(height: 12),
       _field('学校', _schoolCtrl, hint: '请输入学校'),
       const SizedBox(height: 12),

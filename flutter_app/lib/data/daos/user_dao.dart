@@ -19,6 +19,7 @@ class UserDao {
     String? avatar,
     String? school,
     String? gaokaoYear,
+    String? phone,
     int? classGroupId,
   }) async {
     final now = DateTime.now().toIso8601String();
@@ -30,6 +31,7 @@ class UserDao {
         name: Value(name), realName: Value(realName),
         studentId: Value(studentId), avatar: Value(avatar),
         school: Value(school), gaokaoYear: Value(gaokaoYear),
+        phone: Value(phone),
         classGroupId: Value(classGroupId), updatedAt: Value(now),
       ));
     } else {
@@ -37,12 +39,12 @@ class UserDao {
         id: Value(id), name: Value(name),
         realName: Value(realName), studentId: Value(studentId),
         avatar: Value(avatar), school: Value(school),
-        gaokaoYear: Value(gaokaoYear), classGroupId: Value(classGroupId),
+        gaokaoYear: Value(gaokaoYear), phone: Value(phone),
+        classGroupId: Value(classGroupId),
         updatedAt: Value(now),
       ));
     }
   }
-
   Future<List<db.PointsTransactionRow>> getPointsHistory() async {
     final q = _db.select(_db.pointsTransactions)
       ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);

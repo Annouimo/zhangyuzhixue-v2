@@ -4,7 +4,8 @@ import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/profile_edit_page.dart';
 
 class _MockRepo implements UserRepository {
-  @override Future<UserInfo> getUserInfo() async => const UserInfo(id: 1, name: 'test', realName: '张三');
+  @override Future<UserInfo> getUserInfo() async => const UserInfo(id: 1, name: 'test', realName: '张三',
+    school: '北京一中', gaokaoYear: '2025', phone: '13800138000');
   @override Future<void> saveProfile(UserInfo data) async {}
   @override Future<String> uploadAvatar(String localPath) async => '';
   @override Future<List<HistoryItem>> getAnswerHistory() async => [];
@@ -27,12 +28,16 @@ class _MockRepo implements UserRepository {
 }
 
 void main() {
-  testWidgets('ProfileEditPage renders form fields', (tester) async {
+  testWidgets('ProfileEditPage renders form fields with loaded data', (tester) async {
     await tester.pumpWidget(MaterialApp(home: ProfileEditPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();
     expect(find.text('姓名'), findsOneWidget);
+    expect(find.text('手机号'), findsOneWidget);
     expect(find.text('学校'), findsOneWidget);
     expect(find.text('高考年份'), findsOneWidget);
     expect(find.text('保存'), findsOneWidget);
+    // Verify loaded data
+    expect(find.text('张三'), findsOneWidget);
+    expect(find.text('13800138000'), findsOneWidget);
   });
 }

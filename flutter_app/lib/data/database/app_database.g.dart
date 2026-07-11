@@ -89,6 +89,15 @@ class $UserProfilesTable extends UserProfiles
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -110,6 +119,7 @@ class $UserProfilesTable extends UserProfiles
     school,
     gaokaoYear,
     classGroupId,
+    phone,
     updatedAt,
   ];
   @override
@@ -174,6 +184,12 @@ class $UserProfilesTable extends UserProfiles
         ),
       );
     }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -221,6 +237,10 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.int,
         data['${effectivePrefix}class_group_id'],
       ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}updated_at'],
@@ -243,6 +263,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
   final String? school;
   final String? gaokaoYear;
   final int? classGroupId;
+  final String? phone;
   final String? updatedAt;
   const UserProfileRow({
     required this.id,
@@ -253,6 +274,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     this.school,
     this.gaokaoYear,
     this.classGroupId,
+    this.phone,
     this.updatedAt,
   });
   @override
@@ -277,6 +299,9 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     }
     if (!nullToAbsent || classGroupId != null) {
       map['class_group_id'] = Variable<int>(classGroupId);
+    }
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
     }
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<String>(updatedAt);
@@ -306,6 +331,9 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       classGroupId: classGroupId == null && nullToAbsent
           ? const Value.absent()
           : Value(classGroupId),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -326,6 +354,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       school: serializer.fromJson<String?>(json['school']),
       gaokaoYear: serializer.fromJson<String?>(json['gaokaoYear']),
       classGroupId: serializer.fromJson<int?>(json['classGroupId']),
+      phone: serializer.fromJson<String?>(json['phone']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
@@ -341,6 +370,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       'school': serializer.toJson<String?>(school),
       'gaokaoYear': serializer.toJson<String?>(gaokaoYear),
       'classGroupId': serializer.toJson<int?>(classGroupId),
+      'phone': serializer.toJson<String?>(phone),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
@@ -354,6 +384,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     Value<String?> school = const Value.absent(),
     Value<String?> gaokaoYear = const Value.absent(),
     Value<int?> classGroupId = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
     Value<String?> updatedAt = const Value.absent(),
   }) => UserProfileRow(
     id: id ?? this.id,
@@ -364,6 +395,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     school: school.present ? school.value : this.school,
     gaokaoYear: gaokaoYear.present ? gaokaoYear.value : this.gaokaoYear,
     classGroupId: classGroupId.present ? classGroupId.value : this.classGroupId,
+    phone: phone.present ? phone.value : this.phone,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   UserProfileRow copyWithCompanion(UserProfilesCompanion data) {
@@ -380,6 +412,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       classGroupId: data.classGroupId.present
           ? data.classGroupId.value
           : this.classGroupId,
+      phone: data.phone.present ? data.phone.value : this.phone,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -395,6 +428,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
           ..write('school: $school, ')
           ..write('gaokaoYear: $gaokaoYear, ')
           ..write('classGroupId: $classGroupId, ')
+          ..write('phone: $phone, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -410,6 +444,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     school,
     gaokaoYear,
     classGroupId,
+    phone,
     updatedAt,
   );
   @override
@@ -424,6 +459,7 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
           other.school == this.school &&
           other.gaokaoYear == this.gaokaoYear &&
           other.classGroupId == this.classGroupId &&
+          other.phone == this.phone &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -436,6 +472,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
   final Value<String?> school;
   final Value<String?> gaokaoYear;
   final Value<int?> classGroupId;
+  final Value<String?> phone;
   final Value<String?> updatedAt;
   const UserProfilesCompanion({
     this.id = const Value.absent(),
@@ -446,6 +483,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     this.school = const Value.absent(),
     this.gaokaoYear = const Value.absent(),
     this.classGroupId = const Value.absent(),
+    this.phone = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   UserProfilesCompanion.insert({
@@ -457,6 +495,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     this.school = const Value.absent(),
     this.gaokaoYear = const Value.absent(),
     this.classGroupId = const Value.absent(),
+    this.phone = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<UserProfileRow> custom({
@@ -468,6 +507,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     Expression<String>? school,
     Expression<String>? gaokaoYear,
     Expression<int>? classGroupId,
+    Expression<String>? phone,
     Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -479,6 +519,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
       if (school != null) 'school': school,
       if (gaokaoYear != null) 'gaokao_year': gaokaoYear,
       if (classGroupId != null) 'class_group_id': classGroupId,
+      if (phone != null) 'phone': phone,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -492,6 +533,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     Value<String?>? school,
     Value<String?>? gaokaoYear,
     Value<int?>? classGroupId,
+    Value<String?>? phone,
     Value<String?>? updatedAt,
   }) {
     return UserProfilesCompanion(
@@ -503,6 +545,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
       school: school ?? this.school,
       gaokaoYear: gaokaoYear ?? this.gaokaoYear,
       classGroupId: classGroupId ?? this.classGroupId,
+      phone: phone ?? this.phone,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -534,6 +577,9 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     if (classGroupId.present) {
       map['class_group_id'] = Variable<int>(classGroupId.value);
     }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<String>(updatedAt.value);
     }
@@ -551,6 +597,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
           ..write('school: $school, ')
           ..write('gaokaoYear: $gaokaoYear, ')
           ..write('classGroupId: $classGroupId, ')
+          ..write('phone: $phone, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -6497,6 +6544,7 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
       Value<String?> school,
       Value<String?> gaokaoYear,
       Value<int?> classGroupId,
+      Value<String?> phone,
       Value<String?> updatedAt,
     });
 typedef $$UserProfilesTableUpdateCompanionBuilder =
@@ -6509,6 +6557,7 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
       Value<String?> school,
       Value<String?> gaokaoYear,
       Value<int?> classGroupId,
+      Value<String?> phone,
       Value<String?> updatedAt,
     });
 
@@ -6558,6 +6607,11 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<int> get classGroupId => $composableBuilder(
     column: $table.classGroupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6616,6 +6670,11 @@ class $$UserProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -6658,6 +6717,9 @@ class $$UserProfilesTableAnnotationComposer
     column: $table.classGroupId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -6702,6 +6764,7 @@ class $$UserProfilesTableTableManager
                 Value<String?> school = const Value.absent(),
                 Value<String?> gaokaoYear = const Value.absent(),
                 Value<int?> classGroupId = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => UserProfilesCompanion(
                 id: id,
@@ -6712,6 +6775,7 @@ class $$UserProfilesTableTableManager
                 school: school,
                 gaokaoYear: gaokaoYear,
                 classGroupId: classGroupId,
+                phone: phone,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -6724,6 +6788,7 @@ class $$UserProfilesTableTableManager
                 Value<String?> school = const Value.absent(),
                 Value<String?> gaokaoYear = const Value.absent(),
                 Value<int?> classGroupId = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => UserProfilesCompanion.insert(
                 id: id,
@@ -6734,6 +6799,7 @@ class $$UserProfilesTableTableManager
                 school: school,
                 gaokaoYear: gaokaoYear,
                 classGroupId: classGroupId,
+                phone: phone,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0

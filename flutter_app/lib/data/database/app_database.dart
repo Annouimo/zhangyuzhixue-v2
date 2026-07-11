@@ -17,6 +17,7 @@ class UserProfiles extends Table {
   TextColumn? get school => text().nullable()();
   TextColumn? get gaokaoYear => text().nullable()();
   IntColumn? get classGroupId => integer().nullable()();
+  TextColumn? get phone => text().nullable()();
   TextColumn? get updatedAt => text().nullable()();
 
   @override
