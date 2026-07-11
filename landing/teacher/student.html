@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生详情 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html" class="active">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="error-msg" class="error-banner"></div>
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div id="content" style="display:none;">
+      <!-- 个人信息头 -->
+      <div class="page-header">
+        <a href="javascript:history.back()" class="btn btn-ghost" style="text-decoration:none;">← 返回</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="avatar" style="width:40px;height:40px;font-size:18px;" id="student-avatar">?</div>
+          <div>
+            <h1 id="student-name">加载中</h1>
+            <div style="font-size:13px;color:var(--text-muted);" id="student-id"></div>
+          </div>
+        </div>
+        <div>
+          <span class="status-tag" style="background:var(--primary-light);color:var(--primary);" id="student-class"></span>
+        </div>
+      </div>
+
+      <!-- 概览卡片 -->
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="ov-total-questions">—</div><div class="stat-label">总做题量</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--success)" id="ov-accuracy">—</div><div class="stat-label">总正确率</div></div>
+        <div class="stat-card"><div class="stat-value" id="ov-streak">—</div><div class="stat-label">连续签到</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--primary)" id="ov-weekly">—</div><div class="stat-label">本周做题</div></div>
+      </div>
+
+      <!-- 正确率趋势 -->
+      <div class="card">
+        <div class="card-title">正确率趋势（近 30 天）</div>
+        <div id="trend-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:10px 0;overflow-x:auto;">
+          <div class="text-center" style="width:100%;color:var(--text-muted);font-size:13px;align-self:center;">暂无趋势数据</div>
+        </div>
+      </div>
+
+      <!-- 薄弱知识点 -->
+      <div class="card">
+        <div class="card-title">薄弱知识点</div>
+        <div id="weak-tags">
+          <div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无薄弱知识点数据</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function accuracyColor(val) {
+      if (val == null) return 'var(--text-muted)';
+      const n = parseFloat(val);
+      if (n >= 80) return 'var(--success)';
+      if (n >= 60) return 'var(--warning)';
+      return 'var(--error)';
+    }
+
+    function barColor(acc) {
+      if (acc >= 80) return 'var(--success)';
+      if (acc >= 60) return 'var(--primary)';
+      return 'var(--error)';
+    }
+
+    (async function load() {
+      const id = getParam('id');
+      if (!id) { showError('缺少学生 ID'); hideLoading('loading-indicator'); return; }
+
+      try {
+        const d = await apiCall('/teacher/students/' + id + '/');
+
+        // 基本信息
+        document.getElementById('student-name').textContent = d.name || '未知';
+        document.getElementById('student-avatar').textContent = (d.name || '?').charAt(0);
+        document.getElementById('student-id').textContent = '学号: ' + (d.studentId || '—');
+        document.getElementById('student-class').textContent = d.className || '未分配';
+
+        // 概览卡片
+        const ov = d.overview || {};
+        document.getElementById('ov-total-questions').textContent = ov.totalQuestions ?? 0;
+        document.getElementById('ov-accuracy').textContent = ov.avgAccuracy || '0%';
+        document.getElementById('ov-accuracy').style.color = accuracyColor(ov.avgAccuracy);
+        document.getElementById('ov-streak').textContent = ov.streakDays ?? 0;
+        document.getElementById('ov-weekly').textContent = ov.weeklyQuestions ?? 0;
+
+        // 正确率趋势 — 柱状图
+        const trend = d.accuracyTrend || [];
+        const chart = document.getElementById('trend-chart');
+        chart.innerHTML = '';
+        if (trend.length === 0) {
+          chart.innerHTML = '<div class="text-center" style="width:100%;color:var(--text-muted);font-size:13px;align-self:center;">暂无趋势数据</div>';
+        } else {
+          trend.forEach(t => {
+            const pct = t.accuracy || 0;
+            const h = Math.max(4, pct); // 最低 4px 可见
+            const color = barColor(pct);
+            chart.innerHTML += `
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">${Math.round(pct)}%</div>
+                <div style="width:100%;max-width:32px;height:${h}px;background:${color};border-radius:3px 3px 0 0;opacity:0.8;"></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;white-space:nowrap;">${esc(t.date || '')}</div>
+              </div>`;
+          });
+        }
+
+        // 薄弱知识点
+        const tags = d.weakTags || [];
+        const tagContainer = document.getElementById('weak-tags');
+        tagContainer.innerHTML = '';
+        if (tags.length === 0) {
+          tagContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无薄弱知识点数据</div>';
+        } else {
+          tags.forEach(t => {
+            tagContainer.innerHTML += `
+              <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                <div style="flex:1;font-weight:500;">${esc(t.name)}</div>
+                <div style="text-align:right;">
+                  <div style="font-size:12px;color:var(--text-secondary);">做题量</div>
+                  <div style="font-size:14px;font-weight:600;">${t.count ?? 0}</div>
+                </div>
+              </div>`;
+          });
+        }
+
+        document.getElementById('content').style.display = 'block';
+      } catch (e) {
+        showError('加载学生数据失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
+      }
+    })();
+  </script>
+</body>
+</html>
