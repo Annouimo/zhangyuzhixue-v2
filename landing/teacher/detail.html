@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业详情 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html" class="active">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <a href="index.html" class="btn btn-ghost" style="text-decoration:none;">← 返回</a>
+      <h1 id="detail-title">作业详情</h1>
+    </div>
+
+    <div id="error-msg" class="error-banner"></div>
+
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div id="detail-content" style="display:none;">
+      <!-- 概览卡片 -->
+      <div class="card">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">班级</div>
+            <div style="font-size:16px;font-weight:600;" id="detail-class"></div>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">截止日期</div>
+            <div style="font-size:16px;font-weight:600;" id="detail-deadline"></div>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">完成进度</div>
+            <div style="font-size:16px;font-weight:600;" id="detail-progress"></div>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text-secondary);">平均正确率</div>
+            <div style="font-size:16px;font-weight:600;" id="detail-accuracy"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 学生列表 -->
+      <div class="card">
+        <div class="card-title">学生完成情况</div>
+        <div id="student-list">
+          <div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;" id="student-empty">暂无学生数据</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    function getParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function accuracyClass(val) {
+      if (!val) return '';
+      const n = parseFloat(val);
+      if (n >= 80) return 'high';
+      if (n >= 60) return 'mid';
+      return 'low';
+    }
+
+    (async function load() {
+      const id = getParam('id');
+      if (!id) { showError('缺少作业 ID'); hideLoading('loading-indicator'); return; }
+
+      try {
+        const data = await apiCall('/teacher/assignments/' + id + '/');
+
+        document.getElementById('detail-title').textContent = data.title || '作业详情';
+        document.getElementById('detail-class').textContent = data.className || '—';
+        document.getElementById('detail-deadline').textContent = data.deadline || '—';
+        document.getElementById('detail-progress').textContent =
+          (data.completedCount ?? 0) + '/' + (data.totalStudents ?? 0);
+        document.getElementById('detail-accuracy').textContent = data.avgAccuracy || '0%';
+
+        const students = data.students || [];
+        const container = document.getElementById('student-list');
+        container.innerHTML = '';
+
+        if (students.length === 0) {
+          container.innerHTML = '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无学生数据</div>';
+        } else {
+          students.forEach(s => {
+            const initial = (s.name || '?').charAt(0);
+            const isPending = s.status === 'pending';
+            container.innerHTML += `
+              <a href="student.html?id=${s.id}" class="student-row">
+                <div class="avatar">${esc(initial)}</div>
+                <div class="info">
+                  <div class="name">${esc(s.name)}</div>
+                  <div class="sub">${isPending ? '<span style="color:var(--text-muted);">未提交</span>' : '已提交 · ' + esc(s.completedAt || '')}</div>
+                </div>
+                <div class="score">
+                  ${isPending
+                    ? '<span class="status-tag pending">未交</span>'
+                    : '<div class="value ' + accuracyClass(s.accuracy) + '">' + esc(s.accuracy) + '</div>'
+                  }
+                </div>
+              </a>`;
+          });
+        }
+
+        document.getElementById('detail-content').style.display = 'block';
+      } catch (e) {
+        showError('加载作业详情失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
+      }
+    })();
+  </script>
+</body>
+</html>
