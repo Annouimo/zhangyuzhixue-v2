@@ -9,7 +9,7 @@ DATA_REPO_DIR="/var/data-dumps/zhangyuzhixue-v2-data"
 DATE=$(date +%Y%m%d)
 
 # 1. 导出 JSON
-python "$PROJECT_DIR/scripts/dump_data.py" --out "$DATA_REPO_DIR/data_dumps/$DATE"
+python3 "$PROJECT_DIR/scripts/dump_data.py" --out "$DATA_REPO_DIR/data_dumps/$DATE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] dump done"
 
 # 2. 提交到数据仓库
