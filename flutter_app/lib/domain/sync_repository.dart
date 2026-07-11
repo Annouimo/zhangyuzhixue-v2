@@ -50,7 +50,7 @@ class SyncRepository {
   Future<bool> hasFailed() => _dao.hasFailed();
 
   Future<void> retryAll() async {
-    // 由 SyncManager 的 pushNow() 统一重试
+    await _dao.resetFailed();
   }
 
   Future<String> failedCountText() async {

@@ -93,5 +93,27 @@ void main() {
       final rows = await database.select(database.syncQueue).get();
       expect(rows.first.status, 'permanentFailure');
     });
+
+    test('resetFailed resets failed items to pending', () async {
+      final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      await dao.markFailed(id);
+      expect(await dao.hasFailed(), true);
+      // 重置
+      await dao.resetFailed();
+      expect(await dao.hasFailed(), false);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.first.status, 'pending');
+      expect(rows.first.retryCount, 0);
+    });
+
+    test('resetFailed no-ops when no failed items', () async {
+      // 只有 pending 项
+      await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      await dao.resetFailed();
+      expect(await dao.hasFailed(), false);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.length, 1);
+      expect(rows.first.status, 'pending');
+    });
   });
 }

@@ -100,4 +100,17 @@ class SyncQueueDao {
       ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
     return rows.isNotEmpty;
   }
+
+  /// 重置所有 failed 项为 pending（重试计数归零）
+  Future<void> resetFailed() async {
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.equals('failed'))).get();
+    for (final row in rows) {
+      final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(row.id));
+      await q.write(db.SyncQueueCompanion(
+        status: const Value('pending'),
+        retryCount: const Value(0),
+      ));
+    }
+  }
 }

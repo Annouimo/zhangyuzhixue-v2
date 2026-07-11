@@ -89,6 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
       (Icons.trending_up, '等级进度', () => context.push('/profile/level')),
       (Icons.monetization_on_outlined, '积分流水', () => context.push('/profile/points')),
       (Icons.replay, '做题历史', () => context.push('/profile/history')),
+      (Icons.sync, '同步状态', () => context.push('/sync/queue')),
       (Icons.info_outline, '关于', () => context.push('/profile/about')),
     ];
     return Column(children: entries.map((e) => ListTile(
