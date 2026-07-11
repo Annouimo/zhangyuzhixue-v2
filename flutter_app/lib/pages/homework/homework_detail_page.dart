@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../data/daos/assignment_dao.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
+import '../../data/helpers/pdf_helper.dart';
 import '../../domain/assignment_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
@@ -32,7 +35,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   void initState() {
     super.initState();
     _repo = widget.assignmentRepository ??
-        AssignmentRepository(AssignmentDao(DatabaseProvider().lecturesDb));
+        AssignmentRepository(
+          AssignmentDao(DatabaseProvider().lecturesDb),
+          ProgressDao(DatabaseProvider().appDb),
+          QuestionDao(DatabaseProvider().assetsDb),
+        );
     _load();
   }
 
@@ -60,7 +67,19 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_detail?.title ?? '作业详情')),
+      appBar: AppBar(
+        title: Text(_detail?.title ?? '作业详情'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: '下载PDF',
+            onPressed: () => PdfHelper.downloadPdf(
+              sourceId: widget.assignmentId,
+              sourceType: 'assignment',
+            ),
+          ),
+        ],
+      ),
       body: _buildBody(),
     );
   }
@@ -74,6 +93,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     if (d == null) return const SizedBox.shrink();
 
     final progress = d.totalCount > 0 ? d.doneCount / d.totalCount : 0.0;
+    final pct = (progress * 100).round();
 
     return Column(
       children: [
@@ -119,7 +139,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '完成 $progress%',
+                    '完成 $pct%',
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,

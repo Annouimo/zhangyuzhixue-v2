@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../data/daos/assignment_dao.dart';
+import '../../data/daos/progress_dao.dart';
+import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/assignment_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
@@ -28,7 +30,11 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
   void initState() {
     super.initState();
     _repo = widget.assignmentRepository ??
-        AssignmentRepository(AssignmentDao(DatabaseProvider().lecturesDb));
+        AssignmentRepository(
+          AssignmentDao(DatabaseProvider().lecturesDb),
+          ProgressDao(DatabaseProvider().appDb),
+          QuestionDao(DatabaseProvider().assetsDb),
+        );
     _load();
   }
 
@@ -197,11 +203,25 @@ class _AssignmentCard extends StatelessWidget {
               if (deadlineDays > 0) ...[
                 const SizedBox(height: 8),
                 Text(
-                  '剩余 $deadlineDays 天',
+                  deadlineDays <= 3
+                      ? '剩余 $deadlineDays 天'
+                      : '剩余 $deadlineDays 天',
                   style: TextStyle(
                     fontSize: 12,
                     color: deadlineDays <= 3 ? AppColors.error : AppColors.warning,
                   ),
+                ),
+              ] else if (deadlineDays == 0) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  '今日截止',
+                  style: TextStyle(fontSize: 12, color: AppColors.error),
+                ),
+              ] else ...[
+                const SizedBox(height: 8),
+                const Text(
+                  '已过期',
+                  style: TextStyle(fontSize: 12, color: AppColors.error),
                 ),
               ],
             ],
