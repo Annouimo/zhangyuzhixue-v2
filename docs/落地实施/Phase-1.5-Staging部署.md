@@ -236,6 +236,13 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
+    # .db.gz 构建产物（nginx 直接 serve，不走 gunicorn）
+    location /media/ {
+        alias /opt/zhangyuzhixue-v2/server/media/;
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+    }
+
     # API 和管理后台 → Django
     location /api/ {
         proxy_pass http://127.0.0.1:8000;

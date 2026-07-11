@@ -189,4 +189,4 @@ if SENTRY_DSN:
     )
 
 # PDF 签名密钥（生产环境通过环境变量设置）
-PDF_SECRET_KEY = "dev-pdf-key-for-testing"
+PDF_SECRET_KEY = config('PDF_SECRET_KEY', default='dev-pdf-key-for-testing')
