@@ -139,6 +139,7 @@ class SubQuestion(models.Model):
     )
     stem = models.TextField('小题题干', null=True, blank=True)
     answer = models.TextField('正确答案', blank=True, default='')
+    explanation = models.TextField('解析', blank=True, default='')
     sort_order = models.IntegerField('排序')
 
     class Meta:

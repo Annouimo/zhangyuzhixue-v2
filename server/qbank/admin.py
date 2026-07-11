@@ -16,7 +16,7 @@ class ChoiceExtInline(admin.StackedInline):
 class SubQuestionInline(admin.TabularInline):
     model = SubQuestion
     extra = 0
-    fields = ['stem', 'answer', 'sort_order']
+    fields = ['stem', 'answer', 'explanation', 'sort_order']
 
 
 class QuestionConceptTagInline(admin.TabularInline):

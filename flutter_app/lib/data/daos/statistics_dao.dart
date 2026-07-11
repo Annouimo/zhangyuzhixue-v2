@@ -38,6 +38,14 @@ class StatisticsDao {
     return streak;
   }
 
+  /// 活跃天数（有做题记录的非重复日期数）
+  Future<int> getActiveDays() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
+    final dates = rows.map((r) => r.createdAt.substring(0, 10)).toSet();
+    return dates.length;
+  }
+
   /// 按日期统计每日做题数
   Future<List<({String date, int count})>> getDailyRecords(int rangeDays) async {
     final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();

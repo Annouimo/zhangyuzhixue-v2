@@ -23,14 +23,14 @@ void main() {
   });
 
   group('MainShell', () {
-    testWidgets('renders 4 bottom navigation tabs', (tester) async {
+    testWidgets('renders 4 bottom navigation tabs (首页/推荐/组卷/我的)', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: MainShell()),
       );
 
       expect(find.text('首页'), findsOneWidget);
-      expect(find.text('作业'), findsOneWidget);
-      expect(find.text('讲义'), findsOneWidget);
+      expect(find.text('推荐'), findsOneWidget);
+      expect(find.text('组卷'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
 
@@ -45,12 +45,12 @@ void main() {
       expect(navBar.currentIndex, 0);
     });
 
-    testWidgets('tapping homework tab switches content', (tester) async {
+    testWidgets('tapping recommend tab switches content', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: MainShell()),
       );
 
-      await tester.tap(find.text('作业'));
+      await tester.tap(find.text('推荐'));
       await tester.pump();
       await tester.pump();
 
@@ -73,15 +73,14 @@ void main() {
         find.byType(BottomNavigationBar),
       );
       expect(navBar.currentIndex, 3);
-      // 我的 tab 现在显示 ProfilePage
     });
 
-    testWidgets('tapping lecture tab switches content', (tester) async {
+    testWidgets('tapping exam tab switches content', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: MainShell()),
       );
 
-      await tester.tap(find.text('讲义'));
+      await tester.tap(find.text('组卷'));
       await tester.pump();
       await tester.pump();
 

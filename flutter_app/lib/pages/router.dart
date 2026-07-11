@@ -12,6 +12,8 @@ import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
 import 'homework/homework_detail_page.dart';
+import 'homework/homework_list_page.dart';
+import 'lecture/lecture_courses_page.dart';
 import 'exam/exam_auto_page.dart';
 import 'exam/exam_pick_page.dart';
 import 'exam/exam_quicklook_page.dart';
@@ -28,6 +30,7 @@ import 'profile/about_page.dart';
 import 'sync_queue_page.dart';
 import 'preference_welcome_page.dart';
 import 'profile/question_history_page.dart';
+import 'profile/preference_list_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
 
@@ -44,6 +47,8 @@ abstract final class AppRoutes {
   static const lectureChapters = '/lecture/chapters';
   static const lectureContent = '/lecture/content';
   static const homeworkDetail = '/homework/detail';
+  static const homeworkList = '/homework/list';
+  static const lectureCourses = '/lecture/courses';
   static const examAuto = '/exam/auto';
   static const examPick = '/exam/pick';
   static const examQuicklook = '/exam/quicklook';
@@ -62,6 +67,7 @@ abstract final class AppRoutes {
   static const profileAbout = '/profile/about';
   static const syncQueue = '/sync/queue';
   static const preferenceWelcome = '/preference/welcome';
+  static const profilePreferences = '/profile/preferences';
 }
 
 /// 从 query 参数解析 int
@@ -96,6 +102,8 @@ final GoRouter appRouter = GoRouter(
       return LectureContentPage(chapterId: _intParam(state.uri.queryParameters, 'chapterId') ?? 0, initialPage: _intParam(state.uri.queryParameters, 'page') ?? 1); }),
     GoRoute(path: AppRoutes.homeworkDetail, name: 'homework-detail', builder: (_, state) {
       return HomeworkDetailPage(assignmentId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+    GoRoute(path: AppRoutes.homeworkList, name: 'homework-list', builder: (_, _) => const HomeworkListPage()),
+    GoRoute(path: AppRoutes.lectureCourses, name: 'lecture-courses', builder: (_, _) => const LectureCoursesPage()),
     // 组卷路由
     GoRoute(path: AppRoutes.examAuto, name: 'exam-auto', builder: (_, _) => const ExamAutoPage()),
     GoRoute(path: AppRoutes.examPick, name: 'exam-pick', builder: (_, _) => const ExamPickPage()),
@@ -116,6 +124,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.profilePoints, name: 'profile-points', builder: (_, _) => const PointsPage()),
     GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, _) => const QuestionHistoryPage()),
     GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, _) => const AboutPage()),
+    GoRoute(path: AppRoutes.profilePreferences, name: 'profile-preferences', builder: (_, _) => const PreferenceListPage()),
     GoRoute(path: AppRoutes.syncQueue, name: 'sync-queue', builder: (_, _) => const SyncQueuePage()),
     GoRoute(path: AppRoutes.preferenceWelcome, name: 'preference-welcome', builder: (_, _) => const PreferenceWelcomePage()),
   ],

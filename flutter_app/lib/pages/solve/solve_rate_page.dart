@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/shared/loading_indicator.dart';
+import '../../widgets/shared/app_toast.dart';
 import '../../app_theme.dart';
 import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -77,22 +78,16 @@ class _SolveRatePageState extends State<SolveRatePage> {
       );
       setState(() { _submitted = true; _saving = false; });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('评分已提交'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.success,
-        ),
+      AppToast.show(context,
+        icon: '✅', message: '评分已提交，+0.3 赠送积分',
+        backgroundColor: AppColors.success,
       );
     } catch (_) {
       setState(() => _saving = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('评分提交失败，请重试'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.error,
-        ),
+      AppToast.show(context,
+        icon: '❌', message: '评分提交失败，请重试',
+        backgroundColor: AppColors.error,
       );
     }
   }
@@ -122,7 +117,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                     onPressed: (_submitted || _saving) ? null : _submit,
                     child: _saving
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(_submitted ? '已评分' : '提交评分'),
+                        : Text(_submitted ? '已评分' : '提交评分（可获得 +0.3 赠送积分）'),
                   ),
                   if (_submitted) ...[
                     const SizedBox(height: 12),

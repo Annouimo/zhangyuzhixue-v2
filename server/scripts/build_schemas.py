@@ -40,6 +40,7 @@ ASSETS_TABLES = {
             ('parent_id', 'INTEGER'),
             ('stem', 'TEXT'),
             ('answer', 'TEXT'),
+            ('explanation', 'TEXT'),
             ('sort_order', 'INTEGER NOT NULL'),
         ],
         'source_model': 'qbank.SubQuestion',

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'index_page.dart';
-import 'lecture/lecture_courses_page.dart';
-import 'homework/homework_list_page.dart';
+import 'recommend_page.dart';
+import 'exam/exam_home_page.dart';
 import 'profile/profile_page.dart';
 
 /// Tab 页枚举
-enum MainTab { home, homework, lecture, profile }
+enum MainTab { home, recommend, exam, profile }
 
-/// 底部导航框架（4 Tab）
+/// 底部导航框架（4 Tab：首页/推荐/组卷/我的 — 匹配 HTML 原型）
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -20,8 +20,8 @@ class _MainShellState extends State<MainShell> {
 
   final List<Widget> _pages = const [
     IndexPage(),
-    HomeworkListPage(),
-    LectureCoursesPage(),
+    RecommendPage(),
+    ExamHomePage(),
     ProfilePage(),
   ];
 
@@ -35,6 +35,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -42,14 +43,14 @@ class _MainShellState extends State<MainShell> {
             label: '首页',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: '作业',
+            icon: Icon(Icons.auto_awesome_outlined),
+            activeIcon: Icon(Icons.auto_awesome),
+            label: '推荐',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book_outlined),
-            activeIcon: Icon(Icons.menu_book),
-            label: '讲义',
+            icon: Icon(Icons.description_outlined),
+            activeIcon: Icon(Icons.description),
+            label: '组卷',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

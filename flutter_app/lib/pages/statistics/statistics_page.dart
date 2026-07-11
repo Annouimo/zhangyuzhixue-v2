@@ -89,6 +89,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
           _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, AppColors.success),
           const SizedBox(width: 8),
           _overviewCard('连续学习', '${ov.streakDays} 天', Icons.local_fire_department, Colors.orange),
+          const SizedBox(width: 8),
+          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, AppColors.primaryLight),
         ],
       ),
     );

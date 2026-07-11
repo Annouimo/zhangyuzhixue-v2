@@ -83,20 +83,41 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildMenuEntries(BuildContext context) {
-    final entries = [
-      (Icons.edit, '编辑资料', () => context.push('/profile/edit')),
-      (Icons.emoji_events_outlined, '成就', () => context.push('/profile/achievements')),
-      (Icons.trending_up, '等级进度', () => context.push('/profile/level')),
-      (Icons.monetization_on_outlined, '积分流水', () => context.push('/profile/points')),
-      (Icons.replay, '做题历史', () => context.push('/profile/history')),
-      (Icons.sync, '同步状态', () => context.push('/sync/queue')),
-      (Icons.info_outline, '关于', () => context.push('/profile/about')),
+    final sections = [
+      ('学习', [
+        (Icons.tune, '学习偏好', () => context.push('/profile/preferences')),
+        (Icons.edit, '编辑资料', () => context.push('/profile/edit')),
+        (Icons.bar_chart, '学习统计', () => context.push('/statistics')),
+        (Icons.replay, '做题历史', () => context.push('/profile/history')),
+      ]),
+      ('成长', [
+        (Icons.emoji_events_outlined, '成就', () => context.push('/profile/achievements')),
+        (Icons.trending_up, '等级进度', () => context.push('/profile/level')),
+        (Icons.monetization_on_outlined, '积分流水', () => context.push('/profile/points')),
+      ]),
+      ('系统', [
+        (Icons.sync, '同步状态', () => context.push('/sync/queue')),
+        (Icons.info_outline, '关于', () => context.push('/profile/about')),
+      ]),
     ];
-    return Column(children: entries.map((e) => ListTile(
-      leading: Icon(e.$1, color: AppColors.primary),
-      title: Text(e.$2),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-      onTap: e.$3,
-    )).toList());
+    return Column(
+      children: sections.expand((section) {
+        final entries = section.$2.map((e) => ListTile(
+          leading: Icon(e.$1, color: AppColors.primary),
+          title: Text(e.$2),
+          trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          onTap: e.$3,
+        ));
+        return [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 16, 0, 4),
+            child: Text(section.$1,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            ),
+          ),
+          ...entries,
+        ];
+      }).toList(),
+    );
   }
 }

@@ -17,6 +17,7 @@ class QuestionDetail {
   final String questionType;
   final Map<String, String>? options;
   final String? answer;
+  final String? explanation;
 
   const QuestionDetail({
     required this.id,
@@ -31,6 +32,7 @@ class QuestionDetail {
     required this.questionType,
     this.options,
     this.answer,
+    this.explanation,
   });
 }
 
@@ -99,12 +101,14 @@ class QuestionRepository {
       }
     }
 
-    // 答案（选填题直读 sub_question.answer）
+    // 答案与解析（选填题直读 sub_question.answer + explanation）
     String? answer;
+    String? explanation;
     if (q.questionType == 'choice' || q.questionType == 'fill') {
       final subs = await _dao.getSubQuestions(id);
-      if (subs.isNotEmpty && subs.first.answer != null) {
+      if (subs.isNotEmpty) {
         answer = subs.first.answer;
+        explanation = subs.first.explanation;
       }
     }
 
@@ -120,6 +124,7 @@ class QuestionRepository {
       questionType: q.questionType,
       options: options,
       answer: answer,
+      explanation: explanation,
     );
   }
 

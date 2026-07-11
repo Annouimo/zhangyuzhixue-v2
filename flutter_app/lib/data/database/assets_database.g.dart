@@ -973,6 +973,17 @@ class $SubQuestionsTable extends SubQuestions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _explanationMeta = const VerificationMeta(
+    'explanation',
+  );
+  @override
+  late final GeneratedColumn<String> explanation = GeneratedColumn<String>(
+    'explanation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -991,6 +1002,7 @@ class $SubQuestionsTable extends SubQuestions
     parentId,
     stem,
     answer,
+    explanation,
     sortOrder,
   ];
   @override
@@ -1034,6 +1046,15 @@ class $SubQuestionsTable extends SubQuestions
         answer.isAcceptableOrUnknown(data['answer']!, _answerMeta),
       );
     }
+    if (data.containsKey('explanation')) {
+      context.handle(
+        _explanationMeta,
+        explanation.isAcceptableOrUnknown(
+          data['explanation']!,
+          _explanationMeta,
+        ),
+      );
+    }
     if (data.containsKey('sort_order')) {
       context.handle(
         _sortOrderMeta,
@@ -1071,6 +1092,10 @@ class $SubQuestionsTable extends SubQuestions
         DriftSqlType.string,
         data['${effectivePrefix}answer'],
       ),
+      explanation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}explanation'],
+      ),
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -1090,6 +1115,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
   final int? parentId;
   final String? stem;
   final String? answer;
+  final String? explanation;
   final int sortOrder;
   const SubQuestionRow({
     required this.id,
@@ -1097,6 +1123,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
     this.parentId,
     this.stem,
     this.answer,
+    this.explanation,
     required this.sortOrder,
   });
   @override
@@ -1113,6 +1140,9 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
     if (!nullToAbsent || answer != null) {
       map['answer'] = Variable<String>(answer);
     }
+    if (!nullToAbsent || explanation != null) {
+      map['explanation'] = Variable<String>(explanation);
+    }
     map['sort_order'] = Variable<int>(sortOrder);
     return map;
   }
@@ -1128,6 +1158,9 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
       answer: answer == null && nullToAbsent
           ? const Value.absent()
           : Value(answer),
+      explanation: explanation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(explanation),
       sortOrder: Value(sortOrder),
     );
   }
@@ -1143,6 +1176,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
       parentId: serializer.fromJson<int?>(json['parentId']),
       stem: serializer.fromJson<String?>(json['stem']),
       answer: serializer.fromJson<String?>(json['answer']),
+      explanation: serializer.fromJson<String?>(json['explanation']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
     );
   }
@@ -1155,6 +1189,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
       'parentId': serializer.toJson<int?>(parentId),
       'stem': serializer.toJson<String?>(stem),
       'answer': serializer.toJson<String?>(answer),
+      'explanation': serializer.toJson<String?>(explanation),
       'sortOrder': serializer.toJson<int>(sortOrder),
     };
   }
@@ -1165,6 +1200,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
     Value<int?> parentId = const Value.absent(),
     Value<String?> stem = const Value.absent(),
     Value<String?> answer = const Value.absent(),
+    Value<String?> explanation = const Value.absent(),
     int? sortOrder,
   }) => SubQuestionRow(
     id: id ?? this.id,
@@ -1172,6 +1208,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
     parentId: parentId.present ? parentId.value : this.parentId,
     stem: stem.present ? stem.value : this.stem,
     answer: answer.present ? answer.value : this.answer,
+    explanation: explanation.present ? explanation.value : this.explanation,
     sortOrder: sortOrder ?? this.sortOrder,
   );
   SubQuestionRow copyWithCompanion(SubQuestionsCompanion data) {
@@ -1183,6 +1220,9 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
       stem: data.stem.present ? data.stem.value : this.stem,
       answer: data.answer.present ? data.answer.value : this.answer,
+      explanation: data.explanation.present
+          ? data.explanation.value
+          : this.explanation,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
     );
   }
@@ -1195,14 +1235,22 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
           ..write('parentId: $parentId, ')
           ..write('stem: $stem, ')
           ..write('answer: $answer, ')
+          ..write('explanation: $explanation, ')
           ..write('sortOrder: $sortOrder')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, questionId, parentId, stem, answer, sortOrder);
+  int get hashCode => Object.hash(
+    id,
+    questionId,
+    parentId,
+    stem,
+    answer,
+    explanation,
+    sortOrder,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1212,6 +1260,7 @@ class SubQuestionRow extends DataClass implements Insertable<SubQuestionRow> {
           other.parentId == this.parentId &&
           other.stem == this.stem &&
           other.answer == this.answer &&
+          other.explanation == this.explanation &&
           other.sortOrder == this.sortOrder);
 }
 
@@ -1221,6 +1270,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
   final Value<int?> parentId;
   final Value<String?> stem;
   final Value<String?> answer;
+  final Value<String?> explanation;
   final Value<int> sortOrder;
   const SubQuestionsCompanion({
     this.id = const Value.absent(),
@@ -1228,6 +1278,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
     this.parentId = const Value.absent(),
     this.stem = const Value.absent(),
     this.answer = const Value.absent(),
+    this.explanation = const Value.absent(),
     this.sortOrder = const Value.absent(),
   });
   SubQuestionsCompanion.insert({
@@ -1236,6 +1287,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
     this.parentId = const Value.absent(),
     this.stem = const Value.absent(),
     this.answer = const Value.absent(),
+    this.explanation = const Value.absent(),
     required int sortOrder,
   }) : questionId = Value(questionId),
        sortOrder = Value(sortOrder);
@@ -1245,6 +1297,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
     Expression<int>? parentId,
     Expression<String>? stem,
     Expression<String>? answer,
+    Expression<String>? explanation,
     Expression<int>? sortOrder,
   }) {
     return RawValuesInsertable({
@@ -1253,6 +1306,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
       if (parentId != null) 'parent_id': parentId,
       if (stem != null) 'stem': stem,
       if (answer != null) 'answer': answer,
+      if (explanation != null) 'explanation': explanation,
       if (sortOrder != null) 'sort_order': sortOrder,
     });
   }
@@ -1263,6 +1317,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
     Value<int?>? parentId,
     Value<String?>? stem,
     Value<String?>? answer,
+    Value<String?>? explanation,
     Value<int>? sortOrder,
   }) {
     return SubQuestionsCompanion(
@@ -1271,6 +1326,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
       parentId: parentId ?? this.parentId,
       stem: stem ?? this.stem,
       answer: answer ?? this.answer,
+      explanation: explanation ?? this.explanation,
       sortOrder: sortOrder ?? this.sortOrder,
     );
   }
@@ -1293,6 +1349,9 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
     if (answer.present) {
       map['answer'] = Variable<String>(answer.value);
     }
+    if (explanation.present) {
+      map['explanation'] = Variable<String>(explanation.value);
+    }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
@@ -1307,6 +1366,7 @@ class SubQuestionsCompanion extends UpdateCompanion<SubQuestionRow> {
           ..write('parentId: $parentId, ')
           ..write('stem: $stem, ')
           ..write('answer: $answer, ')
+          ..write('explanation: $explanation, ')
           ..write('sortOrder: $sortOrder')
           ..write(')'))
         .toString();
@@ -6126,6 +6186,7 @@ typedef $$SubQuestionsTableCreateCompanionBuilder =
       Value<int?> parentId,
       Value<String?> stem,
       Value<String?> answer,
+      Value<String?> explanation,
       required int sortOrder,
     });
 typedef $$SubQuestionsTableUpdateCompanionBuilder =
@@ -6135,6 +6196,7 @@ typedef $$SubQuestionsTableUpdateCompanionBuilder =
       Value<int?> parentId,
       Value<String?> stem,
       Value<String?> answer,
+      Value<String?> explanation,
       Value<int> sortOrder,
     });
 
@@ -6169,6 +6231,11 @@ class $$SubQuestionsTableFilterComposer
 
   ColumnFilters<String> get answer => $composableBuilder(
     column: $table.answer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get explanation => $composableBuilder(
+    column: $table.explanation,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6212,6 +6279,11 @@ class $$SubQuestionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -6243,6 +6315,11 @@ class $$SubQuestionsTableAnnotationComposer
 
   GeneratedColumn<String> get answer =>
       $composableBuilder(column: $table.answer, builder: (column) => column);
+
+  GeneratedColumn<String> get explanation => $composableBuilder(
+    column: $table.explanation,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -6288,6 +6365,7 @@ class $$SubQuestionsTableTableManager
                 Value<int?> parentId = const Value.absent(),
                 Value<String?> stem = const Value.absent(),
                 Value<String?> answer = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
               }) => SubQuestionsCompanion(
                 id: id,
@@ -6295,6 +6373,7 @@ class $$SubQuestionsTableTableManager
                 parentId: parentId,
                 stem: stem,
                 answer: answer,
+                explanation: explanation,
                 sortOrder: sortOrder,
               ),
           createCompanionCallback:
@@ -6304,6 +6383,7 @@ class $$SubQuestionsTableTableManager
                 Value<int?> parentId = const Value.absent(),
                 Value<String?> stem = const Value.absent(),
                 Value<String?> answer = const Value.absent(),
+                Value<String?> explanation = const Value.absent(),
                 required int sortOrder,
               }) => SubQuestionsCompanion.insert(
                 id: id,
@@ -6311,6 +6391,7 @@ class $$SubQuestionsTableTableManager
                 parentId: parentId,
                 stem: stem,
                 answer: answer,
+                explanation: explanation,
                 sortOrder: sortOrder,
               ),
           withReferenceMapper: (p0) => p0

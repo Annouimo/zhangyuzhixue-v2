@@ -101,11 +101,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: SolveFlowWidget(
-          cooldownSeconds: _coolDownSec,
-          isRevisit: _submitted,
-          isCorrect: _isCorrect,
-          correctAnswer: _detail?.answer,
-          onSubmit: _submit,
+            cooldownSeconds: _coolDownSec,
+            isRevisit: _submitted,
+            isCorrect: _isCorrect,
+            correctAnswer: _detail?.answer,
+            explanation: _detail?.explanation,
+            onSubmit: _submit,
           onNext: widget.nextQuestionId != null
               ? () => context.go('/solve/choice?id=${widget.nextQuestionId}')
               : null,

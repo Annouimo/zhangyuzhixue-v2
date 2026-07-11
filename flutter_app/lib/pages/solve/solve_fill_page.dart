@@ -54,7 +54,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   Future<void> _loadCooldown() async {
     try {
       final dao = SystemConfigDao(DatabaseProvider().assetsDb);
-      final sec = await dao.getInt('solve_cooldown_choice', 10);
+      final sec = await dao.getInt('solve_cooldown_fill', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
     } catch (e) {
@@ -112,6 +112,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           isRevisit: _submitted,
           isCorrect: _isCorrect,
           correctAnswer: _detail?.answer,
+          explanation: _detail?.explanation,
           onSubmit: _submit,
           onNext: widget.nextQuestionId != null
               ? () => context.go('/solve/fill?id=${widget.nextQuestionId}')

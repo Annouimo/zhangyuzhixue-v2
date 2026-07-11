@@ -158,12 +158,20 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             separatorBuilder: (_, _) => const SizedBox(height: 6),
             itemBuilder: (context, index) {
               final q = d.questions[index];
-              final isDone = q.status == 'completed';
               return _QuestionTile(
                 index: index + 1,
                 number: q.number,
-                isDone: isDone,
-                onTap: () => context.push('/solve/choice?id=${q.id}'),
+                questionType: q.questionType,
+                status: q.status,
+                onTap: () {
+                  final route = switch (q.questionType) {
+                    'choice' => '/solve/choice',
+                    'fill' => '/solve/fill',
+                    'solution' => '/solve/map',
+                    _ => '/solve/choice',
+                  };
+                  context.push('$route?id=${q.id}');
+                },
               );
             },
           ),
@@ -173,22 +181,49 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   }
 }
 
+/// 题型中文映射
+String _typeLabel(String type) {
+  switch (type) {
+    case 'choice': return '选择题';
+    case 'fill': return '填空题';
+    case 'solution': return '解答题';
+    default: return type;
+  }
+}
+
+/// 状态标签
+({String label, Color color, Color bg}) _statusStyle(String status) {
+  switch (status) {
+    case 'completed':
+      return (label: '已完成', color: AppColors.success, bg: const Color(0xFFECFDF5));
+    case 'in_progress':
+      return (label: '进行中', color: AppColors.warning, bg: const Color(0xFFFFFBEB));
+    default:
+      return (label: '未做', color: AppColors.textSecondary, bg: const Color(0xFFF3F4F6));
+  }
+}
+
 /// 题目行
 class _QuestionTile extends StatelessWidget {
   final int index;
   final String number;
-  final bool isDone;
+  final String questionType;
+  final String status;
   final VoidCallback onTap;
 
   const _QuestionTile({
     required this.index,
     required this.number,
-    required this.isDone,
+    required this.questionType,
+    required this.status,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDone = status == 'completed';
+    final st = _statusStyle(status);
+    final typeLabel = _typeLabel(questionType);
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -219,14 +254,39 @@ class _QuestionTile extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  number.isNotEmpty ? '第 $number 题' : '第 $index 题',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      number.isNotEmpty ? '第 $number 题' : '第 $index 题',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      typeLabel,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: st.bg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  st.label,
+                  style: TextStyle(fontSize: 11, color: st.color, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const SizedBox(width: 4),
               const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),

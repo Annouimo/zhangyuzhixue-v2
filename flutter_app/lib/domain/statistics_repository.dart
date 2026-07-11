@@ -60,11 +60,12 @@ class StatisticsRepository {
     final total = await _dao.getTotalQuestions();
     final acc = await _dao.getAccuracy();
     final streak = await _dao.getStreakDays();
+    final active = await _dao.getActiveDays();
     return StatsOverview(
       totalQuestions: total,
       accuracyPercent: acc * 100,
       streakDays: streak,
-      activeDays: streak,
+      activeDays: active,
     );
   }
 

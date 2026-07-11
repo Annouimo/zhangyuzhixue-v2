@@ -35,6 +35,7 @@ class SubQuestions extends Table {
   IntColumn? get parentId => integer().nullable()();
   TextColumn? get stem => text().nullable()();
   TextColumn? get answer => text().nullable()();
+  TextColumn? get explanation => text().nullable()();
   IntColumn get sortOrder => integer()();
 }
 
