@@ -95,7 +95,7 @@ class _AuthInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final token = _tokenProvider.call();
     if (token != null && token.isNotEmpty) {
-      options.headers['Authorization'] = 'Bearer ${token}';
+      options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
   }
@@ -131,7 +131,7 @@ class _RefreshInterceptor extends Interceptor {
         _refreshing = false;
 
         final retryOpts = err.requestOptions;
-        retryOpts.headers['Authorization'] = 'Bearer ${newAccess}';
+        retryOpts.headers['Authorization'] = 'Bearer $newAccess';
         final retryRes = await Dio().fetch(retryOpts);
         handler.resolve(retryRes);
       } catch (_) {

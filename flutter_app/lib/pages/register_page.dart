@@ -7,7 +7,9 @@ import '../domain/auth_repository.dart';
 
 /// 注册页
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final AuthRepository? authRepository;
+
+  const RegisterPage({super.key, this.authRepository});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -27,7 +29,13 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  final _authRepo = AuthRepository(AuthApi(ApiClient()));
+  late final AuthRepository _authRepo;
+
+  @override
+  void initState() {
+    super.initState();
+    _authRepo = widget.authRepository ?? AuthRepository(AuthApi(ApiClient()));
+  }
 
   @override
   void dispose() {

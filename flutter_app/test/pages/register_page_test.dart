@@ -1,8 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_app/data/api/auth_api.dart';
+import 'package:flutter_app/data/api/api_client.dart';
+import 'package:flutter_app/domain/auth_repository.dart';
 import 'package:flutter_app/pages/register_page.dart';
+import 'package:flutter_app/pages/login_page.dart';
 
-/// Helper: 填入所有字段（除第一项邀请码可指定外）
+class _MockAuthRepo extends AuthRepository {
+  final bool shouldSucceed;
+  _MockAuthRepo({this.shouldSucceed = true})
+      : super(AuthApi(ApiClient()));
+
+  @override
+  Future<void> register(RegisterRequest data) async {
+    if (shouldSucceed) return;
+    throw Exception('40101: 邀请码无效或已使用');
+  }
+}
+
+/// Helper: 填入所有字段
 Future<void> _fillAllFields(
   WidgetTester tester, {
   String inviteCode = 'CODE123',
@@ -47,7 +65,6 @@ void main() {
       expect(find.text('高考年份'), findsOneWidget);
       expect(find.text('密码'), findsOneWidget);
       expect(find.text('确认密码'), findsOneWidget);
-      // AppBar 标题 + 按钮
       expect(find.text('注册'), findsAtLeast(1));
       expect(find.text('返回登录'), findsOneWidget);
     });
@@ -107,6 +124,50 @@ void main() {
 
       expect(find.byIcon(Icons.arrow_back_ios), findsOneWidget);
       expect(find.text('返回登录'), findsOneWidget);
+    });
+
+    testWidgets('register success navigates back to login', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+
+      // 从 /login → push /register，这样 pop 才能回到 /login
+      final router = GoRouter(
+        initialLocation: '/login',
+        routes: [
+          GoRoute(
+            path: '/login',
+            builder: (context, __) => Scaffold(
+              body: Center(
+                child: ElevatedButton(
+                  onPressed: () => context.push('/register'),
+                  child: const Text('去注册'),
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/register',
+            builder: (_, __) => RegisterPage(
+              authRepository: _MockAuthRepo(),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(routerConfig: router),
+      );
+
+      // 先进注册页
+      await tester.tap(find.text('去注册'));
+      await tester.pumpAndSettle();
+      expect(find.text('使用邀请码注册'), findsOneWidget);
+
+      await _fillAllFields(tester);
+      await _tapRegister(tester);
+
+      // 注册成功 → 显示成功 SnackBar → pop 回登录页
+      expect(find.text('注册成功，请登录'), findsOneWidget);
+      expect(find.text('去注册'), findsOneWidget); // 回到了登录页
     });
   });
 }
