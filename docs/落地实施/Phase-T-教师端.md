@@ -10,14 +10,15 @@
 
 | 子步骤 | 内容 | 工时 | 开工条件 | 状态 |
 |:-------|:-----|:-----|:---------|:----:|
+| **TS.1** | 服务端教师 API（9 端点 + ~20 测试） | 0.6 天 | 模型/权限已就位 | ⬜ |
 | **T.1** | 教师 Web 框架（nginx 路由 + 登录页 + JWT 认证） | 0.3 天 | Phase 1.3 认证 API 就绪 | ⬜ |
-| **T.2** | 作业列表（主页）+ 发布作业（选组卷→设班级/日期→发布） | 0.8 天 | Phase 1.5 教师 API 就绪 | ⬜ |
+| **T.2** | 作业列表（主页）+ 发布作业（选组卷→设班级/日期→发布） | 0.8 天 | TS.1 完成后（教师 API 就绪） | ⬜ |
 | **T.3** | 作业详情（按学生列完成状态） | 0.4 天 | 同上 | ⬜ |
 | **T.4** | 班级概览（汇总统计卡片）+ 学生列表（搜索/筛选） | 0.5 天 | 同上 | ⬜ |
 | **T.5** | 学生详情（个人报告 + 正确率趋势图） | 0.5 天 | 同上 | ⬜ |
 | **T.6** | 编辑资料 + 关于页 | 0.3 天 | 共用用户 API | ⬜ |
 | **T.7** | 集成测试 + 部署到 landing/teacher/ | 0.2 天 | T.1–T.6 完成 | ⬜ |
-| | **合计** | **~3 天** | | |
+| | **合计** | **~3.6 天** | | |
 
 ### 设计原则
 
@@ -31,11 +32,11 @@
 
 ### 前置条件
 
-- [ ] Phase 1.3 完成：JWT 认证 API 就绪（login/refresh）
-- [ ] Phase 1.4 完成：sync/push entity 分发就绪（组卷数据可推送）
-- [ ] Phase 1.5 完成：教师专属 API 端点就绪（`/api/v1/teacher/*`）
-- [ ] 登录放开角色校验已在服务端实现（Phase 0/1 已完成，确认即可）
-- [ ] 至少一个教师测试账号（`teacher1 / test123`，Phase 1.3 已创建）
+- [x] Phase 1.3 完成：JWT 认证 API 就绪（login/refresh）
+- [x] Phase 1.4 完成：sync/push entity 分发就绪（组卷数据可推送）
+- [ ] TS.1 完成：服务端教师专属 API 端点就绪（`/api/v1/teacher/*`）
+- [x] 登录放开角色校验已在服务端实现
+- [x] 至少一个教师测试账号（`teacher1 / test123`）
 
 ### 关键设计文档索引
 
@@ -46,18 +47,254 @@
 | [`API设计.md`](../03-服务端/API设计.md) | 所有端点格式参考 |
 | [`服务端架构.md`](../03-服务端/服务端架构.md) | nginx 配置、域名路由 |
 
-### 当前进度说明
+---
 
-教师端与 Phase 1-3 并行开发。**当前服务端准备工作已完成：**
+## TS.1 — 服务端教师 API（0.6 天）
 
-| 服务端项 | 状态 | 说明 |
-|:---------|:-----|:------|
-| Teacher 模型 | ✅ | Phase 1.1 完成 |
-| 登录放开角色校验 | ✅ | Phase 0 完成 |
-| sync/push entity 分发 | ✅ | Phase 1.4 完成 |
-| 教师专属 API | ⬜ | 需确认 `teacher/` 路由下 9 个端点是否已实现 |
+> 服务端 `/api/v1/teacher/*` 端点尚未实现（已验证 404），需在 Web 前端 T.2 开发前补充。
+> 必须现有模型和权限类均已就位。
 
-> 如果教师 API 端点尚未全部实现（Phase 1.4/1.5 可能只做了部分），T.1 在登录端点就绪后即可开工，T.2 起需要对应的教师 API 就绪。
+### 涉及文件
+
+```
+server/courses/
+├── teacher_views.py          ← 新建：9 个视图函数（@api_view + @permission_classes）
+├── teacher_serializers.py    ← 新建：请求/响应序列化器
+├── teacher_urls.py           ← 新建：6 条路由
+└── tests/
+    └── test_teacher.py       ← 新建：pytest ~20 场景
+
+server/math_platform/urls.py  ← 修改：api_v1 加一行 path('teacher/', ...)
+```
+
+### 实现要点
+
+#### 路由挂载
+
+```python
+# math_platform/urls.py 的 api_v1 列表中加入第 8 行（system 之后）：
+path('teacher/', include('courses.teacher_urls')),
+```
+
+```python
+# courses/teacher_urls.py
+urlpatterns = [
+    path('assignments/', views.assignment_list_create, name='teacher-assignment-list'),
+    path('assignments/<int:id>/', views.assignment_rud, name='teacher-assignment-detail'),
+    path('papers/', views.paper_list, name='teacher-paper-list'),
+    path('classes/', views.class_list, name='teacher-class-list'),
+    path('students/', views.student_list, name='teacher-student-list'),
+    path('students/<int:id>/', views.student_detail, name='teacher-student-detail'),
+]
+```
+
+#### 端点实现
+
+**① `GET /api/v1/teacher/papers/` — 组卷列表**
+
+```python
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def paper_list(request):
+    papers = CustomPaper.objects.annotate(q_count=Count('paper_questions'))
+    data = [{'id': p.id, 'title': p.title, 'questionCount': p.q_count,
+             'createdAt': p.created_at} for p in papers.order_by('-created_at')]
+    return _ok(data=data)
+```
+
+> `CustomPaper.student` 外键指向 Student，教师登录没有 Student 记录。当前开发阶段组卷少，直接返回全部。后续需在 CustomPaper 加 created_by_user 字段或放宽 SyncPushView 对教师的限制。
+
+**② `GET /api/v1/teacher/classes/` — 班级概览**
+
+```python
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def class_list(request):
+    groups = ClassGroup.objects.annotate(
+        s_count=Count('students'),
+    )
+    items = []
+    for g in groups:
+        # 计算该班级平均正确率：从 SubmissionDetail 聚合
+        items.append({
+            'name': g.name, 'studentCount': g.s_count,
+            'avgAccuracy': _calc_class_accuracy(g.id),
+        })
+    return _ok(data={
+        'totalClasses': groups.count(),
+        'totalStudents': sum(g.s_count for g in groups),
+        'avgAccuracy': _calc_overall_accuracy(),
+        'items': items,
+    })
+```
+
+**③ `GET /api/v1/teacher/students/` — 学生列表**
+
+支持 `?search=张三&class_id=1` 查询参数。
+
+```python
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def student_list(request):
+    qs = Student.objects.select_related('user', 'class_group')
+    search = request.query_params.get('search', '')
+    class_id = request.query_params.get('class_id', '')
+    if search:
+        qs = qs.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__username__icontains=search)
+        )
+    if class_id.isdigit():
+        qs = qs.filter(class_group_id=int(class_id))
+    data = [{'id': s.id, 'name': s.user.first_name or s.user.username,
+             'className': s.class_group.name if s.class_group else '',
+             'totalQuestions': _count_student_submissions(s.id),
+             'avgAccuracy': _calc_student_accuracy(s.id),
+             'lastActive': _last_active_date(s.id)}
+            for s in qs]
+    return _ok(data=data)
+```
+
+**④ `GET /api/v1/teacher/students/{id}/` — 学生详情**
+
+返回个人信息 + 概览卡片 + 正确率趋势（近30天）+ 薄弱知识点。
+
+```python
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def student_detail(request, id):
+    s = get_object_or_404(Student.objects.select_related('user', 'class_group'), pk=id)
+    # 概览卡片
+    total_q = SubmissionDetail.objects.filter(submission__student=s).count()
+    correct_q = SubmissionDetail.objects.filter(
+        submission__student=s, is_correct=True).count()
+    accuracy = round(correct_q / total_q * 100, 1) if total_q else 0
+    # 近30天趋势
+    from django.utils import timezone
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    trend = SubmissionDetail.objects.filter(
+        submission__student=s, created_at__gte=thirty_days_ago
+    ).extra(select={'date': "date(created_at)"}).values('date').annotate(
+        total=Count('id'), correct=Count('id', filter=Q(is_correct=True))
+    )
+    # 薄弱知识点：从 StepFeedback 聚合
+    return _ok(data={...})
+```
+
+**⑤ `GET /api/v1/teacher/assignments/` + `POST /api/v1/teacher/assignments/` — 作业列表 + 发布**
+
+```python
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def assignment_list_create(request):
+    if request.method == 'GET':
+        # 统计汇总 + items 列表（含完成率/正确率）
+        ...
+    # POST
+    serializer = CreateAssignmentSerializer(data=request.data)
+    if not serializer.is_valid():
+        return _err(40201, ...)
+    data = serializer.validated_data
+    paper = CustomPaper.objects.get(pk=data['paper_id'])
+    assignment = Assignment.objects.create(title=data.get('title', paper.title))
+    for i, q in enumerate(paper.questions.all()):
+        AssignmentQuestion.objects.create(assignment=assignment, question=q, sort_order=i)
+    for cid in data['class_ids']:
+        cc = ClassCourse.objects.filter(class_group_id=cid).first()
+        if cc:
+            ClassCourseAssignment.objects.create(
+                class_course=cc, assignment=assignment,
+                deadline=data['deadline'], is_active=True,
+            )
+    return _ok(data={'id': assignment.id})
+```
+
+**⑥ `GET/DELETE/PATCH /api/v1/teacher/assignments/{id}/` — 作业详情/删除/修改**
+
+- GET：返回作业信息 + `students[]` 数组（每人状态/正确率/耗时）
+- DELETE：`ClassCourseAssignment.is_active = False`
+- PATCH：更新 deadline/description
+
+#### 需抽取的辅助函数
+
+| 函数 | 用途 |
+|------|------|
+| `_calc_class_accuracy(class_group_id)` | 该班级所有学生平均正确率 |
+| `_calc_overall_accuracy()` | 全校平均正确率 |
+| `_count_student_submissions(student_id)` | 学生总提交题数 |
+| `_calc_student_accuracy(student_id)` | 学生个人正确率 |
+| `_last_active_date(student_id)` | 最近提交日期 |
+
+#### 辅助工具函数（与 accounts/views.py 共用）
+
+```python
+def _ok(data=None, message='ok'):
+    return Response({'code': 0, 'message': message, 'data': data})
+
+def _err(code, message, http_status=status.HTTP_400_BAD_REQUEST):
+    return Response({'code': code, 'message': message, 'data': None}, status=http_status)
+```
+
+### 验证方式
+
+```bash
+# 在本地或 staging 服务器执行：
+
+# 1. 教师登录获取 token
+TOKEN=$(curl -s -X POST 'https://zhangyuzhixue.top/api/v1/auth/login/' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"teacher1","password":"test123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['access'])")
+echo "Token: ${TOKEN:0:20}..."
+
+# 2. 验证组卷列表
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://zhangyuzhixue.top/api/v1/teacher/papers/' | python3 -m json.tool
+
+# 3. 验证班级列表
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://zhangyuzhixue.top/api/v1/teacher/classes/' | python3 -m json.tool
+
+# 4. 验证学生列表
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://zhangyuzhixue.top/api/v1/teacher/students/' | python3 -m json.tool
+
+# 5. 发布作业（需先有组卷和班级数据）
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"paper_id":1,"title":"测试作业","deadline":"2026-07-20","class_ids":[1,2]}' \
+  'https://zhangyuzhixue.top/api/v1/teacher/assignments/' | python3 -m json.tool
+
+# 6. 验证作业列表
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://zhangyuzhixue.top/api/v1/teacher/assignments/' | python3 -m json.tool
+
+# 7. 学生端 API 应拒绝教师（401 或 403）
+curl -s -H "Authorization: Bearer $TOKEN" \
+  'https://zhangyuzhixue.top/api/v1/auth/register/' | python3 -m json.tool
+```
+
+### pytest 测试覆盖
+
+| 测试组 | 场景数 | 覆盖内容 |
+|--------|--------|---------|
+| papers | 2 | 空列表、有数据 |
+| classes | 2 | 空、有班级 + 统计数据 |
+| students list | 3 | 全量、按姓名搜索、按班级筛选 |
+| student detail | 3 | 正常数据、无提交记录（零数据）、不存在的学生 404 |
+| assignments list | 3 | 空列表、有数据（含完成率计算）、仅活跃作业 |
+| assignments create | 3 | 正常发布、参数缺失（paper_id/deadline/class_ids）、不存在的 paper_id |
+| assignments detail | 2 | 正常、不存在 |
+| assignments delete | 1 | 软删除验证 |
+| assignments patch | 1 | 修改 deadline |
+| **合计** | **~20** | |
+
+### 注意事项
+
+- 所有端点用 `IsAuthenticated + IsTeacher` 权限类保护
+- 辅助函数如 `_calc_class_accuracy` 放在 `teacher_views.py` 文件尾部（私有函数），不抽成独立 helper（仅本文件使用）
+- 学生端 API（submit/rating/fb）受 `IsStudent` 保护，教师自动被拒，不需额外逻辑
+- 如测试中需要批量建学生数据，用 `django.test.Client` + `setUpTestData` 类方法一次性建好
+- 不需要新增数据库模型或字段——全部使用现有模型
 
 ---
 
@@ -563,7 +800,7 @@ function renderAccuracyTrend(canvasId, data) {
 }
 ```
 
-参考 Phase 3g 的统计页图表实现方式（纯 Canvas/SVG，无依赖）。
+> 参考 Phase 3g 的统计页图表实现方式（纯 Canvas/SVG，无依赖）。
 
 ### 验证方式
 
@@ -578,8 +815,8 @@ function renderAccuracyTrend(canvasId, data) {
 
 - 正确率趋势数据量：取最近 30 天的每日正确率，不足 30 天按实际天数
 - 薄弱知识点：从 `step_feedback` 和 `card_feedback` 聚合，按错误率降序
-- 折线图实现同 Phase 3g（纯 SVG，无第三方依赖）
-- ==如果有 Phase 3g 的统计图表组件（SVG/CustomPaint）已在学生端实现，教师端不应该再次实现。== 但教师端是纯 Web 端（无 Flutter），所以需要用 Web 原生 SVG 或 Canvas 重新实现一遍。原理相同，语言换成 JavaScript
+- 折线图用纯 SVG 实现，无第三方依赖
+- 如果有 Phase 3g 的统计图表组件（SVG/CustomPaint）已在学生端实现，教师端不应该再次实现。但教师端是纯 Web 端（无 Flutter），所以需要用 Web 原生 SVG 或 Canvas 重新实现一遍。原理相同，语言换成 JavaScript
 
 ---
 
@@ -589,7 +826,7 @@ function renderAccuracyTrend(canvasId, data) {
 
 ```
 landing/teacher/
-├── profile.html                   # 新建（编辑资料）— 也可从 login.html 的「忘记密码」扩展
+├── profile.html                   # 新建（编辑资料）
 └── about.html                     # 新建（关于页）
 ```
 
@@ -613,6 +850,12 @@ landing/teacher/
 # 编辑资料 → 保存成功 → 刷新后数据更新
 # 关于页显示版本号
 ```
+
+### 注意事项
+
+- 头像上传用 multipart/form-data，注意 `enctype="multipart/form-data"` 设置
+- teacher 没有 Student 记录，`user_me_view` 已处理（`accounts/views.py` 的 `if hasattr(user, 'student'):` 分支不命中 teacher 时跳过 student 字段）
+- 教师端编辑资料不涉及 student 字段（school/gaokao_year 等），仅姓名 + 手机
 
 ---
 
@@ -689,13 +932,9 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 | `/teacher/profile.html` | 编辑资料 | T.6 |
 | `/teacher/about.html` | 关于页 | T.6 |
 
----
-
 ## 测试汇总
 
 教师端为纯静态 Web，无自动化测试框架（无 npm/无 CI）。验收方式为手动走完全部 12 条测试路径。
-
-如果确有自动测试需求，可加一个简单的 cypress 或 playwright 配置，但按当前 3 人教师规模，手动验收足够。
 
 | 测试路径 | 数量 |
 |:---------|:----:|
@@ -711,7 +950,7 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 | 关于页 | 1 |
 | **合计** | **~12 条手动路径** |
 
----
+服务端 API 测试由 pytest 覆盖（~20 场景，见 TS.1）。
 
 ## 验收标准
 
@@ -724,6 +963,7 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 7. 编辑资料可保存，关于页显示版本号
 8. 9 个页面全部可通过 URL 访问
 9. nginx 配置 `/teacher/` 路由后可通过域名访问
+10. pytest 20 场景全部通过（TS.1 产出）
 
 ---
 
