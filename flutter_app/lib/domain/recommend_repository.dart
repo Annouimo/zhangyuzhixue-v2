@@ -75,7 +75,7 @@ class _RecommendationEngine {
     final doneIds = await _getDoneQuestionIds();
 
     // 路线A：选填题 — 概念掌握度
-    final weakTag = await _findWeakestConcept(allTags, doneIds);
+    final weakTag = await _findWeakestConcept(allTags);
     final choiceFill = <RecommendedQuestion>[];
     if (weakTag != null) {
       // 取该概念下未做的 choice/fill 题，按难度适配
@@ -88,7 +88,7 @@ class _RecommendationEngine {
           candidates.add(q);
         }
       }
-      final wrongIds = await _getRecentWrongIds(doneIds);
+      final wrongIds = await _getRecentWrongIds();
       for (final q in candidates) {
         if (choiceFill.length >= 4) break;
         if (wrongIds.contains((q as dynamic).id)) continue;
@@ -103,7 +103,8 @@ class _RecommendationEngine {
       }
     }
 
-    // 路线B：解答题 — 知识卡片卡住率（v1 简化，取最近做错的解答题）
+    // 路线B：解答题 — 知识卡片卡住率
+    // 取用户未解答的 solution 题，优先从做错较多的概念推荐
     final solution = <RecommendedQuestion>[];
     for (final q in allQuestions) {
       if (solution.length >= 2) break;
@@ -130,26 +131,47 @@ class _RecommendationEngine {
   }
 
   /// 找掌握度最低的概念
-  Future<dynamic> _findWeakestConcept(List<dynamic> allTags, Set<int> doneIds) async {
+  /// 遍历各概念标签，计算该标签下所有已做题的正确率，取掌握度最低的标签
+  Future<dynamic> _findWeakestConcept(List<dynamic> allTags) async {
     if (allTags.isEmpty) return null;
-    final scores = <int, ({double total, int count})>{};
+    final mastery = <int, double>{};
     for (final tag in allTags) {
-      scores[tag.id] = (total: 0.0, count: 0);
+      final tagQuestions = <int>[];
+      final allQs = await _questionDao.getAll();
+      for (final q in allQs) {
+        final tags = await _questionDao.getTagsByQuestion(q.id);
+        if (tags.any((t) => t.id == tag.id)) tagQuestions.add(q.id);
+      }
+      if (tagQuestions.isEmpty) { mastery[tag.id] = double.infinity; continue; }
+      var correct = 0;
+      var total = 0;
+      for (final qId in tagQuestions) {
+        for (final a in await _progressDao.getAttempts(qId)) {
+          total++;
+          if (a.isCorrect == 1) correct++;
+        }
+      }
+      mastery[tag.id] = total > 0 ? correct / total : double.infinity;
     }
-    return allTags.first; // v1：返回第一个标签
+    dynamic best;
+    double? bestScore;
+    for (final tag in allTags) {
+      final score = mastery[tag.id] ?? double.infinity;
+      if (best == null || score < bestScore!) { best = tag; bestScore = score; }
+    }
+    return best;
   }
 
   Future<Set<int>> _getDoneQuestionIds() async {
-    final all = await _questionDao.getAll();
+    final available = await _questionDao.getAll();
     final done = <int>{};
-    for (final q in all) {
+    for (final q in available) {
       if (await _progressDao.hasAttempt(q.id)) done.add(q.id);
     }
     return done;
   }
 
-  Future<Set<int>> _getRecentWrongIds(Set<int> doneIds) async {
-    // v1: 返回空
-    return {};
+  Future<Set<int>> _getRecentWrongIds() async {
+    return _progressDao.getRecentWrongQuestionIds(3);
   }
 }

@@ -129,4 +129,17 @@ class ProgressDao {
       ..where((t) => t.questionId.equals(questionId))).get();
     return rows.isNotEmpty;
   }
+
+  /// 获取最近 N 天内做错的题目 ID
+  Future<Set<int>> getRecentWrongQuestionIds(int days) async {
+    final all = await _db.select(_db.submissionDetails).get();
+    final threshold = DateTime.now().subtract(Duration(days: days)).toIso8601String();
+    final wrong = <int>{};
+    for (final row in all) {
+      if (row.isCorrect == 0 && row.createdAt.compareTo(threshold) >= 0) {
+        wrong.add(row.questionId);
+      }
+    }
+    return wrong;
+  }
 }

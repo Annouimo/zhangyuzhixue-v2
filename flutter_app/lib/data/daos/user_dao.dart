@@ -86,4 +86,25 @@ class UserDao {
     final rows = await _db.select(_db.submissionDetails).get();
     return rows.length;
   }
+
+  /// 获取最近做题记录（倒序，取 [limit] 条）
+  Future<List<db.SubmissionDetailRow>> getRecentSubmissions({int limit = 20}) async {
+    final q = _db.select(_db.submissionDetails)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
+      ..limit(limit);
+    return q.get();
+  }
+
+  /// 获取今天获得的积分
+  Future<int> getTodayEarnedPoints() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final all = await _db.select(_db.pointsTransactions).get();
+    var total = 0;
+    for (final row in all) {
+      if (row.createdAt.startsWith(today) && row.amount > 0) {
+        total += row.amount;
+      }
+    }
+    return total;
+  }
 }

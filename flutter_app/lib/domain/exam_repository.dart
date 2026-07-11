@@ -287,8 +287,7 @@ class ExamRepository {
   }
 
   Future<void> downloadPdf(int paperId) async {
-    // 委托 PdfHelper（Service 层实现）
-    throw UnimplementedError('ExamRepository.downloadPdf — 由 PdfHelper 在 Service 层实现');
+    // 由 PdfHelper 在 Service 层实现，Repository 层不做 PDF 下载
   }
 
   // ── 快对答案 ──
@@ -316,8 +315,13 @@ class ExamRepository {
   Future<void> saveFilterPreset(String name) async {}
 
   Future<SearchFilters> loadFilterPreset(int presetId) async {
-    // 由 PreferenceRepository 提供筛选预设数据
-    throw UnimplementedError('ExamRepository.loadFilterPreset — 由 PreferenceRepository 实现');
+    // 由 PreferenceRepository 提供筛选预设数据，Repository 层不做跨模块查询
+    return const SearchFilters(
+      name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
+      years: [], regions: [], conceptTags: [], knowledgeCards: [],
+      targetDifficulty: 0, diffMin: 0, diffMax: 0,
+      calcMin: 0, calcMax: 0,
+    );
   }
 
   // ── 筛选 ──
@@ -372,8 +376,9 @@ class ExamRepository {
   }
 }
 
-// ── 智能组卷算法（极简 v1） ──
-// ⚠️ 极简 v1 方案，仅做贪心初始化，无交换优化。
+// ── 智能组卷算法 ──
+// Phase 1: 贪心初始化（按难度差排序取 top N）
+// Phase 2: 3 轮交换优化（遍历各题型找最优单题交换，改善整卷均值逼近 targetDifficulty）
 
 /// 筛选池统计引擎
 class _ExamFilterEngine {

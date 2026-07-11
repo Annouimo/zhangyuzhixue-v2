@@ -42,10 +42,16 @@ class SyncManager {
     );
   }
 
-  /// App 启动时推送积压（版本检查由 UI 层调 UpdateManager）
+  /// App 启动时推送积压并发起版本检查
   Future<void> onAppStart() async {
     _ensureInitialized();
     await pushNow();
+    // 版本检查非阻塞，失败不影响 App 启动
+    try {
+      await _updateManager!.checkAll();
+    } catch (_) {
+      // 静默失败，版本检查由 UI 层择机重试
+    }
   }
 
   Future<PushSummary?> pushNow() async {

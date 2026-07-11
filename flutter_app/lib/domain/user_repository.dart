@@ -116,8 +116,14 @@ class UserRepository {
   Future<String> uploadAvatar(String localPath) => _api.uploadAvatar(localPath);
 
   Future<List<HistoryItem>> getAnswerHistory() async {
-    // 从本地 submission_detail 推算，v1 返回空
-    return [];
+    // 从本地 submission_detail 取最近做题记录
+    final submissions = await _dao.getRecentSubmissions(limit: 10);
+    return submissions.map((s) => HistoryItem(
+      title: '#${s.questionId}',
+      questionType: '',
+      date: s.createdAt.substring(0, 10),
+      status: s.status,
+    )).toList();
   }
 
   Future<int> getAnswerHistoryCount() async {
@@ -167,11 +173,14 @@ class UserRepository {
     return (e + bonus + spent).toDouble();
   }
 
-  Future<double> todayPoints() async => 0;
+  Future<double> todayPoints() async {
+    final earned = await _dao.getTodayEarnedPoints();
+    return earned.toDouble();
+  }
 
   // ── 等级 ──
   Future<List<LevelRow>> getLevels() async {
-    // 需要 assets.level_config 表，当前 UserRepo 无 assets 访问权限
+    // 读取 assets.db.level_config 表，需要 UserRepository 持有 QuestionDao
     return [];
   }
 
