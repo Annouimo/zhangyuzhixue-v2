@@ -15,6 +15,7 @@ abstract final class PrefKeys {
   static const lastUpdatePrompt = 'app_last_update_prompt';
   static const ratingCooldownPrefix = 'app_rating_cooldown_';
   static const firstLaunchComplete = 'app_first_launch';
+  static const lastSyncTime = 'app_last_sync_time';
 }
 
 /// SharedPreferences 封装层
@@ -87,6 +88,12 @@ class AppPrefs {
 
   Future<bool> setAccessibleCourseIds(List<int> ids) =>
       p.setString(PrefKeys.accessibleCourses, ids.join(','));
+
+  // ── 同步时间 ──
+
+  String? get lastSyncTime => p.getString(PrefKeys.lastSyncTime);
+  Future<bool> setLastSyncTime(String label) =>
+      p.setString(PrefKeys.lastSyncTime, label);
 
   // ── 更新弹窗冷却 ──
 

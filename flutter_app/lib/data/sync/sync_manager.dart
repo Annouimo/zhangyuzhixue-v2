@@ -72,7 +72,9 @@ class SyncManager {
   }
 
   /// 登录后调用：推送积压 → 拉取并替换 user.db
-  Future<void> onLogin() async {
+  Future<void> onLogin({
+    void Function(double progress)? onProgress,
+  }) async {
     try {
       await pushNow();
       final info = await _api!.fetchUserPullInfo();
@@ -81,9 +83,11 @@ class SyncManager {
         url: info.downloadUrl,
         expectedChecksum: info.checksum,
         newVersion: info.version,
+        onProgress: onProgress,
       );
     } catch (_) {
-      // 静默失败：未初始化、网络异常等均不阻塞登录
+      // 失败由 UI 层弹窗展示
+      rethrow;
     }
   }
 
@@ -103,7 +107,9 @@ class SyncManager {
   }
 
   /// 手动强制拉取（关于页按钮用）
-  Future<void> forcePull() async {
+  Future<void> forcePull({
+    void Function(double progress)? onProgress,
+  }) async {
     _ensureInitialized();
     final info = await _api!.fetchUserPullInfo();
     await _updateManager!.downloadAndReplace(
@@ -111,6 +117,7 @@ class SyncManager {
       url: info.downloadUrl,
       expectedChecksum: info.checksum,
       newVersion: info.version,
+      onProgress: onProgress,
     );
   }
 

@@ -1,4 +1,3 @@
-import 'dart:async';
 import '../data/api/auth_api.dart';
 import '../data/sync/sync_manager.dart';
 
@@ -8,12 +7,7 @@ class AuthRepository {
   final AuthApi _api;
   const AuthRepository(this._api);
 
-  Future<LoginResult> login(LoginRequest request) async {
-    final result = await _api.login(request);
-    // 登录后触发用户数据拉取（静默失败不影响登录）
-    unawaited(SyncManager().onLogin());
-    return result;
-  }
+  Future<LoginResult> login(LoginRequest request) => _api.login(request);
 
   Future<void> register(RegisterRequest data) => _api.register(data);
 

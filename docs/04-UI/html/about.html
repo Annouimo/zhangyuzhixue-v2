@@ -5,41 +5,275 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>关于 - 章鱼智学</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 关于页专用 */
+    .about-header {
+      text-align: center;
+      padding: 40px 16px 24px;
+    }
+    .about-header .icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 12px;
+    }
+    .about-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .about-header .version {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .page {
+      padding: 0 16px 32px;
+    }
+
+    /* 同步区域 */
+    .sync-section {
+      margin: 16px 0;
+      padding: 16px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sync-section .sync-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sync-section .sync-label {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .sync-section .sync-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .sync-btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .sync-btn:hover { opacity: 0.85; }
+    .sync-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* 弹窗 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0,0,0,0.35);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 32px 24px 24px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .modal-card .modal-icon { font-size: 40px; margin-bottom: 12px; }
+    .modal-card .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .modal-card .modal-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    /* 进度条 */
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 完成状态 */
+    .status-check { color: var(--success); font-size: 40px; margin-bottom: 12px; }
+    .status-error { color: var(--error); font-size: 40px; margin-bottom: 12px; }
+    .modal-btn {
+      margin-top: 16px;
+      padding: 10px 28px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <div class="page-header">
-    <a href="profile.html" class="back-btn">← 返回</a>
-    <h1>关于</h1>
+
+<div class="page">
+
+  <!-- 关于页头 -->
+  <div class="about-header">
+    <div class="icon">🏫</div>
+    <h1>章鱼智学</h1>
+    <div class="version" data-db="about.appVersion">版本 2.0.0</div>
   </div>
 
-  <div class="page" style="padding-top:8px;">
-    <div class="card" style="text-align:center;padding:32px 20px;">
-      <div style="font-size:64px;margin-bottom:12px;">🐙</div>
-      <div style="font-size:22px;font-weight:700;margin-bottom:4px;">章鱼智学</div>
-      <div class="text-secondary" style="font-size:13px;margin-bottom:24px;">
-        北京高考数学 · 题库 · 讲义 · 解题训练
-      </div>
+  <!-- 用户协议 -->
+  <a href="#" class="list-item">
+    <div class="left">
+      <div class="title">📄 用户协议</div>
+    </div>
+    <div class="right">›</div>
+  </a>
 
-      <div class="input-group">
-        <label>软件版本</label>
-        <div style="padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--bg);color:var(--text);" data-db="app.version">v1.2.0</div>
-      </div>
+  <!-- 隐私政策 -->
+  <a href="#" class="list-item" style="margin-bottom:0;">
+    <div class="left">
+      <div class="title">🔒 隐私政策</div>
+    </div>
+    <div class="right">›</div>
+  </a>
 
-      <div class="input-group">
-        <label>题库版本</label>
-        <div style="padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--bg);color:var(--text);" data-db="app.questionBankVersion">v3</div>
-      </div>
+  <!-- 分割 -->
+  <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
 
-      <div style="margin-top:20px;">
-        <button class="btn btn-primary btn-block" onclick="location.href='https://appstore/download'">
-          🔄 检查更新
-        </button>
-      </div>
+  <!-- 数据同步 -->
+  <div class="sync-section">
+    <div class="sync-info">
+      <span class="sync-label">🔄 数据同步</span>
+      <span class="sync-time" id="sync-time">上次同步：从未同步</span>
+    </div>
+    <button class="sync-btn" id="sync-btn" onclick="startSync()">同步</button>
+  </div>
 
-      <div class="text-muted" style="font-size:11px;color:var(--text-muted);margin-top:24px;">
-        © 2026 章鱼智学团队
+  <!-- 页脚 -->
+  <div style="text-align:center;padding:24px 0 16px;">
+    <span style="font-size:12px;color:var(--text-muted);">© 2025 章鱼智学 · 北京</span>
+  </div>
+
+</div>
+
+<!-- 进度弹窗 -->
+<div class="modal-overlay" id="sync-modal">
+  <div class="modal-card" id="modal-inner">
+    <!-- 进度状态（默认显示） -->
+    <div id="state-progress">
+      <div class="modal-icon">⬇️</div>
+      <div class="modal-title">同步数据</div>
+      <div class="modal-desc">正在从服务器恢复学习记录…</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+    <!-- 完成状态（隐藏） -->
+    <div id="state-done" style="display:none;">
+      <div class="status-check">✅</div>
+      <div class="modal-title">同步完成</div>
+      <div class="modal-desc">学习记录已恢复</div>
+      <button class="modal-btn" onclick="closeModal()">知道了</button>
+    </div>
+    <!-- 失败状态（隐藏） -->
+    <div id="state-fail" style="display:none;">
+      <div class="status-error">❌</div>
+      <div class="modal-title">同步失败</div>
+      <div class="modal-desc" id="fail-desc">网络异常，请稍后重试</div>
+      <button class="modal-btn" onclick="closeModal()">关闭</button>
     </div>
   </div>
+</div>
+
+<script>
+function $(id) { return document.getElementById(id); }
+
+function showState(id) {
+  ['state-progress', 'state-done', 'state-fail'].forEach(function(s) {
+    $(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function openModal() {
+  $('sync-modal').classList.add('open');
+}
+
+function closeModal() {
+  $('sync-modal').classList.remove('open');
+}
+
+function startSync() {
+  var btn = $('sync-btn');
+  btn.disabled = true;
+  btn.textContent = '同步中…';
+
+  showState('state-progress');
+  $('progress-fill').style.width = '0%';
+  $('progress-text').textContent = '0%';
+  openModal();
+
+  // 模拟进度
+  var progress = 0;
+  var interval = setInterval(function() {
+    progress += Math.random() * 25 + 5;
+    if (progress > 100) progress = 100;
+    $('progress-fill').style.width = progress + '%';
+    $('progress-text').textContent = Math.round(progress) + '%';
+
+    if (progress >= 100) {
+      clearInterval(interval);
+      setTimeout(function() {
+        // 随机成功/失败演示
+        var ok = Math.random() > 0.3;
+        if (ok) {
+          showState('state-done');
+          $('sync-time').textContent = '上次同步：刚刚';
+        } else {
+          showState('state-fail');
+          $('fail-desc').textContent = '网络异常，请稍后重试';
+        }
+        btn.disabled = false;
+        btn.textContent = '同步';
+      }, 500);
+    }
+  }, 400);
+}
+</script>
+
 </body>
 </html>

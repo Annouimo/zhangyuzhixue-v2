@@ -5,10 +5,12 @@ import '../app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../data/prefs/app_prefs.dart';
+import '../data/sync/sync_manager.dart';
 import '../domain/auth_repository.dart';
 import '../domain/preference_repository.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/database/database_provider.dart';
+import '../widgets/sync_progress_dialog.dart';
 import 'router.dart';
 
 /// 登录页
@@ -68,6 +70,13 @@ class _LoginPageState extends State<LoginPage> {
       // 保存用户缓存
       final userJson = jsonEncode(result.user);
       await AppPrefs().setUserCacheStr(userJson);
+
+      if (!mounted) return;
+
+      // 同步用户数据（展示进度弹窗）
+      await showSyncProgress(context, (onProgress) async {
+        await SyncManager().onLogin(onProgress: onProgress);
+      });
 
       if (!mounted) return;
 
