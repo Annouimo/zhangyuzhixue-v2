@@ -9,6 +9,7 @@ CERTAIN 级别检查（纯机械，零误报）。
 import os
 import re
 import sys
+import sqlite3
 from dataclasses import dataclass
 
 
@@ -787,6 +788,143 @@ def check_cross_layer_algo(cfg: Config) -> list[Finding]:
 
 
 # ═══════════════════════════════════════════════
+# 检查模块 11: 捆绑 DB 内容完整性（H4）
+# ═══════════════════════════════════════════════
+
+# build_schemas.py 中定义的期望表名
+_EXPECTED_ASSETS_TABLES = [
+    'question', 'choice_ext', 'sub_question', 'solution_method', 'solution_step',
+    'concept_tag', 'knowledge_card', 'question_concept_tag', 'question_knowledge_card',
+    'course', 'assignment', 'assignment_question', 'achievement_def', 'level_config',
+    'system_config',
+]
+_EXPECTED_LECTURE_TABLES = [
+    'course', 'chapter', 'lecture_content', 'assignment', 'assignment_question',
+]
+
+# 常见复数形式映射（singular → plural）
+_PLURAL_MAP = {
+    'question': 'questions',
+    'choice_ext': 'choice_exts',
+    'sub_question': 'sub_questions',
+    'solution_method': 'solution_methods',
+    'solution_step': 'solution_steps',
+    'concept_tag': 'concept_tags',
+    'knowledge_card': 'knowledge_cards',
+    'question_concept_tag': 'question_concept_tags',
+    'question_knowledge_card': 'question_knowledge_cards',
+    'course': 'courses',
+    'chapter': 'chapters',
+    'assignment': 'assignments',
+    'assignment_question': 'assignment_questions',
+    'achievement_def': 'achievement_defs',
+    'level_config': 'level_configs',
+    'system_config': 'system_configs',
+    'lecture_content': 'lecture_contents',
+}
+
+
+def check_bundled_db_content(cfg: Config) -> list[Finding]:
+    """检查捆绑数据库（assets.db / lectures.db）的表存在性和行数
+
+    对每个 .db 文件：
+      ① 检查文件是否存在
+      ② 检查 build_schemas.py 定义的表是否都存在（容忍单复数命名）
+      ③ 检查每个表是否有 > 0 行数据
+      ④ 报告表名命名不一致（schema 用单数、实际用复数，或反之）
+    """
+    findings = []
+    db_dir = os.path.join(cfg.workspace, 'flutter_app', 'assets', 'db')
+
+    dbs = [
+        ('assets.db', '02-数据/构建脚本设计.md', _EXPECTED_ASSETS_TABLES),
+        ('lectures.db', '02-数据/构建脚本设计.md', _EXPECTED_LECTURE_TABLES),
+    ]
+
+    for db_name, source_doc, expected_tables in dbs:
+        db_path = os.path.join(db_dir, db_name)
+        if not path_exists(db_path):
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f"❌ 捆绑 DB 文件缺失: {db_name}",
+                source=source_doc,
+                path=f"flutter_app/assets/db/{db_name}",
+                evidence=f"File not found at {db_path}",
+            ))
+            continue
+
+        # 打开 DB，读取所有表
+        conn = sqlite3.connect(db_path)
+        actual_tables_raw = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+        actual_tables = {r[0] for r in actual_tables_raw}
+        ignore_tables = {'_meta', 'meta', 'sqlite_sequence'}
+
+        # 检查每个期望的表是否存在（容忍单复数）
+        for sname in expected_tables:
+            pname = _PLURAL_MAP.get(sname, sname + 's')
+            exists_singular = sname in actual_tables
+            exists_plural = pname in actual_tables
+
+            if not exists_singular and not exists_plural:
+                findings.append(Finding(
+                    certainty=Certainty.CERTAIN,
+                    issue=f"❌ [{db_name}] 表不存在: {sname}（也未找到复数名 {pname}）",
+                    source=source_doc,
+                    path=f"flutter_app/assets/db/{db_name}",
+                    evidence=f"Expected table '{sname}' (or '{pname}') not found in {db_name}. Actual tables: {sorted(actual_tables - ignore_tables)}",
+                ))
+                continue
+
+            # 确定实际表名
+            actual_name = sname if exists_singular else pname
+
+            # 检查命名一致性
+            if exists_plural and not exists_singular:
+                findings.append(Finding(
+                    certainty=Certainty.SUSPICIOUS,
+                    issue=f"⚠️ [{db_name}] 表名命名分歧: schema 定义单数 '{sname}'，实际 DB 用复数 '{pname}'",
+                    source=source_doc,
+                    path=f"flutter_app/assets/db/{db_name}",
+                    evidence=f"build_schemas.py defines '{sname}' but DB has '{pname}'. Drift queries may expect the opposite.",
+                ))
+
+            # 检查行数
+            try:
+                row_count = conn.execute(
+                    f'SELECT COUNT(*) FROM "{actual_name}"'
+                ).fetchone()[0]
+            except Exception:
+                row_count = -1
+
+            if row_count == 0:
+                findings.append(Finding(
+                    certainty=Certainty.CERTAIN,
+                    issue=f"❌ [{db_name}] {actual_name}: 0 行数据（表存在但为空）",
+                    source=source_doc,
+                    path=f"flutter_app/assets/db/{db_name}",
+                    evidence=f"Table '{actual_name}' exists but has 0 rows.",
+                ))
+
+        # 检查 DB 中是否有多余的表（不在期望清单中且非 _meta/sqlite_sequence）
+        all_expected_variants = set(expected_tables) | {_PLURAL_MAP.get(t, '') for t in expected_tables}
+        extra_tables = actual_tables - all_expected_variants - ignore_tables
+        for extra in sorted(extra_tables):
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"⚠️ [{db_name}] 多余表: '{extra}'（不在 schema 定义中）",
+                source=source_doc,
+                path=f"flutter_app/assets/db/{db_name}",
+                evidence=f"Table '{extra}' exists in DB but is not defined in build_schemas.py",
+            ))
+
+        conn.close()
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
 # ═══════════════════════════════════════════════
 # 报告生成
 # ═══════════════════════════════════════════════
@@ -859,8 +997,8 @@ def generate_report(findings: list[Finding], output_path: str = ""):
 # ═══════════════════════════════════════════════
 
 TYPE_MODULES = {
-    "A": [1, 3, 4, 5, 8],           # 服务端 (+H0 初始化链)
-    "B": [1, 3, 4, 5, 6, 9],        # Flutter 数据层 (+H1 API类型安全)
+    "A": [1, 3, 4, 5, 8, 11],       # 服务端 (+H0 初始化链 + H4 DB内容)
+    "B": [1, 3, 4, 5, 6, 9, 11],    # Flutter 数据层 (+H1 API类型安全 + H4 DB内容)
     "C": [1, 2, 4, 5, 6, 7, 8],     # Flutter UI (+H0 初始化链)
     "D": [1, 3, 4, 5, 8],           # 教师端 (+H0 初始化链)
     "E": [1, 3, 4],                  # 部署
@@ -879,6 +1017,7 @@ MODULE_NAMES = {
     8: "入口初始化链完整性 (H0)",
     9: "API 响应类型安全 (H1)",
     10: "跨层算法一致性 (H2)",
+    11: "捆绑 DB 内容完整性 (H4)",
 }
 
 def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
@@ -905,17 +1044,20 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
         log("[模块 6/10] stub/TODO 扫描...")
         all_findings.extend(check_stubs_and_todos(cfg))
     if 7 in modules:
-        log("[模块 7/10] 导航架构...")
+        log("[模块 7/11] 导航架构...")
         all_findings.extend(check_navigation_architecture(cfg))
     if 8 in modules:
-        log("[模块 8/10] 入口初始化链完整性 (H0)...")
+        log("[模块 8/11] 入口初始化链完整性 (H0)...")
         all_findings.extend(check_init_chain(cfg))
     if 9 in modules:
-        log("[模块 9/10] API 响应类型安全 (H1)...")
+        log("[模块 9/11] API 响应类型安全 (H1)...")
         all_findings.extend(check_api_type_safety(cfg))
     if 10 in modules:
-        log("[模块 10/10] 跨层算法一致性 (H2)...")
+        log("[模块 10/11] 跨层算法一致性 (H2)...")
         all_findings.extend(check_cross_layer_algo(cfg))
+    if 11 in modules:
+        log("[模块 11/11] 捆绑 DB 内容完整性 (H4)...")
+        all_findings.extend(check_bundled_db_content(cfg))
 
     return all_findings
 
