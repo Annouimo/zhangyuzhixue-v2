@@ -31,6 +31,7 @@ import 'sync_queue_page.dart';
 import 'preference_welcome_page.dart';
 import 'profile/question_history_page.dart';
 import 'profile/preference_list_page.dart';
+import 'profile/preference_edit_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
 
@@ -68,6 +69,7 @@ abstract final class AppRoutes {
   static const syncQueue = '/sync/queue';
   static const preferenceWelcome = '/preference/welcome';
   static const profilePreferences = '/profile/preferences';
+  static const preferenceEdit = '/profile/preferences/edit';
 }
 
 /// 从 query 参数解析 int
@@ -125,6 +127,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, _) => const QuestionHistoryPage()),
     GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, _) => const AboutPage()),
     GoRoute(path: AppRoutes.profilePreferences, name: 'profile-preferences', builder: (_, _) => const PreferenceListPage()),
+    GoRoute(path: AppRoutes.preferenceEdit, name: 'preference-edit', builder: (_, state) {
+      return PreferenceEditPage(editId: _intParam(state.uri.queryParameters, 'id')); }),
     GoRoute(path: AppRoutes.syncQueue, name: 'sync-queue', builder: (_, _) => const SyncQueuePage()),
     GoRoute(path: AppRoutes.preferenceWelcome, name: 'preference-welcome', builder: (_, _) => const PreferenceWelcomePage()),
   ],

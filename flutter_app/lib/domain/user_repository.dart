@@ -218,8 +218,9 @@ class UserRepository {
 
   Future<int> levelPercentile() async {
     try {
-      await _api.getInfo();
-      return 0;
+      final info = await _api.getInfo();
+      final raw = info['level_percentile'];
+      return (raw is num) ? raw.toInt() : 0;
     } catch (_) {
       return 0;
     }

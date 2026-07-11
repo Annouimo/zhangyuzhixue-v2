@@ -37,6 +37,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   progress.SolveProgressState? _state;
   bool _loading = true;
   int _coolDownSec = 5;
+  String? _error;
   late final progress.ProgressRepository _repo;
   DateTime? _entryTime;
 
@@ -64,7 +65,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       setState(() { _state = s; _loading = false; });
     } catch (e) {
       debugPrint('_load error: $e');
-      setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
@@ -120,7 +121,13 @@ class _SolveStepPageState extends State<SolveStepPage> {
       appBar: AppBar(title: Text('步骤 ${widget.stepIndex + 1}')),
       body: _loading
           ? const LoadingIndicator()
-          : step == null
+          : _error != null
+              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+                  const SizedBox(height: 8),
+                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+                ]))
+              : step == null
               ? const Center(child: Text('步骤数据不存在'))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),

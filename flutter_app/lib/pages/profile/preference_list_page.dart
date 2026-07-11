@@ -6,6 +6,7 @@ import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
+import '../router.dart';
 
 /// 学习偏好列表页（匹配 preference_list.html）
 class PreferenceListPage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       appBar: AppBar(title: const Text('学习偏好管理')),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/preference/edit'),
+        onPressed: () => context.push(AppRoutes.preferenceEdit),
         icon: const Icon(Icons.add),
         label: const Text('新建偏好'),
       ),
@@ -136,7 +137,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                   Row(
                     children: [
                       OutlinedButton(
-                        onPressed: () => context.push('/preference/edit'),
+                        onPressed: () => context.push(AppRoutes.preferenceEdit),
                         style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
                         ),

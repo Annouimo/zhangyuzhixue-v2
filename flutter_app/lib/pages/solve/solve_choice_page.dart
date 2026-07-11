@@ -36,6 +36,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   bool _loading = true;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
+  String? _error;
   late final QuestionRepository _repo;
 
   DateTime? _entryTime;
@@ -69,7 +70,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       setState(() { _detail = detail; _loading = false; });
     } catch (e) {
       debugPrint('_load error: $e');
-      setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
@@ -87,6 +88,16 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(title: const Text('选择题')),
         body: const LoadingIndicator(),
+      );
+    }
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('选择题')),
+        body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+          const SizedBox(height: 8),
+          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+        ])),
       );
     }
 

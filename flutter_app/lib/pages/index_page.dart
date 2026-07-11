@@ -66,7 +66,7 @@ class _IndexPageState extends State<IndexPage> {
       AppToast.show(context, icon: 'ℹ️', message: '今天已签到');
       return;
     }
-    // TODO: 接入实际签到 API / 本地签到逻辑
+    // 已实现本地签到逻辑（通过 SharedPreferences + UserLoginLog）
     final prefs = await SharedPreferences.getInstance();
     final newStreak = (_streakDays % 7) + 1; // 循环 7 天周期
     await prefs.setInt('checkin_streak', newStreak);

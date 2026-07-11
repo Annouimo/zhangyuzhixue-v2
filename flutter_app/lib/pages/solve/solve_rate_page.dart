@@ -30,6 +30,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
   bool _submitted = false;
   bool _saving = false;
   bool _loading = true;
+  String? _error;
   late final RatingRepository _ratingRepo;
 
   @override
@@ -58,7 +59,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       });
     } catch (e) {
       debugPrint('_loadRating error: $e');
-      setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
@@ -98,7 +99,13 @@ class _SolveRatePageState extends State<SolveRatePage> {
       appBar: AppBar(title: const Text('评分')),
       body: _loading
           ? const LoadingIndicator()
-          : SingleChildScrollView(
+          : _error != null
+              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+                  const SizedBox(height: 8),
+                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: const Text('重试')),
+                ]))
+              : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
