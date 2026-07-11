@@ -35,7 +35,7 @@ class ProgressDao {
     q.orderBy([(t) => OrderingTerm(expression: t.attemptNumber, mode: OrderingMode.desc)]);
     q.limit(1);
     final rows = await q.get();
-    AuditLogger.instance.dao('ProgressDao.getLatestAttempt', rows.length > 0 ? 1 : 0, {'questionId': questionId});
+    AuditLogger.instance.dao('ProgressDao.getLatestAttempt', rows.isNotEmpty ? 1 : 0, {'questionId': questionId});
     return rows.isEmpty ? null : rows.first;
   }
 
