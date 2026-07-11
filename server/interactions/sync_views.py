@@ -10,6 +10,8 @@ import gzip
 import hashlib
 import os
 import sqlite3
+import tempfile
+import time
 import uuid
 
 from django.conf import settings
@@ -29,6 +31,22 @@ from system.models import PointsTransaction, StudentAchievement
 
 
 TEMP_DIR = os.path.join(settings.MEDIA_ROOT, 'tmp_user_db')
+_TTL_SECONDS = 300  # 5 分钟
+
+
+def _cleanup_old_files():
+    """删除 TEMP_DIR 中超过 5 分钟的临时 .db.gz 文件。"""
+    if not os.path.isdir(TEMP_DIR):
+        return
+    now = time.time()
+    for fname in os.listdir(TEMP_DIR):
+        fpath = os.path.join(TEMP_DIR, fname)
+        if fname.endswith('.db.gz') and now - os.path.getmtime(fpath) > _TTL_SECONDS:
+            try:
+                os.unlink(fpath)
+            except OSError:
+                pass
+
 
 # ── 响应工具 ──────────────────────────────────────────────────
 
@@ -395,9 +413,9 @@ def pull_user_db(request):
         return _err(40003, '仅学生可拉取用户数据')
 
     os.makedirs(TEMP_DIR, exist_ok=True)
+    _cleanup_old_files()
 
-    import tempfile as _tf
-    _tf_obj = _tf.NamedTemporaryFile(suffix='.db', delete=False)
+    _tf_obj = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
     db_path = _tf_obj.name
     _tf_obj.close()
 
