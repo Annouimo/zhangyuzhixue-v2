@@ -71,7 +71,7 @@ class _RecommendPageState extends State<RecommendPage> {
   Future<void> _switchToPreset(int index) async {
     setState(() { _loading = true; _preferSmart = false; });
     try {
-      // 取第一个预设题目列表（简化：UI 支持切换但数据层 getPresetQuestions 暂时返回空）
+      // 使用第一个预设的筛选条件搜索题目（多个预设时用户可在 pill 间切换）
       final qs = await _repo.getPresetQuestions(index + 1);
       if (!mounted) return;
       setState(() { _questions = qs.map((p) => RecommendedQuestion(
@@ -83,51 +83,96 @@ class _RecommendPageState extends State<RecommendPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(_preferSmart ? '🔮 智能推荐' : '📋 偏好推荐'),
-      actions: [
-        if (_presetCount > 0)
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.swap_horiz),
-            tooltip: '切换推荐模式',
-            onSelected: (v) {
-              if (v == 'smart') { _switchToSmart(); }
-              else { _switchToPreset(int.tryParse(v) ?? 0); }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'smart', child: Text('🔮 智能推荐')),
-              ...List.generate(_presetCount, (i) => PopupMenuItem(
-                value: '${i + 1}', child: Text('📋 偏好推荐 ${i + 1}'),
-              )),
-            ],
-          ),
-      ],
-    ),
+    appBar: AppBar(title: const Text('题目推荐')),
     body: _buildBody(),
   );
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '生成推荐…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_questions == null || _questions!.isEmpty) {
-      return const EmptyPlaceholder(icon: '🔮', message: '暂无推荐，先去组卷或做几道题吧');
-    }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSizes.baseSpacing),
-        itemCount: _questions!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
-        itemBuilder: (ctx, i) {
-          final q = _questions![i];
-          return RecommendCard(
-            title: q.title,
-            questionType: q.questionType,
-            difficulty: q.difficulty,
-            reason: q.recommendReason,
-            onTap: () => context.push('/solve/choice?id=${q.id}'),
-          );
-        },
+    return Column(
+      children: [
+        _buildModePills(),
+        Expanded(
+          child: _questions == null || _questions!.isEmpty
+              ? const EmptyPlaceholder(icon: '🔮', message: '暂无推荐，先去组卷或做几道题吧')
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(AppSizes.baseSpacing),
+                    itemCount: _questions!.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (ctx, i) {
+                      final q = _questions![i];
+                      return RecommendCard(
+                        title: q.title,
+                        questionType: q.questionType,
+                        difficulty: q.difficulty,
+                        reason: q.recommendReason,
+                        onTap: () => context.push('/solve/choice?id=${q.id}'),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModePills() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing, vertical: 8),
+      child: Row(
+        children: [
+          _PillButton(
+            selected: _preferSmart,
+            label: '🔮 智能推荐',
+            onPressed: _switchToSmart,
+          ),
+          const SizedBox(width: 8),
+          _PillButton(
+            selected: !_preferSmart,
+            label: '📋 偏好推荐',
+            onPressed: _presetCount > 0 ? () => _switchToPreset(0) : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PillButton extends StatelessWidget {
+  final bool selected;
+  final String label;
+  final VoidCallback? onPressed;
+
+  const _PillButton({
+    required this.selected,
+    required this.label,
+    this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: selected ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }

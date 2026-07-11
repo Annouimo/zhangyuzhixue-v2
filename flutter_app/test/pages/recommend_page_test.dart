@@ -51,7 +51,7 @@ void main() {
       expect(find.text('暂无推荐，先去组卷或做几道题吧'), findsOneWidget);
     });
 
-    testWidgets('manually switches between smart and preset via PopupMenuButton', (tester) async {
+    testWidgets('manually switches between smart and preset via pills', (tester) async {
       final repo = _MockRecommendRepo(smartList: [
         const RecommendedQuestion(id: 1, title: '智能题', questionType: 'choice',
           difficulty: 3.0, recommendReason: '薄弱', status: 'pending'),
@@ -62,13 +62,10 @@ void main() {
       expect(find.text('🔮 智能推荐'), findsOneWidget);
       expect(find.text('智能题'), findsOneWidget);
 
-      // Tap the switch button
-      await tester.tap(find.byIcon(Icons.swap_horiz));
+      // Tap the preset pill directly
+      await tester.tap(find.text('📋 偏好推荐'));
       await tester.pumpAndSettle();
-      // Select preset 1 from popup menu
-      await tester.tap(find.text('📋 偏好推荐 1').last);
-      await tester.pumpAndSettle();
-      // AppBar switches to preset mode
+      // Switches to preset mode
       expect(find.text('📋 偏好推荐'), findsOneWidget);
     });
   });

@@ -46,7 +46,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('张三'), findsOneWidget);
       expect(find.text('学号 2024001'), findsOneWidget);
-      expect(find.text('编辑资料'), findsOneWidget);
+      expect(find.text('点击编辑个人信息 ✏️'), findsOneWidget);
       expect(find.text('成就'), findsOneWidget);
     });
   });

@@ -156,52 +156,78 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildUserHeader() {
     final info = _info;
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: _uploading ? null : _showAvatarPicker,
-          child: CircleAvatar(
-            radius: 32,
-            backgroundColor: AppColors.primaryLight,
-            backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
-                ? (info.avatar!.startsWith('http')
-                    ? CachedNetworkImageProvider(info.avatar!)
-                    : NetworkImage(info.avatar!))
-                : null,
-            child: info?.avatar == null || info!.avatar!.isEmpty
-                ? Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary))
-                : null,
-          ),
-        ),
-        if (_uploading) ...[
-          const SizedBox(width: 8),
-          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-        ],
-        const SizedBox(width: 16),
-        Expanded(
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () => context.push('/profile/edit'),
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(info?.realName ?? info?.name ?? '未登录',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
-              if (info?.studentId != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: _uploading ? null : _showAvatarPicker,
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundColor: AppColors.primaryLight,
+                      backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
+                          ? (info.avatar!.startsWith('http')
+                              ? CachedNetworkImageProvider(info.avatar!)
+                              : NetworkImage(info.avatar!))
+                          : null,
+                      child: info?.avatar == null || info!.avatar!.isEmpty
+                          ? Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',
+                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary))
+                          : null,
+                    ),
                   ),
-                  child: Text('学号 ${info!.studentId}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                  if (_uploading) ...[
+                    const SizedBox(width: 8),
+                    const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(info?.realName ?? info?.name ?? '未登录',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        if (info?.studentId != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text('学号 ${info!.studentId}',
+                              style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 8),
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: AppColors.border)),
                 ),
-              const SizedBox(height: 4),
-              const Text('点击头像更换', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                child: const Text(
+                  '点击编辑个人信息 ✏️',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                ),
+              ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -209,7 +235,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final sections = [
       ('学习', [
         (Icons.tune, '学习偏好', () => context.push('/profile/preferences')),
-        (Icons.edit, '编辑资料', () => context.push('/profile/edit')),
         (Icons.bar_chart, '学习统计', () => context.push('/statistics')),
         (Icons.replay, '做题历史', () => context.push('/profile/history')),
       ]),
