@@ -72,7 +72,9 @@ int? _intParam(Map<String, String> params, String key) {
 }
 
 /// 路由配置
+final GlobalKey<NavigatorState> routerNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
+  navigatorKey: routerNavigatorKey,
   initialLocation: AppRoutes.login,
   routes: [
     GoRoute(path: AppRoutes.login, name: 'login', builder: (_, _) => const LoginPage()),

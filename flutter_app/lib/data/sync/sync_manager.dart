@@ -19,6 +19,9 @@ class SyncManager {
   bool _initialized = false;
   DateTime _lastPushTime = DateTime(2000);
 
+  /// 最近一次版本检查中需要用户操作的更新项
+  List<UpdateSummary> _pendingUpdates = [];
+
   Future<void> init(SyncQueueDao queueDao, SyncApi api, DatabaseProvider dbProvider) async {
     if (_initialized) return;
     _queueDao = queueDao;
@@ -30,6 +33,11 @@ class SyncManager {
   }
 
   UpdateManager? get updateManager => _updateManager;
+
+  /// 待处理的更新项（force 或 banner）
+  List<UpdateSummary> get pendingUpdates => List.unmodifiable(_pendingUpdates);
+
+  bool get hasPendingUpdates => _pendingUpdates.isNotEmpty;
 
   Future<void> enqueue({
     required SyncEntityType entityType,
@@ -47,15 +55,47 @@ class SyncManager {
   }
 
   /// App 启动时推送积压并发起版本检查
-  Future<void> onAppStart() async {
+  ///
+  /// 返回需要用户操作的更新项（force 弹窗 / banner 提示）。
+  /// 调用方可据此展示更新 UI。
+  Future<List<UpdateSummary>> onAppStart() async {
     _ensureInitialized();
     await pushNow();
-    // 版本检查非阻塞，失败不影响 App 启动
     try {
-      await _updateManager!.checkAll();
+      final results = await _updateManager!.checkAll();
+      _pendingUpdates = results.where((s) =>
+        s.forceUpdate || UpdateManager.shouldShowBanner(
+          localVersion: s.localVersion,
+          serverVersion: s.serverVersion,
+        )
+      ).toList();
+      return List.unmodifiable(_pendingUpdates);
     } catch (_) {
-      // 静默失败，版本检查由 UI 层择机重试
+      _pendingUpdates = [];
+      return [];
     }
+  }
+
+  /// 执行指定类型的数据库更新（下载 → 校验 → 替换）
+  Future<void> runUpdate(
+    String type, {
+    void Function(double progress)? onProgress,
+  }) async {
+    _ensureInitialized();
+    final pending = _pendingUpdates.where((s) => s.type == type).toList();
+    if (pending.isEmpty) {
+      throw StateError('No pending update for type: $type');
+    }
+    final summary = pending.first;
+    await _updateManager!.downloadAndReplace(
+      type: type,
+      url: summary.downloadUrl!,
+      expectedChecksum: summary.checksum!,
+      newVersion: summary.serverVersion,
+      onProgress: onProgress,
+    );
+    // 替换成功后从待处理列表中移除
+    _pendingUpdates.removeWhere((s) => s.type == type);
   }
 
   Future<PushSummary?> pushNow() async {

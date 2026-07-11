@@ -7,7 +7,9 @@ import 'package:flutter_app/data/network/connectivity_monitor.dart';
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
-import 'package:flutter_app/pages/router.dart' show appRouter;
+import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
+import 'package:flutter_app/widgets/sync_progress_dialog.dart';
+import 'data/sync/update_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,8 +28,122 @@ void main() async {
 
   runApp(const ZhangyuzhixueApp());
 
-  // 启动后推送积压（不阻塞首帧）
-  SyncManager().onAppStart();
+  // 启动后推送积压 + 版本检查（不阻塞首帧）
+  final updates = await SyncManager().onAppStart();
+
+  if (updates.isEmpty) return;
+
+  // 首帧渲染后再弹出更新 UI
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _processUpdates(updates);
+  });
+}
+
+void _processUpdates(List<UpdateSummary> updates) {
+  final ctx = routerNavigatorKey.currentContext;
+  if (ctx == null) return;
+
+  // 先处理强制更新（优先于 banner）
+  for (final summary in updates) {
+    if (summary.forceUpdate) {
+      _showForcedUpdateDialog(ctx, summary);
+      return; // 一次只处理一个强制更新，完成后再处理下一个
+    }
+  }
+
+  // 非强制更新 → 显示 banner
+  for (final summary in updates) {
+    if (UpdateManager.shouldShowBanner(
+      localVersion: summary.localVersion,
+      serverVersion: summary.serverVersion,
+    )) {
+      _showUpdateBanner(ctx, summary);
+    }
+  }
+}
+
+void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
+  final label = summary.type == 'qbank' ? '题库' : '讲义';
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: SizedBox(
+          width: 280,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.system_update, size: 40, color: Color(0xFF4A6CF7)),
+              const SizedBox(height: 12),
+              const Text(
+                '数据更新',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                summary.message ?? '$label 有新版本（v$summary.serverVersion），请立即更新',
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _startUpdate(ctx, summary, label),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4A6CF7),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('立即更新', style: TextStyle(fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+void _startUpdate(BuildContext context, UpdateSummary summary, String label) {
+  // 关闭当前确认弹窗
+  Navigator.of(context).pop();
+
+  // 显示进度弹窗
+  showSyncProgress(
+    context,
+    (onProgress) async {
+      await SyncManager().runUpdate(summary.type, onProgress: onProgress);
+    },
+  );
+}
+
+void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
+  final label = summary.type == 'qbank' ? '题库' : '讲义';
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('$label 有新版本（v${summary.serverVersion}）'),
+      duration: const Duration(seconds: 5),
+      behavior: SnackBarBehavior.floating,
+      action: SnackBarAction(
+        label: '更新',
+        onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          _showForcedUpdateDialog(context, summary);
+        },
+      ),
+    ),
+  );
 }
 
 class ZhangyuzhixueApp extends StatelessWidget {
