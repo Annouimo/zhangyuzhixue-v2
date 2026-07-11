@@ -98,11 +98,7 @@
       const checkedBoxes = document.querySelectorAll('#class-list input[type="checkbox"]:checked');
       if (checkedBoxes.length === 0) { showError('请至少选择一个班级'); return; }
 
-      // 解析班级 ID — 通过 API 已加载的班级列表映射
-      const classesData = window._cachedClasses || [];
-      const classNames = Array.from(checkedBoxes).map(cb => cb.value);
-      // 匹配名称→ID（API 返回的班级数据不含独立 ID，用序号代替）
-      const classIds = classNames.map((_, i) => i + 1);
+      const classIds = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.classId));
 
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.textContent = '发布中...';
@@ -156,10 +152,9 @@
         if (items.length === 0) {
           classContainer.innerHTML = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
         } else {
-          window._cachedClasses = items;
           classContainer.innerHTML = items.map((c, i) => `
             <label class="class-checkbox-row" onclick="toggleClass(this)">
-              <input type="checkbox" value="${esc(c.name)}" data-class-id="${i + 1}">
+              <input type="checkbox" value="${esc(c.name)}" data-class-id="${c.id}">
               <span class="class-name">${esc(c.name)}</span>
               <span class="class-count">${c.studentCount ?? 0} 人</span>
             </label>`).join('');

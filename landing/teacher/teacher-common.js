@@ -103,18 +103,14 @@ function hideLoading(id) {
 // ── 登出 ──
 function handleLogout() { clearAuth(); }
 
-// ── 教师 API 函数 ────────────────────────────────────────────
-
-/** 加载作业列表 + 统计汇总 */
+/** 加载作业列表 + 统计汇总 — 被 index.html 调用 */
 async function loadAssignments() {
   const data = await apiCall('/teacher/assignments/');
   const items = data.items || [];
-  // 统计卡片
   setText('stat-total', data.totalAssignments ?? 0);
   setText('stat-active', data.activeAssignments ?? 0);
   setText('stat-rate', data.avgCompletionRate ?? '0%');
   setText('stat-acc', data.avgAccuracy ?? '0%');
-  // 渲染列表
   const container = document.getElementById('assign-list');
   if (!container) return;
   if (items.length === 0) {
@@ -138,41 +134,6 @@ async function loadAssignments() {
         </div>
       </div>
     </a>`).join('');
-}
-
-/** 加载组卷列表 */
-async function loadPapers() {
-  const data = await apiCall('/teacher/papers/');
-  renderList('paper-list', data, p => `
-    <div class="paper-card" data-paper-id="${p.id}" onclick="selectPaper(this)">
-      <div class="radio"></div>
-      <div class="info">
-        <div class="name">${esc(p.title)}</div>
-        <div class="desc">${p.questionCount} 题 · ${fmtDate(p.createdAt)}</div>
-      </div>
-    </div>`);
-  if (data.length === 0) {
-    document.getElementById('paper-list').innerHTML =
-      '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无组卷，请在学生 App 中创建</div>';
-  }
-}
-
-/** 加载班级列表 */
-async function loadClasses() {
-  const data = await apiCall('/teacher/classes/');
-  const items = data.items || [];
-  const container = document.getElementById('class-list');
-  if (!container) return;
-  if (items.length === 0) {
-    container.innerHTML = '<div class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
-    return;
-  }
-  container.innerHTML = items.map(c => `
-    <label class="class-checkbox-row" onclick="toggleClass(this)">
-      <input type="checkbox" value="${esc(c.name)}" data-class-id="${esc(c.name)}">
-      <span class="class-name">${esc(c.name)}</span>
-      <span class="class-count">${c.studentCount ?? 0} 人</span>
-    </label>`).join('');
 }
 
 // ── UI 工具 ──────────────────────────────────────────────────

@@ -166,6 +166,7 @@ def class_list(request):
     for g in groups:
         total_students += g.s_count
         items.append({
+            'id': g.id,
             'name': g.name,
             'studentCount': g.s_count,
             'avgAccuracy': _calc_class_accuracy(g.id),
@@ -364,9 +365,18 @@ def _list_assignments():
         if cca.deadline and cca.deadline.date() >= today
     )
 
+    # 聚合完成率
+    completed_sum = sum(item['completedCount'] for item in items)
+    total_sum = sum(item['totalStudents'] for item in items)
+    avg_completion = (
+        f'{round(completed_sum / total_sum * 100)}%'
+        if total_sum else '0%')
+
     return _ok(data={
         'totalAssignments': total,
         'activeAssignments': active,
+        'avgCompletionRate': avg_completion,
+        'avgAccuracy': _calc_overall_accuracy(),
         'items': items,
     })
 
