@@ -226,14 +226,17 @@ class ConnectivityMonitor {
   factory ConnectivityMonitor() => _instance;
 
   final _connectivity = Connectivity();
-  final _stateController = BehaviorSubject<bool>.seeded(true);
+  final _stateController = StreamController<bool>.broadcast();
 
-  bool get isOnline => _stateController.value;
+  bool get isOnline => _online;
+  bool _online = true;
   Stream<bool> get onConnectivityChanged => _stateController.stream;
 
   void init() {
+    _stateController.add(_online);  // 种子值：新订阅者立即收到当前状态
     _connectivity.onConnectivityChanged.listen((results) {
       final online = results.any((r) => r != ConnectivityResult.none);
+      _online = online;
       _stateController.add(online);
     });
   }

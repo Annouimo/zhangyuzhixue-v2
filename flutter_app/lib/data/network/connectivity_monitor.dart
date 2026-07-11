@@ -21,6 +21,7 @@ class ConnectivityMonitor {
   /// 初始化监听
   void init() {
     if (_initialized) return;
+    _stateController.add(_online);
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
       _online = results.any((r) => r != ConnectivityResult.none);
       _stateController.add(_online);
