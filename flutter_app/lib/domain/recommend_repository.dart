@@ -66,7 +66,7 @@ class RecommendRepository {
     } catch (_) {
       return [];
     }
-    final f = filter!;
+    final f = filter;
     final candidates = await _questionDao.search(
       years: f.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
       regions: f.regions.isNotEmpty ? f.regions : null,
