@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑资料 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container" style="max-width:480px;">
+    <div class="page-header">
+      <a href="javascript:history.back()" class="btn btn-ghost" style="text-decoration:none;">← 返回</a>
+      <h1>编辑资料</h1>
+    </div>
+
+    <div id="error-msg" class="error-banner"></div>
+    <div id="success-msg" class="error-banner" style="display:none;background:#ECFDF5;color:var(--success);border-color:#A7F3D0;"></div>
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div id="profile-form" style="display:none;">
+      <div class="card">
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px;">
+          <div id="avatar-display" style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--primary);margin-bottom:8px;">?</div>
+          <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="uploadAvatar()">
+          <button class="btn btn-sm btn-outline" onclick="document.getElementById('avatar-input').click()">更换头像</button>
+          <div id="avatar-status" style="font-size:12px;color:var(--text-muted);margin-top:4px;"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="name">姓名</label>
+          <input type="text" id="name" placeholder="输入姓名" maxlength="64">
+        </div>
+        <div class="input-group">
+          <label for="school">学校</label>
+          <input type="text" id="school" placeholder="输入学校名称" maxlength="128">
+        </div>
+        <div class="input-group">
+          <label for="phone">手机号</label>
+          <input type="text" id="phone" placeholder="输入手机号" maxlength="20">
+        </div>
+
+        <button id="save-btn" class="btn btn-primary btn-block" onclick="handleSave()">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    function showSuccess(msg) {
+      const el = document.getElementById('success-msg');
+      el.textContent = msg; el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function uploadAvatar() {
+      const fileInput = document.getElementById('avatar-input');
+      const file = fileInput.files[0];
+      if (!file) return;
+      const status = document.getElementById('avatar-status');
+      status.textContent = '上传中...';
+      try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        // use raw fetch with token for multipart
+        const token = getToken();
+        const resp = await fetch(API_BASE + '/user/avatar/', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+        });
+        const body = await resp.json();
+        if (body.code === 0) {
+          status.textContent = '✅ 头像已更新';
+        } else {
+          status.textContent = '❌ ' + (body.message || '上传失败');
+        }
+      } catch (e) {
+        status.textContent = '❌ 网络错误';
+      }
+    }
+
+    async function loadProfile() {
+      try {
+        const data = await apiCall('/user/me/');
+        document.getElementById('name').value = data.real_name || '';
+        document.getElementById('school').value = data.school || '';
+        document.getElementById('phone').value = data.phone || '';
+        document.getElementById('avatar-display').textContent = (data.real_name || '?').charAt(0);
+        document.getElementById('profile-form').style.display = 'block';
+      } catch (e) {
+        showError('加载个人信息失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
+      }
+    }
+
+    async function handleSave() {
+      hideError();
+      const name = document.getElementById('name').value.trim();
+      const school = document.getElementById('school').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = '保存中...';
+
+      try {
+        const body = {};
+        if (name) body.real_name = name;
+        if (school) body.school = school;
+        if (phone) body.phone = phone;
+        await apiCall('/user/me/', {
+          method: 'PATCH',
+          body: JSON.stringify(body),
+        });
+        showSuccess('保存成功');
+      } catch (e) {
+        showError('保存失败: ' + e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '保存修改';
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>
