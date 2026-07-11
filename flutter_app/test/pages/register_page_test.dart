@@ -6,17 +6,14 @@ import 'package:flutter_app/data/api/auth_api.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/domain/auth_repository.dart';
 import 'package:flutter_app/pages/register_page.dart';
-import 'package:flutter_app/pages/login_page.dart';
 
 class _MockAuthRepo extends AuthRepository {
-  final bool shouldSucceed;
-  _MockAuthRepo({this.shouldSucceed = true})
+  _MockAuthRepo()
       : super(AuthApi(ApiClient()));
 
   @override
   Future<void> register(RegisterRequest data) async {
-    if (shouldSucceed) return;
-    throw Exception('40101: 邀请码无效或已使用');
+    return;
   }
 }
 
