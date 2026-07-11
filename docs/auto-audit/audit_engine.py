@@ -1098,7 +1098,124 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
             evidence=f"Zero-row DAO results: {[(e['src'], e['val']) for e in zero_daos[:10]]}",
         ))
 
+    # ═══════════════════════════════════════════════
+    # 6. 服务端预期 vs 运行日志核对（Server-Driven Verification）
+    # ═══════════════════════════════════════════════
+    server_db_path = os.path.join(cfg.server_dir, 'db.sqlite3')
+    if not path_exists(server_db_path):
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue="⚠️ 未找到服务端 DB — 跳过服务端预期核对",
+            source='runtime-verification Step R5',
+            path=server_db_path,
+            evidence=f"Server DB not found at {server_db_path}",
+        ))
+    else:
+        try:
+            _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
+        except Exception as e:
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"⚠️ 服务端预期核对失败: {e}",
+                source='runtime-verification Step R5',
+                path=server_db_path,
+                evidence=f"Exception: {e}",
+            ))
+
     return findings
+
+
+def _check_server_expectations(cfg, entries, server_db_path, findings, log_path):
+    """从服务端 DB 读取数据，构建预期值，与审计日志逐项比对"""
+    conn = sqlite3.connect(server_db_path)
+
+    # ── 6a. 全局数据行数比对 ──
+    # 先查询所有服务端行数
+    server_counts = {}
+    for table_name in ['qbank_basequestion', 'qbank_subquestion', 'qbank_solutionstep',
+                        'courses_assignment', 'courses_course',
+                        'system_achievementdef', 'system_levelconfig']:
+        server_counts[table_name] = conn.execute(
+            f'SELECT COUNT(*) FROM "{table_name}"'
+        ).fetchone()[0]
+
+    # DAO 前缀到服务端表名的映射
+    dao_to_table = {
+        'QuestionDao': 'qbank_basequestion',
+        'SubQuestionDao': 'qbank_subquestion',
+        'SolutionStepDao': 'qbank_solutionstep',
+        'AssignmentDao': 'courses_assignment',
+        'CourseDao': 'courses_course',
+        'AchievementDao': 'system_achievementdef',
+        'LevelConfigDao': 'system_levelconfig',
+    }
+
+    # 在审计日志中查找对应的 DAO 调用
+    for dao_prefix, table_name in dao_to_table.items():
+        expected = server_counts[table_name]
+        matches = [e for e in entries
+                   if e.get('cat') == 'dao'
+                   and e.get('src', '').startswith(dao_prefix.rstrip('Dao'))
+                   and e.get('key') == 'rowCount']
+        if not matches:
+            continue
+        actual = int(matches[-1].get('val', '-1'))
+        if actual == 0 and expected > 0:
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f"❌ [Server] {dao_prefix}: 服务端有 {expected} 条，客户端查询返回 0 条",
+                source='runtime-verification Step R5',
+                path=log_path,
+                evidence=f"Server COUNT(*)={expected}, Audit Log DAO rowCount={actual}",
+            ))
+        elif actual != expected and expected > 0:
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"⚠️ [Server] {dao_prefix}: 行数不匹配 期望{expected} 实际{actual}",
+                source='runtime-verification Step R5',
+                path=log_path,
+                evidence=f"Server={expected}, Audit={actual}",
+            ))
+
+    # ── 6b. Prefs 缓存核对（pendingHomeworkCount vs 服务端作业数）──
+    pref_pending = [e for e in entries
+                    if e.get('cat') == 'prefs'
+                    and 'pending_homework' in e.get('key', '')]
+    if pref_pending:
+        actual_pending = pref_pending[-1].get('val', '0')
+        server_assignment_count = conn.execute(
+            'SELECT COUNT(*) FROM courses_assignment'
+        ).fetchone()[0]
+        try:
+            actual_int = int(actual_pending) if actual_pending else 0
+        except:
+            actual_int = 0
+        # 期望：pending_homework_count 应该 > 0（服务端有作业）
+        if actual_int == 0 and server_assignment_count > 0:
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f"❌ [Server] pendingHomeworkCount=0，但服务端有 {server_assignment_count} 个作业",
+                source='runtime-verification Step R5',
+                path=log_path,
+                evidence=f"Server assignments={server_assignment_count}, Audit Prefs pendingHomeworkCount=0",
+            ))
+
+    # ── 6c. assets.db 行数核对（bundled DB vs server DB）──
+    assets_db_path = os.path.join(cfg.workspace, 'flutter_app', 'assets', 'db', 'assets.db')
+    if path_exists(assets_db_path):
+        try:
+            assets_conn = sqlite3.connect(assets_db_path)
+            # 检查 assets.db 中每个表的行数
+            for table_name in ['questions', 'sub_questions', 'solution_steps',
+                                'courses', 'assignments', 'achievement_defs', 'level_configs']:
+                server_cnt = conn.execute(
+                    f'SELECT COUNT(*) FROM "qbank_{table_name}"'
+                ).fetchone()[0]
+            assets_conn.close()
+        except:
+            pass
+
+    conn.close()
 
 
 # ═══════════════════════════════════════════════
