@@ -181,6 +181,58 @@ class TestStudentDetail:
         d = resp.data['data']
         assert d['overview']['totalQuestions'] == 2
         assert d['overview']['avgAccuracy'] == 50.0
+        assert d['overview']['streakDays'] == 0
+        assert 'questionTypeBreakdown' in d
+        assert isinstance(d['questionTypeBreakdown'], list)
+
+    def test_student_detail_streak_days(self, auth_client, sample_students):
+        """验证连续签到天数计算"""
+        from accounts.models import UserLoginLog
+        s = sample_students[0]
+        from datetime import date, timedelta
+        today = date.today()
+        # 创建连续3天签到 + 1天前
+        UserLoginLog.objects.create(student=s, login_date=today)
+        UserLoginLog.objects.create(student=s, login_date=today - timedelta(days=1))
+        UserLoginLog.objects.create(student=s, login_date=today - timedelta(days=2))
+        # 中断一天
+        UserLoginLog.objects.create(student=s, login_date=today - timedelta(days=5))
+
+        resp = auth_client.get(f'/api/v1/teacher/students/{s.id}/')
+        assert resp.status_code == 200
+        d = resp.data['data']
+        # 连续从今天往前3天
+        assert d['overview']['streakDays'] == 3, f"Expected 3, got {d['overview']['streakDays']}"
+
+    def test_student_detail_question_type_breakdown(self, auth_client, sample_students, sample_question):
+        """验证题型分布数据"""
+        from qbank.models import BaseQuestion
+        # 创建不同类型题目
+        q2 = BaseQuestion.objects.create(
+            stem='填标题', question_type='fill',
+            difficulty=3.0, calculation=3.0, year=2026,
+        )
+        s = sample_students[0]
+        sub = StudentSubmission.objects.create(student=s)
+        SubmissionDetail.objects.create(
+            submission=sub, question=sample_question, is_correct=True, status='completed',
+        )
+        SubmissionDetail.objects.create(
+            submission=sub, question=q2, is_correct=False, status='completed',
+        )
+        resp = auth_client.get(f'/api/v1/teacher/students/{s.id}/')
+        assert resp.status_code == 200
+        d = resp.data['data']
+        breakdown = d['questionTypeBreakdown']
+        # 应该有2个题型
+        assert len(breakdown) >= 2
+        types = {item['type'] for item in breakdown}
+        assert '选择题' in types
+        assert '填空题' in types
+        for item in breakdown:
+            assert 'count' in item
+            assert 'accuracy' in item
+            assert isinstance(item['accuracy'], float)
 
     def test_not_found(self, auth_client):
         resp = auth_client.get('/api/v1/teacher/students/99999/')
@@ -357,6 +409,46 @@ class TestAssignmentPatch:
         # Convert stored date to string for comparison
         stored_date = cca.deadline.strftime('%Y-%m-%d')
         assert stored_date == new_date
+
+    def test_update_title(self, auth_client, sample_class_group, sample_question):
+        """PATCH title 应路由到 Assignment 模型"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='原标题')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        cca = ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.patch(f'/api/v1/teacher/assignments/{cca.id}/', {
+            'title': '新标题',
+        }, format='json')
+        assert resp.status_code == 200
+        cca.assignment.refresh_from_db()
+        assert cca.assignment.title == '新标题'
+
+    def test_update_title_and_description(self, auth_client, sample_class_group, sample_question):
+        """PATCH 同时更新 title + description"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='原标题', description='原描述')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        cca = ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.patch(f'/api/v1/teacher/assignments/{cca.id}/', {
+            'title': '新标题',
+            'description': '新描述',
+        }, format='json')
+        assert resp.status_code == 200
+        cca.assignment.refresh_from_db()
+        assert cca.assignment.title == '新标题'
+        assert cca.assignment.description == '新描述'
 
     def test_update_description(self, auth_client, sample_class_group, sample_question):
         """PATCH description 应路由到 Assignment 模型"""
