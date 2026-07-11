@@ -19,6 +19,9 @@ api_v1 = [
     path('system/', include('system.urls')),
     path('lectures/', include('courses.urls')),
 
+    # teacher: assignments, papers, classes, students
+    path('teacher/', include('courses.teacher_urls')),
+
     # sync: version check + push
     path('sync/', include('system.urls')),
 
