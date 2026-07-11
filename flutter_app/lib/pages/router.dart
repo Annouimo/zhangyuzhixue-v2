@@ -20,6 +20,12 @@ import 'exam/exam_history_page.dart';
 import 'exam/exam_explore_page.dart';
 import 'exam/exam_favorites_page.dart';
 import 'exam/answer_sheet_page.dart';
+import 'profile/profile_edit_page.dart';
+import 'profile/achievement_page.dart';
+import 'profile/level_detail_page.dart';
+import 'profile/points_page.dart';
+import 'profile/about_page.dart';
+import 'profile/question_history_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
 
@@ -46,6 +52,12 @@ abstract final class AppRoutes {
   static const answerSheet = '/exam/answersheet';
   static const recommend = '/recommend';
   static const statistics = '/statistics';
+  static const profileEdit = '/profile/edit';
+  static const profileAchievements = '/profile/achievements';
+  static const profileLevel = '/profile/level';
+  static const profilePoints = '/profile/points';
+  static const profileHistory = '/profile/history';
+  static const profileAbout = '/profile/about';
 }
 
 /// 从 query 参数解析 int
@@ -92,6 +104,12 @@ final GoRouter appRouter = GoRouter(
       return AnswerSheetPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
     GoRoute(path: AppRoutes.recommend, name: 'recommend', builder: (_, __) => const RecommendPage()),
     GoRoute(path: AppRoutes.statistics, name: 'statistics', builder: (_, __) => const StatisticsPage()),
+    GoRoute(path: AppRoutes.profileEdit, name: 'profile-edit', builder: (_, __) => const ProfileEditPage()),
+    GoRoute(path: AppRoutes.profileAchievements, name: 'profile-achievements', builder: (_, __) => const AchievementPage()),
+    GoRoute(path: AppRoutes.profileLevel, name: 'profile-level', builder: (_, __) => const LevelDetailPage()),
+    GoRoute(path: AppRoutes.profilePoints, name: 'profile-points', builder: (_, __) => const PointsPage()),
+    GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, __) => const QuestionHistoryPage()),
+    GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, __) => const AboutPage()),
   ],
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('页面未找到')),

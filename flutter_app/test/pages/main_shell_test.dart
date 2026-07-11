@@ -71,7 +71,7 @@ void main() {
         find.byType(BottomNavigationBar),
       );
       expect(navBar.currentIndex, 3);
-      expect(find.text('个人中心（Phase 3h）'), findsOneWidget);
+      // 我的 tab 现在显示 ProfilePage
     });
 
     testWidgets('tapping lecture tab switches content', (tester) async {

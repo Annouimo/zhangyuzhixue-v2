@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart';
 import 'index_page.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'homework/homework_list_page.dart';
+import 'profile/profile_page.dart';
 
 /// Tab 页枚举
 enum MainTab { home, homework, lecture, profile }
@@ -22,7 +22,7 @@ class _MainShellState extends State<MainShell> {
     IndexPage(),
     HomeworkListPage(),
     LectureCoursesPage(),
-    _PlaceholderPage(icon: '👤', title: '我的', subtitle: '个人中心（Phase 3h）'),
+    ProfilePage(),
   ];
 
   @override
@@ -57,51 +57,6 @@ class _MainShellState extends State<MainShell> {
             label: '我的',
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 占位页面（后续 Phase 替换为真实页面）
-class _PlaceholderPage extends StatelessWidget {
-  final String icon;
-  final String title;
-  final String subtitle;
-
-  const _PlaceholderPage({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 64)),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
