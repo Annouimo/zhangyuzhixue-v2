@@ -1102,24 +1102,28 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
     # 6. 服务端预期 vs 运行日志核对（Server-Driven Verification）
     # ═══════════════════════════════════════════════
     server_db_path = os.path.join(cfg.server_dir, 'db.sqlite3')
-    if not path_exists(server_db_path):
-        findings.append(Finding(
-            certainty=Certainty.LIKELY,
-            issue="⚠️ 未找到服务端 DB — 跳过服务端预期核对",
-            source='runtime-verification Step R5',
-            path=server_db_path,
-            evidence=f"Server DB not found at {server_db_path}",
-        ))
-    else:
+    if path_exists(server_db_path):
         try:
-            _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
+            _check_server_expectations(cfg, entries, server_db_path, findings, log_path, source_label='Local')
         except Exception as e:
             findings.append(Finding(
                 certainty=Certainty.LIKELY,
-                issue=f"⚠️ 服务端预期核对失败: {e}",
+                issue=f"⚠️ 本地服务端预期核对失败: {e}",
                 source='runtime-verification Step R5',
                 path=server_db_path,
-                evidence=f"Exception: {e}",
+            ))
+
+    # 可选：远程 SSH 比对（如果配置了 ECS 访问）
+    remote_info = _try_get_remote_db(cfg)
+    if remote_info:
+        try:
+            _check_server_expectations(cfg, entries, remote_info['path'], findings, log_path, source_label='Remote')
+        except Exception as e:
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"⚠️ 远程服务端预期核对失败: {e}",
+                source='runtime-verification Step R5',
+                path=remote_info['path'],
             ))
 
     # 运行时错误审查
@@ -1128,7 +1132,31 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
     return findings
 
 
-def _check_server_expectations(cfg, entries, server_db_path, findings, log_path):
+def _try_get_remote_db(cfg):
+    """尝试通过 SSH 从 ECS 拉取远程 DB 到临时文件"""
+    import subprocess, tempfile
+    remote_host = 'root@123.57.85.160'
+    remote_path = '/opt/zhangyuzhixue-v2/server/db.sqlite3'
+    tmp = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+    tmp.close()
+    try:
+        r = subprocess.run(
+            ['scp', '-o', 'StrictHostKeyChecking=no',
+             f'{remote_host}:{remote_path}', tmp.name],
+            capture_output=True, timeout=15,
+        )
+        if r.returncode == 0 and os.path.getsize(tmp.name) > 0:
+            return {'path': tmp.name, 'source': remote_host}
+    except:
+        pass
+    try:
+        os.unlink(tmp.name)
+    except:
+        pass
+    return None
+
+
+def _check_server_expectations(cfg, entries, server_db_path, findings, log_path, source_label='Local'):
     """从服务端 DB 读取数据，构建预期值，与审计日志逐项比对"""
     conn = sqlite3.connect(server_db_path)
 
@@ -1166,7 +1194,7 @@ def _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
         if actual == 0 and expected > 0:
             findings.append(Finding(
                 certainty=Certainty.CERTAIN,
-                issue=f"❌ [Server] {dao_prefix}: 服务端有 {expected} 条，客户端查询返回 0 条",
+                issue=f"❌ [{source_label}] {dao_prefix}: 服务端有 {expected} 条，客户端查询返回 0 条",
                 source='runtime-verification Step R5',
                 path=log_path,
                 evidence=f"Server COUNT(*)={expected}, Audit Log DAO rowCount={actual}",
@@ -1174,7 +1202,7 @@ def _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
         elif actual != expected and expected > 0:
             findings.append(Finding(
                 certainty=Certainty.SUSPICIOUS,
-                issue=f"⚠️ [Server] {dao_prefix}: 行数不匹配 期望{expected} 实际{actual}",
+                issue=f"⚠️ [{source_label}] {dao_prefix}: 行数不匹配 期望{expected} 实际{actual}",
                 source='runtime-verification Step R5',
                 path=log_path,
                 evidence=f"Server={expected}, Audit={actual}",
@@ -1197,7 +1225,7 @@ def _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
         if actual_int == 0 and server_assignment_count > 0:
             findings.append(Finding(
                 certainty=Certainty.CERTAIN,
-                issue=f"❌ [Server] pendingHomeworkCount=0，但服务端有 {server_assignment_count} 个作业",
+                issue=f"❌ [{source_label}] pendingHomeworkCount=0，但服务端有 {server_assignment_count} 个作业",
                 source='runtime-verification Step R5',
                 path=log_path,
                 evidence=f"Server assignments={server_assignment_count}, Audit Prefs pendingHomeworkCount=0",
