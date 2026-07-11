@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>试卷排版测试</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+<link rel="stylesheet" href="/static/katex/katex.min.css">
+<script defer src="/static/katex/katex.min.js"></script>
+<script defer src="/static/katex/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body, {
     delimiters: [
       {left: '$$', right: '$$', display: true},
@@ -15,11 +15,11 @@
   });"></script>
 <style>
 /* ===== 纸张 ===== */
-@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm; @bottom-left { content: "章鱼智学"; font-family: SimSun, serif; font-size: 9pt; color: #999; } @bottom-center { content: "— " counter(page) " —"; font-family: SimSun, serif; font-size: 9pt; color: #666; } @bottom-right { content: "张三 G2026001"; font-family: SimSun, serif; font-size: 9pt; color: #999; } }
+@page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm; @bottom-left { content: "章鱼智学"; font-family: 'Noto Serif CJK SC', SimSun, serif; font-size: 9pt; color: #999; } @bottom-center { content: "— " counter(page) " —"; font-family: 'Noto Serif CJK SC', SimSun, serif; font-size: 9pt; color: #666; } @bottom-right { content: "张三 G2026001"; font-family: 'Noto Serif CJK SC', SimSun, serif; font-size: 9pt; color: #999; } }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'SimSun', 'STSong', 'Noto Serif CJK SC', serif;
+  font-family: 'Noto Serif CJK SC', 'SimSun', 'STSong', serif;
   font-size: 11pt;
   line-height: 1.6;
   text-align: justify;
@@ -37,7 +37,7 @@ body {
   border-bottom: 0.5pt solid #333;
 }
 .paper-title {
-  font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
+  font-family: 'Noto Serif CJK SC', 'SimHei', 'Microsoft YaHei', sans-serif;
   font-size: 16pt;
   font-weight: 700;
   letter-spacing: 3pt;
@@ -50,7 +50,7 @@ body {
 .section-title {
   page-break-after: avoid;
   break-after: avoid;
-  font-family: 'SimHei', 'Microsoft YaHei', sans-serif;
+  font-family: 'Noto Serif CJK SC', 'SimHei', 'Microsoft YaHei', sans-serif;
   font-size: 12pt;
   font-weight: 700;
   margin: 1em 0 0.5em 0;

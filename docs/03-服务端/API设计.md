@@ -754,28 +754,27 @@ GET /api/v1/teacher/assignments/{id}/
     "id": 1,
     "title": "导数基础练习",
     "description": "选填题为主",
-    "deadline": "2026-07-15T23:59:59+08:00",
-    "question_count": 10,
-    "classes": [
+    "deadline": "2026-07-20",
+    "className": "高三1班",
+    "totalStudents": 32,
+    "completedCount": 18,
+    "avgAccuracy": 73.2,
+    "students": [
       {
-        "class_id": 1,
-        "class_name": "高三1班",
-        "students": [
-          {
-            "student_id": 1,
-            "real_name": "张三",
-            "submitted": true,
-            "correct_count": 8,
-            "total_count": 10,
-            "accuracy": 80.0,
-            "submitted_at": "2026-07-09T14:30:00+08:00"
-          }
-        ],
-        "summary": {
-          "total": 32,
-          "submitted": 18,
-          "average_accuracy": 72.5
-        }
+        "id": 1,
+        "name": "张三",
+        "status": "completed",
+        "accuracy": 80.0,
+        "duration": "15分钟",
+        "completedAt": "2026-07-09 14:30"
+      },
+      {
+        "id": 2,
+        "name": "李四",
+        "status": "pending",
+        "accuracy": null,
+        "duration": null,
+        "completedAt": null
       }
     ]
   }
@@ -887,21 +886,26 @@ GET /api/v1/teacher/students/{id}/
   "message": "ok",
   "data": {
     "id": 1,
-    "real_name": "张三",
-    "class_name": "高三1班",
-    "student_id": "20261058417",
-    "total_questions": 156,
-    "accuracy": 75.6,
-    "streak_days": 7,
-    "accuracy_trend": [
-      {"date": "2026-07-03", "accuracy": 72.0, "count": 5},
-      {"date": "2026-07-04", "accuracy": 80.0, "count": 8}
+    "name": "张三",
+    "className": "高三1班",
+    "studentId": "20261058417",
+    "school": "北京四中",
+    "registeredAt": "2026-07-01",
+    "overview": {
+      "totalQuestions": 156,
+      "avgAccuracy": 75.6,
+      "streakDays": 7,
+      "weeklyQuestions": 12
+    },
+    "accuracyTrend": [
+      {"date": "2026-07-03", "accuracy": 72.0},
+      {"date": "2026-07-04", "accuracy": 80.0}
     ],
-    "weak_tags": [
-      {"tag_name": "函数·零点", "accuracy": 50.0, "count": 6},
-      {"tag_name": "导数·单调性", "accuracy": 60.0, "count": 10}
+    "weakTags": [
+      {"name": "函数·零点", "accuracy": "50.0%", "count": 6},
+      {"name": "导数·单调性", "accuracy": "60.0%", "count": 10}
     ],
-    "question_type_breakdown": [
+    "questionTypeBreakdown": [
       {"type": "选择题", "count": 80, "accuracy": 82.5},
       {"type": "填空题", "count": 40, "accuracy": 70.0},
       {"type": "解答题", "count": 36, "accuracy": 65.3}
@@ -911,8 +915,8 @@ GET /api/v1/teacher/students/{id}/
 ```
 
 **说明：**
-- `accuracy_trend` 返回最近 30 天每日正确率（有做题的日子才有一条）
-- `weak_tags` 按正确率升序排列（最弱的在最前），取 top 10
+- `accuracyTrend` 返回最近 30 天每日正确率（有做题的日子才有一条）
+- `weakTags` 按正确率升序排列（最弱的在最前），取 top 10
 
 ---
 
@@ -932,10 +936,14 @@ GET /api/v1/lectures/courses/
 
 **响应：**
 ```json
-[
-  {"id": 1, "name": "导数系统课", "chapter_count": 12},
-  {"id": 2, "name": "三角函数专项", "chapter_count": 8}
-]
+{
+  "code": 0,
+  "message": "ok",
+  "data": [
+    {"id": 1, "name": "导数系统课", "description": "导数系统课"},
+    {"id": 2, "name": "三角函数专项", "description": "三角函数专项"}
+  ]
+}
 ```
 
 ### 6.2 章节目录
