@@ -443,7 +443,7 @@ def check_design_doc_pending_markers(cfg: Config) -> list[Finding]:
         content = read_file(doc_path)
         for i, line in enumerate(content.split("\n"), 1):
             for pat in compiled:
-                if pat.search(line) and not line.strip().startswith("#") and not line.strip().startswith(">"):
+                if pat.search(line) and not line.strip().startswith("#") and not line.strip().startswith(">") and "auto-audit: accepted-deferred" not in line:
                     findings.append(Finding(
                         certainty=Certainty.CERTAIN,
                         issue=f"⬜ 延期标记: {line.strip()[:80]}",

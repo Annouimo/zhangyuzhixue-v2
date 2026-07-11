@@ -1,0 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_app/pages/exam/exam_home_page.dart';
+
+void main() {
+  group('ExamHomePage', () {
+    testWidgets('renders exam home with buttons', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: ExamHomePage()),
+      );
+      expect(find.text('组卷'), findsOneWidget);
+      expect(find.text('智能组卷 · 消耗 10 积分'), findsOneWidget);
+      expect(find.text('自主选题 · 消耗 20 积分'), findsOneWidget);
+      expect(find.text('我的组卷'), findsOneWidget);
+      expect(find.text('发现组卷'), findsOneWidget);
+      expect(find.text('我的收藏'), findsOneWidget);
+    });
+  });
+}
