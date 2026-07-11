@@ -286,14 +286,30 @@ class TestAssignmentDetail:
             class_course=cc, assignment=assignment,
             deadline=date.today(), is_active=True,
         )
+        # create a submission with multiple details for duration calc
+        s0 = sample_students[0]
+        sub = StudentSubmission.objects.create(student=s0, assignment=assignment)
+        SubmissionDetail.objects.create(
+            submission=sub, question=sample_question,
+            is_correct=True, status='completed',
+        )
+        SubmissionDetail.objects.create(
+            submission=sub, question=sample_question,
+            is_correct=False, status='completed',
+        )
         resp = auth_client.get(f'/api/v1/teacher/assignments/{cca.id}/')
         assert resp.status_code == 200
         d = resp.data['data']
         assert d['title'] == '测试作业'
         assert d['totalStudents'] == 3
         assert len(d['students']) == 3
-        # all pending (no submissions)
-        assert all(s['status'] == 'pending' for s in d['students'])
+        # verify completed student has duration
+        completed = [s for s in d['students'] if s['status'] == 'completed']
+        assert len(completed) == 1
+        assert completed[0]['duration'] is not None
+        assert '分钟' in completed[0]['duration']
+        # verify others are pending
+        assert all(s['status'] == 'pending' for s in d['students'] if s['status'] != 'completed')
 
     def test_not_found(self, auth_client):
         resp = auth_client.get('/api/v1/teacher/assignments/99999/')

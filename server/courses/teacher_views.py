@@ -470,30 +470,33 @@ def _assignment_detail(cca):
 
     student_items = []
     for s in students:
-        detail = SubmissionDetail.objects.filter(
+        details = SubmissionDetail.objects.filter(
             submission__assignment_id=a_id,
             submission__student=s,
-            is_correct__isnull=False,
-        ).first()
+        ).order_by('created_at')
 
-        if detail:
-            total = SubmissionDetail.objects.filter(
-                submission__assignment_id=a_id,
-                submission__student=s,
-            ).count()
-            correct = SubmissionDetail.objects.filter(
-                submission__assignment_id=a_id,
-                submission__student=s,
-                is_correct=True,
-            ).count()
+        first = details.first()
+        if first:
+            # 计算耗时：首条到最后一条的时间差
+            last = details.last()
+            secs = int((last.created_at - first.created_at).total_seconds())
+            if secs < 60:
+                duration = '少于1分钟'
+            elif secs < 3600:
+                duration = f'{secs // 60}分钟'
+            else:
+                duration = f'{secs // 3600}小时{(secs % 3600) // 60}分钟'
+
+            total = details.count()
+            correct = details.filter(is_correct=True).count()
             acc = f'{round(correct / total * 100)}%' if total else '0%'
             student_items.append({
                 'id': s.id,
                 'name': s.user.first_name or s.user.username,
                 'status': 'completed',
                 'accuracy': acc,
-                'duration': None,
-                'completedAt': detail.created_at.strftime('%Y-%m-%d %H:%M'),
+                'duration': duration,
+                'completedAt': last.created_at.strftime('%Y-%m-%d %H:%M'),
             })
         else:
             student_items.append({
