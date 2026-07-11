@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/exit_rating_popup.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
+import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/progress_repository.dart' as progress;
 import 'widgets/step_card_widget.dart';
@@ -34,11 +36,21 @@ class SolveStepPage extends StatefulWidget {
 class _SolveStepPageState extends State<SolveStepPage> {
   progress.SolveProgressState? _state;
   bool _loading = true;
+  int _coolDownSec = 5;
   late final progress.ProgressRepository _repo;
   DateTime? _entryTime;
 
   @override
-  void initState() { super.initState(); _entryTime = DateTime.now(); _load(); }
+  void initState() { super.initState(); _entryTime = DateTime.now(); _load(); _loadCooldown(); }
+
+  Future<void> _loadCooldown() async {
+    try {
+      final dao = SystemConfigDao(DatabaseProvider().assetsDb);
+      final sec = await dao.getInt('solve_cooldown_step', 5);
+      if (!mounted) return;
+      setState(() => _coolDownSec = sec);
+    } catch (_) {}
+  }
 
   Future<void> _load() async {
     _repo = progress.ProgressRepository(
@@ -104,12 +116,13 @@ class _SolveStepPageState extends State<SolveStepPage> {
       child: Scaffold(
       appBar: AppBar(title: Text('步骤 ${widget.stepIndex + 1}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingIndicator()
           : step == null
               ? const Center(child: Text('步骤数据不存在'))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: StepCardWidget(
+                    cooldownSeconds: _coolDownSec,
                     step: step,
                     stepIndex: widget.stepIndex,
                     totalSteps: _totalSteps,

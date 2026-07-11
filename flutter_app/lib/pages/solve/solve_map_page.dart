@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/shared/loading_indicator.dart';
 import '../../app_theme.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -57,7 +58,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('解答题')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingIndicator()
           : _state == null || _state!.subQuestions.isEmpty
               ? const Center(child: Text('暂无步骤数据'))
               : ListView(

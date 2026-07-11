@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/shared/loading_indicator.dart';
 import '../../app_theme.dart';
 import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -100,7 +101,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
     return Scaffold(
       appBar: AppBar(title: const Text('评分')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingIndicator()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(

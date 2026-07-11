@@ -62,7 +62,6 @@ Future<bool> submitExitRating({
   ExitRatingConfig? config,
 }) async {
   try {
-    await AppPrefs().setRatingCooldown(pageUrl);
     await SyncManager().enqueue(
       entityType: SyncEntityType.exitRating,
       operation: SyncOperationType.upsert,
@@ -84,10 +83,11 @@ Future<bool> submitExitRating({
         createdAt: Value(now),
       ),
     );
+    // 所有操作成功后，再设冷却
+    await AppPrefs().setRatingCooldown(pageUrl);
     return true;
   } catch (_) {
-    // 任意步骤失败，回滚冷却（不清除已设冷却，下次仍可在此页弹）
-    // 但不要因积分插入失败而阻塞——返回 false 让调用方知道提交未完成
+    // 任意步骤失败，冷却未被设置，用户下次可重试
     return false;
   }
 }

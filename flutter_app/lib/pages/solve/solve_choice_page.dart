@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
+import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/exit_rating_popup.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
+import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
 
@@ -31,6 +33,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   bool _submitted = false;
   bool _isCorrect = false;
   bool _loading = true;
+  int _coolDownSec = 10;
   QuestionDetail? _detail;
   late final QuestionRepository _repo;
 
@@ -45,6 +48,16 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       ProgressDao(DatabaseProvider().appDb),
     );
     _load();
+    _loadCooldown();
+  }
+
+  Future<void> _loadCooldown() async {
+    try {
+      final dao = SystemConfigDao(DatabaseProvider().assetsDb);
+      final sec = await dao.getInt('solve_cooldown_choice', 10);
+      if (!mounted) return;
+      setState(() => _coolDownSec = sec);
+    } catch (_) {}
   }
 
   Future<void> _load() async {
@@ -69,7 +82,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: const Text('选择题')),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const LoadingIndicator(),
       );
     }
 
@@ -85,6 +98,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: SolveFlowWidget(
+          cooldownSeconds: _coolDownSec,
           isRevisit: _submitted,
           isCorrect: _isCorrect,
           correctAnswer: _detail?.answer,
