@@ -50,5 +50,50 @@ void main() {
       final p2 = repo.parseContent(content);
       expect(p1, same(p2));
     });
+
+    test('parseContent handles empty content', () {
+      final content = LectureContent(chapterId: 2, title: 'empty', mdContent: '');
+      final parsed = repo.parseContent(content);
+      expect(parsed.totalPages, 0);
+    });
+
+    test('parseContent handles content with no separators (plain text)', () {
+      final content = LectureContent(
+        chapterId: 3,
+        title: 'plain',
+        mdContent: '这是一段纯文本内容，不包含任何分隔符。\n第二行内容。',
+      );
+      final parsed = repo.parseContent(content);
+      expect(parsed.totalPages, 1);
+      expect(parsed.pages[0].blocks.length, 1);
+      expect(parsed.pages[0].blocks[0], contains('纯文本'));
+    });
+
+    test('parseContent handles content with LaTeX', () {
+      final content = LectureContent(
+        chapterId: 4,
+        title: 'latex',
+        mdContent: r'公式 $f(x) = ax^2 + bx + c$ 是二次函数的一般形式。'
+            '\n<!-- pagebreak -->\n'
+            r'行间公式 $$\int_{0}^{1} x^2 dx$$',
+      );
+      final parsed = repo.parseContent(content);
+      expect(parsed.totalPages, 2);
+      expect(parsed.pages[0].blocks[0], contains(r'$f(x)'));
+      expect(parsed.pages[1].blocks[0], contains(r'\int'));
+    });
+
+    test('parseContent filters empty pages from consecutive pagebreaks', () {
+      final content = LectureContent(
+        chapterId: 5,
+        title: 'spacing',
+        mdContent: '第一页\n<!-- pagebreak -->\n<!-- pagebreak -->\n<!-- pagebreak -->\n第三页',
+      );
+      final parsed = repo.parseContent(content);
+      // Empty pages from consecutive pagebreaks are filtered out
+      expect(parsed.totalPages, 2);
+      expect(parsed.pages[0].blocks[0], '第一页');
+      expect(parsed.pages[1].blocks[0], '第三页');
+    });
   });
 }

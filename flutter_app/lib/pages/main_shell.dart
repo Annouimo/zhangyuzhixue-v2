@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import 'index_page.dart';
+import 'lecture/lecture_courses_page.dart';
 
 /// Tab 页枚举
 enum MainTab { home, homework, lecture, profile }
@@ -19,7 +20,7 @@ class _MainShellState extends State<MainShell> {
   final List<Widget> _pages = const [
     IndexPage(),
     _PlaceholderPage(icon: '📋', title: '作业', subtitle: '作业列表（Phase 3d）'),
-    _PlaceholderPage(icon: '📖', title: '讲义', subtitle: '讲义列表（Phase 3c）'),
+    LectureCoursesPage(),
     _PlaceholderPage(icon: '👤', title: '我的', subtitle: '个人中心（Phase 3h）'),
   ];
 

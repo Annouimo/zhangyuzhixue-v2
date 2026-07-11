@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 import 'package:flutter_app/pages/main_shell.dart';
+import 'dart:io';
 
 void main() {
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = Directory.systemTemp.createTempSync('main_shell_test_');
+
+    // Initialize DatabaseProvider with temp dir
+    final provider = DatabaseProvider();
+    await provider.initWithPath(tempDir.path);
+  });
+
+  tearDown(() async {
+    await DatabaseProvider().reset();
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
+  });
+
   group('MainShell', () {
     testWidgets('renders 4 bottom navigation tabs', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(home: MainShell()),
       );
 
-      // 验证 4 个 tab 存在
       expect(find.text('首页'), findsOneWidget);
       expect(find.text('作业'), findsOneWidget);
       expect(find.text('讲义'), findsOneWidget);
@@ -21,7 +39,6 @@ void main() {
         const MaterialApp(home: MainShell()),
       );
 
-      // 首页应该被选中
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
       );
@@ -33,16 +50,13 @@ void main() {
         const MaterialApp(home: MainShell()),
       );
 
-      // 点击「作业」tab
       await tester.tap(find.text('作业'));
       await tester.pumpAndSettle();
 
-      // 作业 tab 被选中
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
       );
       expect(navBar.currentIndex, 1);
-      // 占位页面显示"作业列表"
       expect(find.text('作业列表（Phase 3d）'), findsOneWidget);
     });
 
@@ -51,7 +65,6 @@ void main() {
         const MaterialApp(home: MainShell()),
       );
 
-      // 点击「我的」tab
       await tester.tap(find.text('我的'));
       await tester.pumpAndSettle();
 
@@ -70,7 +83,6 @@ void main() {
       await tester.tap(find.text('讲义'));
       await tester.pumpAndSettle();
 
-      // 讲义 tab 被选中，IndexedStack 保持页面状态
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
       );
