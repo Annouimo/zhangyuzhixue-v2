@@ -16,9 +16,9 @@
 
 ### 前置条件
 
-- [ ] Phase 3 UI 全部完成并验收通过
-- [ ] Phase 4 辅助系统全部完成并验收通过
-- [ ] `flutter test` 和 `pytest` 当前全绿（Phase 2/3/4 积累的测试无回归）
+- [x] Phase 3 UI 全部完成并验收通过
+- [x] Phase 4 辅助系统全部完成并验收通过
+- [x] `flutter test` 和 `pytest` 当前全绿（Phase 2/3/4 积累的测试无回归）
 - [ ] Staging 环境运行中，API 端点可用
 
 ### 关键设计文档索引

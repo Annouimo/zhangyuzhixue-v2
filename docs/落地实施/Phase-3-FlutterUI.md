@@ -1,7 +1,7 @@
 # Phase 3 — Flutter UI 核心（8 天，每页测）
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 3 的细化执行方案。
-> 状态：**待开始** | 最后更新：2026-07-11
+> 状态：**已完成** | 最后更新：2026-07-11
 
 ---
 
@@ -12,12 +12,12 @@
 | **3a** | MainShell + 登录/注册 | 0.5 天 | ✅ |
 | **3b** | 解题模式（solve-choice/fill/map/step/rate） | 3 天 | ✅ |
 | | **└ 解题流程初验**：1-2 位教师试做选填题和解答题，核对旧版数据 | (含在 3b 内) | ⬜ |
-| **3c** | 讲义（courses → chapters → content） | 1 天 | ⬜ |
-| **3d** | 作业（list + detail） | 0.5 天 | ⬜ |
-| **3e** | 组卷（auto/pick/quicklook/history/explore/favorites/answer_sheet） | 1.5 天 | ⬜ |
-| **3f** | 推荐 | 0.5 天 | ⬜ |
-| **3g** | 学习统计（4 图表卡片） | 0.5 天 | ⬜ |
-| **3h** | 我的（profile/edit/achievement/level/points/about/history） | 0.5 天 | ⬜ |
+|| **3c** | 讲义（courses → chapters → content） | 1 天 | ✅ |
+|| **3d** | 作业（list + detail） | 0.5 天 | ✅ |
+|| **3e** | 组卷（auto/pick/quicklook/history/explore/favorites/answer_sheet） | 1.5 天 | ✅ |
+|| **3f** | 推荐 | 0.5 天 | ✅ |
+|| **3g** | 学习统计（4 图表卡片） | 0.5 天 | ✅ |
+|| **3h** | 我的（profile/edit/achievement/level/points/about/history） | 0.5 天 | ✅ |
 | | **合计** | **~8 天** | |
 
 ### 前置条件

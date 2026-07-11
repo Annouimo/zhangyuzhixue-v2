@@ -2,7 +2,7 @@
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 2 的细化执行方案总入口。
 > 各子步骤的详细方案见对应的拆分文档。
-> 状态：**进行中（2.1~2.4 已完成）** | 最后更新：2026-07-11
+> 状态：**已完成** | 最后更新：2026-07-11
 
 ---
 
@@ -14,7 +14,7 @@
 | **2.2** | DatabaseProvider（生命周期）+ ApiClient（3 拦截器） | 0.5 天 | ✅ | [Phase-2.2-2.3-ApiClient+Prefs.md](./Phase-2.2-2.3-ApiClient+Prefs.md) |
 | **2.3** | AppPrefs + ConnectivityMonitor | 0.5 天 | ✅ | ↑ 同上 |
 | **2.4** | 13 个 Repository 全部实现 | 1.5 天 | ✅ | [Phase-2.4-Repository.md](./Phase-2.4-Repository.md) |
-|| **2.5** | 同步引擎 + 更新机制 | 1 天 | ⬜ | [Phase-2.5-SyncEngine.md](./Phase-2.5-SyncEngine.md) |
+|| **2.5** | 同步引擎 + 更新机制 | 1 天 | ✅ | [Phase-2.5-SyncEngine.md](./Phase-2.5-SyncEngine.md) |
 
 ### 前置条件
 
