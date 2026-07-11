@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 筛选预设数据访问层（user 库）
 class PreferenceDao {
@@ -9,13 +10,17 @@ class PreferenceDao {
   Future<List<db.PreferenceFilterRow>> listAll() async {
     final q = _db.select(_db.preferenceFilters)
       ..orderBy([(t) => OrderingTerm(expression: t.id)]);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('PreferenceDao.listAll', rows.length, {});
+    return rows;
   }
 
   Future<db.PreferenceFilterRow?> getById(int id) async {
     final q = _db.select(_db.preferenceFilters)
       ..where((t) => t.id.equals(id));
-    return q.getSingleOrNull();
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('PreferenceDao.getById', result != null ? 1 : 0, {'id': id});
+    return result;
   }
 
   Future<int> save({
@@ -46,6 +51,9 @@ class PreferenceDao {
     await q.go();
   }
 
-  Future<int> count() =>
-      _db.select(_db.preferenceFilters).get().then((r) => r.length);
+  Future<int> count() async {
+    final rows = await _db.select(_db.preferenceFilters).get();
+    AuditLogger.instance.dao('PreferenceDao.count', rows.length, {});
+    return rows.length;
+  }
 }

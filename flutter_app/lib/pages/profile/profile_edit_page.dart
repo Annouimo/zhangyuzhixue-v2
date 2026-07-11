@@ -6,6 +6,7 @@ import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
+import '../../../data/debug/audit_logger.dart';
 
 class ProfileEditPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -39,6 +40,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _gaokaoCtrl.text = info.gaokaoYear ?? '';
       _phoneCtrl.text = info.phone ?? '';
       setState(() => _loading = false);
+      AuditLogger.page('ProfileEditPage', {'name': _name, 'gaokaoYear': _gaokaoYear, 'saving': _saving});
     } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
   }
 

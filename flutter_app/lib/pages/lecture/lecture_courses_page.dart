@@ -7,6 +7,7 @@ import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
@@ -44,6 +45,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _courses = courses;
         _loading = false;
       });
+      AuditLogger.page('LectureCoursesPage', {'courseCount': _courses?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -6,6 +6,7 @@ import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 评分页（3维×10星）
 class SolveRatePage extends StatefulWidget {
@@ -57,6 +58,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
         }
         _loading = false;
       });
+      AuditLogger.page('SolveRatePage', {'difficulty': _difficultyScore, 'calcScore': _calcScore});
     } catch (e) {
       debugPrint('_loadRating error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

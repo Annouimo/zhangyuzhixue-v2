@@ -5,6 +5,7 @@ import '../../data/daos/preference_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 学习偏好编辑页（新建/编辑）
 class PreferenceEditPage extends StatefulWidget {
@@ -73,6 +74,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         _calcMax = filter.calcMax ?? 10;
         _loading = false;
       });
+      AuditLogger.page('PreferenceEditPage', {'qCount': _questions?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

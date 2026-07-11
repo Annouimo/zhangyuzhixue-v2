@@ -9,6 +9,7 @@ import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import 'widgets/recommend_card.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 推荐页（双模式：智能推荐 / 偏好推荐）
 class RecommendPage extends StatefulWidget {
@@ -52,6 +53,7 @@ class _RecommendPageState extends State<RecommendPage> {
         else { _preferSmart = true; }
         _loading = false;
       });
+      AuditLogger.instance.page('RecommendPage', {'presetCount': _presets?.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

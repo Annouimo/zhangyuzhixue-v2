@@ -14,6 +14,7 @@ import '../data/daos/user_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/prefs/app_prefs.dart';
 import '../domain/user_repository.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
@@ -69,6 +70,7 @@ class _IndexPageState extends State<IndexPage> {
         _checkedIn = checkedIn;
         _loading = false;
       });
+      AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn});
     } catch (_) {
       if (!mounted) return;
       setState(() { _error = '加载失败'; _loading = false; });

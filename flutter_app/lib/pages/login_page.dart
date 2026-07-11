@@ -12,6 +12,7 @@ import '../data/daos/preference_dao.dart';
 import '../data/database/database_provider.dart';
 import '../widgets/sync_progress_dialog.dart';
 import 'router.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {
@@ -94,6 +95,7 @@ class _LoginPageState extends State<LoginPage> {
       _showError(_extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
+      AuditLogger.instance.page('LoginPage', {'hasError': _error != null, 'errorMsg': _error});
     }
   }
 

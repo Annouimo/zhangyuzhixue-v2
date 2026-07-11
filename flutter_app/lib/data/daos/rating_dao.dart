@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 题目评分数据访问层（user 库）
 class RatingDao {
@@ -9,7 +10,9 @@ class RatingDao {
   Future<db.QuestionRatingRow?> getRating(int questionId) async {
     final q = _db.select(_db.questionRatings)
       ..where((t) => t.questionId.equals(questionId));
-    return q.getSingleOrNull();
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('RatingDao.getRating', result != null ? 1 : 0, {'questionId': questionId});
+    return result;
   }
 
   Future<void> upsertRating({

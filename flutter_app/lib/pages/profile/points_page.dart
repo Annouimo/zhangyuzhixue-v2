@@ -7,6 +7,7 @@ import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
+import '../../../data/debug/audit_logger.dart';
 
 class PointsPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -34,6 +35,7 @@ class _PointsPageState extends State<PointsPage> {
       final list = await _repo.getPointsHistory();
       if (!mounted) return;
       setState(() { _records = list; _loading = false; });
+      AuditLogger.page('PointsPage', {'balance': _balance, 'today': _todayPoints});
     } catch (e) {
       debugPrint('_load error: $e');
       if (!mounted) return;

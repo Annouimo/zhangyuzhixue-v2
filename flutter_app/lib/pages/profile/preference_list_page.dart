@@ -7,6 +7,7 @@ import '../../domain/preference_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../router.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 学习偏好列表页（匹配 preference_list.html）
 class PreferenceListPage extends StatefulWidget {
@@ -41,6 +42,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
         _preferences = list;
         _loading = false;
       });
+      AuditLogger.page('PreferenceListPage', {'presetCount': _presets?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

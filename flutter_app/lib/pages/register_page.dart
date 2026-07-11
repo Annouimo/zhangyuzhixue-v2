@@ -4,6 +4,7 @@ import '../app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../domain/auth_repository.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 注册页
 class RegisterPage extends StatefulWidget {
@@ -80,6 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
       _showError(_extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
+      AuditLogger.instance.page('RegisterPage', {'saving': _loading});
     }
   }
 

@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../debug/audit_logger.dart';
+import '../../debug/audit_logger.dart';
 
 /// 全局 SharedPreferences key 定义
 ///
@@ -47,16 +49,26 @@ class AppPrefs {
 
   // ── Token ──
 
-  String? get accessToken => p.getString(PrefKeys.accessToken);
+  String? get accessToken {
+    final v = p.getString(PrefKeys.accessToken);
+    AuditLogger.instance.prefs(PrefKeys.accessToken, v);
+    return v;
+  }
   Future<bool> setAccessToken(String val) => p.setString(PrefKeys.accessToken, val);
 
-  String? get refreshToken => p.getString(PrefKeys.refreshToken);
+  String? get refreshToken {
+    final v = p.getString(PrefKeys.refreshToken);
+    AuditLogger.instance.prefs(PrefKeys.refreshToken, v);
+    return v;
+  }
   Future<bool> setRefreshToken(String val) => p.setString(PrefKeys.refreshToken, val);
 
   // ── 用户缓存 ──
 
   Map<String, dynamic>? get userCache {
     final raw = p.getString(PrefKeys.userCache);
+    AuditLogger.instance.prefs('userCache', raw);
+    if (raw == null) return null;
     if (raw == null) return null;
     try {
       return Map<String, dynamic>.from(jsonDecode(raw) as Map);
@@ -69,16 +81,25 @@ class AppPrefs {
 
   // ── 数据库版本 ──
 
-  int get qbankVersion => p.getInt(PrefKeys.qbankVersion) ?? 0;
+  int get qbankVersion {
+    final v = p.getInt(PrefKeys.qbankVersion) ?? 0;
+    AuditLogger.instance.prefs(PrefKeys.qbankVersion, v);
+    return v;
+  }
   Future<bool> setQbankVersion(int v) => p.setInt(PrefKeys.qbankVersion, v);
 
-  int get lectureVersion => p.getInt(PrefKeys.lectureVersion) ?? 0;
+  int get lectureVersion {
+    final v = p.getInt(PrefKeys.lectureVersion) ?? 0;
+    AuditLogger.instance.prefs(PrefKeys.lectureVersion, v);
+    return v;
+  }
   Future<bool> setLectureVersion(int v) => p.setInt(PrefKeys.lectureVersion, v);
 
   // ── 可访问课程缓存 ──
 
   List<int> get accessibleCourseIds {
     final raw = p.getString(PrefKeys.accessibleCourses);
+    AuditLogger.instance.prefs(PrefKeys.accessibleCourses, raw);
     if (raw == null) return [];
     try {
       return (raw.split(',')).map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
@@ -92,18 +113,30 @@ class AppPrefs {
 
   // ── 待办作业计数 ──
 
-  int get pendingHomeworkCount => p.getInt(PrefKeys.pendingHomeworkCount) ?? 0;
+  int get pendingHomeworkCount {
+    final v = p.getInt(PrefKeys.pendingHomeworkCount) ?? 0;
+    AuditLogger.instance.prefs(PrefKeys.pendingHomeworkCount, v);
+    return v;
+  }
   Future<bool> setPendingHomeworkCount(int v) => p.setInt(PrefKeys.pendingHomeworkCount, v);
 
   // ── 同步时间 ──
 
-  String? get lastSyncTime => p.getString(PrefKeys.lastSyncTime);
+  String? get lastSyncTime {
+    final v = p.getString(PrefKeys.lastSyncTime);
+    AuditLogger.instance.prefs(PrefKeys.lastSyncTime, v);
+    return v;
+  }
   Future<bool> setLastSyncTime(String label) =>
       p.setString(PrefKeys.lastSyncTime, label);
 
   // ── 更新弹窗冷却 ──
 
-  int? get lastUpdatePromptTimestamp => p.getInt(PrefKeys.lastUpdatePrompt);
+  int? get lastUpdatePromptTimestamp {
+    final v = p.getInt(PrefKeys.lastUpdatePrompt);
+    AuditLogger.instance.prefs(PrefKeys.lastUpdatePrompt, v);
+    return v;
+  }
   Future<bool> setLastUpdatePromptTimestamp(int ts) =>
       p.setInt(PrefKeys.lastUpdatePrompt, ts);
 
@@ -112,6 +145,7 @@ class AppPrefs {
   /// 判断指定页面的评价弹窗冷却是否活跃（24 小时内）
   bool isRatingCooldownActive(String pageUrl) {
     final ts = p.getInt(PrefKeys.ratingCooldownPrefix + pageUrl);
+    AuditLogger.instance.prefs('ratingCooldown_$pageUrl', ts);
     if (ts == null) return false;
     final elapsed = DateTime.now().millisecondsSinceEpoch - ts;
     return elapsed < const Duration(hours: 24).inMilliseconds;

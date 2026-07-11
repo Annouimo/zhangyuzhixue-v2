@@ -12,6 +12,7 @@ import '../domain/user_repository.dart';
 import 'exam/widgets/filter_panel.dart';
 import 'router.dart';
 import '../widgets/shared/loading_indicator.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳首页
 class PreferenceWelcomePage extends StatefulWidget {
@@ -65,6 +66,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final tags = (await _qDao.getAllConceptTags()).map((t) => t.name).toList();
       if (!mounted) return;
       setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; });
+      AuditLogger.page('PreferenceWelcomePage', {'step': _currentStep});
     } catch (_) {}
   }
 

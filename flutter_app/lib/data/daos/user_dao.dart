@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 用户数据访问层（user 库）
 class UserDao {
@@ -8,6 +9,7 @@ class UserDao {
 
   Future<db.UserProfileRow?> getProfile() async {
     final rows = await _db.select(_db.userProfiles).get();
+    AuditLogger.instance.dao('UserDao.getProfile', rows.length, {});
     return rows.isEmpty ? null : rows.first;
   }
 
@@ -48,12 +50,15 @@ class UserDao {
   Future<List<db.PointsTransactionRow>> getPointsHistory() async {
     final q = _db.select(_db.pointsTransactions)
       ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);
-    return q.get();
+    final result = await q.get();
+    AuditLogger.instance.dao('UserDao.getPointsHistory', result.length, {});
+    return result;
   }
 
   Future<int> getEarnedPoints() async {
     final rows = await (_db.select(_db.pointsTransactions)
       ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']))).get();
+    AuditLogger.instance.dao('UserDao.getEarnedPoints', rows.length, {});
     var total = 0;
     for (final r in rows) { total += r.amount; }
     return total;
@@ -63,7 +68,9 @@ class UserDao {
       List<String> sources) async {
     final q = _db.select(_db.pointsTransactions)
       ..where((t) => t.source.isIn(sources));
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('UserDao.getTransactionsBySource', rows.length, {'sources': sources.length});
+    return rows;
   }
 
   Future<int> getStreakDays() async {
@@ -81,11 +88,13 @@ class UserDao {
         break;
       }
     }
+    AuditLogger.instance.dao('UserDao.getStreakDays', streak, {});
     return streak;
   }
 
   Future<int> getTotalSubmissions() async {
     final rows = await _db.select(_db.submissionDetails).get();
+    AuditLogger.instance.dao('UserDao.getTotalSubmissions', rows.length, {});
     return rows.length;
   }
 
@@ -94,13 +103,16 @@ class UserDao {
     final q = _db.select(_db.submissionDetails)
       ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
       ..limit(limit);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('UserDao.getRecentSubmissions', rows.length, {'limit': limit});
+    return rows;
   }
 
   /// 获取今天获得的积分
   Future<int> getTodayEarnedPoints() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final all = await _db.select(_db.pointsTransactions).get();
+    AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', all.length, {});
     var total = 0;
     for (final row in all) {
       if (row.createdAt.startsWith(today) && row.amount > 0) {

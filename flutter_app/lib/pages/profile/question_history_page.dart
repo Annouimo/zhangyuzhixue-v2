@@ -7,6 +7,7 @@ import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
+import '../../../data/debug/audit_logger.dart';
 
 class QuestionHistoryPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -35,6 +36,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       final list = await _repo.getAnswerHistory();
       if (!mounted) return;
       setState(() { _history = list; _loading = false; });
+      AuditLogger.page('QuestionHistoryPage', {'total': _history?.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });

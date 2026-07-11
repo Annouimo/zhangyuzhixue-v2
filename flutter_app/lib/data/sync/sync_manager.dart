@@ -4,6 +4,7 @@ import '../database/database_provider.dart';
 import 'sync_types.dart';
 import 'sync_pusher.dart';
 import 'update_manager.dart';
+import 'package:flutter_app/data/debug/audit_logger.dart';
 
 /// 同步引擎总入口（单例）
 class SyncManager {
@@ -103,7 +104,11 @@ class SyncManager {
     final now = DateTime.now();
     if (now.difference(_lastPushTime).inSeconds < 30) return null;
     _lastPushTime = now;
-    return _pusher!.pushAll();
+    final summary = await _pusher!.pushAll();
+    if (summary != null) {
+      AuditLogger.instance.sync('pushAll', {'success': summary.successCount, 'fail': summary.failCount});
+    }
+    return summary;
   }
 
   Future<void> clearQueue() async {

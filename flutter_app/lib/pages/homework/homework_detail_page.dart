@@ -9,6 +9,7 @@ import '../../data/helpers/pdf_helper.dart';
 import '../../domain/assignment_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 作业详情页
 class HomeworkDetailPage extends StatefulWidget {
@@ -55,6 +56,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         _detail = detail;
         _loading = false;
       });
+      AuditLogger.page('HomeworkDetailPage', {'qCount': _questions?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() {

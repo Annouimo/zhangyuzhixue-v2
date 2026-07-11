@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 组卷/收藏/点赞数据访问层（user 库）
 class ExamDao {
@@ -9,12 +10,16 @@ class ExamDao {
   Future<List<db.CustomPaperRow>> listCreated() async {
     final q = _db.select(_db.customPapers)
       ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('ExamDao.listCreated', rows.length, {});
+    return rows;
   }
 
   Future<db.CustomPaperRow?> getById(int id) async {
     final q = _db.select(_db.customPapers)..where((t) => t.id.equals(id));
-    return q.getSingleOrNull();
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('ExamDao.getById', result != null ? 1 : 0, {'id': id});
+    return result;
   }
 
   Future<int> savePaper({
@@ -51,7 +56,9 @@ class ExamDao {
     final q = _db.select(_db.customPaperQuestions)
       ..where((t) => t.paperId.equals(paperId));
     q.orderBy([(t) => OrderingTerm(expression: t.sortOrder)]);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('ExamDao.getQuestions', rows.length, {'paperId': paperId});
+    return rows;
   }
 
   Future<void> savePaperQuestions(int paperId, List<int> questionIds) async {
@@ -72,7 +79,9 @@ class ExamDao {
   Future<db.PaperLikeRow?> getLike(int paperId) async {
     final q = _db.select(_db.paperLikes)
       ..where((t) => t.paperId.equals(paperId));
-    return q.getSingleOrNull();
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('ExamDao.getLike', result != null ? 1 : 0, {'paperId': paperId});
+    return result;
   }
 
   Future<void> toggleLike(int paperId) async {
@@ -93,7 +102,9 @@ class ExamDao {
   Future<db.PaperCollectRow?> getCollect(int paperId) async {
     final q = _db.select(_db.paperCollects)
       ..where((t) => t.paperId.equals(paperId));
-    return q.getSingleOrNull();
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('ExamDao.getCollect', result != null ? 1 : 0, {'paperId': paperId});
+    return result;
   }
 
   Future<void> toggleCollect(int paperId) async {
@@ -113,11 +124,14 @@ class ExamDao {
   /// 获取所有收藏的试卷 ID
   Future<List<int>> getCollectedPaperIds() async {
     final rows = await _db.select(_db.paperCollects).get();
+    AuditLogger.instance.dao('ExamDao.getCollectedPaperIds', rows.length, {});
     return rows.map((r) => r.paperId).toList();
   }
 
   /// 获取已创建的组卷总数
   Future<int> getPaperCount() async {
-    return _db.select(_db.customPapers).get().then((rows) => rows.length);
+    final rows = await _db.select(_db.customPapers).get();
+    AuditLogger.instance.dao('ExamDao.getPaperCount', rows.length, {});
+    return rows.length;
   }
 }

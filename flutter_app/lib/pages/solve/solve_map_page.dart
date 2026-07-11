@@ -6,6 +6,7 @@ import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/progress_repository.dart' as progress;
+import '../../data/debug/audit_logger.dart';
 
 /// 解答题地图页 — 步骤概览（匹配 solve-map.html）
 class SolveMapPage extends StatefulWidget {
@@ -60,6 +61,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         _isFresh = fresh;
         _loading = false;
       });
+      AuditLogger.page('SolveMapPage', {'progress': _progress, 'stars': _stars});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

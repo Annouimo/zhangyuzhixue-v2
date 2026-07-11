@@ -1,5 +1,6 @@
 import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
+import 'package:flutter_app/data/debug/audit_logger.dart';
 
 /// 推送结果汇总
 class PushSummary {
@@ -63,6 +64,8 @@ class SyncPusher {
 
     await _dao.markPermanentFailures(maxRetries);
     await _dao.cleanup();
+
+    AuditLogger.instance.sync('push', {'success': success, 'fail': fail, 'batchSize': batchSize});
 
     return PushSummary(successCount: success, failCount: fail);
   }

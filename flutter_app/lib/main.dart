@@ -11,11 +11,13 @@ import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
 import 'package:flutter_app/widgets/sync_progress_dialog.dart';
 import 'data/sync/update_manager.dart';
+import 'data/debug/audit_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await AppPrefs().init();
+  await AuditLogger.instance.init();
   ApiClient().init(baseUrl: 'https://zhangyuzhixue.top/api/v1/');
 
   // 注册 token 提供器：所有 API 请求自动携带 Authorization header

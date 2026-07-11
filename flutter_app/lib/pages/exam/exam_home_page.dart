@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 组卷首页 — 新组卷入口 + 功能列表（匹配 exam.html）
 class ExamHomePage extends StatelessWidget {
@@ -8,6 +9,7 @@ class ExamHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AuditLogger.instance.page('ExamHomePage', {'autoCount': _autoCount, 'pickCount': _pickCount, 'favCount': _favCount});
     return Scaffold(
       appBar: AppBar(title: const Text('组卷')),
       body: ListView(

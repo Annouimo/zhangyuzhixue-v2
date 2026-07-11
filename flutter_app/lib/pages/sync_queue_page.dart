@@ -5,6 +5,7 @@ import '../data/database/database_provider.dart';
 import '../domain/sync_repository.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/error_placeholder.dart';
+import '../data/debug/audit_logger.dart';
 
 /// 同步队列状态页
 class SyncQueuePage extends StatefulWidget {
@@ -34,6 +35,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       final items = await _repo.getQueue();
       if (!mounted) return;
       setState(() { _items = items; _loading = false; });
+      AuditLogger.instance.page('SyncQueuePage', {'pending': _pendingCount, 'failed': _failedCount});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

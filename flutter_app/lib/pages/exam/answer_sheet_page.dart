@@ -6,6 +6,7 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 快对答案
 class AnswerSheetPage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       final l = await _repo.getQuickAnswers(widget.examId);
       if (!mounted) return;
       setState(() { _answers = l; _loading = false; });
+      AuditLogger.page('AnswerSheetPage', {'total': _answers?.length, 'unanswered': _unanswered});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

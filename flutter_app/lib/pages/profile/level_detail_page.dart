@@ -7,6 +7,7 @@ import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
+import '../../../data/debug/audit_logger.dart';
 
 class LevelDetailPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -37,6 +38,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       final e = await _repo.earnedPoints();
       if (!mounted) return;
       setState(() { _progress = p; _earned = e.toInt(); _loading = false; });
+      AuditLogger.page('LevelDetailPage', {'level': _level, 'xp': _xp, 'nextXp': _nextXp});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });

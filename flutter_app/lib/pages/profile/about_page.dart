@@ -3,6 +3,7 @@ import '../../app_theme.dart';
 import '../../widgets/sync_progress_dialog.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 关于页
 class AboutPage extends StatefulWidget {
@@ -27,6 +28,8 @@ class _AboutPageState extends State<AboutPage> {
     if (ts != null && mounted) {
       setState(() => _lastSyncTime = '上次同步：$ts');
     }
+    final ver = '2.0.0';
+    AuditLogger.instance.page('AboutPage', {'version': ver});
   }
 
   Future<void> _onSync() async {

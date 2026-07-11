@@ -7,6 +7,7 @@ import '../../../data/database/database_provider.dart';
 import '../../../domain/achievement_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../data/debug/audit_logger.dart';
 
 /// 成就页
 class AchievementPage extends StatefulWidget {
@@ -37,6 +38,7 @@ class _AchievementPageState extends State<AchievementPage> {
       final cats = await _repo.getCategories();
       if (!mounted) return;
       setState(() { _categories = cats; _loading = false; });
+      AuditLogger.page('AchievementPage', {'total': _achievements?.length, 'unlocked': _unlockedCount});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

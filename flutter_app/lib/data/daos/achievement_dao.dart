@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 成就数据访问层（user 库）
 class AchievementDao {
@@ -9,11 +10,17 @@ class AchievementDao {
   Future<int> getUnlockedCount() async {
     final rows = await (_db.select(_db.studentAchievements)
       ..where((t) => t.isUnlocked.equals(1))).get();
+    AuditLogger.instance.dao('AchievementDao.getUnlockedCount', rows.length, {});
     return rows.length;
   }
 
-  Future<List<db.StudentAchievementRow>> getAllProgress() =>
-      _db.select(_db.studentAchievements).get();
+  Future<List<db.StudentAchievementRow>> getAllProgress() {
+    final q = _db.select(_db.studentAchievements).get();
+    return q.then((rows) {
+      AuditLogger.instance.dao('AchievementDao.getAllProgress', rows.length, {});
+      return rows;
+    });
+  }
 
   Future<void> upsertProgress({
     required String achievementCode,
@@ -45,11 +52,13 @@ class AchievementDao {
 
   Future<int> getSubmissionCount() async {
     final rows = await _db.select(_db.submissionDetails).get();
+    AuditLogger.instance.dao('AchievementDao.getSubmissionCount', rows.length, {});
     return rows.length;
   }
 
   Future<int> getRatingCount() async {
     final rows = await _db.select(_db.questionRatings).get();
+    AuditLogger.instance.dao('AchievementDao.getRatingCount', rows.length, {});
     return rows.length;
   }
 
@@ -69,6 +78,7 @@ class AchievementDao {
         break;
       }
     }
+    AuditLogger.instance.dao('AchievementDao.getLoginStreak', streak, {'streak': streak});
     return streak;
   }
 }

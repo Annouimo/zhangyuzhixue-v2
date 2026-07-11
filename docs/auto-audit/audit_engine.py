@@ -9,7 +9,9 @@ CERTAIN 级别检查（纯机械，零误报）。
 import os
 import re
 import sys
+import json
 import sqlite3
+from collections import defaultdict
 from dataclasses import dataclass
 
 
@@ -925,6 +927,181 @@ def check_bundled_db_content(cfg: Config) -> list[Finding]:
 
 
 # ═══════════════════════════════════════════════
+# 检查模块 12: 运行时审计日志验证（Runtime）
+# ═══════════════════════════════════════════════
+
+_EXPECTED_RT_PAGES = [
+    'IndexPage', 'RecommendPage', 'LoginPage', 'RegisterPage',
+    'ProfilePage', 'StatisticsPage', 'AboutPage', 'SyncQueuePage',
+    'ExamHomePage', 'ExamAutoPage', 'ExamPickPage', 'ExamExplorePage',
+    'ExamFavoritesPage', 'ExamHistoryPage', 'ExamQuicklookPage',
+    'ExamQuicklookOtherPage', 'AnswerSheetPage',
+    'HomeworkListPage', 'HomeworkDetailPage',
+    'LectureCoursesPage', 'LectureChaptersPage', 'LectureContentPage',
+    'SolveChoicePage', 'SolveFillPage', 'SolveStepPage',
+    'SolveRatePage', 'SolveMapPage',
+    'PreferenceListPage', 'PreferenceEditPage', 'PreferenceWelcomePage',
+    'ProfileEditPage', 'AchievementPage', 'LevelDetailPage',
+    'PointsPage', 'QuestionHistoryPage',
+]
+
+# 每个页面的非空关键字段
+_RT_REQUIRED_FIELDS = {
+    'IndexPage': ['streakDays', 'pendingCount', 'checkedIn'],
+    'RecommendPage': ['presetCount', 'smartCount', 'preferSmart'],
+    'ProfilePage': ['name', 'gaokaoYear'],
+    'HomeworkListPage': ['total', 'pending'],
+    'LectureCoursesPage': ['courseCount'],
+    'LectureChaptersPage': ['chapterCount'],
+    'LectureContentPage': ['hasContent'],
+    'SolveChoicePage': ['qid', 'optionsCount'],
+    'AchievementPage': ['total', 'unlocked'],
+    'LevelDetailPage': ['level', 'xp'],
+    'PointsPage': ['balance', 'today'],
+}
+
+
+def check_runtime_audit_log(cfg: Config) -> list[Finding]:
+    """读取运行时审计日志 NDJSON，做内容断言
+
+    依赖：用户已运行 flutter run --dart-define=AUDIT_MODE=true
+    并走查了各页面。
+    日志路径：Windows %TEMP%/zhangyuzhixue_audit.ndjson
+    """
+    findings = []
+
+    # 定位 NDJSON 文件
+    temp_dir = os.environ.get('TEMP') or os.environ.get('TMPDIR') or '/tmp'
+    log_path = os.path.join(temp_dir, 'zhangyuzhixue_audit.ndjson')
+    if not path_exists(log_path):
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue="⚠️ 未找到运行时审计日志文件 — 请先运行 flutter run --dart-define=AUDIT_MODE=true 并走查页面",
+            source="runtime-verification Step R1",
+            path=log_path,
+            evidence=f"File not found at {log_path}",
+        ))
+        return findings
+
+    # 读取并解析所有行
+    content = read_file(log_path)
+    lines = [l for l in content.split('\n') if l.strip()]
+    entries = []
+    for line in lines:
+        try:
+            entries.append(json.loads(line))
+        except:
+            pass
+
+    if not entries:
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue="❌ 运行时审计日志为空（0 条记录）",
+            source="runtime-verification Step R2",
+            path=log_path,
+            evidence=f"File exists ({os.path.getsize(log_path)} bytes) but no valid JSON entries",
+        ))
+        return findings
+
+    # 按 source 分组
+    from collections import defaultdict
+    by_source = defaultdict(list)
+    for e in entries:
+        by_source[e.get('src', '??')].append(e)
+
+    # 1. 页面覆盖断言
+    visited_pages = {s for s in by_source if s.startswith('Page') or s.endswith('Page')}
+    # 更准确的：cat=page
+    visited_pages_cat = {e['src'] for e in entries if e.get('cat') == 'page'}
+    missing_pages = [p for p in _EXPECTED_RT_PAGES if p not in visited_pages_cat]
+    if missing_pages:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f"⚠️ 未访问页面 ({len(missing_pages)} 个): {', '.join(missing_pages[:8])}" +
+                  (f' … +{len(missing_pages)-8}' if len(missing_pages) > 8 else ''),
+            source='runtime-verification Step R2',
+            path=log_path,
+            evidence=f"Expected {len(_EXPECTED_RT_PAGES)} pages, visited {len(visited_pages_cat)}",
+        ))
+    else:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f"✅ 页面全覆盖: {len(visited_pages_cat)}/{len(_EXPECTED_RT_PAGES)}",
+            source='runtime-verification Step R2',
+            path=log_path,
+            evidence='All expected pages have audit log entries',
+        ))
+
+    # 2. 非空断言
+    page_entries = {e['src']: {} for e in entries if e.get('cat') == 'page'}
+    for e in entries:
+        if e.get('cat') == 'page':
+            page_entries.setdefault(e['src'], {})[e['key']] = e['val']
+
+    null_findings = []
+    for page, fields in _RT_REQUIRED_FIELDS.items():
+        if page not in page_entries:
+            continue
+        for f in fields:
+            if f not in page_entries[page] or page_entries[page][f] == '':
+                null_findings.append(f'{page}.{f}')
+    if null_findings:
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue=f"❌ 关键字段为 null/空 ({len(null_findings)} 个): {', '.join(null_findings[:10])}",
+            source='runtime-verification Step R4',
+            path=log_path,
+            evidence=f"Fields expected non-null but found empty: {null_findings}",
+        ))
+
+    # 3. 动态值断言 — levelText 是否含硬编码数字
+    level_entries = [e for e in entries if e.get('key') == 'levelText']
+    for e in level_entries:
+        val = e.get('val', '')
+        # 如果 levelText 包含 "Lv." 加数字，说明可能是硬编码
+        if re.search(r'Lv\.?\d', val):
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"⚠️ 等级文字可能硬编码: '{val}'",
+                source='H6: 硬编码显示数据规则',
+                path=log_path,
+                evidence=f"levelText contains literal 'Lv.N' pattern; expected to come from Repository",
+            ))
+
+    # 4. 跨页一致性：pendingCount 在 IndexPage 和 HomeworkListPage
+    pending_idx = [e for e in entries
+                   if e.get('src') == 'IndexPage' and e.get('key') == 'pendingCount']
+    pending_hw = [e for e in entries
+                  if e.get('src') == 'HomeworkListPage' and e.get('key') == 'pending']
+    if pending_idx and pending_hw:
+        idx_val = pending_idx[0]['val']
+        hw_val = pending_hw[0]['val']
+        if idx_val != hw_val:
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"⚠️ 跨页 pendingCount 不一致: IndexPage={idx_val}, HomeworkListPage={hw_val}",
+                source='runtime-verification Step R4',
+                path=log_path,
+                evidence="Same data field shows different values on different pages",
+            ))
+
+    # 5. DAO 层 — 检查是否有 DAO 返回 0 行
+    dao_entries = [e for e in entries if e.get('cat') == 'dao' and e.get('key') == 'rowCount']
+    zero_daos = [e for e in dao_entries if e.get('val') == '0']
+    if zero_daos:
+        sources = sorted(set(e['src'] for e in zero_daos))
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue=f"❌ DAO 查询返回 0 行 ({len(zero_daos)} 次, 涉及 {len(sources)} 个 DAO): {', '.join(sources[:6])}",
+            source='runtime-verification Step R4',
+            path=log_path,
+            evidence=f"Zero-row DAO results: {[(e['src'], e['val']) for e in zero_daos[:10]]}",
+        ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
 # ═══════════════════════════════════════════════
 # 报告生成
 # ═══════════════════════════════════════════════
@@ -1004,6 +1181,7 @@ TYPE_MODULES = {
     "E": [1, 3, 4],                  # 部署
     "F": [1, 4],                     # 数据迁移
     "G": [4, 6, 10],                 # 全项目横切 (+H2 跨层算法)
+    "R": [12],                       # 运行时审计（模块 12 独占）
 }
 
 MODULE_NAMES = {
@@ -1018,6 +1196,7 @@ MODULE_NAMES = {
     9: "API 响应类型安全 (H1)",
     10: "跨层算法一致性 (H2)",
     11: "捆绑 DB 内容完整性 (H4)",
+    12: "运行态审计日志验证 (Runtime)",
 }
 
 def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
@@ -1025,39 +1204,42 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
     all_findings = []
 
     if 1 in modules:
-        log("[模块 1/10] 目录/文件存在性...")
+        log("[模块 1/12] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/10] HTML→Flutter 页面覆盖 + 元素清单提取...")
+        log("[模块 2/12] HTML→Flutter 页面覆盖 + 元素清单提取...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
     if 3 in modules:
-        log("[模块 3/10] pubspec.yaml 资产声明...")
+        log("[模块 3/12] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
     if 4 in modules:
-        log("[模块 4/10] 设计文档待完成标记...")
+        log("[模块 4/12] 设计文档待完成标记...")
         all_findings.extend(check_design_doc_pending_markers(cfg))
     if 5 in modules:
-        log("[模块 5/10] 测试文件覆盖率...")
+        log("[模块 5/12] 测试文件覆盖率...")
         all_findings.extend(check_test_coverage(cfg))
     if 6 in modules:
-        log("[模块 6/10] stub/TODO 扫描...")
+        log("[模块 6/12] stub/TODO 扫描...")
         all_findings.extend(check_stubs_and_todos(cfg))
     if 7 in modules:
-        log("[模块 7/11] 导航架构...")
+        log("[模块 7/12] 导航架构...")
         all_findings.extend(check_navigation_architecture(cfg))
     if 8 in modules:
-        log("[模块 8/11] 入口初始化链完整性 (H0)...")
+        log("[模块 8/12] 入口初始化链完整性 (H0)...")
         all_findings.extend(check_init_chain(cfg))
     if 9 in modules:
-        log("[模块 9/11] API 响应类型安全 (H1)...")
+        log("[模块 9/12] API 响应类型安全 (H1)...")
         all_findings.extend(check_api_type_safety(cfg))
     if 10 in modules:
-        log("[模块 10/11] 跨层算法一致性 (H2)...")
+        log("[模块 10/12] 跨层算法一致性 (H2)...")
         all_findings.extend(check_cross_layer_algo(cfg))
     if 11 in modules:
-        log("[模块 11/11] 捆绑 DB 内容完整性 (H4)...")
+        log("[模块 11/12] 捆绑 DB 内容完整性 (H4)...")
         all_findings.extend(check_bundled_db_content(cfg))
+    if 12 in modules:
+        log("[模块 12/12] 运行态审计日志验证 (Runtime)...")
+        all_findings.extend(check_runtime_audit_log(cfg))
 
     return all_findings
 

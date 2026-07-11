@@ -8,6 +8,7 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/difficulty_slider.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
@@ -44,6 +45,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
+      AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
     } catch (_) { if (mounted) setState(() { _loadingOpts = false; }); }
   }
 

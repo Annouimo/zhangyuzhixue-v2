@@ -9,6 +9,7 @@ import 'widgets/time_range_picker.dart';
 import 'widgets/heatmap_chart.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/donut_chart.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 学习统计页
 class StatisticsPage extends StatefulWidget {
@@ -47,6 +48,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       final dist = await _repo.getDistribution();
       if (!mounted) return;
       setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
+      AuditLogger.instance.page('StatisticsPage', {'hasData': _stats != null});
     } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); } }
   }
 

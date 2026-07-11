@@ -8,6 +8,7 @@ import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
 import 'widgets/filter_panel.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
@@ -42,6 +43,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
+      AuditLogger.instance.page('ExamPickPage', {'totalCount': _totalCount, 'filterCount': _filteredCount});
     } catch (_) { if (mounted) setState(() { _loadingOpts = false; }); }
   }
 

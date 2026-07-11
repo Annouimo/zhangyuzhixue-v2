@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 答题进度数据访问层（user 库）
 class ProgressDao {
@@ -23,7 +24,9 @@ class ProgressDao {
     final q = _db.select(_db.submissionDetails)
       ..where((t) => t.questionId.equals(questionId));
     q.orderBy([(t) => OrderingTerm(expression: t.attemptNumber)]);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('ProgressDao.getAttempts', rows.length, {'questionId': questionId});
+    return rows;
   }
 
   Future<db.SubmissionDetailRow?> getLatestAttempt(int questionId) async {
@@ -32,6 +35,7 @@ class ProgressDao {
     q.orderBy([(t) => OrderingTerm(expression: t.attemptNumber, mode: OrderingMode.desc)]);
     q.limit(1);
     final rows = await q.get();
+    AuditLogger.instance.dao('ProgressDao.getLatestAttempt', rows.length > 0 ? 1 : 0, {'questionId': questionId});
     return rows.isEmpty ? null : rows.first;
   }
 
@@ -99,7 +103,9 @@ class ProgressDao {
     final q = _db.select(_db.stepFeedbacks)
       ..where((t) => t.submissionDetailId.equals(submissionDetailId));
     q.orderBy([(t) => OrderingTerm(expression: t.stepNumber)]);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('ProgressDao.getStepFeedbacks', rows.length, {'submissionDetailId': submissionDetailId});
+    return rows;
   }
 
   Future<int> insertCardFeedback({
@@ -121,18 +127,22 @@ class ProgressDao {
   Future<List<db.CardFeedbackRow>> getCardFeedbacks(int submissionDetailId) async {
     final q = _db.select(_db.cardFeedbacks)
       ..where((t) => t.submissionDetailId.equals(submissionDetailId));
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('ProgressDao.getCardFeedbacks', rows.length, {'submissionDetailId': submissionDetailId});
+    return rows;
   }
 
   Future<bool> hasAttempt(int questionId) async {
-    final rows = await (_db.select(_db.submissionDetails)
+    final result = await (_db.select(_db.submissionDetails)
       ..where((t) => t.questionId.equals(questionId))).get();
-    return rows.isNotEmpty;
+    AuditLogger.instance.dao('ProgressDao.hasAttempt', result.length, {'questionId': questionId});
+    return result.isNotEmpty;
   }
 
   /// 是否有任何提交记录（判断是否有学习历史）
   Future<bool> hasAnySubmission() async {
     final rows = await _db.select(_db.submissions).get();
+    AuditLogger.instance.dao('ProgressDao.hasAnySubmission', rows.length, {});
     return rows.isNotEmpty;
   }
 
@@ -146,6 +156,7 @@ class ProgressDao {
         wrong.add(row.questionId);
       }
     }
+    AuditLogger.instance.dao('ProgressDao.getRecentWrongQuestionIds', wrong.length, {'days': days});
     return wrong;
   }
 
@@ -159,6 +170,7 @@ class ProgressDao {
         if (s.status == 'stuck' || s.status == 'wrong') stuck++;
       }
     }
+    AuditLogger.instance.dao('ProgressDao.getStuckStepCount', stuck, {'questionId': questionId});
     return stuck;
   }
 
@@ -167,6 +179,7 @@ class ProgressDao {
     final q = _db.select(_db.questionRatings)
       ..where((t) => t.questionId.equals(questionId));
     final row = await q.getSingleOrNull();
+    AuditLogger.instance.dao('ProgressDao.hasRating', row != null ? 1 : 0, {'questionId': questionId});
     return row != null;
   }
 }

@@ -10,6 +10,7 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 预览（自己的组卷）
 class ExamQuicklookPage extends StatefulWidget {
@@ -43,6 +44,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       final p = await _repo.getPreview(widget.examId);
       if (!mounted) return;
       setState(() { _preview = p; _loading = false; });
+      AuditLogger.instance.page('ExamQuicklookPage', {'qCount': _questions?.length, 'difficulty': _difficulty});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

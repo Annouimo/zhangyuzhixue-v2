@@ -12,6 +12,7 @@ import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../domain/auth_repository.dart';
 import '../../../data/api/auth_api.dart';
+import '../../data/debug/audit_logger.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -44,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final info = await _repo.getUserInfo();
       if (!mounted) return;
       setState(() { _info = info; _loading = false; });
+      AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); }
     }

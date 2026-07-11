@@ -9,6 +9,7 @@ import '../../data/database/database_provider.dart';
 import '../../domain/progress_repository.dart' as progress;
 import 'widgets/step_card_widget.dart';
 import 'widgets/feedback_buttons.dart';
+import '../../data/debug/audit_logger.dart';
 
 String _feedbackToStatus(FeedbackType type) {
   switch (type) {
@@ -63,6 +64,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
     try {
       final s = await _repo.getSolveState(widget.questionId);
       setState(() { _state = s; _loading = false; });
+      AuditLogger.page('SolveStepPage', {'stepCount': _steps?.length, 'currentStep': _currentStep});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

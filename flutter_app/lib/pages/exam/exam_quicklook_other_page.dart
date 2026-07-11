@@ -8,6 +8,7 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 预览（他人的组卷）
 class ExamQuicklookOtherPage extends StatefulWidget {
@@ -41,6 +42,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       final p = await _repo.getPreviewOther(widget.examId);
       if (!mounted) return;
       setState(() { _preview = p; _liked = p.likeCount > 0; _collected = p.collectCount > 0; _loading = false; });
+      AuditLogger.page('ExamQuicklookOtherPage', {'title': _title});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

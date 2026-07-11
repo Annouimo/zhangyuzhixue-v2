@@ -10,6 +10,7 @@ import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 填空题解题页
 class SolveFillPage extends StatefulWidget {
@@ -73,6 +74,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     try {
       final detail = await _repo.getDetail(widget.questionId);
       setState(() { _detail = detail; _loading = false; });
+      AuditLogger.page('SolveFillPage', {'qid': questionId, 'submitted': _submitted});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

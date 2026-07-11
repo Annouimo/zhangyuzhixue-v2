@@ -1,4 +1,5 @@
 import '../database/assets_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 系统配置 DAO（assets.db → system_config 表）
 ///

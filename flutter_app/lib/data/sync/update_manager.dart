@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import '../api/sync_api.dart';
 import '../database/database_provider.dart';
 import '../prefs/app_prefs.dart';
+import 'package:flutter_app/data/debug/audit_logger.dart';
 
 /// 版本检查结果
 class UpdateSummary {
@@ -92,8 +93,10 @@ class UpdateManager {
 
     if (digest.toString() != expectedChecksum) {
       await File(gzPath).delete();
+      AuditLogger.instance.sync('checksum', {'type': type, 'match': false});
       throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
     }
+    AuditLogger.instance.sync('checksum', {'type': type, 'match': true});
 
     final decompressed = gzip.decode(gzBytes);
     final targetPath = '${tempDir.path}/${type}_temp.db';

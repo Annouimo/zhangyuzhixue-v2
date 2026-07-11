@@ -11,6 +11,7 @@ import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 选择题解题页
 class SolveChoicePage extends StatefulWidget {
@@ -81,6 +82,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _currentAttempt = latest;
         _loading = false;
       });
+      AuditLogger.page('SolveChoicePage', {'qid': questionId, 'optionsCount': _options?.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

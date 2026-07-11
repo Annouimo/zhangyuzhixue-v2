@@ -9,6 +9,7 @@ import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import 'widgets/paper_card.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 我的收藏
 class ExamFavoritesPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
       final l = await _repo.getFavorites();
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
+      AuditLogger.instance.page('ExamFavoritesPage', {'total': _papers?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

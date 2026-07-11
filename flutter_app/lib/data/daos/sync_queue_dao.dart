@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 同步队列数据访问层（user 库）
 class SyncQueueDao {
@@ -28,7 +29,9 @@ class SyncQueueDao {
       ..where((t) => t.status.isIn(['pending', 'inProgress', 'failed']));
     q.orderBy([(t) => OrderingTerm(expression: t.id)]);
     q.limit(limit);
-    return q.get();
+    final rows = await q.get();
+    AuditLogger.instance.dao('SyncQueueDao.getPending', rows.length, {'limit': limit});
+    return rows;
   }
 
   Future<void> markInProgress(int id) async {
@@ -87,17 +90,20 @@ class SyncQueueDao {
   Future<int> getFailedCount() async {
     final rows = await (_db.select(_db.syncQueue)
       ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
+    AuditLogger.instance.dao('SyncQueueDao.getFailedCount', rows.length, {});
     return rows.length;
   }
 
   Future<bool> isEmpty() async {
     final rows = await _db.select(_db.syncQueue).get();
+    AuditLogger.instance.dao('SyncQueueDao.isEmpty', rows.length, {});
     return rows.isEmpty;
   }
 
   Future<bool> hasFailed() async {
     final rows = await (_db.select(_db.syncQueue)
       ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
+    AuditLogger.instance.dao('SyncQueueDao.hasFailed', rows.length, {});
     return rows.isNotEmpty;
   }
 

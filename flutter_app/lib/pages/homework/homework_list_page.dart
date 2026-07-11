@@ -10,6 +10,7 @@ import '../../data/prefs/app_prefs.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 作业列表页（作业 Tab 首页）
 class HomeworkListPage extends StatefulWidget {
@@ -52,6 +53,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
         _assignments = list;
         _loading = false;
       });
+      AuditLogger.page('HomeworkListPage', {'total': _homeworks?.length, 'pending': _pendingCount});
     } catch (e) {
       if (!mounted) return;
       setState(() {

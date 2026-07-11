@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 统计数据访问层（user 库）
 class StatisticsDao {
@@ -9,12 +10,14 @@ class StatisticsDao {
   Future<int> getTotalQuestions() async {
     final rows = await (_db.select(_db.submissionDetails)
       ..where((t) => t.isCorrect.isNotNull())).get();
+    AuditLogger.instance.dao('StatisticsDao.getTotalQuestions', rows.length, {});
     return rows.length;
   }
 
   Future<double> getAccuracy() async {
     final rows = await (_db.select(_db.submissionDetails)
       ..where((t) => t.isCorrect.isNotNull())).get();
+    AuditLogger.instance.dao('StatisticsDao.getAccuracy', rows.length, {});
     if (rows.isEmpty) return 0.0;
     final correct = rows.where((r) => r.isCorrect == 1).length;
     return correct / rows.length;
@@ -35,6 +38,7 @@ class StatisticsDao {
         break;
       }
     }
+    AuditLogger.instance.dao('StatisticsDao.getStreakDays', streak, {});
     return streak;
   }
 
@@ -42,6 +46,7 @@ class StatisticsDao {
   Future<int> getActiveDays() async {
     final rows = await (_db.select(_db.submissionDetails)
       ..where((t) => t.isCorrect.isNotNull())).get();
+    AuditLogger.instance.dao('StatisticsDao.getActiveDays', rows.length, {});
     final dates = rows.map((r) => r.createdAt.substring(0, 10)).toSet();
     return dates.length;
   }
@@ -51,6 +56,7 @@ class StatisticsDao {
     final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
     final rows = await (_db.select(_db.submissionDetails)
       ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+    AuditLogger.instance.dao('StatisticsDao.getDailyRecords', rows.length, {'rangeDays': rangeDays});
     final groups = <String, ({int count, int correct})>{};
     for (final r in rows) {
       final date = r.createdAt.substring(0, 10);
@@ -69,6 +75,7 @@ class StatisticsDao {
     final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
     final rows = await (_db.select(_db.pointsTransactions)
       ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+    AuditLogger.instance.dao('StatisticsDao.getPointsByDay', rows.length, {'rangeDays': rangeDays});
     final groups = <String, double>{};
     for (final r in rows) {
       final date = r.createdAt.substring(0, 10);
