@@ -805,8 +805,7 @@ POST /api/v1/teacher/assignments/{id}/remind/
 
 **认证：** 需要 Bearer token + teacher
 
-**说明：** 暂无通知推送通道，当前仅记录催交日志，预留未来扩展。
-<!-- auto-audit: accepted-deferred 2026-07-11 项目Owner已知此限制，待推送通道就绪后实现 -->
+**说明：** 暂无通知推送通道，当前仅记录催交日志，预留未来扩展。 <!-- auto-audit: accepted-deferred 2026-07-11 项目Owner已知此限制，待推送通道就绪后实现 -->
 
 ### 5.6 班级列表
 
