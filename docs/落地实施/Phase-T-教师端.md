@@ -16,7 +16,7 @@
 || **T.3** | 作业详情（按学生列完成状态） | 0.4 天 | 同上 | ✅ |
 || **T.4** | 班级概览（汇总统计卡片）+ 学生列表（搜索/筛选） | 0.5 天 | 同上 | ✅ |
 || **T.5** | 学生详情（个人报告 + 正确率趋势图） | 0.5 天 | 同上 | ✅ |
-|| **T.6** | 编辑资料 + 关于页 | 0.3 天 | 共用用户 API | ✅ |
+||| **T.6** | 关于页 | 0.15 天 | 共用用户 API | ✅ |
 || **T.7** | 集成测试 + 部署到 landing/teacher/ | 0.2 天 | T.1–T.6 完成 | ✅ |
 | | **合计** | **~3.6 天** | | |
 
@@ -820,42 +820,28 @@ function renderAccuracyTrend(canvasId, data) {
 
 ---
 
-## T.6 — 编辑资料 + 关于页（0.3 天）
+## T.6 — 关于页（0.15 天）
 
 ### 涉及文件
 
 ```
 landing/teacher/
-├── profile.html                   # 新建（编辑资料）
 └── about.html                     # 新建（关于页）
 ```
 
 ### 实现要点
-
-**编辑资料（profile.html）：**
-
-| 字段 | 实现 | API |
-|:-----|:-----|:-----|
-| 姓名 | `<input>` | `PATCH /api/v1/user/me/` |
-| 手机 | `<input>` | 同上 |
-| 学校 | `<input>` | 同上 |
-| 头像 | 点击上传 | `POST /api/v1/user/avatar/`（multipart） |
-| 保存按钮 | `onclick` | 调 PATCH API |
 
 **关于页（about.html）：** 版本号（`2.0.0`）+ 更新日志 + 隐私政策/用户协议链接。
 
 ### 验证方式
 
 ```bash
-# 编辑资料 → 保存成功 → 刷新后数据更新
 # 关于页显示版本号
 ```
 
 ### 注意事项
 
-- 头像上传用 multipart/form-data，注意 `enctype="multipart/form-data"` 设置
-- teacher 没有 Student 记录，`user_me_view` 已处理（`accounts/views.py` 的 `if hasattr(user, 'student'):` 分支不命中 teacher 时跳过 student 字段）
-- 教师端编辑资料不涉及 student 字段（school/gaokao_year 等），仅姓名 + 手机
+（无）
 
 ---
 
@@ -876,7 +862,6 @@ landing/teacher/
 | 班级概览 | 点「班级」导航 | 统计卡片 + 班级列表 |
 | 学生列表 | 点「学生」导航 | 搜索/筛选功能可用 |
 | 学生详情 | 点一个学生 | 个人信息 + 概览 + 趋势图 |
-| 编辑资料 | 点顶部头像 → 修改姓名 → 保存 | 保存成功 |
 | 关于页 | 点「关于」 | 版本号正确 |
 
 ### 部署
@@ -929,7 +914,6 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 | `/teacher/classes.html` | 班级概览 | T.4 |
 | `/teacher/students.html` | 学生列表 | T.4 |
 | `/teacher/student.html?id=` | 学生详情 | T.5 |
-| `/teacher/profile.html` | 编辑资料 | T.6 |
 | `/teacher/about.html` | 关于页 | T.6 |
 
 ## 测试汇总
@@ -946,7 +930,6 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 | 班级概览 | 1 |
 | 学生列表（搜索/筛选） | 2 |
 | 学生详情 | 1 |
-| 编辑资料 | 1 |
 | 关于页 | 1 |
 | **合计** | **~12 条手动路径** |
 
@@ -960,8 +943,8 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 4. 班级概览 4 个统计卡片 + 班级列表正确
 5. 学生列表支持搜索和筛选
 6. 学生详情展示个人信息、概览卡片、正确率趋势图、薄弱知识点
-7. 编辑资料可保存，关于页显示版本号
-8. 9 个页面全部可通过 URL 访问
+7. 关于页显示版本号
+8. 8 个页面全部可通过 URL 访问
 9. nginx 配置 `/teacher/` 路由后可通过域名访问
 10. pytest 20 场景全部通过（TS.1 产出）
 
@@ -977,7 +960,6 @@ curl -s -o /dev/null -w "%{http_code}" https://zhangyuzhixue.top/teacher/
 | 发布作业 | 教师 Web 端 |
 | 查看作业完成情况 | 教师 Web 端 |
 | 查看班级/学情 | 教师 Web 端 |
-| 编辑资料 | 教师 Web 端 |
 
 **教师 Web 端不需要：** Flutter SDK、pubspec、dart analyze、flutter test、assets.db、lectures.db、sync_queue。Web 端和服务端共用一个终端 session 进行 nginx 配置验证。
 
