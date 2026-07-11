@@ -64,12 +64,16 @@ class _ExamPickPageState extends State<ExamPickPage> {
       await _repo.confirm(SearchFilters(name: '', choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
         targetDifficulty: 0, years: [], regions: [], conceptTags: [], knowledgeCards: [], selectedIds: _selectedIds.toList()));
       if (!mounted) return;
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('组卷成功！'), behavior: SnackBarBehavior.floating));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('组卷成功！'), behavior: SnackBarBehavior.floating));
+      }
       setState(() => _saving = false);
     } catch (e) {
-      if (mounted && context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating));
+      if (mounted && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating));
+      }
       setState(() => _saving = false);
     }
   }
@@ -93,7 +97,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
           final q = _questions![i];
           final sel = _selectedIds.contains(q.id);
           return Card(margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), child: InkWell(
-            onTap: () => setState(() { if (sel) _selectedIds.remove(q.id); else _selectedIds.add(q.id); }),
+            onTap: () => setState(() { if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); } }),
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -71,9 +71,9 @@ int? _intParam(Map<String, String> params, String key) {
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.login,
   routes: [
-    GoRoute(path: AppRoutes.login, name: 'login', builder: (_, __) => const LoginPage()),
-    GoRoute(path: AppRoutes.register, name: 'register', builder: (_, __) => const RegisterPage()),
-    GoRoute(path: AppRoutes.mainShell, name: 'home', builder: (_, __) => const MainShell()),
+    GoRoute(path: AppRoutes.login, name: 'login', builder: (_, _) => const LoginPage()),
+    GoRoute(path: AppRoutes.register, name: 'register', builder: (_, _) => const RegisterPage()),
+    GoRoute(path: AppRoutes.mainShell, name: 'home', builder: (_, _) => const MainShell()),
     GoRoute(path: AppRoutes.solveChoice, name: 'solve-choice', builder: (_, state) {
       return SolveChoicePage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, nextQuestionId: _intParam(state.uri.queryParameters, 'next')); }),
     GoRoute(path: AppRoutes.solveFill, name: 'solve-fill', builder: (_, state) {
@@ -91,25 +91,25 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.homeworkDetail, name: 'homework-detail', builder: (_, state) {
       return HomeworkDetailPage(assignmentId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
     // 组卷路由
-    GoRoute(path: AppRoutes.examAuto, name: 'exam-auto', builder: (_, __) => const ExamAutoPage()),
-    GoRoute(path: AppRoutes.examPick, name: 'exam-pick', builder: (_, __) => const ExamPickPage()),
+    GoRoute(path: AppRoutes.examAuto, name: 'exam-auto', builder: (_, _) => const ExamAutoPage()),
+    GoRoute(path: AppRoutes.examPick, name: 'exam-pick', builder: (_, _) => const ExamPickPage()),
     GoRoute(path: AppRoutes.examQuicklook, name: 'exam-quicklook', builder: (_, state) {
       return ExamQuicklookPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
     GoRoute(path: AppRoutes.examQuicklookOther, name: 'exam-quicklook-other', builder: (_, state) {
       return ExamQuicklookOtherPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
-    GoRoute(path: AppRoutes.examHistory, name: 'exam-history', builder: (_, __) => const ExamHistoryPage()),
-    GoRoute(path: AppRoutes.examExplore, name: 'exam-explore', builder: (_, __) => const ExamExplorePage()),
-    GoRoute(path: AppRoutes.examFavorites, name: 'exam-favorites', builder: (_, __) => const ExamFavoritesPage()),
+    GoRoute(path: AppRoutes.examHistory, name: 'exam-history', builder: (_, _) => const ExamHistoryPage()),
+    GoRoute(path: AppRoutes.examExplore, name: 'exam-explore', builder: (_, _) => const ExamExplorePage()),
+    GoRoute(path: AppRoutes.examFavorites, name: 'exam-favorites', builder: (_, _) => const ExamFavoritesPage()),
     GoRoute(path: AppRoutes.answerSheet, name: 'answer-sheet', builder: (_, state) {
       return AnswerSheetPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
-    GoRoute(path: AppRoutes.recommend, name: 'recommend', builder: (_, __) => const RecommendPage()),
-    GoRoute(path: AppRoutes.statistics, name: 'statistics', builder: (_, __) => const StatisticsPage()),
-    GoRoute(path: AppRoutes.profileEdit, name: 'profile-edit', builder: (_, __) => const ProfileEditPage()),
-    GoRoute(path: AppRoutes.profileAchievements, name: 'profile-achievements', builder: (_, __) => const AchievementPage()),
-    GoRoute(path: AppRoutes.profileLevel, name: 'profile-level', builder: (_, __) => const LevelDetailPage()),
-    GoRoute(path: AppRoutes.profilePoints, name: 'profile-points', builder: (_, __) => const PointsPage()),
-    GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, __) => const QuestionHistoryPage()),
-    GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, __) => const AboutPage()),
+    GoRoute(path: AppRoutes.recommend, name: 'recommend', builder: (_, _) => const RecommendPage()),
+    GoRoute(path: AppRoutes.statistics, name: 'statistics', builder: (_, _) => const StatisticsPage()),
+    GoRoute(path: AppRoutes.profileEdit, name: 'profile-edit', builder: (_, _) => const ProfileEditPage()),
+    GoRoute(path: AppRoutes.profileAchievements, name: 'profile-achievements', builder: (_, _) => const AchievementPage()),
+    GoRoute(path: AppRoutes.profileLevel, name: 'profile-level', builder: (_, _) => const LevelDetailPage()),
+    GoRoute(path: AppRoutes.profilePoints, name: 'profile-points', builder: (_, _) => const PointsPage()),
+    GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, _) => const QuestionHistoryPage()),
+    GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, _) => const AboutPage()),
   ],
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('页面未找到')),

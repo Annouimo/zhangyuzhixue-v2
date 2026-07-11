@@ -65,7 +65,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
               onPressed: () async {
                 await _repo.deleteExam(widget.examId);
-                if (context.mounted) context.pop();
+                if (context.mounted) { context.pop(); }
               }),
           ],
         ),
@@ -76,9 +76,11 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
 
   Future<void> _togglePublic() async {
     await _repo.togglePublic(widget.examId);
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 
   Widget _buildBody() {

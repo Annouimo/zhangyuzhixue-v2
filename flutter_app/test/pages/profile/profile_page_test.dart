@@ -5,10 +5,9 @@ import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/profile_page.dart';
 
 class _MockUserRepo implements UserRepository {
-  final UserInfo? info;
-  _MockUserRepo({this.info});
+  _MockUserRepo();
 
-  @override Future<UserInfo> getUserInfo() async => info ?? const UserInfo(id: 1, name: 'test', realName: '张三', studentId: '2024001');
+  @override Future<UserInfo> getUserInfo() async => const UserInfo(id: 1, name: 'test', realName: '张三', studentId: '2024001');
 
   @override Future<void> saveProfile(UserInfo data) async {}
   @override Future<String> uploadAvatar(String localPath) async => '';
@@ -36,13 +35,13 @@ void main() {
     testWidgets('shows user info and menu entries', (tester) async {
       await tester.pumpWidget(MaterialApp.router(
         routerConfig: GoRouter(initialLocation: '/', routes: [
-          GoRoute(path: '/', builder: (_, __) => ProfilePage(userRepository: _MockUserRepo())),
-          GoRoute(path: '/profile/edit', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/profile/achievements', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/profile/level', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/profile/points', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/profile/history', builder: (_, __) => const Scaffold()),
-          GoRoute(path: '/profile/about', builder: (_, __) => const Scaffold()),
+          GoRoute(path: '/', builder: (_, _) => ProfilePage(userRepository: _MockUserRepo())),
+          GoRoute(path: '/profile/edit', builder: (_, _) => const Scaffold()),
+          GoRoute(path: '/profile/achievements', builder: (_, _) => const Scaffold()),
+          GoRoute(path: '/profile/level', builder: (_, _) => const Scaffold()),
+          GoRoute(path: '/profile/points', builder: (_, _) => const Scaffold()),
+          GoRoute(path: '/profile/history', builder: (_, _) => const Scaffold()),
+          GoRoute(path: '/profile/about', builder: (_, _) => const Scaffold()),
         ]),
       ));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);

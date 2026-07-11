@@ -49,8 +49,8 @@ class _RecommendPageState extends State<RecommendPage> {
         // 默认策略：做题<5且有偏好→偏好推荐，否则智能推荐
         // smart.isEmpty 等价于「做题<5」——RecommendationEngine 在
         // coldStartThreshold(5) 以下返回空列表，见 recommend_repository.dart
-        if (smart.isEmpty && presets.isNotEmpty) _preferSmart = false;
-        else _preferSmart = true;
+        if (smart.isEmpty && presets.isNotEmpty) { _preferSmart = false; }
+        else { _preferSmart = true; }
         _loading = false;
       });
     } catch (e) {
@@ -91,8 +91,8 @@ class _RecommendPageState extends State<RecommendPage> {
             icon: const Icon(Icons.swap_horiz),
             tooltip: '切换推荐模式',
             onSelected: (v) {
-              if (v == 'smart') _switchToSmart();
-              else _switchToPreset(int.tryParse(v) ?? 0);
+              if (v == 'smart') { _switchToSmart(); }
+              else { _switchToPreset(int.tryParse(v) ?? 0); }
             },
             itemBuilder: (_) => [
               const PopupMenuItem(value: 'smart', child: Text('🔮 智能推荐')),

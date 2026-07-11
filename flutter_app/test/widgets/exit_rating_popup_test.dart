@@ -9,19 +9,19 @@ import 'package:flutter_app/data/database/database_provider.dart';
 import 'package:flutter_app/data/database/app_database.dart' as app_db;
 
 void main() {
-  late Directory _tempDir;
+  late Directory tempDir;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await SharedPreferences.getInstance();
     await AppPrefs().init();
-    _tempDir = Directory.systemTemp.createTempSync('exit_test_');
-    await DatabaseProvider().initWithPath(_tempDir.path);
+    tempDir = Directory.systemTemp.createTempSync('exit_test_');
+    await DatabaseProvider().initWithPath(tempDir.path);
   });
 
   tearDown(() async {
     await DatabaseProvider().reset();
-    _tempDir.deleteSync(recursive: true);
+    tempDir.deleteSync(recursive: true);
   });
 
   // ── shouldShowExitRating ──
@@ -68,7 +68,7 @@ void main() {
 
   // ── ExitRatingPopup 弹层交互 ──
   group('ExitRatingPopup 弹层交互', () {
-    Future<void> _openPopup(WidgetTester tester) async {
+    Future<void> openPopup(WidgetTester tester) async {
       await tester.pumpWidget(MaterialApp(home: const _PopupHost()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('弹'));
@@ -76,7 +76,7 @@ void main() {
     }
 
     testWidgets('渲染 5 级表情 + 提交/跳过按钮', (tester) async {
-      await _openPopup(tester);
+      await openPopup(tester);
       expect(find.text('😡'), findsOneWidget);
       expect(find.text('😕'), findsOneWidget);
       expect(find.text('😐'), findsOneWidget);
@@ -88,7 +88,7 @@ void main() {
     });
 
     testWidgets('选择表情后提交按钮启用', (tester) async {
-      await _openPopup(tester);
+      await openPopup(tester);
       // 初始提交按钮 disabled
       final btn = tester.widget<ElevatedButton>(find.ancestor(
         of: find.text('提交反馈 (+5积分)'),
@@ -107,13 +107,13 @@ void main() {
     });
 
     testWidgets('输入文字评价', (tester) async {
-      await _openPopup(tester);
+      await openPopup(tester);
       await tester.enterText(find.byType(TextField), '很好用！');
       expect(find.text('很好用！'), findsOneWidget);
     });
 
     testWidgets('点击跳过 → 弹层消失', (tester) async {
-      await _openPopup(tester);
+      await openPopup(tester);
       expect(find.text('🎉 感觉怎么样？'), findsOneWidget);
       await tester.tap(find.text('跳过'));
       await tester.pumpAndSettle();

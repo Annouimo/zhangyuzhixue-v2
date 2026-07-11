@@ -47,8 +47,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     await _repo.saveProfile(UserInfo(id: info.id, name: info.name, realName: _nameCtrl.text,
       school: _schoolCtrl.text, gaokaoYear: _gaokaoCtrl.text, phone: _phoneCtrl.text));
     if (!mounted) return;
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('保存成功'), behavior: SnackBarBehavior.floating));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('保存成功'), behavior: SnackBarBehavior.floating));
+    }
   }
 
   @override

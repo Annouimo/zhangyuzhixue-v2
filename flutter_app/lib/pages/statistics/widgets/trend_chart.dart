@@ -62,7 +62,7 @@ class _TrendPainter extends CustomPainter {
       final x = i * stepX;
       final y = size.height - ((points[i].value - minVal) / range) * (size.height - 20) - 10;
       pts.add(Offset(x, y));
-      if (i == 0) path.moveTo(x, y); else path.lineTo(x, y);
+      if (i == 0) { path.moveTo(x, y); } else { path.lineTo(x, y); }
     }
     // Fill
     final fillPath = Path.from(path);
@@ -74,7 +74,7 @@ class _TrendPainter extends CustomPainter {
     canvas.drawPath(path, paint);
     // Dots
     final dotPaint = Paint()..color = color..style = PaintingStyle.fill;
-    for (final pt in pts) canvas.drawCircle(pt, 3, dotPaint);
+    for (final pt in pts) { canvas.drawCircle(pt, 3, dotPaint); }
   }
 
   @override
