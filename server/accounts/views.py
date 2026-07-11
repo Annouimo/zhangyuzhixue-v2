@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 
 from system.models import LevelConfig
 from accounts.models import InvitationCode, Student, UserLoginLog
@@ -132,9 +133,6 @@ def logout_view(request):
 
 
 # ── Token 刷新 ────────────────────────────────────────────────
-
-
-from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 
 
 class TokenRefreshView(BaseTokenRefreshView):

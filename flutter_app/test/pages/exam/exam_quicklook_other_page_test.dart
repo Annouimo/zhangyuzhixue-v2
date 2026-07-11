@@ -4,11 +4,8 @@ import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_quicklook_other_page.dart';
 
 class _MockOtherRepo implements ExamRepository {
-  final ExamPreviewOther? preview;
-  _MockOtherRepo({this.preview});
-
   @override Future<ExamPreviewOther> getPreviewOther(int id) async =>
-    preview ?? ExamPreviewOther(name: '试卷', authorInfo: '', choiceCount: 3, fillCount: 2, solutionCount: 1,
+    ExamPreviewOther(name: '试卷', authorInfo: '', choiceCount: 3, fillCount: 2, solutionCount: 1,
       totalCount: 6, likeCount: 10, collectCount: 5, questions: []);
   @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
   @override Future<List<ExploreExamSummary>> getExploreList() async => throw UnimplementedError();
