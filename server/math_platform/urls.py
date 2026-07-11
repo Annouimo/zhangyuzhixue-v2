@@ -13,13 +13,8 @@ from system.admin import ToolsView, HelpView
 api_v1 = [
     path('auth/', include('accounts.urls')),
     path('user/', include('accounts.urls')),
-    path('qbank/', include('qbank.urls')),
-    path('courses/', include('courses.urls')),
     path('interactions/', include('interactions.urls')),
-    path('system/', include('system.urls')),
     path('lectures/', include('courses.urls')),
-
-    # teacher: assignments, papers, classes, students
     path('teacher/', include('courses.teacher_urls')),
 
     # sync: version check + push

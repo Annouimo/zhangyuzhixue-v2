@@ -1,5 +1,6 @@
 ﻿from django.db import models
 
+from django.contrib.auth.models import User
 from accounts.models import Student
 from qbank.models import BaseQuestion
 
@@ -246,3 +247,24 @@ class PaperCollect(models.Model):
 
     def __str__(self):
         return f'{self.student_id} 收藏 组卷 {self.paper_id}'
+
+
+class PageSatisfactionFeedback(models.Model):
+    """退出评价反馈 — 通过 sync push (exitRating) 接收"""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='satisfaction_feedbacks'
+    )
+    page_url = models.CharField('页面URL', max_length=500, blank=True, default='')
+    rating = models.IntegerField('评分(1-5)')
+    comment = models.TextField('评价内容', blank=True, default='')
+    device_type = models.CharField('设备类型', max_length=32, null=True, blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '退出评价反馈'
+        verbose_name_plural = '退出评价反馈'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'评价 {self.rating}/5 ({self.user.username})'

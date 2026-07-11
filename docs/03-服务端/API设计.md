@@ -998,7 +998,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `GET` | `/api/v1/lectures/courses/` | 任意（教师可见全部） | 课程列表 |
 | `GET` | `/api/v1/lectures/courses/{courseId}/chapters/` | 任意（教师可见全部） | 章节目录 |
 | `GET` | `/api/v1/lectures/chapters/{chapterId}/content/` | 任意（教师可见全部） | 讲义内容 |
-| `GET` | `/api/v1/teacher/papers/` | teacher | 教师组卷列表（含题数/创建时间） |
+|| `GET` | `/api/v1/teacher/papers/` | teacher | 教师组卷列表（含题数/创建时间） |
 | `GET` | `/api/v1/teacher/assignments/` | teacher | 作业列表 |
 | `POST` | `/api/v1/teacher/assignments/` | teacher | 发布作业（body: title, description, course_id, paper_id, class_ids, deadline） |
 | `GET` | `/api/v1/teacher/assignments/{id}/` | teacher | 作业详情 |
@@ -1008,6 +1008,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `GET` | `/api/v1/teacher/classes/` | teacher | 班级列表 |
 | `GET` | `/api/v1/teacher/students/` | teacher | 学生列表 |
 | `GET` | `/api/v1/teacher/students/{id}/` | teacher | 学生详情 |
+| `GET` | `/api/v1/teacher/about/` | teacher | 关于页（版本号/公告/更新日志） |
 
 ### 7.2 不需要 API 的功能（确认清单）
 
@@ -1055,16 +1056,16 @@ GET  /api/v1/teacher/assignments/
 # math_platform/urls.py
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/auth/', include('accounts.auth_urls')),
-    path('api/v1/sync/', include('qbank.urls')),
-    path('api/v1/sync/', include('interactions.urls')),
-    path('api/v1/user/', include('accounts.user_urls')),
+    path('api/v1/auth/', include('accounts.urls')),
+    path('api/v1/user/', include('accounts.urls')),
+    path('api/v1/interactions/', include('interactions.urls')),
     path('api/v1/lectures/', include('courses.urls')),
-    path('api/v1/teacher/', include('courses.urls')),
+    path('api/v1/teacher/', include('courses.teacher_urls')),
+    path('api/v1/sync/', include('system.urls')),
 ]
 ```
 
-> 实际实现时按 App 拆分 `urls.py`，最终在项目级 `urls.py` 中汇总。
+> 认证端点（login/register/refresh/logout）和用户端点（me/avatar/checkin）共用 `accounts/urls.py`。同步端点全部由 `system/urls.py` 统一管理。教师端路由独立为 `courses/teacher_urls.py`。
 
 ---
 

@@ -13,6 +13,7 @@ class BatchItemSerializer(serializers.Serializer):
         'custom_paper',
         'paper_like',
         'paper_collect',
+        'exitRating',
     ])
     local_id = serializers.IntegerField()
     data = serializers.JSONField()

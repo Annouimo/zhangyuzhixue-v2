@@ -1,7 +1,8 @@
 ﻿from django.contrib import admin
 
 from .models import (
-    CardFeedback, CustomPaper, CustomPaperQuestion, PaperCollect, PaperLike,
+    CardFeedback, CustomPaper, CustomPaperQuestion, PageSatisfactionFeedback,
+    PaperCollect, PaperLike,
     QuestionRating, StepFeedback, StudentSubmission, SubmissionDetail,
 )
 
@@ -88,3 +89,11 @@ class PaperCollectAdmin(admin.ModelAdmin):
 class PaperLikeAdmin(admin.ModelAdmin):
     list_display = ['id', 'student', 'paper', 'created_at']
     list_select_related = ['student', 'paper']
+
+
+@admin.register(PageSatisfactionFeedback)
+class PageSatisfactionFeedbackAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'rating', 'page_url', 'created_at']
+    list_select_related = ['user']
+    list_filter = ['rating', 'created_at']
+    date_hierarchy = 'created_at'

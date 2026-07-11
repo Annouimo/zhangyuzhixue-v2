@@ -10,6 +10,7 @@ from interactions.models import (
     CardFeedback,
     CustomPaper,
     CustomPaperQuestion,
+    PageSatisfactionFeedback,
     PaperCollect,
     PaperLike,
     QuestionRating,
@@ -27,6 +28,7 @@ ENTITY_ORDER = [
     'custom_paper',
     'paper_like',
     'paper_collect',
+    'exitRating',
 ]
 
 # ── 响应工具 ──────────────────────────────────────────────────
@@ -176,3 +178,13 @@ class SyncPushView(APIView):
             paper_id=data['paper_id'],
         )
         return collect
+
+    def _handle_exitRating(self, data, student, server_ids, detail_cache):
+        """处理退出评价反馈"""
+        return PageSatisfactionFeedback.objects.create(
+            user=student.user,
+            page_url=data.get('page_url', ''),
+            rating=data.get('score', 5),
+            comment=data.get('feedback', ''),
+            device_type=data.get('device_type'),
+        )
