@@ -6,13 +6,10 @@ CERTAIN 级别检查（纯机械，零误报）。
 输出格式：每条问题一行 | 置信度 | 问题 | 来源 | 路径 | 证据链
 """
 
-import json
 import os
 import re
-import subprocess
 import sys
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 # ═══════════════════════════════════════════════
@@ -505,53 +502,9 @@ def check_navigation_architecture(cfg: Config) -> list[Finding]:
 
 
 # ═══════════════════════════════════════════════
-# 主流程
 # ═══════════════════════════════════════════════
-
-def run_all_checks(cfg: Config) -> list[Finding]:
-    all_findings = []
-    
-    log("=" * 60)
-    log("章鱼智学 · 自动化审计引擎")
-    log(f"Workspace: {cfg.workspace}")
-    log("=" * 60)
-    
-    # 模块 1: 目录存在性
-    log("\n[模块 1/7] 目录/文件存在性...")
-    all_findings.extend(check_directory_exists(cfg))
-    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
-    
-    # 模块 2: HTML → Flutter 页面覆盖
-    log("\n[模块 2/7] HTML → Flutter 页面覆盖...")
-    all_findings.extend(check_html_to_flutter_pages(cfg))
-    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
-    
-    # 模块 3: pubspec.yaml 资产声明
-    log("\n[模块 3/7] pubspec.yaml 资产声明...")
-    all_findings.extend(check_pubspec_assets(cfg))
-    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
-    
-    # 模块 4: 设计文档标记
-    log("\n[模块 4/7] 设计文档待完成标记...")
-    all_findings.extend(check_design_doc_pending_markers(cfg))
-    log(f"  → {len([f for f in all_findings if '⬜' in f.issue])} 个延期标记")
-    
-    # 模块 5: 测试文件覆盖率
-    log("\n[模块 5/7] 测试文件覆盖率...")
-    all_findings.extend(check_test_coverage(cfg))
-    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个缺失测试")
-    
-    # 模块 6: stub/TODO 扫描
-    log("\n[模块 6/7] stub/TODO 扫描...")
-    all_findings.extend(check_stubs_and_todos(cfg))
-    log(f"  → {len([f for f in all_findings if f.certainty == Certainty.SUSPICIOUS])} 条可疑项")
-    
-    # 模块 7: 导航架构
-    log("\n[模块 7/7] 导航架构...")
-    all_findings.extend(check_navigation_architecture(cfg))
-    
-    return all_findings
-
+# 报告生成
+# ═══════════════════════════════════════════════
 
 def generate_report(findings: list[Finding], output_path: str = ""):
     """生成报告"""
@@ -645,25 +598,25 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
     all_findings = []
 
     if 1 in modules:
-        log(f"[模块 1/7] 目录/文件存在性...")
+        log("[模块 1/7] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log(f"[模块 2/7] HTML→Flutter 页面覆盖...")
+        log("[模块 2/7] HTML→Flutter 页面覆盖...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
     if 3 in modules:
-        log(f"[模块 3/7] pubspec.yaml 资产声明...")
+        log("[模块 3/7] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
     if 4 in modules:
-        log(f"[模块 4/7] 设计文档待完成标记...")
+        log("[模块 4/7] 设计文档待完成标记...")
         all_findings.extend(check_design_doc_pending_markers(cfg))
     if 5 in modules:
-        log(f"[模块 5/7] 测试文件覆盖率...")
+        log("[模块 5/7] 测试文件覆盖率...")
         all_findings.extend(check_test_coverage(cfg))
     if 6 in modules:
-        log(f"[模块 6/7] stub/TODO 扫描...")
+        log("[模块 6/7] stub/TODO 扫描...")
         all_findings.extend(check_stubs_and_todos(cfg))
     if 7 in modules:
-        log(f"[模块 7/7] 导航架构...")
+        log("[模块 7/7] 导航架构...")
         all_findings.extend(check_navigation_architecture(cfg))
 
     return all_findings
