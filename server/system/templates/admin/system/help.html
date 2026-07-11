@@ -8,10 +8,15 @@
 <style>
 .help-nav { background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; padding:16px 20px; margin-bottom:24px; }
 .help-nav h2 { font-size:14px; margin:0 0 8px; color:#495057; }
-.help-nav ul { margin:0; padding:0; list-style:none; columns:2; column-gap:32px; }
+.help-nav ul { margin:0; padding:0; list-style:none; }
+.help-nav > ul { columns:2; column-gap:32px; }
+.help-nav > ul > li { break-inside:avoid; }
 .help-nav li { margin:0; }
 .help-nav a { font-size:13px; color:#417690; text-decoration:none; display:block; padding:2px 0; }
 .help-nav a:hover { text-decoration:underline; }
+.help-nav .nav-section { font-weight:600; }
+.help-nav .nav-sub { padding-left:14px; }
+.help-nav .nav-sub a { font-weight:400; }
 .help-section { background:#fff; border:1px solid #dee2e6; border-radius:6px; padding:20px 24px; margin-bottom:16px; }
 .help-section h2 { margin:0 0 12px; font-size:16px; color:#222; border-bottom:1px solid #eee; padding-bottom:8px; }
 .help-section h3 { font-size:14px; margin:16px 0 6px; color:#333; }
@@ -23,10 +28,10 @@
 .help-section .note { background:#fffbe6; border-left:3px solid #fadb14; padding:8px 12px; margin:8px 0; border-radius:3px; font-size:13px; }
 .help-section .warn { background:#fff2f0; border-left:3px solid #ff4d4f; padding:8px 12px; margin:8px 0; border-radius:3px; font-size:13px; }
 .help-section .tip { background:#f0fff4; border-left:3px solid #52c41a; padding:8px 12px; margin:8px 0; border-radius:3px; font-size:13px; }
-.help-grid { display:grid; grid-template-columns:150px 1fr; gap:2px 16px; font-size:13px; }
-.help-grid .g-key { color:#666; text-align:right; font-family:monospace; }
+.help-grid { display:grid; grid-template-columns:auto 1fr; gap:4px 24px; font-size:13px; }
+.help-grid .g-key { color:#666; font-family:monospace; white-space:nowrap; }
 .help-grid .g-val { color:#333; }
-@media (max-width:767px) { .help-nav ul { columns:1; } .help-grid { grid-template-columns:1fr; } }
+@media (max-width:767px) { .help-nav > ul { columns:1; } .help-grid { grid-template-columns:1fr; } .help-grid .g-key { white-space:normal; } }
 </style>
 
 <!-- ============================================================ -->
@@ -35,28 +40,40 @@
 <div class="help-nav">
   <h2>📑 目录</h2>
   <ul>
-    <li><a href="#s1">一、常用管理操作</a></li>
-    <li><a href="#s1-1">  └ 学生管理</a></li>
-    <li><a href="#s1-2">  └ 教师管理</a></li>
-    <li><a href="#s1-3">  └ 邀请码管理</a></li>
-    <li><a href="#s1-4">  └ 班级管理</a></li>
-    <li><a href="#s1-5">  └ 课程与讲义</a></li>
-    <li><a href="#s1-6">  └ 作业管理</a></li>
-    <li><a href="#s1-7">  └ 题库</a></li>
-    <li><a href="#s2">二、系统配置</a></li>
-    <li><a href="#s2-1">  └ App 版本</a></li>
-    <li><a href="#s2-2">  └ 数据库版本</a></li>
-    <li><a href="#s2-3">  └ 公告</a></li>
-    <li><a href="#s2-4">  └ 系统配置键值</a></li>
-    <li><a href="#s2-5">  └ 等级与成就</a></li>
-    <li><a href="#s3">三、系统工具</a></li>
-    <li><a href="#s3-1">  └ 构建资产</a></li>
-    <li><a href="#s3-2">  └ 生成邀请码</a></li>
-    <li><a href="#s4">四、服务器维护</a></li>
-    <li><a href="#s4-1">  └ 数据备份</a></li>
-    <li><a href="#s4-2">  └ 数据恢复</a></li>
-    <li><a href="#s4-3">  └ JSON 数据推送</a></li>
-    <li><a href="#s4-4">  └ 服务启停</a></li>
+    <li class="nav-section"><a href="#s1">一、常用管理操作</a>
+      <ul class="nav-sub">
+        <li><a href="#s1-1">学生管理</a></li>
+        <li><a href="#s1-2">教师管理</a></li>
+        <li><a href="#s1-3">邀请码管理</a></li>
+        <li><a href="#s1-4">班级管理</a></li>
+        <li><a href="#s1-5">课程与讲义</a></li>
+        <li><a href="#s1-6">作业管理</a></li>
+        <li><a href="#s1-7">题库</a></li>
+      </ul>
+    </li>
+    <li class="nav-section"><a href="#s2">二、系统配置</a>
+      <ul class="nav-sub">
+        <li><a href="#s2-1">App 版本</a></li>
+        <li><a href="#s2-2">数据库版本</a></li>
+        <li><a href="#s2-3">公告</a></li>
+        <li><a href="#s2-4">系统配置键值</a></li>
+        <li><a href="#s2-5">等级与成就</a></li>
+      </ul>
+    </li>
+    <li class="nav-section"><a href="#s3">三、系统工具</a>
+      <ul class="nav-sub">
+        <li><a href="#s3-1">构建资产</a></li>
+        <li><a href="#s3-2">生成邀请码</a></li>
+      </ul>
+    </li>
+    <li class="nav-section"><a href="#s4">四、服务器维护</a>
+      <ul class="nav-sub">
+        <li><a href="#s4-1">数据备份</a></li>
+        <li><a href="#s4-2">数据恢复</a></li>
+        <li><a href="#s4-3">JSON 数据推送</a></li>
+        <li><a href="#s4-4">服务启停</a></li>
+      </ul>
+    </li>
   </ul>
 </div>
 
@@ -165,7 +182,7 @@
   <span class="g-val">学号模板，默认 <code>XS-{lcg}</code>。<code>{lcg}</code> 会被替换为 LCG 混淆后的数字 ID。</span>
   <span class="g-key">system_maintenance</span>
   <span class="g-val">维护模式开关。<code>true</code> 时 App 提示维护中，不可使用。</span>
-</ul>
+</div>
 <div class="note">⚠️ 修改配置值后立即生效，无需重启服务。修改前确认键名和格式正确，错误的键值可能导致 App 行为异常。</div>
 
 <h3 id="s2-5">等级与成就</h3>
