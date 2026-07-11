@@ -22,8 +22,8 @@ TABLES = [
     ('auth_user',                     'auth_users',               ['password']),
     ('accounts_student',              'accounts_students',        []),
     ('accounts_teacher',              'accounts_teachers',        []),
-    ('accounts_invitationcode',       'accounts_invitation_codes',[]),
-    ('accounts_userloginlog',         'accounts_user_login_logs', []),
+    ('accounts_invitationcode',       'accounts_invitation_codes', []),
+    ('accounts_userloginlog',         'accounts_user_login_logs',  []),
     ('system_systemconfig',           'system_config',            []),
     ('system_levelconfig',            'system_level_config',      []),
     ('system_achievementdef',         'system_achievement_defs',  []),
@@ -43,7 +43,7 @@ TABLES = [
     ('interactions_cardfeedback',       'interactions_card_feedbacks',        []),
     ('interactions_questionrating',     'interactions_question_ratings',      []),
     ('interactions_custompaper',        'interactions_custom_papers',         []),
-    ('interactions_custompaperquestion','interactions_custom_paper_questions',[]),
+    ('interactions_custompaperquestion', 'interactions_custom_paper_questions', []),
     ('interactions_paperlike',          'interactions_paper_likes',           []),
     ('interactions_papercollect',       'interactions_paper_collects',        []),
 ]
@@ -65,7 +65,9 @@ def dump(db_path: str, out_dir: str) -> dict:
         # 检查表是否存在
         cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
         if not cur.fetchone():
-            meta['tables'][table] = {'count': 0, 'file': f'{filename}.json', 'status': 'table_not_found'}
+            meta['tables'][table] = {
+                'count': 0, 'file': f'{filename}.json', 'status': 'table_not_found'
+            }
             continue
 
         cur = conn.execute(f'SELECT * FROM "{table}"')

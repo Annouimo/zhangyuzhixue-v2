@@ -39,7 +39,7 @@ TABLES = [
     ('interactions_cardfeedback',       'interactions_card_feedbacks'),
     ('interactions_questionrating',     'interactions_question_ratings'),
     ('interactions_custompaper',        'interactions_custom_papers'),
-    ('interactions_custompaperquestion','interactions_custom_paper_questions'),
+    ('interactions_custompaperquestion', 'interactions_custom_paper_questions'),
     ('interactions_paperlike',          'interactions_paper_likes'),
     ('interactions_papercollect',       'interactions_paper_collects'),
 ]
