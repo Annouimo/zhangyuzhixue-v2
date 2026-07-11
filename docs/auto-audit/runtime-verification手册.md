@@ -128,8 +128,11 @@ App 启动后保持终端开着。另开一个终端做后续步骤。
 
 Agent 会自动：
 1. 读取 `%TEMP%/zhangyuzhixue_audit.ndjson`
-2. 连接本地 `server/db.sqlite3` 做预期比对
-3. 运行 8 项检查，出报告
+2. 连接本地 `server/db.sqlite3` 做预期比对（标 `[Local]`）
+3. 通过 SSH 从 ECS 拉取远程 DB 做预期比对（标 `[Remote]`）
+4. 运行 8 项检查，出报告
+
+**注意：** 远程 SSH 比对依赖网络和 ECS 可达性。如果 SSH 不可用，引擎只做本地比对，不影响其他 7 项检查。
 
 ---
 
