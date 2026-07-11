@@ -74,7 +74,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     try {
       final detail = await _repo.getDetail(widget.questionId);
       setState(() { _detail = detail; _loading = false; });
-      AuditLogger.page('SolveFillPage', {'qid': questionId, 'submitted': _submitted});
+      AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId, 'submitted': _submitted});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

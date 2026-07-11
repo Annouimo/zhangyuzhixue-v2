@@ -9,7 +9,7 @@ class ExamHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AuditLogger.instance.page('ExamHomePage', {'autoCount': _autoCount, 'pickCount': _pickCount, 'favCount': _favCount});
+    AuditLogger.instance.page('ExamHomePage', {'visited': true});
     return Scaffold(
       appBar: AppBar(title: const Text('组卷')),
       body: ListView(

@@ -38,7 +38,7 @@ class _AchievementPageState extends State<AchievementPage> {
       final cats = await _repo.getCategories();
       if (!mounted) return;
       setState(() { _categories = cats; _loading = false; });
-      AuditLogger.page('AchievementPage', {'total': _achievements?.length, 'unlocked': _unlockedCount});
+      AuditLogger.instance.page('AchievementPage', {'total': _categories?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

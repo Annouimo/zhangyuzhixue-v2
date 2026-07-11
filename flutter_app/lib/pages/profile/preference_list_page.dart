@@ -42,7 +42,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
         _preferences = list;
         _loading = false;
       });
-      AuditLogger.page('PreferenceListPage', {'presetCount': _presets?.length});
+      AuditLogger.instance.page('PreferenceListPage', {'presetCount': _preferences.length});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

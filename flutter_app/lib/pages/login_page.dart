@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
       _showError(_extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
-      AuditLogger.instance.page('LoginPage', {'hasError': _error != null, 'errorMsg': _error});
+      AuditLogger.instance.page('LoginPage', {'loading': _loading});
     }
   }
 

@@ -45,7 +45,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _courses = courses;
         _loading = false;
       });
-      AuditLogger.page('LectureCoursesPage', {'courseCount': _courses?.length});
+      AuditLogger.instance.page('LectureCoursesPage', {'courseCount': _courses?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() {

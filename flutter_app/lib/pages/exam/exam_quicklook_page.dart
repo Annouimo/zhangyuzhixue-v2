@@ -44,7 +44,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       final p = await _repo.getPreview(widget.examId);
       if (!mounted) return;
       setState(() { _preview = p; _loading = false; });
-      AuditLogger.instance.page('ExamQuicklookPage', {'qCount': _questions?.length, 'difficulty': _difficulty});
+      AuditLogger.instance.page('ExamQuicklookPage', {'hasPreview': _preview != null});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

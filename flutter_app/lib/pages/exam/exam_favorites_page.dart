@@ -41,7 +41,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
       final l = await _repo.getFavorites();
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
-      AuditLogger.instance.page('ExamFavoritesPage', {'total': _papers?.length});
+      AuditLogger.instance.page('ExamFavoritesPage', {'total': _list?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

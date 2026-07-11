@@ -39,7 +39,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       final l = await _repo.getQuickAnswers(widget.examId);
       if (!mounted) return;
       setState(() { _answers = l; _loading = false; });
-      AuditLogger.page('AnswerSheetPage', {'total': _answers?.length, 'unanswered': _unanswered});
+      AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

@@ -74,7 +74,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         _calcMax = filter.calcMax ?? 10;
         _loading = false;
       });
-      AuditLogger.page('PreferenceEditPage', {'qCount': _questions?.length});
+      AuditLogger.instance.page('PreferenceEditPage', {'loaded': !_loading});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

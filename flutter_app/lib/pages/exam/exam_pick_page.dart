@@ -43,7 +43,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
-      AuditLogger.instance.page('ExamPickPage', {'totalCount': _totalCount, 'filterCount': _filteredCount});
+      AuditLogger.instance.page('ExamPickPage', {'totalCount': _questions?.length});
     } catch (_) { if (mounted) setState(() { _loadingOpts = false; }); }
   }
 

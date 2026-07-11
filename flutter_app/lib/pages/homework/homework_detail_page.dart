@@ -56,7 +56,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         _detail = detail;
         _loading = false;
       });
-      AuditLogger.page('HomeworkDetailPage', {'qCount': _questions?.length});
+      AuditLogger.instance.page('HomeworkDetailPage', {'qCount': _detail?.questions.length});
     } catch (e) {
       if (!mounted) return;
       setState(() {

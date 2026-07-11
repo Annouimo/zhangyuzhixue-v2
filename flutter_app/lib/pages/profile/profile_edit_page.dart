@@ -40,7 +40,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _gaokaoCtrl.text = info.gaokaoYear ?? '';
       _phoneCtrl.text = info.phone ?? '';
       setState(() => _loading = false);
-      AuditLogger.page('ProfileEditPage', {'name': _name, 'gaokaoYear': _gaokaoYear, 'saving': _saving});
+      AuditLogger.instance.page('ProfileEditPage', {'name': _nameCtrl.text, 'gaokaoYear': _gaokaoCtrl.text, 'loading': _loading});
     } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
   }
 

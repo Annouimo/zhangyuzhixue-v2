@@ -53,7 +53,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
         _assignments = list;
         _loading = false;
       });
-      AuditLogger.page('HomeworkListPage', {'total': _homeworks?.length, 'pending': _pendingCount});
+      AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() {

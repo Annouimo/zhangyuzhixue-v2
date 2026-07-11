@@ -58,7 +58,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
         }
         _loading = false;
       });
-      AuditLogger.page('SolveRatePage', {'difficulty': _difficultyScore, 'calcScore': _calcScore});
+      AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
     } catch (e) {
       debugPrint('_loadRating error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

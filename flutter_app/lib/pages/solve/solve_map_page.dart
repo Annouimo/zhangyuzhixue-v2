@@ -61,7 +61,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         _isFresh = fresh;
         _loading = false;
       });
-      AuditLogger.page('SolveMapPage', {'progress': _progress, 'stars': _stars});
+      AuditLogger.instance.page('SolveMapPage', {'subQCount': _state?.subQuestions.length, 'completedSteps': _completedSteps.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

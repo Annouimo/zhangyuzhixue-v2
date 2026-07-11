@@ -42,7 +42,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       final p = await _repo.getPreviewOther(widget.examId);
       if (!mounted) return;
       setState(() { _preview = p; _liked = p.likeCount > 0; _collected = p.collectCount > 0; _loading = false; });
-      AuditLogger.page('ExamQuicklookOtherPage', {'title': _title});
+      AuditLogger.instance.page('ExamQuicklookOtherPage', {'title': _preview?.name});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

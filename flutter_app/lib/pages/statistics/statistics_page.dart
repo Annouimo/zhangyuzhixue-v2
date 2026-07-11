@@ -48,7 +48,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       final dist = await _repo.getDistribution();
       if (!mounted) return;
       setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
-      AuditLogger.instance.page('StatisticsPage', {'hasData': _stats != null});
+      AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});
     } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); } }
   }
 

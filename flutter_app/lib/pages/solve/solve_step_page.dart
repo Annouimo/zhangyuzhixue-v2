@@ -64,7 +64,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
     try {
       final s = await _repo.getSolveState(widget.questionId);
       setState(() { _state = s; _loading = false; });
-      AuditLogger.page('SolveStepPage', {'stepCount': _steps?.length, 'currentStep': _currentStep});
+      AuditLogger.instance.page('SolveStepPage', {'stepCount': _totalSteps, 'currentStep': widget.stepIndex});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

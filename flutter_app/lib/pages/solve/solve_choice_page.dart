@@ -82,7 +82,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _currentAttempt = latest;
         _loading = false;
       });
-      AuditLogger.page('SolveChoicePage', {'qid': questionId, 'optionsCount': _options?.length});
+      AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });

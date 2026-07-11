@@ -66,7 +66,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
         }
         _loading = false;
       });
-      AuditLogger.page('LectureContentPage', {'hasContent': _content != null});
+      AuditLogger.instance.page('LectureContentPage', {'hasContent': _content != null});
     } catch (e) {
       if (!mounted) return;
       setState(() {

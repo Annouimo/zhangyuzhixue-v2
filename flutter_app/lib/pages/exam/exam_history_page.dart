@@ -41,7 +41,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
       final l = await _repo.getMyExams();
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
-      AuditLogger.instance.page('ExamHistoryPage', {'total': _papers?.length});
+      AuditLogger.instance.page('ExamHistoryPage', {'total': _list?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

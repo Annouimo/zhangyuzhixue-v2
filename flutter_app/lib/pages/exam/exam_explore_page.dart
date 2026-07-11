@@ -42,7 +42,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
       final l = await _repo.getExploreList();
       if (!mounted) return;
       setState(() { _list = List.of(l)..sort((a, b) => b.createdAt.compareTo(a.createdAt)); _loading = false; });
-      AuditLogger.instance.page('ExamExplorePage', {'totalPapers': _papers?.length});
+      AuditLogger.instance.page('ExamExplorePage', {'totalPapers': _list?.length});
     } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 

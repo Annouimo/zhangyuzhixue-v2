@@ -66,7 +66,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final tags = (await _qDao.getAllConceptTags()).map((t) => t.name).toList();
       if (!mounted) return;
       setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; });
-      AuditLogger.page('PreferenceWelcomePage', {'step': _currentStep});
+      AuditLogger.instance.page('PreferenceWelcomePage', {'loaded': _yearOpts != null});
     } catch (_) {}
   }
 

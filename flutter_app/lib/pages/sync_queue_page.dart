@@ -35,7 +35,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       final items = await _repo.getQueue();
       if (!mounted) return;
       setState(() { _items = items; _loading = false; });
-      AuditLogger.instance.page('SyncQueuePage', {'pending': _pendingCount, 'failed': _failedCount});
+      AuditLogger.instance.page('SyncQueuePage', {'pending': _items?.length});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
