@@ -1,0 +1,638 @@
+#!/usr/bin/env python3
+"""
+章鱼智学 · 自动化审计引擎
+=====================
+CERTAIN 级别检查（纯机械，零误报）。
+输出格式：每条问题一行 | 置信度 | 问题 | 来源 | 路径 | 证据链
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from typing import Optional
+
+
+# ═══════════════════════════════════════════════
+# 配置
+# ═══════════════════════════════════════════════
+
+@dataclass
+class Config:
+    workspace: str = ""  # 从命令行参数或环境变量获取
+    docs_dir: str = ""   # docs/ 目录
+    flutter_lib: str = ""  # flutter_app/lib/
+    server_dir: str = ""  # server/
+    
+    @classmethod
+    def detect(cls, workspace: str):
+        c = cls()
+        c.workspace = workspace
+        c.docs_dir = os.path.join(workspace, "docs")
+        c.flutter_lib = os.path.join(workspace, "flutter_app", "lib")
+        c.server_dir = os.path.join(workspace, "server")
+        return c
+
+
+# ═══════════════════════════════════════════════
+# 结果模型
+# ═══════════════════════════════════════════════
+
+class Certainty:
+    CERTAIN = "CERTAIN"
+    LIKELY = "LIKELY"
+    SUSPICIOUS = "SUSPICIOUS"
+
+
+@dataclass
+class Finding:
+    certainty: str       # CERTAIN / LIKELY / SUSPICIOUS
+    issue: str           # 问题简述
+    source: str          # 设计文档来源（文件:行）
+    path: str            # 涉及的代码路径
+    evidence: str        # 证据链摘要
+    detail: str = ""     # 详细日志
+
+    def __str__(self):
+        return f"{self.certainty} | {self.issue} | {self.source} | {self.path} | {self.evidence}"
+
+
+# ═══════════════════════════════════════════════
+# 工具函数
+# ═══════════════════════════════════════════════
+
+def log(msg: str):
+    print(f"[AUDIT] {msg}")
+
+
+def path_exists(p: str) -> bool:
+    return os.path.exists(p)
+
+
+def read_file(p: str) -> str:
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            return f.read()
+    except:
+        return ""
+
+
+def glob_files(root: str, pattern: str) -> list:
+    """简易 glob：返回匹配 pattern 的文件的相对路径列表"""
+    results = []
+    pattern = pattern.replace("*", "")
+    for dirpath, dirnames, filenames in os.walk(root):
+        for fn in filenames:
+            if pattern in fn:
+                full = os.path.join(dirpath, fn)
+                results.append(os.path.relpath(full, root))
+    return sorted(results)
+
+
+def grep(pattern: str, root: str, file_glob: str = "") -> list:
+    """简易 grep：返回匹配的行 (file, line, content)"""
+    results = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        for fn in filenames:
+            if file_glob and file_glob not in fn:
+                continue
+            fp = os.path.join(dirpath, fn)
+            try:
+                with open(fp, "r", encoding="utf-8") as f:
+                    for i, line in enumerate(f, 1):
+                        if re.search(pattern, line):
+                            rel = os.path.relpath(fp, root)
+                            results.append((rel, i, line.strip()))
+            except:
+                pass
+    return results
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 1: 文件/目录存在性
+# ═══════════════════════════════════════════════
+
+def check_directory_exists(cfg: Config) -> list[Finding]:
+    """全覆盖矩阵中要求的目录是否存在于磁盘上"""
+    findings = []
+    
+    checks = [
+        ("flutter_app/assets/questions/images/", 
+         "05-Flutter/图片路由规范.md §一 L14",
+         "题库配图目录，设计文档明确要求存在"),
+        ("flutter_app/assets/db/",
+         "02-数据/构建脚本设计.md §构建产物",
+         "捆绑数据库目录，构建脚本产出"),
+    ]
+    
+    for rel_path, source, desc in checks:
+        full = os.path.join(cfg.workspace, rel_path)
+        exists = path_exists(full)
+        evidence = f"Test-Path('{rel_path}') → {exists}"
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN if not exists else Certainty.LIKELY,
+            issue=f"{'❌ 缺失' if not exists else '✅ 存在'}: {desc} ({rel_path})",
+            source=source,
+            path=rel_path,
+            evidence=evidence,
+            detail=evidence
+        ))
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 2: HTML → Flutter 页面覆盖
+# ═══════════════════════════════════════════════
+
+def check_html_to_flutter_pages(cfg: Config) -> list[Finding]:
+    """从 HTML 原型出发，检查每个 .html 是否有对应 Flutter _page.dart"""
+    findings = []
+    
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+    
+    if not path_exists(html_dir):
+        return [Finding(Certainty.LIKELY, "HTML 原型目录不存在", "C4", html_dir, "")]
+    
+    html_files = [f for f in os.listdir(html_dir) if f.endswith(".html")]
+    # 排除 solve-pages 子目录下的文件，那些按子文件夹处理
+    html_files = [f for f in html_files if not f.startswith("solve-")]
+    
+    # 收集所有 Flutter page 文件
+    flutter_pages = set()
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                flutter_pages.add(fn)
+    
+    # HTML 文件名 → 可能的 Flutter 页名映射
+    html_to_flutter = {
+        "index.html": "index_page.dart",
+        "login.html": "login_page.dart",
+        "register.html": "register_page.dart",
+        "recommend.html": "recommend_page.dart",
+        "profile.html": "profile_page.dart",
+        "profile_edit.html": "profile_edit_page.dart",
+        "about.html": "about_page.dart",
+        "achievement.html": "achievement_page.dart",
+        "level_detail.html": "level_detail_page.dart",
+        "points.html": "points_page.dart",
+        "question_history.html": "question_history_page.dart",
+        "preference_list.html": "preference_list_page.dart",
+        "preference_edit.html": "preference_edit_page.dart",
+        "preference_welcome.html": "preference_welcome_page.dart",
+        "statistics.html": "statistics_page.dart",
+        "homework_list.html": "homework_list_page.dart",
+        "homework_detail.html": "homework_detail_page.dart",
+        "sync_queue.html": "sync_queue_page.dart",
+        "exam.html": "exam_home_page.dart",
+        "paper_auto.html": "exam_auto_page.dart",
+        "paper_pick.html": "exam_pick_page.dart",
+        "paper_explore.html": "exam_explore_page.dart",
+        "paper_favorites.html": "exam_favorites_page.dart",
+        "paper_history.html": "exam_history_page.dart",
+        "paper_quicklook.html": "exam_quicklook_page.dart",
+        "paper_quicklook_other.html": "exam_quicklook_other_page.dart",
+        "answer_sheet.html": "answer_sheet_page.dart",
+        "lecture_courses.html": "lecture_courses_page.dart",
+        "lecture_chapters.html": "lecture_chapters_page.dart",
+        "lecture_content.html": "lecture_content_page.dart",
+        "debug.html": None,  # dev-only，合理缺失
+    }
+    
+    for html_fn in sorted(html_files):
+        expected_flutter = html_to_flutter.get(html_fn)
+        if expected_flutter is None:
+            continue  # 已知可忽略
+        
+        exists = expected_flutter in flutter_pages
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN if not exists else Certainty.LIKELY,
+            issue=f"{'❌ 缺失' if not exists else '✅ 存在'}: {html_fn} → {expected_flutter}",
+            source=f"C4: {html_fn}",
+            path=f"flutter_app/lib/pages/{expected_flutter}",
+            evidence=f"Listing .html files from docs/04-UI/html/ (total={len(html_files)}), checking each against flutter_app/lib/pages/",
+            detail=f"Flutter pages found: {len(flutter_pages)} files"
+        ))
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 3: pubspec.yaml 资产声明验证
+# ═══════════════════════════════════════════════
+
+def check_pubspec_assets(cfg: Config) -> list[Finding]:
+    """验证 lib/ 下引用的 asset 路径都在 pubspec.yaml 中声明"""
+    findings = []
+    
+    pubspec_path = os.path.join(cfg.workspace, "flutter_app", "pubspec.yaml")
+    pubspec_content = read_file(pubspec_path)
+    
+    if not pubspec_content:
+        return [Finding(Certainty.CERTAIN, "pubspec.yaml 不存在", "B*", pubspec_path, "")]
+    
+    # 提取 pubspec.yaml 中声明的 assets
+    declared_assets = set()
+    in_assets = False
+    for line in pubspec_content.split("\n"):
+        if line.strip().startswith("assets:"):
+            in_assets = True
+            continue
+        if in_assets:
+            m = re.match(r"\s*-\s*(.+)$", line)
+            if m:
+                asset_path = m.group(1).strip()
+                declared_assets.add(asset_path)
+                # 如果是目录（以 / 结尾），所有子文件也算
+                if asset_path.endswith("/"):
+                    declared_assets.add(asset_path)
+            elif line.strip() and not line.strip().startswith("#") and not line.strip().startswith("- "):
+                in_assets = False
+    
+    # 提取 lib/ 下所有 rootBundle.load / AssetImage 引用的路径
+    referenced_paths = set()
+    for rel, line_no, content in grep(r"(rootBundle\.load|AssetImage)\(", cfg.flutter_lib):
+        m = re.search(r"['\"]assets/([^'\"]+)['\"]", content)
+        if m:
+            ref = "assets/" + m.group(1)
+            # 转为目录形式
+            referenced_paths.add((ref, rel, line_no))
+    
+    # 检查：每个引用的路径是否被声明（或其父目录被声明）
+    for ref, file_path, line_no in sorted(referenced_paths):
+        declared = False
+        for declared_asset in declared_assets:
+            if ref == declared_asset:
+                declared = True
+                break
+            # 如果声明的是目录 assets/db/，它覆盖 assets/db/assets.db
+            if declared_asset.endswith("/") and ref.startswith(declared_asset):
+                declared = True
+                break
+        
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN if not declared else Certainty.LIKELY,
+            issue=f"{'❌ 未声明' if not declared else '✅ 已声明'}: {ref} (引用自 {file_path}:{line_no})",
+            source="B*: pubspec.yaml asset declarations",
+            path=file_path,
+            evidence=f"rootBundle.load('{ref}') found in {file_path}:{line_no}",
+            detail=f"Declared assets: {declared_assets}"
+        ))
+    
+    # 额外检查：设计文档要求的资产目录是否在 pubspec.yaml 中声明
+    required_assets = [
+        ("assets/questions/images/", "05-Flutter/图片路由规范.md §一 L14"),
+        ("assets/db/", "02-数据/构建脚本设计.md §构建产物"),
+    ]
+    for req_path, source in required_assets:
+        declared = any(req_path.startswith(a) or a == req_path for a in declared_assets)
+        if not declared:
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN if path_exists(os.path.join(cfg.workspace, "flutter_app", req_path)) else Certainty.LIKELY,
+                issue=f"{'⚠️ 未声明' if not declared else '✅ 已声明'}: {req_path} 在设计文档中要求但 pubspec.yaml 未声明",
+                source=source,
+                path="flutter_app/pubspec.yaml",
+                evidence=f"Design doc requires asset path, pubspec.yaml assets: {declared_assets}",
+                detail=f"Required by {source}"
+            ))
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 4: 设计文档"待完成"标记提取
+# ═══════════════════════════════════════════════
+
+def check_design_doc_pending_markers(cfg: Config) -> list[Finding]:
+    """提取所有设计文档中的"后续待完成/待定/预留/TODO"标记"""
+    findings = []
+    
+    patterns = [
+        r"后续待完成",
+        r"(?<!// )(?<!<!-- )待定(?![^。]*[。！？])",
+        r"预留",
+        r"未落地",
+        r"未实际创建",
+        r"设计阶段[^的]",
+    ]
+    compiled = [re.compile(p) for p in patterns]
+    
+    # 只扫描关键的几份设计文档
+    doc_files = [
+        "02-数据/数据库结构设计.md",
+        "02-数据/更新机制.md",
+        "02-数据/构建脚本设计.md",
+        "03-服务端/API设计.md",
+        "03-服务端/PDF方案设计.md",
+        "04-UI/页面设计说明.md",
+        "05-Flutter/图片路由规范.md",
+        "05-Flutter/同步引擎设计.md",
+        "05-Flutter/数据访问层设计.md",
+        "06-教师端/教师端功能边界.md",
+        "备份方案.md",
+        "测试策略.md",
+    ]
+    
+    for doc in doc_files:
+        doc_path = os.path.join(cfg.docs_dir, doc)
+        if not path_exists(doc_path):
+            continue
+        content = read_file(doc_path)
+        for i, line in enumerate(content.split("\n"), 1):
+            for pat in compiled:
+                if pat.search(line) and not line.strip().startswith("#") and not line.strip().startswith(">"):
+                    findings.append(Finding(
+                        certainty=Certainty.CERTAIN,
+                        issue=f"⬜ 延期标记: {line.strip()[:80]}",
+                        source=f"{doc}:L{i}",
+                        path=doc,
+                        evidence=f"Design doc states unfinished status at line {i}",
+                        detail=f"Full line: {line.strip()}"
+                    ))
+                    break  # 一行只报一次
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 5: 测试文件覆盖率
+# ═══════════════════════════════════════════════
+
+def check_test_coverage(cfg: Config) -> list[Finding]:
+    """检查测试文件是否覆盖了所有页面"""
+    findings = []
+    
+    test_dir = os.path.join(cfg.workspace, "flutter_app", "test", "pages")
+    if not path_exists(test_dir):
+        return [Finding(Certainty.LIKELY, "Flutter 测试目录不存在", "C12", test_dir, "")]
+    
+    # 收集所有测试文件
+    test_files = set()
+    for dirpath, dirnames, filenames in os.walk(test_dir):
+        for fn in filenames:
+            if fn.endswith("_test.dart"):
+                test_files.add(fn)
+    
+    # 检查每个 page 是否有对应的 test
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+    page_files = set()
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                page_files.add(fn)
+    
+    for page_fn in sorted(page_files):
+        # 对应的测试文件命名: page_name_page.dart → page_name_page_test.dart
+        test_fn = page_fn.replace("_page.dart", "_page_test.dart")
+        exists = test_fn in test_files
+        
+        if not exists:
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f"❌ 缺少测试: {page_fn} → 期望 {test_fn}",
+                source="C12: 测试策略.md §UI层测试要求",
+                path=f"flutter_app/test/pages/{test_fn}",
+                evidence=f"Page exists at flutter_app/lib/pages/, but no test file at test/pages/",
+                detail=f"Test files found: {len(test_files)}"
+            ))
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 6: 代码 stub/TODO 扫描
+# ═══════════════════════════════════════════════
+
+def check_stubs_and_todos(cfg: Config) -> list[Finding]:
+    """扫描代码中的 stub 模式"""
+    findings = []
+    
+    stub_patterns = [
+        (r"UnimplementedError|Unimplemented", "UnimplementedError 抛出"),
+        (r"return \s*\[\s*\]", "stub: return []"),
+        (r"return \s*0\s*;", "stub: return 0（可能）"),
+        (r"return \s*false\s*;", "stub: return false（可能）"),
+        (r"//\s*TODO[^)]", "TODO 注释"),
+        (r"//\s*v1\s+方案", "v1 方案标注"),
+        (r"极简版本|临时方案|后续再做|待接入", "临时/简化标注"),
+    ]
+    
+    # 只扫描关键目录
+    scan_dirs = [
+        (cfg.flutter_lib, "flutter_app/lib/"),
+    ]
+    
+    if path_exists(cfg.server_dir):
+        scan_dirs.append((cfg.server_dir, "server/"))
+    
+    for root, prefix in scan_dirs:
+        for pat, label in stub_patterns:
+            results = grep(pat, root, ".dart")
+            if results:
+                # 只报告前 5 条
+                for rel, line_no, content in results[:5]:
+                    findings.append(Finding(
+                        certainty=Certainty.SUSPICIOUS,
+                        issue=f"{label}: {content[:60]}",
+                        source="④ Anti-Half-Assing",
+                        path=f"{prefix}{rel}:L{line_no}",
+                        evidence=f"Found {len(results)} matches total for pattern '{label}'",
+                        detail=f"Total matches: {len(results)}"
+                    ))
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 7: 导航架构
+# ═══════════════════════════════════════════════
+
+def check_navigation_architecture(cfg: Config) -> list[Finding]:
+    """提取 HTML 底栏 Tab 结构，对比 Flutter MainShell"""
+    findings = []
+    
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    index_html = os.path.join(html_dir, "index.html")
+    
+    if not path_exists(index_html):
+        return []
+    
+    content = read_file(index_html)
+    
+    # 提取 <nav class="bottom-nav"> 中的 Tab
+    nav_match = re.search(r'<nav class="bottom-nav">(.*?)</nav>', content, re.DOTALL)
+    html_tabs = []
+    if nav_match:
+        for a_tag in re.finditer(r'<a href="([^"]+)"[^>]*>\s*<span[^>]*>([^<]+)</span>', nav_match.group(1)):
+            href = a_tag.group(1)
+            label = a_tag.group(2)
+            html_tabs.append((href, label))
+    
+    # 提取 Flutter MainShell 中的 Tab
+    main_shell_path = os.path.join(cfg.flutter_lib, "pages", "main_shell.dart")
+    if path_exists(main_shell_path):
+        ms_content = read_file(main_shell_path)
+        # 找 BottomNavigationBar items
+        flutter_tabs = []
+        for m in re.finditer(r"BottomNavigationBarItem\(.*?label:\s*'([^']+)',?", ms_content, re.DOTALL):
+            flutter_tabs.append(m.group(1))
+        
+        if html_tabs and flutter_tabs:
+            html_labels = [t[1] for t in html_tabs]
+            if html_labels != flutter_tabs:
+                findings.append(Finding(
+                    certainty=Certainty.CERTAIN,
+                    issue=f"❌ 底栏导航 Tab 不同: HTML={html_labels} vs Flutter={flutter_tabs}",
+                    source="C6: 页面导航.md | C4: index.html <nav>",
+                    path="flutter_app/lib/pages/main_shell.dart",
+                    evidence=f"Extracted from HTML: {html_tabs}",
+                    detail=f"Flutter tabs: {flutter_tabs}"
+                ))
+            else:
+                findings.append(Finding(
+                    certainty=Certainty.LIKELY,
+                    issue=f"✅ 底栏导航 Tab 一致: {flutter_tabs}",
+                    source="C6: 页面导航.md",
+                    path="flutter_app/lib/pages/main_shell.dart",
+                    evidence="HTML bottom-nav matches Flutter BottomNavigationBar items",
+                    detail=""
+                ))
+    
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 主流程
+# ═══════════════════════════════════════════════
+
+def run_all_checks(cfg: Config) -> list[Finding]:
+    all_findings = []
+    
+    log("=" * 60)
+    log("章鱼智学 · 自动化审计引擎")
+    log(f"Workspace: {cfg.workspace}")
+    log("=" * 60)
+    
+    # 模块 1: 目录存在性
+    log("\n[模块 1/7] 目录/文件存在性...")
+    all_findings.extend(check_directory_exists(cfg))
+    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
+    
+    # 模块 2: HTML → Flutter 页面覆盖
+    log("\n[模块 2/7] HTML → Flutter 页面覆盖...")
+    all_findings.extend(check_html_to_flutter_pages(cfg))
+    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
+    
+    # 模块 3: pubspec.yaml 资产声明
+    log("\n[模块 3/7] pubspec.yaml 资产声明...")
+    all_findings.extend(check_pubspec_assets(cfg))
+    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个问题")
+    
+    # 模块 4: 设计文档标记
+    log("\n[模块 4/7] 设计文档待完成标记...")
+    all_findings.extend(check_design_doc_pending_markers(cfg))
+    log(f"  → {len([f for f in all_findings if '⬜' in f.issue])} 个延期标记")
+    
+    # 模块 5: 测试文件覆盖率
+    log("\n[模块 5/7] 测试文件覆盖率...")
+    all_findings.extend(check_test_coverage(cfg))
+    log(f"  → {sum(1 for f in all_findings if '❌' in f.issue)} 个缺失测试")
+    
+    # 模块 6: stub/TODO 扫描
+    log("\n[模块 6/7] stub/TODO 扫描...")
+    all_findings.extend(check_stubs_and_todos(cfg))
+    log(f"  → {len([f for f in all_findings if f.certainty == Certainty.SUSPICIOUS])} 条可疑项")
+    
+    # 模块 7: 导航架构
+    log("\n[模块 7/7] 导航架构...")
+    all_findings.extend(check_navigation_architecture(cfg))
+    
+    return all_findings
+
+
+def generate_report(findings: list[Finding], output_path: str = ""):
+    """生成报告"""
+    certain = [f for f in findings if f.certainty == Certainty.CERTAIN and ("❌" in f.issue or "⬜" in f.issue)]
+    likely = [f for f in findings if f.certainty == Certainty.LIKELY and ("❌" in f.issue or "⚠" in f.issue)]
+    suspicious = [f for f in findings if f.certainty == Certainty.SUSPICIOUS]
+    passed = [f for f in findings if "✅" in f.issue]
+    
+    report = []
+    report.append("=" * 70)
+    report.append("章鱼智学 · 自动化审计报告")
+    report.append("=" * 70)
+    report.append("")
+    
+    report.append(f"总计检查: {len(findings)} 项")
+    report.append(f"  CERTAIN ❌ 问题: {len(certain)}")
+    report.append(f"  LIKELY ⚠️  告警: {len(likely)}")
+    report.append(f"  SUSPICIOUS 可疑: {len(suspicious)}")
+    report.append(f"  ✅ 通过: {len(passed)}")
+    report.append("")
+    
+    if certain:
+        report.append("─" * 70)
+        report.append("🔴 CERTAIN 问题（无需人工审核，直接采纳）")
+        report.append("─" * 70)
+        for f in certain:
+            report.append(f"  ❌ {f.issue}")
+            report.append(f"     来源: {f.source}")
+            report.append(f"     路径: {f.path}")
+            report.append(f"     证据: {f.evidence}")
+            report.append("")
+    
+    if likely:
+        report.append("─" * 70)
+        report.append("🟡 LIKELY 告警（需人工审核 3 分钟/条）")
+        report.append("─" * 70)
+        for f in likely:
+            report.append(f"  ⚠️  {f.issue}")
+            report.append(f"     来源: {f.source}")
+            report.append(f"     路径: {f.path}")
+            report.append(f"     证据: {f.evidence}")
+            report.append("")
+    
+    if suspicious:
+        report.append("─" * 70)
+        report.append("🔍 SUSPICIOUS 可疑（需人工审核 3 分钟/条）")
+        report.append("─" * 70)
+        for f in suspicious:
+            report.append(f"  ❓ {f.issue}")
+            report.append(f"     路径: {f.path}")
+            report.append(f"     证据: {f.evidence}")
+            report.append("")
+    
+    report_str = "\n".join(report)
+    
+    if output_path:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(report_str)
+        log(f"\n报告已写入: {output_path}")
+    
+    print(report_str)
+    return report_str
+
+
+def main():
+    if len(sys.argv) < 2:
+        workspace = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        print(f"用法: python audit_engine.py <workspace_path>")
+        print(f"默认使用: {workspace}")
+    else:
+        workspace = os.path.abspath(sys.argv[1])
+    
+    if not os.path.exists(workspace):
+        print(f"错误: 目录不存在: {workspace}")
+        sys.exit(1)
+    
+    cfg = Config.detect(workspace)
+    findings = run_all_checks(cfg)
+    report_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_report_latest.txt")
+    generate_report(findings, report_path)
+
+
+if __name__ == "__main__":
+    main()
