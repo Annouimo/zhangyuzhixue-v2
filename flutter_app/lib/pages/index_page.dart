@@ -269,6 +269,7 @@ class _IndexPageState extends State<IndexPage> {
               const Spacer(),
               SizedBox(
                 height: 32,
+                width: 80,
                 child: ElevatedButton(
                   onPressed: _doCheckin,
                   style: ElevatedButton.styleFrom(

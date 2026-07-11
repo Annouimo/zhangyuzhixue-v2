@@ -99,7 +99,7 @@ class UserRepository {
       realName: remote['real_name'] as String?,
       studentId: remote['student_id'] as String?,
       avatar: remote['avatar'] as String?,
-      gaokaoYear: remote['gaokao_year'] as String?,
+      gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
     );
   }
 
