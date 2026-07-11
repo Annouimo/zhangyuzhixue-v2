@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/domain/assignment_repository.dart';
 import 'package:flutter_app/pages/homework/homework_list_page.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockAssignmentRepo implements AssignmentRepository {
   final List<AssignmentSummary> assignments;
@@ -34,6 +36,10 @@ class _FailingAssignmentRepo implements AssignmentRepository {
 
 void main() {
   group('HomeworkListPage', () {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await AppPrefs().init();
+    });
     testWidgets('shows loading then assignment list', (tester) async {
       await tester.pumpWidget(
         MediaQuery(
