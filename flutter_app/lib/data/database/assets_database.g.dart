@@ -4994,6 +4994,277 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfigRow> {
   }
 }
 
+class $SystemConfigsTable extends SystemConfigs
+    with TableInfo<$SystemConfigsTable, SystemConfigRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SystemConfigsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [key, value, description];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'system_configs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SystemConfigRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {key};
+  @override
+  SystemConfigRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SystemConfigRow(
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+    );
+  }
+
+  @override
+  $SystemConfigsTable createAlias(String alias) {
+    return $SystemConfigsTable(attachedDatabase, alias);
+  }
+}
+
+class SystemConfigRow extends DataClass implements Insertable<SystemConfigRow> {
+  final String key;
+  final String value;
+  final String? description;
+  const SystemConfigRow({
+    required this.key,
+    required this.value,
+    this.description,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    return map;
+  }
+
+  SystemConfigsCompanion toCompanion(bool nullToAbsent) {
+    return SystemConfigsCompanion(
+      key: Value(key),
+      value: Value(value),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+    );
+  }
+
+  factory SystemConfigRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SystemConfigRow(
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      description: serializer.fromJson<String?>(json['description']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'description': serializer.toJson<String?>(description),
+    };
+  }
+
+  SystemConfigRow copyWith({
+    String? key,
+    String? value,
+    Value<String?> description = const Value.absent(),
+  }) => SystemConfigRow(
+    key: key ?? this.key,
+    value: value ?? this.value,
+    description: description.present ? description.value : this.description,
+  );
+  SystemConfigRow copyWithCompanion(SystemConfigsCompanion data) {
+    return SystemConfigRow(
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemConfigRow(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(key, value, description);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SystemConfigRow &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.description == this.description);
+}
+
+class SystemConfigsCompanion extends UpdateCompanion<SystemConfigRow> {
+  final Value<String> key;
+  final Value<String> value;
+  final Value<String?> description;
+  final Value<int> rowid;
+  const SystemConfigsCompanion({
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.description = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SystemConfigsCompanion.insert({
+    required String key,
+    required String value,
+    this.description = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : key = Value(key),
+       value = Value(value);
+  static Insertable<SystemConfigRow> custom({
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<String>? description,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (description != null) 'description': description,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SystemConfigsCompanion copyWith({
+    Value<String>? key,
+    Value<String>? value,
+    Value<String?>? description,
+    Value<int>? rowid,
+  }) {
+    return SystemConfigsCompanion(
+      key: key ?? this.key,
+      value: value ?? this.value,
+      description: description ?? this.description,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemConfigsCompanion(')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('description: $description, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MetaTable extends Meta with TableInfo<$MetaTable, MetaRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5348,6 +5619,7 @@ abstract class _$AssetsDatabase extends GeneratedDatabase {
     this,
   );
   late final $LevelConfigsTable levelConfigs = $LevelConfigsTable(this);
+  late final $SystemConfigsTable systemConfigs = $SystemConfigsTable(this);
   late final $MetaTable meta = $MetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -5368,6 +5640,7 @@ abstract class _$AssetsDatabase extends GeneratedDatabase {
     assignmentQuestions,
     achievementDefs,
     levelConfigs,
+    systemConfigs,
     meta,
   ];
 }
@@ -8221,6 +8494,176 @@ typedef $$LevelConfigsTableProcessedTableManager =
       LevelConfigRow,
       PrefetchHooks Function()
     >;
+typedef $$SystemConfigsTableCreateCompanionBuilder =
+    SystemConfigsCompanion Function({
+      required String key,
+      required String value,
+      Value<String?> description,
+      Value<int> rowid,
+    });
+typedef $$SystemConfigsTableUpdateCompanionBuilder =
+    SystemConfigsCompanion Function({
+      Value<String> key,
+      Value<String> value,
+      Value<String?> description,
+      Value<int> rowid,
+    });
+
+class $$SystemConfigsTableFilterComposer
+    extends Composer<_$AssetsDatabase, $SystemConfigsTable> {
+  $$SystemConfigsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SystemConfigsTableOrderingComposer
+    extends Composer<_$AssetsDatabase, $SystemConfigsTable> {
+  $$SystemConfigsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SystemConfigsTableAnnotationComposer
+    extends Composer<_$AssetsDatabase, $SystemConfigsTable> {
+  $$SystemConfigsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+}
+
+class $$SystemConfigsTableTableManager
+    extends
+        RootTableManager<
+          _$AssetsDatabase,
+          $SystemConfigsTable,
+          SystemConfigRow,
+          $$SystemConfigsTableFilterComposer,
+          $$SystemConfigsTableOrderingComposer,
+          $$SystemConfigsTableAnnotationComposer,
+          $$SystemConfigsTableCreateCompanionBuilder,
+          $$SystemConfigsTableUpdateCompanionBuilder,
+          (
+            SystemConfigRow,
+            BaseReferences<
+              _$AssetsDatabase,
+              $SystemConfigsTable,
+              SystemConfigRow
+            >,
+          ),
+          SystemConfigRow,
+          PrefetchHooks Function()
+        > {
+  $$SystemConfigsTableTableManager(
+    _$AssetsDatabase db,
+    $SystemConfigsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SystemConfigsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SystemConfigsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SystemConfigsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> key = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SystemConfigsCompanion(
+                key: key,
+                value: value,
+                description: description,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String key,
+                required String value,
+                Value<String?> description = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SystemConfigsCompanion.insert(
+                key: key,
+                value: value,
+                description: description,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SystemConfigsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AssetsDatabase,
+      $SystemConfigsTable,
+      SystemConfigRow,
+      $$SystemConfigsTableFilterComposer,
+      $$SystemConfigsTableOrderingComposer,
+      $$SystemConfigsTableAnnotationComposer,
+      $$SystemConfigsTableCreateCompanionBuilder,
+      $$SystemConfigsTableUpdateCompanionBuilder,
+      (
+        SystemConfigRow,
+        BaseReferences<_$AssetsDatabase, $SystemConfigsTable, SystemConfigRow>,
+      ),
+      SystemConfigRow,
+      PrefetchHooks Function()
+    >;
 typedef $$MetaTableCreateCompanionBuilder =
     MetaCompanion Function({
       required int schemaVersion,
@@ -8434,5 +8877,7 @@ class $AssetsDatabaseManager {
       $$AchievementDefsTableTableManager(_db, _db.achievementDefs);
   $$LevelConfigsTableTableManager get levelConfigs =>
       $$LevelConfigsTableTableManager(_db, _db.levelConfigs);
+  $$SystemConfigsTableTableManager get systemConfigs =>
+      $$SystemConfigsTableTableManager(_db, _db.systemConfigs);
   $$MetaTableTableManager get meta => $$MetaTableTableManager(_db, _db.meta);
 }

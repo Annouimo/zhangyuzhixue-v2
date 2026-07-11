@@ -148,6 +148,16 @@ class Meta extends Table {
 // Database
 // ═══════════════════════════════════════════════
 
+@DataClassName('SystemConfigRow')
+class SystemConfigs extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  TextColumn? get description => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
 @DriftDatabase(tables: [
   Questions,
   ChoiceExt,
@@ -163,6 +173,7 @@ class Meta extends Table {
   AssignmentQuestions,
   AchievementDefs,
   LevelConfigs,
+  SystemConfigs,
   Meta,
 ])
 class AssetsDatabase extends _$AssetsDatabase {

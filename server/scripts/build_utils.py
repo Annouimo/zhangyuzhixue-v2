@@ -263,6 +263,18 @@ def write_lecture_content(conn, schema, chapters):
     conn.commit()
 
 
+def _write_static(conn, table_name, table_def):
+    """static 转换：插入预定义的行数据"""
+    defaults = table_def.get('defaults', [])
+    if not defaults:
+        return
+    cols = [col[0] for col in table_def['columns']]
+    sql = f'INSERT INTO {table_name} ({", ".join(cols)}) VALUES ({", ".join("?" * len(cols))})'
+    for row in defaults:
+        conn.execute(sql, row)
+    conn.commit()
+
+
 def build_database(schema, db_type, version_info, test_mode=False):
     """
     完整构建流程
@@ -289,6 +301,8 @@ def build_database(schema, db_type, version_info, test_mode=False):
                 copy_relation(conn, schema, table_name)
             elif source == 'generate:from_document_chapter':
                 chapters = write_chapters(conn, schema)
+            elif source == 'static':
+                _write_static(conn, table_name, table_def)
             elif tf == 'lecture_transform':
                 write_lecture_content(conn, schema, chapters or [])
 

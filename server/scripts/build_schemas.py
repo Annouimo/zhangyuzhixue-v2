@@ -171,6 +171,23 @@ ASSETS_TABLES = {
         'source_model': 'system.LevelConfig',
         'transform': 'direct',
     },
+
+    'system_config': {
+        'columns': [
+            ('key', 'TEXT PRIMARY KEY'),
+            ('value', 'TEXT NOT NULL'),
+            ('description', 'TEXT'),
+        ],
+        'source': 'static',
+        'defaults': [
+            ('exit_rating_probability', '0.2', '退出页面评价触发概率'),
+            ('exit_rating_min_stay_seconds', '30', '退出页面评价停留阈值(秒)'),
+            ('exit_rating_reward_points', '5', '退出页面评价奖励积分'),
+            ('solve_cooldown_choice', '10', '选择题冷却时长(秒)'),
+            ('solve_cooldown_fill', '10', '填空题冷却时长(秒)'),
+            ('solve_cooldown_step', '5', '解答题每步冷却时长(秒)'),
+        ],
+    },
 }
 
 LECTURE_TABLES = {

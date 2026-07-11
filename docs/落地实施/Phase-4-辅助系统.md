@@ -202,9 +202,9 @@ flutter_app/lib/widgets/
 
 | 规则 | 值 | 默认 | 配置方式 |
 |:-----|:---|:-----|:---------|
-| 触发概率 | 20% | `SYSTEM_PARAM_EXIT_RATING_PROBABILITY` | SystemConfig |
+| 触发概率 | 20% | `exit_rating_probability` | assets.db → system_config 表 |
 | 同页冷却 | 24h | `SYSTEM_PARAM_EXIT_RATING_COOLDOWN_HOURS` | SystemConfig |
-| 停留阈值 | >30s | `SYSTEM_PARAM_EXIT_RATING_MIN_STAY_SECONDS` | SystemConfig |
+| 停留阈值 | >30s | `exit_rating_min_stay_seconds` | assets.db → system_config 表 |
 
 **触发页面：** `solve-choice` / `solve-fill` / `solve-step` / `exam_quicklook` / `lecture_content`
 
@@ -278,7 +278,7 @@ Future<void> submitRating(int score, String? feedback) async {
 - 停留时间测量：在页面 initState 记录 `DateTime.now()`，在退出时算 diff
 - 弹层用 `showDialog` 弹出，背景半透明不可操作
 - 评价不是用户必填——5 级评分必选，文字反馈可选
-- 触发规则中 SystemConfig 的三个参数在服务端定义，客户端构建脚本尚未同步这些配置到 assets.db。**临场方案：** 4.3 先用硬编码常量兜底（`exit_rating.dart` 中一个 `_RatingConfig` 类），线上 DB 版本稳定后再抽入 SystemConfig
+- 触发规则中 `exit_rating_probability` / `exit_rating_min_stay_seconds` / `exit_rating_reward_points` 三个参数在 assets.db 的 `system_config` 表中定义（键值对），客户端 `ExitRatingConfig` 通过 `SystemConfigDao` 读取，带内存缓存 + fallback 默认值。新增配置键只需在 `build_schemas.py` 的 `defaults` 中添加一行即可。
 
 ---
 
