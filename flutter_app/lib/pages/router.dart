@@ -26,6 +26,7 @@ import 'profile/level_detail_page.dart';
 import 'profile/points_page.dart';
 import 'profile/about_page.dart';
 import 'sync_queue_page.dart';
+import 'preference_welcome_page.dart';
 import 'profile/question_history_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
@@ -60,6 +61,7 @@ abstract final class AppRoutes {
   static const profileHistory = '/profile/history';
   static const profileAbout = '/profile/about';
   static const syncQueue = '/sync/queue';
+  static const preferenceWelcome = '/preference/welcome';
 }
 
 /// 从 query 参数解析 int
@@ -113,6 +115,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.profileHistory, name: 'profile-history', builder: (_, _) => const QuestionHistoryPage()),
     GoRoute(path: AppRoutes.profileAbout, name: 'profile-about', builder: (_, _) => const AboutPage()),
     GoRoute(path: AppRoutes.syncQueue, name: 'sync-queue', builder: (_, _) => const SyncQueuePage()),
+    GoRoute(path: AppRoutes.preferenceWelcome, name: 'preference-welcome', builder: (_, _) => const PreferenceWelcomePage()),
   ],
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('页面未找到')),

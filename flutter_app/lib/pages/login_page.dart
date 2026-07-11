@@ -78,9 +78,7 @@ class _LoginPageState extends State<LoginPage> {
       if (hasPrefs) {
         context.go(AppRoutes.mainShell);
       } else {
-        // 无偏好 → 跳转偏好引导（Phase 4 实现，暂时跳 MainShell）
-        // TODO: Phase 4 替换为 preference_welcome 页面
-        context.go(AppRoutes.mainShell);
+        context.go(AppRoutes.preferenceWelcome);
       }
     } catch (e) {
       if (!mounted) return;
