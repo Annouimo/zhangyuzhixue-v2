@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/app_theme.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_app/data/network/connectivity_monitor.dart';
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
+import 'package:flutter_app/pages/router.dart' show appRouter;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,18 +35,11 @@ class ZhangyuzhixueApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: '章鱼智学',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('章鱼智学 v2'),
-        ),
-      ),
+      theme: AppTheme.light,
+      routerConfig: appRouter,
     );
   }
 }
