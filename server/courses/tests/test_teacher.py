@@ -2,7 +2,6 @@
 import pytest
 from datetime import date, timedelta
 from django.contrib.auth.models import User
-from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -355,8 +354,8 @@ class TestAssignmentPatch:
         }, format='json')
         assert resp.status_code == 200
         cca.refresh_from_db()
-        # Convert stored datetime to local date for comparison
-        stored_date = timezone.localtime(cca.deadline).strftime('%Y-%m-%d')
+        # Convert stored date to string for comparison
+        stored_date = cca.deadline.strftime('%Y-%m-%d')
         assert stored_date == new_date
 
     def test_update_description(self, auth_client, sample_class_group, sample_question):
