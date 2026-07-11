@@ -234,9 +234,6 @@ class UserRepository {
     return _api.checkin();
   }
 
-  // ── 版本 ──
-  Future<String> appVersion() async => '2.0.0';
-
   Future<String> questionBankVersion() async => AppPrefs().qbankVersion.toString();
 }
 
