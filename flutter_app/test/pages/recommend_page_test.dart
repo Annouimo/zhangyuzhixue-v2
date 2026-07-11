@@ -4,8 +4,8 @@ import 'package:flutter_app/domain/recommend_repository.dart';
 import 'package:flutter_app/pages/recommend_page.dart';
 
 class _MockRecommendRepo implements RecommendRepository {
-  final List<RecommendedQuestion> smartList;
-  final int presetCount;
+  List<RecommendedQuestion> smartList;
+  int presetCount;
   _MockRecommendRepo({this.smartList = const [], this.presetCount = 0});
 
   @override
@@ -48,8 +48,28 @@ void main() {
         recommendRepository: _MockRecommendRepo(presetCount: 2),
       )));
       await tester.pumpAndSettle();
-      // With presets but no smart data, should show empty state since getPresetQuestions returns []
       expect(find.text('暂无推荐，先去组卷或做几道题吧'), findsOneWidget);
+    });
+
+    testWidgets('manually switches between smart and preset via PopupMenuButton', (tester) async {
+      final repo = _MockRecommendRepo(smartList: [
+        const RecommendedQuestion(id: 1, title: '智能题', questionType: 'choice',
+          difficulty: 3.0, recommendReason: '薄弱', status: 'pending'),
+      ], presetCount: 2);
+      await tester.pumpWidget(MaterialApp(home: RecommendPage(recommendRepository: repo)));
+      await tester.pumpAndSettle();
+      // Initially shows smart recommendation
+      expect(find.text('🔮 智能推荐'), findsOneWidget);
+      expect(find.text('智能题'), findsOneWidget);
+
+      // Tap the switch button
+      await tester.tap(find.byIcon(Icons.swap_horiz));
+      await tester.pumpAndSettle();
+      // Select preset 1 from popup menu
+      await tester.tap(find.text('📋 偏好推荐 1').last);
+      await tester.pumpAndSettle();
+      // AppBar switches to preset mode
+      expect(find.text('📋 偏好推荐'), findsOneWidget);
     });
   });
 }
