@@ -67,8 +67,12 @@ def main():
     # ── 同步配图到 Flutter assets ──
     print()
     print('同步配图...')
-    image_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'questions', 'images')
-    flutter_assets = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'flutter_app', 'assets', 'questions', 'images')
+    image_src = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '..', 'static', 'questions', 'images')
+    flutter_assets = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        '..', 'flutter_app', 'assets', 'questions', 'images')
 
     if not os.path.isdir(image_src):
         print(f'  ⚠ 配图源目录不存在: {image_src}')

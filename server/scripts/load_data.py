@@ -14,7 +14,6 @@ import json
 import os
 import sqlite3
 import sys
-from datetime import datetime, timezone
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_DB = os.path.join(PROJECT_DIR, 'db.sqlite3')
@@ -104,7 +103,8 @@ def load(json_dir: str, db_path: str) -> dict:
 def main():
     parser = argparse.ArgumentParser(description='从 JSON 恢复业务数据到 SQLite')
     parser.add_argument('--db', default=DEFAULT_DB, help='数据库路径（默认 db.sqlite3）')
-    parser.add_argument('--from', dest='json_dir', required=True, help='JSON 数据目录（如 data_dumps/2026-07-11/）')
+    parser.add_argument('--from', dest='json_dir', required=True,
+                        help='JSON 数据目录（如 data_dumps/2026-07-11/）')
     args = parser.parse_args()
 
     if not os.path.exists(args.db):

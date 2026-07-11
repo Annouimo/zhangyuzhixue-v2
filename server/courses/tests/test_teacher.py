@@ -204,7 +204,8 @@ class TestStudentDetail:
         # 连续从今天往前3天
         assert d['overview']['streakDays'] == 3, f"Expected 3, got {d['overview']['streakDays']}"
 
-    def test_student_detail_question_type_breakdown(self, auth_client, sample_students, sample_question):
+    def test_student_detail_question_type_breakdown(
+            self, auth_client, sample_students, sample_question):
         """验证题型分布数据"""
         from qbank.models import BaseQuestion
         # 创建不同类型题目

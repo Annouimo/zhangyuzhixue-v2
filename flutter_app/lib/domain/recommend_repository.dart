@@ -38,11 +38,16 @@ class PresetQuestion {
 class RecommendRepository {
   final QuestionDao _questionDao;
   final ProgressDao _progressDao;
-  late final PreferenceRepository _prefRepo;
+  final PreferenceRepository _prefRepo;
 
-  RecommendRepository(this._questionDao, this._progressDao) {
-    _prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
-  }
+  RecommendRepository(this._questionDao, this._progressDao)
+    : _prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+
+  RecommendRepository.withPrefRepo(
+    this._questionDao,
+    this._progressDao,
+    this._prefRepo,
+  );
 
   Future<List<RecommendedQuestion>> getSmartList() async {
     final engine = _RecommendationEngine(_questionDao, _progressDao);
@@ -55,22 +60,28 @@ class RecommendRepository {
   }
 
   Future<List<PresetQuestion>> getPresetQuestions(int presetId) async {
-    final filter = await _prefRepo.getEdit(presetId);
+    PreferenceFilter? filter;
+    try {
+      filter = await _prefRepo.getEdit(presetId);
+    } catch (_) {
+      return [];
+    }
+    final f = filter!;
     final candidates = await _questionDao.search(
-      years: filter.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
-      regions: filter.regions.isNotEmpty ? filter.regions : null,
-      diffMin: filter.diffMin,
-      diffMax: filter.diffMax,
-      calcMin: filter.calcMin,
-      calcMax: filter.calcMax,
+      years: f.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: f.regions.isNotEmpty ? f.regions : null,
+      diffMin: f.diffMin,
+      diffMax: f.diffMax,
+      calcMin: f.calcMin,
+      calcMax: f.calcMax,
       limit: 50,
     );
     var results = candidates.cast<dynamic>().toList();
-    if (filter.conceptTags.isNotEmpty) {
+    if (f.conceptTags.isNotEmpty) {
       final tagged = <dynamic>[];
       for (final q in results) {
         final tags = await _questionDao.getTagsByQuestion(q.id);
-        if (tags.any((t) => filter.conceptTags.contains(t.name))) {
+        if (tags.any((t) => f.conceptTags.contains(t.name))) {
           tagged.add(q);
         }
       }

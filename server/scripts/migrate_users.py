@@ -16,7 +16,6 @@ import argparse
 import os
 import sqlite3
 import sys
-from datetime import datetime, timezone
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_OLD_DB = os.path.join('D:\\', 'Hermes', 'math_platform', 'db.sqlite3')
@@ -41,7 +40,9 @@ def _has_migration_marker(conn):
 
 def _write_migration_marker(conn):
     conn.execute(
-        "INSERT OR IGNORE INTO auth_user (id, username, password, email, date_joined, is_superuser, is_staff, is_active) "
+        "INSERT OR IGNORE INTO auth_user "
+        "(id, username, password, email, date_joined, "
+        "is_superuser, is_staff, is_active) "
         "VALUES (0, '__migrated__', '', '', '1970-01-01 00:00:00', 0, 0, 0)"
     )
 
@@ -137,7 +138,8 @@ def migrate(old_db: str, new_db: str) -> dict:
             # student_id 留空 → LCG 自动生成。写入临时空值
             new.execute(
                 'INSERT OR IGNORE INTO accounts_student '
-                '(id, user_id, student_id, school, gaokao_year, phone, class_group_id, created_at, updated_at) '
+                '(id, user_id, student_id, school, gaokao_year, phone, '
+                'class_group_id, created_at, updated_at) '
                 'VALUES (?, ?, '', ?, ?, ?, NULL, ?, ?)',
                 (
                     sid, s[1], s[3], s[4], s[5], s[7], s[8],
@@ -254,7 +256,7 @@ def main():
         print('⚠  没有新数据被迁移（已有标记或旧版为空）')
     else:
         print()
-        print(f'✅ 迁移完成')
+        print('✅ 迁移完成')
         print(f'   用户: {stats["auth_user"]}')
         print(f'   学生: {stats["accounts_student"]}')
         print(f'   教师: {stats["accounts_teacher"]}')
