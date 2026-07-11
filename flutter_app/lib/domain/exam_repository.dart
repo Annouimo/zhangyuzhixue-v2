@@ -325,18 +325,6 @@ class ExamRepository {
     return [];
   }
 
-  Future<void> saveFilterPreset(String name) async {}
-
-  Future<SearchFilters> loadFilterPreset(int presetId) async {
-    // 由 PreferenceRepository 提供筛选预设数据，Repository 层不做跨模块查询
-    return const SearchFilters(
-      name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
-      years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      targetDifficulty: 0, diffMin: 0, diffMax: 0,
-      calcMin: 0, calcMax: 0,
-    );
-  }
-
   // ── 筛选 ──
   Future<FilterOptions> getFilterOptions() async {
     final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
@@ -348,11 +336,6 @@ class ExamRepository {
       conceptTags: tags.map((t) => t.name).toList(),
       knowledgeCards: [],
     );
-  }
-
-  Future<ExamBuildState> getBuildSession() async {
-    // 手动选题模式的状态由 UI 层维护，不持久化
-    return const ExamBuildState(name: '', selectedCount: 0, pointsCost: 0);
   }
 
   Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters) async {

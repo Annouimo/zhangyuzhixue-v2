@@ -234,12 +234,6 @@ class UserRepository {
     return _api.checkin();
   }
 
-  Future<double> todayReward() async => 0;
-
-  Future<double> nextReward() async => 0;
-
-  Future<double> todayEarned() async => 0;
-
   // ── 版本 ──
   Future<String> appVersion() async => '2.0.0';
 

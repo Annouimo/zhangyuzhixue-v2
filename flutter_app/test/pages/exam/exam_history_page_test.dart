@@ -15,7 +15,6 @@ class _MockExamRepo implements ExamRepository {
   @override Future<ExamPreviewOther> getPreviewOther(int id) async => throw UnimplementedError();
   @override Future<List<AnswerItem>> getQuickAnswers(int id) async => throw UnimplementedError();
   @override Future<FilterOptions> getFilterOptions() async => throw UnimplementedError();
-  @override Future<ExamBuildState> getBuildSession() async => throw UnimplementedError();
   @override Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters f) async => throw UnimplementedError();
   @override Future<PoolStats> getPoolStats(SearchFilters f) async => throw UnimplementedError();
   @override Future<int> getTotalCount(SearchFilters f) async => throw UnimplementedError();
@@ -27,8 +26,6 @@ class _MockExamRepo implements ExamRepository {
   @override Future<void> removeFavorite(int id) async {}
   @override Future<void> downloadPdf(int id) async {}
   @override Future<List<FilterPreset>> getFilterPresets() async => [];
-  @override Future<void> saveFilterPreset(String name) async {}
-  @override Future<SearchFilters> loadFilterPreset(int id) async => throw UnimplementedError();
 }
 
 void main() {
