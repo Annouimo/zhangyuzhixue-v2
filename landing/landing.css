@@ -1,0 +1,316 @@
+/* 章鱼智学 · 着陆页样式 */
+/* 对齐 docs/04-UI/设计系统.md 中的设计常量 */
+
+/* === 设计令牌 === */
+:root {
+  --primary: #4A6CF7;
+  --primary-hover: #3D5CE5;
+  --primary-light: #EEF1FF;
+  --bg: #F5F7FA;
+  --card: #FFFFFF;
+  --text: #1A1A2E;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --border: #E5E7EB;
+
+  --radius-sm: 8px;
+  --radius: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.1);
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+}
+
+/* === 重置 === */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro SC', 'PingFang SC', 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-5) var(--space-2);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === 容器 === */
+.container {
+  width: 100%;
+  max-width: 480px;
+}
+
+@media (min-width: 640px) { .container { max-width: 560px; } }
+
+/* === 顶部栏 === */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+
+.teacher-link {
+  font-size: 14px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.teacher-link:hover { color: var(--primary-hover); }
+
+/* === Hero === */
+.hero {
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  margin-bottom: var(--space-1);
+}
+
+.hero .subtitle {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* === 下载区域 === */
+.download-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+/* --- 主按钮（当前设备的版本） --- */
+.btn-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+}
+
+.btn-download.active {
+  width: 100%;
+  padding: 16px var(--space-3);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  cursor: pointer;
+}
+
+.btn-download.active:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-download.active:active { transform: translateY(0); }
+
+.btn-download.active .dl-desc {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.75;
+  line-height: 1.3;
+}
+
+/* --- 非当前设备（灰色小字链接） --- */
+.btn-download.inactive {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+}
+
+.btn-download.inactive:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-download.inactive .dl-desc { display: none; }
+
+.btn-download.inactive .dl-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dl-others-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+/* === 卡片 === */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.qr-img {
+  display: block;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto var(--space-2);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.qr-desc {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* === 底部链接 === */
+.link-section {
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.link-list {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.link-list a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s;
+}
+
+.link-list a:hover { color: var(--primary); }
+
+/* === 页脚 === */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding-bottom: var(--space-2);
+}
+
+/* === 弹窗（Windows 下载确认） === */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0,0,0,0.35);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-3) var(--space-3);
+  max-width: 360px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-icon {
+  font-size: 40px;
+  margin-bottom: var(--space-2);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.modal-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-3);
+}
+
+.btn-confirm {
+  display: inline-flex;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.btn-confirm:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}

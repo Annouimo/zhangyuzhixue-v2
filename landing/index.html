@@ -1,159 +1,163 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>章鱼智学 — 你的专属数学学习助手</title>
-<style>
-  :root {
-    --primary: #4A6CF7;
-    --bg: #F5F7FA;
-    --card: #FFFFFF;
-    --text: #1A1A2E;
-    --muted: #6B7280;
-    --radius: 12px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 16px;
-  }
-  .container { max-width: 480px; width: 100%; }
-
-  /* 头部 */
-  .header {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  .header h1 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .header .subtitle {
-    font-size: 16px;
-    color: var(--muted);
-  }
-
-  /* 下载按钮 */
-  .download-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 40px;
-  }
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    background: var(--primary);
-    color: #fff;
-    transition: opacity 0.2s;
-  }
-  .btn:hover { opacity: 0.9; }
-  .btn small {
-    font-weight: 400;
-    font-size: 12px;
-    opacity: 0.8;
-  }
-
-  /* 卡片 */
-  .card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-  }
-  .card-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* 链接列表 */
-  .link-list { list-style: none; }
-  .link-list li { margin-bottom: 12px; }
-  .link-list li:last-child { margin-bottom: 0; }
-  .link-list a {
-    color: var(--primary);
-    text-decoration: none;
-    font-size: 15px;
-  }
-  .link-list a:hover { text-decoration: underline; }
-
-  /* 页脚 */
-  .footer {
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 20px;
-    padding-bottom: 20px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>章鱼智学 — 北京高考数学 · 智能练习</title>
+  <link rel="stylesheet" href="landing.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐙</text></svg>">
+  <meta property="og:title" content="章鱼智学 — 北京高考数学 · 智能练习">
+  <meta property="og:description" content="798 道北京高考真题，智能难度推荐，解题步骤逐卡引导。学生 App + 教师 Web 双端协作。">
 </head>
 <body>
+
 <div class="container">
 
-  <div class="header">
+  <!-- 顶部栏 -->
+  <div class="top-bar">
+    <span class="brand">🐙 章鱼智学</span>
+    <a href="teacher/login.html" class="teacher-link">教师登录 →</a>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
     <h1>章鱼智学</h1>
-    <p class="subtitle">你的专属数学学习助手</p>
+    <p class="subtitle">北京高考数学 · 千题库 · 智能推荐</p>
   </div>
 
-  <div class="download-group">
-    <a href="#" class="btn">
-      📱 Android 版
-      <small>APK 直接安装</small>
+  <!-- 下载区域：JS 自动高亮当前设备版本 -->
+  <div class="download-group" id="download-group">
+    <a href="#" class="btn-download" data-platform="android">
+      <span class="dl-icon">📱</span>
+      <span class="dl-text">
+        <span class="dl-title">Android 版</span>
+        <span class="dl-desc">APK 直接安装</span>
+      </span>
     </a>
-    <a href="#" class="btn">
-      🍎 iOS 版
-      <small>通过 TestFlight 安装</small>
+    <a href="#" class="btn-download" data-platform="ios">
+      <span class="dl-icon">🍎</span>
+      <span class="dl-text">
+        <span class="dl-title">iOS 版</span>
+        <span class="dl-desc">即将上线</span>
+      </span>
     </a>
-    <a href="#" class="btn">
-      💻 Windows 版
-      <small>桌面客户端</small>
+    <a href="#" class="btn-download" data-platform="windows" id="win-download">
+      <span class="dl-icon">💻</span>
+      <span class="dl-text">
+        <span class="dl-title">Windows 版</span>
+        <span class="dl-desc">即将上线</span>
+      </span>
     </a>
   </div>
 
+  <!-- 联系方式 -->
   <div class="card">
     <div class="card-title">联系方式</div>
-    <img src="images/wechat-qr.jpg" alt="微信二维码" style="display:block;width:160px;height:160px;margin:0 auto 12px;border-radius:8px;object-fit:cover;">
-    <p style="text-align:center;font-size:14px;color:var(--muted);">
-      添加时备注「章鱼智学」
-    </p>
+    <img class="qr-img" src="images/wechat-qr.jpg" alt="微信二维码">
+    <p class="qr-desc">添加时备注「章鱼智学」</p>
   </div>
 
-  <div class="card">
-    <div class="card-title">链接</div>
+  <!-- 链接 -->
+  <div class="link-section">
     <ul class="link-list">
-      <li><a href="privacy.html">📄 隐私政策</a></li>
-      <li><a href="terms.html">📄 用户协议</a></li>
+      <li><a href="privacy.html">隐私政策</a></li>
+      <li><a href="terms.html">用户协议</a></li>
     </ul>
   </div>
 
-  <div class="footer">
-    &copy; 2026 章鱼智学
-  </div>
+  <!-- 页脚 -->
+  <div class="footer">&copy; 2026 章鱼智学</div>
 
 </div>
+
+<!-- Windows 下载确认弹窗 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-card">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">学习记录提醒</div>
+    <p class="modal-body">
+      为保障学习记录完整，<br>
+      请勿在多台设备上同时使用同一账号。
+    </p>
+    <button class="btn btn-confirm" id="modal-confirm">我知道了，继续下载</button>
+  </div>
+</div>
+
+<script>
+;(function() {
+  var ua = navigator.userAgent.toLowerCase()
+  var platform = 'android'
+  if (/iphone|ipad|ipod/.test(ua)) platform = 'ios'
+  else if (/windows/.test(ua)) platform = 'windows'
+
+  var btns = document.querySelectorAll('.btn-download')
+  var activeEl = null
+  btns.forEach(function(b) {
+    if (b.dataset.platform === platform) {
+      b.classList.add('active')
+      activeEl = b
+    } else {
+      b.classList.add('inactive')
+    }
+  })
+
+  // 把非活跃按钮移到"其他平台"行
+  var group = document.getElementById('download-group')
+  var inactives = group.querySelectorAll('.btn-download.inactive')
+  if (inactives.length > 0 && activeEl) {
+    var wrap = document.createElement('div')
+    wrap.style.cssText = 'display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center;'
+
+    var label = document.createElement('span')
+    label.className = 'dl-others-label'
+    label.textContent = '其他平台：'
+    wrap.appendChild(label)
+
+    Array.from(inactives).forEach(function(b, i) {
+      if (i > 0) {
+        var sep = document.createElement('span')
+        sep.textContent = '·'
+        sep.style.cssText = 'color:var(--text-muted);font-size:12px;'
+        wrap.appendChild(sep)
+      }
+      wrap.appendChild(b)
+    })
+
+    group.appendChild(wrap)
+  }
+
+  // Windows 下载弹窗逻辑
+  var winBtn = document.getElementById('win-download')
+  var modal = document.getElementById('modal-overlay')
+  var confirmBtn = document.getElementById('modal-confirm')
+  var closeBtn = document.getElementById('modal-close')
+
+  function showModal(e) {
+    e.preventDefault()
+    modal.classList.add('open')
+  }
+
+  function hideModal() {
+    modal.classList.remove('open')
+  }
+
+  function confirmAndGo() {
+    var href = winBtn.getAttribute('href')
+    hideModal()
+    if (href && href !== '#') {
+      window.location.href = href
+    }
+  }
+
+  winBtn.addEventListener('click', showModal)
+  confirmBtn.addEventListener('click', confirmAndGo)
+  closeBtn.addEventListener('click', hideModal)
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) hideModal()
+  })
+})()
+</script>
+
 </body>
 </html>
