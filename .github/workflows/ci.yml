@@ -46,4 +46,4 @@ jobs:
           python3 manage.py makemigrations --check
       - name: pytest
         working-directory: server
-        run: pytest
+        run: python -m pytest -v --tb=short
