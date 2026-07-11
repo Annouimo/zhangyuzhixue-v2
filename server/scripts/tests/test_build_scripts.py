@@ -66,6 +66,43 @@ class TestBuildAssets:
                     pass
 
 
+class TestBuildIdempotent:
+    """构建幂等性测试"""
+
+    def test_build_assets_idempotent(self, db):
+        """两次连续构建 assets.db，产物 checksum 一致"""
+        import hashlib
+
+        output1 = build_database(
+            schema=ASSETS_TABLES,
+            db_type='qbank',
+            version_info={'schema_version': 1, 'data_version': 99},
+            test_mode=True,
+        )
+        hash1 = hashlib.sha256()
+        with open(output1, 'rb') as f:
+            hash1.update(f.read())
+
+        output2 = build_database(
+            schema=ASSETS_TABLES,
+            db_type='qbank',
+            version_info={'schema_version': 1, 'data_version': 99},
+            test_mode=True,
+        )
+        hash2 = hashlib.sha256()
+        with open(output2, 'rb') as f:
+            hash2.update(f.read())
+
+        assert hash1.hexdigest() == hash2.hexdigest()
+
+        for path in [output1, output2]:
+            if os.path.exists(path):
+                try:
+                    os.unlink(path)
+                except PermissionError:
+                    pass
+
+
 class TestBuildLectures:
     """lectures.db 构建冒烟测试"""
 
