@@ -8,6 +8,8 @@ class Teacher(models.Model):
     """教师 - OneToOne 关联 Django User"""
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='teacher')
+    name = models.CharField('显示名称', max_length=128, default='',
+                            blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -15,7 +17,7 @@ class Teacher(models.Model):
         verbose_name_plural = '教师'
 
     def __str__(self):
-        return f'教师: {self.user.username}'
+        return f'教师: {self.name or self.user.username}'
 
 
 class Student(models.Model):

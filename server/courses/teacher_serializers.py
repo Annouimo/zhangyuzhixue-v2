@@ -19,3 +19,4 @@ class PatchAssignmentSerializer(serializers.Serializer):
     """修改作业请求校验"""
     deadline = serializers.DateField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
+    title = serializers.CharField(max_length=128, required=False)

@@ -63,7 +63,7 @@ def _class_completed_count(class_group_id, assignment_id):
 
 
 def _class_accuracy(class_group_id, assignment_id):
-    """该班级指定作业的平均正确率"""
+    """该班级指定作业的平均正确率（返回 0-100 数值）"""
     details = SubmissionDetail.objects.filter(
         submission__assignment_id=assignment_id,
         submission__student__class_group_id=class_group_id,
@@ -71,32 +71,32 @@ def _class_accuracy(class_group_id, assignment_id):
     )
     total = details.count()
     if total == 0:
-        return '0%'
+        return 0.0
     correct = details.filter(is_correct=True).count()
-    return f'{round(correct / total * 100)}%'
+    return round(correct / total * 100, 1)
 
 
 def _calc_class_accuracy(class_group_id):
-    """该班级所有学生跨所有作业的平均正确率"""
+    """该班级所有学生跨所有作业的平均正确率（返回 0-100 数值）"""
     details = SubmissionDetail.objects.filter(
         submission__student__class_group_id=class_group_id,
         is_correct__isnull=False,
     )
     total = details.count()
     if total == 0:
-        return '0%'
+        return 0.0
     correct = details.filter(is_correct=True).count()
-    return f'{round(correct / total * 100)}%'
+    return round(correct / total * 100, 1)
 
 
 def _calc_overall_accuracy():
-    """全校平均正确率（所有班级/所有作业）"""
+    """全校平均正确率（所有班级/所有作业，返回 0-100 数值）"""
     details = SubmissionDetail.objects.filter(is_correct__isnull=False)
     total = details.count()
     if total == 0:
-        return '0%'
+        return 0.0
     correct = details.filter(is_correct=True).count()
-    return f'{round(correct / total * 100)}%'
+    return round(correct / total * 100, 1)
 
 
 def _count_student_submissions(student_id):
@@ -107,16 +107,16 @@ def _count_student_submissions(student_id):
 
 
 def _calc_student_accuracy(student_id):
-    """学生个人正确率"""
+    """学生个人正确率（返回 0-100 数值）"""
     details = SubmissionDetail.objects.filter(
         submission__student_id=student_id,
         is_correct__isnull=False,
     )
     total = details.count()
     if total == 0:
-        return '0%'
+        return 0.0
     correct = details.filter(is_correct=True).count()
-    return f'{round(correct / total * 100)}%'
+    return round(correct / total * 100, 1)
 
 
 def _last_active_date(student_id):
@@ -127,6 +127,30 @@ def _last_active_date(student_id):
     if last is None:
         return None
     return last.created_at.strftime('%Y-%m-%d')
+
+
+def _calc_streak_days(student):
+    """计算连续签到天数（从最近登录日向前数连续天数）"""
+    logs = list(UserLoginLog.objects.filter(
+        student=student,
+    ).order_by('-login_date').values_list('login_date', flat=True))
+    if not logs:
+        return 0
+
+    from datetime import date, timedelta
+    today = date.today()
+    streak = 0
+    expected = today
+
+    for log_date in logs:
+        if log_date == expected:
+            streak += 1
+            expected -= timedelta(days=1)
+        elif log_date < expected:
+            # 中断了（缺了某一天），不再继续
+            break
+
+    return streak
 
 
 # ── 组卷 ──────────────────────────────────────────────────────
@@ -236,9 +260,7 @@ def student_detail(request, id):
     # 概览卡片
     total_q = _count_student_submissions(s.id)
     accuracy = _calc_student_accuracy(s.id)
-    streak_days = UserLoginLog.objects.filter(
-        student=s,
-    ).count()
+    streak_days = _calc_streak_days(s)
     week_ago = timezone.now() - timedelta(days=7)
     weekly_q = SubmissionDetail.objects.filter(
         submission__student=s,
@@ -311,11 +333,31 @@ def student_detail(request, id):
         })
     weak_tags.sort(key=lambda x: float(x['accuracy'].rstrip('%')))
 
+    # 题型分布
+    type_breakdown_raw = SubmissionDetail.objects.filter(
+        submission__student=s,
+    ).values('question__question_type').annotate(
+        total=Count('id'),
+        correct=Count('id', filter=Q(is_correct=True)),
+    )
+    from qbank.models import BaseQuestion
+    type_map = dict(BaseQuestion.QUESTION_TYPE_CHOICES)
+    question_type_breakdown = []
+    for row in type_breakdown_raw:
+        t = row['total']
+        qt = row['question__question_type']
+        question_type_breakdown.append({
+            'type': type_map.get(qt, qt),
+            'count': t,
+            'accuracy': round(row['correct'] / t * 100, 1) if t else 0,
+        })
+
     return _ok(data={
         **base,
         'overview': overview,
         'accuracyTrend': accuracy_trend,
         'weakTags': weak_tags,
+        'questionTypeBreakdown': question_type_breakdown,
     })
 
 
@@ -467,10 +509,16 @@ def assignment_rud(request, id):
         cca_fields.append('deadline')
     if cca_fields:
         cca.save(update_fields=cca_fields)
+    assignment = cca.assignment
+    assign_fields = []
+    if 'title' in data:
+        assignment.title = data['title']
+        assign_fields.append('title')
     if 'description' in data:
-        assignment = cca.assignment
         assignment.description = data['description']
-        assignment.save(update_fields=['description'])
+        assign_fields.append('description')
+    if assign_fields:
+        assignment.save(update_fields=assign_fields)
     return _ok(message='修改成功')
 
 
