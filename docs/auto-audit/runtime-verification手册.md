@@ -45,7 +45,7 @@ Linux:   $TMPDIR/zhangyuzhixue_audit.ndjson
 **👤 你手动做：**
 
 ```bash
-cd D:\Hermes\zhangyuzhixue_app_v2
+cd D:\Hermes\zhangyuzhixue_app_v2\flutter_app
 flutter run --dart-define=AUDIT_MODE=true
 ```
 
