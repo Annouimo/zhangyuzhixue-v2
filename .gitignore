@@ -36,3 +36,6 @@ flutter_app/pubspec.lock
 
 # Archive
 docs/_archive/
+
+# Auto-audit generated output
+docs/auto-audit/audit_report_latest.txt
