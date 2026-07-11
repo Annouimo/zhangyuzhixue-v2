@@ -20,6 +20,7 @@ import 'exam/exam_history_page.dart';
 import 'exam/exam_explore_page.dart';
 import 'exam/exam_favorites_page.dart';
 import 'exam/answer_sheet_page.dart';
+import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
 
 /// 路由路径常量
@@ -44,6 +45,7 @@ abstract final class AppRoutes {
   static const examFavorites = '/exam/favorites';
   static const answerSheet = '/exam/answersheet';
   static const recommend = '/recommend';
+  static const statistics = '/statistics';
 }
 
 /// 从 query 参数解析 int
@@ -89,6 +91,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.answerSheet, name: 'answer-sheet', builder: (_, state) {
       return AnswerSheetPage(examId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
     GoRoute(path: AppRoutes.recommend, name: 'recommend', builder: (_, __) => const RecommendPage()),
+    GoRoute(path: AppRoutes.statistics, name: 'statistics', builder: (_, __) => const StatisticsPage()),
   ],
   errorBuilder: (context, state) => Scaffold(
     appBar: AppBar(title: const Text('页面未找到')),

@@ -69,8 +69,7 @@ class IndexPage extends StatelessWidget {
             _QuickEntryCard(icon: Icons.history, label: '我的组卷', onTap: () => context.push('/exam/history')),
             _QuickEntryCard(icon: Icons.explore, label: '发现组卷', onTap: () => context.push('/exam/explore')),
             _QuickEntryCard(icon: Icons.star_border, label: '收藏', onTap: () => context.push('/exam/favorites')),
-            _QuickEntryCard(icon: Icons.bar_chart, label: '学习统计', onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('「学习统计」将在后续版本中实现'), behavior: SnackBarBehavior.floating))),
+            _QuickEntryCard(icon: Icons.bar_chart, label: '学习统计', onTap: () => context.push('/statistics')),
           ],
         ),
       ],
