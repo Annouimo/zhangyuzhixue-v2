@@ -75,5 +75,16 @@ void main() {
       paper = await dao.getById(id);
       expect(paper!.isPublic, 0);
     });
+
+    test('getPaperCount returns 0 initially', () async {
+      expect(await dao.getPaperCount(), 0);
+    });
+
+    test('getPaperCount returns count after saving', () async {
+      await dao.savePaper(title: '组卷A');
+      expect(await dao.getPaperCount(), 1);
+      await dao.savePaper(title: '组卷B');
+      expect(await dao.getPaperCount(), 2);
+    });
   });
 }

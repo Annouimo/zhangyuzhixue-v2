@@ -5,6 +5,7 @@ import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/daos/achievement_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
+import 'package:flutter_app/data/daos/exam_dao.dart';
 import 'package:flutter_app/domain/achievement_repository.dart';
 
 void main() {
@@ -12,6 +13,7 @@ void main() {
   late adb.AssetsDatabase aDb;
   late AchievementDao dao;
   late QuestionDao qDao;
+  late ExamDao eDao;
   late AchievementRepository repo;
 
   setUp(() {
@@ -19,7 +21,8 @@ void main() {
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     dao = AchievementDao(uDb);
     qDao = QuestionDao(aDb);
-    repo = AchievementRepository(dao, qDao);
+    eDao = ExamDao(uDb);
+    repo = AchievementRepository(dao, qDao, eDao);
   });
 
   tearDown(() {
@@ -62,6 +65,34 @@ void main() {
       expect(cats.first.list.length, 2);
       expect(cats.first.list[0].name, '签到7天');
       expect(cats.first.list[1].name, '做题100');
+    });
+
+    test('PAPER_COUNT achievement shows progress from ExamDao', () async {
+      await aDb.into(aDb.achievementDefs).insert(adb.AchievementDefsCompanion(
+        code: const Value('PAPER_5'),
+        name: const Value('组卷达人'),
+        category: const Value('PRACTICE'),
+        categoryLabel: const Value('学习实践'),
+        triggerType: const Value('PAPER_COUNT'),
+        threshold: const Value(5),
+      ));
+      // 还没有组卷
+      var cats = await repo.getCategories();
+      expect(cats.first.list.first.progress, 0);
+      expect(cats.first.list.first.status, 'locked');
+      // 新建 3 份组卷
+      await eDao.savePaper(title: '卷1');
+      await eDao.savePaper(title: '卷2');
+      await eDao.savePaper(title: '卷3');
+      cats = await repo.getCategories();
+      expect(cats.first.list.first.progress, 3);
+      expect(cats.first.list.first.status, 'in_progress');
+      // 再建 2 份达到门槛
+      await eDao.savePaper(title: '卷4');
+      await eDao.savePaper(title: '卷5');
+      cats = await repo.getCategories();
+      expect(cats.first.list.first.progress, 5);
+      expect(cats.first.list.first.status, 'unlocked');
     });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/achievement_dao.dart';
 import '../../../data/daos/question_dao.dart';
+import '../../../data/daos/exam_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/achievement_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
@@ -26,7 +27,7 @@ class _AchievementPageState extends State<AchievementPage> {
   void initState() {
     super.initState();
     final db = DatabaseProvider();
-    _repo = widget.achievementRepository ?? AchievementRepository(AchievementDao(db.appDb), QuestionDao(db.assetsDb));
+    _repo = widget.achievementRepository ?? AchievementRepository(AchievementDao(db.appDb), QuestionDao(db.assetsDb), ExamDao(db.appDb));
     _load();
   }
 

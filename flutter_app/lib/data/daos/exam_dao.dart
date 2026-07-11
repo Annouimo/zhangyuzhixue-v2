@@ -115,4 +115,9 @@ class ExamDao {
     final rows = await _db.select(_db.paperCollects).get();
     return rows.map((r) => r.paperId).toList();
   }
+
+  /// 获取已创建的组卷总数
+  Future<int> getPaperCount() async {
+    return _db.select(_db.customPapers).get().then((rows) => rows.length);
+  }
 }

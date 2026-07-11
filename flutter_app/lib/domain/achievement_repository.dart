@@ -1,5 +1,6 @@
 import '../data/daos/achievement_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/daos/exam_dao.dart';
 import '../data/database/assets_database.dart' as assets;
 import '../data/database/app_database.dart' as user_db;
 
@@ -52,7 +53,8 @@ class AchievementCategory {
 class AchievementRepository {
   final AchievementDao _dao;
   final QuestionDao _questionDao;
-  const AchievementRepository(this._dao, this._questionDao);
+  final ExamDao _examDao;
+  const AchievementRepository(this._dao, this._questionDao, this._examDao);
 
   Future<AchievementSummary> getSummary() async {
     final defs = await _questionDao.getAllAchievementDefs();
@@ -67,7 +69,7 @@ class AchievementRepository {
     final progressList = await _dao.getAllProgress();
     final progressMap = {for (final p in progressList) p.achievementCode: p};
 
-    final engine = _AchievementEngine(_dao);
+    final engine = _AchievementEngine(_dao, _examDao);
     final grouped = <String, List<AchievementItem>>{};
     for (final def in defs) {
       final label = def.categoryLabel ?? def.category;
@@ -83,7 +85,8 @@ class AchievementRepository {
 // ── 成就引擎 ──
 class _AchievementEngine {
   final AchievementDao _dao;
-  const _AchievementEngine(this._dao);
+  final ExamDao _examDao;
+  const _AchievementEngine(this._dao, this._examDao);
 
   Future<AchievementItem> compute(assets.AchievementDefRow def, user_db.StudentAchievementRow? cached) async {
     final threshold = def.threshold ?? 1;
@@ -97,7 +100,7 @@ class _AchievementEngine {
         progress = await _dao.getSubmissionCount();
         break;
       case 'PAPER_COUNT':
-        progress = 0; // 需 ExamDao 提供
+        progress = await _examDao.getPaperCount();
         break;
       case 'RATING_COUNT':
         progress = await _dao.getRatingCount();
