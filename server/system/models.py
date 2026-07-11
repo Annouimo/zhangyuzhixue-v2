@@ -223,3 +223,12 @@ class SystemToolsProxy(models.Model):
         managed = False
         verbose_name = '系统工具'
         verbose_name_plural = '系统工具'
+
+
+class AdminHelpProxy(models.Model):
+    """仅用于在 admin 首页展示「管理员使用说明」入口，无数据库表"""
+
+    class Meta:
+        managed = False
+        verbose_name = '管理员使用说明'
+        verbose_name_plural = '管理员使用说明'

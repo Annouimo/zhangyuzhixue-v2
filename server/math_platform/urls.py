@@ -8,7 +8,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from interactions.pdf_views import pdf_view
-from system.admin import ToolsView
+from system.admin import ToolsView, HelpView
 
 api_v1 = [
     path('auth/', include('accounts.urls')),
@@ -33,6 +33,7 @@ api_v1 = [
 urlpatterns = [
     # 管理工具必须在 admin.site.urls 之前，避免被 admin catch-all 拦截
     path('admin/system/tools/', ToolsView.as_view(), name='admin-system-tools'),
+    path('admin/system/help/', HelpView.as_view(), name='admin-system-help'),
     path('admin/', admin.site.urls),
     path('api/v1/', include(api_v1)),
 

@@ -9,7 +9,7 @@ from django.views import View
 
 from django.utils import timezone
 from .models import (
-    AchievementDef, Announcement, AppVersion, DbVersion,
+    AchievementDef, AdminHelpProxy, Announcement, AppVersion, DbVersion,
     LevelConfig, PointsTransaction, StudentAchievement,
     SystemConfig, SystemToolsProxy,
 )
@@ -82,6 +82,23 @@ class SystemToolsAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         return HttpResponseRedirect(reverse('admin-system-tools'))
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
+
+
+@admin.register(AdminHelpProxy)
+class AdminHelpAdmin(admin.ModelAdmin):
+    """管理员使用说明入口 — 跳转到 /admin/system/help/"""
+
+    def changelist_view(self, request, extra_context=None):
+        return HttpResponseRedirect(reverse('admin-system-help'))
 
     def has_add_permission(self, request):
         return False
@@ -202,3 +219,12 @@ class ToolsView(View):
                     expires_at=expires,
                 )
                 created += 1
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class HelpView(View):
+    """管理员使用说明页面"""
+    template_name = 'admin/system/help.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
