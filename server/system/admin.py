@@ -11,7 +11,7 @@ from django.utils import timezone
 from .models import (
     AchievementDef, Announcement, AppVersion, DbVersion,
     LevelConfig, PointsTransaction, StudentAchievement,
-    SystemConfig,
+    SystemConfig, SystemToolsProxy,
 )
 
 
@@ -74,6 +74,23 @@ class AnnouncementAdmin(admin.ModelAdmin):
 class SystemConfigAdmin(admin.ModelAdmin):
     list_display = ['key', 'value', 'description']
     search_fields = ['key']
+
+
+@admin.register(SystemToolsProxy)
+class SystemToolsAdmin(admin.ModelAdmin):
+    """系统工具页入口 — 点击跳转到 /admin/system/tools/"""
+
+    def changelist_view(self, request, extra_context=None):
+        return HttpResponseRedirect(reverse('admin-system-tools'))
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_staff
 
 
 # ── 工具页面 ──────────────────────────────────────────────────
