@@ -88,14 +88,14 @@ class UpdateManager {
     });
 
     final gzBytes = await File(gzPath).readAsBytes();
-    final decompressed = gzip.decode(gzBytes);
-    final digest = sha256.convert(decompressed);
+    final digest = sha256.convert(gzBytes);
 
     if (digest.toString() != expectedChecksum) {
       await File(gzPath).delete();
       throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
     }
 
+    final decompressed = gzip.decode(gzBytes);
     final targetPath = '${tempDir.path}/${type}_temp.db';
     await File(targetPath).writeAsBytes(decompressed);
 
