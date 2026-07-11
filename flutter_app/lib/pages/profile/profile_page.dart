@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
@@ -25,6 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
   UserInfo? _info;
   bool _loading = true;
   bool _uploading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -43,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       setState(() { _info = info; _loading = false; });
     } catch (e) {
-      if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); }
+      if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); }
     }
   }
 
@@ -144,7 +146,9 @@ class _ProfilePageState extends State<ProfilePage> {
     appBar: AppBar(title: const Text('我的')),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
-        : ListView(
+        : _error != null
+            ? ErrorPlaceholder(message: _error!, onRetry: _load)
+            : ListView(
             padding: const EdgeInsets.all(AppSizes.baseSpacing),
             children: [
               _buildUserHeader(),

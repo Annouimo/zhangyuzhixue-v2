@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/daos/statistics_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/statistics_repository.dart';
@@ -22,6 +23,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   late final StatisticsRepository _repo;
   bool _loading = true;
   int _rangeDays = 7;
+  String? _error;
   StatsOverview? _overview;
   List<DailyRecord>? _dailyRecords;
   List<TrendPoint>? _accuracyTrend;
@@ -45,7 +47,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       final dist = await _repo.getDistribution();
       if (!mounted) return;
       setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
-    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
+    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); } }
   }
 
   @override
@@ -53,7 +55,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
     appBar: AppBar(title: const Text('📊 学习统计')),
     body: _loading
         ? const LoadingIndicator(message: '加载统计数据…')
-        : RefreshIndicator(
+        : _error != null
+            ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
+            : RefreshIndicator(
             onRefresh: _loadAll,
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: AppSizes.baseSpacing),

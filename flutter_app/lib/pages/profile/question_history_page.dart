@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
@@ -18,6 +19,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
   late final UserRepository _repo;
   List<HistoryItem>? _history;
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -28,16 +30,24 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
   }
 
   Future<void> _load() async {
-    final list = await _repo.getAnswerHistory();
-    if (!mounted) return;
-    setState(() { _history = list; _loading = false; });
+    setState(() { _loading = true; _error = null; });
+    try {
+      final list = await _repo.getAnswerHistory();
+      if (!mounted) return;
+      setState(() { _history = list; _loading = false; });
+    } catch (e) {
+      debugPrint('_load error: $e');
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('做题历史')),
     body: _loading ? const Center(child: CircularProgressIndicator())
-      : _history == null || _history!.isEmpty
+      : _error != null
+          ? ErrorPlaceholder(message: _error!, onRetry: _load)
+          : _history == null || _history!.isEmpty
         ? const Center(child: Text('暂无做题记录', style: TextStyle(color: AppColors.textSecondary)))
         : ListView.separated(
             padding: const EdgeInsets.all(AppSizes.baseSpacing),

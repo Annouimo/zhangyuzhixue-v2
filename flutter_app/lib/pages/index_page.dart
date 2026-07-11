@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
 import '../widgets/shared/loading_indicator.dart';
+import '../widgets/shared/error_placeholder.dart';
 import '../widgets/shared/app_toast.dart';
 import '../data/database/database_provider.dart';
 import '../data/daos/achievement_dao.dart';
@@ -26,6 +27,7 @@ class _IndexPageState extends State<IndexPage> {
   int _pendingCount = 0;
   int _streakDays = 0;
   bool _checkedIn = false;
+  String? _error;
 
   static const List<String> _welcomeMessages = [
     '每一次练习，都在为高考蓄力 💪',
@@ -68,7 +70,7 @@ class _IndexPageState extends State<IndexPage> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() { _error = '加载失败'; _loading = false; });
     }
   }
 
@@ -116,7 +118,9 @@ class _IndexPageState extends State<IndexPage> {
       appBar: AppBar(title: const Text('首页')),
       body: _loading
           ? const LoadingIndicator()
-          : SingleChildScrollView(
+          : _error != null
+              ? ErrorPlaceholder(message: _error!, onRetry: _load)
+              : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [

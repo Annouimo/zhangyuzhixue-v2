@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../widgets/shared/error_placeholder.dart';
 import '../../../app_theme.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
@@ -18,6 +19,8 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   late final UserRepository _repo;
   String _progress = '0/0';
   int _earned = 0;
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -28,20 +31,26 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   }
 
   Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
     try {
       final p = await _repo.levelProgress();
       final e = await _repo.earnedPoints();
       if (!mounted) return;
-      setState(() { _progress = p; _earned = e.toInt(); });
+      setState(() { _progress = p; _earned = e.toInt(); _loading = false; });
     } catch (e) {
       debugPrint('_load error: $e');
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('等级进度')),
-    body: Padding(padding: const EdgeInsets.all(AppSizes.baseSpacing), child: Column(children: [
+    body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+            ? ErrorPlaceholder(message: _error!, onRetry: _load)
+            : Padding(padding: const EdgeInsets.all(AppSizes.baseSpacing), child: Column(children: [
       const CircleAvatar(radius: 40, backgroundColor: AppColors.primaryLight, child: Icon(Icons.trending_up, size: 40, color: AppColors.primary)),
       const SizedBox(height: 12),
       Text('经验值: $_earned', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),

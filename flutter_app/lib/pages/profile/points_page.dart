@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
@@ -18,6 +19,7 @@ class _PointsPageState extends State<PointsPage> {
   late final UserRepository _repo;
   List<PointsRecord>? _records;
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -35,7 +37,7 @@ class _PointsPageState extends State<PointsPage> {
     } catch (e) {
       debugPrint('_load error: $e');
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() { _error = e.toString(); _loading = false; });
     }
   }
 
@@ -44,7 +46,9 @@ class _PointsPageState extends State<PointsPage> {
     appBar: AppBar(title: const Text('积分流水')),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
-        : ListView.separated(
+        : _error != null
+            ? ErrorPlaceholder(message: _error!, onRetry: _load)
+            : ListView.separated(
             padding: const EdgeInsets.all(AppSizes.baseSpacing),
             itemCount: (_records?.length ?? 0) + 1,
             separatorBuilder: (_, _) => const Divider(height: 1),
