@@ -39,7 +39,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _gaokaoCtrl.text = info.gaokaoYear ?? '';
       _phoneCtrl.text = info.phone ?? '';
       setState(() => _loading = false);
-    } catch (_) { if (mounted) setState(() => _loading = false); }
+    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
   }
 
   Future<void> _save() async {

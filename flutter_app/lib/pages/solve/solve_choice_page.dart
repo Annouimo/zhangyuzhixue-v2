@@ -57,14 +57,17 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       final sec = await dao.getInt('solve_cooldown_choice', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('_loadCooldown error: $e');
+    }
   }
 
   Future<void> _load() async {
     try {
       final detail = await _repo.getDetail(widget.questionId);
       setState(() { _detail = detail; _loading = false; });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_load error: $e');
       setState(() => _loading = false);
     }
   }

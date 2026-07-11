@@ -55,7 +55,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
         }
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_loadRating error: $e');
       setState(() => _loading = false);
     }
   }

@@ -25,7 +25,7 @@ class LecturePagerWidget extends StatelessWidget {
   });
 
   bool get _canPrev => currentPage > 1 || revealedCount > 0;
-  bool get _canNext => currentPage < totalPages - 1 || revealedCount < totalBlocks - 1;
+  bool get _canNext => currentPage < totalPages || revealedCount < totalBlocks;
 
   @override
   Widget build(BuildContext context) {

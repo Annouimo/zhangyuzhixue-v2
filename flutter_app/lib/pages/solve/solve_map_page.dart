@@ -48,7 +48,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
         }
       }
       setState(() { _state = s; _completedSteps = doneSteps; _loading = false; });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_load error: $e');
       setState(() => _loading = false);
     }
   }

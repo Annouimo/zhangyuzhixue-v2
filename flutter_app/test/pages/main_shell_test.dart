@@ -51,7 +51,8 @@ void main() {
       );
 
       await tester.tap(find.text('作业'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
@@ -65,7 +66,8 @@ void main() {
       );
 
       await tester.tap(find.text('我的'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),
@@ -80,7 +82,8 @@ void main() {
       );
 
       await tester.tap(find.text('讲义'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump();
 
       final navBar = tester.widget<BottomNavigationBar>(
         find.byType(BottomNavigationBar),

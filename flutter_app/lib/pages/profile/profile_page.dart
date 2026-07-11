@@ -35,7 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final info = await _repo.getUserInfo();
       if (!mounted) return;
       setState(() { _info = info; _loading = false; });
-    } catch (_) { if (mounted) setState(() => _loading = false); }
+    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
   }
 
   @override

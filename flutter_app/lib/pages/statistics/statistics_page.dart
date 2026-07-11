@@ -45,7 +45,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       final dist = await _repo.getDistribution();
       if (!mounted) return;
       setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
-    } catch (_) { if (mounted) setState(() => _loading = false); }
+    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
   }
 
   @override

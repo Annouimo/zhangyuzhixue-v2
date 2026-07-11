@@ -28,9 +28,15 @@ class _PointsPageState extends State<PointsPage> {
   }
 
   Future<void> _load() async {
-    final list = await _repo.getPointsHistory();
-    if (!mounted) return;
-    setState(() { _records = list; _loading = false; });
+    try {
+      final list = await _repo.getPointsHistory();
+      if (!mounted) return;
+      setState(() { _records = list; _loading = false; });
+    } catch (e) {
+      debugPrint('_load error: $e');
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
   @override
@@ -43,10 +49,13 @@ class _PointsPageState extends State<PointsPage> {
             itemCount: (_records?.length ?? 0) + 1,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (_, i) {
-              if (i == 0 && _records != null && _records!.isNotEmpty) {
-                final r = _records!.first;
-                return Padding(padding: const EdgeInsets.only(bottom: 12),
-                  child: Text('可用积分: ${r.available.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)));
+              if (i == 0) {
+                if (_records != null && _records!.isNotEmpty) {
+                  final r = _records!.first;
+                  return Padding(padding: const EdgeInsets.only(bottom: 12),
+                    child: Text('可用积分: ${r.available.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)));
+                }
+                return const SizedBox.shrink();
               }
               final r = _records![i - 1];
               return ListTile(

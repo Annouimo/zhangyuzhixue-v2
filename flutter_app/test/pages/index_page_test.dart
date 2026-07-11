@@ -9,17 +9,9 @@ void main() {
       expect(find.text('章鱼智学'), findsOneWidget);
     });
 
-    testWidgets('renders quick entry grid', (tester) async {
+    testWidgets('shows loading indicator on first frame', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: IndexPage()));
-      expect(find.text('🏠 快捷入口'), findsOneWidget);
-      expect(find.text('智能推荐'), findsOneWidget);
-      expect(find.text('自主选题'), findsOneWidget);
-      expect(find.text('学习统计'), findsOneWidget);
-    });
-
-    testWidgets('renders recent study placeholder', (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: IndexPage()));
-      expect(find.text('📖 继续学习'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
 }

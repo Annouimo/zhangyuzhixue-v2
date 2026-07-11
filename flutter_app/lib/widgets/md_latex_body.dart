@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
 import '../../app_theme.dart';
 
 /// 渲染 Markdown + LaTeX 数学公式的组件
 ///
-/// 基于 flutter_markdown，支持：
+/// 基于 flutter_markdown + flutter_math_fork，支持：
 /// - Markdown 语法（粗体、列表、标题等）
 /// - LaTeX 数学公式（$$...$$ 行间、$...$ 行内）
 /// - 自定义样式匹配设计系统
@@ -25,6 +27,12 @@ class MdLatexBody extends StatelessWidget {
     return MarkdownBody(
       data: data,
       selectable: true,
+      blockSyntaxes: [_BlockMathSyntax()],
+      inlineSyntaxes: [_InlineLatexSyntax()],
+      builders: {
+        'latex_inline': _InlineLatexBuilder(),
+        'math_block': _BlockMathBuilder(),
+      },
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
           fontSize: fontSize,
@@ -77,6 +85,86 @@ class MdLatexBody extends StatelessWidget {
         ),
         horizontalRuleDecoration: BoxDecoration(
           border: Border(top: BorderSide(color: Colors.grey[200]!)),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── 行内公式 $...$ ───
+
+class _InlineLatexSyntax extends md.InlineSyntax {
+  _InlineLatexSyntax() : super(r'\$([^$]+?)\$');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    parser.addNode(md.Element.text('latex_inline', match[1]!));
+    return true;
+  }
+}
+
+class _InlineLatexBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    return Math.tex(
+      element.textContent,
+      mathStyle: MathStyle.text,
+      textStyle: TextStyle(
+        fontSize: preferredStyle?.fontSize ?? 14,
+        color: preferredStyle?.color,
+      ),
+    );
+  }
+}
+
+// ─── 块级公式 $$...$$ ───
+
+class _BlockMathSyntax extends md.BlockSyntax {
+  @override
+  RegExp get pattern => RegExp(r'^\$\$');
+
+  @override
+  bool canEndBlock(md.BlockParser parser) => true;
+
+  @override
+  md.Node parse(md.BlockParser parser) {
+    final line = parser.current.content;
+
+    // 单行: $$a^2 + b^2 = c^2$$
+    final single = RegExp(r'^\$\$(.*)\$\$$').firstMatch(line);
+    if (single != null) {
+      parser.advance();
+      return md.Element.text('math_block', single[1]!.trim());
+    }
+
+    // 多行: $$\n...\n$$
+    final buf = StringBuffer();
+    parser.advance();
+    while (!parser.isDone) {
+      final cur = parser.current;
+      if (cur.content.trim() == r'$$') {
+        parser.advance();
+        break;
+      }
+      buf.writeln(cur.content);
+      parser.advance();
+    }
+    return md.Element.text('math_block', buf.toString().trimRight());
+  }
+}
+
+class _BlockMathBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: Math.tex(
+          element.textContent,
+          mathStyle: MathStyle.display,
+          textStyle: TextStyle(
+            fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+          ),
         ),
       ),
     );

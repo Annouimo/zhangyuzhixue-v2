@@ -49,7 +49,9 @@ class _SolveStepPageState extends State<SolveStepPage> {
       final sec = await dao.getInt('solve_cooldown_step', 5);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('_loadCooldown error: $e');
+    }
   }
 
   Future<void> _load() async {
@@ -60,7 +62,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
     try {
       final s = await _repo.getSolveState(widget.questionId);
       setState(() { _state = s; _loading = false; });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('_load error: $e');
       setState(() => _loading = false);
     }
   }

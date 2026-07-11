@@ -141,7 +141,7 @@ void main() {
           body: LecturePagerWidget(
             currentPage: 3,
             totalPages: 3,
-            revealedCount: 2,
+            revealedCount: 3,
             totalBlocks: 3,
             onPrev: () {},
             onNext: () {},

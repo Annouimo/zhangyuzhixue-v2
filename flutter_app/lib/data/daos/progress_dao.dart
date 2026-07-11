@@ -130,6 +130,12 @@ class ProgressDao {
     return rows.isNotEmpty;
   }
 
+  /// 是否有任何提交记录（判断是否有学习历史）
+  Future<bool> hasAnySubmission() async {
+    final rows = await _db.select(_db.submissions).get();
+    return rows.isNotEmpty;
+  }
+
   /// 获取最近 N 天内做错的题目 ID
   Future<Set<int>> getRecentWrongQuestionIds(int days) async {
     final all = await _db.select(_db.submissionDetails).get();

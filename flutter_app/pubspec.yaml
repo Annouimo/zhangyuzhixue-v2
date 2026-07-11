@@ -20,6 +20,7 @@ dependencies:
 
   # UI & Markdown
   flutter_markdown: ^0.7.0
+  flutter_math_fork: ^0.7.3
   url_launcher: ^6.3.0
   cached_network_image: ^3.4.0
   crypto: ^3.0.0

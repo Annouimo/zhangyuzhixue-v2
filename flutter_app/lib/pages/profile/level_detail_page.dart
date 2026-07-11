@@ -28,10 +28,14 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   }
 
   Future<void> _load() async {
-    final p = await _repo.levelProgress();
-    final e = await _repo.earnedPoints();
-    if (!mounted) return;
-    setState(() { _progress = p; _earned = e.toInt(); });
+    try {
+      final p = await _repo.levelProgress();
+      final e = await _repo.earnedPoints();
+      if (!mounted) return;
+      setState(() { _progress = p; _earned = e.toInt(); });
+    } catch (e) {
+      debugPrint('_load error: $e');
+    }
   }
 
   @override
