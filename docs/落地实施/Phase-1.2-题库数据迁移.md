@@ -196,7 +196,7 @@
 
 ## 审核文件清单
 
-所有文件在 `server/migration_audit/`：
+所有文件在 `docs/_archive/migration_audit/`（从原 `server/migration_audit/` 迁移至此）：
 
 | 文件 | 行数 | 说明 |
 |:---|:---:|:---|

@@ -20,7 +20,7 @@
 - [x] SubQuestion 1092 + SolutionMethod 1152 + SolutionStep 3061
 - [x] ChoiceExt 350/380（30 题解析失败，待补）
 - [x] 配图 204 题匹配 → `static/questions/images/`
-- [x] 全文审核文件 20+ 个 → `server/migration_audit/`
+- [x] 全文审核文件 20+ 个 → `server/migration_audit/`（后迁移至 `docs/_archive/migration_audit/`）
 
 ## 1.3 — JWT 认证 API
 
