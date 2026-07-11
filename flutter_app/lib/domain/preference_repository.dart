@@ -56,8 +56,29 @@ class PreferenceRepository {
     return rows.map((r) => PreferenceSummary(
       id: r.id,
       name: r.name,
-      summary: '${r.years} · ${r.regions}',
+      summary: _buildSummary(r.years, r.regions, r.conceptTags, r.diffMin, r.diffMax),
     )).toList();
+  }
+
+  /// 构建偏好摘要文本，格式：'2025 海淀/东城 · 导数 · 难度 2-8'
+  String _buildSummary(String years, String regions, String conceptTags, double? diffMin, double? diffMax) {
+    final parts = <String>[];
+    final yearStr = _parseJsonList(years).join(' ');
+    final regionStr = _parseJsonList(regions).join('/');
+    final combined = [yearStr, regionStr].where((s) => s.isNotEmpty).join(' ');
+    if (combined.isNotEmpty) parts.add(combined);
+
+    final tags = _parseJsonList(conceptTags);
+    if (tags.isNotEmpty) parts.add(tags.join('、'));
+
+    // 只在至少有一个边界非 null 时显示难度范围
+    if (diffMin != null || diffMax != null) {
+      final min = diffMin?.toStringAsFixed(0) ?? '?';
+      final max = diffMax?.toStringAsFixed(0) ?? '?';
+      parts.add('难度 $min-$max');
+    }
+
+    return parts.join(' · ');
   }
 
   Future<int> getCount() => _dao.count();
