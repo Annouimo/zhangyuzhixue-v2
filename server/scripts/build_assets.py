@@ -7,6 +7,7 @@
 """
 import os
 import sys
+import shutil
 
 # Django 环境
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -61,7 +62,32 @@ def main():
     )
 
     print()
-    print('✅ 构建完成')
+    print('✅ 数据库构建完成')
+
+    # ── 同步配图到 Flutter assets ──
+    print()
+    print('同步配图...')
+    image_src = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'static', 'questions', 'images')
+    flutter_assets = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'flutter_app', 'assets', 'questions', 'images')
+
+    if not os.path.isdir(image_src):
+        print(f'  ⚠ 配图源目录不存在: {image_src}')
+    else:
+        os.makedirs(flutter_assets, exist_ok=True)
+        for subdir in ['一模', '二模', '高考']:
+            src_sub = os.path.join(image_src, subdir)
+            dst_sub = os.path.join(flutter_assets, subdir)
+            if os.path.isdir(src_sub):
+                os.makedirs(dst_sub, exist_ok=True)
+                count = 0
+                for f in os.listdir(src_sub):
+                    if f.lower().endswith('.webp'):
+                        shutil.copy2(os.path.join(src_sub, f), os.path.join(dst_sub, f))
+                        count += 1
+                print(f'  {subdir}: {count} 张配图')
+            else:
+                print(f'  {subdir}: 目录不存在(跳过)')
+        print('✅ 配图同步完成')
 
 
 if __name__ == '__main__':

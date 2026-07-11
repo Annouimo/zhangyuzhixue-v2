@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
 import '../../widgets/shared/loading_indicator.dart';
+import '../../widgets/shared/question_image.dart';
 import '../../widgets/exit_rating_popup.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
@@ -138,10 +139,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         MdLatexBody(detail.stem, fontSize: 15),
         const SizedBox(height: 20),
         // 图片
-        ...detail.images.map((url) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Image.network(url, fit: BoxFit.contain),
-        )),
+        ...detail.images.map((url) => QuestionImage(relativePath: url)),
         const SizedBox(height: 12),
         // 选项
         ...(detail.options?.entries.map((e) {
