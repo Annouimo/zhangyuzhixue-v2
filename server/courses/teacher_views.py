@@ -536,3 +536,39 @@ def _assignment_detail(cca):
         'avgAccuracy': acc,
         'students': student_items,
     })
+
+
+# ── 关于页 ──────────────────────────────────────────────────
+
+
+@extend_schema(
+    responses={200: OpenApiResponse(description='关于页数据')},
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsTeacher])
+def about_info(request):
+    """关于页 — 版本/公告/更新日志"""
+    import json
+    from system.config_reader import get_config
+    from system.models import Announcement
+
+    app_version = get_config('teacher_app_version', '2.0.0')
+
+    announcements = Announcement.objects.filter(is_active=True).order_by('-created_at')
+    ann_list = [{
+        'title': a.title,
+        'content': a.content,
+        'date': a.created_at.strftime('%Y-%m-%d'),
+    } for a in announcements]
+
+    changelog_raw = get_config('teacher_changelog', '[]')
+    try:
+        changelog = json.loads(changelog_raw)
+    except (json.JSONDecodeError, TypeError):
+        changelog = []
+
+    return _ok(data={
+        'appVersion': app_version,
+        'announcements': ann_list,
+        'changelog': changelog,
+    })

@@ -394,3 +394,19 @@ class TestAuthGuard:
         api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
         resp = api_client.get('/api/v1/teacher/papers/')
         assert resp.status_code == 403
+
+
+# ── About ─────────────────────────────────────────────────────
+
+
+class TestAboutInfo:
+    def test_returns_structure(self, auth_client):
+        resp = auth_client.get('/api/v1/teacher/about/')
+        assert resp.status_code == 200
+        d = resp.data['data']
+        assert 'appVersion' in d
+        assert 'announcements' in d
+        assert 'changelog' in d
+        assert d['appVersion'] == '2.0.0'
+        assert d['announcements'] == []
+        assert d['changelog'] == []

@@ -26,59 +26,106 @@
   <div class="container" style="max-width:640px;">
     <div class="page-header"><h1>关于</h1></div>
 
-    <div class="card">
-      <h3 style="margin-bottom:8px;">章鱼智学 · 教师端</h3>
-      <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
-        章鱼智学 v2 是一个面向北京高考数学的教学辅助平台，提供题库练习、智能组卷、讲义阅读、作业管理等功能。<br><br>
-        教师端用于发布作业和管理班级学情，学生端提供完整的练习和学习体验。
-      </p>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--text-secondary);">
-        <span>版本：<strong>2.0.0</strong></span>
-        <span>数据版本：<strong>3</strong></span>
-      </div>
-    </div>
+    <div id="error-msg" class="error-banner"></div>
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
 
-    <div class="card">
-      <h3 style="margin-bottom:12px;">📢 系统公告</h3>
-      <div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:14px;font-size:14px;line-height:1.7;">
-        <strong>2026-07-10：</strong> 章鱼智学 v2 教师端上线！支持发布作业、查看完成情况和班级学情分析。
-      </div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-bottom:12px;">📋 更新日志</h3>
-      <div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="display:flex;gap:12px;font-size:14px;">
-          <span style="font-weight:700;color:var(--primary);">v2.0.0</span>
-          <span style="color:var(--text-muted);">2026-07-10</span>
+    <div id="content" style="display:none;">
+      <!-- 版本信息 -->
+      <div class="card">
+        <h3 style="margin-bottom:8px;">章鱼智学 · 教师端</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
+          章鱼智学 v2 是一个面向北京高考数学的教学辅助平台，提供题库练习、智能组卷、讲义阅读、作业管理等功能。<br><br>
+          教师端用于发布作业和管理班级学情，学生端提供完整的练习和学习体验。
+        </p>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--text-secondary);">
+          <span>版本：<strong id="about-version">—</strong></span>
         </div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">🎉 章鱼智学 v2 正式版发布。全新架构，支持作业管理和学情分析。</div>
       </div>
-      <div style="padding:10px 0;">
-        <div style="display:flex;gap:12px;font-size:14px;">
-          <span style="font-weight:700;color:var(--text-muted);">v2.0.0-beta</span>
-          <span style="color:var(--text-muted);">2026-07-01</span>
+
+      <!-- 系统公告 -->
+      <div class="card">
+        <h3 style="margin-bottom:12px;">📢 系统公告</h3>
+        <div id="about-announcements">
+          <div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无公告</div>
         </div>
-        <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">β 版内部测试。核心功能开发完成，等待教师 UAT 验收。</div>
       </div>
-    </div>
 
-    <div class="card">
-      <h3 style="margin-bottom:8px;">📞 联系我们</h3>
-      <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
-        如有问题或建议，请联系管理员或在微信中反馈。<br>
-        教师账号管理、题库更新、讲义维护等事宜请联系管理员处理。
-      </p>
-    </div>
+      <!-- 更新日志 -->
+      <div class="card">
+        <h3 style="margin-bottom:12px;">📋 更新日志</h3>
+        <div id="about-changelog">
+          <div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无更新记录</div>
+        </div>
+      </div>
 
-    <div class="text-center" style="padding:16px;font-size:12px;color:var(--text-muted);">
-      <a href="/privacy.html" style="color:var(--primary);text-decoration:none;">隐私政策</a>
-      <span style="margin:0 8px;">·</span>
-      <a href="/terms.html" style="color:var(--primary);text-decoration:none;">用户协议</a>
+      <!-- 联系我们 -->
+      <div class="card">
+        <h3 style="margin-bottom:8px;">📞 联系我们</h3>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;">
+          如有问题或建议，请联系管理员或在微信中反馈。<br>
+          教师账号管理、题库更新、讲义维护等事宜请联系管理员处理。
+        </p>
+      </div>
+
+      <div class="text-center" style="padding:16px;font-size:12px;color:var(--text-muted);">
+        <a href="/privacy.html" style="color:var(--primary);text-decoration:none;">隐私政策</a>
+        <span style="margin:0 8px;">·</span>
+        <a href="/terms.html" style="color:var(--primary);text-decoration:none;">用户协议</a>
+      </div>
     </div>
   </div>
 
   <script src="teacher-common.js"></script>
-  <script>initPage();</script>
+  <script>
+    initPage();
+
+    (async function load() {
+      try {
+        const data = await apiCall('/teacher/about/');
+        document.getElementById('about-version').textContent = data.appVersion || '—';
+
+        // 公告
+        const annContainer = document.getElementById('about-announcements');
+        annContainer.innerHTML = '';
+        const anns = data.announcements || [];
+        if (anns.length === 0) {
+          annContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无公告</div>';
+        } else {
+          anns.forEach(a => {
+            annContainer.innerHTML += `
+              <div style="background:var(--primary-light);border-radius:var(--radius-sm);padding:14px;font-size:14px;line-height:1.7;margin-bottom:10px;">
+                <strong>${esc(a.date)}：</strong> ${esc(a.content)}
+              </div>`;
+          });
+        }
+
+        // 更新日志
+        const logContainer = document.getElementById('about-changelog');
+        logContainer.innerHTML = '';
+        const logs = data.changelog || [];
+        if (logs.length === 0) {
+          logContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无更新记录</div>';
+        } else {
+          logs.forEach((log, i) => {
+            const border = i < logs.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+            logContainer.innerHTML += `
+              <div style="padding:10px 0;${border}">
+                <div style="display:flex;gap:12px;font-size:14px;">
+                  <span style="font-weight:700;color:var(--primary);">${esc(log.version)}</span>
+                  <span style="color:var(--text-muted);">${esc(log.date || '')}</span>
+                </div>
+                <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">${esc(log.note || '')}</div>
+              </div>`;
+          });
+        }
+
+        document.getElementById('content').style.display = 'block';
+      } catch (e) {
+        showError('加载关于页数据失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
+      }
+    })();
+  </script>
 </body>
 </html>
