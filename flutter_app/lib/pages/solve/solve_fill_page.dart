@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../app_theme.dart';
+import '../../widgets/md_latex_body.dart';
+import '../../domain/question_repository.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/daos/progress_dao.dart';
+import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
 
 /// 填空题解题页
 class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
+  final QuestionRepository? questionRepository;
 
   const SolveFillPage({
     super.key,
     required this.questionId,
     this.nextQuestionId,
+    this.questionRepository,
   });
 
   @override
@@ -21,6 +29,19 @@ class _SolveFillPageState extends State<SolveFillPage> {
   final _answerCtrl = TextEditingController();
   bool _submitted = false;
   bool _isCorrect = false;
+  bool _loading = true;
+  QuestionDetail? _detail;
+  late final QuestionRepository _repo;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo = widget.questionRepository ?? QuestionRepository(
+      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider().appDb),
+    );
+    _load();
+  }
 
   @override
   void dispose() {
@@ -28,17 +49,33 @@ class _SolveFillPageState extends State<SolveFillPage> {
     super.dispose();
   }
 
+  Future<void> _load() async {
+    try {
+      final detail = await _repo.getDetail(widget.questionId);
+      setState(() { _detail = detail; _loading = false; });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
   void _submit() {
     final answer = _answerCtrl.text.trim();
     if (answer.isEmpty) return;
     setState(() {
       _submitted = true;
-      _isCorrect = answer == '42'; // 简化验证
+      _isCorrect = answer == _detail?.answer;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('填空题')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('填空题')),
       body: SingleChildScrollView(
@@ -46,6 +83,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         child: SolveFlowWidget(
           isRevisit: _submitted,
           isCorrect: _isCorrect,
+          correctAnswer: _detail?.answer,
           onSubmit: _submit,
           onNext: widget.nextQuestionId != null
               ? () => context.go('/solve/fill?id=${widget.nextQuestionId}')
@@ -54,10 +92,14 @@ class _SolveFillPageState extends State<SolveFillPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '题目内容加载中…\n\n请在下方输入你的答案：',
-                style: TextStyle(fontSize: 14, height: 1.6),
-              ),
+              if (_detail != null && _detail!.title.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(_detail!.title,
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ),
+              MdLatexBody(_detail?.stem ?? '题目数据不存在'),
               const SizedBox(height: 16),
               TextField(
                 controller: _answerCtrl,

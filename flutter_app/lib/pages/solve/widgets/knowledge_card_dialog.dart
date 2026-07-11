@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/md_latex_body.dart';
 
 /// 知识卡片弹层
 class KnowledgeCardDialog extends StatelessWidget {
@@ -65,14 +66,7 @@ class KnowledgeCardDialog extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: 12),
             SingleChildScrollView(
-              child: Text(
-                cardContent,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                  height: 1.6,
-                ),
-              ),
+              child: MdLatexBody(cardContent, fontSize: 14),
             ),
             const SizedBox(height: 16),
             Align(

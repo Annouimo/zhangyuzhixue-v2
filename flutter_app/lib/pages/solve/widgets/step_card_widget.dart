@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../domain/progress_repository.dart' as progress;
+import '../../../widgets/md_latex_body.dart';
 import 'cooling_timer.dart';
 import 'feedback_buttons.dart';
 import 'knowledge_card_dialog.dart';
@@ -137,9 +138,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             Container(
               width: double.infinity, padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
-              child: Text(widget.step.analysis,
-                style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, height: 1.6),
-              ),
+              child: MdLatexBody(widget.step.analysis, fontSize: 14),
             ),
             const SizedBox(height: 12),
             if (!_feedbackGiven)

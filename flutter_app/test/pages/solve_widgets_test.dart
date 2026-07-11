@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/solve/widgets/cooling_timer.dart';
 import 'package:flutter_app/pages/solve/widgets/feedback_buttons.dart';
 import 'package:flutter_app/pages/solve/widgets/solve_flow_widget.dart';
+import 'package:flutter_app/pages/solve/widgets/step_card_widget.dart';
+import 'package:flutter_app/domain/progress_repository.dart' as progress;
 
 void main() {
   group('CoolingTimer', () {
@@ -152,6 +154,96 @@ void main() {
         )),
       ));
       expect(find.text('已完成 ⭐ 已评分'), findsOneWidget);
+    });
+  });
+
+  group('StepCardWidget', () {
+    final testStep = progress.Step(
+      stepNumber: 1,
+      title: '设未知数',
+      analysis: r'设 $x$ 为所求量',
+      cardTitles: ['列方程', '解方程'],
+    );
+
+    testWidgets('renders step title and number', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: StepCardWidget(
+          step: testStep,
+          stepIndex: 0,
+          totalSteps: 3,
+        )),
+      ));
+      expect(find.text('设未知数'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+    });
+
+    testWidgets('shows expand button with cooling timer', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: StepCardWidget(
+          step: testStep,
+          stepIndex: 0,
+          totalSteps: 3,
+        )),
+      ));
+      // 初始状态：显示"下一步"按钮（不是最后一步）
+      expect(find.text('下一步'), findsOneWidget);
+      // 知识标签显示
+      expect(find.text('列方程'), findsOneWidget);
+    });
+
+    testWidgets('can expand to show analysis content', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: StepCardWidget(
+          step: testStep,
+          stepIndex: 0,
+          totalSteps: 3,
+          isRevisit: true,
+        )),
+      ));
+      await tester.tap(find.text('下一步'));
+      await tester.pump();
+
+      // 解析内容出现（MdLatexBody 渲染），确认反馈按钮可见
+      expect(find.text('✅ 全对'), findsOneWidget);
+      expect(find.text('🔶 部分对'), findsOneWidget);
+      expect(find.text('❌ 不对'), findsOneWidget);
+    });
+
+    testWidgets('feedback buttons appear after expand', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: StepCardWidget(
+          step: testStep,
+          stepIndex: 0,
+          totalSteps: 3,
+          isRevisit: true,
+        )),
+      ));
+      await tester.tap(find.text('下一步'));
+      await tester.pump();
+
+      // 三种反馈按钮可见
+      expect(find.text('✅ 全对'), findsOneWidget);
+      expect(find.text('🔶 部分对'), findsOneWidget);
+      expect(find.text('❌ 不对'), findsOneWidget);
+    });
+
+    testWidgets('last step shows done banner after feedback', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: StepCardWidget(
+          step: testStep,
+          stepIndex: 2, // 最后一步 (0-indexed, total=3)
+          totalSteps: 3,
+          isRevisit: true,
+        )),
+      ));
+      // 最后一步按钮文字为"查看解析"
+      expect(find.text('查看解析'), findsOneWidget);
+      await tester.tap(find.text('查看解析'));
+      await tester.pump();
+      await tester.tap(find.text('✅ 全对'));
+      await tester.pump();
+      // 完成提示出现
+      expect(find.text('该题全部步骤已完成'), findsOneWidget);
     });
   });
 }

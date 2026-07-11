@@ -16,6 +16,7 @@ class SolveMapPage extends StatefulWidget {
 
 class _SolveMapPageState extends State<SolveMapPage> {
   progress.SolveProgressState? _state;
+  Set<int> _completedSteps = {};
   bool _loading = true;
 
   @override
@@ -28,7 +29,24 @@ class _SolveMapPageState extends State<SolveMapPage> {
     );
     try {
       final s = await repo.getSolveState(widget.questionId);
-      setState(() { _state = s; _loading = false; });
+      // 读取完成状态
+      final attempts = await repo.getAttempts(widget.questionId);
+      Set<int> doneSteps = {};
+      if (attempts.isNotEmpty) {
+        final lastAttempt = attempts.last;
+        final prevState = await repo.getAttemptState(
+          widget.questionId, lastAttempt.attemptNumber,
+        );
+        if (prevState != null) {
+          doneSteps = prevState.subQRecords
+              .expand((sq) => sq.methods)
+              .expand((m) => m.steps)
+              .where((s) => s.feedbackGiven)
+              .map((s) => s.stepOrder)
+              .toSet();
+        }
+      }
+      setState(() { _state = s; _completedSteps = doneSteps; _loading = false; });
     } catch (_) {
       setState(() => _loading = false);
     }
@@ -46,6 +64,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                   padding: const EdgeInsets.all(16),
                   children: _state!.subQuestions.map((sq) => _SubQuestionSection(
                     block: sq,
+                    completedSteps: _completedSteps,
                     onStepTap: (mi, si) => context.push(
                       '/solve/step?id=${widget.questionId}&method=$mi&step=$si',
                     ),
@@ -57,8 +76,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
 class _SubQuestionSection extends StatelessWidget {
   final progress.SubQuestionBlock block;
+  final Set<int> completedSteps;
   final void Function(int m, int s) onStepTap;
-  const _SubQuestionSection({required this.block, required this.onStepTap});
+  const _SubQuestionSection({required this.block, required this.completedSteps, required this.onStepTap});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +93,7 @@ class _SubQuestionSection extends StatelessWidget {
           m.steps.asMap().entries.map((e) => _StepIndicator(
             stepNumber: e.value.stepNumber,
             title: e.value.title,
-            isCompleted: false,
+            isCompleted: completedSteps.contains(e.value.stepNumber),
             onTap: () => onStepTap(block.solutions.indexOf(m), e.key),
           )),
         ),

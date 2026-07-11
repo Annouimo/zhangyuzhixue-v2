@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
+import '../../widgets/md_latex_body.dart';
 import '../../domain/question_repository.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/daos/progress_dao.dart';
+import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
 
 /// 选择题解题页
 class SolveChoicePage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
+  final QuestionRepository? questionRepository;
 
   const SolveChoicePage({
     super.key,
     required this.questionId,
     this.nextQuestionId,
+    this.questionRepository,
   });
 
   @override
@@ -25,17 +31,25 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   bool _isCorrect = false;
   bool _loading = true;
   QuestionDetail? _detail;
+  late final QuestionRepository _repo;
 
   @override
   void initState() {
     super.initState();
+    _repo = widget.questionRepository ?? QuestionRepository(
+      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider().appDb),
+    );
     _load();
   }
 
   Future<void> _load() async {
-    // 实际使用 QuestionRepository(QuestionDao, ProgressDao)
-    // 简化：占位数据
-    setState(() => _loading = false);
+    try {
+      final detail = await _repo.getDetail(widget.questionId);
+      setState(() { _detail = detail; _loading = false; });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
   }
 
   void _submit() {
@@ -75,57 +89,77 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Widget _buildContent() {
-    // 简化展示 — 实际使用 QuestionRepository.getDetail
+    final detail = _detail;
+    if (detail == null) {
+      return const Text('题目数据不存在',
+        style: TextStyle(color: AppColors.textSecondary));
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('题目加载中…', style: TextStyle(fontSize: 14)),
-        const SizedBox(height: 16),
-        if (_selected == null || !_submitted)
-          ...List.generate(4, (i) {
-            final label = String.fromCharCode(65 + i); // A, B, C, D
-            final isSel = _selected == label;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: GestureDetector(
-                onTap: _submitted ? null : () => setState(() => _selected = label),
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isSel ? AppColors.primaryLight : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSel ? AppColors.primary : const Color(0xFFE5E7EB),
-                      width: isSel ? 1.5 : 1,
-                    ),
+        // 题目标题
+        if (detail.title.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(detail.title,
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
+        // 题干（含 LaTeX）
+        MdLatexBody(detail.stem, fontSize: 15),
+        const SizedBox(height: 20),
+        // 图片
+        ...detail.images.map((url) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Image.network(url, fit: BoxFit.contain),
+        )),
+        const SizedBox(height: 12),
+        // 选项
+        ...(detail.options?.entries.map((e) {
+          final isSel = _selected == e.key;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: GestureDetector(
+              onTap: _submitted ? null : () => setState(() => _selected = e.key),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isSel ? AppColors.primaryLight : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSel ? AppColors.primary : const Color(0xFFE5E7EB),
+                    width: isSel ? 1.5 : 1,
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28, height: 28,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSel ? AppColors.primary : Colors.grey[200],
-                        ),
-                        child: Center(
-                          child: Text(label,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: isSel ? Colors.white : AppColors.textSecondary,
-                            ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 28, height: 28,
+                      margin: const EdgeInsets.only(top: 1),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSel ? AppColors.primary : Colors.grey[200],
+                      ),
+                      child: Center(
+                        child: Text(e.key,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isSel ? Colors.white : AppColors.textSecondary,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text('选项 $label',
-                        style: TextStyle(color: isSel ? AppColors.primary : AppColors.textPrimary),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: MdLatexBody(e.value, fontSize: 14),
+                    ),
+                  ],
                 ),
               ),
-            );
-          }),
+            ),
+          );
+        }) ?? []),
       ],
     );
   }
