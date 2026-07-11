@@ -1,12 +1,13 @@
 """Seed LevelConfig and AchievementDef on ECS. Run: python manage.py runscript seed_levels"""
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'math_platform.settings'
 
-import django
+import django  # noqa: E402
 django.setup()
 
-from system.models import LevelConfig, AchievementDef
+from system.models import LevelConfig, AchievementDef  # noqa: E402
 
 levels = [
     (1, 0, '青铜学徒', '🥉'),
@@ -37,9 +38,18 @@ achievements = [
     ('RATING_50', '资深评委', '给50道题评分', 'RATING', '⭐ 评分', 12, 'RATING_COUNT', 50),
 ]
 for code, name, desc, cat, cl, order, trigger, threshold in achievements:
-    _, created = AchievementDef.objects.get_or_create(
-        code=code, defaults={'name': name, 'description': desc,
-        'category': cat, 'category_label': cl, 'display_order': order,
-        'trigger_type': trigger, 'threshold': threshold})
+    AchievementDef.objects.get_or_create(
+        code=code,
+        defaults={
+            'name': name,
+            'description': desc,
+            'category': cat,
+            'category_label': cl,
+            'display_order': order,
+            'trigger_type': trigger,
+            'threshold': threshold,
+        })
 
-print(f'OK: LevelConfig={LevelConfig.objects.count()}, AchievementDef={AchievementDef.objects.count()}')
+level_count = LevelConfig.objects.count()
+ach_count = AchievementDef.objects.count()
+print(f'OK: LevelConfig={level_count}, AchievementDef={ach_count}')
