@@ -52,6 +52,7 @@ class TestVersionCheck:
         assert resp.data['data']['schema_version'] == 2
         assert resp.data['data']['data_version'] == 5
         assert resp.data['data']['force_update'] is False
+        assert resp.data['data']['download_url'].startswith('http')
         assert resp.data['data']['checksum'] == 'abc123'
         assert resp.data['data']['size_bytes'] == 1024000
 
@@ -63,6 +64,7 @@ class TestVersionCheck:
         assert resp.data['code'] == 0
         assert resp.data['data']['data_version'] == 3
         assert resp.data['data']['force_update'] is True
+        assert resp.data['data']['download_url'].startswith('http')
         assert resp.data['data']['message'] == '修正公式渲染'
 
     def test_version_not_found(self, db, api_client):
@@ -73,4 +75,5 @@ class TestVersionCheck:
         assert resp.data['code'] == 0
         assert resp.data['data']['schema_version'] == 0
         assert resp.data['data']['data_version'] == 0
+        assert resp.data['data']['download_url'] == ''
         assert resp.data['data']['message'] == '暂无数据'

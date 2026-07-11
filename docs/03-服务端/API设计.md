@@ -242,7 +242,7 @@ GET /api/v1/sync/qbank/version/
     "data_version": 5,
     "force_update": true,
     "message": "新增2025年高考真题，修正3处解析错误",
-    "download_url": "/media/db/qbank_v5.db.gz",
+    "download_url": "https://zhangyuzhixue.top/media/db/qbank_v5.db.gz",
     "checksum": "sha256:e3b0c44...",
     "size_bytes": 4194304
   }
@@ -253,7 +253,7 @@ GET /api/v1/sync/qbank/version/
 - `schema_version` — 客户端硬编码，不匹配时必须去商店更新 App
 - `data_version` — 管理端上传 .db 时标注
 - `force_update` — 管理端标注，或客户端本地版本落后 ≥3 版时客户端自行升级为强制
-- `download_url` — nginx 直接 serve 的文件路径
+- `download_url` — 绝对 URL，由服务端用 `request.build_absolute_uri()` 从 DB 的相对路径拼接而成
 - `checksum` — SHA-256 校验，防下载损坏
 - 客户端无 access token 时此接口也应返回数据（版本检查在登录前就需要）
 
@@ -275,7 +275,7 @@ GET /api/v1/sync/lecture/version/
     "data_version": 8,
     "force_update": false,
     "message": "更新第5讲内容，新增2道例题",
-    "download_url": "/media/db/lecture_v8.db.gz",
+    "download_url": "https://zhangyuzhixue.top/media/db/lecture_v8.db.gz",
     "checksum": "sha256:a1b2c3d...",
     "size_bytes": 2097152
   }

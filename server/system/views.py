@@ -36,7 +36,9 @@ class VersionCheckView(APIView):
                 'data_version': version.data_version,
                 'force_update': version.force_update,
                 'message': version.message,
-                'download_url': version.download_url,
+                'download_url': request.build_absolute_uri(
+                    version.download_url
+                ) if version.download_url else '',
                 'checksum': version.checksum,
                 'size_bytes': version.size_bytes,
             },
