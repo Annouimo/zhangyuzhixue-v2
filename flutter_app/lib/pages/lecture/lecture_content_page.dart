@@ -6,6 +6,7 @@ import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/md_latex_body.dart';
+import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
@@ -39,7 +40,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
     super.initState();
     _repo = widget.lectureRepository ??
         LectureRepository(LectureDao(DatabaseProvider().lecturesDb));
-    _pageIndex = widget.initialPage.clamp(1, 1) - 1; // 1-based → 0-based
+    _pageIndex = widget.initialPage > 1 ? widget.initialPage - 1 : 0; // 1-based → 0-based
     _load();
   }
 
@@ -55,6 +56,10 @@ class _LectureContentPageState extends State<LectureContentPage> {
       setState(() {
         _content = content;
         _parsed = parsed;
+        // clamp pageIndex after knowing actual page count
+        if (_pageIndex >= parsed.pages.length) {
+          _pageIndex = parsed.pages.length - 1;
+        }
         _loading = false;
       });
     } catch (e) {
@@ -139,6 +144,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
     }
 
     final blocks = page.blocks;
+    final cardRefs = page.cardRefs;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
       child: ConstrainedBox(
@@ -153,9 +159,47 @@ class _LectureContentPageState extends State<LectureContentPage> {
             // blocks[1..N] 逐步展开
             for (int i = 1; i < blocks.length; i++)
               _buildRevealBlock(i, blocks[i]),
+            // 知识标签
+            if (cardRefs.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              const Text(
+                '📖 相关知识',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: cardRefs.map((ref) => _buildKnowledgeChip(ref)).toList(),
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildKnowledgeChip(KnownCardRef ref) {
+    return ActionChip(
+      avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
+      label: Text(ref.title, style: const TextStyle(fontSize: 13)),
+      onPressed: () => KnowledgeCardDialog.show(
+        context,
+        title: ref.title,
+        content: ref.content,
+      ),
+      backgroundColor: AppColors.primaryLight,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 

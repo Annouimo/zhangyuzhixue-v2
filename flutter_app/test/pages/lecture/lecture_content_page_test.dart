@@ -113,6 +113,47 @@ void main() {
       await tester.tap(find.byIcon(Icons.chevron_right));
       expect(nextCalls, 1);
     });
+
+    testWidgets('prev disabled on first page with no revealed blocks', (tester) async {
+      await tester.pumpWidget(_wrapApp(
+        Scaffold(
+          body: LecturePagerWidget(
+            currentPage: 1,
+            totalPages: 3,
+            revealedCount: 0,
+            totalBlocks: 1,
+            onPrev: () {},
+            onNext: () {},
+          ),
+        ),
+      ));
+
+      // ◀ icon should be grey (disabled)
+      final prevIcon = tester.widget<Icon>(
+        find.byIcon(Icons.chevron_left).first,
+      );
+      expect(prevIcon.color, Colors.grey[400]);
+    });
+
+    testWidgets('next disabled on last page with all revealed', (tester) async {
+      await tester.pumpWidget(_wrapApp(
+        Scaffold(
+          body: LecturePagerWidget(
+            currentPage: 3,
+            totalPages: 3,
+            revealedCount: 2,
+            totalBlocks: 3,
+            onPrev: () {},
+            onNext: () {},
+          ),
+        ),
+      ));
+
+      final nextIcon = tester.widget<Icon>(
+        find.byIcon(Icons.chevron_right).first,
+      );
+      expect(nextIcon.color, Colors.grey[400]);
+    });
   });
 
   group('LectureContentPage', () {
@@ -203,6 +244,40 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('重试'), findsOneWidget);
+    });
+
+    testWidgets('multiple blocks reveal and collapse sequentially', (tester) async {
+      await tester.pumpWidget(_wrapApp(
+        LectureContentPage(
+          chapterId: 1,
+          lectureRepository: _MockContentRepo(
+            content: LectureContent(
+              chapterId: 1,
+              title: '多块',
+              mdContent: '块0\n<!-- reveal -->\n块1\n<!-- reveal -->\n块2\n<!-- reveal -->\n块3',
+            ),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      // Start: expand 0/4
+      expect(find.textContaining('展开 0 / 4'), findsOneWidget);
+
+      // Reveal 1→2→3 sequentially
+      for (int i = 1; i <= 3; i++) {
+        await tester.tap(find.byIcon(Icons.chevron_right));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('展开 $i / 4'), findsOneWidget);
+      }
+
+      // Collapse 3→2→1 sequentially
+      for (int i = 3; i >= 1; i--) {
+        await tester.tap(find.byIcon(Icons.chevron_left));
+        await tester.pumpAndSettle();
+        final expected = i - 1;
+        expect(find.textContaining('展开 $expected / 4'), findsOneWidget);
+      }
     });
   });
 }

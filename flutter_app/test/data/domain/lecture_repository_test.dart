@@ -90,10 +90,35 @@ void main() {
         mdContent: '第一页\n<!-- pagebreak -->\n<!-- pagebreak -->\n<!-- pagebreak -->\n第三页',
       );
       final parsed = repo.parseContent(content);
-      // Empty pages from consecutive pagebreaks are filtered out
       expect(parsed.totalPages, 2);
       expect(parsed.pages[0].blocks[0], '第一页');
       expect(parsed.pages[1].blocks[0], '第三页');
+    });
+
+    test('parseContent extracts knowcard markers', () {
+      final content = LectureContent(
+        chapterId: 6,
+        title: 'knowledge',
+        mdContent: '正文内容\n<!-- knowcard: 函数定义 | 函数 \$f(x)\$ 是映射关系 -->\n更多内容',
+      );
+      final parsed = repo.parseContent(content);
+      expect(parsed.totalPages, 1);
+      expect(parsed.pages[0].cardRefs.length, 1);
+      expect(parsed.pages[0].cardRefs[0].title, '函数定义');
+      expect(parsed.pages[0].cardRefs[0].content, '函数 \$f(x)\$ 是映射关系');
+    });
+
+    test('parseContent strips knowcard markers from block text', () {
+      final content = LectureContent(
+        chapterId: 7,
+        title: 'cleanup',
+        mdContent: '<!-- knowcard: 公示 | 公式 \$E=mc^2\$ -->\n可见正文',
+      );
+      final parsed = repo.parseContent(content);
+      expect(parsed.totalPages, 1);
+      expect(parsed.pages[0].blocks.length, 1);
+      expect(parsed.pages[0].blocks[0], '可见正文');
+      expect(parsed.pages[0].cardRefs.length, 1);
     });
   });
 }

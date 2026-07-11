@@ -17,7 +17,15 @@ class LectureContent {
 /// 解析后的单页
 class LecturePage {
   final List<String> blocks;
-  const LecturePage({required this.blocks});
+  final List<KnownCardRef> cardRefs;
+  const LecturePage({required this.blocks, this.cardRefs = const []});
+}
+
+/// 知识卡片引用（从 markdown 注释标记中提取）
+class KnownCardRef {
+  final String title;
+  final String content;
+  const KnownCardRef({required this.title, required this.content});
 }
 
 /// 解析后的完整讲义
@@ -103,6 +111,9 @@ class LectureRepository {
 // ── 私有函数：分隔符解析 ──
 
 LectureContentParsed _parseMdContent(String mdContent) {
+  final knowcardPattern =
+      RegExp(r'<!--\s*knowcard:\s*([\s\S]*?)\s*\|\s*([\s\S]*?)\s*-->');
+
   final pages = mdContent
       .split('<!-- pagebreak -->')
       .where((p) => p.trim().isNotEmpty)
@@ -112,7 +123,26 @@ LectureContentParsed _parseMdContent(String mdContent) {
         .map((b) => b.trim())
         .where((b) => b.isNotEmpty)
         .toList();
-    return LecturePage(blocks: blocks);
+
+    // 从所有块中提取知识卡片引用
+    final cardRefs = <KnownCardRef>[];
+    for (int i = 0; i < blocks.length; i++) {
+      final matches = knowcardPattern.allMatches(blocks[i]);
+      if (matches.isNotEmpty) {
+        for (final m in matches) {
+          cardRefs.add(KnownCardRef(
+            title: m.group(1)!.trim(),
+            content: m.group(2)!.trim(),
+          ));
+        }
+        // 从块内容中移除标记
+        blocks[i] = blocks[i].replaceAll(knowcardPattern, '').trim();
+      }
+    }
+    // 过滤掉被清空的块
+    blocks.removeWhere((b) => b.isEmpty);
+
+    return LecturePage(blocks: blocks, cardRefs: cardRefs);
   }).toList();
   return LectureContentParsed(pages: pages);
 }
