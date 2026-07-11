@@ -49,18 +49,17 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('renders placeholder text for filter settings',
-        (tester) async {
+    testWidgets('renders filter settings card', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
         MaterialApp(
           home: PreferenceEditPage(preferenceRepository: repo),
         ),
       );
-      expect(
-        find.text('筛选条件设置（后续扩展）'),
-        findsOneWidget,
-      );
+      expect(find.text('筛选条件'), findsOneWidget);
+      expect(find.text('按来源筛选'), findsOneWidget);
+      expect(find.text('按概念标签筛选'), findsOneWidget);
+      expect(find.text('按难度/计算量筛选'), findsOneWidget);
     });
   });
 }
