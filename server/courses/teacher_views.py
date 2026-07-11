@@ -273,8 +273,14 @@ def student_detail(request, id):
             'accuracy': round(row['correct'] / t * 100, 1) if t else 0,
         })
 
-    # 薄弱知识点
-    wrong_step_qids = (
+    # 薄弱知识点（含正确率）
+    all_feedback_qids = set(
+        StepFeedback.objects
+        .filter(submission_detail__submission__student=s)
+        .values_list('question_id', flat=True)
+        .distinct()
+    )
+    wrong_qids = set(
         StepFeedback.objects
         .filter(
             submission_detail__submission__student=s,
@@ -283,20 +289,27 @@ def student_detail(request, id):
         .values_list('question_id', flat=True)
         .distinct()
     )
-    tag_records = (
-        QuestionConceptTag.objects
-        .filter(question_id__in=list(wrong_step_qids))
-        .select_related('concept_tag')
-    )
-    from collections import Counter
-    tag_counter = Counter()
-    for qt in tag_records:
-        tag_counter[qt.concept_tag.name] += 1
+    all_tag_qs = QuestionConceptTag.objects.filter(
+        question_id__in=list(all_feedback_qids),
+    ).select_related('concept_tag')
 
-    weak_tags = [
-        {'name': name, 'count': count}
-        for name, count in tag_counter.most_common()
-    ]
+    from collections import defaultdict
+    tag_stats = defaultdict(lambda: {'total': 0, 'wrong': 0})
+    for qt in all_tag_qs:
+        tag_stats[qt.concept_tag.name]['total'] += 1
+        if qt.question_id in wrong_qids:
+            tag_stats[qt.concept_tag.name]['wrong'] += 1
+
+    weak_tags = []
+    for name, stats in tag_stats.items():
+        correct = stats['total'] - stats['wrong']
+        accuracy = round(correct / stats['total'] * 100, 1) if stats['total'] else 0
+        weak_tags.append({
+            'name': name,
+            'accuracy': f'{accuracy}%',
+            'count': stats['wrong'],
+        })
+    weak_tags.sort(key=lambda x: float(x['accuracy'].rstrip('%')))
 
     return _ok(data={
         **base,

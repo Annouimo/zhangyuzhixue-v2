@@ -160,6 +160,8 @@ class TestStudentDetail:
         assert resp.status_code == 200
         d = resp.data['data']
         assert d['id'] == s.id
+        assert d['school'] is not None
+        assert d['registeredAt'] is not None
         assert d['overview']['totalQuestions'] == 0
         assert d['accuracyTrend'] == []
         assert d['weakTags'] == []

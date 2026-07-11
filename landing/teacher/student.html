@@ -36,6 +36,11 @@
           <div>
             <h1 id="student-name">加载中</h1>
             <div style="font-size:13px;color:var(--text-muted);" id="student-id"></div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+              <span id="student-school"></span>
+              <span style="margin:0 6px;">·</span>
+              <span id="student-registered"></span>
+            </div>
           </div>
         </div>
         <div>
@@ -51,11 +56,11 @@
         <div class="stat-card"><div class="stat-value" style="color:var(--primary)" id="ov-weekly">—</div><div class="stat-label">本周做题</div></div>
       </div>
 
-      <!-- 正确率趋势 -->
+      <!-- 正确率趋势（SVG 折线图） -->
       <div class="card">
         <div class="card-title">正确率趋势（近 30 天）</div>
-        <div id="trend-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:10px 0;overflow-x:auto;">
-          <div class="text-center" style="width:100%;color:var(--text-muted);font-size:13px;align-self:center;">暂无趋势数据</div>
+        <div id="trend-chart" style="min-height:200px;overflow-x:auto;">
+          <div class="text-center" style="padding:40px;color:var(--text-muted);font-size:13px;">暂无趋势数据</div>
         </div>
       </div>
 
@@ -77,18 +82,54 @@
       return new URLSearchParams(window.location.search).get(name);
     }
 
-    function accuracyColor(val) {
-      if (val == null) return 'var(--text-muted)';
-      const n = parseFloat(val);
-      if (n >= 80) return 'var(--success)';
-      if (n >= 60) return 'var(--warning)';
-      return 'var(--error)';
-    }
+    /** SVG 折线图 — 自适应宽度，固定高度 200px */
+    function renderTrendSvg(data) {
+      if (!data || data.length === 0) {
+        return '<div class="text-center" style="padding:40px;color:var(--text-muted);font-size:13px;">暂无趋势数据</div>';
+      }
+      const count = data.length;
+      const w = Math.max(count * 50, 300);
+      const h = 200;
+      const pad = { top: 16, right: 16, bottom: 28, left: 40 };
+      const iw = w - pad.left - pad.right;
+      const ih = h - pad.top - pad.bottom;
 
-    function barColor(acc) {
-      if (acc >= 80) return 'var(--success)';
-      if (acc >= 60) return 'var(--primary)';
-      return 'var(--error)';
+      const vals = data.map(d => d.accuracy);
+      const maxV = Math.max(...vals, 100);
+      const minV = Math.min(...vals, 0);
+      const range = Math.max(maxV - minV, 10);
+
+      const points = data.map((d, i) => {
+        const x = pad.left + (count > 1 ? (i / (count - 1)) * iw : iw / 2);
+        const y = pad.top + ih - ((d.accuracy - minV) / range) * ih;
+        return { x, y, ...d };
+      });
+
+      const gridLines = [0, 0.25, 0.5, 0.75, 1].map(r => {
+        const y = pad.top + ih * (1 - r);
+        const label = Math.round(minV + range * r);
+        return `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="#E5E7EB" stroke-width="1"/>
+                <text x="${pad.left - 4}" y="${y + 4}" text-anchor="end" font-size="11" fill="#9CA3AF">${label}%</text>`;
+      }).join('');
+
+      const polyline = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
+
+      const dots = points.map(p =>
+        `<circle cx="${Math.round(p.x)}" cy="${Math.round(p.y)}" r="3" fill="#4A6CF7" stroke="#fff" stroke-width="1.5"/>`
+      ).join('');
+
+      // 日期标签（最多显示 8 个）
+      const step = Math.max(1, Math.floor(count / 8));
+      const labels = points.filter((_, i) => i % step === 0 || i === count - 1)
+        .map(p => `<text x="${Math.round(p.x)}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#9CA3AF">${esc(p.date || '')}</text>`)
+        .join('');
+
+      return `<svg width="${w}" height="${h}" style="max-width:100%;display:block;">
+        ${gridLines}
+        <polyline points="${polyline}" fill="none" stroke="#4A6CF7" stroke-width="2" stroke-linejoin="round"/>
+        ${dots}
+        ${labels}
+      </svg>`;
     }
 
     (async function load() {
@@ -103,6 +144,8 @@
         document.getElementById('student-avatar').textContent = (d.name || '?').charAt(0);
         document.getElementById('student-id').textContent = '学号: ' + (d.studentId || '—');
         document.getElementById('student-class').textContent = d.className || '未分配';
+        document.getElementById('student-school').textContent = d.school || '未填写学校';
+        document.getElementById('student-registered').textContent = '注册于 ' + (d.registeredAt || '');
 
         // 概览卡片
         const ov = d.overview || {};
@@ -112,25 +155,8 @@
         document.getElementById('ov-streak').textContent = ov.streakDays ?? 0;
         document.getElementById('ov-weekly').textContent = ov.weeklyQuestions ?? 0;
 
-        // 正确率趋势 — 柱状图
-        const trend = d.accuracyTrend || [];
-        const chart = document.getElementById('trend-chart');
-        chart.innerHTML = '';
-        if (trend.length === 0) {
-          chart.innerHTML = '<div class="text-center" style="width:100%;color:var(--text-muted);font-size:13px;align-self:center;">暂无趋势数据</div>';
-        } else {
-          trend.forEach(t => {
-            const pct = t.accuracy || 0;
-            const h = Math.max(4, pct); // 最低 4px 可见
-            const color = barColor(pct);
-            chart.innerHTML += `
-              <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
-                <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px;">${Math.round(pct)}%</div>
-                <div style="width:100%;max-width:32px;height:${h}px;background:${color};border-radius:3px 3px 0 0;opacity:0.8;"></div>
-                <div style="font-size:10px;color:var(--text-muted);margin-top:2px;white-space:nowrap;">${esc(t.date || '')}</div>
-              </div>`;
-          });
-        }
+        // 正确率趋势（SVG 折线图）
+        document.getElementById('trend-chart').innerHTML = renderTrendSvg(d.accuracyTrend || []);
 
         // 薄弱知识点
         const tags = d.weakTags || [];
@@ -143,9 +169,13 @@
             tagContainer.innerHTML += `
               <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
                 <div style="flex:1;font-weight:500;">${esc(t.name)}</div>
+                <div style="text-align:right;margin-right:16px;">
+                  <div style="font-size:12px;color:var(--text-secondary);">正确率</div>
+                  <div style="font-size:16px;font-weight:700;color:${accuracyColor(t.accuracy)};">${esc(t.accuracy)}</div>
+                </div>
                 <div style="text-align:right;">
-                  <div style="font-size:12px;color:var(--text-secondary);">做题量</div>
-                  <div style="font-size:14px;font-weight:600;">${t.count ?? 0}</div>
+                  <div style="font-size:12px;color:var(--text-secondary);">答错题数</div>
+                  <div style="font-size:14px;">${t.count ?? 0}</div>
                 </div>
               </div>`;
           });
@@ -158,6 +188,15 @@
         hideLoading('loading-indicator');
       }
     })();
+
+    function accuracyColor(val) {
+      if (val == null) return 'var(--text-muted)';
+      const n = parseFloat(val);
+      if (isNaN(n)) return 'var(--text-muted)';
+      if (n >= 80) return 'var(--success)';
+      if (n >= 60) return 'var(--warning)';
+      return 'var(--error)';
+    }
   </script>
 </body>
 </html>
