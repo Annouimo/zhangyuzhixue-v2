@@ -188,9 +188,5 @@ if SENTRY_DSN:
         ),
     )
 
-# PDF signature secret key
-
-# PDF signature key
-
-# PDF signature key (set via env var in production)
+# PDF 签名密钥（生产环境通过环境变量设置）
 PDF_SECRET_KEY = "dev-pdf-key-for-testing"

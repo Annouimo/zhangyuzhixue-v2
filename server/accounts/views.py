@@ -139,7 +139,6 @@ def _get_points_summary(user):
         return {'earned': 0, 'bonus': 0, 'spent': 0, 'available': 0}
 
     student = user.student
-    from django.db.models import Q
     earned_agg = PointsTransaction.objects.filter(
         student=student, amount__gt=0
     ).aggregate(total=Sum('amount'))
