@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/exit_rating_popup.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -34,9 +35,10 @@ class _SolveStepPageState extends State<SolveStepPage> {
   progress.SolveProgressState? _state;
   bool _loading = true;
   late final progress.ProgressRepository _repo;
+  DateTime? _entryTime;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() { super.initState(); _entryTime = DateTime.now(); _load(); }
 
   Future<void> _load() async {
     _repo = progress.ProgressRepository(
@@ -92,7 +94,14 @@ class _SolveStepPageState extends State<SolveStepPage> {
   @override
   Widget build(BuildContext context) {
     final step = _currentStep();
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || _entryTime == null) return;
+        final shown = await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
+        if (shown && context.mounted) context.pop();
+      },
+      child: Scaffold(
       appBar: AppBar(title: Text('步骤 ${widget.stepIndex + 1}')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -107,6 +116,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
                     onFeedback: _onFeedback,
                   ),
                 ),
-    );
+    ));
   }
 }

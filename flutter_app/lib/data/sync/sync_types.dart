@@ -7,6 +7,7 @@ enum SyncEntityType {
   cardFeedback,
   rating,
   exam,
+  exitRating,
 }
 
 /// 操作类型

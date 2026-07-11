@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/exit_rating_popup.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
@@ -24,6 +25,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   late final ExamRepository _repo;
   ExamPreview? _preview;
   bool _loading = true; String? _error;
+  final DateTime _entryTime = DateTime.now();
 
   @override
   void initState() {
@@ -45,22 +47,32 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(_preview?.name ?? '预览'),
-      actions: [
-        IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
-          onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper')),
-        IconButton(icon: const Icon(Icons.share), tooltip: '公开/私密', onPressed: _togglePublic),
-        IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
-          onPressed: () async {
-            await _repo.deleteExam(widget.examId);
-            if (context.mounted) context.pop();
-          }),
-      ],
-    ),
-    body: _buildBody(),
-  );
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shown = await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
+        if (shown && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_preview?.name ?? '预览'),
+          actions: [
+            IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
+              onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper')),
+            IconButton(icon: const Icon(Icons.share), tooltip: '公开/私密', onPressed: _togglePublic),
+            IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
+              onPressed: () async {
+                await _repo.deleteExam(widget.examId);
+                if (context.mounted) context.pop();
+              }),
+          ],
+        ),
+        body: _buildBody(),
+      ),
+    );
+  }
 
   Future<void> _togglePublic() async {
     await _repo.togglePublic(widget.examId);

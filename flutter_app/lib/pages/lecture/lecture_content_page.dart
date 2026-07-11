@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
+import '../../widgets/exit_rating_popup.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
@@ -28,6 +30,7 @@ class LectureContentPage extends StatefulWidget {
 
 class _LectureContentPageState extends State<LectureContentPage> {
   late final LectureRepository _repo;
+  final DateTime _entryTime = DateTime.now();
   LectureContent? _content;
   LectureContentParsed? _parsed;
   int _pageIndex = 0;
@@ -112,12 +115,19 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_content?.title ?? '讲义内容'),
-      ),
-      body: Column(
-        children: [
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shown = await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
+        if (shown && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_content?.title ?? '讲义内容'),
+        ),
+        body: Column(
+          children: [
           Expanded(child: _buildBody()),
           if (_parsed != null && _parsed!.pages.isNotEmpty)
             LecturePagerWidget(
@@ -130,7 +140,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
             ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildBody() {

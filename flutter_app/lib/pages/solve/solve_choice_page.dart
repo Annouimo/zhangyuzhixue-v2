@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
+import '../../widgets/exit_rating_popup.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -33,9 +34,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   QuestionDetail? _detail;
   late final QuestionRepository _repo;
 
+  DateTime? _entryTime;
+
   @override
   void initState() {
     super.initState();
+    _entryTime = DateTime.now();
     _repo = widget.questionRepository ?? QuestionRepository(
       QuestionDao(DatabaseProvider().assetsDb),
       ProgressDao(DatabaseProvider().appDb),
@@ -69,11 +73,18 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('选择题')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: SolveFlowWidget(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || _entryTime == null) return;
+        final shown = await showExitRatingIfNeeded(context, 'solve_choice', _entryTime!);
+        if (shown && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('选择题')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: SolveFlowWidget(
           isRevisit: _submitted,
           isCorrect: _isCorrect,
           correctAnswer: _detail?.answer,
@@ -85,7 +96,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           child: _buildContent(),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildContent() {

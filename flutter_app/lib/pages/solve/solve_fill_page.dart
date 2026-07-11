@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
+import '../../widgets/exit_rating_popup.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -33,9 +34,12 @@ class _SolveFillPageState extends State<SolveFillPage> {
   QuestionDetail? _detail;
   late final QuestionRepository _repo;
 
+  DateTime? _entryTime;
+
   @override
   void initState() {
     super.initState();
+    _entryTime = DateTime.now();
     _repo = widget.questionRepository ?? QuestionRepository(
       QuestionDao(DatabaseProvider().assetsDb),
       ProgressDao(DatabaseProvider().appDb),
@@ -76,10 +80,17 @@ class _SolveFillPageState extends State<SolveFillPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('填空题')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || _entryTime == null) return;
+        final shown = await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
+        if (shown && context.mounted) context.pop();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('填空题')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
         child: SolveFlowWidget(
           isRevisit: _submitted,
           isCorrect: _isCorrect,
@@ -118,6 +129,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
