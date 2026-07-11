@@ -380,6 +380,53 @@ App 启动时 + 用户手动触发。"全部重试"按钮即遍历所有 `pendin
 
 ---
 
+### 3.4 用户数据拉取
+
+> 学生登录时拉取完整 user.db，用于跨设备/重装后恢复历史记录。
+
+```
+GET /api/v1/sync/user/pull/
+```
+
+**认证：** 需要 Bearer token（仅 student）
+
+**响应：**
+
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "download_url": "/media/tmp_user_db/user_42_a1b2c3d4.db.gz",
+    "checksum": "sha256:abc123...",
+    "size_bytes": 204800,
+    "data_version": 1
+  }
+}
+```
+
+**处理流程（服务端）：**
+
+1. 查询该学生的所有数据（submission / detail / feedback / rating / custom_paper / points 等）
+2. 在内存中构建 SQLite .db 文件（schema 与客户端 user.db 一致）
+3. gzip 压缩 → 计算 SHA256 checksum
+4. 保存到 `MEDIA_ROOT/tmp_user_db/` 临时目录（5 分钟 TTL）
+5. 返回下载 URL + checksum + 大小
+
+**客户端调用：**
+
+登录成功 → `SyncManager.onLogin()` → 用上述 download_url 下载 .db.gz → 校验 → 替换本地 user.db。
+
+**错误码：**
+
+| 错误码 | 条件 |
+|--------|------|
+| 40003 | 非学生用户调用 |
+
+**实现参考：** [方案-用户数据拉取机制.md](../落地实施/方案-用户数据拉取机制.md)
+
+---
+
 ## 四、PDF API
 
 > 对应 App：`interactions`（新增 `pdf_urls.py` + `pdf_views.py`）
@@ -900,6 +947,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `GET` | `/api/v1/sync/qbank/version/` | 无 | 题库版本检查 |
 | `GET` | `/api/v1/sync/lecture/version/` | 无 | 讲义版本检查 |
 | `POST` | `/api/v1/sync/push/` | student | 同步推送 |
+| `GET` | `/api/v1/sync/user/pull/` | student | 用户数据拉取（返回 download_url + checksum） |
 | `GET` | `/api/v1/user/me/` | 任意 | 当前用户信息 |
 | `PATCH` | `/api/v1/user/me/` | 任意 | 更新用户信息 |
 | `POST` | `/api/v1/user/avatar/` | 任意 | 上传头像 |
