@@ -667,35 +667,33 @@ POST /api/v1/user/checkin/
 ### 5.1 作业列表
 
 ```
-GET /api/v1/teacher/assignments/?page=1&page_size=20
+GET /api/v1/teacher/assignments/
 ```
 
-**认证：** 需要 Bearer token + user 是 teacher
+**认证：** 需要 Bearer token + teacher
 
-**响应（分页格式）：**
+**响应：**
 ```json
 {
   "code": 0,
   "message": "ok",
   "data": {
+    "totalAssignments": 3,
+    "activeAssignments": 2,
+    "avgCompletionRate": 65.2,
+    "avgAccuracy": 72.8,
     "items": [
       {
         "id": 1,
         "title": "导数基础练习",
-        "class_name": "高三1班",
-        "course_name": "导数系统课",
-        "question_count": 10,
-        "deadline": "2026-07-15T23:59:59+08:00",
-        "completed_count": 18,
-        "total_count": 32,
-        "completion_rate": 56.3,
-        "publish_at": "2026-07-09T10:00:00+08:00"
+        "className": "高三1班",
+        "deadline": "2026-07-20",
+        "totalStudents": 32,
+        "completedCount": 18,
+        "completionRate": 56.3,
+        "avgAccuracy": 73.2
       }
-    ],
-    "total": 5,
-    "page": 1,
-    "page_size": 20,
-    "total_pages": 1
+    ]
   }
 }
 ```
@@ -726,14 +724,12 @@ POST /api/v1/teacher/assignments/
   "code": 0,
   "message": "ok",
   "data": {
-    "id": 1,
-    "title": "导数基础练习",
-    "question_count": 10,
-    "target_class_count": 2,
-    "target_student_count": 32
+    "id": 1
   }
 }
 ```
+
+> **说明：** 响应仅返回作业 ID。前端提交后直接跳转到作业列表页，无需额外字段。
 
 **服务端操作（事务内）：**
 1. 创建 `Assignment` 记录
@@ -821,14 +817,16 @@ GET /api/v1/teacher/classes/
   "code": 0,
   "message": "ok",
   "data": {
+    "totalClasses": 3,
+    "totalStudents": 96,
+    "totalQuestions": 2840,
+    "avgAccuracy": 72.8,
     "items": [
       {
         "id": 1,
         "name": "高三1班",
-        "student_count": 32,
-        "course_count": 3,
-        "average_accuracy": 73.2,
-        "total_questions_done": 2840
+        "studentCount": 32,
+        "avgAccuracy": 73.2
       }
     ]
   }
@@ -838,7 +836,7 @@ GET /api/v1/teacher/classes/
 ### 5.7 学生列表
 
 ```
-GET /api/v1/teacher/students/?search=张三&class_id=1&page=1&page_size=20
+GET /api/v1/teacher/students/?search=张三&class_id=1
 ```
 
 **认证：** 需要 Bearer token + teacher
@@ -848,24 +846,24 @@ GET /api/v1/teacher/students/?search=张三&class_id=1&page=1&page_size=20
 {
   "code": 0,
   "message": "ok",
-  "data": {
-    "items": [
-      {
-        "id": 1,
-        "real_name": "张三",
-        "class_name": "高三1班",
-        "total_questions": 156,
-        "correct_count": 118,
-        "accuracy": 75.6,
-        "streak_days": 7
-      }
-    ],
-    "total": 32,
-    "page": 1,
-    "page_size": 20,
-    "total_pages": 2
-  }
+  "data": [
+    {
+      "id": 1,
+      "name": "张三",
+      "className": "高三1班",
+      "totalQuestions": 156,
+      "avgAccuracy": 75.6,
+      "lastActive": "2026-07-09"
+    }
+  ]
 }
+```
+
+**参数：**
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `search` | string | 按姓名/用户名搜索 |
+| `class_id` | int | 按班级筛选 |
 ```
 
 **参数：**

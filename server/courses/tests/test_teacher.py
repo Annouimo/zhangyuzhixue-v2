@@ -502,3 +502,78 @@ class TestAboutInfo:
         assert d['appVersion'] == '2.0.0'
         assert d['announcements'] == []
         assert d['changelog'] == []
+
+
+# ── Remind ────────────────────────────────────────────────────
+
+
+class TestAssignmentRemind:
+    def test_normal(self, auth_client, sample_class_group, sample_question):
+        """催交正常调用应返回 200"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='催交测试')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        cca = ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.post(f'/api/v1/teacher/assignments/{cca.id}/remind/')
+        assert resp.status_code == 200
+        assert resp.data['code'] == 0
+
+    def test_not_found(self, auth_client):
+        """不存在的作业催交应返回 404"""
+        resp = auth_client.post('/api/v1/teacher/assignments/99999/remind/')
+        assert resp.status_code == 404
+
+
+# ── PATCH boundary ───────────────────────────────────────────
+
+
+class TestAssignmentPatchBoundary:
+    def test_invalid_field(self, auth_client, sample_class_group, sample_question):
+        """PATCH 传入不存在的字段应忽略而非报错"""
+        course = Course.objects.create(name='数学')
+        cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
+        assignment = Assignment.objects.create(title='边界测试')
+        AssignmentQuestion.objects.create(
+            assignment=assignment, question=sample_question, sort_order=0,
+        )
+        cca = ClassCourseAssignment.objects.create(
+            class_course=cc, assignment=assignment,
+            deadline=date.today(), is_active=True,
+        )
+        resp = auth_client.patch(f'/api/v1/teacher/assignments/{cca.id}/', {
+            'foo': 'bar',
+        }, format='json')
+        assert resp.status_code == 200
+        cca.refresh_from_db()
+        assert cca.assignment.title == '边界测试'
+
+
+# ── Combined search ──────────────────────────────────────────
+
+
+class TestStudentListCombined:
+    def test_search_and_class_filter(self, auth_client, sample_class_group):
+        """search + class_id 组合筛选"""
+        from accounts.models import User, Student
+        cg2 = ClassGroup.objects.create(name='高三(2)班')
+        u1 = User.objects.create_user('student_a', password='test123')
+        u1.first_name = '张三'
+        u1.save()
+        u2 = User.objects.create_user('student_b', password='test123')
+        u2.first_name = '李四'
+        u2.save()
+        Student.objects.create(user=u1, class_group=sample_class_group)
+        Student.objects.create(user=u2, class_group=cg2)
+
+        resp = auth_client.get(
+            f'/api/v1/teacher/students/?search=张&class_id={sample_class_group.id}'
+        )
+        assert resp.status_code == 200
+        assert len(resp.data['data']) == 1
+        assert '张' in resp.data['data'][0]['name']
