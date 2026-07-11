@@ -1,8 +1,7 @@
 # 章鱼智学 · 自动化审查流程手册
 
-> 对应 Hermes skill：`auto-project-owner-acceptance`
-> 旧版手动审计：`project-owner-acceptance`（保留备用）
-> 旧版手册：`docs/auto-audit/审查流程手册_旧版.md`
+> 对应 Hermes skill：`project-owner-acceptance`（引擎内置，单 skill 合并版）
+> 旧版手动手册（备用）：`docs/auto-audit/审查流程手册_旧版.md`
 
 ---
 
