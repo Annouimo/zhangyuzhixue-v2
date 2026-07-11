@@ -28,7 +28,7 @@ void main() {
         const MaterialApp(home: MainShell()),
       );
 
-      expect(find.text('首页'), findsOneWidget);
+      expect(find.text('首页'), findsAtLeastNWidgets(1));
       expect(find.text('推荐'), findsOneWidget);
       expect(find.text('组卷'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);

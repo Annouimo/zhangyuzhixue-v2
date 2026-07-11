@@ -415,7 +415,7 @@ GET /api/v1/sync/user/pull/
 
 **客户端调用：**
 
-登录成功 → `SyncManager.onLogin()` → 用上述 download_url 下载 .db.gz → 校验 → 替换本地 user.db。
+登录成功 → UI 层（`login_page.dart`）调 `SyncManager().onLogin(onProgress: ...)`，由进度弹窗控制：推送积压 → 用上述 download_url 下载 .db.gz → 校验 → 替换本地 user.db。
 
 **错误码：**
 
