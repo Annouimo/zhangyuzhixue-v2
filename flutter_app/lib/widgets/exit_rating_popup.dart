@@ -6,7 +6,7 @@ import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import '../data/database/database_provider.dart';
-import '../data/database/app_database.dart' as db;
+import '../data/database/app_database.dart' as app_db;
 
 // ── 硬编码配置（后续从 SystemConfig 读取）──
 class _RatingConfig {
@@ -32,6 +32,7 @@ Future<void> submitExitRating({
   required int score,
   String? feedback,
   required String pageUrl,
+  DatabaseProvider? dbProvider,
 }) async {
   await AppPrefs().setRatingCooldown(pageUrl);
   await SyncManager().enqueue(
@@ -42,9 +43,9 @@ Future<void> submitExitRating({
   );
   // 赠送积分
   final now = DateTime.now().toIso8601String();
-  final dbProvider = DatabaseProvider();
-  await dbProvider.appDb.into(dbProvider.appDb.pointsTransactions).insert(
-    db.PointsTransactionsCompanion(
+  final provider = dbProvider ?? DatabaseProvider();
+  await provider.appDb.into(provider.appDb.pointsTransactions).insert(
+    app_db.PointsTransactionsCompanion(
       amount: const Value(_RatingConfig.rewardPoints),
       source: const Value('EXIT_RATING_REWARD'),
       transactionType: const Value('earn'),
@@ -64,10 +65,10 @@ Future<bool> showExitRatingIfNeeded(
 ) async {
   if (!shouldShowExitRating(pageUrl, entryTime)) return false;
 
-  final result = await showDialog<_ExitRatingResult>(
+  final result = await showDialog<ExitRatingResult>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const _ExitRatingPopup(),
+    builder: (_) => const ExitRatingPopup(),
   );
 
   if (result != null && context.mounted) {
@@ -86,19 +87,21 @@ Future<bool> showExitRatingIfNeeded(
 }
 
 // ── 弹层结果 ──
-class _ExitRatingResult {
+@visibleForTesting
+class ExitRatingResult {
   final int score;
   final String? feedback;
-  const _ExitRatingResult({required this.score, this.feedback});
+  const ExitRatingResult({required this.score, this.feedback});
 }
 
-// ── 评价弹层 Widget（私有）──
-class _ExitRatingPopup extends StatefulWidget {
-  const _ExitRatingPopup();
-  @override State<_ExitRatingPopup> createState() => _ExitRatingPopupState();
+// ── 评价弹层 Widget ──
+@visibleForTesting
+class ExitRatingPopup extends StatefulWidget {
+  const ExitRatingPopup({super.key});
+  @override State<ExitRatingPopup> createState() => _ExitRatingPopupState();
 }
 
-class _ExitRatingPopupState extends State<_ExitRatingPopup> {
+class _ExitRatingPopupState extends State<ExitRatingPopup> {
   int? _selectedScore;
   final _feedbackController = TextEditingController();
   bool _submitting = false;
@@ -166,7 +169,7 @@ class _ExitRatingPopupState extends State<_ExitRatingPopup> {
 
   Future<void> _onSubmit() async {
     setState(() => _submitting = true);
-    Navigator.of(context).pop(_ExitRatingResult(
+    Navigator.of(context).pop(ExitRatingResult(
       score: _selectedScore!,
       feedback: _feedbackController.text.trim().isEmpty ? null : _feedbackController.text.trim(),
     ));
