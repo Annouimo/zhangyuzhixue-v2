@@ -46,12 +46,12 @@ class TestBuildUtilsBasic:
                 os.unlink(path)
 
     def test_write_meta(self):
-        """write_meta 写入 _meta 表"""
+        """write_meta 写入 meta 表"""
         conn, path = create_db({})
         try:
             write_meta(conn, schema_version=2, data_version=5,
                        checksum='abc123')
-            row = conn.execute('SELECT * FROM _meta').fetchone()
+            row = conn.execute('SELECT * FROM meta').fetchone()
             assert row[0] == 2
             assert row[1] == 5
             assert row[2] == 'abc123'

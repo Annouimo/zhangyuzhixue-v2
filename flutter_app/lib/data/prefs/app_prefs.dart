@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../debug/audit_logger.dart';
-import '../../debug/audit_logger.dart';
-
+import '../debug/audit_logger.dart';
 /// 全局 SharedPreferences key 定义
 ///
 /// 命名规范：所有全局 key 以 `app_` 开头。
@@ -69,7 +67,6 @@ class AppPrefs {
     final raw = p.getString(PrefKeys.userCache);
     AuditLogger.instance.prefs('userCache', raw);
     if (raw == null) return null;
-    if (raw == null) return null;
     try {
       return Map<String, dynamic>.from(jsonDecode(raw) as Map);
     } catch (_) {
@@ -99,7 +96,7 @@ class AppPrefs {
 
   List<int> get accessibleCourseIds {
     final raw = p.getString(PrefKeys.accessibleCourses);
-    AuditLogger.instance.prefs(PrefKeys.accessibleCourses, raw);
+    AuditLogger.instance.prefs('accessibleCourseIds', raw);
     if (raw == null) return [];
     try {
       return (raw.split(',')).map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
@@ -159,13 +156,25 @@ class AppPrefs {
   // ── 全局共享 key 查询 ──
 
   /// 判断某个全局 key 是否存在
-  bool hasKey(String key) => p.containsKey(key);
+  bool hasKey(String key) {
+    final result = p.containsKey(key);
+    AuditLogger.instance.prefs('hasKey($key)', result);
+    return result;
+  }
 
   /// 读取整数（通用）
-  int getInt(String key, {int defaultValue = 0}) => p.getInt(key) ?? defaultValue;
+  int getInt(String key, {int defaultValue = 0}) {
+    final val = p.getInt(key) ?? defaultValue;
+    AuditLogger.instance.prefs('getInt($key)', val);
+    return val;
+  }
 
   /// 读取字符串（通用）
-  String? getString(String key) => p.getString(key);
+  String? getString(String key) {
+    final val = p.getString(key);
+    AuditLogger.instance.prefs('getString($key)', val);
+    return val;
+  }
 
   // ── 清空 ──
 

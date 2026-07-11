@@ -55,7 +55,7 @@ class TestBuildAssets:
             ).fetchall()
             table_names = {t[0] for t in tables}
             assert 'question' in table_names
-            assert '_meta' in table_names
+            assert 'meta' in table_names
             conn.close()
             os.unlink(tmp.name)
         finally:

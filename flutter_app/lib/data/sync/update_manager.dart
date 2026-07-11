@@ -6,7 +6,6 @@ import '../api/sync_api.dart';
 import '../database/database_provider.dart';
 import '../prefs/app_prefs.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
-
 /// 版本检查结果
 class UpdateSummary {
   final String type;

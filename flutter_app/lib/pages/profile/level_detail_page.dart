@@ -38,7 +38,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       final e = await _repo.earnedPoints();
       if (!mounted) return;
       setState(() { _progress = p; _earned = e.toInt(); _loading = false; });
-      AuditLogger.page('LevelDetailPage', {'level': _level, 'xp': _xp, 'nextXp': _nextXp});
+      AuditLogger.instance.page('LevelDetailPage', {'progress': _progress, 'earned': _earned});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });

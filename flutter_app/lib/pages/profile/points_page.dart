@@ -35,7 +35,7 @@ class _PointsPageState extends State<PointsPage> {
       final list = await _repo.getPointsHistory();
       if (!mounted) return;
       setState(() { _records = list; _loading = false; });
-      AuditLogger.page('PointsPage', {'balance': _balance, 'today': _todayPoints});
+      AuditLogger.instance.page('PointsPage', {'recordCount': _records?.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (!mounted) return;

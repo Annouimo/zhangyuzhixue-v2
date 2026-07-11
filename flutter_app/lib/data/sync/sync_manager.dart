@@ -5,7 +5,6 @@ import 'sync_types.dart';
 import 'sync_pusher.dart';
 import 'update_manager.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
-
 /// 同步引擎总入口（单例）
 class SyncManager {
   static final SyncManager _instance = SyncManager._();
@@ -105,9 +104,7 @@ class SyncManager {
     if (now.difference(_lastPushTime).inSeconds < 30) return null;
     _lastPushTime = now;
     final summary = await _pusher!.pushAll();
-    if (summary != null) {
-      AuditLogger.instance.sync('pushAll', {'success': summary.successCount, 'fail': summary.failCount});
-    }
+    AuditLogger.instance.sync('pushAll', {'success': summary.successCount, 'fail': summary.failCount});
     return summary;
   }
 
@@ -121,7 +118,7 @@ class SyncManager {
     void Function(double progress)? onProgress,
   }) async {
     try {
-      await pushNow();
+      final summary = await pushNow();
       final info = await _api!.fetchUserPullInfo();
       await _updateManager!.downloadAndReplace(
         type: 'user',
@@ -130,6 +127,11 @@ class SyncManager {
         newVersion: info.version,
         onProgress: onProgress,
       );
+      AuditLogger.instance.sync('syncAll', {
+        'pushSuccess': summary?.successCount ?? 0,
+        'pushFail': summary?.failCount ?? 0,
+        'pullType': 'user',
+      });
     } catch (_) {
       // 失败由 UI 层弹窗展示
       rethrow;

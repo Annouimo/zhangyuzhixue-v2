@@ -36,7 +36,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       final list = await _repo.getAnswerHistory();
       if (!mounted) return;
       setState(() { _history = list; _loading = false; });
-      AuditLogger.page('QuestionHistoryPage', {'total': _history?.length});
+      AuditLogger.instance.page('QuestionHistoryPage', {'total': _history?.length});
     } catch (e) {
       debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
