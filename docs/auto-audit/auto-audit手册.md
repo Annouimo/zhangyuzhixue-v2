@@ -30,7 +30,7 @@
 | **A** | 服务端审计 — Django | `server/accounts/qbank/courses/interactions/system/math_platform/templates/static/` | ①存在性 ③声明 ④标记 ⑤测试 | `02-数据/数据库结构设计.md` + `03-服务端/API设计.md` |
 | **B** | Flutter 数据层 | `flutter_app/lib/data/` + `flutter_app/lib/domain/` + `flutter_app/pubspec.yaml` + `flutter_app/assets/` | ①存在性 ③声明 ④标记 ⑤测试 ⑥stub | `02-数据/数据库结构设计.md` + `05-Flutter/Repository/*.dart`（设计稿） + `05-Flutter/图片路由规范.md` |
 | **C** | Flutter UI 审计 | `flutter_app/lib/pages/` + `flutter_app/lib/widgets/` + `flutter_app/lib/main.dart` + `flutter_app/lib/app_theme.dart` | ①存在性 ②HTML→Flutter ④标记 ⑤测试 ⑥stub ⑦导航 | **`04-UI/html/*.html`（全部 31 个）** |
-| **D** | 教师端审计 | `server/` + `landing/` + `landing/teacher/` | ①存在性 ③声明 ④标记 ⑤测试 | `06-教师端/html/*.html` + `06-教师端/教师端功能边界.md` |
+| **D** | 教师端审计 | `server/` + `landing/` + `landing/teacher/` + **`docs/06-教师端/html/`** | ①存在性 ③声明 ④标记 ⑤测试 | `06-教师端/html/*.html` + `06-教师端/教师端功能边界.md` |
 | **E** | 部署审计 | `.github/` + `server/scripts/`（备份/构建） | ①存在性 ③声明 ④标记 | `备份方案.md` + `03-服务端/服务端架构.md §五` |
 | **F** | 数据迁移审计 | `docs/_archive/migration_audit/` + `server/scripts/dump_data.py` + `server/scripts/load_data.py` | ①存在性 ④标记 | `落地实施/Phase-1.2-题库数据迁移.md` |
 | **G** | 全项目横切 | 全项目（不特定文件夹） | ④标记 ⑥stub | `07-工作流/开发工作流程.md` + `测试策略.md` + `备份方案.md` |
@@ -187,6 +187,35 @@ Source → Step1 → Step2 → Step3 → Sink
 | 真 stub | return [] 会被调用方误以为"无数据" | 标记为 ❌ 问题 |
 | 合法空值返回 | if (list.isEmpty) return [] 是防御性编程 | 标记为 ✅ 正常 |
 | 过时 TODO | TODO 旁边的代码已实现 | 标记为 ⚠️ 清理建议 |
+
+### 4.6 API 响应字段比对（Step 2 6f — 仅 Type A/D）
+
+引擎只检查 API 端点是否存在，不检查返回字段是否与设计文档一致。对每个端点：
+
+1. 从 API 设计文档提取响应字段清单
+2. 从 view/serializer 提取实际返回字段
+3. Diff → 标记缺失/多余/改名
+4. 检查命名规范（snake_case vs camelCase）
+5. 检查分页封装（count/next/previous/results）
+
+常见简化缺口：
+
+| 端点 | 常缺字段 |
+|------|---------|
+| 作业列表 | course_name, question_count, publish_at, 分页 |
+| 班级列表 | course_count, total_questions_done |
+| 学生列表 | correct_count, streak_days, 分页 |
+| 发布作业响应 | title, question_count, target_class_count, target_student_count |
+
+### 4.7 模型字段约束检查（Step 5 — 仅 Type A/D）
+
+引擎检查字段存在性，人工检查约束正确性：
+
+- NOT NULL → 代码不能有 null=True / blank=True / default=''
+- default → 匹配设计文档
+- choices → 全部枚举值存在
+- 字段类型 → CharField vs TextField vs IntegerField
+- unique → 匹配
 
 ---
 

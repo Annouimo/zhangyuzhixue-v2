@@ -122,6 +122,9 @@ def check_directory_exists(cfg: Config) -> list[Finding]:
         ("flutter_app/assets/db/",
          "02-数据/构建脚本设计.md §构建产物",
          "捆绑数据库目录，构建脚本产出"),
+        ("docs/06-教师端/html/",
+         "06-教师端/教师端功能边界.md D2",
+         "教师端设计原型路径，D2 要求存在"),
     ]
     
     for rel_path, source, desc in checks:
