@@ -95,7 +95,7 @@
         document.getElementById('detail-deadline').textContent = data.deadline || '—';
         document.getElementById('detail-progress').textContent =
           (data.completedCount ?? 0) + '/' + (data.totalStudents ?? 0);
-        document.getElementById('detail-accuracy').textContent = data.avgAccuracy || '0%';
+        document.getElementById('detail-accuracy').textContent = (data.avgAccuracy ?? 0) + '%';
 
         const students = data.students || [];
         const container = document.getElementById('student-list');
@@ -117,7 +117,7 @@
                 <div class="score">
                   ${isPending
                     ? '<span class="status-tag pending">未交</span>'
-                    : '<div class="value ' + accuracyClass(s.accuracy) + '">' + esc(s.accuracy) + '</div>'
+                    : '<div class="value ' + accuracyClass(s.accuracy) + '">' + (s.accuracy ?? 0) + '%</div>'
                   }
                 </div>
               </a>`;

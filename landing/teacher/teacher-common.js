@@ -109,8 +109,8 @@ async function loadAssignments() {
   const items = data.items || [];
   setText('stat-total', data.totalAssignments ?? 0);
   setText('stat-active', data.activeAssignments ?? 0);
-  setText('stat-rate', data.avgCompletionRate ?? '0%');
-  setText('stat-acc', data.avgAccuracy ?? '0%');
+  setText('stat-rate', (data.avgCompletionRate ?? 0) + '%');
+  setText('stat-acc', (data.avgAccuracy ?? 0) + '%');
   const container = document.getElementById('assign-list');
   if (!container) return;
   if (items.length === 0) {
@@ -130,7 +130,7 @@ async function loadAssignments() {
         <div class="progress-bar">
           ${esc(a.completedCount)}/${esc(a.totalStudents)}
           <div class="progress-track"><div class="progress-fill" style="width:${a.totalStudents > 0 ? Math.round(a.completedCount / a.totalStudents * 100) : 0}%"></div></div>
-          ${esc(a.completionRate)}
+          ${(a.completionRate ?? 0) + '%'}
         </div>
       </div>
     </a>`).join('');

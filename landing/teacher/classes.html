@@ -53,7 +53,7 @@
         document.getElementById('stat-total-classes').textContent = data.totalClasses ?? 0;
         document.getElementById('stat-total-students').textContent = data.totalStudents ?? 0;
         document.getElementById('stat-total-questions').textContent = data.totalQuestions ?? 0;
-        document.getElementById('stat-avg-accuracy').textContent = data.avgAccuracy ?? '0%';
+        document.getElementById('stat-avg-accuracy').textContent = (data.avgAccuracy ?? 0) + '%';
 
         const items = data.items || [];
         const container = document.getElementById('class-list');
@@ -78,7 +78,7 @@
                   </div>
                   <div>
                     <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
-                    <div style="font-size:20px;font-weight:700;color:${accColor};">${esc(c.avgAccuracy)}</div>
+                    <div style="font-size:20px;font-weight:700;color:${accColor};">${(c.avgAccuracy ?? 0) + '%'}</div>
                   </div>
                 </div>
               </div>`;

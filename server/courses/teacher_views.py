@@ -408,8 +408,8 @@ def _list_assignments():
             'totalStudents': total_students,
             'completedCount': completed,
             'completionRate': (
-                f'{round(completed / total_students * 100)}%'
-                if total_students else '0%'),
+                round(completed / total_students * 100, 1)
+                if total_students else 0.0),
             'avgAccuracy': acc,
         })
 
@@ -425,8 +425,8 @@ def _list_assignments():
     completed_sum = sum(item['completedCount'] for item in items)
     total_sum = sum(item['totalStudents'] for item in items)
     avg_completion = (
-        f'{round(completed_sum / total_sum * 100)}%'
-        if total_sum else '0%')
+        round(completed_sum / total_sum * 100, 1)
+        if total_sum else 0.0)
 
     return _ok(data={
         'totalAssignments': total,
@@ -565,7 +565,7 @@ def _assignment_detail(cca):
 
             total = details.count()
             correct = details.filter(is_correct=True).count()
-            acc = f'{round(correct / total * 100)}%' if total else '0%'
+            acc = round(correct / total * 100, 1) if total else 0.0
             student_items.append({
                 'id': s.id,
                 'name': s.user.first_name or s.user.username,

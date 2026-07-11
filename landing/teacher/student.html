@@ -150,7 +150,7 @@
         // 概览卡片
         const ov = d.overview || {};
         document.getElementById('ov-total-questions').textContent = ov.totalQuestions ?? 0;
-        document.getElementById('ov-accuracy').textContent = ov.avgAccuracy || '0%';
+        document.getElementById('ov-accuracy').textContent = (ov.avgAccuracy ?? 0) + '%';
         document.getElementById('ov-accuracy').style.color = accuracyColor(ov.avgAccuracy);
         document.getElementById('ov-streak').textContent = ov.streakDays ?? 0;
         document.getElementById('ov-weekly').textContent = ov.weeklyQuestions ?? 0;
