@@ -316,9 +316,6 @@ def build_database(schema, db_type, version_info, test_mode=False):
                    version_info['data_version'], checksum)
         conn2.close()
 
-        final_checksum = compute_checksum(db_path)
-        file_size = os.path.getsize(db_path)
-
         # gzip
         output_dir = os.path.join(settings.MEDIA_ROOT, 'db')
         output_name = f'{db_type}_v{version_info["data_version"]}.db.gz'
@@ -326,9 +323,12 @@ def build_database(schema, db_type, version_info, test_mode=False):
         gzip_db(db_path, output_path)
         gz_size = os.path.getsize(output_path)
 
+        # 对 .gz 计算 checksum（客户端下载后 hash 的是 gz bytes）
+        final_checksum = compute_checksum(output_path)
+
         print(f'  ✅ {table_count} 表处理完成')
-        print(f'  📦 大小: {file_size:,} bytes → gz: {gz_size:,} bytes')
         print(f'  🔑 SHA-256: {final_checksum}')
+        print(f'  📦 gz: {gz_size:,} bytes')
 
         if not test_mode:
             from system.models import DbVersion
