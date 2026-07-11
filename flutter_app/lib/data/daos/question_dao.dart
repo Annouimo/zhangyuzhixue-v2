@@ -101,4 +101,10 @@ class QuestionDao {
 
   Future<List<db.AchievementDefRow>> getAllAchievementDefs() =>
       _db.select(_db.achievementDefs).get();
+
+  Future<List<db.LevelConfigRow>> getAllLevelConfigs() async {
+    final q = _db.select(_db.levelConfigs)
+      ..orderBy([(t) => OrderingTerm(expression: t.minXp)]);
+    return q.get();
+  }
 }

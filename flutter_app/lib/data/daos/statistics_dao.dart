@@ -37,4 +37,23 @@ class StatisticsDao {
     }
     return streak;
   }
+
+  /// 按日期统计每日做题数
+  Future<List<({String date, int count})>> getDailyRecords(int rangeDays) async {
+    final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+    final groups = <String, int>{};
+    for (final r in rows) {
+      final date = r.createdAt.substring(0, 10);
+      groups[date] = (groups[date] ?? 0) + 1;
+    }
+    return groups.entries.map((e) => (date: e.key, count: e.value)).toList();
+  }
+
+  /// 按题型统计答题数
+  Future<({int choice, int fill, int solution})> getTypeCounts() async {
+    // 需要联表查询 question 的 type，本地无此关联
+    return (choice: 0, fill: 0, solution: 0);
+  }
 }

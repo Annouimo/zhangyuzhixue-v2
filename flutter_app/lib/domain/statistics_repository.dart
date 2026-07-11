@@ -72,22 +72,29 @@ class StatisticsRepository {
   Future<double> accuracy() => _dao.getAccuracy();
 
   Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
-    return [];
+    final raw = await _dao.getDailyRecords(rangeDays);
+    return _StatisticsAggregator.aggregateDailyRecords(raw);
   }
 
   Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
-    return []; // 由 _StatisticsAggregator 实现
+    return []; // 需要多日准确率数据
   }
 
   Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
-    return []; // 由 _StatisticsAggregator 实现
+    return [];
   }
 
   Future<Distribution> getDistribution() async {
-    return const Distribution(
-      total: 0, choiceCount: 0, choicePercent: 0,
-      fillCount: 0, fillPercent: 0,
-      solutionCount: 0, solutionPercent: 0,
+    final counts = await _dao.getTypeCounts();
+    final total = counts.choice + counts.fill + counts.solution;
+    return Distribution(
+      total: total,
+      choiceCount: counts.choice,
+      choicePercent: total > 0 ? counts.choice / total * 100 : 0,
+      fillCount: counts.fill,
+      fillPercent: total > 0 ? counts.fill / total * 100 : 0,
+      solutionCount: counts.solution,
+      solutionPercent: total > 0 ? counts.solution / total * 100 : 0,
     );
   }
 }

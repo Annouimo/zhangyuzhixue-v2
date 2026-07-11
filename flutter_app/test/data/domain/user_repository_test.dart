@@ -4,7 +4,9 @@ import 'package:drift/native.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:dio/dio.dart';
 import 'package:flutter_app/data/database/app_database.dart' as udb;
+import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/daos/user_dao.dart';
+import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/user_api.dart';
 import 'package:flutter_app/domain/user_repository.dart';
@@ -28,22 +30,29 @@ void main() {
   late UserDao dao;
   late ApiClient client;
   late _MockAdapter adapter;
+  late adb.AssetsDatabase aDb;
+  late QuestionDao qDao;
 
   setUp(() {
     uDb = udb.AppDatabase(NativeDatabase.memory());
+    aDb = adb.AssetsDatabase(NativeDatabase.memory());
     dao = UserDao(uDb);
+    qDao = QuestionDao(aDb);
     client = ApiClient();
     client.init(baseUrl: 'https://test/');
     adapter = _MockAdapter();
     client.setMockAdapter(adapter);
   });
 
-  tearDown(() => uDb.close());
+  tearDown(() {
+    uDb.close();
+    aDb.close();
+  });
 
   group('UserRepository', () {
     test('getUserInfo returns cached profile when exists', () async {
       await dao.saveProfile(id: 1, name: 'cached', realName: '小明');
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       final info = await repo.getUserInfo();
       expect(info.name, 'cached');
     });
@@ -53,7 +62,7 @@ void main() {
         '{"code":0,"data":{"id":1,"username":"api_user","real_name":"小红"}}', 200,
         headers: {'content-type': ['application/json']},
       ));
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       final info = await repo.getUserInfo();
       expect(info.name, 'api_user');
       expect(info.realName, '小红');
@@ -61,41 +70,41 @@ void main() {
 
     test('saveProfile then getUserInfo works', () async {
       await dao.saveProfile(id: 1, name: 'test', realName: '小明');
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       final info = await repo.getUserInfo();
       expect(info.name, 'test');
       expect(info.realName, '小明');
     });
 
     test('earnedPoints returns 0 initially', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.earnedPoints(), 0);
     });
 
     test('streakDays returns 0 initially', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.streakDays(), 0);
     });
 
     test('getPointsHistory returns empty', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.getPointsHistory(), isEmpty);
     });
   });
 
   group('_PointsCalculator', () {
     test('earnedPoints returns 0 initially', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.earnedPoints(), 0);
     });
 
     test('spentPoints returns 0 initially', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.spentPoints(), 0);
     });
 
     test('bonusPoints returns 0 initially', () async {
-      final repo = UserRepository(dao, UserApi(client));
+      final repo = UserRepository(dao, UserApi(client), qDao);
       expect(await repo.bonusPoints(), 0);
     });
   });
