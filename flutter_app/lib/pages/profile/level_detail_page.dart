@@ -40,6 +40,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       setState(() { _progress = p; _earned = e.toInt(); _loading = false; });
       AuditLogger.instance.page('LevelDetailPage', {'progress': _progress, 'earned': _earned});
     } catch (e) {
+      AuditLogger.instance.error('LevelDetailPage._load', e);
       debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }

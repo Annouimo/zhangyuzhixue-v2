@@ -65,6 +65,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
     } catch (e) {
+      AuditLogger.instance.error('SolveChoicePage._loadCooldown', e);
       debugPrint('_loadCooldown error: $e');
     }
   }
@@ -84,6 +85,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       });
       AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
     } catch (e) {
+      AuditLogger.instance.error('SolveChoicePage._load', e);
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -262,6 +264,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _isCorrect = false;
       });
     } catch (e) {
+      AuditLogger.instance.error('SolveChoicePage._createNewAttempt', e);
       debugPrint('_createNewAttempt error: $e');
     }
   }

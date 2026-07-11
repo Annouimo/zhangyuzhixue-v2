@@ -60,6 +60,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       });
       AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
     } catch (e) {
+      AuditLogger.instance.error('SolveRatePage._loadRating', e);
       debugPrint('_loadRating error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -85,7 +86,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
         icon: '✅', message: '评分已提交，+0.3 赠送积分',
         backgroundColor: AppColors.success,
       );
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SolveRatePage._submit', e);
       setState(() => _saving = false);
       if (!mounted) return;
       AppToast.show(context,

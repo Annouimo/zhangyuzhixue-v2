@@ -42,7 +42,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
       AuditLogger.instance.page('ExamHistoryPage', {'total': _list?.length});
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamHistoryPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

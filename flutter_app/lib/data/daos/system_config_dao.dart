@@ -1,4 +1,5 @@
 import '../database/assets_database.dart' as db;
+import '../debug/audit_logger.dart';
 
 /// 系统配置 DAO（assets.db → system_config 表）
 ///
@@ -20,7 +21,8 @@ class SystemConfigDao {
         _cache[key] = row.value;
         return row.value;
       }
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SystemConfigDao.get', e);
       // 查询失败时使用 fallback
     }
     _cache[key] = fallback;

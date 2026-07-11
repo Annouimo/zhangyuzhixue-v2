@@ -40,7 +40,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       if (!mounted) return;
       setState(() { _answers = l; _loading = false; });
       AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('AnswerSheetPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

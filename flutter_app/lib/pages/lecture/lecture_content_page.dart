@@ -68,6 +68,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       });
       AuditLogger.instance.page('LectureContentPage', {'hasContent': _content != null});
     } catch (e) {
+      AuditLogger.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

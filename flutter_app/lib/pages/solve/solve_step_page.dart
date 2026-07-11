@@ -52,6 +52,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
     } catch (e) {
+      AuditLogger.instance.error('SolveStepPage._loadCooldown', e);
       debugPrint('_loadCooldown error: $e');
     }
   }
@@ -66,6 +67,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       setState(() { _state = s; _loading = false; });
       AuditLogger.instance.page('SolveStepPage', {'stepCount': _totalSteps, 'currentStep': widget.stepIndex});
     } catch (e) {
+      AuditLogger.instance.error('SolveStepPage._load', e);
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }

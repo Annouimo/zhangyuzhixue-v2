@@ -55,6 +55,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       });
       AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length});
     } catch (e) {
+      AuditLogger.instance.error('HomeworkListPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

@@ -52,7 +52,8 @@ class SyncPusher {
             fail++;
           }
         }
-      } catch (_) {
+      } catch (e) {
+        AuditLogger.instance.error('SyncPusher.pushAll', e);
         for (final entry in batch) {
           await _dao.markFailed(entry.id);
           fail++;

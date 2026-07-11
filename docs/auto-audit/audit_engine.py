@@ -1122,6 +1122,9 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
                 evidence=f"Exception: {e}",
             ))
 
+    # 运行时错误审查
+    _check_runtime_errors(entries, findings, log_path)
+
     return findings
 
 
@@ -1216,6 +1219,48 @@ def _check_server_expectations(cfg, entries, server_db_path, findings, log_path)
             pass
 
     conn.close()
+
+
+def _check_runtime_errors(entries, findings, log_path):
+    """检查审计日志中的运行时错误和 API 错误"""
+    # ── 7. 运行时错误审查 ──
+    err_entries = [e for e in entries if e.get('cat') == 'error' and e.get('key') == 'message']
+    if err_entries:
+        unique_errors = {}
+        for e in err_entries:
+            src = e.get('src', '??')
+            if src not in unique_errors:
+                unique_errors[src] = e.get('val', '')
+        summary = '; '.join(f'[{s}] {v[:60]}' for s, v in list(unique_errors.items())[:5])
+        if len(unique_errors) > 5:
+            summary += f' … +{len(unique_errors)-5} more'
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue=f'❌ 运行时错误 {len(err_entries)} 次 ({len(unique_errors)} 个源): {summary[:100]}',
+            source='runtime-verification Step R6',
+            path=log_path,
+            evidence=f'Unique error sources: {list(unique_errors.keys())}',
+        ))
+
+    # ── 8. API 错误审查 ──
+    api_errs = [e for e in entries
+                if e.get('cat') == 'api' and e.get('key') == 'statusCode'
+                and e.get('val', '').startswith(('4', '5'))]
+    if api_errs:
+        by_endpoint = {}
+        for e in api_errs:
+            ep = e.get('src', '??')
+            by_endpoint.setdefault(ep, []).append(e.get('val', '0'))
+        summary = '; '.join(f'{ep}({",".join(codes)})' for ep, codes in list(by_endpoint.items())[:5])
+        if len(by_endpoint) > 5:
+            summary += f' … +{len(by_endpoint)-5} more'
+        findings.append(Finding(
+            certainty=Certainty.SUSPICIOUS,
+            issue=f'⚠️ API 非 2xx 响应 {len(api_errs)} 次 ({len(by_endpoint)} 个端点): {summary[:100]}',
+            source='runtime-verification Step R6',
+            path=log_path,
+            evidence=f'Endpoints with errors: {list(by_endpoint.keys())}',
+        ))
 
 
 # ═══════════════════════════════════════════════

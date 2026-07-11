@@ -42,7 +42,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
       AuditLogger.instance.page('ExamFavoritesPage', {'total': _list?.length});
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamFavoritesPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

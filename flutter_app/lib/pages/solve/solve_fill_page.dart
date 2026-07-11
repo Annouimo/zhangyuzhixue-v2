@@ -60,6 +60,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
     } catch (e) {
+      AuditLogger.instance.error('SolveFillPage._loadCooldown', e);
       debugPrint('_loadCooldown error: $e');
     }
   }
@@ -76,6 +77,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       setState(() { _detail = detail; _loading = false; });
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId, 'submitted': _submitted});
     } catch (e) {
+      AuditLogger.instance.error('SolveFillPage._load', e);
       debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }

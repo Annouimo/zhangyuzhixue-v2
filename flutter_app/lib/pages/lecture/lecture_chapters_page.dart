@@ -52,6 +52,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       });
       AuditLogger.instance.page('LectureChaptersPage', {'chapterCount': _chapterList?.items.length});
     } catch (e) {
+      AuditLogger.instance.error('LectureChaptersPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

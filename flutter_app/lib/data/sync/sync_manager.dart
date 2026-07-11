@@ -70,7 +70,8 @@ class SyncManager {
         )
       ).toList();
       return List.unmodifiable(_pendingUpdates);
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SyncManager.onAppStart', e);
       _pendingUpdates = [];
       return [];
     }
@@ -132,7 +133,8 @@ class SyncManager {
         'pushFail': summary?.failCount ?? 0,
         'pullType': 'user',
       });
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SyncManager.onLogin', e);
       // 失败由 UI 层弹窗展示
       rethrow;
     }
@@ -142,13 +144,15 @@ class SyncManager {
   Future<void> onLogout() async {
     try {
       await pushNow();
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SyncManager.onLogout_pending', e);
       // 无网络则跳过，不清 queue（下次启动自动重推）
     }
     try {
       await _dbProvider!.clearUserDb();
       await clearQueue();
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('SyncManager.onLogout_clear', e);
       // 未初始化则跳过
     }
   }

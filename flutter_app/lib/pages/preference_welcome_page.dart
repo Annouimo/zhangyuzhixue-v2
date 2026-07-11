@@ -75,7 +75,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final pts = await _userRepo.bonusPoints();
       if (!mounted) return;
       setState(() { _bonusPoints = pts; _bonusLoaded = true; });
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('PreferenceWelcomePage._loadBonus', e);
       if (!mounted) return;
       setState(() => _bonusLoaded = true);
     }
@@ -156,7 +157,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       );
       if (!mounted) return;
       context.go(AppRoutes.mainShell);
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('保存失败，请重试'), behavior: SnackBarBehavior.floating),

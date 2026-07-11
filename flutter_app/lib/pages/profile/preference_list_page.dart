@@ -44,6 +44,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       });
       AuditLogger.instance.page('PreferenceListPage', {'presetCount': _preferences.length});
     } catch (e) {
+      AuditLogger.instance.error('PreferenceListPage._load', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }
@@ -55,6 +56,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       if (!mounted) return;
       setState(() => _preferences.removeAt(index));
     } catch (e) {
+      AuditLogger.instance.error('PreferenceListPage._delete', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('删除失败: $e')),

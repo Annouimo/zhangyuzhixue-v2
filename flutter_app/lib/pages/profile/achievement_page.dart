@@ -39,7 +39,7 @@ class _AchievementPageState extends State<AchievementPage> {
       if (!mounted) return;
       setState(() { _categories = cats; _loading = false; });
       AuditLogger.instance.page('AchievementPage', {'total': _categories?.length});
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('AchievementPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

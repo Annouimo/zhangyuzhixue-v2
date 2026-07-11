@@ -71,7 +71,8 @@ class _IndexPageState extends State<IndexPage> {
         _loading = false;
       });
       AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn});
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
       setState(() { _error = '加载失败'; _loading = false; });
     }
@@ -107,6 +108,7 @@ class _IndexPageState extends State<IndexPage> {
         backgroundColor: AppColors.success,
       );
     } catch (e) {
+      AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
       AppToast.show(context,
         icon: '⚠️', message: '签到失败，请检查网络',

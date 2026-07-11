@@ -55,6 +55,7 @@ class _RecommendPageState extends State<RecommendPage> {
       });
       AuditLogger.instance.page('RecommendPage', {'presetCount': _presets.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
     } catch (e) {
+      AuditLogger.instance.error('RecommendPage._load', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }
@@ -66,7 +67,7 @@ class _RecommendPageState extends State<RecommendPage> {
       final qs = await _repo.getSmartList();
       if (!mounted) return;
       setState(() { _questions = qs; _loading = false; });
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('RecommendPage._switchToSmart', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   Future<void> _switchToPreset(int index) async {
@@ -80,7 +81,7 @@ class _RecommendPageState extends State<RecommendPage> {
         id: p.id, title: p.title, questionType: p.questionType,
         difficulty: p.difficulty, recommendReason: '偏好推荐', status: p.status,
       )).toList(); _loading = false; });
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('RecommendPage._switchToPreset', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

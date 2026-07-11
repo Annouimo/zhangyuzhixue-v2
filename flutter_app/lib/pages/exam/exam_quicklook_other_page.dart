@@ -43,7 +43,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       if (!mounted) return;
       setState(() { _preview = p; _liked = p.likeCount > 0; _collected = p.collectCount > 0; _loading = false; });
       AuditLogger.instance.page('ExamQuicklookOtherPage', {'title': _preview?.name});
-    } catch (e) { if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamQuicklookOtherPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
   @override

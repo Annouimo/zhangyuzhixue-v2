@@ -37,6 +37,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       setState(() { _items = items; _loading = false; });
       AuditLogger.instance.page('SyncQueuePage', {'pending': _items?.length});
     } catch (e) {
+      AuditLogger.instance.error('SyncQueuePage._load', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/app_theme.dart';
 import 'package:flutter_app/data/api/api_client.dart';
@@ -15,6 +16,16 @@ import 'data/debug/audit_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 全局运行时错误捕获
+  FlutterError.onError = (details) {
+    AuditLogger.instance.error('FlutterError', details.exception, details.stack);
+    FlutterError.presentError(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    AuditLogger.instance.error('PlatformDispatcher', error, stack);
+    return true;
+  };
 
   await AppPrefs().init();
   await AuditLogger.instance.init();

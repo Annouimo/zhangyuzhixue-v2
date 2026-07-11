@@ -76,6 +76,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       });
       AuditLogger.instance.page('PreferenceEditPage', {'loaded': !_loading});
     } catch (e) {
+      AuditLogger.instance.error('PreferenceEditPage._loadExisting', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }
@@ -110,6 +111,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       );
       if (context.mounted) context.pop(true);
     } catch (e) {
+      AuditLogger.instance.error('PreferenceEditPage._save', e);
       if (!mounted) return;
       setState(() => _saving = false);
       ScaffoldMessenger.of(context).showSnackBar(

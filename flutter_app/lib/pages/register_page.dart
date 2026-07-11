@@ -77,6 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       context.pop();
     } catch (e) {
+      AuditLogger.instance.error('RegisterPage._register', e);
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {

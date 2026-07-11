@@ -91,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
         context.go(AppRoutes.preferenceWelcome);
       }
     } catch (e) {
+      AuditLogger.instance.error('LoginPage._login', e);
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
@@ -106,7 +107,8 @@ class _LoginPageState extends State<LoginPage> {
       );
       final count = await _prefRepo!.getCount();
       return count > 0;
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('LoginPage._checkPreferences', e);
       // DB 未初始化等，默认有偏好
       return true;
     }

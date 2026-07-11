@@ -37,6 +37,7 @@ class _PointsPageState extends State<PointsPage> {
       setState(() { _records = list; _loading = false; });
       AuditLogger.instance.page('PointsPage', {'recordCount': _records?.length});
     } catch (e) {
+      AuditLogger.instance.error('PointsPage._load', e);
       debugPrint('_load error: $e');
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });

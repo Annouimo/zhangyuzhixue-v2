@@ -46,7 +46,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
-    } catch (_) { if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
   Future<void> _updatePoolStats() async {
@@ -81,6 +81,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
         );
       }
     } catch (e) {
+      AuditLogger.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),

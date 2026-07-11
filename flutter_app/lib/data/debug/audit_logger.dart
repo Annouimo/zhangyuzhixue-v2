@@ -93,6 +93,26 @@ class AuditLogger {
     }
   }
 
+  /// 运行时错误：try/catch 捕获的异常
+  void error(String source, Object error, [StackTrace? stack]) {
+    if (!_auditEnabled) return;
+    _write('error', source, 'message', error.toString());
+    if (stack != null) {
+      // 只取前 3 行避免日志膨胀
+      final lines = stack.toString().split('\n');
+      _write('error', source, 'stack', lines.take(3).join('\n'));
+    }
+  }
+
+  /// API 响应错误快捷方法
+  void apiResponse(String endpoint, int statusCode, Object? error) {
+    if (!_auditEnabled) return;
+    _write('api', endpoint, 'statusCode', statusCode);
+    if (error != null) {
+      _write('api', endpoint, 'error', error.toString());
+    }
+  }
+
   /// 关闭日志文件
   Future<void> close() async {
     await _sink?.flush();

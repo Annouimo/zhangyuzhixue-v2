@@ -69,7 +69,8 @@ class AppPrefs {
     if (raw == null) return null;
     try {
       return Map<String, dynamic>.from(jsonDecode(raw) as Map);
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('AppPrefs.userCache', e);
       return null;
     }
   }
@@ -100,7 +101,8 @@ class AppPrefs {
     if (raw == null) return [];
     try {
       return (raw.split(',')).map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('AppPrefs.accessibleCourseIds', e);
       return [];
     }
   }

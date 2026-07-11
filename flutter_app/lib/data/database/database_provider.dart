@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:meta/meta.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import '../debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../database/assets_database.dart';
 import '../database/lectures_database.dart';
@@ -84,7 +85,8 @@ class DatabaseProvider {
       conn = NativeDatabase(file);
       await conn.runCustom('SELECT 1 FROM user_profile LIMIT 1');
       await conn.close();
-    } catch (_) {
+    } catch (e) {
+      AuditLogger.instance.error('DatabaseProvider._checkSchema', e);
       await conn?.close();
       // ignore: avoid_print
       print('user.db schema mismatch detected, deleting...');

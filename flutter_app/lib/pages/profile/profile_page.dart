@@ -47,6 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() { _info = info; _loading = false; });
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
+      AuditLogger.instance.error('ProfilePage._load', e);
       if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); }
     }
   }
@@ -83,6 +84,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
+      AuditLogger.instance.error('ProfilePage._pickAndUploadAvatar', e);
       if (!mounted) return;
       setState(() => _uploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       context.go('/login');
     } catch (e) {
+      AuditLogger.instance.error('ProfilePage._logout', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('退出失败: $e'), backgroundColor: AppColors.error),

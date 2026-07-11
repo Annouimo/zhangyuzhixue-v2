@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../debug/audit_logger.dart';
 
 /// API 异常
 class ApiException implements Exception {
@@ -111,6 +112,11 @@ class _RefreshInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode != 401) {
+      AuditLogger.instance.apiResponse(
+        err.requestOptions.path,
+        err.response?.statusCode ?? 0,
+        err,
+      );
       return handler.next(err);
     }
 
@@ -154,6 +160,11 @@ class _ErrorInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final body = response.data;
     if (body is Map && body['code'] != null && body['code'] != 0) {
+      AuditLogger.instance.apiResponse(
+        response.requestOptions.path,
+        response.statusCode ?? 200,
+        ApiException(code: body['code'] as int, message: body['message'] as String? ?? '', httpStatus: response.statusCode),
+      );
       handler.reject(DioException(
         requestOptions: response.requestOptions,
         response: response,
