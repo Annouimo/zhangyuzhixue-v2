@@ -18,17 +18,32 @@ class PreferenceFilter {
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
+  final List<String> types;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
 
   const PreferenceFilter({
     required this.years,
     required this.regions,
     required this.conceptTags,
+    this.types = const [],
+    this.diffMin,
+    this.diffMax,
+    this.calcMin,
+    this.calcMax,
   });
 
   Map<String, dynamic> toJson() => {
         'years': years,
         'regions': regions,
         'concept_tags': conceptTags,
+        if (types.isNotEmpty) 'types': types,
+        if (diffMin != null) 'diff_min': diffMin,
+        if (diffMax != null) 'diff_max': diffMax,
+        if (calcMin != null) 'calc_min': calcMin,
+        if (calcMax != null) 'calc_max': calcMax,
       };
 }
 
@@ -54,6 +69,11 @@ class PreferenceRepository {
       years: _parseJsonList(row.years),
       regions: _parseJsonList(row.regions),
       conceptTags: _parseJsonList(row.conceptTags),
+      types: row.types != null ? _parseJsonList(row.types!) : [],
+      diffMin: row.diffMin,
+      diffMax: row.diffMax,
+      calcMin: row.calcMin,
+      calcMax: row.calcMax,
     );
   }
 
@@ -66,6 +86,11 @@ class PreferenceRepository {
       years: _jsonEncode(filter.years),
       regions: _jsonEncode(filter.regions),
       conceptTags: _jsonEncode(filter.conceptTags),
+      types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
+      diffMin: filter.diffMin,
+      diffMax: filter.diffMax,
+      calcMin: filter.calcMin,
+      calcMax: filter.calcMax,
     );
   }
 

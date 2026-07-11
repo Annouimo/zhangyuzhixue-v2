@@ -23,12 +23,22 @@ class PreferenceDao {
     required String years,
     required String regions,
     required String conceptTags,
+    String? types,
+    double? diffMin,
+    double? diffMax,
+    double? calcMin,
+    double? calcMax,
   }) =>
       _db.into(_db.preferenceFilters).insert(db.PreferenceFiltersCompanion(
         name: Value(name),
         years: Value(years),
         regions: Value(regions),
         conceptTags: Value(conceptTags),
+        types: Value(types),
+        diffMin: Value(diffMin),
+        diffMax: Value(diffMax),
+        calcMin: Value(calcMin),
+        calcMax: Value(calcMax),
       ));
 
   Future<void> delete(int id) async {

@@ -171,6 +171,11 @@ class PreferenceFilters extends Table {
   TextColumn get years => text()();
   TextColumn get regions => text()();
   TextColumn get conceptTags => text()();
+  TextColumn? get types => text().nullable()();
+  RealColumn? get diffMin => real().nullable()();
+  RealColumn? get diffMax => real().nullable()();
+  RealColumn? get calcMin => real().nullable()();
+  RealColumn? get calcMax => real().nullable()();
 }
 
 /// 同步队列
@@ -214,5 +219,5 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 }

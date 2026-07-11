@@ -5594,8 +5594,72 @@ class $PreferenceFiltersTable extends PreferenceFilters
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _typesMeta = const VerificationMeta('types');
   @override
-  List<GeneratedColumn> get $columns => [id, name, years, regions, conceptTags];
+  late final GeneratedColumn<String> types = GeneratedColumn<String>(
+    'types',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _diffMinMeta = const VerificationMeta(
+    'diffMin',
+  );
+  @override
+  late final GeneratedColumn<double> diffMin = GeneratedColumn<double>(
+    'diff_min',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _diffMaxMeta = const VerificationMeta(
+    'diffMax',
+  );
+  @override
+  late final GeneratedColumn<double> diffMax = GeneratedColumn<double>(
+    'diff_max',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _calcMinMeta = const VerificationMeta(
+    'calcMin',
+  );
+  @override
+  late final GeneratedColumn<double> calcMin = GeneratedColumn<double>(
+    'calc_min',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _calcMaxMeta = const VerificationMeta(
+    'calcMax',
+  );
+  @override
+  late final GeneratedColumn<double> calcMax = GeneratedColumn<double>(
+    'calc_max',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    years,
+    regions,
+    conceptTags,
+    types,
+    diffMin,
+    diffMax,
+    calcMin,
+    calcMax,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -5646,6 +5710,36 @@ class $PreferenceFiltersTable extends PreferenceFilters
     } else if (isInserting) {
       context.missing(_conceptTagsMeta);
     }
+    if (data.containsKey('types')) {
+      context.handle(
+        _typesMeta,
+        types.isAcceptableOrUnknown(data['types']!, _typesMeta),
+      );
+    }
+    if (data.containsKey('diff_min')) {
+      context.handle(
+        _diffMinMeta,
+        diffMin.isAcceptableOrUnknown(data['diff_min']!, _diffMinMeta),
+      );
+    }
+    if (data.containsKey('diff_max')) {
+      context.handle(
+        _diffMaxMeta,
+        diffMax.isAcceptableOrUnknown(data['diff_max']!, _diffMaxMeta),
+      );
+    }
+    if (data.containsKey('calc_min')) {
+      context.handle(
+        _calcMinMeta,
+        calcMin.isAcceptableOrUnknown(data['calc_min']!, _calcMinMeta),
+      );
+    }
+    if (data.containsKey('calc_max')) {
+      context.handle(
+        _calcMaxMeta,
+        calcMax.isAcceptableOrUnknown(data['calc_max']!, _calcMaxMeta),
+      );
+    }
     return context;
   }
 
@@ -5675,6 +5769,26 @@ class $PreferenceFiltersTable extends PreferenceFilters
         DriftSqlType.string,
         data['${effectivePrefix}concept_tags'],
       )!,
+      types: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}types'],
+      ),
+      diffMin: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}diff_min'],
+      ),
+      diffMax: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}diff_max'],
+      ),
+      calcMin: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calc_min'],
+      ),
+      calcMax: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}calc_max'],
+      ),
     );
   }
 
@@ -5691,12 +5805,22 @@ class PreferenceFilterRow extends DataClass
   final String years;
   final String regions;
   final String conceptTags;
+  final String? types;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
   const PreferenceFilterRow({
     required this.id,
     required this.name,
     required this.years,
     required this.regions,
     required this.conceptTags,
+    this.types,
+    this.diffMin,
+    this.diffMax,
+    this.calcMin,
+    this.calcMax,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5706,6 +5830,21 @@ class PreferenceFilterRow extends DataClass
     map['years'] = Variable<String>(years);
     map['regions'] = Variable<String>(regions);
     map['concept_tags'] = Variable<String>(conceptTags);
+    if (!nullToAbsent || types != null) {
+      map['types'] = Variable<String>(types);
+    }
+    if (!nullToAbsent || diffMin != null) {
+      map['diff_min'] = Variable<double>(diffMin);
+    }
+    if (!nullToAbsent || diffMax != null) {
+      map['diff_max'] = Variable<double>(diffMax);
+    }
+    if (!nullToAbsent || calcMin != null) {
+      map['calc_min'] = Variable<double>(calcMin);
+    }
+    if (!nullToAbsent || calcMax != null) {
+      map['calc_max'] = Variable<double>(calcMax);
+    }
     return map;
   }
 
@@ -5716,6 +5855,21 @@ class PreferenceFilterRow extends DataClass
       years: Value(years),
       regions: Value(regions),
       conceptTags: Value(conceptTags),
+      types: types == null && nullToAbsent
+          ? const Value.absent()
+          : Value(types),
+      diffMin: diffMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(diffMin),
+      diffMax: diffMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(diffMax),
+      calcMin: calcMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calcMin),
+      calcMax: calcMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(calcMax),
     );
   }
 
@@ -5730,6 +5884,11 @@ class PreferenceFilterRow extends DataClass
       years: serializer.fromJson<String>(json['years']),
       regions: serializer.fromJson<String>(json['regions']),
       conceptTags: serializer.fromJson<String>(json['conceptTags']),
+      types: serializer.fromJson<String?>(json['types']),
+      diffMin: serializer.fromJson<double?>(json['diffMin']),
+      diffMax: serializer.fromJson<double?>(json['diffMax']),
+      calcMin: serializer.fromJson<double?>(json['calcMin']),
+      calcMax: serializer.fromJson<double?>(json['calcMax']),
     );
   }
   @override
@@ -5741,6 +5900,11 @@ class PreferenceFilterRow extends DataClass
       'years': serializer.toJson<String>(years),
       'regions': serializer.toJson<String>(regions),
       'conceptTags': serializer.toJson<String>(conceptTags),
+      'types': serializer.toJson<String?>(types),
+      'diffMin': serializer.toJson<double?>(diffMin),
+      'diffMax': serializer.toJson<double?>(diffMax),
+      'calcMin': serializer.toJson<double?>(calcMin),
+      'calcMax': serializer.toJson<double?>(calcMax),
     };
   }
 
@@ -5750,12 +5914,22 @@ class PreferenceFilterRow extends DataClass
     String? years,
     String? regions,
     String? conceptTags,
+    Value<String?> types = const Value.absent(),
+    Value<double?> diffMin = const Value.absent(),
+    Value<double?> diffMax = const Value.absent(),
+    Value<double?> calcMin = const Value.absent(),
+    Value<double?> calcMax = const Value.absent(),
   }) => PreferenceFilterRow(
     id: id ?? this.id,
     name: name ?? this.name,
     years: years ?? this.years,
     regions: regions ?? this.regions,
     conceptTags: conceptTags ?? this.conceptTags,
+    types: types.present ? types.value : this.types,
+    diffMin: diffMin.present ? diffMin.value : this.diffMin,
+    diffMax: diffMax.present ? diffMax.value : this.diffMax,
+    calcMin: calcMin.present ? calcMin.value : this.calcMin,
+    calcMax: calcMax.present ? calcMax.value : this.calcMax,
   );
   PreferenceFilterRow copyWithCompanion(PreferenceFiltersCompanion data) {
     return PreferenceFilterRow(
@@ -5766,6 +5940,11 @@ class PreferenceFilterRow extends DataClass
       conceptTags: data.conceptTags.present
           ? data.conceptTags.value
           : this.conceptTags,
+      types: data.types.present ? data.types.value : this.types,
+      diffMin: data.diffMin.present ? data.diffMin.value : this.diffMin,
+      diffMax: data.diffMax.present ? data.diffMax.value : this.diffMax,
+      calcMin: data.calcMin.present ? data.calcMin.value : this.calcMin,
+      calcMax: data.calcMax.present ? data.calcMax.value : this.calcMax,
     );
   }
 
@@ -5776,13 +5955,29 @@ class PreferenceFilterRow extends DataClass
           ..write('name: $name, ')
           ..write('years: $years, ')
           ..write('regions: $regions, ')
-          ..write('conceptTags: $conceptTags')
+          ..write('conceptTags: $conceptTags, ')
+          ..write('types: $types, ')
+          ..write('diffMin: $diffMin, ')
+          ..write('diffMax: $diffMax, ')
+          ..write('calcMin: $calcMin, ')
+          ..write('calcMax: $calcMax')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, years, regions, conceptTags);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    years,
+    regions,
+    conceptTags,
+    types,
+    diffMin,
+    diffMax,
+    calcMin,
+    calcMax,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5791,7 +5986,12 @@ class PreferenceFilterRow extends DataClass
           other.name == this.name &&
           other.years == this.years &&
           other.regions == this.regions &&
-          other.conceptTags == this.conceptTags);
+          other.conceptTags == this.conceptTags &&
+          other.types == this.types &&
+          other.diffMin == this.diffMin &&
+          other.diffMax == this.diffMax &&
+          other.calcMin == this.calcMin &&
+          other.calcMax == this.calcMax);
 }
 
 class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
@@ -5800,12 +6000,22 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   final Value<String> years;
   final Value<String> regions;
   final Value<String> conceptTags;
+  final Value<String?> types;
+  final Value<double?> diffMin;
+  final Value<double?> diffMax;
+  final Value<double?> calcMin;
+  final Value<double?> calcMax;
   const PreferenceFiltersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.years = const Value.absent(),
     this.regions = const Value.absent(),
     this.conceptTags = const Value.absent(),
+    this.types = const Value.absent(),
+    this.diffMin = const Value.absent(),
+    this.diffMax = const Value.absent(),
+    this.calcMin = const Value.absent(),
+    this.calcMax = const Value.absent(),
   });
   PreferenceFiltersCompanion.insert({
     this.id = const Value.absent(),
@@ -5813,6 +6023,11 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     required String years,
     required String regions,
     required String conceptTags,
+    this.types = const Value.absent(),
+    this.diffMin = const Value.absent(),
+    this.diffMax = const Value.absent(),
+    this.calcMin = const Value.absent(),
+    this.calcMax = const Value.absent(),
   }) : name = Value(name),
        years = Value(years),
        regions = Value(regions),
@@ -5823,6 +6038,11 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     Expression<String>? years,
     Expression<String>? regions,
     Expression<String>? conceptTags,
+    Expression<String>? types,
+    Expression<double>? diffMin,
+    Expression<double>? diffMax,
+    Expression<double>? calcMin,
+    Expression<double>? calcMax,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -5830,6 +6050,11 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
       if (years != null) 'years': years,
       if (regions != null) 'regions': regions,
       if (conceptTags != null) 'concept_tags': conceptTags,
+      if (types != null) 'types': types,
+      if (diffMin != null) 'diff_min': diffMin,
+      if (diffMax != null) 'diff_max': diffMax,
+      if (calcMin != null) 'calc_min': calcMin,
+      if (calcMax != null) 'calc_max': calcMax,
     });
   }
 
@@ -5839,6 +6064,11 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     Value<String>? years,
     Value<String>? regions,
     Value<String>? conceptTags,
+    Value<String?>? types,
+    Value<double?>? diffMin,
+    Value<double?>? diffMax,
+    Value<double?>? calcMin,
+    Value<double?>? calcMax,
   }) {
     return PreferenceFiltersCompanion(
       id: id ?? this.id,
@@ -5846,6 +6076,11 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
       years: years ?? this.years,
       regions: regions ?? this.regions,
       conceptTags: conceptTags ?? this.conceptTags,
+      types: types ?? this.types,
+      diffMin: diffMin ?? this.diffMin,
+      diffMax: diffMax ?? this.diffMax,
+      calcMin: calcMin ?? this.calcMin,
+      calcMax: calcMax ?? this.calcMax,
     );
   }
 
@@ -5867,6 +6102,21 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     if (conceptTags.present) {
       map['concept_tags'] = Variable<String>(conceptTags.value);
     }
+    if (types.present) {
+      map['types'] = Variable<String>(types.value);
+    }
+    if (diffMin.present) {
+      map['diff_min'] = Variable<double>(diffMin.value);
+    }
+    if (diffMax.present) {
+      map['diff_max'] = Variable<double>(diffMax.value);
+    }
+    if (calcMin.present) {
+      map['calc_min'] = Variable<double>(calcMin.value);
+    }
+    if (calcMax.present) {
+      map['calc_max'] = Variable<double>(calcMax.value);
+    }
     return map;
   }
 
@@ -5877,7 +6127,12 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
           ..write('name: $name, ')
           ..write('years: $years, ')
           ..write('regions: $regions, ')
-          ..write('conceptTags: $conceptTags')
+          ..write('conceptTags: $conceptTags, ')
+          ..write('types: $types, ')
+          ..write('diffMin: $diffMin, ')
+          ..write('diffMax: $diffMax, ')
+          ..write('calcMin: $calcMin, ')
+          ..write('calcMax: $calcMax')
           ..write(')'))
         .toString();
   }
@@ -9498,6 +9753,11 @@ typedef $$PreferenceFiltersTableCreateCompanionBuilder =
       required String years,
       required String regions,
       required String conceptTags,
+      Value<String?> types,
+      Value<double?> diffMin,
+      Value<double?> diffMax,
+      Value<double?> calcMin,
+      Value<double?> calcMax,
     });
 typedef $$PreferenceFiltersTableUpdateCompanionBuilder =
     PreferenceFiltersCompanion Function({
@@ -9506,6 +9766,11 @@ typedef $$PreferenceFiltersTableUpdateCompanionBuilder =
       Value<String> years,
       Value<String> regions,
       Value<String> conceptTags,
+      Value<String?> types,
+      Value<double?> diffMin,
+      Value<double?> diffMax,
+      Value<double?> calcMin,
+      Value<double?> calcMax,
     });
 
 class $$PreferenceFiltersTableFilterComposer
@@ -9539,6 +9804,31 @@ class $$PreferenceFiltersTableFilterComposer
 
   ColumnFilters<String> get conceptTags => $composableBuilder(
     column: $table.conceptTags,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get types => $composableBuilder(
+    column: $table.types,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get diffMin => $composableBuilder(
+    column: $table.diffMin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get diffMax => $composableBuilder(
+    column: $table.diffMax,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get calcMin => $composableBuilder(
+    column: $table.calcMin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get calcMax => $composableBuilder(
+    column: $table.calcMax,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -9576,6 +9866,31 @@ class $$PreferenceFiltersTableOrderingComposer
     column: $table.conceptTags,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get types => $composableBuilder(
+    column: $table.types,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get diffMin => $composableBuilder(
+    column: $table.diffMin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get diffMax => $composableBuilder(
+    column: $table.diffMax,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get calcMin => $composableBuilder(
+    column: $table.calcMin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get calcMax => $composableBuilder(
+    column: $table.calcMax,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$PreferenceFiltersTableAnnotationComposer
@@ -9603,6 +9918,21 @@ class $$PreferenceFiltersTableAnnotationComposer
     column: $table.conceptTags,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get types =>
+      $composableBuilder(column: $table.types, builder: (column) => column);
+
+  GeneratedColumn<double> get diffMin =>
+      $composableBuilder(column: $table.diffMin, builder: (column) => column);
+
+  GeneratedColumn<double> get diffMax =>
+      $composableBuilder(column: $table.diffMax, builder: (column) => column);
+
+  GeneratedColumn<double> get calcMin =>
+      $composableBuilder(column: $table.calcMin, builder: (column) => column);
+
+  GeneratedColumn<double> get calcMax =>
+      $composableBuilder(column: $table.calcMax, builder: (column) => column);
 }
 
 class $$PreferenceFiltersTableTableManager
@@ -9650,12 +9980,22 @@ class $$PreferenceFiltersTableTableManager
                 Value<String> years = const Value.absent(),
                 Value<String> regions = const Value.absent(),
                 Value<String> conceptTags = const Value.absent(),
+                Value<String?> types = const Value.absent(),
+                Value<double?> diffMin = const Value.absent(),
+                Value<double?> diffMax = const Value.absent(),
+                Value<double?> calcMin = const Value.absent(),
+                Value<double?> calcMax = const Value.absent(),
               }) => PreferenceFiltersCompanion(
                 id: id,
                 name: name,
                 years: years,
                 regions: regions,
                 conceptTags: conceptTags,
+                types: types,
+                diffMin: diffMin,
+                diffMax: diffMax,
+                calcMin: calcMin,
+                calcMax: calcMax,
               ),
           createCompanionCallback:
               ({
@@ -9664,12 +10004,22 @@ class $$PreferenceFiltersTableTableManager
                 required String years,
                 required String regions,
                 required String conceptTags,
+                Value<String?> types = const Value.absent(),
+                Value<double?> diffMin = const Value.absent(),
+                Value<double?> diffMax = const Value.absent(),
+                Value<double?> calcMin = const Value.absent(),
+                Value<double?> calcMax = const Value.absent(),
               }) => PreferenceFiltersCompanion.insert(
                 id: id,
                 name: name,
                 years: years,
                 regions: regions,
                 conceptTags: conceptTags,
+                types: types,
+                diffMin: diffMin,
+                diffMax: diffMax,
+                calcMin: calcMin,
+                calcMax: calcMax,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

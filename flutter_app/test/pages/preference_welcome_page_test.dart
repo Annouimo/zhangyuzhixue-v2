@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/daos/preference_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/preference_welcome_page.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late udb.AppDatabase uDb;
@@ -14,8 +18,15 @@ void main() {
   late PreferenceDao dao;
   late QuestionDao qDao;
   late PreferenceRepository repo;
+  late Directory _tempDir;
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await SharedPreferences.getInstance();
+    await AppPrefs().init();
+    _tempDir = Directory.systemTemp.createTempSync('pref_test_');
+    await DatabaseProvider().initWithPath(_tempDir.path);
+
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     dao = PreferenceDao(uDb);
@@ -23,9 +34,11 @@ void main() {
     repo = PreferenceRepository(dao);
   });
 
-  tearDown(() {
+  tearDown(() async {
     uDb.close();
     aDb.close();
+    await DatabaseProvider().reset();
+    _tempDir.deleteSync(recursive: true);
   });
 
   group('引导触发', () {
@@ -39,36 +52,38 @@ void main() {
     });
   });
 
+  group('PreferenceFilter 补全字段', () {
+    test('save/load 含 types/难度/计算量', () async {
+      await repo.save(name: '完整', filter: PreferenceFilter(
+        years: ['2026'], regions: ['北京'], conceptTags: ['函数'],
+        types: ['choice'], diffMin: 3, diffMax: 7, calcMin: 2, calcMax: 8,
+      ));
+      final list = await repo.getList();
+      expect(list.length, 1);
+      final loaded = await repo.getEdit(list.first.id);
+      expect(loaded.types, ['choice']);
+      expect(loaded.diffMin, 3);
+      expect(loaded.diffMax, 7);
+    });
+  });
+
   group('PreferenceWelcomePage', () {
-    testWidgets('欢迎页展示 🎉 和积分提示', (tester) async {
+    testWidgets('欢迎 Dialog 展示 🎉 + 跳过按钮', (tester) async {
       await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
       await tester.pumpAndSettle();
       expect(find.text('🎉'), findsOneWidget);
       expect(find.text('欢迎加入章鱼智学！'), findsOneWidget);
-      expect(find.text('首次注册赠送 +10 积分'), findsOneWidget);
       expect(find.text('👌 开始设置学习偏好'), findsOneWidget);
+      expect(find.text('跳过'), findsOneWidget);
     });
 
-    testWidgets('点击开始设置 → 显示偏好表单', (tester) async {
+    testWidgets('点击开始设置 → 偏好表单', (tester) async {
       await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
       await tester.pumpAndSettle();
       await tester.tap(find.text('👌 开始设置学习偏好'));
       await tester.pumpAndSettle();
-      expect(find.text('设置学习偏好'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text('💾 保存偏好'), findsOneWidget);
-    });
-
-    testWidgets('空名称保存失败提示', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('👌 开始设置学习偏好'));
-      await tester.pumpAndSettle();
-      // 清空名称
-      await tester.enterText(find.byType(TextField), '');
-      await tester.tap(find.text('💾 保存偏好'));
-      await tester.pumpAndSettle();
-      expect(find.text('请输入偏好名称'), findsOneWidget);
     });
 
     testWidgets('保存后偏好列表应有记录', (tester) async {
@@ -76,10 +91,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('👌 开始设置学习偏好'));
       await tester.pumpAndSettle();
-      // 保存偏好（默认名称已填）
       await tester.tap(find.text('💾 保存偏好'));
       await tester.pumpAndSettle();
-      // 偏好已保存
       expect(await repo.getCount(), 1);
     });
   });

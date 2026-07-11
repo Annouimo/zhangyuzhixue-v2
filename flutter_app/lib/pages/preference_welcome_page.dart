@@ -3,8 +3,12 @@ import 'package:go_router/go_router.dart';
 import '../app_theme.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/daos/user_dao.dart';
+import '../data/api/api_client.dart';
+import '../data/api/user_api.dart';
 import '../data/database/database_provider.dart';
 import '../domain/preference_repository.dart';
+import '../domain/user_repository.dart';
 import 'exam/widgets/filter_panel.dart';
 import 'router.dart';
 import '../widgets/shared/loading_indicator.dart';
@@ -13,7 +17,8 @@ import '../widgets/shared/loading_indicator.dart';
 class PreferenceWelcomePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final QuestionDao? questionDao;
-  const PreferenceWelcomePage({super.key, this.preferenceRepository, this.questionDao});
+  final UserRepository? userRepository;
+  const PreferenceWelcomePage({super.key, this.preferenceRepository, this.questionDao, this.userRepository});
 
   @override State<PreferenceWelcomePage> createState() => _PreferenceWelcomePageState();
 }
@@ -21,18 +26,24 @@ class PreferenceWelcomePage extends StatefulWidget {
 class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   late final PreferenceRepository _repo;
   late final QuestionDao _qDao;
-  bool _showWelcome = true;
+  late final UserRepository _userRepo;
   bool _saving = false;
   final _nameCtrl = TextEditingController(text: '我的偏好');
 
   Set<String> _years = {};
   Set<String> _regions = {};
+  Set<String> _types = {};
   Set<String> _conceptTags = {};
+  double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   // 筛选选项（内存缓存）
   List<String>? _yearOpts;
   List<String>? _regionOpts;
   List<String>? _tagOpts;
+
+  // 积分值
+  double _bonusPoints = 0;
+  bool _bonusLoaded = false;
 
   @override
   void initState() {
@@ -40,7 +51,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     final db = DatabaseProvider();
     _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(db.appDb));
     _qDao = widget.questionDao ?? QuestionDao(db.assetsDb);
+    _userRepo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), _qDao);
     _loadOpts();
+    _loadBonus();
+    // 页面构建完成后弹出欢迎 Dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showWelcome(context));
   }
 
   Future<void> _loadOpts() async {
@@ -51,6 +66,65 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       if (!mounted) return;
       setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; });
     } catch (_) {}
+  }
+
+  Future<void> _loadBonus() async {
+    try {
+      final pts = await _userRepo.bonusPoints();
+      if (!mounted) return;
+      setState(() { _bonusPoints = pts; _bonusLoaded = true; });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _bonusLoaded = true);
+    }
+  }
+
+  void _showWelcome(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      builder: (ctx) => PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          // 遮罩点击或跳过 → 跳首页
+          context.go(AppRoutes.mainShell);
+        },
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('🎉', style: TextStyle(fontSize: 64)),
+            const SizedBox(height: 16),
+            const Text('欢迎加入章鱼智学！', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Text('首次注册赠送 ${_bonusLoaded ? _bonusPoints.toStringAsFixed(0) : '...'} 积分',
+              style: const TextStyle(fontSize: 16, color: AppColors.success)),
+            const SizedBox(height: 4),
+            const Text('可用于组卷等消费功能', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () { Navigator.of(ctx).pop(); },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              ),
+              child: const Text('👌 开始设置学习偏好'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.go(AppRoutes.mainShell);
+              },
+              child: const Text('跳过', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 
   @override
@@ -71,6 +145,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           years: _years.toList(),
           regions: _regions.toList(),
           conceptTags: _conceptTags.toList(),
+          types: _types.toList(),
+          diffMin: _diffMin,
+          diffMax: _diffMax,
+          calcMin: _calcMin,
+          calcMax: _calcMax,
         ),
       );
       if (!mounted) return;
@@ -86,8 +165,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showWelcome) return _buildWelcome();
-
     return Scaffold(
       appBar: AppBar(title: const Text('设置学习偏好')),
       body: _yearOpts == null
@@ -109,8 +186,9 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
                   conceptTagOptions: _tagOpts ?? [],
-                  onChanged: (y, r, t, ct, _, _, _, _) {
-                    _years = y; _regions = r; _conceptTags = ct;
+                  onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
+                    _years = y; _regions = r; _types = t; _conceptTags = ct;
+                    _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
                   },
                 ),
                 const SizedBox(height: 24),
@@ -130,36 +208,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 ),
               ],
             )),
-    );
-  }
-
-  Widget _buildWelcome() {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Text('🎉', style: TextStyle(fontSize: 64)),
-            const SizedBox(height: 20),
-            const Text('欢迎加入章鱼智学！', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text('首次注册赠送 +10 积分', style: TextStyle(fontSize: 16, color: AppColors.success)),
-            const SizedBox(height: 4),
-            const Text('可用于组卷等消费功能', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () => setState(() => _showWelcome = false),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              ),
-              child: const Text('👌 开始设置学习偏好'),
-            ),
-          ]),
-        ),
-      ),
     );
   }
 }
