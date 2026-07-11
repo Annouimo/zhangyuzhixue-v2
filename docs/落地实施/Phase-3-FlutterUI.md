@@ -244,7 +244,7 @@ flutter_app/lib/pages/solve/
 | `progress.getSolveState()` | ProgressRepository.getSolveState(questionId) → SolveState |
 
 **冷却规则（来自页面设计说明 §1）：**
-- 选填 10s，每步解答 5s（默认值，可通过 SystemConfig 配置）
+- 选填 10s，每步解答 5s（默认值，通过 assets.db → `system_config` 表配置）
 - 按钮 `opacity: 0.4; cursor: not-allowed` 形态
 - 按钮下方 `⏳ 还剩 N 秒可提交`
 - 复访不启动冷却
@@ -327,7 +327,7 @@ flutter_app/lib/pages/solve/
 
 - 解题页是核心交互——**首次与复访的 UI 差异**请严格对照页面设计说明中的「首次 vs 复访 UI 差异」表
 - 反馈数据写入后通过 SyncApi 入队（不直接请求服务端）
-- 冷却时长从 SystemConfig 读取（默认选填 10s / 解答每步 5s）
+- 冷却时长从 assets.db → system_config 表读取（默认选填 10s / 解答每步 5s）
 - 知识卡片弹层点击外部关闭
 
 ---
