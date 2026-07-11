@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师登录 — 章鱼智学</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body>
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px;">
+    <div style="width:100%;max-width:400px;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:48px;margin-bottom:8px;">🐙</div>
+        <h1 style="font-size:24px;font-weight:700;color:var(--primary);margin-bottom:4px;">章鱼智学 · 教师端</h1>
+        <p style="font-size:14px;color:var(--text-secondary);">发布作业 · 查看学情 · 管理班级</p>
+      </div>
+
+      <div class="card" style="padding:32px 24px;box-shadow:var(--shadow-lg);">
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:20px;text-align:center;">教师登录</h2>
+
+        <div id="error-msg" class="error-banner"></div>
+
+        <form onsubmit="handleLogin(); return false;">
+          <div class="input-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" placeholder="输入教师用户名" required autofocus>
+          </div>
+          <div class="input-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="输入密码" required>
+          </div>
+          <button id="login-btn" type="submit" class="btn btn-primary btn-block btn-lg mt-2">登 录</button>
+        </form>
+
+        <div class="text-center" style="margin-top:16px;font-size:13px;color:var(--text-muted);">
+          教师账号由管理员创建 · 忘记密码请联系管理员
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    async function handleLogin() {
+      hideError();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if (!username || !password) { showError('请输入用户名和密码'); return; }
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = '登录中...';
+
+      try {
+        const resp = await fetch(API_BASE + '/auth/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, app_type: 'teacher' }),
+        });
+        const body = await resp.json();
+        if (body.code !== 0) { showError(body.message); btn.disabled = false; btn.textContent = '登 录'; return; }
+
+        saveToken(body.data.access);
+        localStorage.setItem(REFRESH_KEY, body.data.refresh);
+        localStorage.setItem(USER_KEY, JSON.stringify(body.data.user));
+        window.location.href = '/teacher/';
+      } catch (e) {
+        showError('网络错误，请稍后重试');
+        btn.disabled = false;
+        btn.textContent = '登 录';
+      }
+    }
+  </script>
+</body>
+</html>
