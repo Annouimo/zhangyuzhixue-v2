@@ -101,6 +101,15 @@ class DatabaseProvider {
     _lecturesDb = LecturesDatabase(NativeDatabase(target));
   }
 
+  /// 替换 user.db（与 replaceAssetsDb / replaceLecturesDb 同构）
+  Future<void> replaceUserDb(String newPath) async {
+    await _appDb?.close();
+    final target = File('${_dbDirPath!}/user.db');
+    await File(newPath).copy(target.path);
+    _appDb = AppDatabase(NativeDatabase(target));
+    await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+  }
+
   Future<void> clearUserDb() async {
     await _appDb?.close();
     final file = File('${_dbDirPath!}/user.db');

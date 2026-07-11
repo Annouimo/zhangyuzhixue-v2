@@ -102,9 +102,12 @@ class UpdateManager {
     if (type == 'qbank') {
       await _dbProvider.replaceAssetsDb(targetPath);
       await AppPrefs().setQbankVersion(newVersion);
-    } else {
+    } else if (type == 'lecture') {
       await _dbProvider.replaceLecturesDb(targetPath);
       await AppPrefs().setLectureVersion(newVersion);
+    } else if (type == 'user') {
+      await _dbProvider.replaceUserDb(targetPath);
+      // user 不缓存版本号，登录即拉
     }
 
     await File(gzPath).delete();

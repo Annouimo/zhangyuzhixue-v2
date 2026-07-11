@@ -45,6 +45,28 @@ class PushBatchResult {
   }
 }
 
+/// 用户数据拉取信息
+class UserPullInfo {
+  final String downloadUrl;
+  final String checksum;
+  final int sizeBytes;
+  final int version;
+
+  const UserPullInfo({
+    required this.downloadUrl,
+    required this.checksum,
+    required this.sizeBytes,
+    required this.version,
+  });
+
+  factory UserPullInfo.fromJson(Map<String, dynamic> json) => UserPullInfo(
+        downloadUrl: json['download_url'] as String,
+        checksum: json['checksum'] as String,
+        sizeBytes: json['size_bytes'] as int,
+        version: json['data_version'] as int,
+      );
+}
+
 /// 同步 API
 class SyncApi {
   final ApiClient _client;
@@ -58,5 +80,11 @@ class SyncApi {
   Future<PushBatchResult> pushBatch(List<Map<String, dynamic>> items) async {
     final res = await _client.dio.post('/sync/push/', data: {'batch': items});
     return PushBatchResult.fromJson(res.data['data'] as Map<String, dynamic>);
+  }
+
+  /// 获取用户数据拉取信息（下载 URL + checksum）
+  Future<UserPullInfo> fetchUserPullInfo() async {
+    final res = await _client.dio.get('/sync/user/pull/');
+    return UserPullInfo.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 }
