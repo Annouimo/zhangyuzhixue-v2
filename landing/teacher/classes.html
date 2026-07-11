@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>班级概览 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html" class="active">班级</a>
+        <a href="students.html">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>班级概览</h1>
+    </div>
+
+    <div id="error-msg" class="error-banner"></div>
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div id="content" style="display:none;">
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card"><div class="stat-value" id="stat-total-students">—</div><div class="stat-label">学生总数</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total-classes">—</div><div class="stat-label">班级数</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:#8B5CF6" id="stat-avg-accuracy">—</div><div class="stat-label">全校平均正确率</div></div>
+      </div>
+
+      <div id="class-list"></div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    (async function load() {
+      try {
+        const data = await apiCall('/teacher/classes/');
+        document.getElementById('stat-total-students').textContent = data.totalStudents ?? 0;
+        document.getElementById('stat-total-classes').textContent = data.totalClasses ?? 0;
+        document.getElementById('stat-avg-accuracy').textContent = data.avgAccuracy ?? '0%';
+
+        const items = data.items || [];
+        const container = document.getElementById('class-list');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+          container.innerHTML = '<div class="text-center" style="padding:40px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
+        } else {
+          items.forEach(c => {
+            const accVal = parseFloat(c.avgAccuracy) || 0;
+            const accColor = accVal >= 70 ? 'var(--success)' : accVal >= 50 ? 'var(--warning)' : 'var(--error)';
+            container.innerHTML += `
+              <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                  <h3 class="card-title" style="margin-bottom:0;">${esc(c.name)}</h3>
+                  <a href="students.html?class_id=${c.id}" class="btn btn-sm btn-outline">查看学生</a>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+                  <div>
+                    <div style="font-size:12px;color:var(--text-muted);">学生人数</div>
+                    <div style="font-size:20px;font-weight:700;">${c.studentCount ?? 0}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
+                    <div style="font-size:20px;font-weight:700;color:${accColor};">${esc(c.avgAccuracy)}</div>
+                  </div>
+                </div>
+              </div>`;
+          });
+        }
+
+        document.getElementById('content').style.display = 'block';
+      } catch (e) {
+        showError('加载班级数据失败: ' + e.message);
+      } finally {
+        hideLoading('loading-indicator');
+      }
+    })();
+  </script>
+</body>
+</html>

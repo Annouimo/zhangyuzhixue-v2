@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生列表 — 章鱼智学 · 教师端</title>
+  <link rel="stylesheet" href="teacher-styles.css">
+</head>
+<body class="has-header">
+  <header class="top-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <nav class="nav-links">
+        <a href="index.html">作业</a>
+        <a href="classes.html">班级</a>
+        <a href="students.html" class="active">学生</a>
+        <a href="about.html">关于</a>
+      </nav>
+      <div class="user-info">
+        <span class="username" id="header-username">教师</span>
+        <a href="login.html" style="font-size:13px;color:var(--text-muted);text-decoration:none;margin-left:8px;" onclick="handleLogout(); return false;">退出</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>学生列表</h1>
+      <div class="page-actions">
+        <select id="class-filter" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);" onchange="loadStudents()">
+          <option value="">全部班级</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="搜索学生姓名..." oninput="debounceSearch()">
+    </div>
+
+    <div id="error-msg" class="error-banner"></div>
+    <div id="loading-indicator" class="text-center" style="padding:40px;color:var(--text-muted);">加载中...</div>
+
+    <div id="content" style="display:none;">
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>班级</th>
+              <th>总做题量</th>
+              <th>正确率</th>
+              <th>最近活跃</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="student-table-body">
+            <tr><td colspan="6" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无学生数据</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="teacher-common.js"></script>
+  <script>
+    initPage();
+
+    let searchTimer = null;
+
+    function debounceSearch() {
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(loadStudents, 300);
+    }
+
+    function accuracyColor(val) {
+      if (!val) return 'var(--text-muted)';
+      const n = parseFloat(val);
+      if (n >= 80) return 'var(--success)';
+      if (n >= 60) return 'var(--warning)';
+      return 'var(--error)';
+    }
+
+    async function loadStudents() {
+      const search = document.getElementById('search-input').value.trim();
+      const classId = document.getElementById('class-filter').value;
+      let url = '/teacher/students/';
+      const params = [];
+      if (search) params.push('search=' + encodeURIComponent(search));
+      if (classId) params.push('class_id=' + classId);
+      if (params.length) url += '?' + params.join('&');
+
+      try {
+        hideError();
+        const data = await apiCall(url);
+        const tbody = document.getElementById('student-table-body');
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无匹配的学生</td></tr>';
+        } else {
+          data.forEach(s => {
+            const color = accuracyColor(s.avgAccuracy);
+            tbody.innerHTML += `
+              <tr>
+                <td><a href="student.html?id=${s.id}" class="table-link">${esc(s.name)}</a></td>
+                <td>${esc(s.className)}</td>
+                <td>${s.totalQuestions ?? 0}</td>
+                <td><span style="font-weight:600;color:${color};">${esc(s.avgAccuracy)}</span></td>
+                <td>${esc(s.lastActive) || '—'}</td>
+                <td><a href="student.html?id=${s.id}" class="btn btn-sm btn-ghost">详情</a></td>
+              </tr>`;
+          });
+        }
+      } catch (e) {
+        showError('加载学生数据失败: ' + e.message);
+      }
+    }
+
+    // 初始化：加载班级筛选下拉 + 学生列表
+    (async function init() {
+      try {
+        const classes = await apiCall('/teacher/classes/');
+        const filter = document.getElementById('class-filter');
+        (classes.items || []).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name;
+          filter.appendChild(opt);
+        });
+      } catch (e) {
+        // 班级下拉失败不影响学生列表
+      }
+      await loadStudents();
+      document.getElementById('content').style.display = 'block';
+      hideLoading('loading-indicator');
+    })();
+  </script>
+</body>
+</html>
