@@ -130,14 +130,14 @@ void main() {
         routes: [
           GoRoute(
             path: '/login',
-            builder: (_, __) => LoginPage(
+            builder: (_, _) => LoginPage(
               authRepository: _MockAuthRepo(),
               preferenceRepository: _HasPrefs(),
             ),
           ),
           GoRoute(
             path: '/',
-            builder: (_, __) => const Scaffold(
+            builder: (_, _) => const Scaffold(
               body: Center(child: Text('主页')),
             ),
           ),

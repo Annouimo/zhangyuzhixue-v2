@@ -8,7 +8,7 @@ class _MockAdapter implements HttpClientAdapter {
   final Map<String, Function(RequestOptions)> handlers = {};
 
   void on(String method, String path, Function(RequestOptions) handler) {
-    handlers[method + ' ' + path] = handler;
+    handlers['$method $path'] = handler;
   }
 
   @override
@@ -17,7 +17,7 @@ class _MockAdapter implements HttpClientAdapter {
     Stream<Uint8List>? requestStream,
     Future<dynamic>? cancelFuture,
   ) async {
-    final key = options.method + ' ' + options.path;
+    final key = '${options.method} ${options.path}';
     final handler = handlers[key];
     if (handler != null) {
       return handler(options);

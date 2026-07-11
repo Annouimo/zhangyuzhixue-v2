@@ -82,7 +82,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: _expanded ? Border.all(color: AppColors.primary.withOpacity(0.3)) : null,
+        border: _expanded ? Border.all(color: AppColors.primary.withValues(alpha:0.3)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

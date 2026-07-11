@@ -57,8 +57,8 @@ void main() {
       var count = (await provider.assetsDb.select(provider.assetsDb.questions).get()).length;
       expect(count, 1);
 
-      final newPath = tempDir.path + '/new_assets.db';
-      await File(tempDir.path + '/assets.db').copy(newPath);
+      final newPath = '${tempDir.path}/new_assets.db';
+      await File('${tempDir.path}/assets.db').copy(newPath);
       await provider.replaceAssetsDb(newPath);
 
       final tables = await provider.assetsDb.select(provider.assetsDb.questions).get();
@@ -69,8 +69,8 @@ void main() {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
       await provider.lecturesDb.select(provider.lecturesDb.courses).get();
-      final newPath = tempDir.path + '/new_lectures.db';
-      await File(tempDir.path + '/lectures.db').copy(newPath);
+      final newPath = '${tempDir.path}/new_lectures.db';
+      await File('${tempDir.path}/lectures.db').copy(newPath);
       await provider.replaceLecturesDb(newPath);
       final courses = await provider.lecturesDb.select(provider.lecturesDb.courses).get();
       expect(courses, isEmpty);

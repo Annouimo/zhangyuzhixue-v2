@@ -132,10 +132,10 @@ void main() {
         routes: [
           GoRoute(
             path: '/login',
-            builder: (context, __) => Scaffold(
+            builder: (ctx, _) => Scaffold(
               body: Center(
                 child: ElevatedButton(
-                  onPressed: () => context.push('/register'),
+                  onPressed: () => ctx.push('/register'),
                   child: const Text('去注册'),
                 ),
               ),
@@ -143,7 +143,7 @@ void main() {
           ),
           GoRoute(
             path: '/register',
-            builder: (_, __) => RegisterPage(
+            builder: (_, _) => RegisterPage(
               authRepository: _MockAuthRepo(),
             ),
           ),
