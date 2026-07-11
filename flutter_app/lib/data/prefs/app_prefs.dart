@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// 全局 SharedPreferences key 定义
@@ -56,11 +57,7 @@ class AppPrefs {
     final raw = p.getString(PrefKeys.userCache);
     if (raw == null) return null;
     try {
-      return Map<String, dynamic>.from(
-        (Uri.tryParse(raw)?.queryParametersAll ?? <String, List<String>>{}).map(
-          (k, v) => MapEntry(k, v.first as dynamic),
-        ),
-      );
+      return Map<String, dynamic>.from(jsonDecode(raw) as Map);
     } catch (_) {
       return null;
     }

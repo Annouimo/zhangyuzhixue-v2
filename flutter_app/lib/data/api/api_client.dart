@@ -122,8 +122,8 @@ class _RefreshInterceptor extends Interceptor {
       _refreshing = true;
 
       try {
-        final response = await Dio().post(
-          '${err.requestOptions.baseUrl}/auth/refresh/',
+        final response = await ApiClient().dio.post(
+          '/auth/refresh/',
           data: {'refresh': refreshToken},
         );
         final newAccess = response.data['data']['access'] as String;
@@ -132,7 +132,7 @@ class _RefreshInterceptor extends Interceptor {
 
         final retryOpts = err.requestOptions;
         retryOpts.headers['Authorization'] = 'Bearer $newAccess';
-        final retryRes = await Dio().fetch(retryOpts);
+        final retryRes = await ApiClient().dio.fetch(retryOpts);
         handler.resolve(retryRes);
       } catch (_) {
         _refreshing = false;
