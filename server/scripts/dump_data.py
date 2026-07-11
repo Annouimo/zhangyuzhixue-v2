@@ -19,7 +19,7 @@ DEFAULT_DB = os.path.join(PROJECT_DIR, 'db.sqlite3')
 
 # (表名, 输出文件名, 排除字段列表)
 TABLES = [
-    ('auth_user',                     'auth_users',               ['password']),
+    ('auth_user',                     'auth_users',               []),
     ('accounts_student',              'accounts_students',        []),
     ('accounts_teacher',              'accounts_teachers',        []),
     ('accounts_invitationcode',       'accounts_invitation_codes', []),

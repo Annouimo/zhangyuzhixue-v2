@@ -132,7 +132,7 @@ class ClassCourseAssignment(models.Model):
         related_name='class_course_assignments'
     )
     publish_at = models.DateTimeField('发布时间', null=True, blank=True)
-    deadline = models.DateTimeField('截止时间', null=True, blank=True)
+    deadline = models.DateField('截止日期', null=True, blank=True)
     is_active = models.BooleanField('是否有效', default=True)
 
     class Meta:

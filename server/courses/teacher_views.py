@@ -418,7 +418,7 @@ def _list_assignments():
     today = timezone.now().date()
     active = sum(
         1 for cca in ClassCourseAssignment.objects.filter(is_active=True)
-        if cca.deadline and cca.deadline.date() >= today
+        if cca.deadline and cca.deadline >= today
     )
 
     # 聚合完成率
