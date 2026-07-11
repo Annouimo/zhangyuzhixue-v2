@@ -262,7 +262,7 @@ def avatar_upload_view(request):
         return _err(50001, '图片处理失败',
                     http_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    url = f'{settings.MEDIA_URL}{rel_path}'
+    url = request.build_absolute_uri(f'{settings.MEDIA_URL}{rel_path}')
     student = request.user.student
     student.avatar = url
     student.save(update_fields=['avatar'])

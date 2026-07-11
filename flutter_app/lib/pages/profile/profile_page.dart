@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../app_theme.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
@@ -20,12 +22,15 @@ class _ProfilePageState extends State<ProfilePage> {
   late final UserRepository _repo;
   UserInfo? _info;
   bool _loading = true;
+  bool _uploading = false;
 
   @override
   void initState() {
     super.initState();
     final db = DatabaseProvider();
-    _repo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb));
+    _repo = widget.userRepository ?? UserRepository(
+      UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
+    );
     _load();
   }
 
@@ -35,7 +40,73 @@ class _ProfilePageState extends State<ProfilePage> {
       final info = await _repo.getUserInfo();
       if (!mounted) return;
       setState(() { _info = info; _loading = false; });
-    } catch (e) { if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
+    } catch (e) {
+      if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); }
+    }
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() => _uploading = true);
+    try {
+      final avatarUrl = await _repo.uploadAvatar(picked.path);
+      if (!mounted) return;
+      setState(() {
+        _info = _info != null
+            ? UserInfo(
+                id: _info!.id, name: _info!.name,
+                realName: _info!.realName, studentId: _info!.studentId,
+                avatar: avatarUrl,
+                school: _info!.school, gaokaoYear: _info!.gaokaoYear,
+                phone: _info!.phone,
+              )
+            : null;
+        _uploading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _uploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('头像上传失败: $e'), behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error),
+      );
+    }
+  }
+
+  void _showAvatarPicker() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('拍照'),
+              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.camera); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('从相册选择'),
+              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.gallery); },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -57,26 +128,48 @@ class _ProfilePageState extends State<ProfilePage> {
     final info = _info;
     return Row(
       children: [
-        CircleAvatar(
-          radius: 32,
-          backgroundColor: AppColors.primaryLight,
-          child: Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary)),
+        GestureDetector(
+          onTap: _uploading ? null : _showAvatarPicker,
+          child: CircleAvatar(
+            radius: 32,
+            backgroundColor: AppColors.primaryLight,
+            backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
+                ? (info.avatar!.startsWith('http')
+                    ? CachedNetworkImageProvider(info.avatar!)
+                    : NetworkImage(info.avatar!))
+                : null,
+            child: info?.avatar == null || info!.avatar!.isEmpty
+                ? Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary))
+                : null,
+          ),
         ),
+        if (_uploading) ...[
+          const SizedBox(width: 8),
+          const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+        ],
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(info?.realName ?? info?.name ?? '未登录', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            if (info?.studentId != null) Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
-                child: Text('学号 ${info!.studentId}', style: const TextStyle(fontSize: 11, color: AppColors.primary)),
-              ),
-            ]),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(info?.realName ?? info?.name ?? '未登录',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              if (info?.studentId != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text('学号 ${info!.studentId}',
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                ),
+              const SizedBox(height: 4),
+              const Text('点击头像更换', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            ],
+          ),
         ),
       ],
     );
