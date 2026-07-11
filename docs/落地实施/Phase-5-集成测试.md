@@ -1,7 +1,7 @@
 # Phase 5 — 集成测试（1 天）
 
 > 本文档是 [00-落地计划.md](../00-落地计划.md) 中 Phase 5 的细化执行方案。
-> 状态：**待开始** | 最后更新：2026-07-11
+> 状态：**已完成** | 最后更新：2026-07-11
 
 ---
 
@@ -9,9 +9,9 @@
 
 | 层 | 内容 | 工时 | 执行方式 | 状态 |
 |:---|:-----|:-----|:---------|:----:|
-| **L6** | 服务端 API 契约（pytest + DRF APIClient） | 0.5 天 | CI（每次 push 自动跑） | ⬜ |
-| **L7** | E2E（Flutter integration_test，4 条路径） | 0.3 天 | 本地手动跑（不跑 CI） | ⬜ |
-| **L8** | 构建验证（.db.gz checksum） | 0.2 天 | CI + 本地 | ⬜ |
+| **L6** | 服务端 API 契约（pytest + DRF APIClient） | 0.5 天 | CI（每次 push 自动跑） | ✅ |
+| **L7** | E2E（Flutter integration_test，4 条路径） | 0.3 天 | 本地手动跑（不跑 CI） | ✅ |
+| **L8** | 构建验证（.db.gz checksum） | 0.2 天 | CI + 本地 | ✅ |
 | | **合计** | **~1 天** | | |
 
 ### 前置条件
@@ -47,7 +47,7 @@
 | `system/tests/test_version.py` | 3 | DbVersion 查询 |
 | `system/tests/test_auditlog.py` | 7 | auditlog 写入 |
 | `scripts/tests/test_build_*.py` | 27 | 构建工具函数 + schema 一致性 |
-| **合计** | **89** | |
+| **合计** | **122** | |
 
 ### 所需补充
 
