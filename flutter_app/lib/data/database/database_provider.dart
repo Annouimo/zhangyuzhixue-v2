@@ -29,6 +29,7 @@ class DatabaseProvider {
     _dbDirPath = dir.path;
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'lectures.db');
+    await _ensureUserDbSchema(dir);
     await _openAll(dir);
     _initialized = true;
   }
@@ -47,6 +48,7 @@ class DatabaseProvider {
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
+    await _ensureUserDbSchema(dir);
     await _openAll(dir);
     _initialized = true;
   }
@@ -69,6 +71,24 @@ class DatabaseProvider {
     if (!await file.exists()) {
       final data = await rootBundle.load('assets/db/$name');
       await file.writeAsBytes(data.buffer.asUint8List());
+    }
+  }
+
+  /// 检测 user.db 表结构是否匹配当前 schemaVersion。
+  /// 旧版 schema（表名不匹配）→ 删掉重建，数据由登录时全量拉取恢复。
+  Future<void> _ensureUserDbSchema(Directory dir) async {
+    final file = File('${dir.path}/user.db');
+    if (!await file.exists()) return;
+    NativeDatabase? conn;
+    try {
+      conn = NativeDatabase(file);
+      await conn.runCustom('SELECT 1 FROM user_profile LIMIT 1');
+      await conn.close();
+    } catch (_) {
+      await conn?.close();
+      // ignore: avoid_print
+      print('user.db schema mismatch detected, deleting...');
+      await file.delete();
     }
   }
 
