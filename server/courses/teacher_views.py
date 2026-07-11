@@ -174,6 +174,7 @@ def class_list(request):
     return _ok(data={
         'totalClasses': groups.count(),
         'totalStudents': total_students,
+        'totalQuestions': SubmissionDetail.objects.count(),
         'avgAccuracy': _calc_overall_accuracy(),
         'items': items,
     })

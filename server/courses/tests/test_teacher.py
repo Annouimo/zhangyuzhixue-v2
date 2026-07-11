@@ -122,6 +122,7 @@ class TestClassList:
         assert resp.status_code == 200
         d = resp.data['data']
         assert d['totalClasses'] == 1
+        assert d['totalQuestions'] == 0
         assert d['avgAccuracy'] == '0%'
         assert d['items'][0]['id'] == sample_class_group.id
         assert d['items'][0]['name'] == '高三(1)班'

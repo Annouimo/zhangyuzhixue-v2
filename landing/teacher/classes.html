@@ -33,9 +33,10 @@
 
     <div id="content" style="display:none;">
       <div class="stats-row" id="stats-row">
-        <div class="stat-card"><div class="stat-value" id="stat-total-students">—</div><div class="stat-label">学生总数</div></div>
-        <div class="stat-card"><div class="stat-value" id="stat-total-classes">—</div><div class="stat-label">班级数</div></div>
-        <div class="stat-card"><div class="stat-value" style="color:#8B5CF6" id="stat-avg-accuracy">—</div><div class="stat-label">全校平均正确率</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total-classes">—</div><div class="stat-label">总班级数</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total-students">—</div><div class="stat-label">总学生数</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-total-questions">—</div><div class="stat-label">总题量</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:#8B5CF6" id="stat-avg-accuracy">—</div><div class="stat-label">平均正确率</div></div>
       </div>
 
       <div id="class-list"></div>
@@ -49,8 +50,9 @@
     (async function load() {
       try {
         const data = await apiCall('/teacher/classes/');
-        document.getElementById('stat-total-students').textContent = data.totalStudents ?? 0;
         document.getElementById('stat-total-classes').textContent = data.totalClasses ?? 0;
+        document.getElementById('stat-total-students').textContent = data.totalStudents ?? 0;
+        document.getElementById('stat-total-questions').textContent = data.totalQuestions ?? 0;
         document.getElementById('stat-avg-accuracy').textContent = data.avgAccuracy ?? '0%';
 
         const items = data.items || [];
