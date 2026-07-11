@@ -616,20 +616,89 @@ def generate_report(findings: list[Finding], output_path: str = ""):
     return report_str
 
 
+# ═══════════════════════════════════════════════
+# 审计类型 → 模块映射
+# ═══════════════════════════════════════════════
+
+TYPE_MODULES = {
+    "A": [1, 3, 4, 5],           # 服务端
+    "B": [1, 3, 4, 5, 6],        # Flutter 数据层
+    "C": [1, 2, 4, 5, 6, 7],     # Flutter UI
+    "D": [1, 3, 4, 5],           # 教师端
+    "E": [1, 3, 4],              # 部署
+    "F": [1, 4],                 # 数据迁移
+    "G": [4, 6],                 # 全项目横切
+}
+
+MODULE_NAMES = {
+    1: "目录/文件存在性",
+    2: "HTML→Flutter 页面覆盖",
+    3: "pubspec.yaml 资产声明",
+    4: "设计文档待完成标记",
+    5: "测试文件覆盖率",
+    6: "stub/TODO 扫描",
+    7: "导航架构",
+}
+
+def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
+    """按模块列表选择性执行检查"""
+    all_findings = []
+
+    if 1 in modules:
+        log(f"[模块 1/7] 目录/文件存在性...")
+        all_findings.extend(check_directory_exists(cfg))
+    if 2 in modules:
+        log(f"[模块 2/7] HTML→Flutter 页面覆盖...")
+        all_findings.extend(check_html_to_flutter_pages(cfg))
+    if 3 in modules:
+        log(f"[模块 3/7] pubspec.yaml 资产声明...")
+        all_findings.extend(check_pubspec_assets(cfg))
+    if 4 in modules:
+        log(f"[模块 4/7] 设计文档待完成标记...")
+        all_findings.extend(check_design_doc_pending_markers(cfg))
+    if 5 in modules:
+        log(f"[模块 5/7] 测试文件覆盖率...")
+        all_findings.extend(check_test_coverage(cfg))
+    if 6 in modules:
+        log(f"[模块 6/7] stub/TODO 扫描...")
+        all_findings.extend(check_stubs_and_todos(cfg))
+    if 7 in modules:
+        log(f"[模块 7/7] 导航架构...")
+        all_findings.extend(check_navigation_architecture(cfg))
+
+    return all_findings
+
+
 def main():
-    if len(sys.argv) < 2:
-        workspace = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        print(f"用法: python audit_engine.py <workspace_path>")
-        print(f"默认使用: {workspace}")
+    import argparse
+    parser = argparse.ArgumentParser(description="章鱼智学自动化审计引擎")
+    parser.add_argument("workspace", nargs="?", help="项目根目录路径")
+    parser.add_argument("--type", "-t", choices=list(TYPE_MODULES.keys()) + [""],
+                        default="", help="审计类型 A-G（不指定则全量）")
+    args = parser.parse_args()
+
+    if args.workspace:
+        workspace = os.path.abspath(args.workspace)
     else:
-        workspace = os.path.abspath(sys.argv[1])
-    
+        workspace = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        print(f"用法: python audit_engine.py <workspace_path> [--type A|B|C|D|E|F|G]")
+        print(f"默认使用: {workspace}")
+
     if not os.path.exists(workspace):
         print(f"错误: 目录不存在: {workspace}")
         sys.exit(1)
-    
+
     cfg = Config.detect(workspace)
-    findings = run_all_checks(cfg)
+
+    if args.type:
+        modules = TYPE_MODULES[args.type]
+        log(f"审计类型: {args.type} → 模块 {modules}")
+        log(f"模块明细: {[f'{m}-{MODULE_NAMES[m]}' for m in modules]}")
+        findings = run_modules(cfg, modules)
+    else:
+        log("审计类型: 全量 (A-G 全部模块)")
+        findings = run_modules(cfg, sorted(MODULE_NAMES.keys()))
+
     report_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_report_latest.txt")
     generate_report(findings, report_path)
 
