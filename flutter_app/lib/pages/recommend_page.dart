@@ -53,7 +53,7 @@ class _RecommendPageState extends State<RecommendPage> {
         else { _preferSmart = true; }
         _loading = false;
       });
-      AuditLogger.instance.page('RecommendPage', {'presetCount': _presets?.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
+      AuditLogger.instance.page('RecommendPage', {'presetCount': _presets.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
