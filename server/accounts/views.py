@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db.models import Sum
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -34,6 +35,10 @@ def _err(code, message, http_status=status.HTTP_400_BAD_REQUEST):
 # ── 注册 ──────────────────────────────────────────────────────
 
 
+@extend_schema(
+    request=RegisterSerializer,
+    responses={200: OpenApiResponse(description='注册成功，请登录')},
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):
@@ -71,6 +76,10 @@ def register_view(request):
 # ── 登录 ──────────────────────────────────────────────────────
 
 
+@extend_schema(
+    request=LoginSerializer,
+    responses={200: OpenApiResponse(description='登录成功，返回 access/refresh token + user 对象')},
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -111,6 +120,10 @@ def login_view(request):
 # ── 登出 ──────────────────────────────────────────────────────
 
 
+@extend_schema(
+    request=None,
+    responses={200: OpenApiResponse(description='已登出')},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
@@ -139,6 +152,15 @@ def _get_points_summary(user):
     return {'total_points': total, 'level': 1, 'title': '青铜学徒', 'icon': '🥉'}
 
 
+@extend_schema(
+    request=UserUpdateSerializer,
+    methods=['PATCH'],
+    responses={200: UserSerializer},
+)
+@extend_schema(
+    responses={200: UserSerializer},
+    methods=['GET'],
+)
 @api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_me_view(request):
@@ -178,6 +200,10 @@ def user_me_view(request):
 # ── 头像上传 ──────────────────────────────────────────────────
 
 
+@extend_schema(
+    request=None,
+    responses={200: OpenApiResponse(description='头像上传成功，返回 avatar URL')},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def avatar_upload_view(request):
@@ -226,6 +252,9 @@ def avatar_upload_view(request):
 # ── 等级百分位 ──────────────────────────────────────────────
 
 
+@extend_schema(
+    responses={200: OpenApiResponse(description='等级百分位数据')},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def level_percentile_view(request):

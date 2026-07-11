@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# CI / formatting / testing
+pytest>=8.0
+pytest-django>=4.9
+flake8>=7.0

@@ -7,6 +7,7 @@ import time
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -49,6 +50,10 @@ def _check_sig(sig, source_id, source_type, student_id, expire):
 # ── Request Token（POST /api/v1/interactions/pdf/request-token/）
 
 
+@extend_schema(
+    request=None,
+    responses={200: OpenApiResponse(description='换取 PDF 访问签名')},
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def pdf_request_token(request):

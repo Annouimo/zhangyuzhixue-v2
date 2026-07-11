@@ -1,4 +1,5 @@
-﻿from rest_framework.response import Response
+﻿from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from system.models import DbVersion
@@ -8,6 +9,9 @@ class VersionCheckView(APIView):
     """数据库版本检查 — 无需认证"""
     permission_classes = []
 
+    @extend_schema(
+        responses={200: OpenApiResponse(description='数据库版本信息')},
+    )
     def get(self, request, db_type):
         try:
             version = DbVersion.objects.get(db_type=db_type)

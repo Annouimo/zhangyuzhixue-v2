@@ -62,37 +62,37 @@ class UserSerializer(serializers.ModelSerializer):
             'class_group_id', 'school', 'gaokao_year', 'avatar',
         ]
 
-    def get_real_name(self, obj):
+    def get_real_name(self, obj) -> str:
         return obj.get_full_name() or obj.username
 
-    def get_role(self, obj):
+    def get_role(self, obj) -> str:
         if hasattr(obj, 'student'):
             return 'student'
         if hasattr(obj, 'teacher'):
             return 'teacher'
         return 'admin'
 
-    def get_student_id(self, obj):
+    def get_student_id(self, obj) -> str | None:
         if hasattr(obj, 'student'):
             return obj.student.student_id
         return None
 
-    def get_class_group_id(self, obj):
+    def get_class_group_id(self, obj) -> int | None:
         if hasattr(obj, 'student') and hasattr(obj.student, 'class_group_id'):
             return obj.student.class_group_id
         return None
 
-    def get_school(self, obj):
+    def get_school(self, obj) -> str | None:
         if hasattr(obj, 'student'):
             return obj.student.school
         return None
 
-    def get_gaokao_year(self, obj):
+    def get_gaokao_year(self, obj) -> int | None:
         if hasattr(obj, 'student'):
             return obj.student.gaokao_year
         return None
 
-    def get_avatar(self, obj):
+    def get_avatar(self, obj) -> str | None:
         if hasattr(obj, 'student'):
             return obj.student.avatar or None
         return None

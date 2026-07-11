@@ -35,10 +35,10 @@ jobs:
           python-version: '3.11'
       - name: Install deps
         working-directory: server
-        run: pip3 install -r requirements.txt -q
+        run: pip3 install -r dev-requirements.txt -q
       - name: flake8
         working-directory: server
-        run: pip3 install flake8 -q && flake8 --config .flake8
+        run: flake8 --config .flake8
       - name: Django checks
         working-directory: server
         run: |
@@ -46,4 +46,4 @@ jobs:
           python3 manage.py makemigrations --check
       - name: pytest
         working-directory: server
-        run: pip install pytest pytest-django -q && pytest
+        run: pytest

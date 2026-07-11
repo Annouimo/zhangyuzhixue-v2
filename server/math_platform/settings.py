@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config(
     'SECRET_KEY',
-    default='django-insecure-dev-only-key-do-not-use-in-production',
+    default='JXliDAnEPHiqqhud0fE7drCjVILqOSY85lN01fqUCBGcSPJyub1xQqoCK70zKaok6Cg',
 )
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config(
@@ -77,7 +77,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / config('DB_NAME', default='db.sqlite3'),
-        'OPTIONS': {'timeout': 20},
+        'OPTIONS': {
+            'timeout': 20,
+            'transaction_mode': 'IMMEDIATE',
+        },
     }
 }
 

@@ -1,6 +1,7 @@
 """同步推送视图 — 接收客户端 batch 数据，按 entity_type 分发处理"""
 
 from django.db import transaction
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -45,6 +46,10 @@ def _err(code, detail, http_status=status.HTTP_400_BAD_REQUEST):
 class SyncPushView(APIView):
     """接收同步推送 batch，按 entity_type 分发"""
 
+    @extend_schema(
+        request=SyncPushSerializer,
+        responses={200: OpenApiResponse(description='同步推送成功，返回 server_ids 映射')},
+    )
     def post(self, request):
         serializer = SyncPushSerializer(data=request.data)
         if not serializer.is_valid():

@@ -1,4 +1,5 @@
 ﻿"""讲义 API — 课程列表/章节目录/讲义内容"""
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,6 +11,9 @@ def _ok(data=None, message='ok'):
     return Response({'code': 0, 'message': message, 'data': data})
 
 
+@extend_schema(
+    responses={200: OpenApiResponse(description='课程列表')},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lecture_courses_list(request):
@@ -35,6 +39,9 @@ def lecture_courses_list(request):
     return _ok(data=data)
 
 
+@extend_schema(
+    responses={200: OpenApiResponse(description='指定课程的章节列表')},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def chapter_list(request, course_id):
@@ -54,6 +61,9 @@ def chapter_list(request, course_id):
     return _ok(data=data)
 
 
+@extend_schema(
+    responses={200: OpenApiResponse(description='讲义原始 Markdown 内容')},
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def chapter_content(request, chapter_id):
