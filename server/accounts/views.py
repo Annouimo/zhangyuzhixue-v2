@@ -219,6 +219,91 @@ def user_me_view(request):
     return _ok(data=UserSerializer(user).data)
 
 
+# ── 签到 ──────────────────────────────────────────────────────
+
+
+@extend_schema(
+    request=None,
+    responses={200: OpenApiResponse(description='签到成功')},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def checkin_view(request):
+    """签到 — 创建今日登录日志 + 发放签到积分"""
+    if not hasattr(request.user, 'student'):
+        return _err(40301, '仅学生可签到')
+
+    student = request.user.student
+    from django.utils import timezone as tz
+    today = tz.localdate()
+
+    # 创建/获取今日登录日志
+    log, created = UserLoginLog.objects.get_or_create(
+        student=student,
+        login_date=today,
+    )
+
+    # 如果今日已签到过，返回已签到状态
+    if not created:
+        streak = _calc_checkin_streak(student)
+        return _ok(data={
+            'checked_in': True,
+            'streak_days': streak,
+            'points_earned': 0,
+            'message': '今日已签到',
+        })
+
+    # 计算连续签到天数
+    streak = _calc_checkin_streak(student)
+
+    # 发放签到积分
+    from django.conf import settings
+    base_reward = float(getattr(settings, 'LOGIN_BONUS_BASE', 0.5))
+    # 每周额外奖励
+    weekly_bonus = float(getattr(settings, 'LOGIN_BONUS_WEEKLY', 3.0))
+    reward = int(base_reward * 10)  # 基础奖励（转换为整数分）
+    if streak % 7 == 0:
+        reward += int(weekly_bonus * 10)
+
+    PointsTransaction.objects.create(
+        student=student,
+        amount=reward,
+        transaction_type='EARN',
+        source='LOGIN_BONUS',
+        description=f'第{streak}天签到奖励',
+    )
+
+    return _ok(data={
+        'checked_in': True,
+        'streak_days': streak,
+        'points_earned': reward,
+        'message': f'签到成功！连续第{streak}天',
+    })
+
+
+def _calc_checkin_streak(student):
+    """计算学生连续签到天数"""
+    logs = list(UserLoginLog.objects.filter(
+        student=student,
+    ).order_by('-login_date').values_list('login_date', flat=True))
+    if not logs:
+        return 0
+
+    from datetime import date, timedelta
+    today = date.today()
+    streak = 0
+    expected = today
+
+    for log_date in logs:
+        if log_date == expected:
+            streak += 1
+            expected -= timedelta(days=1)
+        elif log_date < expected:
+            break
+
+    return streak
+
+
 # ── 头像上传 ──────────────────────────────────────────────────
 
 

@@ -5,6 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/app_toast.dart';
+import '../data/database/database_provider.dart';
+import '../data/daos/achievement_dao.dart';
+import '../data/api/api_client.dart';
+import '../data/api/user_api.dart';
+import '../data/daos/user_dao.dart';
+import '../data/daos/question_dao.dart';
+import '../domain/user_repository.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
@@ -46,8 +53,12 @@ class _IndexPageState extends State<IndexPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final pending = prefs.getInt('pending_homework_count') ?? 0;
-      final streak = prefs.getInt('checkin_streak') ?? 0;
       final checkedIn = prefs.getBool('checked_in_today') ?? false;
+
+      // 通过 AchievementDao 从登录日志推算连续签到天数
+      final dao = AchievementDao(DatabaseProvider().appDb);
+      final streak = await dao.getLoginStreak();
+
       if (!mounted) return;
       setState(() {
         _pendingCount = pending;
@@ -66,20 +77,37 @@ class _IndexPageState extends State<IndexPage> {
       AppToast.show(context, icon: 'ℹ️', message: '今天已签到');
       return;
     }
-    // 已实现本地签到逻辑（通过 SharedPreferences + UserLoginLog）
-    final prefs = await SharedPreferences.getInstance();
-    final newStreak = (_streakDays % 7) + 1; // 循环 7 天周期
-    await prefs.setInt('checkin_streak', newStreak);
-    await prefs.setBool('checked_in_today', true);
-    if (!mounted) return;
-    setState(() {
-      _streakDays = newStreak;
-      _checkedIn = true;
-    });
-    AppToast.show(context,
-      icon: '🔥', message: '签到成功！连续第 $_streakDays 天',
-      backgroundColor: AppColors.success,
-    );
+    try {
+      final repo = UserRepository(
+        UserDao(DatabaseProvider().appDb),
+        UserApi(ApiClient()),
+        QuestionDao(DatabaseProvider().assetsDb),
+      );
+      final result = await repo.checkin();
+      final streak = result['streak_days'] as int? ?? 0;
+      final points = result['points_earned'] as int? ?? 0;
+      final msg = result['message'] as String? ?? '签到成功';
+
+      // 记录本地签到状态
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('checked_in_today', true);
+
+      if (!mounted) return;
+      setState(() {
+        _streakDays = streak;
+        _checkedIn = true;
+      });
+      AppToast.show(context,
+        icon: '🔥', message: '$msg · +$points 积分',
+        backgroundColor: AppColors.success,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      AppToast.show(context,
+        icon: '⚠️', message: '签到失败，请检查网络',
+        backgroundColor: AppColors.error,
+      );
+    }
   }
 
   @override

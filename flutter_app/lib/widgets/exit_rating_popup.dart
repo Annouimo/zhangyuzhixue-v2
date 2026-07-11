@@ -124,6 +124,7 @@ Future<bool> showExitRatingIfNeeded(
     if (context.mounted) {
       if (ok) {
         final pts = await cfg.rewardPoints;
+        if (!context.mounted) return false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('感谢评价！+$pts积分')),
         );

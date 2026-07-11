@@ -18,14 +18,14 @@ void main() {
   late PreferenceDao dao;
   late QuestionDao qDao;
   late PreferenceRepository repo;
-  late Directory _tempDir;
+  late Directory tempDir;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await SharedPreferences.getInstance();
     await AppPrefs().init();
-    _tempDir = Directory.systemTemp.createTempSync('pref_test_');
-    await DatabaseProvider().initWithPath(_tempDir.path);
+    tempDir = Directory.systemTemp.createTempSync('pref_test_');
+    await DatabaseProvider().initWithPath(tempDir.path);
 
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
@@ -38,7 +38,7 @@ void main() {
     uDb.close();
     aDb.close();
     await DatabaseProvider().reset();
-    _tempDir.deleteSync(recursive: true);
+    tempDir.deleteSync(recursive: true);
   });
 
   group('引导触发', () {

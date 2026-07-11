@@ -229,6 +229,11 @@ class UserRepository {
   // ── 签到 ──
   Future<int> streakDays() => _dao.getStreakDays();
 
+  /// 签到（调用 API）
+  Future<Map<String, dynamic>> checkin() async {
+    return _api.checkin();
+  }
+
   Future<double> todayReward() async => 0;
 
   Future<double> nextReward() async => 0;

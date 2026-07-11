@@ -614,6 +614,50 @@ GET /api/v1/user/level-percentile/
 - 需要全量用户数据计算，必须调服务端 API，本地无法计算
 - 数据缓存在客户端，缓存过期策略后续决定
 
+### 4.5 签到
+
+```
+POST /api/v1/user/checkin/
+```
+
+**认证：** 需要 Bearer token（仅 student）
+
+**请求体：** 无
+
+**响应 `code=0`（首次签到）：**
+```json
+{
+  "code": 0,
+  "message": "签到成功！连续第3天",
+  "data": {
+    "checked_in": true,
+    "streak_days": 3,
+    "points_earned": 5,
+    "message": "签到成功！连续第3天"
+  }
+}
+```
+
+**响应 `code=0`（今日已签到）：**
+```json
+{
+  "code": 0,
+  "message": "今日已签到",
+  "data": {
+    "checked_in": true,
+    "streak_days": 3,
+    "points_earned": 0,
+    "message": "今日已签到"
+  }
+}
+```
+
+**说明：**
+- 每日只能签到一次，重复调用返回 `checked_in: true` 但不重复发放积分
+- 签到积分通过 `PointsTransaction` 记录，来源为 `LOGIN_BONUS`
+- 连续签到第7天时发放额外周奖励
+- 连续天数由 `UserLoginLog` 推算（从最近登录日向前数连续天数）
+
 ---
 
 ## 六、教师 API
@@ -952,6 +996,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | `GET` | `/api/v1/user/me/` | 任意 | 当前用户信息 |
 | `PATCH` | `/api/v1/user/me/` | 任意 | 更新用户信息 |
 | `POST` | `/api/v1/user/avatar/` | 任意 | 上传头像 |
+| `POST` | `/api/v1/user/checkin/` | student | 签到（每日一次，发放签到积分） |
 | `GET` | `/api/v1/user/level-percentile/` | student | 等级百分位 |
 | `GET` | `/api/v1/lectures/courses/` | 任意（教师可见全部） | 课程列表 |
 | `GET` | `/api/v1/lectures/courses/{courseId}/chapters/` | 任意（教师可见全部） | 章节目录 |

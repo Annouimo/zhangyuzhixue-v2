@@ -22,4 +22,10 @@ class UserApi {
     final res = await _client.dio.post('/user/avatar/', data: formData);
     return (res.data['data'] as Map<String, dynamic>)['url'] as String;
   }
+
+  /// 签到
+  Future<Map<String, dynamic>> checkin() async {
+    final res = await _client.dio.post('/user/checkin/');
+    return res.data['data'] as Map<String, dynamic>;
+  }
 }

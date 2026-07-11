@@ -9,5 +9,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='auth-logout'),
     path('me/', views.user_me_view, name='user-me'),
     path('avatar/', views.avatar_upload_view, name='user-avatar'),
+    path('checkin/', views.checkin_view, name='user-checkin'),
     path('level-percentile/', views.level_percentile_view, name='user-level-percentile'),
 ]

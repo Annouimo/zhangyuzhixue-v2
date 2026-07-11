@@ -9,6 +9,8 @@ import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
+import '../../../domain/auth_repository.dart';
+import '../../../data/api/auth_api.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -109,6 +111,34 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定要退出当前账号吗？\n未同步的数据将会丢失。'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('退出', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await AuthRepository(AuthApi(ApiClient())).logout();
+      if (!mounted) return;
+      context.go('/login');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('退出失败: $e'), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('我的')),
@@ -191,6 +221,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ('系统', [
         (Icons.sync, '同步状态', () => context.push('/sync/queue')),
         (Icons.info_outline, '关于', () => context.push('/profile/about')),
+        (Icons.logout, '退出登录', _logout),
       ]),
     ];
     return Column(
