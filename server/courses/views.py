@@ -80,10 +80,10 @@ def chapter_content(request, chapter_id):
                         status=404)
 
     return _ok(data={
-        'id': doc.id,
+        'chapter_id': doc.id,
+        'title': doc.title,
+        'md_content': doc.md_content,
         'course_id': doc.course_id,
         'chapter': doc.chapter,
-        'title': doc.title,
-        'content': doc.md_content,
         'updated_at': doc.updated_at,
     })

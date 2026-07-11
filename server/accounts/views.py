@@ -60,6 +60,7 @@ def register_view(request):
     Student.objects.create(
         user=user,
         school=data.get('school', ''),
+        phone=data.get('phone', ''),
         gaokao_year=data.get('gaokao_year'),
     )
 
@@ -128,6 +129,29 @@ def login_view(request):
 @permission_classes([IsAuthenticated])
 def logout_view(request):
     return _ok(message='已登出')
+
+
+# ── Token 刷新 ────────────────────────────────────────────────
+
+
+from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
+
+
+class TokenRefreshView(BaseTokenRefreshView):
+    """刷新 access token — 包裹 simplejwt 响应为 {code, message, data} 格式"""
+
+    @extend_schema(
+        responses={200: OpenApiResponse(description='刷新 access token')},
+    )
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            return Response({
+                'code': 0,
+                'message': 'ok',
+                'data': response.data,
+            })
+        return response
 
 
 # ── 用户信息 ──────────────────────────────────────────────────

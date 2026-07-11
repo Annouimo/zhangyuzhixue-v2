@@ -88,8 +88,8 @@ class TestLectureContent:
             reverse('lecture-content', args=[doc.id])
         )
         assert resp.status_code == 200
-        assert resp.data['data']['content'] == doc.md_content
-        assert resp.data['data']['title'] == doc.title
+        assert resp.data['data']['md_content'] == doc.md_content
+        assert resp.data['data']['chapter_id'] == doc.id
 
     def test_content_not_found(self, auth_client):
         """不存在的讲义：404"""

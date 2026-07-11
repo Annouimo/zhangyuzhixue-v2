@@ -241,7 +241,8 @@ class TestRefresh:
         }, format='json')
 
         assert resp.status_code == 200
-        assert 'access' in resp.data
+        assert resp.data['code'] == 0
+        assert 'access' in resp.data['data']
 
     def test_refresh_invalid_token(self, api_client):
         """无效 refresh token：应返回错误"""
