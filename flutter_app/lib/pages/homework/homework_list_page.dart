@@ -6,6 +6,7 @@ import '../../data/daos/progress_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/assignment_repository.dart';
+import '../../data/prefs/app_prefs.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
@@ -46,6 +47,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
     try {
       final list = await _repo.getPending();
       if (!mounted) return;
+      AppPrefs().setPendingHomeworkCount(list.length);
       setState(() {
         _assignments = list;
         _loading = false;

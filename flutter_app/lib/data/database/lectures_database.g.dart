@@ -47,7 +47,7 @@ class $CoursesTable extends Courses with TableInfo<$CoursesTable, CourseRow> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'courses';
+  static const String $name = 'course';
   @override
   VerificationContext validateIntegrity(
     Insertable<CourseRow> instance, {
@@ -310,7 +310,7 @@ class $ChaptersTable extends Chapters
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'chapters';
+  static const String $name = 'chapter';
   @override
   VerificationContext validateIntegrity(
     Insertable<ChapterRow> instance, {
@@ -622,7 +622,7 @@ class $LectureContentsTable extends LectureContents
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'lecture_contents';
+  static const String $name = 'lecture_content';
   @override
   VerificationContext validateIntegrity(
     Insertable<LectureContentRow> instance, {
@@ -957,7 +957,7 @@ class $AssignmentsTable extends Assignments
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'assignments';
+  static const String $name = 'assignment';
   @override
   VerificationContext validateIntegrity(
     Insertable<AssignmentRow> instance, {
@@ -1269,7 +1269,7 @@ class $AssignmentQuestionsTable extends AssignmentQuestions
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'assignment_questions';
+  static const String $name = 'assignment_question';
   @override
   VerificationContext validateIntegrity(
     Insertable<AssignmentQuestionRow> instance, {

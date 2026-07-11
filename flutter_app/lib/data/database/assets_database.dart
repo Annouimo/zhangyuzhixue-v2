@@ -3,11 +3,13 @@ import 'package:drift/drift.dart';
 part 'assets_database.g.dart';
 
 // ═══════════════════════════════════════════════
-// 表定义
+// 表定义 — SQL 表名与设计文档 docs/02-数据/数据库结构设计.md 一致（单数）
 // ═══════════════════════════════════════════════
 
 @DataClassName('QuestionRow')
 class Questions extends Table {
+  @override
+  String get tableName => 'question';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get year => integer()();
   TextColumn get examType => text()();
@@ -30,6 +32,8 @@ class ChoiceExt extends Table {
 
 @DataClassName('SubQuestionRow')
 class SubQuestions extends Table {
+  @override
+  String get tableName => 'sub_question';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get questionId => integer()();
   IntColumn? get parentId => integer().nullable()();
@@ -41,6 +45,8 @@ class SubQuestions extends Table {
 
 @DataClassName('SolutionMethodRow')
 class SolutionMethods extends Table {
+  @override
+  String get tableName => 'solution_method';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get subQuestionId => integer()();
   TextColumn? get methodName => text().nullable()();
@@ -50,6 +56,8 @@ class SolutionMethods extends Table {
 
 @DataClassName('SolutionStepRow')
 class SolutionSteps extends Table {
+  @override
+  String get tableName => 'solution_step';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get methodId => integer()();
   IntColumn get stepNumber => integer()();
@@ -60,6 +68,8 @@ class SolutionSteps extends Table {
 
 @DataClassName('ConceptTagRow')
 class ConceptTags extends Table {
+  @override
+  String get tableName => 'concept_tag';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text().unique()();
   IntColumn? get parentId => integer().nullable()();
@@ -67,6 +77,8 @@ class ConceptTags extends Table {
 
 @DataClassName('KnowledgeCardRow')
 class KnowledgeCards extends Table {
+  @override
+  String get tableName => 'knowledge_card';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
   TextColumn get category => text()();
@@ -75,6 +87,8 @@ class KnowledgeCards extends Table {
 
 @DataClassName('QuestionConceptTagRow')
 class QuestionConceptTags extends Table {
+  @override
+  String get tableName => 'question_concept_tag';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get questionId => integer()();
   IntColumn get conceptTagId => integer()();
@@ -82,6 +96,8 @@ class QuestionConceptTags extends Table {
 
 @DataClassName('QuestionKnowledgeCardRow')
 class QuestionKnowledgeCards extends Table {
+  @override
+  String get tableName => 'question_knowledge_card';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get questionId => integer()();
   IntColumn get knowledgeCardId => integer()();
@@ -89,6 +105,8 @@ class QuestionKnowledgeCards extends Table {
 
 @DataClassName('CourseRow')
 class Courses extends Table {
+  @override
+  String get tableName => 'course';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   TextColumn? get description => text().nullable()();
@@ -96,6 +114,8 @@ class Courses extends Table {
 
 @DataClassName('AssignmentRow')
 class Assignments extends Table {
+  @override
+  String get tableName => 'assignment';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
   TextColumn? get description => text().nullable()();
@@ -104,6 +124,8 @@ class Assignments extends Table {
 
 @DataClassName('AssignmentQuestionRow')
 class AssignmentQuestions extends Table {
+  @override
+  String get tableName => 'assignment_question';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get assignmentId => integer()();
   IntColumn get questionId => integer()();
@@ -112,6 +134,8 @@ class AssignmentQuestions extends Table {
 
 @DataClassName('AchievementDefRow')
 class AchievementDefs extends Table {
+  @override
+  String get tableName => 'achievement_def';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get code => text().unique()();
   TextColumn get name => text()();
@@ -127,6 +151,8 @@ class AchievementDefs extends Table {
 
 @DataClassName('LevelConfigRow')
 class LevelConfigs extends Table {
+  @override
+  String get tableName => 'level_config';
   IntColumn get level => integer()();
   IntColumn get minXp => integer()();
   TextColumn get title => text()();
@@ -136,7 +162,19 @@ class LevelConfigs extends Table {
   Set<Column> get primaryKey => {level};
 }
 
-/// 构建元数据
+@DataClassName('SystemConfigRow')
+class SystemConfigs extends Table {
+  @override
+  String get tableName => 'system_config';
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  TextColumn? get description => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
+/// 构建元数据（表名已是单数，与设计文档一致）
 @DataClassName('MetaRow')
 class Meta extends Table {
   IntColumn get schemaVersion => integer()();
@@ -148,16 +186,6 @@ class Meta extends Table {
 // ═══════════════════════════════════════════════
 // Database
 // ═══════════════════════════════════════════════
-
-@DataClassName('SystemConfigRow')
-class SystemConfigs extends Table {
-  TextColumn get key => text()();
-  TextColumn get value => text()();
-  TextColumn? get description => text().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {key};
-}
 
 @DriftDatabase(tables: [
   Questions,

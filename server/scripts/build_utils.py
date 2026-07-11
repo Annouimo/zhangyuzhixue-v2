@@ -50,7 +50,7 @@ def create_db(schema):
 def write_meta(conn, schema_version, data_version, checksum=''):
     """写入 _meta 表"""
     conn.execute(
-        'CREATE TABLE _meta ('
+        'CREATE TABLE meta ('
         'schema_version INTEGER NOT NULL,'
         'data_version INTEGER NOT NULL,'
         'checksum TEXT NOT NULL,'
@@ -59,7 +59,7 @@ def write_meta(conn, schema_version, data_version, checksum=''):
     )
     now = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
     conn.execute(
-        'INSERT INTO _meta (schema_version, data_version, checksum, built_at) '
+        'INSERT INTO meta (schema_version, data_version, checksum, built_at) '
         'VALUES (?, ?, ?, ?)',
         (schema_version, data_version, checksum, now),
     )

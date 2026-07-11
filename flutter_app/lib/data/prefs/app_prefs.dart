@@ -16,6 +16,7 @@ abstract final class PrefKeys {
   static const ratingCooldownPrefix = 'app_rating_cooldown_';
   static const firstLaunchComplete = 'app_first_launch';
   static const lastSyncTime = 'app_last_sync_time';
+  static const pendingHomeworkCount = 'app_pending_homework_count';
 }
 
 /// SharedPreferences 封装层
@@ -88,6 +89,11 @@ class AppPrefs {
 
   Future<bool> setAccessibleCourseIds(List<int> ids) =>
       p.setString(PrefKeys.accessibleCourses, ids.join(','));
+
+  // ── 待办作业计数 ──
+
+  int get pendingHomeworkCount => p.getInt(PrefKeys.pendingHomeworkCount) ?? 0;
+  Future<bool> setPendingHomeworkCount(int v) => p.setInt(PrefKeys.pendingHomeworkCount, v);
 
   // ── 同步时间 ──
 

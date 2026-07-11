@@ -3,12 +3,14 @@ import 'package:drift/drift.dart';
 part 'app_database.g.dart';
 
 // ═══════════════════════════════════════════════
-// 表定义
+// 表定义 — SQL 表名与设计文档 docs/02-数据/数据库结构设计.md 一致（单数）
 // ═══════════════════════════════════════════════
 
 /// 用户信息缓存（本地专用）
 @DataClassName('UserProfileRow')
 class UserProfiles extends Table {
+  @override
+  String get tableName => 'user_profile';
   IntColumn get id => integer()();
   TextColumn get name => text()();
   TextColumn? get realName => text().nullable()();
@@ -27,6 +29,8 @@ class UserProfiles extends Table {
 /// 登录轨迹
 @DataClassName('UserLoginLogRow')
 class UserLoginLogs extends Table {
+  @override
+  String get tableName => 'user_login_log';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get loginDate => text().unique()();
   TextColumn get createdAt => text()();
@@ -35,6 +39,8 @@ class UserLoginLogs extends Table {
 /// 积分流水
 @DataClassName('PointsTransactionRow')
 class PointsTransactions extends Table {
+  @override
+  String get tableName => 'points_transaction';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get amount => integer()();
   TextColumn get transactionType => text()();
@@ -47,6 +53,8 @@ class PointsTransactions extends Table {
 /// 成就进度缓存
 @DataClassName('StudentAchievementRow')
 class StudentAchievements extends Table {
+  @override
+  String get tableName => 'student_achievement';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get achievementCode => text()();
   IntColumn get progress => integer().withDefault(const Constant(0))();
@@ -59,6 +67,8 @@ class StudentAchievements extends Table {
 /// 提交头
 @DataClassName('SubmissionRow')
 class Submissions extends Table {
+  @override
+  String get tableName => 'submission';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn get studentId => integer()();
@@ -70,6 +80,8 @@ class Submissions extends Table {
 /// 提交明细
 @DataClassName('SubmissionDetailRow')
 class SubmissionDetails extends Table {
+  @override
+  String get tableName => 'submission_detail';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn? get submissionId => integer().nullable()();
@@ -85,6 +97,8 @@ class SubmissionDetails extends Table {
 /// 步骤反馈
 @DataClassName('StepFeedbackRow')
 class StepFeedbacks extends Table {
+  @override
+  String get tableName => 'step_feedback';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn get submissionDetailId => integer()();
@@ -99,6 +113,8 @@ class StepFeedbacks extends Table {
 /// 卡片反馈
 @DataClassName('CardFeedbackRow')
 class CardFeedbacks extends Table {
+  @override
+  String get tableName => 'card_feedback';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn get submissionDetailId => integer()();
@@ -111,6 +127,8 @@ class CardFeedbacks extends Table {
 /// 题目评分
 @DataClassName('QuestionRatingRow')
 class QuestionRatings extends Table {
+  @override
+  String get tableName => 'question_rating';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn get questionId => integer().unique()();
@@ -123,6 +141,8 @@ class QuestionRatings extends Table {
 /// 个性化组卷
 @DataClassName('CustomPaperRow')
 class CustomPapers extends Table {
+  @override
+  String get tableName => 'custom_paper';
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   TextColumn get title => text()();
@@ -137,6 +157,8 @@ class CustomPapers extends Table {
 /// 组卷-题目中间表
 @DataClassName('CustomPaperQuestionRow')
 class CustomPaperQuestions extends Table {
+  @override
+  String get tableName => 'custom_paper_question';
   IntColumn get id => integer().autoIncrement()();
   IntColumn get paperId => integer()();
   IntColumn get questionId => integer()();
@@ -146,6 +168,8 @@ class CustomPaperQuestions extends Table {
 /// 组卷点赞
 @DataClassName('PaperLikeRow')
 class PaperLikes extends Table {
+  @override
+  String get tableName => 'paper_like';
   IntColumn get paperId => integer()();
   TextColumn get createdAt => text()();
 
@@ -156,6 +180,8 @@ class PaperLikes extends Table {
 /// 组卷收藏
 @DataClassName('PaperCollectRow')
 class PaperCollects extends Table {
+  @override
+  String get tableName => 'paper_collect';
   IntColumn get paperId => integer()();
   TextColumn get createdAt => text()();
 
@@ -166,6 +192,8 @@ class PaperCollects extends Table {
 /// 筛选预设
 @DataClassName('PreferenceFilterRow')
 class PreferenceFilters extends Table {
+  @override
+  String get tableName => 'preference_filter';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   TextColumn get years => text()();
@@ -178,7 +206,7 @@ class PreferenceFilters extends Table {
   RealColumn? get calcMax => real().nullable()();
 }
 
-/// 同步队列
+/// 同步队列（表名已是单数，与设计文档一致）
 @DataClassName('SyncQueueRow')
 class SyncQueue extends Table {
   IntColumn get id => integer().autoIncrement()();

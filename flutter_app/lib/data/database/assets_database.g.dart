@@ -140,7 +140,7 @@ class $QuestionsTable extends Questions
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'questions';
+  static const String $name = 'question';
   @override
   VerificationContext validateIntegrity(
     Insertable<QuestionRow> instance, {
@@ -1009,7 +1009,7 @@ class $SubQuestionsTable extends SubQuestions
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'sub_questions';
+  static const String $name = 'sub_question';
   @override
   VerificationContext validateIntegrity(
     Insertable<SubQuestionRow> instance, {
@@ -1446,7 +1446,7 @@ class $SolutionMethodsTable extends SolutionMethods
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'solution_methods';
+  static const String $name = 'solution_method';
   @override
   VerificationContext validateIntegrity(
     Insertable<SolutionMethodRow> instance, {
@@ -1819,7 +1819,7 @@ class $SolutionStepsTable extends SolutionSteps
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'solution_steps';
+  static const String $name = 'solution_step';
   @override
   VerificationContext validateIntegrity(
     Insertable<SolutionStepRow> instance, {
@@ -2183,7 +2183,7 @@ class $ConceptTagsTable extends ConceptTags
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'concept_tags';
+  static const String $name = 'concept_tag';
   @override
   VerificationContext validateIntegrity(
     Insertable<ConceptTagRow> instance, {
@@ -2443,7 +2443,7 @@ class $KnowledgeCardsTable extends KnowledgeCards
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'knowledge_cards';
+  static const String $name = 'knowledge_card';
   @override
   VerificationContext validateIntegrity(
     Insertable<KnowledgeCardRow> instance, {
@@ -2733,7 +2733,7 @@ class $QuestionConceptTagsTable extends QuestionConceptTags
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'question_concept_tags';
+  static const String $name = 'question_concept_tag';
   @override
   VerificationContext validateIntegrity(
     Insertable<QuestionConceptTagRow> instance, {
@@ -2996,7 +2996,7 @@ class $QuestionKnowledgeCardsTable extends QuestionKnowledgeCards
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'question_knowledge_cards';
+  static const String $name = 'question_knowledge_card';
   @override
   VerificationContext validateIntegrity(
     Insertable<QuestionKnowledgeCardRow> instance, {
@@ -3261,7 +3261,7 @@ class $CoursesTable extends Courses with TableInfo<$CoursesTable, CourseRow> {
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'courses';
+  static const String $name = 'course';
   @override
   VerificationContext validateIntegrity(
     Insertable<CourseRow> instance, {
@@ -3526,7 +3526,7 @@ class $AssignmentsTable extends Assignments
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'assignments';
+  static const String $name = 'assignment';
   @override
   VerificationContext validateIntegrity(
     Insertable<AssignmentRow> instance, {
@@ -3838,7 +3838,7 @@ class $AssignmentQuestionsTable extends AssignmentQuestions
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'assignment_questions';
+  static const String $name = 'assignment_question';
   @override
   VerificationContext validateIntegrity(
     Insertable<AssignmentQuestionRow> instance, {
@@ -4231,7 +4231,7 @@ class $AchievementDefsTable extends AchievementDefs
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'achievement_defs';
+  static const String $name = 'achievement_def';
   @override
   VerificationContext validateIntegrity(
     Insertable<AchievementDefRow> instance, {
@@ -4808,7 +4808,7 @@ class $LevelConfigsTable extends LevelConfigs
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'level_configs';
+  static const String $name = 'level_config';
   @override
   VerificationContext validateIntegrity(
     Insertable<LevelConfigRow> instance, {
@@ -5095,7 +5095,7 @@ class $SystemConfigsTable extends SystemConfigs
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'system_configs';
+  static const String $name = 'system_config';
   @override
   VerificationContext validateIntegrity(
     Insertable<SystemConfigRow> instance, {

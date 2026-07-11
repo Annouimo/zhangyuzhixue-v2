@@ -12,6 +12,7 @@ import '../data/api/api_client.dart';
 import '../data/api/user_api.dart';
 import '../data/daos/user_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/prefs/app_prefs.dart';
 import '../domain/user_repository.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
@@ -54,7 +55,7 @@ class _IndexPageState extends State<IndexPage> {
   Future<void> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final pending = prefs.getInt('pending_homework_count') ?? 0;
+      final pending = AppPrefs().pendingHomeworkCount;
       final checkedIn = prefs.getBool('checked_in_today') ?? false;
 
       // 通过 AchievementDao 从登录日志推算连续签到天数
@@ -329,7 +330,7 @@ class _IndexPageState extends State<IndexPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('🏅 Lv.5 → 升级还需 7.8',
+              Text('🏅 等级加载中…',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               Text('今日学习积分 +${_streakDays * 0.5}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
