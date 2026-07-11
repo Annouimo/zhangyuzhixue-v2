@@ -195,7 +195,7 @@ def user_me_view(request):
                 setattr(student, field, data[field])
                 changed = True
         if changed:
-            student.save(update_fields=['school', 'gaokao_year'])
+            student.save(update_fields=['school', 'phone', 'gaokao_year'])
 
     return _ok(data=UserSerializer(user).data)
 

@@ -416,7 +416,7 @@ POST /api/v1/interactions/pdf/request-token/
   "data": {
     "sig": "a1b2c3d4e5f67890abcdef1234567890abcdef12",
     "expire_in": 300,
-    "url": "/pdf/view?pid=123&sig=a1b2c3d4e5f67890abcdef1234567890abcdef12"
+    "url": "/pdf/view?pid=123&type=paper&sid=1&exp=1766655600&sig=a1b2c3d4e5f67890abcdef1234567890abcdef12"
   }
 }
 ```
@@ -431,7 +431,7 @@ POST /api/v1/interactions/pdf/request-token/
 **服务端 sig 生成逻辑：**
 ```python
 import hmac, hashlib, time
-data = f"{paper_id}:{student_id}:{int(time.time()) + 300}"
+data = f"{paper_id}:{source_type}:{student_id}:{int(time.time()) + 300}"
 sig = hmac.new(PDF_SECRET_KEY.encode(), data.encode(), hashlib.sha256).hexdigest()
 ```
 
