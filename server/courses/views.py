@@ -40,7 +40,7 @@ def lecture_courses_list(request):
 
 
 @extend_schema(
-    responses={200: OpenApiResponse(description='指定课程的章节列表')},
+    responses={200: OpenApiResponse(description='指定课程的章节列表（含 page_count）')},
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -48,17 +48,22 @@ def chapter_list(request, course_id):
     """指定课程章节目录"""
     documents = Document.objects.filter(
         course_id=course_id
-    ).values('id', 'chapter', 'title').distinct().order_by('chapter')
+    ).order_by('chapter')
 
-    data = [
-        {
-            'id': doc['id'],
-            'chapter': doc['chapter'],
-            'title': doc['title'],
-        }
-        for doc in documents
-    ]
-    return _ok(data=data)
+    items = []
+    for doc in documents:
+        page_count = doc.md_content.count('<!-- pagebreak -->') + 1 if doc.md_content else 1
+        items.append({
+            'id': doc.id,
+            'title': doc.title,
+            'page_count': page_count,
+        })
+
+    course = Course.objects.filter(id=course_id).values('name').first()
+    return _ok(data={
+        'course_name': course['name'] if course else '',
+        'items': items,
+    })
 
 
 @extend_schema(

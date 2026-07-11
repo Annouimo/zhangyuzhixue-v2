@@ -54,12 +54,13 @@ class UserSerializer(serializers.ModelSerializer):
     school = serializers.SerializerMethodField()
     gaokao_year = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
+    phone = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'real_name', 'role', 'student_id',
-            'class_group_id', 'school', 'gaokao_year', 'avatar',
+            'class_group_id', 'school', 'gaokao_year', 'avatar', 'phone',
         ]
 
     def get_real_name(self, obj) -> str:
@@ -96,6 +97,11 @@ class UserSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'student'):
             return obj.student.avatar or None
         return None
+
+    def get_phone(self, obj) -> str:
+        if hasattr(obj, 'student'):
+            return obj.student.phone or ''
+        return ''
 
 
 class UserUpdateSerializer(serializers.Serializer):

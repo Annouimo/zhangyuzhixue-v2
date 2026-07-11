@@ -190,7 +190,7 @@ def user_me_view(request):
     if hasattr(user, 'student'):
         student = user.student
         changed = False
-        for field in ('school', 'gaokao_year'):
+        for field in ('school', 'phone', 'gaokao_year'):
             if field in data:
                 setattr(student, field, data[field])
                 changed = True

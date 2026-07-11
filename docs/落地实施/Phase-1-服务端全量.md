@@ -700,7 +700,7 @@ PDF_SECRET_KEY = config('PDF_SECRET_KEY', default='')
 - 显示当前有效邀请码列表（code + 创建时间 + 状态）
 
 **批量导入区（占位）：**
-- CSV 导入学生名单表单（占位，功能在教师 Web 端实现）
+- CSV 导入学生名单表单（已移除，功能在教师 Web 端实现）
 
 ### 实现方式
 

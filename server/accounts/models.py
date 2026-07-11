@@ -32,6 +32,7 @@ class Student(models.Model):
         blank=True, default=''
     )
     school = models.CharField('学校', max_length=128, blank=True, default='')
+    phone = models.CharField('手机号', max_length=20, blank=True, default='')
     gaokao_year = models.IntegerField('高考年份', null=True, blank=True)
     avatar = models.URLField('头像URL', max_length=512, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)

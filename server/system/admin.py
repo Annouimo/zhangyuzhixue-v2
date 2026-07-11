@@ -97,8 +97,6 @@ class ToolsView(View):
             self._run_build('lecture', request.POST.get('mode') == 'test')
         elif action == 'generate_codes':
             self._generate_codes(request)
-        elif action == 'batch_import':
-            pass  # 占位
 
         return HttpResponseRedirect(reverse('admin-system-tools'))
 

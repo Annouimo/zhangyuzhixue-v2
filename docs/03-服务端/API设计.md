@@ -332,12 +332,8 @@ POST /api/v1/sync/push/
   "message": "ok",
   "data": {
     "server_ids": {
-      "submission": {
-        "local_1": 1001
-      },
-      "step_feedback": {
-        "local_2": 5001
-      }
+      "local_1": 1001,
+      "local_2": 5001
     }
   }
 }

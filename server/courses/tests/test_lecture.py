@@ -65,7 +65,8 @@ class TestLectureChapters:
             reverse('lecture-chapters', args=[sample_course.id])
         )
         assert resp.status_code == 200
-        assert len(resp.data['data']) == 3
+        assert resp.data['data']['course_name'] == '高三数学'
+        assert len(resp.data['data']['items']) == 3
 
     def test_chapter_list_empty(self, auth_client, sample_course):
         """无讲义的课程"""
@@ -73,7 +74,7 @@ class TestLectureChapters:
             reverse('lecture-chapters', args=[sample_course.id])
         )
         assert resp.status_code == 200
-        assert resp.data['data'] == []
+        assert resp.data['data']['items'] == []
 
 
 class TestLectureContent:
