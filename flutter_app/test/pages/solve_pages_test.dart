@@ -117,7 +117,9 @@ void main() {
         ),
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('提交评分'));
+      await tester.ensureVisible(find.textContaining('提交评分'));
+      await tester.pump();
+      await tester.tap(find.textContaining('提交评分'));
       await tester.pump();
       expect(find.text('已评分'), findsOneWidget);
       expect(find.text('修改评分'), findsOneWidget);
