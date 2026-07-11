@@ -16,6 +16,19 @@ void main() async {
 
   await AppPrefs().init();
   ApiClient().init(baseUrl: 'https://zhangyuzhixue.top/api/v1/');
+
+  // 注册 token 提供器：所有 API 请求自动携带 Authorization header
+  final prefs = AppPrefs();
+  setTokenProvider(() => prefs.accessToken);
+  setRefreshTokenProvider(() => prefs.refreshToken);
+  setOnTokenRefreshed((newAccess) async {
+    await prefs.setAccessToken(newAccess);
+  });
+  setOnAuthFailure(() {
+    // token 失效且 refresh 失败时清理本地状态
+    prefs.clearAll();
+  });
+
   await DatabaseProvider().init();
   ConnectivityMonitor().init();
 

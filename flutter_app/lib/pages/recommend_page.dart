@@ -24,8 +24,9 @@ class _RecommendPageState extends State<RecommendPage> {
   bool _loading = true;
   String? _error;
   List<RecommendedQuestion>? _questions;
-  bool _preferSmart = true; // true=智能推荐, false=偏好推荐
-  int _presetCount = 0;
+  bool _preferSmart = true;
+  List<RecommendPreset> _presets = [];
+  int _selectedPresetIndex = 0;
 
   @override
   void initState() {
@@ -44,11 +45,9 @@ class _RecommendPageState extends State<RecommendPage> {
       final smart = await _repo.getSmartList();
       if (!mounted) return;
       setState(() {
-        _presetCount = presets.length;
+        _presets = presets;
         _questions = smart;
         // 默认策略：做题<5且有偏好→偏好推荐，否则智能推荐
-        // smart.isEmpty 等价于「做题<5」——RecommendationEngine 在
-        // coldStartThreshold(5) 以下返回空列表，见 recommend_repository.dart
         if (smart.isEmpty && presets.isNotEmpty) { _preferSmart = false; }
         else { _preferSmart = true; }
         _loading = false;
@@ -69,10 +68,11 @@ class _RecommendPageState extends State<RecommendPage> {
   }
 
   Future<void> _switchToPreset(int index) async {
-    setState(() { _loading = true; _preferSmart = false; });
+    if (index < 0 || index >= _presets.length) return;
+    setState(() { _loading = true; _preferSmart = false; _selectedPresetIndex = index; });
     try {
-      // 使用第一个预设的筛选条件搜索题目（多个预设时用户可在 pill 间切换）
-      final qs = await _repo.getPresetQuestions(index + 1);
+      final presetId = _presets[index].id;
+      final qs = await _repo.getPresetQuestions(presetId);
       if (!mounted) return;
       setState(() { _questions = qs.map((p) => RecommendedQuestion(
         id: p.id, title: p.title, questionType: p.questionType,
@@ -93,6 +93,8 @@ class _RecommendPageState extends State<RecommendPage> {
     return Column(
       children: [
         _buildModePills(),
+        if (!_preferSmart && _presets.length > 1)
+          _buildPresetSelector(),
         Expanded(
           child: _questions == null || _questions!.isEmpty
               ? const EmptyPlaceholder(icon: '🔮', message: '暂无推荐，先去组卷或做几道题吧')
@@ -133,9 +135,43 @@ class _RecommendPageState extends State<RecommendPage> {
           _PillButton(
             selected: !_preferSmart,
             label: '📋 偏好推荐',
-            onPressed: _presetCount > 0 ? () => _switchToPreset(0) : null,
+            onPressed: _presets.isNotEmpty ? () => _switchToPreset(_selectedPresetIndex) : null,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPresetSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '选择学习偏好',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 6),
+              DropdownButton<int>(
+                value: _selectedPresetIndex,
+                isExpanded: true,
+                underline: const SizedBox(),
+                items: List.generate(_presets.length, (i) => DropdownMenuItem(
+                  value: i,
+                  child: Text(_presets[i].name, style: const TextStyle(fontSize: 14)),
+                )),
+                onChanged: (value) {
+                  if (value != null) _switchToPreset(value);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

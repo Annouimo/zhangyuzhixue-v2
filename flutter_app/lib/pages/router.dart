@@ -83,7 +83,7 @@ int? _intParam(Map<String, String> params, String key) {
 final GlobalKey<NavigatorState> routerNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter appRouter = GoRouter(
   navigatorKey: routerNavigatorKey,
-  initialLocation: AppRoutes.login,
+  initialLocation: getInitialRoute(),
   routes: [
     GoRoute(path: AppRoutes.login, name: 'login', builder: (_, _) => const LoginPage()),
     GoRoute(path: AppRoutes.register, name: 'register', builder: (_, _) => const RegisterPage()),
