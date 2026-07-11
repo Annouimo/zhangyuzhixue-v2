@@ -95,8 +95,10 @@ class TestLevelPercentile:
         """无积分数据：返回默认值"""
         resp = auth_client.get(reverse('user-level-percentile'))
         assert resp.status_code == 200
-        assert resp.data['data']['percentile'] == 100
-        assert resp.data['data']['total_points'] == 0
+        assert resp.data['data']['level_percentile'] == 100
+        assert resp.data['data']['total_xp'] == 0
+        assert resp.data['data']['level'] >= 1
+        assert 'title' in resp.data['data']
 
     def test_percentile_with_points(self, auth_client, student_user):
         """有积分数据：正确计算百分位"""
@@ -106,4 +108,4 @@ class TestLevelPercentile:
         )
         resp = auth_client.get(reverse('user-level-percentile'))
         assert resp.status_code == 200
-        assert resp.data['data']['total_points'] == 500
+        assert resp.data['data']['total_xp'] == 500

@@ -136,20 +136,23 @@ def logout_view(request):
 def _get_points_summary(user):
     """计算用户的积分汇总"""
     if not hasattr(user, 'student'):
-        return {'total_points': 0, 'level': 1}
+        return {'earned': 0, 'bonus': 0, 'spent': 0, 'available': 0}
 
     student = user.student
-    agg = PointsTransaction.objects.filter(
-        student=student
+    from django.db.models import Q
+    earned_agg = PointsTransaction.objects.filter(
+        student=student, amount__gt=0
     ).aggregate(total=Sum('amount'))
-    total = agg['total'] or 0
+    spent_agg = PointsTransaction.objects.filter(
+        student=student, amount__lt=0
+    ).aggregate(total=Sum('amount'))
 
-    # 从 LevelConfig 表查询等级
-    config = LevelConfig.objects.filter(min_xp__lte=total).order_by('-min_xp').first()
-    if config:
-        return {'total_points': total, 'level': config.level,
-                'title': config.title, 'icon': config.icon_emoji}
-    return {'total_points': total, 'level': 1, 'title': '青铜学徒', 'icon': '🥉'}
+    earned = earned_agg['total'] or 0
+    spent = abs(spent_agg['total']) if spent_agg['total'] else 0
+    bonus = 0  # Phase 4: PointsTransaction.category 字段区分 earned/bonus
+    available = earned + bonus - spent
+
+    return {'earned': earned, 'bonus': bonus, 'spent': spent, 'available': available}
 
 
 @extend_schema(
@@ -260,12 +263,22 @@ def avatar_upload_view(request):
 def level_percentile_view(request):
     """等级百分位：当前用户积分超过百分之多少的学生"""
     if not hasattr(request.user, 'student'):
-        return _ok(data={'percentile': 100, 'total_points': 0})
+        return _ok(data={
+            'level': 1,
+            'title': '青铜学徒',
+            'total_xp': 0,
+            'level_percentile': 100,
+        })
 
     student = request.user.student
     my_total = PointsTransaction.objects.filter(
         student=student
     ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # 从 LevelConfig 表查询等级
+    config = LevelConfig.objects.filter(min_xp__lte=my_total).order_by('-min_xp').first()
+    level = config.level if config else 1
+    title = config.title if config else '青铜学徒'
 
     # 计算所有学生的总积分
     all_totals = PointsTransaction.objects.values(
@@ -274,12 +287,19 @@ def level_percentile_view(request):
 
     total_count = len(all_totals)
     if total_count == 0:
-        return _ok(data={'percentile': 100, 'total_points': 0})
+        return _ok(data={
+            'level': level,
+            'title': title,
+            'total_xp': 0,
+            'level_percentile': 100,
+        })
 
     beat_count = sum(1 for t in all_totals if t is not None and t <= my_total)
     percentile = round(beat_count / total_count * 100, 1)
 
     return _ok(data={
-        'percentile': percentile,
-        'total_points': my_total,
+        'level': level,
+        'title': title,
+        'total_xp': my_total,
+        'level_percentile': percentile,
     })
