@@ -4,12 +4,29 @@ import '../data/prefs/app_prefs.dart';
 import 'main_shell.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import 'solve/solve_choice_page.dart';
+import 'solve/solve_fill_page.dart';
+import 'solve/solve_map_page.dart';
+import 'solve/solve_step_page.dart';
+import 'solve/solve_rate_page.dart';
 
 /// 路由路径常量
 abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const mainShell = '/';
+  static const solveChoice = '/solve/choice';
+  static const solveFill = '/solve/fill';
+  static const solveMap = '/solve/map';
+  static const solveStep = '/solve/step';
+  static const solveRate = '/solve/rate';
+}
+
+/// 从 query 参数解析 int
+int? _intParam(Map<String, String> params, String key) {
+  final v = params[key];
+  if (v == null) return null;
+  return int.tryParse(v);
 }
 
 /// 路由配置
@@ -30,6 +47,50 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.mainShell,
       name: 'home',
       builder: (context, state) => const MainShell(),
+    ),
+    GoRoute(
+      path: AppRoutes.solveChoice,
+      name: 'solve-choice',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        final next = _intParam(state.uri.queryParameters, 'next');
+        return SolveChoicePage(questionId: id, nextQuestionId: next);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.solveFill,
+      name: 'solve-fill',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        final next = _intParam(state.uri.queryParameters, 'next');
+        return SolveFillPage(questionId: id, nextQuestionId: next);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.solveMap,
+      name: 'solve-map',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        return SolveMapPage(questionId: id);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.solveStep,
+      name: 'solve-step',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        final m = _intParam(state.uri.queryParameters, 'method') ?? 0;
+        final s = _intParam(state.uri.queryParameters, 'step') ?? 0;
+        return SolveStepPage(questionId: id, methodIndex: m, stepIndex: s);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.solveRate,
+      name: 'solve-rate',
+      builder: (context, state) {
+        final id = _intParam(state.uri.queryParameters, 'id') ?? 0;
+        return SolveRatePage(questionId: id);
+      },
     ),
   ],
   errorBuilder: (context, state) => Scaffold(
