@@ -67,7 +67,7 @@ def _err(code, detail, http_status=400):
 # ── Schema ────────────────────────────────────────────────────
 
 USER_DB_SCHEMA = """
-CREATE TABLE IF NOT EXISTS user_profiles (
+CREATE TABLE IF NOT EXISTS user_profile (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     real_name TEXT,
@@ -80,13 +80,13 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at TEXT
 );
 
-CREATE TABLE IF NOT EXISTS user_login_logs (
+CREATE TABLE IF NOT EXISTS user_login_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     login_date TEXT NOT NULL UNIQUE,
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS points_transactions (
+CREATE TABLE IF NOT EXISTS points_transaction (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     amount INTEGER NOT NULL,
     transaction_type TEXT NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS points_transactions (
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS student_achievements (
+CREATE TABLE IF NOT EXISTS student_achievement (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     achievement_code TEXT NOT NULL,
     progress INTEGER NOT NULL DEFAULT 0,
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS student_achievements (
     updated_at TEXT
 );
 
-CREATE TABLE IF NOT EXISTS submissions (
+CREATE TABLE IF NOT EXISTS submission (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     student_id INTEGER NOT NULL,
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS submission_details (
+CREATE TABLE IF NOT EXISTS submission_detail (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     submission_id INTEGER,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS submission_details (
     updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS step_feedbacks (
+CREATE TABLE IF NOT EXISTS step_feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     submission_detail_id INTEGER NOT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS step_feedbacks (
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS card_feedbacks (
+CREATE TABLE IF NOT EXISTS card_feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     submission_detail_id INTEGER NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS card_feedbacks (
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS question_ratings (
+CREATE TABLE IF NOT EXISTS question_rating (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     question_id INTEGER NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS question_ratings (
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS custom_papers (
+CREATE TABLE IF NOT EXISTS custom_paper (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     title TEXT NOT NULL,
@@ -171,24 +171,24 @@ CREATE TABLE IF NOT EXISTS custom_papers (
     updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS custom_paper_questions (
+CREATE TABLE IF NOT EXISTS custom_paper_question (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     paper_id INTEGER NOT NULL,
     question_id INTEGER NOT NULL,
     sort_order INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS paper_likes (
+CREATE TABLE IF NOT EXISTS paper_like (
     paper_id INTEGER NOT NULL PRIMARY KEY,
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS paper_collects (
+CREATE TABLE IF NOT EXISTS paper_collect (
     paper_id INTEGER NOT NULL PRIMARY KEY,
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS preference_filters (
+CREATE TABLE IF NOT EXISTS preference_filter (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     years TEXT NOT NULL,
@@ -228,7 +228,7 @@ def _fmt_dt(dt):
 def _dump_user_profile(conn, student):
     user = student.user
     conn.execute(
-        'INSERT OR REPLACE INTO user_profiles '
+        'INSERT OR REPLACE INTO user_profile '
         '(id, name, real_name, student_id, avatar, school, '
         'gaokao_year, class_group_id, phone, updated_at) '
         'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -250,7 +250,7 @@ def _dump_user_profile(conn, student):
 def _dump_login_logs(conn, student):
     for log in student.login_logs.all():
         conn.execute(
-            'INSERT OR IGNORE INTO user_login_logs (login_date, created_at) '
+            'INSERT OR IGNORE INTO user_login_log (login_date, created_at) '
             'VALUES (?, ?)',
             [_fmt_dt(log.login_date), _fmt_dt(log.created_at)],
         )
@@ -259,7 +259,7 @@ def _dump_login_logs(conn, student):
 def _dump_points(conn, student):
     for pt in PointsTransaction.objects.filter(student=student):
         conn.execute(
-            'INSERT INTO points_transactions '
+            'INSERT INTO points_transaction '
             '(id, amount, transaction_type, source, source_object_id, description, created_at) '
             'VALUES (?, ?, ?, ?, ?, ?, ?)',
             [
@@ -275,7 +275,7 @@ def _dump_achievements(conn, student):
         student=student
     ).select_related('achievement'):
         conn.execute(
-            'INSERT INTO student_achievements '
+            'INSERT INTO student_achievement '
             '(id, achievement_code, progress, is_unlocked, unlocked_at, updated_at) '
             'VALUES (?, ?, ?, ?, ?, ?)',
             [
@@ -298,7 +298,7 @@ def _dump_submissions(conn, student):
 
     for sub in submissions:
         conn.execute(
-            'INSERT INTO submissions '
+            'INSERT INTO submission '
             '(id, server_id, student_id, assignment_id, created_at, updated_at) '
             'VALUES (?, ?, ?, ?, ?, ?)',
             [
@@ -309,7 +309,7 @@ def _dump_submissions(conn, student):
 
         for detail in sub.details.all():
             conn.execute(
-                'INSERT INTO submission_details '
+                'INSERT INTO submission_detail '
                 '(id, server_id, submission_id, question_id, attempt_number, status, '
                 'answer_text, is_correct, created_at, updated_at) '
                 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -324,7 +324,7 @@ def _dump_submissions(conn, student):
 
             for sf in detail.step_feedbacks.all():
                 conn.execute(
-                    'INSERT INTO step_feedbacks '
+                    'INSERT INTO step_feedback '
                     '(id, server_id, submission_detail_id, question_id, '
                     'sub_question_index, method_id, step_number, status, created_at) '
                     'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -337,7 +337,7 @@ def _dump_submissions(conn, student):
 
             for cf in detail.card_feedbacks.all():
                 conn.execute(
-                    'INSERT INTO card_feedbacks '
+                    'INSERT INTO card_feedback '
                     '(id, server_id, submission_detail_id, question_id, '
                     'card_title, card_status, created_at) '
                     'VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -351,7 +351,7 @@ def _dump_submissions(conn, student):
 def _dump_ratings(conn, student):
     for r in QuestionRating.objects.filter(student=student):
         conn.execute(
-            'INSERT INTO question_ratings '
+            'INSERT INTO question_rating '
             '(id, server_id, question_id, '
             'difficulty_score, calculation_score, '
             'elegance_score, created_at) '
@@ -365,7 +365,7 @@ def _dump_custom_papers(conn, student):
     papers = CustomPaper.objects.filter(student=student).prefetch_related('paper_questions')
     for p in papers:
         conn.execute(
-            'INSERT INTO custom_papers '
+            'INSERT INTO custom_paper '
             '(id, server_id, title, description, filter_snapshot, '
             'is_public, view_count, created_at, updated_at) '
             'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -379,7 +379,7 @@ def _dump_custom_papers(conn, student):
 
         for pq in p.paper_questions.all():
             conn.execute(
-                'INSERT INTO custom_paper_questions '
+                'INSERT INTO custom_paper_question '
                 '(id, paper_id, question_id, sort_order) '
                 'VALUES (?, ?, ?, ?)',
                 [pq.pk, p.pk, pq.question_id, pq.sort_order],
@@ -389,7 +389,7 @@ def _dump_custom_papers(conn, student):
 def _dump_likes(conn, student):
     for like in PaperLike.objects.filter(student=student):
         conn.execute(
-            'INSERT OR IGNORE INTO paper_likes (paper_id, created_at) VALUES (?, ?)',
+            'INSERT OR IGNORE INTO paper_like (paper_id, created_at) VALUES (?, ?)',
             [like.paper_id, _fmt_dt(like.created_at)],
         )
 
@@ -397,7 +397,7 @@ def _dump_likes(conn, student):
 def _dump_collects(conn, student):
     for collect in PaperCollect.objects.filter(student=student):
         conn.execute(
-            'INSERT OR IGNORE INTO paper_collects (paper_id, created_at) VALUES (?, ?)',
+            'INSERT OR IGNORE INTO paper_collect (paper_id, created_at) VALUES (?, ?)',
             [collect.paper_id, _fmt_dt(collect.created_at)],
         )
 
