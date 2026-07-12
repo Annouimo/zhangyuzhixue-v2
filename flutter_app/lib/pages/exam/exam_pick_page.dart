@@ -97,20 +97,26 @@ class _ExamPickPageState extends State<ExamPickPage> {
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('已选 ${_selectedIds.length} 题',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                  ElevatedButton(
-                    onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
-                    child: _saving
-                        ? const SizedBox(width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('确认组卷 (${_selectedIds.length})'),
-                  ),
-                ],
-              ),
+              child: LayoutBuilder(builder: (ctx2, c2) {
+                AuditLogger.instance.page('ExamPickPage.row', {'w': c2.maxWidth, 'h': c2.maxHeight, 'inf': c2.maxWidth.isInfinite});
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('已选 ${_selectedIds.length} 题',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    LayoutBuilder(builder: (ctx3, c3) {
+                      AuditLogger.instance.page('ExamPickPage.btn', {'w': c3.maxWidth, 'h': c3.maxHeight, 'inf': c3.maxWidth.isInfinite});
+                      return ElevatedButton(
+                        onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
+                        child: _saving
+                            ? const SizedBox(width: 20, height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : Text('确认组卷 (${_selectedIds.length})'),
+                      );
+                    }),
+                  ],
+                );
+              }),
             ),
           ]);
         },
