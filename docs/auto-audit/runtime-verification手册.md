@@ -6,7 +6,8 @@
 
 **R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R`
 **RV（全自动）：** `python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2 && python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R && python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2`
-**Skill：** `/skill runtime-verification 执行 R/RV — ...，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
+**Skill R：** `/skill runtime-verification 执行 R — 纯 NDJSON 运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
+**Skill RV：** `/skill runtime-verification 执行 RV — 全自动运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
 
 ---
 
