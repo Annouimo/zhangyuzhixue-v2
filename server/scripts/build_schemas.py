@@ -206,7 +206,7 @@ LECTURE_TABLES = {
         'columns': [
             ('id', 'INTEGER PRIMARY KEY AUTOINCREMENT'),
             ('course_id', 'INTEGER NOT NULL'),
-            ('sort_order', 'INTEGER NOT NULL'),
+            ('index', 'INTEGER NOT NULL'),
             ('title', 'TEXT NOT NULL'),
         ],
         'source': 'generate:from_document_chapter',

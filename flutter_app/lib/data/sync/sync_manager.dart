@@ -149,8 +149,8 @@ class SyncManager {
       // 无网络则跳过，不清 queue（下次启动自动重推）
     }
     try {
-      await _dbProvider!.clearUserDb();
       await clearQueue();
+      await _dbProvider!.clearUserDb();
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onLogout_clear', e);
       // 未初始化则跳过

@@ -84,7 +84,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('自主选题')),
-    body: _loadingOpts ? const LoadingIndicator() : Column(children: [
+    body: _loadingOpts ? const LoadingIndicator() : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Expanded(child: CustomScrollView(slivers: [
         SliverToBoxAdapter(child: _filterOpts != null
           ? FilterPanel(yearOptions: _filterOpts!.years, regionOptions: _filterOpts!.regions,
