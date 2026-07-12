@@ -70,30 +70,35 @@ def _ocr_screen() -> dict[str, tuple[int, int]]:
     return locate(_last_full_path)
 
 
-# 底部 Tab 标签文字
+def _get_tab_coords(hwnd: int, index: int) -> tuple[int, int]:
+    """返回第 index 个底部 Tab 的屏幕坐标（0=首页, 1=推荐, 2=组卷, 3=我的）"""
+    ox, oy = win32gui.ClientToScreen(hwnd, (0, 0))
+    client_rect = win32gui.GetClientRect(hwnd)
+    cw = client_rect[2] - client_rect[0]
+    ch = client_rect[3] - client_rect[1]
+
+    NAV_H = 64  # 底部导航栏高度
+    tab_cy = oy + ch - NAV_H // 2          # 导航栏纵向中心
+    tab_cx = ox + cw * (2 * index + 1) // 8  # 4 个 Tab 等分宽度
+    return (tab_cx, tab_cy)
+
+
+# 底部 Tab 标签文字（仅用于校验）
 _TAB_LABELS = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}
 
 
 def click_tab(index: int, hwnd: int):
-    """点击底部 Tab — 对最近一张 _full 截图做 OCR 定位"""
+    """点击底部 Tab — 硬编码坐标（PaddleOCR 对灰色小字识别率低）"""
     label = _TAB_LABELS.get(index)
     if label is None:
         print(f"  ⚠️ 无效的 Tab index: {index}")
         return
 
-    mapping = _ocr_screen()
-    coord = find_text(label, mapping)
-    if not coord:
-        print(f"  ⚠️ Tab \"{label}\" 未在页面中识别到")
+    x, y = _get_tab_coords(hwnd, index)
+    if not _check_bounds(x, y, f"Tab:{label}"):
         return
-
-    x, y = coord
-    ox, oy = _client_origin(hwnd)
-    screen_x, screen_y = ox + x, oy + y
-    if not _check_bounds(screen_x, screen_y, f"Tab:{label}"):
-        return
-    print(f"  [Tab] {label} → ({screen_x}, {screen_y}) 📷")
-    pyautogui.click(screen_x, screen_y)
+    print(f"  [Tab] {label} → ({x}, {y}) 📷")
+    pyautogui.click(x, y)
     time.sleep(0.8)
 
 
