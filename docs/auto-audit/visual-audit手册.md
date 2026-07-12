@@ -86,7 +86,7 @@ Type V:   看截图 + 操作 App → 检查"看起来对不对"
 
 ### 2.2 环境要求
 
-- **Flutter Windows 应用已编译** — exe 路径：`build\windows\x64\runner\Debug\flutter_app.exe`
+- **用户先在终端手动运行 `flutter run -d windows`** — 确认显示 `✓ Built build\windows\x64\runner\Debug\flutter_app.exe` 和 VM Service 地址后再调用 skill。agent 会先检查进程是否存在。
 - **桌面不能锁屏** — pyautogui 依赖活跃的桌面会话（可考虑 RDP/虚拟机）
 - **测试用户已登录** — 视觉审计需要已登录状态才能遍历大部分页面（也可从登录页开始全流程审计）
 - **DPI 缩放固定** — 建议设置为 100%，避免坐标偏移
@@ -97,6 +97,7 @@ Type V:   看截图 + 操作 App → 检查"看起来对不对"
 - pyautogui 是前台工具，会移动真实鼠标。审计运行时勿触摸鼠标键盘。
 - 管理员权限不是必需的，但如果应用启动需要 UAC 提权，则需要以管理员身份运行 Hermes/Python。
 - 窗口最小化或被遮挡会导致截图不准确。代理会在每次操作前确保目标窗口置前。
+- **不要用 Hermes 的 `terminal(background=true)` 或 `subprocess.Popen` 启动 `flutter run`** — 没有 PTY 交互终端，`flutter run` 会立即退出（exit code 1，输出乱码）。必须由用户在**个人终端**手动执行。
 
 ---
 
@@ -191,55 +192,75 @@ Type V:   看截图 + 操作 App → 检查"看起来对不对"
                                                    (见 §六 命名/清理规则)
 ```
 
-#### Step 0.4：启动应用（flutter run + 日志捕获）
+#### Step 0.4：确认应用已启动（或请用户启动）
+
+Agent 首先检查 flutter_app 进程是否存在：
 
 ```python
-import subprocess, threading, time, os
+import psutil
+import time
 
-project_root = "D:/Hermes/zhangyuzhixue_app_v2/flutter_app"
-log_file = os.path.join(project_root, "..", "audit_screenshots", session_dir, "flutter_run.log")
+proc_name = "flutter_app"
+found = any(p.info["name"] == proc_name for p in psutil.process_iter(["name"]))
 
-# 后台启动 flutter run，捕获 stdout/stderr
-proc = subprocess.Popen(
-    ["flutter", "run", "-d", "windows", "--verbose"],
-    cwd=project_root,
-    stdout=open(log_file, "w"),
-    stderr=subprocess.STDOUT,
-)
+if not found:
+    # 进程不存在 → 提示用户手动启动
+    print("=" * 60)
+    print("⚠️  Flutter 应用未运行")
+    print("请在您的终端中执行：")
+    print("  cd D:/Hermes/zhangyuzhixue_app_v2/flutter_app")
+    print("  flutter run -d windows")
+    print("确认出现 VM Service 地址后，回来继续。")
+    print("=" * 60)
+    # 等待用户确认
+    input("按 Enter 继续...")
 
-# 等待应用窗口出现
+# 轮询等待窗口出现（最多 30s）
 hwnd = None
-for _ in range(30):  # 最多等 30s
+for _ in range(30):
     time.sleep(1)
-    hwnd = win32gui.FindWindow(None, "章鱼智学")
+    # 尝试匹配窗口标题
+    for p in psutil.process_iter(["name", "pid"]):
+        if p.info["name"] == proc_name:
+            hwnd = ...  # 通过 win32gui 获取窗口句柄
+            if hwnd:
+                break
     if hwnd:
         break
 
 if not hwnd:
-    # 读取日志最后 30 行检查崩溃原因
-    with open(log_file) as f:
-        tail = f.readlines()[-30:]
-    print("ERROR: app window not found. Log tail:")
-    print("".join(tail))
-    # 终止进程
-    proc.terminate()
-    raise RuntimeError("App failed to start")
-
-# 窗口置前 + 调整尺寸
-win32gui.ShowWindow(hwnd, SW_RESTORE)
-win32gui.SetForegroundWindow(hwnd)
-win32gui.MoveWindow(hwnd, 100, 100, 1266, 627, True)
-time.sleep(3)
+    raise RuntimeError("App window not found after 30s — 可能崩溃或尚未启动")
 ```
 
-**后续审计过程中：** 所有 Flutter/Dart 错误会自动写入 `flutter_run.log`。遇到异常时先查日志尾部的 `[ERROR]` / `[FATAL]` 标记。审计结束时关闭进程：
+关键变更：
+1. ❌ 不再自动 `subprocess.Popen(["flutter", "run", ...])`
+2. ✅ 先检查 → 不存在则礼貌提示用户手动启动 → 等待确认
+3. ✅ 窗口句柄获取从进程直接找，不依赖窗口标题匹配
+
+#### Step 0.5：窗口定位 + 尺寸调整
+
+找到窗口后，调整到标准尺寸：
 
 ```python
-proc.terminate()
-proc.wait(timeout=5)
+import win32gui, win32con
+
+hwnd = ...  # 从 Step 0.4 获取
+
+win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+win32gui.SetForegroundWindow(hwnd)
+time.sleep(0.15)  # 等待窗口激活
+win32gui.MoveWindow(hwnd, 0, 0, 390, 844, True)
+time.sleep(0.5)   # 等待窗口重绘完成
+
+# 确认窗口实际尺寸
+rect = win32gui.GetWindowRect(hwnd)
+w, h = rect[2] - rect[0], rect[3] - rect[1]
+print(f"Window positioned: ({rect[0]},{rect[1]}) {w}x{h}")
 ```
 
-#### Step 0.5：基准截图
+窗口尺寸固定为 **390×844（手机竖屏比例）**，位置固定在 **屏幕左上角 (0,0)**。
+
+#### Step 0.6：基准截图
 
 截取应用启动后的首屏画面，提交 vision 模型验证"应用正常启动、无崩溃弹窗"：
 
@@ -434,7 +455,7 @@ vision_analyze(
 ```python
 for _ in range(10):
     pyautogui.click(x, y)  # 连续点击同一按钮
-    time.sleep(0.3)
+    time.sleep(0.15)
 # 检查有无崩溃或重复提交
 ```
 
@@ -449,12 +470,13 @@ screenshot + vision check
 # 拖到副屏再拖回（如果有副屏）
 # 最大化
 win32gui.ShowWindow(hwnd, SW_MAXIMIZE)
-time.sleep(1)
+time.sleep(0.5)
 screenshot + vision check
 
 # 恢复标准
 win32gui.ShowWindow(hwnd, SW_RESTORE)
-win32gui.MoveWindow(hwnd, 100, 100, 1266, 627, True)
+win32gui.MoveWindow(hwnd, 0, 0, 390, 844, True)
+time.sleep(0.5)
 ```
 
 #### 3.3：焦点切换
