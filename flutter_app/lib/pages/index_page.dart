@@ -110,6 +110,14 @@ class _IndexPageState extends State<IndexPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('checked_in_today', true);
 
+      // 写入本地登录日志，供下次启动推算连续天数
+      final now = DateTime.now();
+      final loginDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      await AchievementDao(DatabaseProvider().appDb).insertLoginLog(
+        loginDate: loginDate,
+        createdAt: now.toIso8601String(),
+      );
+
       if (!mounted) return;
       setState(() {
         _streakDays = streak;

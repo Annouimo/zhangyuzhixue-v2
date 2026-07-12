@@ -81,4 +81,19 @@ class AchievementDao {
     AuditLogger.instance.dao('AchievementDao.getLoginStreak', streak, {'streak': streak});
     return streak;
   }
+
+  /// 写入本地登录日志（签到 API 成功后调用）
+  Future<void> insertLoginLog({
+    required String loginDate,
+    required String createdAt,
+  }) async {
+    await _db.into(_db.userLoginLogs).insert(
+      db.UserLoginLogsCompanion(
+        loginDate: Value(loginDate),
+        createdAt: Value(createdAt),
+      ),
+      mode: InsertMode.insertOrReplace,
+    );
+    AuditLogger.instance.dao('AchievementDao.insertLoginLog', 1, {'loginDate': loginDate});
+  }
 }
