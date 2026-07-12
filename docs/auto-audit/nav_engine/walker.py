@@ -8,11 +8,13 @@
     flutter run --dart-define=AUDIT_MODE=true 已在终端运行
     桌面不锁屏，窗口可见
 """
+import os
 import sys
 import time
-import os
 import ctypes
 
+import mss
+import numpy as np
 import pyautogui
 import win32gui
 import win32con
@@ -24,69 +26,115 @@ from registry import REGISTRY, NavTarget
 
 # ── DPI 检测 ──
 def detect_dpi_scale() -> float:
-    """检测系统 DPI 缩放因子 (96 DPI = 1.0)"""
     try:
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PER_MONITOR_AWARE
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
         dpi = ctypes.windll.user32.GetDpiForSystem()
         return dpi / 96.0
     except Exception:
-        return 1.0  # fallback
+        return 1.0
 
 DPI_SCALE = detect_dpi_scale()
 
-# ── 坐标映射（已缩放）──
-from coordinate_map import get as coord_get, set_scale as coord_set_scale, get_tab
-coord_set_scale(DPI_SCALE)
+# ── OCR 定位器 ──
+from ocr_locator import find_text, locate
 
-# 基准窗口尺寸
-BASE_W = 390
-BASE_H = 844
-WINDOW_W = int(BASE_W * DPI_SCALE)
-WINDOW_H = int(BASE_H * DPI_SCALE)
+# 窗口在屏幕左上角 (0,0)，客户区偏移量（与 screenshot.capture 保持一致）
+CLIENT_OFFSET_X = int(8 * DPI_SCALE)
+CLIENT_OFFSET_Y = int(30 * DPI_SCALE)
+
+# 基准窗口尺寸（仅用于越界检查）
+WINDOW_W = int(390 * DPI_SCALE)
+WINDOW_H = int(844 * DPI_SCALE)
+
+# 返回按钮（左箭头图标，无文字）— 在 Flutter AppBar 左上角
+# 客户区内 AppBar 56px，返回图标中心 ≈ (24, 28) 客户区坐标
+BACK_BTN_SCREEN_X = CLIENT_OFFSET_X + int(24 * DPI_SCALE)
+BACK_BTN_SCREEN_Y = CLIENT_OFFSET_Y + int(28 * DPI_SCALE)
 
 
 def _check_bounds(x: int, y: int, label: str) -> bool:
-    """检查坐标是否在窗口范围内，越界则跳过并返回 False"""
+    """检查坐标是否在屏幕范围内，越界则跳过并返回 False"""
     if x < 0 or x >= WINDOW_W or y < 0 or y >= WINDOW_H:
         print(f"  ⚠️ {label} ({x}, {y}) 超出窗口 {WINDOW_W}×{WINDOW_H}，跳过")
         return False
     return True
 
 
-def click_tab(index: int):
-    """点击底部 Tab（坐标来自 coordinate_map，已缩放）"""
-    try:
-        x, y = get_tab(index)
-    except ValueError:
+def _capture_client(hwnd: int) -> np.ndarray:
+    """截取窗口客户区为 numpy array（内存操作，无文件 I/O）"""
+    rect = win32gui.GetWindowRect(hwnd)
+    client_rect = win32gui.GetClientRect(hwnd)
+    with mss.mss() as sct:
+        monitor = {
+            "left": rect[0] + 8,
+            "top": rect[1] + 30,
+            "width": client_rect[2] - client_rect[0],
+            "height": client_rect[3] - client_rect[1],
+        }
+        return np.array(sct.grab(monitor))
+
+
+def _ocr_screen(hwnd: int) -> dict[str, tuple[int, int]]:
+    """截图当前窗口并 OCR，返回文字→坐标映射（纯内存操作）"""
+    img = _capture_client(hwnd)
+    return locate(img)
+
+
+# 底部 Tab 标签文字
+_TAB_LABELS = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}
+
+
+def click_tab(index: int, hwnd: int):
+    """点击底部 Tab — 实时截图 + OCR 定位"""
+    label = _TAB_LABELS.get(index)
+    if label is None:
         print(f"  ⚠️ 无效的 Tab index: {index}")
         return
-    if not _check_bounds(x, y, f"Tab {index}"):
+
+    mapping = _ocr_screen(hwnd)
+    coord = find_text(label, mapping)
+    if not coord:
+        print(f"  ⚠️ Tab \"{label}\" 未在页面中识别到")
         return
-    print(f"  [Tab] 点击 Tab {index} → ({x}, {y}) (DPI={DPI_SCALE:.2f})")
-    pyautogui.click(x, y)
+
+    x, y = coord
+    screen_x = CLIENT_OFFSET_X + x
+    screen_y = CLIENT_OFFSET_Y + y
+    if not _check_bounds(screen_x, screen_y, f"Tab:{label}"):
+        return
+    print(f"  [Tab] {label} → ({screen_x}, {screen_y}) 📷")
+    pyautogui.click(screen_x, screen_y)
     time.sleep(0.8)
 
 
-def click_text(text: str):
-    """根据 design→坐标映射点击文字（已缩放），未找到则 fallback"""
-    coord = coord_get(text)
-    if coord:
-        x, y = coord
-    else:
-        x = int(195 * DPI_SCALE)
-        y = int(400 * DPI_SCALE)
-        print(f"  [点击] {text} → ({x}, {y}) ⚠️ fallback: 未知文本坐标")
-        if not _check_bounds(x, y, f"{text}(fallback)"):
+def click_text(text: str, hwnd: int):
+    """点击页面上的文字 — 实时截图 + OCR 定位，找不到即报告为 UI 设计问题。
+
+    特殊处理：
+    - "返回"：Flutter 左箭头图标（无文字），硬编码坐标
+    """
+    if text == "返回":
+        if not _check_bounds(BACK_BTN_SCREEN_X, BACK_BTN_SCREEN_Y, "返回"):
             return
-        pyautogui.click(x, y)
+        print(f"  [返回] → ({BACK_BTN_SCREEN_X}, {BACK_BTN_SCREEN_Y}) 📷")
+        pyautogui.click(BACK_BTN_SCREEN_X, BACK_BTN_SCREEN_Y)
         time.sleep(0.5)
         return
 
-    if not _check_bounds(x, y, text):
-        return
-    print(f"  [点击] {text} → ({x}, {y}) (DPI={DPI_SCALE:.2f})")
-    pyautogui.click(x, y)
-    time.sleep(0.5)
+    mapping = _ocr_screen(hwnd)
+    coord = find_text(text, mapping)
+    if coord:
+        x, y = coord
+        screen_x = CLIENT_OFFSET_X + x
+        screen_y = CLIENT_OFFSET_Y + y
+        if _check_bounds(screen_x, screen_y, f"OCR:{text}"):
+            print(f"  [点击] {text} → ({screen_x}, {screen_y}) 📷")
+            pyautogui.click(screen_x, screen_y)
+            time.sleep(0.5)
+            return
+
+    # 没找到 → 这是 UI 设计的问题（缺少该按钮文本）
+    print(f"  ❌ 未找到 \"{text}\" — OCR 未识别到此文字。请检查 UI 设计是否缺少该按钮文本")
 
 
 def walk_target(tgt: NavTarget, hwnd: int):
@@ -94,9 +142,9 @@ def walk_target(tgt: NavTarget, hwnd: int):
     results = []
     for action, *args in tgt.nav_seq:
         if action == "click_bottom_tab":
-            click_tab(args[0])
+            click_tab(args[0], hwnd)
         elif action == "click_text":
-            click_text(args[0])
+            click_text(args[0], hwnd)
         elif action == "wait":
             time.sleep(args[0])
         elif action == "screenshot":
@@ -108,7 +156,7 @@ def walk_target(tgt: NavTarget, hwnd: int):
 
 def main(workspace: str):
     """主走查流程"""
-    print(f"DPI 缩放检测: {DPI_SCALE:.2f}x (窗口 {BASE_W}×{BASE_H} → {WINDOW_W}×{WINDOW_H})")
+    print(f"DPI 缩放检测: {DPI_SCALE:.2f}x (窗口 {int(390*DPI_SCALE)}×{int(844*DPI_SCALE)})")
 
     # 1. 初始化截图目录
     ss_dir = init_ss(workspace)
