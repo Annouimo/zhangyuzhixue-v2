@@ -545,6 +545,8 @@ INTERACTIVE_HTML_PATTERNS = [
      lambda m: _name_input_or_button(m.group(0))),
     ("textarea", r'<textarea[^>]*>([^<]*)</textarea>',
      lambda m: f'文本框(textarea): {m.group(1).strip()[:30] or "空"}'),
+    ("onclick", r'onclick="([^"]*)"',
+     lambda m: f'onclick: {m.group(1)[:50]}'),
 ]
 
 def _name_input_or_button(raw: str) -> str:
@@ -726,6 +728,161 @@ def check_html_interactive_elements(cfg: Config) -> list[Finding]:
             ))
 
     return findings
+
+
+# ═══════════════════════════════════════════════
+# 引擎增强 B: 检测 HTML 无输入元素但 Flutter 有 TextField（设计背离）
+# ═══════════════════════════════════════════════
+
+def check_html_input_divergence(cfg: Config) -> list[Finding]:
+    """检查每对 HTML→Flutter 页面：HTML 无 <input>/<textarea> 但 Flutter 有 TextField
+    → 可能的设计背离（HTML 设计稿没定义输入框但代码实现了）"""
+    findings = []
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    solve_dir = os.path.join(html_dir, "solve-pages")
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+
+    if not path_exists(html_dir):
+        return findings
+
+    html_to_flutter = {
+        "index.html": "index_page.dart",
+        "login.html": "login_page.dart",
+        "register.html": "register_page.dart",
+        "recommend.html": "recommend_page.dart",
+        "profile.html": "profile_page.dart",
+        "profile_edit.html": "profile_edit_page.dart",
+        "about.html": "about_page.dart",
+        "achievement.html": "achievement_page.dart",
+        "level_detail.html": "level_detail_page.dart",
+        "points.html": "points_page.dart",
+        "question_history.html": "question_history_page.dart",
+        "preference_list.html": "preference_list_page.dart",
+        "preference_edit.html": "preference_edit_page.dart",
+        "preference_welcome.html": "preference_welcome_page.dart",
+        "statistics.html": "statistics_page.dart",
+        "homework_list.html": "homework_list_page.dart",
+        "homework_detail.html": "homework_detail_page.dart",
+        "sync_queue.html": "sync_queue_page.dart",
+        "exam.html": "exam_home_page.dart",
+        "paper_auto.html": "exam_auto_page.dart",
+        "paper_pick.html": "exam_pick_page.dart",
+        "paper_explore.html": "exam_explore_page.dart",
+        "paper_favorites.html": "exam_favorites_page.dart",
+        "paper_history.html": "exam_history_page.dart",
+        "paper_quicklook.html": "exam_quicklook_page.dart",
+        "paper_quicklook_other.html": "exam_quicklook_other_page.dart",
+        "answer_sheet.html": "answer_sheet_page.dart",
+        "lecture_courses.html": "lecture_courses_page.dart",
+        "lecture_chapters.html": "lecture_chapters_page.dart",
+        "lecture_content.html": "lecture_content_page.dart",
+        "solve-choice.html": "solve_choice_page.dart",
+        "solve-fill.html": "solve_fill_page.dart",
+        "solve-map.html": "solve_map_page.dart",
+        "solve-rate.html": "solve_rate_page.dart",
+        "solve-step.html": "solve_step_page.dart",
+    }
+
+    # 预收集 Flutter 页面内容
+    flutter_contents: dict[str, str] = {}
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                full_path = os.path.join(dirpath, fn)
+                content = read_file(full_path)
+                if content:
+                    flutter_contents[fn] = content
+
+    for html_fn, flutter_fn in sorted(html_to_flutter.items()):
+        # 找 HTML 文件
+        html_path = os.path.join(html_dir, html_fn)
+        if not os.path.exists(html_path):
+            html_path = os.path.join(solve_dir, html_fn)
+        if not os.path.exists(html_path):
+            continue
+
+        html_content = read_file(html_path)
+        if not html_content:
+            continue
+
+        # 提取 HTML 中的输入元素
+        html_inputs = extract_html_interactive_elements(html_content)
+        html_input_count = len([e for e in html_inputs if e["type"] in ("input", "textarea")])
+
+        # 检查 Flutter 端是否有 TextField
+        flutter_code = flutter_contents.get(flutter_fn, "")
+        flutter_has_textfield = bool(re.search(r'TextField\b|TextFormField\b', flutter_code))
+        flutter_has_textctrl = bool(re.search(r'TextEditingController\b', flutter_code))
+
+        # 规则: HTML 无输入元素但 Flutter 有 TextField → 设计背离
+        if html_input_count == 0 and flutter_has_textfield:
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"[{html_fn}] 设计背离: HTML 无输入元素但 Flutter 有 TextField",
+                source=f"C4: {html_fn} + {flutter_fn}",
+                path=f"flutter_app/lib/pages/{flutter_fn}",
+                evidence=f"HTML <input>/<textarea> 计数: 0 | Flutter TextField: 是 | TextEditingController: {flutter_has_textctrl}",
+                detail=(f"Flutter 端有 TextField，但 {html_fn} 中没有任何 <input> 或 <textarea>。"
+                       f"这可能是设计稿中没定义的额外功能（如 solve-fill 的输入框）。"
+                       f"需人工确认是否需要补设计文档或删代码。")
+            ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 引擎增强 C: 扫描条件性死按钮 — onPressed: cond ? fn : null
+# ═══════════════════════════════════════════════
+
+CONDITIONAL_NULL_PATTERN = re.compile(
+    r'onPressed:\s*([^,{)]+?)\s*\?\s*(.+?)\s*:\s*null\b',
+    re.DOTALL
+)
+
+def check_conditional_onpressed(cfg: Config) -> list[Finding]:
+    """扫描 Flutter 页面中 onPressed 条件性为 null 的模式。
+    当条件不满足时按钮显示但不响应 — 常见于「死的按钮」bug。"""
+    findings = []
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+
+    if not path_exists(pages_dir):
+        return findings
+
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if not fn.endswith(".dart"):
+                continue
+            full_path = os.path.join(dirpath, fn)
+            content = read_file(full_path)
+            if not content:
+                continue
+
+            for m in CONDITIONAL_NULL_PATTERN.finditer(content):
+                condition = m.group(1).strip()[:60]
+                callback = m.group(2).strip()[:40]
+                line_ctx = _find_line_context(content, m.start())
+
+                findings.append(Finding(
+                    certainty=Certainty.SUSPICIOUS,
+                    issue=f"[{fn}] 条件性死按钮: onPressed 在 '{condition}' 不满足时为 null",
+                    source="C8: Flutter代码规范",
+                    path=full_path,
+                    evidence=(f"onPressed: {condition} ? {callback} : null — "
+                              f"条件不满足时按钮显示但不响应"),
+                    detail=f"上下文: {line_ctx}"
+                ))
+
+    return findings
+
+
+def _find_line_context(content: str, pos: int) -> str:
+    """从位置 pos 向前找到行首，取前后各 60 字符作为上下文"""
+    start = max(0, pos - 80)
+    end = min(len(content), pos + 80)
+    snippet = content[start:end].replace('\n', '↵')
+    return f"...{snippet}..."
+
+# 增强 A: onclick 属性提取 — 嵌入 INTERACTIVE_HTML_PATTERNS 的正则列表中
 
 
 # ═══════════════════════════════════════════════
@@ -2087,7 +2244,7 @@ TYPE_MODULES = {
 
 MODULE_NAMES = {
     1: "目录/文件存在性",
-    2: "HTML→Flutter 页面覆盖 + 元素清单 + 未列表页检测 + 交互元素对标",
+    2: "HTML→Flutter 覆盖 + 元素清单 + 未列表页 + 交互提取 + 输入背离 + 条件死按钮",
     3: "pubspec.yaml 资产声明",
     4: "设计文档待完成标记",
     5: "测试文件覆盖率",
@@ -2109,12 +2266,14 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
         log("[模块 1/13] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/13] HTML→Flutter 页面覆盖 + 元素清单 + 未列表页检测 + 交互元素对标...")
+        log("[模块 2/13] HTML→Flutter 覆盖 + 元素清单 + 未列表页 + 交互提取 + 输入背离 + 条件死按钮...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
         all_findings.extend(check_solve_page_existence(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
         all_findings.extend(check_unlisted_html_pages(cfg))
         all_findings.extend(check_html_interactive_elements(cfg))
+        all_findings.extend(check_html_input_divergence(cfg))
+        all_findings.extend(check_conditional_onpressed(cfg))
     if 3 in modules:
         log("[模块 3/13] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
