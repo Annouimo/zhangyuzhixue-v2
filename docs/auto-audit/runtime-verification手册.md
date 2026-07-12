@@ -2,7 +2,7 @@
 
 > 对应 Hermes skill：`runtime-verification`
 > 对应审计引擎模块：⑫（运行态审计日志验证 + R12 模式分析）+ nav_engine（自动走查）+ vision_report（视觉交叉验证）
-> 版本：2.0 | 最后更新：2026-07-12
+> 版本：2.1 | 最后更新：2026-07-12
 
 **R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R`
 **RV（全自动）：** `python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2 && python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R && python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2`
@@ -16,7 +16,7 @@
 
 ## 一、一句话流程
 
-> **你启动 app → agent 自动走查 35 页 + 断言 + 出报告**
+> **你启动 app → agent 自动走查 35 页 + 截图 + NDJSON 断言 + Vision 交叉验证 + 合并报告**
 
 你只需启动 app，不需要手动走查。
 
@@ -37,17 +37,21 @@
 |:----|:----:|
 | 桌面 | 不锁屏，窗口不被遮挡 |
 | DPI 缩放 | 建议 100%（影响 pyautogui 坐标精度） |
-| Python 包 | `pip install -r nav_engine/requirements.txt` |
+| Python 包 | `pip install -r docs/auto-audit/nav_engine/requirements.txt` |
 | NDJSON 日志 | `%TEMP%/zhangyuzhixue_audit.ndjson`（AUDIT_MODE 自动写入）|
 
 ### 2.3 截图位置
 
+截图自动保存至 `docs/auto-audit/screenshots/{日期}/`。命名规则：
+
 ```
-docs/auto-audit/screenshots/2026-07-12/
-  index_full.png
-  exam_home_full.png
-  ...
+{page}_{dimension}_{描述}.png
+  例: index_V2_pendingCount.png
+      solve-choice_I1_after10s.png
+      login_stress_click10x.png
 ```
+
+每次审计开始前自动清理 7 天前的旧截图。
 
 ---
 
@@ -70,13 +74,13 @@ flutter run --dart-define=AUDIT_MODE=true
 
 **🤖 对 agent 说：**
 
-```
+```text
 /skill runtime-verification 执行 RV — 全自动运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
 ```
 
 或者纯命令行：
 
-```text
+```bash
 python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2
 python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2
@@ -104,13 +108,14 @@ nav_engine/walker.py:
 | **R** NDJSON 断言 | `audit_engine.py --type R`（R12.1-R12.6） | ~30s |
 | **V** 视觉分析 | `delegate_task` 分 3 个子 agent 并行 vision_analyze | ~3min |
 
-Vision 检查内容（V1-V4）：
-| 维度 | 查什么 | vision 提示词 |
-|:----:|:------|:-------------:|
-| V1 | 布局完整性 | 元素是否可见、有无重叠/溢出/白屏 |
-| V2 | 数据正确性 | 提取屏幕数字 vs NDJSON 断言值做交叉验证 |
-| V3 | 导航可达 | 底部 Tab、列表项点击确有反应 |
-| V4 | 空状态 | 无数据时占位符/重试按钮是否存在 |
+Vision 逐页检查 4 个维度（V1-V4）：
+
+| 维度 | 查什么 | Vision 提示词方向 |
+|:----:|:-------|:-----------------:|
+| **V1** 布局完整性 | 元素是否可见、有无重叠/溢出/白屏 | 对照 HTML 原型描述逐项核对 |
+| **V2** 数据正确性 | 提取屏幕数字 vs NDJSON 断言值做交叉验证 | "提取待办计数：___" |
+| **V3** 导航可达 | 底部 Tab、列表项点击确有反应 | 点击后截图对比 |
+| **V4** 空/错误态 | 无数据时占位符/重试按钮是否存在 | 数据为空时有提示而非白屏 |
 
 #### Phase 3 — 合并报告（~10s）
 
@@ -126,7 +131,7 @@ vision_report/merge_reports.py:
 
 如果环境不支持截图（CI/SSH/无桌面），或已有旧 NDJSON 文件：
 
-```text
+```bash
 python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 ```
 
@@ -162,7 +167,88 @@ python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 
 ---
 
-## 五、引擎 12 项检查速览
+## 五、VR 阶段 — 复杂交互审计
+
+> 仅 RV 模式下执行。以下交互需要用户操作序列，pyautogui 自动模拟。
+
+### I1. 冷却计时器（选填题）
+
+| 检查点 | 方法 |
+|--------|------|
+| 进入后按钮禁用 | 截图检查提交按钮为灰色 + 倒计时文字 |
+| 倒计时文字正确 | 截图读文字："⏳ 还剩 N 秒可提交"（N=10→0）|
+| 倒计时结束恢复 | 等 10s 后截图，按钮恢复可点击 |
+| 多次进入重置 | 返回再进，截图确认每次从 10s 开始 |
+
+### I2. 冷却计时器（步骤题）
+
+| 检查点 | 方法 |
+|--------|------|
+| 展开箭头初始状态 | 截图确认 ▶ 按钮灰色 + "⏳ 还剩 5 秒" |
+| 倒计时结束恢复 | 等 5s 后按钮可点击，内容展开 |
+| 反馈按钮出现 | 展开后有"全对/过程对计算错/不会"三个按钮 |
+
+### I3. 选项选择与提交（选择题）
+
+| 检查点 | 方法 |
+|--------|------|
+| 点击高亮 | 点击 A，截图确认 A 高亮、其他恢复 |
+| 提交后正确显示 | 倒计时结束→提交，截图确认 ✅/❌ + 解析展开 |
+| 已完成横幅 | "🎉 已完成" 横幅可见 |
+| 后续按钮 | 截图确认 [下一题 →] [⭐ 评分] 存在 |
+
+### I4. 解题地图交互
+
+| 检查点 | 方法 |
+|--------|------|
+| 首次进入 | "准备开始答题" 欢迎页 + "开始答题" 按钮 |
+| 多步骤树形 | 走完 1 步后截图，地图上显示完成节点 |
+| 多作答切换 | 切换作答次数，内容随切换更新 |
+| 回顾模式 | "📋 回顾模式 · 只读浏览" 横幅 |
+
+### I5. 评分与反馈
+
+| 检查点 | 方法 |
+|--------|------|
+| 入口 | 从解题页点击"⭐ 评分"跳转到评分页 |
+| 提交 | 选择一个评分项，提交成功 |
+| 复访修改 | 回到已评分题目，评分可修改 |
+
+### I1-I5 执行策略
+
+- 从属于 G3（解题流程），只在审计解题页面时执行
+- 每个检查项有独立 PASS/FAIL 标记
+- 截图命名统一用 `{page}_I{序号}_{检查点}.png`
+
+---
+
+## 六、Phase 3 — 边界/压力审计
+
+> 仅 RV 模式下执行。完成主流程后可选执行。
+
+### 6.1 快速连续点击
+
+连续点击同一按钮 10 次（间隔 0.15s），检查有无崩溃或重复提交。
+
+### 6.2 窗口缩放
+
+| 步骤 | 操作 |
+|:----:|------|
+| 缩到极小 | `MoveWindow(800, 600)` → 截图 |
+| 最大化 | `ShowWindow(SW_MAXIMIZE)` → 截图 |
+| 恢复 | `ShowWindow(SW_RESTORE) + MoveWindow(0,0,390,844)` → 截图 |
+
+### 6.3 焦点切换
+
+`Alt+Tab` 切走 → 等 2s → `Alt+Tab` 切回 → 截图检查画面是否正常。
+
+### 6.4 文件选择器取消
+
+触发文件选择器 → 按 `Esc` 取消 → 截图检查返回后画面是否正常。
+
+---
+
+## 七、引擎 12 项检查速览
 
 | # | 查什么 | 级别 | 能查出什么问题 |
 |---|-------|:----:|--------------|
@@ -181,7 +267,7 @@ python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 
 ---
 
-## 六、常见问题
+## 八、常见问题
 
 ### Q: agent 说"未找到窗口"
 
@@ -193,4 +279,8 @@ python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 
 ### Q: 可以只跑 R 吗？
 
-可以。`audit_engine.py --type R` 不需要截图，只需要 NDJSON 日志存在即可。
+可以。`audit_engine.py --type R` 不需要截图，只需要 NDJSON 日志存在即可。~30s 出报告。
+
+### Q: 窗口黑屏
+
+确认窗口没有被遮挡、最小化。检查 `win32gui.SetForegroundWindow` 是否成功。
