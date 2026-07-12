@@ -1,10 +1,32 @@
 # 章鱼智学 · 视觉理解审计手册（Type V）
 
-> 版本: 0.2.0 — 方案设计稿（根据 2026-07-12 评审更新）
-> 相关技能: `visual-e2e-audit` (待创建)
+> 版本: 0.3.0 — 方案设计稿（2026-07-12 评审更新）
+> 相关技能: `visual-e2e-audit`
 > 相关审计类型: Type V (Visual Audit) — 与 Type A-G (代码审计) + Type R (运行时日志审计) 并列
 
 ---
+
+## Skill 命令（8 条，加载 skill + 执行）
+
+加载本 skill 后，直接发送以下消息即可执行对应模式：
+
+```text
+/skill visual-e2e-audit 执行全量审计 — 6 个 Group + 4 流程 + 5 交互 + 4 边界，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行快速冒烟（Group G1） — 核心导航 3 页，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行 Group G3 — 解题流程（含 I1-I5 复杂交互），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行 Group G2+G6 — 组卷 + 个人中心，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行快速冒烟并设置 fail-fast=3，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行 Group G3 并设置 fail-fast=5，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行增量审计 — 仅验证上次 FAIL 的问题是否修复（组: remaining），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+
+/skill visual-e2e-audit 执行自定义组合 — Group G1,G4,G5，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+```
 
 ## 一、背景与动机
 
