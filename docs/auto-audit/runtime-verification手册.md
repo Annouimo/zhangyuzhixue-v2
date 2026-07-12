@@ -1,307 +1,317 @@
 # 章鱼智学 · 运行时审计流程手册
 
-> 对应 Hermes skill：`runtime-verification`
-> 对应审计引擎模块：⑫（运行态审计日志验证 + R12 模式分析）+ nav_engine（自动走查）+ vision_report（视觉交叉验证）
-> 版本：2.1 | 最后更新：2026-07-12
-
-**R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\\Hermes\\zhangyuzhixue_app_v2 --type R`
-
-**交互式 CLI 走查：**
-```bash
-# 每条命令独立执行，agent 看结果后即时决策
-python nav_engine/walker.py init <workspace>        # 初始化→hwnd
-python nav_engine/walker.py snap <hwnd> [label]    # 截图+OCR→列出文字
-python nav_engine/walker.py click <hwnd> <文字>     # OCR定位→点击
-python nav_engine/walker.py tab <hwnd> <0-3>       # 点底部Tab
-python nav_engine/walker.py back <hwnd>            # 点返回
-```
+> **版本：** v3.0 | **最后更新：** 2026-07-12
+> **对应 Skill：** `runtime-verification`
+> **代替：** 旧版全量走查→R→Vision 模式（已废弃）
 
 ---
 
-运行时审计检查的是 **app 实际跑起来之后的数据和画面**，与静态审计（project-owner-acceptance）互补。静态审计看代码对不对，运行态审计看数据和画面有没有问题。
+## 核心理念：三步循环，走一段修一段
+
+不再是一次性跑完 35 页再出报告。而是**走查→诊断→修复 循环往复**，直到 74 项排查清单全部 ✅。
+
+```
+┌──────────────────────────────────────────────────┐
+│ ① 用 winnav 逐项走查模块（操作工具组）           │
+│    遇到问题记录，遇到崩溃立即暂停                  │
+│         ↓                                        │
+│ ② 用 NDJSON + engine 诊断根因（排查工具组）       │
+│    找到根源，不到表面                                │
+│         ↓                                        │
+│ ③ 用 fix-batch-workflow 修复（修复工具组）         │
+│    方案→审批→执行→验证→提交                          │
+│         ↓                                        │
+│ ④ 重新 flutter run → 回到① 验证修复 + 继续走查    │
+└──────────────────────────────────────────────────┘
+```
+
+### 三组工具
+
+| 组别 | 工具 | 角色 |
+|:----:|------|:----:|
+| 🖱️ **操作** | winnav MCP Server（5 个工具） | 截图/OCR/点击/滚动/关闭，驱动 app 走查 |
+| 🔍 **排查** | NDJSON + `audit_engine.py --type R` + server-driven 对比 | 读取日志，做 R12 模式分析，查根因 |
+| 🔧 **修复** | `fix-batch-workflow` skill | 核实问题→出方案→等批准→执行→出报告 |
+
+> **Vision 交叉验证：** 暂不启用。winnav 的 OCR 已覆盖视觉需求，NDJSON + server-driven 的数据比对比 AI 视觉更可靠（AI 视觉误判率 >20%）。下一阶段再引入。
 
 ---
 
-## 一、一句话流程
+## 前置条件
 
-> **你启动 app → agent 逐页交互式 CLI 走查（截图→OCR→决策→点击→循环）→ R 断言 + Vision 交叉验证 → 合并报告**
-
-你只需启动 app，走查由 agent 通过 CLI 命令逐条完成，每一步都截图确认。无预编排、无死序列，每页看到什么点什么是可控的。vs 旧版全自动模式（REGISTRY 驱动，已删除）的优势：能处理滑动、空态跳过、异常时即时调整。
-
----
-
-## 二、前置条件
-
-### 2.1 测试账号（已有）
-
-```
-用户名: test_audit
-密码:   test123
-```
-
-### 2.2 环境要求
+### 环境
 
 | 项目 | 要求 |
 |:----|:----:|
 | 桌面 | 不锁屏，窗口不被遮挡 |
-| DPI 缩放 | 建议 100%（影响 pyautogui 坐标精度） |
-| Python 包 | `pip install -r docs/auto-audit/nav_engine/requirements.txt` |
-| NDJSON 日志 | `%TEMP%/zhangyuzhixue_audit.ndjson`（AUDIT_MODE 自动写入）|
+| 窗口 | Flutter app 已通过 `flutter run` 启动并登录 |
+| 其它 | 关闭/最小化 Hermes 桌面客户端等可能冲突的 Flutter 窗口 |
+| 账号 | `test_audit` / `test123`（服务器端预创建，见模块 0） |
+| NDJSON | `flutter run --dart-define=AUDIT_MODE=true` 自动写入 `%TEMP%/zhangyuzhixue_audit.ndjson` |
+| winnav | `hermes mcp list` 确认 `winnav` 已注册并启用 |
 
-### 2.3 截图位置
+### winnav MCP 快速参考
 
-截图自动保存至 `docs/auto-audit/screenshots/{日期}/`。命名规则：
+| 工具 | 用途 | 关键参数 |
+|:----:|------|---------|
+| `winnav_init` | 找窗口+置前+截图+OCR | `window_class` (默认 `FLUTTER_RUNNER_WIN32_WINDOW`), `window_title` (默认 `flutter_app`), `target_w`/`target_h` (默认 None=不 resize) |
+| `winnav_snap` | 截图+OCR（~0.6s） | `label` 可选，用于命名截图 |
+| `winnav_click` | OCR 定位文字并点击 | `text` 必填，`exact` 默认 false（模糊匹配） |
+| `winnav_scroll` | 按窗口高度百分比滚动 | `dy` 负值=向下，-1.0=向下一整屏 |
+| `winnav_close` | 输出完整 JSON 操作日志 | 无参数，必须在每次走查结束时调用 |
 
-```
-{page}_{dimension}_{描述}.png
-  例: index_V2_pendingCount.png
-      solve-choice_I1_after10s.png
-      login_stress_click10x.png
-```
-
-每次审计开始前自动清理 7 天前的旧截图。
+**核心设计：** 所有坐标用百分比（窗口相对数据），不涉及像素。截图输出到 `%TEMP%/winnav/screenshots/{日期}/`，日志到 `%TEMP%/winnav/logs/`。
 
 ---
 
-## 三、完整流程（交互式 CLI 走查 + 分析）
+## 完整流程
 
-### Step 1 — 启动带审计的 app
+### Step 0 — 前置准备（模块 0）
 
-**👤 你手动做：**
+**👤 你在 ECS 上执行：**
+
+- [ ] 构建题库数据：`python manage.py build_assets --test && python manage.py build_lectures --test`
+- [ ] 生成邀请码：Admin → `/admin/system/tools/` → 数量 5、有效期 30 天
+- [ ] 创建作业：Admin 中创建 2 份 HomeworkAssignment，assign 给 test_audit
+- [ ] 创建公开组卷：创建 2 份试卷 → 设为公开
+- [ ] 确认讲义数据：调 `GET /api/v1/lectures/courses/` 返回非空
+- [ ] 确认 test_audit 账号存在：Admin 中查 User 表
+
+**👤 你本地执行：**
 
 ```bash
 cd D:\Hermes\zhangyuzhixue_app_v2\flutter_app
 flutter run --dart-define=AUDIT_MODE=true
 ```
 
-确认出现 `✓ Built build\windows\x64\runner\Debug\flutter_app.exe` 后，不要关闭终端，**去做别的事**。
+确认 `✓ Built build\windows\x64\runner\Debug\flutter_app.exe` 后，app 窗口出现。不要关闭终端。
 
 ---
 
-### Step 2 — 交互式 CLI 走查（agent 逐页决策）
+### Step 1 — 走查：winnav 逐项排查
 
-**🤖 对 agent 说：**
+**🤖 agent 执行：** 按 `docs/auto-audit/基础功能排查清单.md` 中定义的**模块 1 起**逐项走查。
 
-> 执行运行时审计走查，项目目录"..."
+标准操作模式：
 
-agent 执行以下循环：
+```python
+# 1. 初始化（定位窗口）
+winnav_init(window_class="FLUTTER_RUNNER_WIN32_WINDOW")
+
+# 2. 截图+OCR，看当前页
+winnav_snap(label="首页")
+
+# 3. 决策：看到"自主选题"→ 点它
+winnav_click(text="自主选题")
+
+# 4. 确认页面变化
+winnav_snap(label="选题页")
+
+# 5. 如果需要滚动
+winnav_scroll(dy=-1.0)
+
+# 6. 点底部 Tab
+winnav_click(text="组卷")
+
+# 7. 走查结束时输出操作日志
+winnav_close()
+```
+
+**走查顺序：** 模块 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+
+### 暂停规则
+
+| 条件 | 动作 |
+|:----|:----:|
+| **模块完成**（该模块所有项均已走查，无论有几项 ❌） | ✅ **暂停**，进入诊断阶段 |
+| **遇到崩溃/白屏**（app 不可交互） | 🔴 **立即暂停**，因为后续页面无法继续走查 |
+| **单个模块累计 ≥8 个 ❌** | ⏸ **提前暂停**，batch 太大时影响诊断质量 |
+| 某个 ❌ 是**数据异常**（如待办显示0）但页面可继续操作 | ➡ **记入清单，继续走**，不暂停 |
+| 某个 ❌ 是 **winnav 找不到按钮** | ➡ **记入清单，尝试用其他路径绕过**，不暂停 |
+
+---
+
+### Step 2 — 诊断：NDJSON + engine 查根因
+
+暂停后，**不要猜测根因**，用数据说话：
 
 ```bash
-# ① 初始化
-python nav_engine/walker.py init D:\Hermes\zhangyuzhixue_app_v2    → 返回 HWND
-
-# ② 截图+OCR，看到当前页面文字
-python nav_engine/walker.py snap <hwnd> "首页"
-
-# ③ 决策：看到"自主选题"→ 点它
-python nav_engine/walker.py click <hwnd> 自主选题
-
-# ④ 确认结果
-python nav_engine/walker.py snap <hwnd> "选题页"
-
-# ⑤ 循环...直到全部页面走完
+# 2a. 跑 R 断言（~30s）
+python docs/auto-audit/audit_engine.py D:\\Hermes\\zhangyuzhixue_app_v2 --type R
 ```
 
-**走查顺序建议（35 页 G1-G6）：**
+输出 CERTAIN / LIKELY / SUSPICIOUS 三级发现。
 
-| 分组 | 覆盖页面 | 入口 |
-|------|---------|------|
-| **G1** | 首页、推荐页 | 启动即见 / Tab 推荐 |
-| **G2** | 组卷首页 → 自主选题/智能组卷/发现组卷/收藏/组卷历史 → 试卷预览/其它答案/答题卡 | Tab 组卷 |
-| **G3** | 解题选择/填空/步骤/评分/解题地图 | 从组卷进入解题 |
-| **G4** | 讲义课程 → 章节 → 内容 | 首页→讲义 |
-| **G5** | 作业列表 → 详情 | 首页→作业 |
-| **G6** | 个人资料 → 编辑/统计/成就/等级/积分/做题历史/学习偏好/同步状态/关于 | Tab 我的 |
+**扩展诊断手段：**
 
-**每页操作模式：**
+| 场景 | 做法 |
+|:----|:-----|
+| DAO 返回 0 行 | 用 server-driven 对比：`SELECT COUNT(*) FROM qbank_basequestion` vs NDJSON 中的 `QuestionDao.search.rowCount` |
+| 页面崩溃 | 用 crash chain 分析：找最后一个 page 日志 → 找第一个 error → 统计 error 来源 → 构建时间线 |
+| API 未调用 | 检查 `cat='api'` 条目数是否为 0（R12.3 — ApiClient 未注入） |
+| 冷启动时序 | 检查 seq<10 内是否有 `ensureOpen`/`Bad state` 错误（R12.1） |
+| 页面间卡住 | 检查两 page 间非 page 日志是否 ≥100 条（R12.4） |
+| N+1 查询 | 检查同一 DAO 调用 ≥20 次且全 0 行（R12.2） |
+| AuditLogger 覆盖 | 检查预期 35 页 vs 实际有 page 日志的页数（R12.5） |
+| null vs 空串误报 | 检查 `vt='null'` 且 `val=''`（R12.6） |
+
+**对于崩溃页面，标准诊断流程：**
+
+```powershell
+# 找最后一个 page 日志
+Get-Content "$env:TEMP\zhangyuzhixue_audit.ndjson" | ConvertFrom-Json | Where-Object cat -eq 'page' | Sort-Object seq -Descending | Select-Object -First 5
+
+# 找第一个 error
+Get-Content "$env:TEMP\zhangyuzhixue_audit.ndjson" | ConvertFrom-Json | Where-Object { $_.seq -ge <last_page_seq> -and $_.cat -eq 'error' } | Select-Object -First 5
+
+# 统计 error 来源和总量
+Get-Content "$env:TEMP\zhangyuzhixue_audit.ndjson" | ConvertFrom-Json | Where-Object cat -eq 'error' | Group-Object src | Select-Object Name, Count | Sort-Object Count -Descending
 ```
-snap → 看到按钮列表 → click/tab/back → snap 确认页面变化 → 记录 → 继续
+
+**结果** 是一个根因明确的 ❌ 列表（已去重、已归类），进入下一阶段。
+
+---
+
+### Step 3 — 修复：fix-batch-workflow
+
+按 `fix-batch-workflow` skill 执行：
+
+**Phase 1 — 方案阶段（仅对话，不写文件）：**
+
+1. 对每个 ❌ 核实：读代码、读设计文档、确认根因、搜索 git history 确认是否已有修复
+2. 分解复合问题（一个 ❌ 可能对应多个子问题）
+3. 标注修复类型：`code-only` / `design-sync` / `api-dependent` / `infrastructure`
+4. 输出结构化修改方案（问题→文件→改动→设计文档更新）
+5. **等待你批准**
+
+**Phase 2 — 执行阶段（你批准后）：**
+
+1. 执行所有修复（代码 + 设计文档同步更新）
+2. 跑测试：`dart analyze` + `flutter test`（Flutter 端） / `pytest` + `flake8`（server 端）
+3. 精确 `git add`（只添加本次修复的文件）
+4. 提交
+5. 出状态报告（对话形式）
+
+---
+
+### Step 4 — 验证 + 继续
+
+1. **👤 你：** 重新 `flutter run --dart-define=AUDIT_MODE=true`
+2. **🤖 agent：** winnav 回退到上次暂停的模块，验证已修复的 ❌ 是否通过，然后继续走查该模块未走的项
+3. 循环回到 Step 1
+
+---
+
+## 走查范围 + 模块进度表
+
+见 `docs/auto-audit/基础功能排查清单.md` — 该清单为权威来源。共 10 个模块（0-9），74 个检查项，36 个页面。
+
+### 模块依赖关系
+
+```
+模块 0（前置）→ 必须最先完成
+模块 1（登录/注册）→ 需要模块 0 完成
+模块 2（首页/讲义）→ 需要模块 1 登录成功
+模块 3（解题）     → 需要模块 1 登录成功
+模块 4（推荐）     → 需要模块 1 登录成功
+模块 5（组卷）     → 需要模块 1 登录成功
+模块 6（作业）     → 需要模块 2 走通首页「待办作业」
+模块 7（统计）     → 需要模块 3 先做题积累数据 + 数据同步到服务端
+模块 8（个人中心） → 需要模块 1 登录成功
+模块 9（辅助系统） → 需要模块 3 先做题积累数据（同步队列才有记录）
+```
+
+### 建议走查顺序
+
+```
+0 → 1 → 2 → [3 → 6] 并行 → [4 → 5] 并行 → 7 → 8 → 9
+                ↑______________________|
+              模块3做完后才有模块7的数据
 ```
 
 ---
 
-### Step 3 — 并行分析（~3min）
+## NDJSON 审计日志参考
 
-走查完成后，两件事并行执行：
+### 格式
 
-| 任务 | 方法 | 耗时 |
-|:----|:----|:----:|
-| **R** NDJSON 断言 | `audit_engine.py --type R`（R12.1-R12.6） | ~30s |
-| **V** 视觉分析 | `delegate_task` 分 3 个子 agent 并行 vision_analyze | ~3min |
-
-Vision 逐页检查 4 个维度（V1-V4）：
-
-| 维度 | 查什么 | Vision 提示词方向 |
-|:----:|:-------|:-----------------:|
-| **V1** 布局完整性 | 元素是否可见、有无重叠/溢出/白屏 | 对照 HTML 原型描述逐项核对 |
-| **V2** 数据正确性 | 提取屏幕数字 vs NDJSON 断言值做交叉验证 | "提取待办计数：___" |
-| **V3** 导航可达 | 底部 Tab、列表项点击确有反应 | 点击后截图对比 |
-| **V4** 空/错误态 | 无数据时占位符/重试按钮是否存在 | 数据为空时有提示而非白屏 |
-
-#### Phase 3 — 合并报告（~10s）
-
-```
-vision_report/merge_reports.py:
-  按分组 G1-G6 合并 R 断言 + V 视觉结果
-  产出最终报告
+```json
+{
+  "seq": 1,
+  "ts": "2026-07-12T10:30:00.000000",
+  "cat": "page",        // page | dao | prefs | sync | api | _meta | error
+  "src": "IndexPage",
+  "key": "pendingCount",
+  "val": "4",
+  "vt": "int"           // int | str | bool | double | null
+}
 ```
 
+### 5 个注入点
+
+| cat | 注入位置 |
+|:---:|---------|
+| `page` | 每个 `_page.dart` 的 setState 数据加载完成后 |
+| `dao` | 每个 DAO 方法 return 前 |
+| `prefs` | `AppPrefs` 每个 getter 中 |
+| `sync` | SyncManager/UpdateManager/SyncPusher 关键操作后 |
+| `api` | ApiClient 拦截器响应后 |
+
+### R12 运行时模式分析（引擎自动检查）
+
+| 子规则 | 查什么 | 级别 |
+|:-----:|--------|:----:|
+| R12.1 | 冷启动前 10 条内是否有 `ensureOpen`/`Bad state` 等时序错误 | CERTAIN |
+| R12.2 | 同一 DAO 被调用 ≥20 次且全部返回 0 行 → N+1 查询 | SUSPICIOUS |
+| R12.3 | page 日志存在但零 API 条目 → ApiClient 未注入 AuditLogger | CERTAIN |
+| R12.4 | 两页面间 ≥100 条非 page 日志 → 可能卡住 | LIKELY |
+| R12.5 | 预期页面数 vs 实际有日志的页面数 → AuditLogger 注入完整性 | CERTAIN/LIKELY |
+| R12.6 | `vt='null'` 但 `val=''` 的字段 → 空字符串被误报为 null | SUSPICIOUS |
+
 ---
 
-### Step 3b — 纯 R 模式（无屏/无截图回退）
+## 常见问题
 
-如果环境不支持截图（CI/SSH/无桌面），或已有旧 NDJSON 文件：
+### app 已启动但 winnav_init 返回「未找到窗口」
 
-```bash
-python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
+确认窗口没有被最小化/遮挡。检查 `winnav_init` 的 `window_class` 和 `window_title` 参数是否匹配实际窗口。
+
+### winnav 找到了错误的 Flutter 窗口（如 Hermes 自己）
+
+表现：OCR 文字不是章鱼智学的页面内容（如读到「对话历史」「工作空间」）。
+
+**处理：** 如实汇报 → 请用户关闭/最小化冲突窗口 → 重试。**不要自动重试，不要替用户猜。**
+
+排查方法：
+```powershell
+Get-WmiObject Win32_Process -Filter "Name='flutter_app.exe'" | Select-Object ProcessId,CommandLine
 ```
 
-此时不走查、不截图、无 vision 交叉验证，纯 NDJSON 数据断言。~30s 出报告。
+### winnav_click 找不到按钮
+
+winnav 会输出 OCR 实际读到的前 12 个文字，参考它们调整目标文字。支持模糊匹配（`exact=False`，默认），可以输入子串。
+
+### 点崩溃后 NDJSON 才写到一半
+
+NDJSON 文件在 `flutter run` 关闭后会写全。如果 app 完全卡死，可能需要关闭 app 窗口来触发日志写入。用 `process(kill)` 杀掉 flutter 进程确保日志完整。
+
+### 上一次的 NDJSON 日志被覆盖了
+
+每次 `flutter run` 覆盖 `%TEMP%/zhangyuzhixue_audit.ndjson`。需要在覆盖前备份，或者每次暂停诊断时立即读入再跑下一步。
+
+### 需要先跑 Module 0 的数据准备
+
+服务器端数据变更（构建题库、创建邀请码等）必须在 ECS 上执行。做完后需要**重新 `flutter run`** 才能取到新数据。
 
 ---
 
-## 四、报告示例
+## 推进日志（每次循环更新）
 
-```
-══════ 章鱼智学 · 合并审计报告 (R + V) ══════
-
-### 分组概要
-  G1 核心导航:        ✅ R=通过  V=通过
-  G2 组卷/试题浏览:    ⚠️ R=1个CERTAIN V=1个WARNING
-  G3 解题流程:        ❌ R=3个CERTAIN V=1个FAIL（白屏）
-  G4 讲义:            ✅ R=通过  V=通过
-  G5 作业:            ✅ R=通过  V=通过
-  G6 个人中心:        ⚠️ R=1个SUSPICIOUS V=通过
-
-### CERTAIN ❌
-  ❌ [G3] 运行时错误: LectureCoursesPage._load → SQL 错误
-  ❌ [G3] SolveChoicePage 截图: 白屏（app 崩溃）
-  ❌ [G2] DAO 查询返回 0 行: ProgressDao 870 次
-
-### V1-V4 视觉检查
-  G3 solve_choice_V1:     ❌ 白屏 — 应用已崩溃
-  G6 index_V2_pending:    ⚠️ NDJSON=4 但截图显示"0 项"
-
-### 截图
-  docs/auto-audit/screenshots/2026-07-12/
-```
+| 轮次 | 模块 | 走查进度 | ❌ 数 | 已修复 | 时间 |
+|:----:|:----:|:--------:|:----:|:------:|:----:|
+| — | — | — | — | — | — |
 
 ---
 
-## 五、VR 阶段 — 复杂交互审计
-
-> 仅 RV 模式下执行。以下交互需要用户操作序列，pyautogui 自动模拟。
-
-### I1. 冷却计时器（选填题）
-
-| 检查点 | 方法 |
-|--------|------|
-| 进入后按钮禁用 | 截图检查提交按钮为灰色 + 倒计时文字 |
-| 倒计时文字正确 | 截图读文字："⏳ 还剩 N 秒可提交"（N=10→0）|
-| 倒计时结束恢复 | 等 10s 后截图，按钮恢复可点击 |
-| 多次进入重置 | 返回再进，截图确认每次从 10s 开始 |
-
-### I2. 冷却计时器（步骤题）
-
-| 检查点 | 方法 |
-|--------|------|
-| 展开箭头初始状态 | 截图确认 ▶ 按钮灰色 + "⏳ 还剩 5 秒" |
-| 倒计时结束恢复 | 等 5s 后按钮可点击，内容展开 |
-| 反馈按钮出现 | 展开后有"全对/过程对计算错/不会"三个按钮 |
-
-### I3. 选项选择与提交（选择题）
-
-| 检查点 | 方法 |
-|--------|------|
-| 点击高亮 | 点击 A，截图确认 A 高亮、其他恢复 |
-| 提交后正确显示 | 倒计时结束→提交，截图确认 ✅/❌ + 解析展开 |
-| 已完成横幅 | "🎉 已完成" 横幅可见 |
-| 后续按钮 | 截图确认 [下一题 →] [⭐ 评分] 存在 |
-
-### I4. 解题地图交互
-
-| 检查点 | 方法 |
-|--------|------|
-| 首次进入 | "准备开始答题" 欢迎页 + "开始答题" 按钮 |
-| 多步骤树形 | 走完 1 步后截图，地图上显示完成节点 |
-| 多作答切换 | 切换作答次数，内容随切换更新 |
-| 回顾模式 | "📋 回顾模式 · 只读浏览" 横幅 |
-
-### I5. 评分与反馈
-
-| 检查点 | 方法 |
-|--------|------|
-| 入口 | 从解题页点击"⭐ 评分"跳转到评分页 |
-| 提交 | 选择一个评分项，提交成功 |
-| 复访修改 | 回到已评分题目，评分可修改 |
-
-### I1-I5 执行策略
-
-- 从属于 G3（解题流程），只在审计解题页面时执行
-- 每个检查项有独立 PASS/FAIL 标记
-- 截图命名统一用 `{page}_I{序号}_{检查点}.png`
-
----
-
-## 六、Phase 3 — 边界/压力审计
-
-> 仅 RV 模式下执行。完成主流程后可选执行。
-
-### 6.1 快速连续点击
-
-连续点击同一按钮 10 次（间隔 0.15s），检查有无崩溃或重复提交。
-
-### 6.2 窗口缩放
-
-| 步骤 | 操作 |
-|:----:|------|
-| 缩到极小 | `MoveWindow(800, 600)` → 截图 |
-| 最大化 | `ShowWindow(SW_MAXIMIZE)` → 截图 |
-| 恢复 | `ShowWindow(SW_RESTORE) + MoveWindow(0,0,390,844)` → 截图 |
-
-### 6.3 焦点切换
-
-`Alt+Tab` 切走 → 等 2s → `Alt+Tab` 切回 → 截图检查画面是否正常。
-
-### 6.4 文件选择器取消
-
-触发文件选择器 → 按 `Esc` 取消 → 截图检查返回后画面是否正常。
-
----
-
-## 七、引擎 12 项检查速览
-
-| # | 查什么 | 级别 | 能查出什么问题 |
-|---|-------|:----:|--------------|
-| 1 | 页面覆盖 | LIKELY | 35 页实测覆盖率 |
-| 2 | 字段是否为 null | CERTAIN | pendingCount 未加载 |
-| 3 | 等级文字是否硬编码 | SUSPICIOUS | "Lv.5" 写死 |
-| 4 | 跨页数据一致 | SUSPICIOUS | 首页≠作业页 |
-| 5 | DAO 是否 0 行 | CERTAIN | assets.db 空表 |
-| 6 | 服务端 vs 客户端对比 | CERTAIN | 799 vs 0 |
-| 7 | 运行时错误 | CERTAIN | catch 块异常 |
-| 8 | API 4xx/5xx | SUSPICIOUS | 端点错误 |
-| 9 | **冷启动时序 (R12.1)** | CERTAIN | ensureOpen 前调用 |
-| 10 | **DAO N+1 (R12.2)** | SUSPICIOUS | 798 次逐一查询 |
-| 11 | **API 注入 (R12.3)** | CERTAIN | ApiClient 未注入 |
-| 12 | **Logger 覆盖 (R12.5)** | CERTAIN/LIKELY | 35 页 vs 实际 |
-
----
-
-## 八、常见问题
-
-### Q: agent 说"未找到窗口"
-
-确认 app 已在终端运行并且窗口可见。不要最小化。
-
-### Q: vision 误判
-
-降低提示词中样式要求，关注功能完整性。误判率高于 20% 时暂时跳过 V 阶段，只跑 R。
-
-### Q: 可以只跑 R 吗？
-
-可以。`audit_engine.py --type R` 不需要截图，只需要 NDJSON 日志存在即可。~30s 出报告。
-
-### Q: 窗口黑屏
-
-确认窗口没有被遮挡、最小化。检查 `win32gui.SetForegroundWindow` 是否成功。
+> **文件版本：** v3.0 · 三步循环模式 · 2026-07-12
+> **替代旧版：** 全量走查→R→Vision 模式（v2.1 及之前）
