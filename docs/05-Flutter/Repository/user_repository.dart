@@ -167,6 +167,11 @@ class UserRepository {
     throw UnimplementedError('UserRepository.getLevels');
   }
 
+  /// 当前等级编号（从 assets_db.level_config 推算）
+  Future<int> currentLevel() async {
+    throw UnimplementedError('UserRepository.currentLevel');
+  }
+
   /// 等级进度文本，如 "🏅 Lv.5 → 升级还需 7.8"
   Future<String> levelProgress() async {
     throw UnimplementedError('UserRepository.levelProgress');
