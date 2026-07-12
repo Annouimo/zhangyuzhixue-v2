@@ -23,16 +23,25 @@ REGISTRY = [
         ("wait", 2.0),  # 启动后等渲染
         ("screenshot", "full"),
     ]),
+    NavTarget("G1", "RecommendPage", "推荐页", nav_seq=[
+        ("click_bottom_tab", 1),  # 第二个 Tab "推荐"
+        ("screenshot", "full"),
+    ]),
     NavTarget("G1", "LoginPage", "登录页", nav_seq=[
-        ("click_bottom_tab", 4),  # tab 索引
+        ("click_bottom_tab", 4),
         ("click_text", "退出"),
         ("click_text", "退出登录"),
         ("screenshot", "full"),
     ]),
+    NavTarget("G1", "RegisterPage", "注册页", nav_seq=[
+        ("click_text", "注册"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
 
     # ── G2: 组卷/试题浏览 ──
     NavTarget("G2", "ExamHomePage", "组卷首页", nav_seq=[
-        ("click_bottom_tab", 2),  # 第三个 Tab "组卷"
+        ("click_bottom_tab", 2),
         ("screenshot", "full"),
     ]),
     NavTarget("G2", "ExamPickPage", "自主选题", nav_seq=[
@@ -48,6 +57,21 @@ REGISTRY = [
     NavTarget("G2", "ExamExplorePage", "发现组卷", nav_seq=[
         ("click_text", "发现组卷"),
         ("screenshot", "full"),
+    ]),
+    NavTarget("G2", "ExamQuicklookPage", "试卷预览", parent="ExamExplorePage", nav_seq=[
+        ("wait", 1.0),
+        ("click_text", "第一张试卷"),  # 点第一条
+        ("screenshot", "full"),
+    ]),
+    NavTarget("G2", "ExamQuicklookOtherPage", "其它答案", parent="ExamQuicklookPage", nav_seq=[
+        ("click_text", "其它答案"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G2", "AnswerSheetPage", "答题卡", parent="ExamQuicklookPage", nav_seq=[
+        ("click_text", "答题卡"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
         ("click_text", "返回"),
     ]),
     NavTarget("G2", "ExamFavoritesPage", "收藏", nav_seq=[
@@ -65,16 +89,44 @@ REGISTRY = [
     NavTarget("G3", "SolveChoicePage", "选择题解题", nav_seq=[
         ("click_bottom_tab", 2),
         ("click_text", "自主选题"),
-        ("click_text", "确认组卷"),  # 先组卷再进解题
+        ("click_text", "确认组卷"),
         ("click_text", "开始做题"),
         ("screenshot", "full"),
+    ]),
+    NavTarget("G3", "SolveFillPage", "填空题解题", parent="SolveChoicePage", nav_seq=[
+        ("click_text", "下一题"),
+        ("screenshot", "full"),
+    ]),
+    NavTarget("G3", "SolveStepPage", "步骤题解题", parent="SolveFillPage", nav_seq=[
+        ("click_text", "下一题"),
+        ("screenshot", "full"),
+    ]),
+    NavTarget("G3", "SolveRatePage", "评分页", parent="SolveStepPage", nav_seq=[
+        ("click_text", "评分"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G3", "SolveMapPage", "解题地图", parent="SolveChoicePage", nav_seq=[
+        ("click_text", "解题地图"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
     ]),
 
     # ── G4: 讲义 ──
     NavTarget("G4", "LectureCoursesPage", "讲义课程", nav_seq=[
-        ("click_bottom_tab", 0),  # 回首页
+        ("click_bottom_tab", 0),
         ("click_text", "讲义"),
         ("screenshot", "full"),
+    ]),
+    NavTarget("G4", "LectureChaptersPage", "讲义章节", parent="LectureCoursesPage", nav_seq=[
+        ("click_text", "第一门课"),
+        ("screenshot", "full"),
+    ]),
+    NavTarget("G4", "LectureContentPage", "讲义内容", parent="LectureChaptersPage", nav_seq=[
+        ("click_text", "第一章"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+        ("click_text", "返回"),
     ]),
 
     # ── G5: 作业 ──
@@ -83,14 +135,24 @@ REGISTRY = [
         ("click_text", "作业"),
         ("screenshot", "full"),
     ]),
+    NavTarget("G5", "HomeworkDetailPage", "作业详情", parent="HomeworkListPage", nav_seq=[
+        ("click_text", "第一个作业"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
 
     # ── G6: 个人中心 ──
     NavTarget("G6", "ProfilePage", "个人资料", nav_seq=[
-        ("click_bottom_tab", 3),  # "我的"
+        ("click_bottom_tab", 3),
         ("screenshot", "full"),
     ]),
     NavTarget("G6", "ProfileEditPage", "编辑资料", nav_seq=[
         ("click_text", "编辑"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G6", "StatisticsPage", "学习统计", nav_seq=[
+        ("click_text", "统计"),
         ("screenshot", "full"),
         ("click_text", "返回"),
     ]),
@@ -106,6 +168,26 @@ REGISTRY = [
     ]),
     NavTarget("G6", "PointsPage", "积分", nav_seq=[
         ("click_text", "积分"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G6", "QuestionHistoryPage", "做题历史", nav_seq=[
+        ("click_text", "做题历史"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G6", "PreferenceListPage", "学习偏好列表", nav_seq=[
+        ("click_text", "学习偏好"),
+        ("screenshot", "full"),
+    ]),
+    NavTarget("G6", "PreferenceEditPage", "学习偏好编辑", parent="PreferenceListPage", nav_seq=[
+        ("click_text", "第一个偏好"),
+        ("screenshot", "full"),
+        ("click_text", "返回"),
+        ("click_text", "返回"),
+    ]),
+    NavTarget("G6", "SyncQueuePage", "同步状态", nav_seq=[
+        ("click_text", "同步状态"),
         ("screenshot", "full"),
         ("click_text", "返回"),
     ]),

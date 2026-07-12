@@ -15,16 +15,22 @@ import re
 from collections import defaultdict
 
 
-# G1-G6 分组定义（与 registry.py 保持一致）
+# G1-G6 分组定义（与 registry.py 保持一致，覆盖全部 35 页）
 GROUP_MAP = {
-    "IndexPage": "G1", "LoginPage": "G1",
+    "IndexPage": "G1", "LoginPage": "G1", "RegisterPage": "G1",
+    "RecommendPage": "G1",
     "ExamHomePage": "G2", "ExamPickPage": "G2", "ExamAutoPage": "G2",
     "ExamExplorePage": "G2", "ExamFavoritesPage": "G2", "ExamHistoryPage": "G2",
-    "SolveChoicePage": "G3",
-    "LectureCoursesPage": "G4",
-    "HomeworkListPage": "G5",
-    "ProfilePage": "G6", "ProfileEditPage": "G6", "AchievementPage": "G6",
-    "LevelDetailPage": "G6", "PointsPage": "G6", "AboutPage": "G6",
+    "ExamQuicklookPage": "G2", "ExamQuicklookOtherPage": "G2", "AnswerSheetPage": "G2",
+    "SolveChoicePage": "G3", "SolveFillPage": "G3", "SolveStepPage": "G3",
+    "SolveRatePage": "G3", "SolveMapPage": "G3",
+    "LectureCoursesPage": "G4", "LectureChaptersPage": "G4", "LectureContentPage": "G4",
+    "HomeworkListPage": "G5", "HomeworkDetailPage": "G5",
+    "ProfilePage": "G6", "ProfileEditPage": "G6", "StatisticsPage": "G6",
+    "AchievementPage": "G6", "LevelDetailPage": "G6", "PointsPage": "G6",
+    "QuestionHistoryPage": "G6", "PreferenceListPage": "G6",
+    "PreferenceEditPage": "G6", "PreferenceWelcomePage": "G6",
+    "SyncQueuePage": "G6", "AboutPage": "G6",
 }
 
 GROUP_NAMES = {
