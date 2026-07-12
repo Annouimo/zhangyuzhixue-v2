@@ -45,6 +45,10 @@ WINDOW_W = int(390 * DPI_SCALE)
 WINDOW_H = int(844 * DPI_SCALE)
 
 
+# 最近一张 _full 截图路径（供 OCR 用，避免重复截图）
+_last_full_path: str | None = None
+
+
 def _client_origin(hwnd: int) -> tuple[int, int]:
     """获取客户区左上角的屏幕坐标（DPI 自适应，替代硬编码 +8/+30）"""
     return win32gui.ClientToScreen(hwnd, (0, 0))
@@ -58,24 +62,26 @@ def _check_bounds(x: int, y: int, label: str) -> bool:
     return True
 
 
-def _ocr_screen(hwnd: int, page: str) -> dict[str, tuple[int, int]]:
-    """截图当前窗口并 OCR，返回文字→坐标映射（截图作为审计轨迹保存）"""
-    fpath = capture(hwnd, page, "ocr")
-    return locate(fpath)
+def _ocr_screen() -> dict[str, tuple[int, int]]:
+    """用最近一张 _full 截图做 OCR，返回文字→坐标映射（不重复截图）"""
+    global _last_full_path
+    if _last_full_path is None:
+        raise RuntimeError("无可用截图，无法进行 OCR 定位")
+    return locate(_last_full_path)
 
 
 # 底部 Tab 标签文字
 _TAB_LABELS = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}
 
 
-def click_tab(index: int, hwnd: int, page: str = "nav"):
-    """点击底部 Tab — 实时截图 + OCR 定位"""
+def click_tab(index: int, hwnd: int):
+    """点击底部 Tab — 对最近一张 _full 截图做 OCR 定位"""
     label = _TAB_LABELS.get(index)
     if label is None:
         print(f"  ⚠️ 无效的 Tab index: {index}")
         return
 
-    mapping = _ocr_screen(hwnd, page)
+    mapping = _ocr_screen()
     coord = find_text(label, mapping)
     if not coord:
         print(f"  ⚠️ Tab \"{label}\" 未在页面中识别到")
@@ -91,8 +97,8 @@ def click_tab(index: int, hwnd: int, page: str = "nav"):
     time.sleep(0.8)
 
 
-def click_text(text: str, hwnd: int, page: str = "nav"):
-    """点击页面上的文字 — 实时截图 + OCR 定位，找不到即报告为 UI 设计问题。
+def click_text(text: str, hwnd: int):
+    """点击页面上的文字 — 对最近一张 _full 截图做 OCR 定位，找不到即报告为 UI 设计问题。
 
     特殊处理：
     - "返回"：Flutter 左箭头图标（无文字），硬编码坐标
@@ -107,7 +113,7 @@ def click_text(text: str, hwnd: int, page: str = "nav"):
         time.sleep(0.5)
         return
 
-    mapping = _ocr_screen(hwnd, page)
+    mapping = _ocr_screen()
     coord = find_text(text, mapping)
     if coord:
         x, y = coord
@@ -125,16 +131,18 @@ def click_text(text: str, hwnd: int, page: str = "nav"):
 
 def walk_target(tgt: NavTarget, hwnd: int):
     """执行单个页面的导航和截图"""
+    global _last_full_path
     results = []
     for action, *args in tgt.nav_seq:
         if action == "click_bottom_tab":
-            click_tab(args[0], hwnd, tgt.name)
+            click_tab(args[0], hwnd)
         elif action == "click_text":
-            click_text(args[0], hwnd, tgt.name)
+            click_text(args[0], hwnd)
         elif action == "wait":
             time.sleep(args[0])
         elif action == "screenshot":
             fpath = capture(hwnd, tgt.name, args[0])
+            _last_full_path = fpath
             results.append(fpath)
             print(f"  [截图] {tgt.name}/{args[0]} → {fpath}")
     return results
