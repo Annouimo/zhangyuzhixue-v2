@@ -5,11 +5,29 @@
 pyautogui.click 使用**屏幕绝对坐标**。
 
 推算依据：docs/04-UI/html/*.html 的布局结构 + styles.css 的尺寸变量。
-坐标均为屏幕绝对坐标 (screen_x, screen_y)。
+坐标均为屏幕绝对坐标 (screen_x, screen_y)，基准于 96 DPI (100% 缩放)。
+
+用法：
+    from coordinate_map import get, set_scale, get_tab
+    set_scale(1.75)          # 175% DPI 缩放
+    x, y = get("自主选题")    # 返回缩放后的屏幕坐标
+    x, y = get_tab(0)        # 返回缩放后的底部 Tab 坐标
 """
 from typing import Optional
 
-# ── 布局常量 ──
+# ── DPI 缩放 ──
+_scale = 1.0
+
+def set_scale(s: float):
+    """设置 DPI 缩放因子（如 1.75 表示 175%）"""
+    global _scale
+    _scale = s
+
+def _s(v: int) -> int:
+    """按当前缩放因子缩放坐标值"""
+    return int(v * _scale)
+
+# ── 布局常量（基准 96 DPI）──
 TITLE_BAR = 30        # 标题栏高度
 LEFT_BORDER = 8       # 左边框
 WINDOW_W = 390        # 窗口宽
@@ -194,8 +212,19 @@ CLICK_MAP = {
 
 
 def get(text: str) -> Optional[tuple]:
-    """获取文本对应的点击坐标，找不到返回 None"""
-    return CLICK_MAP.get(text)
+    """获取文本对应的点击坐标（已缩放），找不到返回 None"""
+    base = CLICK_MAP.get(text)
+    if base is None:
+        return None
+    return (_s(base[0]), _s(base[1]))
+
+
+def get_tab(index: int) -> tuple:
+    """获取底部 Tab 坐标（已缩放），index 0-3"""
+    base = CLICK_MAP.get(f"tab_{index}")
+    if base is None:
+        raise ValueError(f"无效的 Tab index: {index}")
+    return (_s(base[0]), _s(base[1]))
 
 
 def list_known() -> list[str]:
@@ -204,8 +233,10 @@ def list_known() -> list[str]:
 
 
 if __name__ == "__main__":
+    print(f"DPI 缩放: {_scale:.2f}")
     print(f"内容中心 X: {CONTENT_CENTER_X}")
     print(f"底部导航 Y: {NAV_TAB_CENTER_Y}")
     print(f"已知文本: {len(CLICK_MAP)} 个")
     for k, v in sorted(CLICK_MAP.items()):
-        print(f"  {k}: ({v[0]}, {v[1]})")
+        scaled = (_s(v[0]), _s(v[1]))
+        print(f"  {k}: base({v[0]}, {v[1]}) → scaled({scaled[0]}, {scaled[1]})")
