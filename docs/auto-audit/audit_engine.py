@@ -223,6 +223,49 @@ def check_html_to_flutter_pages(cfg: Config) -> list[Finding]:
     return findings
 
 
+def check_solve_page_existence(cfg: Config) -> list[Finding]:
+    """单独检查 solve-pages/ 下的页面存在性（与主 HTML 目录分开处理）"""
+    findings = []
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    solve_dir = os.path.join(html_dir, "solve-pages")
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+
+    if not path_exists(solve_dir):
+        return findings
+
+    solve_files = [f for f in os.listdir(solve_dir) if f.endswith(".html")]
+
+    solve_to_flutter = {
+        "solve-choice.html": "solve_choice_page.dart",
+        "solve-fill.html": "solve_fill_page.dart",
+        "solve-map.html": "solve_map_page.dart",
+        "solve-rate.html": "solve_rate_page.dart",
+        "solve-step.html": "solve_step_page.dart",
+    }
+
+    flutter_pages = set()
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                flutter_pages.add(fn)
+
+    for sf in sorted(solve_files):
+        expected = solve_to_flutter.get(sf)
+        if expected is None:
+            continue
+        exists = expected in flutter_pages
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN if not exists else Certainty.LIKELY,
+            issue=f"{'❌ 缺失' if not exists else '✅ 存在'}: solve-pages/{sf} → {expected}",
+            source="C4: solve-pages/" + sf,
+            path=f"flutter_app/lib/pages/solve/{expected}",
+            evidence=f"solve-pages/{sf} → flutter_app/lib/pages/solve/{expected}",
+            detail=f"Flutter pages found: {len(flutter_pages)}"
+        ))
+
+    return findings
+
+
 # ═══════════════════════════════════════════════
 # 检查模块 2B: HTML 内 UI 元素提取（R0 扩展 — 对关键页面做区块级清单）
 # ═══════════════════════════════════════════════
@@ -321,6 +364,28 @@ KEY_HTML_PAGES = {
         ("提交按钮", "button", "提交评分"),
         ("积分奖励提示", "text", "+0.3 赠送积分"),
     ],
+    "solve-fill.html": [
+        ("题目元信息(题号/题型)", "meta", "第X题·[填空]"),
+        ("作答次数选择器", "attempt-selector", "多存档"),
+        ("回顾模式banner", "review-banner", "回顾模式"),
+        ("题干(LaTeX)", "content", "MdLatexBody"),
+        ("查看答案按钮/冷却", "button", "查看答案+冷却"),
+        ("解析/答案区", "result", "正确答案+解析"),
+        ("已完成+下一题/评分", "done", "下一题/⭐评分"),
+    ],
+    "solve-map.html": [
+        ("解题地图标题", "h1", "解题地图"),
+        ("章节列表", "chapter-item", "章节+关卡"),
+        ("题目列表(每关)", "question-item", "题目+状态"),
+        ("返回/关闭按钮", "back-btn", "← 返回"),
+    ],
+    "solve-step.html": [
+        ("题目元信息", "meta", "第X题·[解答]"),
+        ("作答区", "content", "解答输入+LaTeX"),
+        ("步骤导航", "step-nav", "上一步/下一步"),
+        ("提交按钮", "button", "提交解答"),
+        ("评价反馈", "rating", "评分+反馈"),
+    ],
 }
 
 
@@ -404,6 +469,18 @@ def check_unlisted_html_pages(cfg: Config) -> list[Finding]:
         "debug.html": None,
     }
 
+    # solve-pages 映射
+    solve_to_flutter = {
+        "solve-choice.html": "solve_choice_page.dart",
+        "solve-fill.html": "solve_fill_page.dart",
+        "solve-map.html": "solve_map_page.dart",
+        "solve-rate.html": "solve_rate_page.dart",
+        "solve-step.html": "solve_step_page.dart",
+    }
+
+    # 合并两个映射
+    html_to_flutter.update(solve_to_flutter)
+
     # 收集 Flutter 页文件
     flutter_pages = set()
     for dirpath, dirnames, filenames in os.walk(pages_dir):
@@ -464,7 +541,22 @@ INTERACTIVE_HTML_PATTERNS = [
      lambda m: f'data-db 字段: {m.group(1)[:50]}'),
     ("data-db-loop", r'data-db-loop="([^"]*)"',
      lambda m: f'data-db-loop 循环: {m.group(1)[:50]}'),
+    ("input", r'<input[^>]*>',
+     lambda m: _name_input_or_button(m.group(0))),
+    ("textarea", r'<textarea[^>]*>([^<]*)</textarea>',
+     lambda m: f'文本框(textarea): {m.group(1).strip()[:30] or "空"}'),
 ]
+
+def _name_input_or_button(raw: str) -> str:
+    """从 <input> 标签提取可读描述（type/placeholder）"""
+    t = ""
+    m = re.search(r'type="([^"]*)"', raw, re.IGNORECASE)
+    if m: t = m.group(1)
+    p = ""
+    m = re.search(r'placeholder="([^"]*)"', raw, re.IGNORECASE)
+    if m: p = m.group(1)
+    if t or p: return f'输入框 (type={t}, placeholder="{p[:20]}")'
+    return '输入框 (未知)'
 
 
 def extract_html_interactive_elements(html_content: str) -> list[dict]:
@@ -498,6 +590,9 @@ FLUTTER_INTERACTIVE_PATTERNS = [
     r'TextButton\s*\(',
     r'OutlinedButton\s*\(',
     r'IconButton\s*\(',
+    r'TextField\b',
+    r'TextFormField\b',
+    r'TextEditingController\b',
     r'context\.push\s*\(',
     r'context\.go\s*\(',
     r'context\.pushReplacement\s*\(',
@@ -558,6 +653,16 @@ def check_html_interactive_elements(cfg: Config) -> list[Finding]:
         "lecture_chapters.html": "lecture_chapters_page.dart",
         "lecture_content.html": "lecture_content_page.dart",
     }
+
+    # solve-pages 映射 + 合并
+    solve_to_flutter = {
+        "solve-choice.html": "solve_choice_page.dart",
+        "solve-fill.html": "solve_fill_page.dart",
+        "solve-map.html": "solve_map_page.dart",
+        "solve-rate.html": "solve_rate_page.dart",
+        "solve-step.html": "solve_step_page.dart",
+    }
+    html_to_flutter.update(solve_to_flutter)
 
     # 预收集 Flutter 页面内容
     flutter_contents: dict[str, str] = {}
@@ -1765,7 +1870,7 @@ def _check_null_vs_empty(entries, findings, log_path):
 def generate_report(findings: list[Finding], output_path: str = ""):
     """生成报告"""
     certain = [f for f in findings if f.certainty == Certainty.CERTAIN and ("❌" in f.issue or "⬜" in f.issue)]
-    likely = [f for f in findings if f.certainty == Certainty.LIKELY and ("❌" in f.issue or "⚠" in f.issue)]
+    likely = [f for f in findings if f.certainty == Certainty.LIKELY]
     suspicious = [f for f in findings if f.certainty == Certainty.SUSPICIOUS]
     passed = [f for f in findings if "✅" in f.issue]
     
@@ -2006,6 +2111,7 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
     if 2 in modules:
         log("[模块 2/13] HTML→Flutter 页面覆盖 + 元素清单 + 未列表页检测 + 交互元素对标...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
+        all_findings.extend(check_solve_page_existence(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
         all_findings.extend(check_unlisted_html_pages(cfg))
         all_findings.extend(check_html_interactive_elements(cfg))
