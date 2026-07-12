@@ -268,6 +268,34 @@ KEY_HTML_PAGES = {
         ("发现组卷入ロ", "a", "🌐 发现组卷"),
         ("我的收藏入口", "a", "🔖 我的收藏"),
     ],
+    "paper_quicklook.html": [
+        ("返回按钮", "back-btn", "← 返回"),
+        ("页面标题", "h1", "试卷预览"),
+        ("试卷名称", "card", "exam.preview.name"),
+        ("作者信息", "text-secondary", "作者/日期"),
+        ("题目统计摘要", "text-secondary", "共 N 题 · 选择 M 填空 K"),
+        ("下载 PDF 按钮", "button", "下载 PDF"),
+        ("快对答案链接", "a[href=answer_sheet]", "快对答案"),
+        ("公开/私密开关", "toggle-switch", "公开状态切换"),
+        ("删除按钮", "button[style*=error]", "删除（红色按钮）"),
+        ("已选题目区块标题", "h3", "已选题目"),
+        ("题目列表循环容器", "data-db-loop", "exam.preview.questions"),
+        ("每题: 标题 + 元信息", "q-info", "题目标题 + 难度/计算量"),
+        ("每题: 做题按钮", "q-btn", "做题 → solve-choice 页"),
+    ],
+    "paper_quicklook_other.html": [
+        ("返回按钮", "back-btn", "← 返回"),
+        ("页面标题", "h1", "试卷预览"),
+        ("试卷名称", "card", "exam.previewOther.name"),
+        ("作者信息", "text-secondary", "作者/等级/日期"),
+        ("题目统计摘要", "text-secondary", "共 N 题 · 选择 M 填空 K 解答 P"),
+        ("点赞/收藏/下载/快对答案", "4 buttons+a", "❤️点赞+🔖收藏+下载PDF+快对答案"),
+        ("试卷题目区块标题", "h3", "试卷题目"),
+        ("题目列表循环容器", "data-db-loop", "exam.previewOther.questions"),
+        ("每题: 标题 + 元信息", "q-info", "题目标题 + 难度/计算量"),
+        ("每题: 做题按钮", "q-btn", "做题 → solve-choice 页"),
+        ("互动数据(点赞/收藏数)", "text-secondary", "❤️ N · 🔖 M"),
+    ],
     "statistics.html": [
         ("时间范围切换(pills)", "sort-pill", "5个时间选项"),
         ("概览卡片(4项)", "card", "做题/正确率/连续/活跃"),
@@ -321,6 +349,275 @@ def check_html_element_inventory(cfg: Config) -> list[Finding]:
                 path=f"docs/04-UI/html/{page_name}",
                 evidence=f"HTML 原型定义了此元素（{hint}），需人工确认 Flutter 实现",
                 detail=f"Type: {elem_type}"
+            ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 2C: 未列入 KEY_HTML_PAGES 的页面检测（中期 — 补盲点）
+# ═══════════════════════════════════════════════
+
+def check_unlisted_html_pages(cfg: Config) -> list[Finding]:
+    """检测有 Flutter 页面对应但不在 KEY_HTML_PAGES 中的 HTML 文件
+    （这些页面的元素级对比完全依赖人工，引擎无法自动生成检查项）"""
+    findings = []
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    solve_dir = os.path.join(html_dir, "solve-pages")
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+
+    if not path_exists(html_dir):
+        return findings
+
+    # 与 Module 2A 保持一致的 HTML→Flutter 映射
+    html_to_flutter = {
+        "index.html": "index_page.dart",
+        "login.html": "login_page.dart",
+        "register.html": "register_page.dart",
+        "recommend.html": "recommend_page.dart",
+        "profile.html": "profile_page.dart",
+        "profile_edit.html": "profile_edit_page.dart",
+        "about.html": "about_page.dart",
+        "achievement.html": "achievement_page.dart",
+        "level_detail.html": "level_detail_page.dart",
+        "points.html": "points_page.dart",
+        "question_history.html": "question_history_page.dart",
+        "preference_list.html": "preference_list_page.dart",
+        "preference_edit.html": "preference_edit_page.dart",
+        "preference_welcome.html": "preference_welcome_page.dart",
+        "statistics.html": "statistics_page.dart",
+        "homework_list.html": "homework_list_page.dart",
+        "homework_detail.html": "homework_detail_page.dart",
+        "sync_queue.html": "sync_queue_page.dart",
+        "exam.html": "exam_home_page.dart",
+        "paper_auto.html": "exam_auto_page.dart",
+        "paper_pick.html": "exam_pick_page.dart",
+        "paper_explore.html": "exam_explore_page.dart",
+        "paper_favorites.html": "exam_favorites_page.dart",
+        "paper_history.html": "exam_history_page.dart",
+        "paper_quicklook.html": "exam_quicklook_page.dart",
+        "paper_quicklook_other.html": "exam_quicklook_other_page.dart",
+        "answer_sheet.html": "answer_sheet_page.dart",
+        "lecture_courses.html": "lecture_courses_page.dart",
+        "lecture_chapters.html": "lecture_chapters_page.dart",
+        "lecture_content.html": "lecture_content_page.dart",
+        "debug.html": None,
+    }
+
+    # 收集 Flutter 页文件
+    flutter_pages = set()
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                flutter_pages.add(fn)
+
+    listed = set(KEY_HTML_PAGES.keys())
+    unlisted = []
+
+    for html_fn, flutter_fn in sorted(html_to_flutter.items()):
+        if flutter_fn is None:
+            continue
+        if html_fn in listed:
+            continue  # 已在 KEY_HTML_PAGES 中，有元素清单
+        if flutter_fn not in flutter_pages:
+            continue  # Flutter 页面不存在，Module 2A 已报告
+        unlisted.append((html_fn, flutter_fn))
+
+    if not unlisted:
+        return findings
+
+    findings.append(Finding(
+        certainty=Certainty.SUSPICIOUS,
+        issue=f"以下 {len(unlisted)} 个 HTML→Flutter 页面不在 KEY_HTML_PAGES 元素清单中",
+        source="C4: 所有 .html 文件",
+        path="docs/04-UI/html/",
+        evidence="这些页面的元素级对比完全依赖人工执行 R7 — 引擎不会自动检查",
+        detail="\n".join(f"  {h} → {f}" for h, f in unlisted)
+    ))
+
+    for html_fn, flutter_fn in unlisted:
+        findings.append(Finding(
+            certainty=Certainty.SUSPICIOUS,
+            issue=f"[{html_fn}] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中",
+            source="C4: " + html_fn,
+            path=f"flutter_app/lib/pages/{flutter_fn}",
+            evidence=f"打开 {html_fn} → 提取 ALL UI 元素 → 对比 {flutter_fn} 对应 Widget",
+            detail=f"如发现缺失交互元素，补入 KEY_HTML_PAGES 定义"
+        ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
+# 检查模块 2D: 自动提取 HTML 交互元素与 Flutter 对标（长期 — 自动化扫盲点）
+# ═══════════════════════════════════════════════
+
+INTERACTIVE_HTML_PATTERNS = [
+    # (pattern_type, regex, element_name_template)
+    ("link-btn", r'<a\s[^>]*href="([^"]*)"[^>]*class="([^"]*)"[^>]*>([^<]+)</a>',
+     lambda m: f'链接按钮 \"{m.group(3).strip()}\" → {m.group(1)[:40]}'),
+    ("button", r'<button[^>]*>([^<]+)</button>',
+     lambda m: f'按钮 \"{m.group(1).strip()}\"'),
+    ("data-db-action", r'data-db-action="([^"]*)"',
+     lambda m: f'data-db-action: {m.group(1)[:50]}'),
+    ("data-db", r'data-db="([^"]*)"',
+     lambda m: f'data-db 字段: {m.group(1)[:50]}'),
+    ("data-db-loop", r'data-db-loop="([^"]*)"',
+     lambda m: f'data-db-loop 循环: {m.group(1)[:50]}'),
+]
+
+
+def extract_html_interactive_elements(html_content: str) -> list[dict]:
+    """从 HTML 内容中提取交互元素（按钮/链接/data-db/循环）"""
+    elements = []
+    seen = set()
+
+    for pattern_type, regex_str, name_fn in INTERACTIVE_HTML_PATTERNS:
+        for m in re.finditer(regex_str, html_content, re.IGNORECASE):
+            name = name_fn(m)
+            # 去重：相同类型的相同文本只报一次
+            dedup_key = f"{pattern_type}:{name}"
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            elements.append({
+                "type": pattern_type,
+                "name": name,
+                "raw": m.group(0)[:100],
+            })
+
+    return elements
+
+
+FLUTTER_INTERACTIVE_PATTERNS = [
+    r'\bonTap\b',
+    r'\bonPressed\b',
+    r'GestureDetector\s*\(',
+    r'InkWell\s*\(',
+    r'ElevatedButton\s*\(',
+    r'TextButton\s*\(',
+    r'OutlinedButton\s*\(',
+    r'IconButton\s*\(',
+    r'context\.push\s*\(',
+    r'context\.go\s*\(',
+    r'context\.pushReplacement\s*\(',
+    r'context\.pushNamed\s*\(',
+]
+
+
+def count_flutter_interactive_patterns(flutter_code: str) -> dict[str, int]:
+    """统计 Flutter 页面中的交互模式出现次数"""
+    counts = {}
+    for pat in FLUTTER_INTERACTIVE_PATTERNS:
+        cnt = len(re.findall(pat, flutter_code))
+        if cnt > 0:
+            key = pat.replace('\\', '').replace('b', '').strip()
+            counts[key] = cnt
+    return counts
+
+
+def check_html_interactive_elements(cfg: Config) -> list[Finding]:
+    """自动提取 HTML 交互元素，与 Flutter 端交互模式对标"""
+    findings = []
+    html_dir = os.path.join(cfg.docs_dir, "04-UI", "html")
+    solve_dir = os.path.join(html_dir, "solve-pages")
+    pages_dir = os.path.join(cfg.flutter_lib, "pages")
+
+    if not path_exists(html_dir):
+        return findings
+
+    html_to_flutter = {
+        "index.html": "index_page.dart",
+        "login.html": "login_page.dart",
+        "register.html": "register_page.dart",
+        "recommend.html": "recommend_page.dart",
+        "profile.html": "profile_page.dart",
+        "profile_edit.html": "profile_edit_page.dart",
+        "about.html": "about_page.dart",
+        "achievement.html": "achievement_page.dart",
+        "level_detail.html": "level_detail_page.dart",
+        "points.html": "points_page.dart",
+        "question_history.html": "question_history_page.dart",
+        "preference_list.html": "preference_list_page.dart",
+        "preference_edit.html": "preference_edit_page.dart",
+        "preference_welcome.html": "preference_welcome_page.dart",
+        "statistics.html": "statistics_page.dart",
+        "homework_list.html": "homework_list_page.dart",
+        "homework_detail.html": "homework_detail_page.dart",
+        "sync_queue.html": "sync_queue_page.dart",
+        "exam.html": "exam_home_page.dart",
+        "paper_auto.html": "exam_auto_page.dart",
+        "paper_pick.html": "exam_pick_page.dart",
+        "paper_explore.html": "exam_explore_page.dart",
+        "paper_favorites.html": "exam_favorites_page.dart",
+        "paper_history.html": "exam_history_page.dart",
+        "paper_quicklook.html": "exam_quicklook_page.dart",
+        "paper_quicklook_other.html": "exam_quicklook_other_page.dart",
+        "answer_sheet.html": "answer_sheet_page.dart",
+        "lecture_courses.html": "lecture_courses_page.dart",
+        "lecture_chapters.html": "lecture_chapters_page.dart",
+        "lecture_content.html": "lecture_content_page.dart",
+    }
+
+    # 预收集 Flutter 页面内容
+    flutter_contents: dict[str, str] = {}
+    for dirpath, dirnames, filenames in os.walk(pages_dir):
+        for fn in filenames:
+            if fn.endswith("_page.dart"):
+                full_path = os.path.join(dirpath, fn)
+                content = read_file(full_path)
+                if content:
+                    flutter_contents[fn] = content
+
+    for html_fn, flutter_fn in sorted(html_to_flutter.items()):
+        # 找 HTML 文件
+        html_path = os.path.join(html_dir, html_fn)
+        if not os.path.exists(html_path):
+            html_path = os.path.join(solve_dir, html_fn)
+        if not os.path.exists(html_path):
+            continue
+
+        html_content = read_file(html_path)
+        if not html_content:
+            continue
+
+        # 提取 HTML 交互元素
+        html_elements = extract_html_interactive_elements(html_content)
+        if not html_elements:
+            continue
+
+        # 尝试找 Flutter 页面
+        flutter_code = flutter_contents.get(flutter_fn, "")
+
+        # 按类型分组
+        by_type = defaultdict(list)
+        for elem in html_elements:
+            by_type[elem["type"]].append(elem)
+
+        # 输出每个页面的 HTML 交互元素清单
+        total = len(html_elements)
+        for i, elem in enumerate(html_elements, 1):
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"[{html_fn}] 交互元素 {i}/{total}: {elem['name']}",
+                source=f"C4: {html_fn}",
+                path=f"docs/04-UI/html/{html_fn}",
+                evidence=f"HTML 原型中存在此交互元素，需人工确认 Flutter {flutter_fn} 是否有对应",
+                detail=f"类型: {elem['type']} | 片段: {elem['raw'][:80]}"
+            ))
+
+        # 全局总结：统计 Flutter 端交互模式数
+        if flutter_code:
+            interactive_counts = count_flutter_interactive_patterns(flutter_code)
+            total_interactive = sum(interactive_counts.values())
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"[{html_fn}] 自动对标: HTML 有 {total} 个交互元素，Flutter 检测到 ~{total_interactive} 个交互模式",
+                source=f"C4: {html_fn} + {flutter_fn}",
+                path=f"flutter_app/lib/pages/{flutter_fn}",
+                evidence=f"HTML 交互: {total} 项 | Flutter onTap/onPressed/nav: ~{total_interactive} 处",
+                detail=f"Flutter 交互详情: {json.dumps(interactive_counts, ensure_ascii=False)}"
+                    if interactive_counts else "Flutter 页面中未检测到交互模式"
             ))
 
     return findings
@@ -1685,7 +1982,7 @@ TYPE_MODULES = {
 
 MODULE_NAMES = {
     1: "目录/文件存在性",
-    2: "HTML→Flutter 页面覆盖",
+    2: "HTML→Flutter 页面覆盖 + 元素清单 + 未列表页检测 + 交互元素对标",
     3: "pubspec.yaml 资产声明",
     4: "设计文档待完成标记",
     5: "测试文件覆盖率",
@@ -1707,9 +2004,11 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
         log("[模块 1/13] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/13] HTML→Flutter 页面覆盖 + 元素清单提取...")
+        log("[模块 2/13] HTML→Flutter 页面覆盖 + 元素清单 + 未列表页检测 + 交互元素对标...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
+        all_findings.extend(check_unlisted_html_pages(cfg))
+        all_findings.extend(check_html_interactive_elements(cfg))
     if 3 in modules:
         log("[模块 3/13] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
