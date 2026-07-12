@@ -17,10 +17,10 @@ class RecommendPage extends StatefulWidget {
   const RecommendPage({super.key, this.recommendRepository});
 
   @override
-  State<RecommendPage> createState() => _RecommendPageState();
+  State<RecommendPage> createState() => RecommendPageState();
 }
 
-class _RecommendPageState extends State<RecommendPage> {
+class RecommendPageState extends State<RecommendPage> {
   late final RecommendRepository _repo;
   bool _loading = true;
   String? _error;
@@ -28,6 +28,14 @@ class _RecommendPageState extends State<RecommendPage> {
   bool _preferSmart = true;
   List<RecommendPreset> _presets = [];
   int _selectedPresetIndex = 0;
+
+  /// 供 MainShell 切 Tab 时调用：如果 presets 为空则从 DB 刷新
+  void refresh() {
+    if (_presets.isNotEmpty) return;
+    _repo.getPresets().then((p) {
+      if (mounted) setState(() => _presets = p);
+    });
+  }
 
   @override
   void initState() {

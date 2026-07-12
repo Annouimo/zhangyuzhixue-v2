@@ -18,11 +18,13 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    IndexPage(),
-    RecommendPage(),
-    ExamHomePage(),
-    ProfilePage(),
+  final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
+
+  List<Widget> get _pages => [
+    const IndexPage(),
+    RecommendPage(key: _recommendKey),
+    const ExamHomePage(),
+    const ProfilePage(),
   ];
 
   @override
@@ -34,7 +36,10 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+          if (index == 1) _recommendKey.currentState?.refresh();
+        },
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
