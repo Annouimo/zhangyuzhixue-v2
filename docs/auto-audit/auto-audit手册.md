@@ -1,7 +1,10 @@
 # 章鱼智学 · 自动化审查流程手册
 
 > 对应 Hermes skill：`project-owner-acceptance`（引擎内置，单 skill 合并版）
-> 旧版手动手册（备用）：`docs/auto-audit/审查流程手册_旧版.md`
+
+**命令：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type A|B|C|D|E|F|G`
+**全量：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2`
+**Skill：** `/skill project-owner-acceptance 执行 Type X — ...，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
 
 ---
 

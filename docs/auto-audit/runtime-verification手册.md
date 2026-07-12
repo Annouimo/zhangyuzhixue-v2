@@ -4,6 +4,10 @@
 > 对应审计引擎模块：⑫（运行态审计日志验证 + R12 模式分析）+ nav_engine（自动走查）+ vision_report（视觉交叉验证）
 > 版本：2.0 | 最后更新：2026-07-12
 
+**R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R`
+**RV（全自动）：** `python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2 && python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R && python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2`
+**Skill：** `/skill runtime-verification 执行 R/RV — ...，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
+
 ---
 
 运行时审计检查的是 **app 实际跑起来之后的数据和画面**，与静态审计（project-owner-acceptance）互补。静态审计看代码对不对，运行态审计看数据和画面有没有问题。
