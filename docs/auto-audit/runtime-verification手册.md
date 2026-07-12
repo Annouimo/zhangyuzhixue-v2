@@ -6,6 +6,27 @@
 
 ---
 
+## 🚀 快速启动：一键开走
+
+复制以下任意一句到 Hermes 对话中即可开始走查：
+
+```
+🤖 对 agent 说：/skill runtime-verification 执行 模块0（前置准备），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块1（登录/注册/引导），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块2（首页+讲义），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块3（解题模式），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块4（推荐），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块5（组卷），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块6（作业），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块7（统计），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块8（个人中心），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+🤖 对 agent 说：/skill runtime-verification 执行 模块9（辅助系统），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+```
+
+> **注意：** 模块有依赖顺序（如模块 7 需要先做模块 3 的题），建议从 0→1→2→... 依次执行。遇到崩溃会自动暂停诊断，修完再继续。
+
+---
+
 ## 核心理念：三步循环，走一段修一段
 
 不再是一次性跑完 35 页再出报告。而是**走查→诊断→修复 循环往复**，直到 74 项排查清单全部 ✅。
