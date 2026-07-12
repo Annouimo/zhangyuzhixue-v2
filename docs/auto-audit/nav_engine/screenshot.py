@@ -37,16 +37,24 @@ def init(workspace: str):
 
 
 def find_window() -> int:
-    """查找 Flutter 窗口句柄。返回 HWND 或抛出异常。"""
+    """查找 Flutter 窗口句柄。返回 HWND 或抛出异常。
+
+    通过窗口类名 FLUTTER_RUNNER_WIN32_WINDOW 识别，
+    避免误命中文件资源管理器等标题含 "flutter_app" 的系统窗口。
+    """
     def enum_callback(hwnd, targets):
-        if win32gui.IsWindowVisible(hwnd):
-            title = win32gui.GetWindowText(hwnd)
-            if "flutter_app" in title.lower() or "章鱼" in title:
-                targets.append(hwnd)
+        if not win32gui.IsWindowVisible(hwnd):
+            return
+        cls = win32gui.GetClassName(hwnd)
+        if cls != "FLUTTER_RUNNER_WIN32_WINDOW":
+            return
+        title = win32gui.GetWindowText(hwnd)
+        if "flutter_app" in title.lower() or "章鱼" in title:
+            targets.append(hwnd)
     targets = []
     win32gui.EnumWindows(enum_callback, targets)
     if not targets:
-        raise RuntimeError("未找到 Flutter app 窗口")
+        raise RuntimeError("未找到 Flutter app 窗口（类名 FLUTTER_RUNNER_WIN32_WINDOW）")
     return targets[0]
 
 
