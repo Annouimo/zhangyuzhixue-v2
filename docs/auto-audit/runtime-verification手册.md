@@ -4,10 +4,17 @@
 > 对应审计引擎模块：⑫（运行态审计日志验证 + R12 模式分析）+ nav_engine（自动走查）+ vision_report（视觉交叉验证）
 > 版本：2.1 | 最后更新：2026-07-12
 
-**R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R`
-**RV（全自动）：** `python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2 && python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R && python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2`
-**Skill R：** `/skill runtime-verification 执行 R — 纯 NDJSON 运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
-**Skill RV：** `/skill runtime-verification 执行 RV — 全自动运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"`
+**R（纯 NDJSON）：** `python docs/auto-audit/audit_engine.py D:\\Hermes\\zhangyuzhixue_app_v2 --type R`
+
+**交互式 CLI 走查：**
+```bash
+# 每条命令独立执行，agent 看结果后即时决策
+python nav_engine/walker.py init <workspace>        # 初始化→hwnd
+python nav_engine/walker.py snap <hwnd> [label]    # 截图+OCR→列出文字
+python nav_engine/walker.py click <hwnd> <文字>     # OCR定位→点击
+python nav_engine/walker.py tab <hwnd> <0-3>       # 点底部Tab
+python nav_engine/walker.py back <hwnd>            # 点返回
+```
 
 ---
 
@@ -17,9 +24,9 @@
 
 ## 一、一句话流程
 
-> **你启动 app → agent 自动走查 35 页 + 截图 + NDJSON 断言 + Vision 交叉验证 + 合并报告**
+> **你启动 app → agent 逐页交互式 CLI 走查（截图→OCR→决策→点击→循环）→ R 断言 + Vision 交叉验证 → 合并报告**
 
-你只需启动 app，不需要手动走查。
+你只需启动 app，走查由 agent 通过 CLI 命令逐条完成，每一步都截图确认。无预编排、无死序列，每页看到什么点什么是可控的。vs 旧版全自动模式（REGISTRY 驱动，已删除）的优势：能处理滑动、空态跳过、异常时即时调整。
 
 ---
 
@@ -56,7 +63,7 @@
 
 ---
 
-## 三、完整流程（三步全自动）
+## 三、完整流程（交互式 CLI 走查 + 分析）
 
 ### Step 1 — 启动带审计的 app
 
@@ -71,38 +78,51 @@ flutter run --dart-define=AUDIT_MODE=true
 
 ---
 
-### Step 2 — 让 agent 执行
+### Step 2 — 交互式 CLI 走查（agent 逐页决策）
 
 **🤖 对 agent 说：**
 
-```text
-/skill runtime-verification 执行 RV — 全自动运行时审计，项目目录"D:\Hermes\zhangyuzhixue_app_v2"
-```
+> 执行运行时审计走查，项目目录"..."
 
-或者纯命令行：
+agent 执行以下循环：
 
 ```bash
-python docs/auto-audit/nav_engine/walker.py D:\Hermes\zhangyuzhixue_app_v2
-python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
-python docs/auto-audit/vision_report/merge_reports.py D:\Hermes\zhangyuzhixue_app_v2
+# ① 初始化
+python nav_engine/walker.py init D:\Hermes\zhangyuzhixue_app_v2    → 返回 HWND
+
+# ② 截图+OCR，看到当前页面文字
+python nav_engine/walker.py snap <hwnd> "首页"
+
+# ③ 决策：看到"自主选题"→ 点它
+python nav_engine/walker.py click <hwnd> 自主选题
+
+# ④ 确认结果
+python nav_engine/walker.py snap <hwnd> "选题页"
+
+# ⑤ 循环...直到全部页面走完
+```
+
+**走查顺序建议（35 页 G1-G6）：**
+
+| 分组 | 覆盖页面 | 入口 |
+|------|---------|------|
+| **G1** | 首页、推荐页 | 启动即见 / Tab 推荐 |
+| **G2** | 组卷首页 → 自主选题/智能组卷/发现组卷/收藏/组卷历史 → 试卷预览/其它答案/答题卡 | Tab 组卷 |
+| **G3** | 解题选择/填空/步骤/评分/解题地图 | 从组卷进入解题 |
+| **G4** | 讲义课程 → 章节 → 内容 | 首页→讲义 |
+| **G5** | 作业列表 → 详情 | 首页→作业 |
+| **G6** | 个人资料 → 编辑/统计/成就/等级/积分/做题历史/学习偏好/同步状态/关于 | Tab 我的 |
+
+**每页操作模式：**
+```
+snap → 看到按钮列表 → click/tab/back → snap 确认页面变化 → 记录 → 继续
 ```
 
 ---
 
-### Step 3 — agent 自动执行三阶段
+### Step 3 — 并行分析（~3min）
 
-#### Phase 1 — 自动走查 + 截图（~2min）
-
-```
-nav_engine/walker.py:
-  ① win32gui 定位 Flutter 窗口 → 调整 390×844 → 左上角
-  ② 逐组 G1-G6 走查 35 页
-     每页: pyautogui.click → 等渲染 → mss 定向裁剪窗口截图
-  ③ 截图保存到 docs/auto-audit/screenshots/{date}/
-  ④ NDJSON 日志自动写入 %TEMP%/zhangyuzhixue_audit.ndjson
-```
-
-#### Phase 2 — 并行分析（~3min）
+走查完成后，两件事并行执行：
 
 | 任务 | 方法 | 耗时 |
 |:----|:----|:----:|

@@ -1,8 +1,12 @@
 """
-自动走查主流程 — pyautogui 遍历 34 页，截图 + 触发 NDJSON。
+CLI 交互式导航 — 截图→OCR→决策→点击。
 
 用法:
-    python nav_engine/walker.py D:\\Hermes\\zhangyuzhixue_app_v2
+    python nav_engine/walker.py init <workspace>       # 初始化，返回 hwnd
+    python nav_engine/walker.py snap <hwnd> [label]    # 截图+OCR，列出可见文字
+    python nav_engine/walker.py click <hwnd> <文字>     # 点击文字
+    python nav_engine/walker.py tab <hwnd> <index>     # 点底部Tab (0=首页 1=推荐 2=组卷 3=我的)
+    python nav_engine/walker.py back <hwnd>            # 点返回按钮
 
 前置:
     flutter run --dart-define=AUDIT_MODE=true 已在终端运行
@@ -17,12 +21,12 @@ import pyautogui
 import win32gui
 import win32con
 
-# 确保目录在 path 中
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from screenshot import init as init_ss, find_window, capture
-from registry import REGISTRY, NavTarget
+from ocr_locator import find_text, locate
 
-# ── DPI 检测 ──
+
+# ── DPI ──
 def detect_dpi_scale() -> float:
     try:
         ctypes.windll.shcore.SetProcessDpiAwareness(2)
@@ -33,29 +37,21 @@ def detect_dpi_scale() -> float:
 
 DPI_SCALE = detect_dpi_scale()
 
-# ── OCR 定位器 ──
-from ocr_locator import find_text, locate
-
-# 客户区内固定偏移（屏幕坐标通过 ClientToScreen 动态计算）
-BACK_BTN_CLIENT_X = 24  # 返回图标在客户区内的 X（左箭头，AppBar 左上角）
-BACK_BTN_CLIENT_Y = 28  # 返回图标在客户区内的 Y（AppBar 56px，居中≈28）
-
-# 基准窗口尺寸（仅用于越界检查）
+BACK_BTN_CLIENT_X = 24   # 返回图标在客户区内的 X
+BACK_BTN_CLIENT_Y = 28   # 返回图标在客户区内的 Y（AppBar 56px，居中≈28）
 WINDOW_W = int(390 * DPI_SCALE)
 WINDOW_H = int(844 * DPI_SCALE)
 
-
-# 最近一张 _full 截图路径（供 OCR 用，避免重复截图）
 _last_full_path: str | None = None
 
 
+# ── 底层工具函数 ──
+
 def _client_origin(hwnd: int) -> tuple[int, int]:
-    """获取客户区左上角的屏幕坐标（DPI 自适应，替代硬编码 +8/+30）"""
     return win32gui.ClientToScreen(hwnd, (0, 0))
 
 
 def _check_bounds(x: int, y: int, label: str) -> bool:
-    """检查坐标是否在屏幕范围内，越界则跳过并返回 False"""
     if x < 0 or x >= WINDOW_W or y < 0 or y >= WINDOW_H:
         print(f"  ⚠️ {label} ({x}, {y}) 超出窗口 {WINDOW_W}×{WINDOW_H}，跳过")
         return False
@@ -63,37 +59,29 @@ def _check_bounds(x: int, y: int, label: str) -> bool:
 
 
 def _ocr_screen() -> dict[str, tuple[int, int]]:
-    """用最近一张 _full 截图做 OCR，返回文字→坐标映射（不重复截图）"""
     global _last_full_path
     if _last_full_path is None:
-        raise RuntimeError("无可用截图，无法进行 OCR 定位")
+        raise RuntimeError("无可用截图，请先执行 snap 命令")
     return locate(_last_full_path)
 
 
 def _get_tab_coords(hwnd: int, index: int) -> tuple[int, int]:
-    """返回第 index 个底部 Tab 的屏幕坐标（0=首页, 1=推荐, 2=组卷, 3=我的）"""
     ox, oy = win32gui.ClientToScreen(hwnd, (0, 0))
     client_rect = win32gui.GetClientRect(hwnd)
     cw = client_rect[2] - client_rect[0]
     ch = client_rect[3] - client_rect[1]
-
-    NAV_H = 64  # 底部导航栏高度
-    tab_cy = oy + ch - NAV_H // 2          # 导航栏纵向中心
-    tab_cx = ox + cw * (2 * index + 1) // 8  # 4 个 Tab 等分宽度
+    tab_cy = oy + ch - 64 // 2
+    tab_cx = ox + cw * (2 * index + 1) // 8
     return (tab_cx, tab_cy)
 
 
-# 底部 Tab 标签文字（仅用于校验）
-_TAB_LABELS = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}
-
+# ── 动作指令 ──
 
 def click_tab(index: int, hwnd: int):
-    """点击底部 Tab — 硬编码坐标（PaddleOCR 对灰色小字识别率低）"""
-    label = _TAB_LABELS.get(index)
+    label = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}.get(index)
     if label is None:
         print(f"  ⚠️ 无效的 Tab index: {index}")
         return
-
     x, y = _get_tab_coords(hwnd, index)
     if not _check_bounds(x, y, f"Tab:{label}"):
         return
@@ -103,11 +91,6 @@ def click_tab(index: int, hwnd: int):
 
 
 def click_text(text: str, hwnd: int):
-    """点击页面上的文字 — 对最近一张 _full 截图做 OCR 定位，找不到即报告为 UI 设计问题。
-
-    特殊处理：
-    - "返回"：Flutter 左箭头图标（无文字），硬编码坐标
-    """
     if text == "返回":
         ox, oy = _client_origin(hwnd)
         bx, by = ox + BACK_BTN_CLIENT_X, oy + BACK_BTN_CLIENT_Y
@@ -130,71 +113,92 @@ def click_text(text: str, hwnd: int):
             time.sleep(0.5)
             return
 
-    # 没找到 → 这是 UI 设计的问题（缺少该按钮文本）
-    print(f"  ❌ 未找到 \"{text}\" — OCR 未识别到此文字。请检查 UI 设计是否缺少该按钮文本")
+    avail = [f"{k}({v[0]},{v[1]})" for k, v in sorted(mapping.items(), key=lambda x: x[1][1])]
+    print(f"  ❌ 未找到 \"{text}\" (src={_last_full_path and os.path.basename(_last_full_path)}) — OCR 读到 {len(avail)} 个: {' / '.join(avail[:12])}{' ...' if len(avail)>12 else ''}")
 
 
-def walk_target(tgt: NavTarget, hwnd: int):
-    """执行单个页面的导航和截图"""
+# ── CLI 入口命令 ──
+
+def cmd_init(workspace: str) -> int:
     global _last_full_path
-    results = []
-    for action, *args in tgt.nav_seq:
-        if action == "click_bottom_tab":
-            click_tab(args[0], hwnd)
-        elif action == "click_text":
-            click_text(args[0], hwnd)
-        elif action == "wait":
-            time.sleep(args[0])
-        elif action == "screenshot":
-            fpath = capture(hwnd, tgt.name, args[0])
-            _last_full_path = fpath
-            results.append(fpath)
-            print(f"  [截图] {tgt.name}/{args[0]} → {fpath}")
-    return results
-
-
-def main(workspace: str):
-    """主走查流程"""
-    print(f"DPI 缩放检测: {DPI_SCALE:.2f}x (窗口 {int(390*DPI_SCALE)}×{int(844*DPI_SCALE)})")
-
-    # 1. 初始化截图目录
     ss_dir = init_ss(workspace)
     print(f"截图目录: {ss_dir}")
-
-    # 2. 定位并调整窗口尺寸（已缩放）
     hwnd = find_window()
     win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
     win32gui.SetForegroundWindow(hwnd)
     time.sleep(0.15)
     win32gui.MoveWindow(hwnd, 0, 0, WINDOW_W, WINDOW_H, True)
     time.sleep(0.5)
-
+    _last_full_path = capture(hwnd, "init", "snap")
     print(f"窗口句柄: {hwnd}")
+    return hwnd
 
-    # 3. 等待 app 就绪
-    time.sleep(2)
 
-    # 4. 逐组走查
-    all_screenshots = []
-    current_group = None
-    for tgt in REGISTRY:
-        if tgt.group != current_group:
-            current_group = tgt.group
-            print(f"\n=== Group {current_group}: {tgt.label} ===")
-
-        try:
-            screenshots = walk_target(tgt, hwnd)
-            all_screenshots.extend(screenshots)
-        except Exception as e:
-            print(f"  ⚠️ 导航到 {tgt.name} 失败: {e}")
-            continue
-
-    print(f"\n✅ 走查完成。共 {len(all_screenshots)} 张截图。")
-    print(f"NDJSON 日志已由 AuditLogger 写入 %TEMP%/zhangyuzhixue_audit.ndjson")
+def cmd_snap(hwnd: int, label: str = "snap"):
+    import mss, tempfile
+    ss_dir = os.path.join(os.path.dirname(__file__), "..", "screenshots", "cli")
+    os.makedirs(ss_dir, exist_ok=True)
+    # 清理旧临时截图，最多保留 10 张
+    old = sorted(os.listdir(ss_dir))
+    for f in old[:-9]:  # 保留最新的 9 张 + 当前这张 = 10
+        os.remove(os.path.join(ss_dir, f))
+    tmp_path = os.path.join(ss_dir, f"{label}_{int(time.time()*1000)}.png")
+    client_rect = win32gui.GetClientRect(hwnd)
+    with mss.mss() as sct:
+        monitor = {
+            "left": win32gui.ClientToScreen(hwnd, (0, 0))[0],
+            "top": win32gui.ClientToScreen(hwnd, (0, 0))[1],
+            "width": client_rect[2] - client_rect[0],
+            "height": client_rect[3] - client_rect[1],
+        }
+        img = sct.grab(monitor)
+        mss.tools.to_png(img.rgb, img.size, output=tmp_path)
+    mapping = locate(tmp_path)
+    print(f"\n[{label}] OCR 识别到 {len(mapping)} 个文字：")
+    for k, v in sorted(mapping.items(), key=lambda x: x[1][1]):
+        print(f"  ({v[0]:>4d}, {v[1]:>4d})  {k}")
+    print()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("用法: python walker.py <workspace_path>")
-        sys.exit(1)
-    main(sys.argv[1])
+    argc = len(sys.argv)
+    if argc < 2:
+        print(__doc__); sys.exit(1)
+
+    cmd = sys.argv[1]
+    workspace = sys.argv[2] if argc > 2 else None
+
+    if cmd == "init" and workspace:
+        hwnd = cmd_init(workspace)
+        print(f"HWND={hwnd}")
+    elif cmd == "snap" and argc >= 3:
+        cmd_snap(int(sys.argv[2]), sys.argv[3] if argc > 3 else "snap")
+    elif cmd == "click" and argc >= 4:
+        hwnd, text = int(sys.argv[2]), sys.argv[3]
+        import mss, tempfile
+        ss_dir = os.path.join(os.path.dirname(__file__), "..", "screenshots", "cli")
+        os.makedirs(ss_dir, exist_ok=True)
+        old = sorted(os.listdir(ss_dir))
+        for f in old[:-9]:
+            os.remove(os.path.join(ss_dir, f))
+        tmp_path = os.path.join(ss_dir, f"click_{int(time.time()*1000)}.png")
+        client_rect = win32gui.GetClientRect(hwnd)
+        with mss.mss() as sct:
+            monitor = {
+                "left": win32gui.ClientToScreen(hwnd, (0, 0))[0],
+                "top": win32gui.ClientToScreen(hwnd, (0, 0))[1],
+                "width": client_rect[2] - client_rect[0],
+                "height": client_rect[3] - client_rect[1],
+            }
+            img = sct.grab(monitor)
+            mss.tools.to_png(img.rgb, img.size, output=tmp_path)
+        _last_full_path = tmp_path
+        click_text(text, hwnd)
+    elif cmd == "tab" and argc >= 4:
+        hwnd, idx = int(sys.argv[2]), int(sys.argv[3])
+        click_tab(idx, hwnd)
+        _last_full_path = capture(hwnd, "cli", "nav")
+    elif cmd == "back" and argc >= 3:
+        click_text("返回", int(sys.argv[2]))
+    else:
+        print(__doc__); sys.exit(1)
