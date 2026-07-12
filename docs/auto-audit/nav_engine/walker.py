@@ -14,6 +14,8 @@ import os
 import ctypes
 
 import pyautogui
+import win32gui
+import win32con
 
 # 确保目录在 path 中
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -43,12 +45,22 @@ WINDOW_W = int(BASE_W * DPI_SCALE)
 WINDOW_H = int(BASE_H * DPI_SCALE)
 
 
+def _check_bounds(x: int, y: int, label: str) -> bool:
+    """检查坐标是否在窗口范围内，越界则跳过并返回 False"""
+    if x < 0 or x >= WINDOW_W or y < 0 or y >= WINDOW_H:
+        print(f"  ⚠️ {label} ({x}, {y}) 超出窗口 {WINDOW_W}×{WINDOW_H}，跳过")
+        return False
+    return True
+
+
 def click_tab(index: int):
     """点击底部 Tab（坐标来自 coordinate_map，已缩放）"""
     try:
         x, y = get_tab(index)
     except ValueError:
         print(f"  ⚠️ 无效的 Tab index: {index}")
+        return
+    if not _check_bounds(x, y, f"Tab {index}"):
         return
     print(f"  [Tab] 点击 Tab {index} → ({x}, {y}) (DPI={DPI_SCALE:.2f})")
     pyautogui.click(x, y)
@@ -60,13 +72,20 @@ def click_text(text: str):
     coord = coord_get(text)
     if coord:
         x, y = coord
-        print(f"  [点击] {text} → ({x}, {y}) (DPI={DPI_SCALE:.2f})")
-        pyautogui.click(x, y)
     else:
-        fallback_x = int(195 * DPI_SCALE)
-        fallback_y = int(400 * DPI_SCALE)
-        print(f"  [点击] {text} → ({fallback_x}, {fallback_y}) ⚠️ fallback: 未知文本坐标")
-        pyautogui.click(fallback_x, fallback_y)
+        x = int(195 * DPI_SCALE)
+        y = int(400 * DPI_SCALE)
+        print(f"  [点击] {text} → ({x}, {y}) ⚠️ fallback: 未知文本坐标")
+        if not _check_bounds(x, y, f"{text}(fallback)"):
+            return
+        pyautogui.click(x, y)
+        time.sleep(0.5)
+        return
+
+    if not _check_bounds(x, y, text):
+        return
+    print(f"  [点击] {text} → ({x}, {y}) (DPI={DPI_SCALE:.2f})")
+    pyautogui.click(x, y)
     time.sleep(0.5)
 
 
@@ -97,8 +116,6 @@ def main(workspace: str):
 
     # 2. 定位并调整窗口尺寸（已缩放）
     hwnd = find_window()
-    import win32gui
-    import win32con
     win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
     win32gui.SetForegroundWindow(hwnd)
     time.sleep(0.15)
