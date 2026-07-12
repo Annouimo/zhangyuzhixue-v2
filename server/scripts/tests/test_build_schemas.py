@@ -97,5 +97,5 @@ class TestLectureTables:
     def test_chapter_columns(self):
         """chapter 表应有 course_id/index/title"""
         cols = dict(LECTURE_TABLES['chapter']['columns'])
-        for col in ['course_id', 'sort_order', 'title']:
+        for col in ['course_id', 'index', 'title']:
             assert col in cols, f'缺少字段: {col}'

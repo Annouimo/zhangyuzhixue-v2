@@ -70,17 +70,10 @@ class AssignmentRepository {
 
   AssignmentRepository(this._assignmentDao, this._progressDao, this._questionDao);
 
-  /// 推算单题状态
-  Future<String> _questionStatus(int questionId) async {
-    final has = await _progressDao.hasAttempt(questionId);
-    if (!has) return 'pending';
-    final latest = await _progressDao.getLatestAttempt(questionId);
-    if (latest == null) return 'in_progress';
-    return latest.isCorrect == 1 ? 'completed' : 'in_progress';
-  }
-
   Future<List<AssignmentSummary>> getPending() async {
     final rows = await _assignmentDao.listAll();
+    // 批量查询已做题 ID，避免 N+1
+    final attempted = await _progressDao.getAttemptedQuestionIds();
     final result = <AssignmentSummary>[];
     for (final r in rows) {
       final qLinks = await _assignmentDao.getQuestions(r.id);
@@ -88,10 +81,10 @@ class AssignmentRepository {
           ? (await _assignmentDao.getCourseName(r.courseId!)) ?? ''
           : '';
 
-      // 统计已做题数
+      // 统计已做题数（内存判断，无 DB 调用）
       var doneCount = 0;
       for (final ql in qLinks) {
-        if (await _progressDao.hasAttempt(ql.questionId)) doneCount++;
+        if (attempted.contains(ql.questionId)) doneCount++;
       }
 
       result.add(AssignmentSummary(
@@ -115,6 +108,8 @@ class AssignmentRepository {
         ? (await _assignmentDao.getCourseName(assignment.courseId!)) ?? ''
         : '';
 
+    // 批量查询已做题 ID
+    final attempted = await _progressDao.getAttemptedQuestionIds();
     var doneCount = 0;
     final questions = <QuestionSummary>[];
     for (final ql in qLinks) {
@@ -128,8 +123,10 @@ class AssignmentRepository {
         }
       } catch (_) {}
 
-      // 进度
-      final status = await _questionStatus(ql.questionId);
+      // 进度（内存判断 + 仅对已做题查最新记录）
+      final status = attempted.contains(ql.questionId)
+          ? await _questionStatusDetail(ql.questionId)
+          : 'pending';
       if (status == 'completed') doneCount++;
 
       questions.add(QuestionSummary(
@@ -148,6 +145,13 @@ class AssignmentRepository {
       deadlineDays: 0,
       questions: questions,
     );
+  }
+
+  /// 推算单题状态（用于详情页，跳过 hasAttempt 检查）
+  Future<String> _questionStatusDetail(int questionId) async {
+    final latest = await _progressDao.getLatestAttempt(questionId);
+    if (latest == null) return 'in_progress';
+    return latest.isCorrect == 1 ? 'completed' : 'in_progress';
   }
 
   Future<int> pendingCount() => _assignmentDao.count();

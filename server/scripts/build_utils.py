@@ -41,7 +41,7 @@ def create_db(schema):
     conn.execute('PRAGMA synchronous=OFF;')
 
     for table_name, table_def in schema.items():
-        cols = ', '.join(f'{cname} {ctype}' for cname, ctype in table_def['columns'])
+        cols = ', '.join(f'"{cname}" {ctype}' for cname, ctype in table_def['columns'])
         conn.execute(f'CREATE TABLE {table_name} ({cols});')
     conn.commit()
     return conn, tmp.name
@@ -190,7 +190,8 @@ def copy_relation(conn, schema, table_name):
     if not rows:
         return
 
-    sql = f'INSERT INTO {table_name} (id, {", ".join(cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
+    quoted_cols = [f'"{c}"' for c in cols]
+    sql = f'INSERT INTO {table_name} (id, {", ".join(quoted_cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
     for i, row in enumerate(rows):
         conn.execute(sql, [i + 1] + [row[c] for c in cols])
     conn.commit()
@@ -214,12 +215,13 @@ def write_chapters(conn, schema):
             idx = int(doc['chapter'])
         except (ValueError, TypeError):
             idx = len(seen)
-        rows.append({'course_id': doc['course_id'], 'sort_order': idx, 'title': doc['title']})
+        rows.append({'course_id': doc['course_id'], 'index': idx, 'title': doc['title']})
 
     if not rows:
         return
 
-    sql = f'INSERT INTO {table_name} (id, {", ".join(cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
+    quoted_cols = [f'"{c}"' for c in cols]
+    sql = f'INSERT INTO {table_name} (id, {", ".join(quoted_cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
     for i, row in enumerate(rows):
         conn.execute(sql, [i + 1] + [row[c] for c in cols])
     conn.commit()
@@ -235,27 +237,29 @@ def write_lecture_content(conn, schema, chapters):
     # 构建 chapter_id 查找表: (course_id, chapter) → pk
     ch_map = {}
     for i, ch in enumerate(chapters):
-        ch_map[(ch['course_id'], ch['sort_order'])] = i + 1
+        ch_map[(ch['course_id'], ch['index'])] = i + 1
 
     rows = []
     for doc in Document.objects.all().order_by('course_id', 'chapter').iterator():
         try:
             ch_idx = int(doc.chapter)
         except (ValueError, TypeError):
-            continue
+            ch_idx = 0
         ch_id = ch_map.get((doc.course_id, ch_idx))
         if ch_id is None:
             continue
-        updated = doc.updated_at.isoformat() if doc.updated_at else ''
         rows.append({
             'chapter_id': ch_id,
             'title': doc.title,
             'md_content': doc.md_content,
-            'updated_at': updated,
+            'updated_at': doc.updated_at.isoformat() if doc.updated_at else '',
         })
 
     if not rows:
         return
+
+    quoted_cols = [f'"{c}"' for c in cols]
+    sql = f'INSERT INTO {table_name} (id, {", ".join(quoted_cols)}) VALUES (?, {", ".join("?" * len(cols))})'  # noqa: E501
 
     sql = f'INSERT OR IGNORE INTO {table_name} ({", ".join(cols)}) VALUES ({", ".join("?" * len(cols))})'  # noqa: E501
     for row in rows:

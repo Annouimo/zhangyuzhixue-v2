@@ -101,6 +101,7 @@ class _AuthInterceptor extends Interceptor {
     } else {
       debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — NO token');
     }
+    AuditLogger.instance.apiRequest(options.method, options.path, options.data);
     handler.next(options);
   }
 }
@@ -175,6 +176,12 @@ class _ErrorInterceptor extends Interceptor {
         ),
       ));
     } else {
+      // 成功响应也记录审计
+      AuditLogger.instance.api(
+        response.requestOptions.path,
+        response.statusCode ?? 200,
+        body is Map ? {'code': body['code'], 'success': true} : null,
+      );
       handler.next(response);
     }
   }

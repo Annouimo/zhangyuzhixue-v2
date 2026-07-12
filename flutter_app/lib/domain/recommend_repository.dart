@@ -112,10 +112,11 @@ class _RecommendationEngine {
     final allQuestions = await _questionDao.getAll();
     if (allQuestions.isEmpty) return [];
 
-    // 冷启动：做题数 < 5 时返回空
+    // 冷启动：做题数 < 5 时返回空（批量查询避免 N+1）
+    final attemptedIds = await _progressDao.getAttemptedQuestionIds();
     int totalAttempts = 0;
     for (final q in allQuestions) {
-      if (await _progressDao.hasAttempt(q.id)) totalAttempts++;
+      if (attemptedIds.contains(q.id)) totalAttempts++;
       if (totalAttempts >= coldStartThreshold) break;
     }
     if (totalAttempts < coldStartThreshold) return [];
@@ -214,12 +215,9 @@ class _RecommendationEngine {
   }
 
   Future<Set<int>> _getDoneQuestionIds() async {
+    final attempted = await _progressDao.getAttemptedQuestionIds();
     final available = await _questionDao.getAll();
-    final done = <int>{};
-    for (final q in available) {
-      if (await _progressDao.hasAttempt(q.id)) done.add(q.id);
-    }
-    return done;
+    return available.map((q) => q.id).where((id) => attempted.contains(id)).toSet();
   }
 
   Future<Set<int>> _getRecentWrongIds() async {

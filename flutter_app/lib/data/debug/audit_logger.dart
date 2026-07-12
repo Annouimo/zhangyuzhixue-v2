@@ -93,6 +93,12 @@ class AuditLogger {
     }
   }
 
+  /// API 请求：每次发起网络请求前调用
+  void apiRequest(String method, String path, Object? body) {
+    if (!_auditEnabled) return;
+    _write('api', path, 'request', '$method ${body != null ? jsonEncode(body).substring(0, (jsonEncode(body).length).clamp(0, 200)) : ''}');
+  }
+
   /// 运行时错误：try/catch 捕获的异常
   void error(String source, Object error, [StackTrace? stack]) {
     if (!_auditEnabled) return;

@@ -139,6 +139,14 @@ class ProgressDao {
     return result.isNotEmpty;
   }
 
+  /// 批量查询哪些题目有做题记录 — 替代 N+1 的逐条 hasAttempt
+  Future<Set<int>> getAttemptedQuestionIds() async {
+    final rows = await _db.select(_db.submissionDetails).get();
+    final ids = rows.map((r) => r.questionId).toSet();
+    AuditLogger.instance.dao('ProgressDao.getAttemptedQuestionIds', ids.length, {});
+    return ids;
+  }
+
   /// 是否有任何提交记录（判断是否有学习历史）
   Future<bool> hasAnySubmission() async {
     final rows = await _db.select(_db.submissions).get();
