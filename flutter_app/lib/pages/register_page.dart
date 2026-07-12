@@ -24,7 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordController = TextEditingController();
   final _realNameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _gaokaoYearController = TextEditingController();
+  String _gaokaoYear = '2026';
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -46,7 +46,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _confirmPasswordController.dispose();
     _realNameController.dispose();
     _phoneController.dispose();
-    _gaokaoYearController.dispose();
     super.dispose();
   }
 
@@ -61,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
         username: _usernameController.text.trim(),
         realName: _realNameController.text.trim(),
         phone: _phoneController.text.trim(),
-        gaokaoYear: _gaokaoYearController.text.trim(),
+        gaokaoYear: _gaokaoYear,
         password: _passwordController.text,
       ));
 
@@ -210,22 +209,18 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 16),
 
                     // 高考年份
-                    TextFormField(
-                      controller: _gaokaoYearController,
+                    DropdownButtonFormField<String>(
+                      initialValue: _gaokaoYear,
                       decoration: const InputDecoration(
                         labelText: '高考年份',
-                        hintText: '如 2026',
                         prefixIcon: Icon(Icons.calendar_today_outlined),
                       ),
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return '请输入高考年份';
-                        final year = int.tryParse(v.trim());
-                        if (year == null || year < 2024 || year > 2035) {
-                          return '请输入正确的年份（2024-2035）';
-                        }
-                        return null;
+                      items: ['2025', '2026', '2027', '2028'].map((y) => DropdownMenuItem(
+                        value: y,
+                        child: Text('$y 年'),
+                      )).toList(),
+                      onChanged: (v) {
+                        if (v != null) setState(() => _gaokaoYear = v);
                       },
                     ),
                     const SizedBox(height: 16),

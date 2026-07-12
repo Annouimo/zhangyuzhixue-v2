@@ -241,31 +241,41 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildMenuEntries(BuildContext context) {
+    final info = _info;
     final sections = [
       ('学习', [
-        (Icons.tune, '学习偏好', () => context.push('/profile/preferences')),
-        (Icons.bar_chart, '学习统计', () => context.push('/statistics')),
-        (Icons.replay, '做题历史', () => context.push('/profile/history')),
+        (Icons.tune, '学习偏好',
+          info?.studentId != null ? '已登录' : null,
+          () => context.push('/profile/preferences')),
+        (Icons.bar_chart, '学习统计', null, () => context.push('/statistics')),
+        (Icons.replay, '做题历史', null, () => context.push('/profile/history')),
       ]),
       ('成长', [
-        (Icons.emoji_events_outlined, '成就', () => context.push('/profile/achievements')),
-        (Icons.trending_up, '等级进度', () => context.push('/profile/level')),
-        (Icons.monetization_on_outlined, '积分流水', () => context.push('/profile/points')),
+        (Icons.emoji_events_outlined, '成就', null, () => context.push('/profile/achievements')),
+        (Icons.trending_up, '等级进度', null, () => context.push('/profile/level')),
+        (Icons.monetization_on_outlined, '积分流水', null, () => context.push('/profile/points')),
       ]),
       ('系统', [
-        (Icons.sync, '同步状态', () => context.push('/sync/queue')),
-        (Icons.info_outline, '关于', () => context.push('/profile/about')),
-        (Icons.logout, '退出登录', _logout),
+        (Icons.sync, '同步状态', null, () => context.push('/sync/queue')),
+        (Icons.info_outline, '关于', null, () => context.push('/profile/about')),
+        (Icons.logout, '退出登录', null, _logout),
       ]),
     ];
     return Column(
       children: sections.expand((section) {
-        final entries = section.$2.map((e) => ListTile(
-          leading: Icon(e.$1, color: AppColors.primary),
-          title: Text(e.$2),
-          trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-          onTap: e.$3,
-        ));
+        final entries = section.$2.map((e) {
+          final icon = e.$1;
+          final title = e.$2;
+          final subtitle = e.$3;
+          final onTap = e.$4 as VoidCallback?;
+          return ListTile(
+            leading: Icon(icon, color: AppColors.primary),
+            title: Text(title),
+            subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 12)) : null,
+            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            onTap: onTap,
+          );
+        });
         return [
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 16, 0, 4),

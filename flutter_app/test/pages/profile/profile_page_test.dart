@@ -23,6 +23,7 @@ class _MockUserRepo implements UserRepository {
   @override Future<List<LevelRow>> getLevels() async => [];
   @override Future<String> levelProgress() async => '0/0';
   @override Future<int> levelPercentile() async => 0;
+  @override Future<int> currentLevel() async => 1;
   @override Future<int> streakDays() async => 0;
   @override Future<Map<String, dynamic>> checkin() async => {};
   @override Future<String> questionBankVersion() async => '1.0';

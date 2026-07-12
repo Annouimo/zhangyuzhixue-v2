@@ -27,7 +27,7 @@ void main() {
       expect(find.text('基础成就'), findsOneWidget);
       expect(find.text('初次练习'), findsOneWidget);
       expect(find.text('持续学习'), findsOneWidget);
-      expect(find.text('✅ 已解锁'), findsOneWidget);
+      expect(find.text('已解锁'), findsOneWidget);
       expect(find.text('3/7'), findsOneWidget);
     });
   });

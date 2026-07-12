@@ -9,6 +9,7 @@ import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
 
+/// 积分流水页 — 匹配 HTML 原型 points.html
 class PointsPage extends StatefulWidget {
   final UserRepository? userRepository;
   const PointsPage({super.key, this.userRepository});
@@ -19,6 +20,7 @@ class PointsPage extends StatefulWidget {
 class _PointsPageState extends State<PointsPage> {
   late final UserRepository _repo;
   List<PointsRecord>? _records;
+  double _earned = 0, _bonus = 0, _spent = 0, _available = 0;
   bool _loading = true;
   String? _error;
 
@@ -33,8 +35,12 @@ class _PointsPageState extends State<PointsPage> {
   Future<void> _load() async {
     try {
       final list = await _repo.getPointsHistory();
+      final earned = await _repo.earnedPoints();
+      final bonus = await _repo.bonusPoints();
+      final spent = await _repo.spentPoints();
+      final available = await _repo.availablePoints();
       if (!mounted) return;
-      setState(() { _records = list; _loading = false; });
+      setState(() { _records = list; _earned = earned; _bonus = bonus; _spent = spent; _available = available; _loading = false; });
       AuditLogger.instance.page('PointsPage', {'recordCount': _records?.length});
     } catch (e) {
       AuditLogger.instance.error('PointsPage._load', e);
@@ -51,27 +57,81 @@ class _PointsPageState extends State<PointsPage> {
         ? const Center(child: CircularProgressIndicator())
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _load)
-            : ListView.separated(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
-            itemCount: (_records?.length ?? 0) + 1,
-            separatorBuilder: (_, _) => const Divider(height: 1),
-            itemBuilder: (_, i) {
-              if (i == 0) {
-                if (_records != null && _records!.isNotEmpty) {
-                  final r = _records!.first;
-                  return Padding(padding: const EdgeInsets.only(bottom: 12),
-                    child: Text('可用积分: ${r.available.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)));
-                }
-                return const SizedBox.shrink();
-              }
-              final r = _records![i - 1];
-              return ListTile(
-                title: Text(r.type, style: const TextStyle(fontSize: 14)),
-                subtitle: Text(r.time.substring(0, 10), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                trailing: Text('${r.change >= 0 ? '+' : ''}${r.change.toStringAsFixed(0)}',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: r.change >= 0 ? AppColors.success : AppColors.error)),
-              );
-            },
-          ),
+            : ListView(
+              padding: const EdgeInsets.all(AppSizes.baseSpacing),
+              children: [
+                _buildSummary(),
+                const SizedBox(height: 16),
+                ..._buildTableRows(),
+              ],
+            ),
   );
+
+  Widget _buildSummary() {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            _pointItem('学习积分', _earned, AppColors.primary),
+            _pointItem('赠送积分', _bonus, AppColors.warning),
+            _pointItem('消耗积分', _spent, AppColors.error),
+            _pointItem('可用积分', _available, AppColors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pointItem(String label, double value, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value.toStringAsFixed(1),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
+          const SizedBox(height: 2),
+          Text(label,
+            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildTableRows() {
+    final list = _records ?? [];
+    if (list.isEmpty) {
+      return [const Center(child: Padding(
+        padding: EdgeInsets.all(32),
+        child: Text('暂无流水记录', style: TextStyle(color: AppColors.textSecondary)),
+      ))];
+    }
+    return list.map((r) {
+      final isPositive = r.change >= 0;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+        ),
+        child: Row(
+          children: [
+            Expanded(flex: 2, child: Text(r.type, style: const TextStyle(fontSize: 13))),
+            Expanded(flex: 2, child: Text(r.time.length >= 10 ? r.time.substring(0, 10) : r.time,
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('${isPositive ? '+' : ''}${r.change.toStringAsFixed(1)}',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                color: isPositive ? AppColors.success : AppColors.error))),
+            SizedBox(width: 48, child: Text(r.earned.toStringAsFixed(1),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text(r.bonus.toStringAsFixed(1),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text(r.spent.toStringAsFixed(1),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text(r.available.toStringAsFixed(1),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
+          ],
+        ),
+      );
+    }).toList();
+  }
 }

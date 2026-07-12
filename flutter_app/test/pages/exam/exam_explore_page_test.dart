@@ -33,7 +33,7 @@ void main() {
   group('ExamExplorePage', () {
     testWidgets('shows loading then list', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamExplorePage(examRepository: _MockExploreRepo(list: [
-        ExploreExamSummary(id: 1, name: '海淀一模', authorInfo: '老师A', summary: '2025', likeCount: 5, collectCount: 3, createdAt: '2025-01-01'),
+        ExploreExamSummary(id: 1, name: '海淀一模', authorInfo: '老师A', summary: '', likeCount: 5, collectCount: 3, createdAt: '2025-01-01'),
       ]))));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();

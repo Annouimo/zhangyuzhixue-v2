@@ -188,10 +188,32 @@ class UserRepository {
   // ── 等级 ──
   Future<List<LevelRow>> getLevels() async {
     final configs = await _questionDao.getAllLevelConfigs();
-    return configs.map((c) => LevelRow(
-      level: c.level,
-      range: '${c.minXp}+',
-    )).toList();
+    final list = <LevelRow>[];
+    for (var i = 0; i < configs.length; i++) {
+      final c = configs[i];
+      final nextMin = i + 1 < configs.length ? configs[i + 1].minXp : c.minXp * 2;
+      list.add(LevelRow(
+        level: c.level,
+        range: '${c.minXp} ~ ${nextMin - 1}',
+      ));
+    }
+    return list;
+  }
+
+  /// 当前等级编号（推算）
+  Future<int> currentLevel() async {
+    final totalPoints = await earnedPoints();
+    final configs = await _questionDao.getAllLevelConfigs();
+    if (configs.isEmpty) return 1;
+    int lv = 1;
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i].minXp <= totalPoints.toInt()) {
+        lv = configs[i].level;
+      } else {
+        break;
+      }
+    }
+    return lv;
   }
 
   Future<String> levelProgress() async {

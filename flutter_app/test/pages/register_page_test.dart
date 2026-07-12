@@ -18,14 +18,13 @@ class _MockAuthRepo extends AuthRepository {
   }
 }
 
-/// Helper: 填入所有字段
+/// Helper: 填入所有文本字段（高考年份为 dropdown，单独处理）
 Future<void> _fillAllFields(
   WidgetTester tester, {
   String inviteCode = 'CODE123',
   String username = 'testuser',
   String realName = '张三',
   String phone = '13800138000',
-  String gaokaoYear = '2026',
   String password = 'password123',
   String confirmPassword = 'password123',
 }) async {
@@ -34,9 +33,8 @@ Future<void> _fillAllFields(
   await tester.enterText(fields.at(1), username);
   await tester.enterText(fields.at(2), realName);
   await tester.enterText(fields.at(3), phone);
-  await tester.enterText(fields.at(4), gaokaoYear);
-  await tester.enterText(fields.at(5), password);
-  await tester.enterText(fields.at(6), confirmPassword);
+  await tester.enterText(fields.at(4), password);
+  await tester.enterText(fields.at(5), confirmPassword);
 }
 
 /// Helper: 点击注册按钮（先确保可见）
@@ -73,13 +71,18 @@ void main() {
         const MaterialApp(home: RegisterPage()),
       );
 
+      // 清空高考年份（先展开再选空值）
+      await tester.tap(find.text('2026 年'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2025 年').last);
+      await tester.pumpAndSettle();
+
       await _tapRegister(tester);
 
       expect(find.text('请输入邀请码'), findsOneWidget);
       expect(find.text('请输入用户名'), findsOneWidget);
       expect(find.text('请输入姓名'), findsOneWidget);
       expect(find.text('请输入手机号'), findsOneWidget);
-      expect(find.text('请输入高考年份'), findsOneWidget);
       expect(find.text('请输入密码'), findsOneWidget);
     });
 
@@ -103,17 +106,6 @@ void main() {
       await _tapRegister(tester);
 
       expect(find.text('两次密码不一致'), findsOneWidget);
-    });
-
-    testWidgets('validates gaokao year range', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: RegisterPage()),
-      );
-
-      await _fillAllFields(tester, gaokaoYear: '2020');
-      await _tapRegister(tester);
-
-      expect(find.text('请输入正确的年份（2024-2035）'), findsOneWidget);
     });
 
     testWidgets('back button returns to previous page', (tester) async {

@@ -71,6 +71,23 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   TimeRangePicker(valueDays: _rangeDays, onChanged: (d) { setState(() => _rangeDays = d); _loadAll(); }),
                   const SizedBox(height: 12),
                   HeatmapChart(rangeDays: _rangeDays, records: _dailyRecords ?? []),
+                  const SizedBox(height: 4),
+                  // 热力图图例
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('少', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFDBEAFE), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: const Color(0xFF60A5FA), borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: const Color(0xFF4A6CF7), borderRadius: BorderRadius.circular(2))),
+                      const Text('多', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   TrendChart(title: '正确率趋势', points: _accuracyTrend ?? []),
                   const SizedBox(height: 8),

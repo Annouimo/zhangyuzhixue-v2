@@ -118,7 +118,7 @@ class _AchievementEngine {
       name: def.name,
       description: def.description ?? '',
       status: status,
-      unlockedAt: null,
+      unlockedAt: cached?.unlockedAt,
       progressPercent: pct,
       progress: progress,
       threshold: threshold,

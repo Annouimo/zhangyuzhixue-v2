@@ -18,18 +18,23 @@ import '../data/debug/audit_logger.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
-  const IndexPage({super.key});
+  final UserRepository? userRepository;
+  const IndexPage({super.key, this.userRepository});
 
   @override
   State<IndexPage> createState() => _IndexPageState();
 }
 
 class _IndexPageState extends State<IndexPage> {
+  late final UserRepository _repo;
   bool _loading = true;
   int _pendingCount = 0;
   int _streakDays = 0;
   bool _checkedIn = false;
   String? _error;
+  String _levelProgress = '';
+  int _currentLevel = 1;
+  double _todayEarned = 0;
 
   static const List<String> _welcomeMessages = [
     '每一次练习，都在为高考蓄力 💪',
@@ -50,6 +55,10 @@ class _IndexPageState extends State<IndexPage> {
   void initState() {
     super.initState();
     _welcomeText = _welcomeMessages[Random().nextInt(_welcomeMessages.length)];
+    final db = DatabaseProvider();
+    _repo = widget.userRepository ?? UserRepository(
+      UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
+    );
     _load();
   }
 
@@ -63,14 +72,22 @@ class _IndexPageState extends State<IndexPage> {
       final dao = AchievementDao(DatabaseProvider().appDb);
       final streak = await dao.getLoginStreak();
 
+      // 等级进度
+      final lvProgress = await _repo.levelProgress();
+      final lv = await _repo.currentLevel();
+      final todayEarned = await _repo.todayPoints();
+
       if (!mounted) return;
       setState(() {
         _pendingCount = pending;
         _streakDays = streak;
         _checkedIn = checkedIn;
+        _levelProgress = lvProgress;
+        _currentLevel = lv;
+        _todayEarned = todayEarned;
         _loading = false;
       });
-      AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn});
+      AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn, 'level': _currentLevel});
     } catch (e) {
       AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
@@ -84,12 +101,7 @@ class _IndexPageState extends State<IndexPage> {
       return;
     }
     try {
-      final repo = UserRepository(
-        UserDao(DatabaseProvider().appDb),
-        UserApi(ApiClient()),
-        QuestionDao(DatabaseProvider().assetsDb),
-      );
-      final result = await repo.checkin();
+      final result = await _repo.checkin();
       final streak = result['streak_days'] as int? ?? 0;
       final points = result['points_earned'] as int? ?? 0;
       final msg = result['message'] as String? ?? '签到成功';
@@ -334,9 +346,9 @@ class _IndexPageState extends State<IndexPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('🏅 等级加载中…',
+              Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').lastOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('今日学习积分 +${_streakDays * 0.5}',
+              Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
             ],
           ),

@@ -23,6 +23,7 @@ class _MockRepo implements UserRepository {
   @override Future<List<LevelRow>> getLevels() async => [];
   @override Future<String> levelProgress() async => '0/0';
   @override Future<int> levelPercentile() async => 0;
+  @override Future<int> currentLevel() async => 1;
   @override Future<int> streakDays() async => 0;
   @override Future<Map<String, dynamic>> checkin() async => {};
   @override Future<String> questionBankVersion() async => '1.0';
@@ -51,6 +52,6 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: PointsPage(userRepository: repo)));
     await tester.pumpAndSettle();
     expect(find.text('earned'), findsOneWidget);
-    expect(find.text('+10'), findsOneWidget);
+    expect(find.textContaining('+10'), findsOneWidget);
   });
 }

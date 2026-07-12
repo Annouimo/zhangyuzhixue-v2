@@ -9,7 +9,7 @@ import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/debug/audit_logger.dart';
 
-/// 成就页
+/// 成就页 — 匹配 HTML 原型 achievement.html
 class AchievementPage extends StatefulWidget {
   final AchievementRepository? achievementRepository;
   const AchievementPage({super.key, this.achievementRepository});
@@ -23,6 +23,7 @@ class _AchievementPageState extends State<AchievementPage> {
   bool _loading = true;
   String? _error;
   List<AchievementCategory>? _categories;
+  AchievementSummary? _summary;
 
   @override
   void initState() {
@@ -35,10 +36,11 @@ class _AchievementPageState extends State<AchievementPage> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
+      final summary = await _repo.getSummary();
       final cats = await _repo.getCategories();
       if (!mounted) return;
-      setState(() { _categories = cats; _loading = false; });
-      AuditLogger.instance.page('AchievementPage', {'total': _categories?.length});
+      setState(() { _summary = summary; _categories = cats; _loading = false; });
+      AuditLogger.instance.page('AchievementPage', {'unlocked': summary.unlockedCount, 'total': summary.totalCount});
     } catch (e) { AuditLogger.instance.error('AchievementPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
   }
 
@@ -52,33 +54,138 @@ class _AchievementPageState extends State<AchievementPage> {
     if (_loading) return const LoadingIndicator(message: '加载成就…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
     final cats = _categories ?? [];
-    if (cats.isEmpty) return const Center(child: Text('暂无成就', style: TextStyle(color: AppColors.textSecondary)));
     return ListView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
-      children: cats.map((cat) => Column(
+      children: [
+        // 成就概览
+        _buildSummary(),
+        const SizedBox(height: 16),
+        ...cats.map((cat) => _buildCategory(cat)),
+      ],
+    );
+  }
+
+  Widget _buildSummary() {
+    final s = _summary;
+    if (s == null) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          Text(
+            '${s.unlockedCount} / ${s.totalCount}',
+            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.primary),
+          ),
+          const SizedBox(height: 4),
+          const Text('已解锁成就',
+            style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategory(AchievementCategory cat) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(cat.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          ...cat.list.map((a) => ListTile(
-            leading: Text(a.iconEmoji, style: const TextStyle(fontSize: 28)),
-            title: Text(a.name),
-            subtitle: Text(a.description, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            trailing: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              if (a.status == 'unlocked')
-                const Text('✅ 已解锁', style: TextStyle(fontSize: 11, color: AppColors.success))
-              else ...[
-                Text('${a.progress}/${a.threshold}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary)),
-                const SizedBox(height: 2),
-                SizedBox(width: 60, child: LinearProgressIndicator(
-                  value: a.progressPercent / 100, backgroundColor: Colors.grey[200])),
-              ],
-            ]),
-          )),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, bottom: 4),
+            child: Text(cat.label,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+          ),
+          ...cat.list.map((a) => _buildAchievementItem(a)),
         ],
-      )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildAchievementItem(AchievementItem a) {
+    Color statusBg;
+    Color statusFg;
+    String statusLabel;
+    switch (a.status) {
+      case 'unlocked':
+        statusBg = const Color(0xFFD1FAE5);
+        statusFg = const Color(0xFF065F46);
+        statusLabel = '已解锁';
+        break;
+      case 'in_progress':
+        statusBg = const Color(0xFFDBEAFE);
+        statusFg = const Color(0xFF1E40AF);
+        statusLabel = '进行中';
+        break;
+      default:
+        statusBg = const Color(0xFFF3F4F6);
+        statusFg = const Color(0xFF9CA3AF);
+        statusLabel = '未解锁';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text(a.iconEmoji, style: const TextStyle(fontSize: 24), textAlign: TextAlign.center),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(a.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 1),
+                Text(a.description, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                if (a.status == 'unlocked' && a.unlockedAt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Text('${a.unlockedAt} 解锁',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  ),
+                if (a.status == 'in_progress')
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 60, height: 4,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(2),
+                            child: LinearProgressIndicator(
+                              value: (a.progressPercent / 100).clamp(0.0, 1.0),
+                              backgroundColor: const Color(0xFFE5E7EB),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text('${a.progress}/${a.threshold}',
+                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(statusLabel,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: statusFg)),
+          ),
+        ],
+      ),
     );
   }
 }

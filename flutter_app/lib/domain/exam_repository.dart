@@ -24,7 +24,8 @@ class ExamSummary {
   final String name;
   final String createdAt;
   final String summary;
-  const ExamSummary({required this.id, required this.name, required this.createdAt, required this.summary});
+  final bool isPublic;
+  const ExamSummary({required this.id, required this.name, required this.createdAt, required this.summary, this.isPublic = false});
 }
 
 /// 发现组卷摘要
@@ -36,10 +37,12 @@ class ExploreExamSummary {
   final int likeCount;
   final int collectCount;
   final String createdAt;
+  final bool isLiked;
+  final bool isCollected;
   const ExploreExamSummary({
     required this.id, required this.name, required this.authorInfo,
     required this.summary, required this.likeCount, required this.collectCount,
-    required this.createdAt,
+    required this.createdAt, this.isLiked = false, this.isCollected = false,
   });
 }
 
@@ -49,7 +52,8 @@ class FavoriteExamSummary {
   final String name;
   final String authorInfo;
   final String summary;
-  const FavoriteExamSummary({required this.id, required this.name, required this.authorInfo, required this.summary});
+  final bool isLiked;
+  const FavoriteExamSummary({required this.id, required this.name, required this.authorInfo, required this.summary, this.isLiked = false});
 }
 
 /// 组卷预览
@@ -203,10 +207,16 @@ class ExamRepository {
   // ── 发现组卷 ──
   Future<List<ExploreExamSummary>> getExploreList() async {
     final rows = await _examDao.listCreated();
-    return rows.map((r) => ExploreExamSummary(
-      id: r.id, name: r.title, authorInfo: '', summary: '',
-      likeCount: 0, collectCount: 0, createdAt: r.createdAt,
-    )).toList();
+    final futures = rows.map((r) async {
+      final like = await _examDao.getLike(r.id);
+      final collect = await _examDao.getCollect(r.id);
+      return ExploreExamSummary(
+        id: r.id, name: r.title, authorInfo: '', summary: '',
+        likeCount: 0, collectCount: 0, createdAt: r.createdAt,
+        isLiked: like != null, isCollected: collect != null,
+      );
+    });
+    return Future.wait(futures);
   }
 
   Future<void> toggleLike(int paperId) async {
@@ -244,6 +254,7 @@ class ExamRepository {
     final rows = await _examDao.listCreated();
     return rows.map((r) => ExamSummary(
       id: r.id, name: r.title, createdAt: r.createdAt, summary: r.filterSnapshot ?? '',
+      isPublic: r.isPublic == 1,
     )).toList();
   }
 
