@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
 import 'package:flutter_app/pages/main_shell.dart';
 import 'dart:io';
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   late Directory tempDir;
 
   setUp(() async {

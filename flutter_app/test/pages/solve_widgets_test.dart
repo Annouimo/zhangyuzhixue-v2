@@ -5,8 +5,10 @@ import 'package:flutter_app/pages/solve/widgets/feedback_buttons.dart';
 import 'package:flutter_app/pages/solve/widgets/solve_flow_widget.dart';
 import 'package:flutter_app/pages/solve/widgets/step_card_widget.dart';
 import 'package:flutter_app/domain/progress_repository.dart' as progress;
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('CoolingTimer', () {
     testWidgets('shows child when not cooling', (tester) async {
       await tester.pumpWidget(MaterialApp(

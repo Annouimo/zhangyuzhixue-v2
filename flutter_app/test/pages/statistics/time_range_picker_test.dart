@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/statistics/widgets/time_range_picker.dart';
+import '../../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('TimeRangePicker', () {
     testWidgets('renders 5 pills with default selected', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(body: TimeRangePicker(valueDays: 7, onChanged: (_) {}))));

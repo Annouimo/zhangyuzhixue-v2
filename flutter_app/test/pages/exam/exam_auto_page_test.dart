@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_auto_page.dart';
+import '../../test_setup.dart';
 
 class _MockAutoRepo implements ExamRepository {
   @override Future<FilterOptions> getFilterOptions() async => const FilterOptions(
@@ -28,6 +29,7 @@ class _MockAutoRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamAutoPage', () {
     testWidgets('loads filter options and renders', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamAutoPage(examRepository: _MockAutoRepo())));

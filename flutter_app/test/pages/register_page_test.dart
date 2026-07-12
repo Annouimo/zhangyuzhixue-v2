@@ -6,6 +6,7 @@ import 'package:flutter_app/data/api/auth_api.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/domain/auth_repository.dart';
 import 'package:flutter_app/pages/register_page.dart';
+import '../test_setup.dart';
 
 class _MockAuthRepo extends AuthRepository {
   _MockAuthRepo()
@@ -48,6 +49,7 @@ Future<void> _tapRegister(WidgetTester tester) async {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('RegisterPage', () {
     testWidgets('renders register form with all elements', (tester) async {
       await tester.pumpWidget(

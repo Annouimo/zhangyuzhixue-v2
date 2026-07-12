@@ -11,8 +11,10 @@ import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/preference_welcome_page.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   late udb.AppDatabase uDb;
   late adb.AssetsDatabase aDb;
   late PreferenceDao dao;

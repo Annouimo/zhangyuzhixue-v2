@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/points_page.dart';
+import '../../test_setup.dart';
 
 class _MockRepo implements UserRepository {
   final List<PointsRecord> records;
@@ -28,6 +29,7 @@ class _MockRepo implements UserRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   testWidgets('PointsPage shows loading indicator initially', (tester) async {
     final repo = _MockRepo();
     await tester.pumpWidget(MaterialApp(home: PointsPage(userRepository: repo)));

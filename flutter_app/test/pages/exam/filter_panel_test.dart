@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/exam/widgets/filter_panel.dart';
+import '../../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('FilterPanel', () {
     testWidgets('renders year and region chips', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(

@@ -6,6 +6,7 @@ import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/system_config_dao.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
+import '../test_setup.dart';
 
 /// 创建一个带默认 system_config 行数据的 mock AssetsDatabase
 adb.AssetsDatabase _makeAssetsDb() {
@@ -27,6 +28,7 @@ adb.AssetsDatabase _makeAssetsDb() {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   late adb.AssetsDatabase aDb;
   late ExitRatingConfig config;
 

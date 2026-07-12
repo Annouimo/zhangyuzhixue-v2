@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_quicklook_other_page.dart';
+import '../../test_setup.dart';
 
 class _MockOtherRepo implements ExamRepository {
   @override Future<ExamPreviewOther> getPreviewOther(int id) async =>
@@ -27,6 +28,7 @@ class _MockOtherRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamQuicklookOtherPage', () {
     testWidgets('shows loading then preview with like/collect', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamQuicklookOtherPage(examId: 1, examRepository: _MockOtherRepo())));

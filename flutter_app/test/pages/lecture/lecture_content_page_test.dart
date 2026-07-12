@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/lecture_repository.dart';
 import 'package:flutter_app/pages/lecture/lecture_content_page.dart';
 import 'package:flutter_app/pages/lecture/lecture_pager_widget.dart';
+import '../../test_setup.dart';
 
 /// Mock LectureRepository for content
 class _MockContentRepo implements LectureRepository {
@@ -69,6 +70,7 @@ Widget _wrapApp(Widget child) {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('LecturePagerWidget', () {
     testWidgets('shows page info and navigation buttons', (tester) async {
       await tester.pumpWidget(_wrapApp(

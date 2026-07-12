@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_history_page.dart';
+import '../../test_setup.dart';
 
 class _MockExamRepo implements ExamRepository {
   final List<ExamSummary> exams;
@@ -29,6 +30,7 @@ class _MockExamRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamHistoryPage', () {
     testWidgets('shows loading then list', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamHistoryPage(examRepository: _MockExamRepo(exams: [

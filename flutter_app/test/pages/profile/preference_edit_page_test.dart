@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/profile/preference_edit_page.dart';
+import '../../test_setup.dart';
 
 class _MockPreferenceRepository implements PreferenceRepository {
   @override
@@ -25,6 +26,7 @@ class _MockPreferenceRepository implements PreferenceRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('PreferenceEditPage', () {
     testWidgets('renders create mode with name field and save button',
         (tester) async {

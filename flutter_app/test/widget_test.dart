@@ -3,8 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/main.dart';
+import 'test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   testWidgets('App renders login page on start', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     await AppPrefs().init();

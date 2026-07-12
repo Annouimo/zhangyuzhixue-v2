@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/profile_edit_page.dart';
+import '../../test_setup.dart';
 
 class _MockRepo implements UserRepository {
   @override Future<UserInfo> getUserInfo() async => const UserInfo(id: 1, name: 'test', realName: '张三',
@@ -25,6 +26,7 @@ class _MockRepo implements UserRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   testWidgets('ProfileEditPage renders form fields with loaded data', (tester) async {
     await tester.pumpWidget(MaterialApp(home: ProfileEditPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();

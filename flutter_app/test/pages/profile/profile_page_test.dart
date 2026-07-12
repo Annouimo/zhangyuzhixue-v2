@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/profile_page.dart';
+import '../../test_setup.dart';
 
 class _MockUserRepo implements UserRepository {
   _MockUserRepo();
@@ -28,6 +29,7 @@ class _MockUserRepo implements UserRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ProfilePage', () {
     testWidgets('shows user info and menu entries', (tester) async {
       await tester.pumpWidget(MaterialApp.router(

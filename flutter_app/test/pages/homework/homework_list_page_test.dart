@@ -5,6 +5,7 @@ import 'package:flutter_app/domain/assignment_repository.dart';
 import 'package:flutter_app/pages/homework/homework_list_page.dart';
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../test_setup.dart';
 
 class _MockAssignmentRepo implements AssignmentRepository {
   final List<AssignmentSummary> assignments;
@@ -35,6 +36,7 @@ class _FailingAssignmentRepo implements AssignmentRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('HomeworkListPage', () {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});

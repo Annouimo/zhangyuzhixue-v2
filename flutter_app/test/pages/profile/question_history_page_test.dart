@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/question_history_page.dart';
+import '../../test_setup.dart';
 
 class _MockRepo implements UserRepository {
   @override Future<List<HistoryItem>> getAnswerHistory() async => [];
@@ -24,6 +25,7 @@ class _MockRepo implements UserRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   testWidgets('QuestionHistoryPage shows empty state', (tester) async {
     await tester.pumpWidget(MaterialApp(home: QuestionHistoryPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/profile/preference_list_page.dart';
+import '../../test_setup.dart';
 
 class _MockPreferenceRepository implements PreferenceRepository {
   final List<PreferenceSummary> _results;
@@ -30,6 +31,7 @@ class _MockPreferenceRepository implements PreferenceRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('PreferenceListPage', () {
     testWidgets('renders loading state initially', (tester) async {
       final repo = _MockPreferenceRepository();

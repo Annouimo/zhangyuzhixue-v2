@@ -8,6 +8,7 @@ import 'package:flutter_app/domain/auth_repository.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/pages/login_page.dart';
+import '../test_setup.dart';
 
 class _MockAuthRepo extends AuthRepository {
   final bool shouldSucceed;
@@ -51,6 +52,7 @@ class _HasPrefs implements PreferenceRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('LoginPage', () {
     testWidgets('renders login form with all elements', (tester) async {
       await tester.pumpWidget(

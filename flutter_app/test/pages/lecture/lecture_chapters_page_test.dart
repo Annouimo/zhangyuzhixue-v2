@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/domain/lecture_repository.dart';
 import 'package:flutter_app/pages/lecture/lecture_chapters_page.dart';
+import '../../test_setup.dart';
 
 /// Mock LectureRepository
 class _MockChaptersRepo implements LectureRepository {
@@ -29,6 +30,7 @@ class _MockChaptersRepo implements LectureRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('LectureChaptersPage', () {
     testWidgets('shows loading then chapters list', (tester) async {
       await tester.pumpWidget(

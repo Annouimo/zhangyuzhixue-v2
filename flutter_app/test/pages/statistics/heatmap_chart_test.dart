@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/statistics/widgets/heatmap_chart.dart';
 import 'package:flutter_app/domain/statistics_repository.dart';
+import '../../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('HeatmapChart', () {
     testWidgets('renders with records', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(

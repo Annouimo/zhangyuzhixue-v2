@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/pages/index_page.dart';
 import 'package:flutter_app/widgets/shared/error_placeholder.dart';
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('IndexPage', () {
     testWidgets('renders app bar with title 首页', (tester) async {
       SharedPreferences.setMockInitialValues({});

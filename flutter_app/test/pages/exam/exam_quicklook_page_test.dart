@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_quicklook_page.dart';
+import '../../test_setup.dart';
 
 class _MockQuicklookRepo implements ExamRepository {
   final ExamPreview? preview;
@@ -30,6 +31,7 @@ class _MockQuicklookRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamQuicklookPage', () {
     testWidgets('shows loading then preview', (tester) async {
       final repo = _MockQuicklookRepo(preview: ExamPreview(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_app/domain/lecture_repository.dart';
 import 'package:flutter_app/pages/lecture/lecture_courses_page.dart';
 import 'package:flutter_app/pages/lecture/lecture_chapters_page.dart';
+import '../../test_setup.dart';
 
 /// Mock LectureRepository
 class _MockLectureRepo implements LectureRepository {
@@ -51,6 +52,7 @@ class _FailingLectureRepo implements LectureRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('LectureCoursesPage', () {
     testWidgets('shows loading indicator then courses list', (tester) async {
       await tester.pumpWidget(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/exam/widgets/difficulty_slider.dart';
+import '../../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('DifficultySlider', () {
     testWidgets('default label uses difficulty breaks', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(

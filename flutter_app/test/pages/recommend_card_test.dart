@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/widgets/recommend_card.dart';
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('RecommendCard', () {
     testWidgets('renders title, type tag, difficulty tag and reason', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(

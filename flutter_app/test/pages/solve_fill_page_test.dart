@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/solve/solve_fill_page.dart';
 import 'package:flutter_app/domain/question_repository.dart';
+import '../test_setup.dart';
 
 class _MockQRepo implements QuestionRepository {
   @override
@@ -23,6 +24,7 @@ class _MockQRepo implements QuestionRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('SolveFillPage', () {
     testWidgets('renders fill page with real stem', (tester) async {
       await tester.pumpWidget(MaterialApp(

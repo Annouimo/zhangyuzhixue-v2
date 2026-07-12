@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_app/domain/assignment_repository.dart';
 import 'package:flutter_app/pages/homework/homework_detail_page.dart';
+import '../../test_setup.dart';
 
 class _MockDetailRepo implements AssignmentRepository {
   final AssignmentDetail? detail;
@@ -37,6 +38,7 @@ class _FailingDetailRepo implements AssignmentRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('HomeworkDetailPage', () {
     testWidgets('shows loading then detail', (tester) async {
       await tester.pumpWidget(

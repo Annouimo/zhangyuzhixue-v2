@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/level_detail_page.dart';
+import '../../test_setup.dart';
 
 class _MockRepo implements UserRepository {
   @override Future<String> levelProgress() async => '50/100';
@@ -24,6 +25,7 @@ class _MockRepo implements UserRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   testWidgets('LevelDetailPage renders progress', (tester) async {
     await tester.pumpWidget(MaterialApp(home: LevelDetailPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();

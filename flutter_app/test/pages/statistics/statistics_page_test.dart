@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/statistics_repository.dart';
 import 'package:flutter_app/pages/statistics/statistics_page.dart';
+import '../../test_setup.dart';
 
 class _MockStatsRepo implements StatisticsRepository {
   @override Future<StatsOverview> getOverview() async => const StatsOverview(totalQuestions: 100, accuracyPercent: 75, streakDays: 5, activeDays: 5);
@@ -14,6 +15,7 @@ class _MockStatsRepo implements StatisticsRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('StatisticsPage', () {
     testWidgets('shows loading then overview cards', (tester) async {
       await tester.pumpWidget(MaterialApp(home: StatisticsPage(statisticsRepository: _MockStatsRepo())));

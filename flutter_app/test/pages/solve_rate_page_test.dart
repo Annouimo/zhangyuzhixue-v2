@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/solve/solve_rate_page.dart';
 import 'package:flutter_app/domain/rating_repository.dart';
+import '../test_setup.dart';
 
 class _MockRatingRepo implements RatingRepository {
   @override Future<Rating> getRating(int questionId) async =>
@@ -10,6 +11,7 @@ class _MockRatingRepo implements RatingRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('SolveRatePage', () {
     testWidgets('renders 3 star ratings', (tester) async {
       await tester.pumpWidget(MaterialApp(

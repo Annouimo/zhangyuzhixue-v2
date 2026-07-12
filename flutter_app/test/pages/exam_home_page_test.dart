@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/exam/exam_home_page.dart';
+import '../test_setup.dart';
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamHomePage', () {
     testWidgets('renders exam home with buttons', (tester) async {
       await tester.pumpWidget(

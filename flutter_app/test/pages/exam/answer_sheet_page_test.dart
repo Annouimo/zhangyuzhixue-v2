@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/answer_sheet_page.dart';
+import '../../test_setup.dart';
 
 class _MockAnswerRepo implements ExamRepository {
   final List<AnswerItem> answers;
@@ -28,6 +29,7 @@ class _MockAnswerRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('AnswerSheetPage', () {
     testWidgets('shows loading then answers', (tester) async {
       await tester.pumpWidget(MaterialApp(home: AnswerSheetPage(examId: 1, examRepository: _MockAnswerRepo(answers: [

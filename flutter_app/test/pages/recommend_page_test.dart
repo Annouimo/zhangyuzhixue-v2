@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/recommend_repository.dart';
 import 'package:flutter_app/pages/recommend_page.dart';
+import '../test_setup.dart';
 
 class _MockRecommendRepo implements RecommendRepository {
   List<RecommendedQuestion> smartList;
@@ -20,6 +21,7 @@ class _MockRecommendRepo implements RecommendRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('RecommendPage', () {
     testWidgets('shows loading then empty when no data', (tester) async {
       await tester.pumpWidget(MaterialApp(home: RecommendPage(

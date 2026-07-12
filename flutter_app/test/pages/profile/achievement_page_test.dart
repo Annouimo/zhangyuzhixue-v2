@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/achievement_repository.dart';
 import 'package:flutter_app/pages/profile/achievement_page.dart';
+import '../../test_setup.dart';
 
 class _MockAchieveRepo implements AchievementRepository {
   @override Future<AchievementSummary> getSummary() async => const AchievementSummary(unlockedCount: 1, totalCount: 5);
@@ -17,6 +18,7 @@ class _MockAchieveRepo implements AchievementRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('AchievementPage', () {
     testWidgets('loads and displays categories from repo', (tester) async {
       await tester.pumpWidget(MaterialApp(home: AchievementPage(achievementRepository: _MockAchieveRepo())));

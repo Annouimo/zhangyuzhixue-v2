@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_favorites_page.dart';
+import '../../test_setup.dart';
 
 class _MockFavRepo implements ExamRepository {
   final List<FavoriteExamSummary> list;
@@ -28,6 +29,7 @@ class _MockFavRepo implements ExamRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('ExamFavoritesPage', () {
     testWidgets('shows loading then list', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamFavoritesPage(examRepository: _MockFavRepo(list: [

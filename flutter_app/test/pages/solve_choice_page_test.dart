@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/solve/solve_choice_page.dart';
 import 'package:flutter_app/domain/question_repository.dart';
+import '../test_setup.dart';
 
 class _MockQRepo implements QuestionRepository {
   @override
@@ -23,6 +24,7 @@ class _MockQRepo implements QuestionRepository {
 }
 
 void main() {
+    setUp(() => setupTestHooks());
   group('SolveChoicePage', () {
     testWidgets('renders choice page with real data', (tester) async {
       await tester.pumpWidget(MaterialApp(
