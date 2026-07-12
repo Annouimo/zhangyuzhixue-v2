@@ -15,12 +15,24 @@ SCREENSHOT_DIR = None                # 在 init 时设置
 
 
 def init(workspace: str):
-    """初始化截图目录（在 docs/auto-audit/screenshots/ 下建日期子目录）"""
+    """初始化截图目录，清理旧截图（只保留最近 3 次运行）"""
     global SCREENSHOT_DIR
     base = os.path.join(workspace, "docs", "auto-audit", "screenshots")
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    SCREENSHOT_DIR = os.path.join(base, date_str)
+    run_label = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    SCREENSHOT_DIR = os.path.join(base, run_label)
     os.makedirs(SCREENSHOT_DIR, exist_ok=True)
+
+    # 清理：只保留按名称排序的最新 3 个目录
+    all_runs = sorted(
+        [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))],
+        reverse=True,
+    )
+    for old_dir in all_runs[3:]:
+        old_path = os.path.join(base, old_dir)
+        for f in os.listdir(old_path):
+            os.remove(os.path.join(old_path, f))
+        os.rmdir(old_path)
+
     return SCREENSHOT_DIR
 
 
