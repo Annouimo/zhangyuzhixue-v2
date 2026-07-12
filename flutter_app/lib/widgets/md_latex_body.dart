@@ -159,11 +159,14 @@ class _BlockMathBuilder extends MarkdownElementBuilder {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
-        child: Math.tex(
-          element.textContent,
-          mathStyle: MathStyle.display,
-          textStyle: TextStyle(
-            fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Math.tex(
+            element.textContent,
+            mathStyle: MathStyle.display,
+            textStyle: TextStyle(
+              fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+            ),
           ),
         ),
       ),

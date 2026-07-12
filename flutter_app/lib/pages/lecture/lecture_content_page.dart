@@ -84,8 +84,10 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   int get _totalBlocks => _currentPage?.blocks.length ?? 0;
   int get _revealedCount => _revealedSet.length;
+  /// 展示用展开数：含始终可见的 blocks[0]
+  int get _displayRevealedCount => _revealedCount + 1;
 
-  bool get _hasUnrevealed => _revealedCount < _totalBlocks - 1;
+  bool get _hasUnrevealed => _displayRevealedCount < _totalBlocks;
   bool get _hasRevealed => _revealedSet.isNotEmpty;
 
   void _onPrev() {
@@ -136,7 +138,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
             LecturePagerWidget(
               currentPage: _pageIndex + 1,
               totalPages: _parsed!.totalPages,
-              revealedCount: _revealedCount,
+              revealedCount: _displayRevealedCount,
               totalBlocks: _totalBlocks,
               onPrev: _onPrev,
               onNext: _onNext,
@@ -223,7 +225,6 @@ class _LectureContentPageState extends State<LectureContentPage> {
       secondChild: Padding(
         padding: const EdgeInsets.only(top: 12),
         child: Container(
-          width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.grey[50],

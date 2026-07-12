@@ -24,7 +24,7 @@ class LecturePagerWidget extends StatelessWidget {
     required this.onNext,
   });
 
-  bool get _canPrev => currentPage > 1 || revealedCount > 0;
+  bool get _canPrev => currentPage > 1 || revealedCount > 1;
   bool get _canNext => currentPage < totalPages || revealedCount < totalBlocks;
 
   @override
