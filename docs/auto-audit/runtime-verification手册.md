@@ -27,34 +27,36 @@
 
 ---
 
-## 核心理念：三步循环，走一段修一段
+## 核心理念：四步闭环，走一段修一段
 
-不再是一次性跑完 35 页再出报告。而是**走查→诊断→修复 循环往复**，直到 74 项排查清单全部 ✅。
+不再是一次性跑完 35 页再出报告。而是**走查→诊断+核实→方案执行→验证 循环往复**，直到 74 项排查清单全部 ✅。
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ ① 用 winnav 逐项走查模块（操作工具组）           │
+│ ① 用 winnav 逐项走查模块                          │
 │    遇到问题记录，遇到崩溃立即暂停                  │
 │         ↓                                        │
-│ ② 用 NDJSON + engine 诊断根因（排查工具组）       │
-│    找到根源，不到表面                                │
+│ ② NDJSON 诊断 + 核实（代码只读一遍）               │
+│    R断言 → 读代码 → 查git history → 对照设计文档   │
+│    → 标注修复类型 → 分解复合问题 → 搜影响点       │
 │         ↓                                        │
-│ ③ 用 fix-batch-workflow 修复（修复工具组）         │
-│    方案→审批→执行→验证→提交                          │
+│ ③ 方案与执行                                      │
+│    出方案（不重读代码）→ 等批准 → 改代码+文档      │
+│    → 测试 → 精确提交 → 状态报告                    │
 │         ↓                                        │
 │ ④ 重新 flutter run → 回到① 验证修复 + 继续走查    │
 └──────────────────────────────────────────────────┘
 ```
 
-### 三组工具
+### 两组工具
 
 | 组别 | 工具 | 角色 |
 |:----:|------|:----:|
 | 🖱️ **操作** | winnav MCP Server（5 个工具） | 截图/OCR/点击/滚动/关闭，驱动 app 走查 |
-| 🔍 **排查** | NDJSON + `audit_engine.py --type R` + server-driven 对比 | 读取日志，做 R12 模式分析，查根因 |
-| 🔧 **修复** | `fix-batch-workflow` skill | 核实问题→出方案→等批准→执行→出报告 |
+| 🔍 **排查+修复** | NDJSON + engine + 内建核实+方案+执行 | 诊断根因→核实→出方案→执行→提交（完整闭环） |
 
-> **Vision 交叉验证：** 暂不启用。winnav 的 OCR 已覆盖视觉需求，NDJSON + server-driven 的数据比对比 AI 视觉更可靠（AI 视觉误判率 >20%）。下一阶段再引入。
+> **Vision 交叉验证：** 暂不启用。winnav 的 OCR 已覆盖视觉需求，NDJSON + server-driven 的数据对比 AI 视觉更可靠（AI 视觉误判率 >20%）。下一阶段再引入。
+> **不再委托 fix-batch-workflow：** 它的核实步骤已合并到 Phase 2（避免重复读代码），方案与执行步骤已合并到 Phase 3。fix-batch-workflow 仍保留供其他途径发现问题时使用。
 
 ---
 
@@ -152,9 +154,11 @@ winnav_close()
 
 ---
 
-### Step 2 — 诊断：NDJSON + engine 查根因
+### Step 2 — 诊断 + 核实（代码只读一遍）
 
-暂停后，**不要猜测根因**，用数据说话：
+暂停后执行以下流程。**Phase 2 既是诊断也是核实，代码只读一遍，Phase 3 不再重新打开文件。**
+
+#### 2a. 跑 R 断言
 
 ```bash
 # 2a. 跑 R 断言（~30s）
@@ -189,29 +193,103 @@ Get-Content "$env:TEMP\zhangyuzhixue_audit.ndjson" | ConvertFrom-Json | Where-Ob
 Get-Content "$env:TEMP\zhangyuzhixue_audit.ndjson" | ConvertFrom-Json | Where-Object cat -eq 'error' | Group-Object src | Select-Object Name, Count | Sort-Object Count -Descending
 ```
 
-**结果** 是一个根因明确的 ❌ 列表（已去重、已归类），进入下一阶段。
+#### 2b. 读代码确认根因
 
----
+打开 Phase 1 记录 ❌ 涉及的文件，确认根因在哪个函数/条件/Widget，**记录文件+行号**。
 
-### Step 3 — 修复：fix-batch-workflow
+#### 2c. 查 git history
 
-按 `fix-batch-workflow` skill 执行：
+对每个 ❌ 跑 `git log --all --oneline --grep=<关键词>`。如发现已有提交涉及该问题：
+- `git show <sha>` 读 diff — 确认修复是否完整（是否只修了一边）
+- 标记结果：`already-fixed` / `partially-fixed` / `needs-fix`
 
-**Phase 1 — 方案阶段（仅对话，不写文件）：**
+#### 2d. 读设计文档对照
 
-1. 对每个 ❌ 核实：读代码、读设计文档、确认根因、搜索 git history 确认是否已有修复
-2. 分解复合问题（一个 ❌ 可能对应多个子问题）
-3. 标注修复类型：`code-only` / `design-sync` / `api-dependent` / `infrastructure`
-4. 输出结构化修改方案（问题→文件→改动→设计文档更新）
-5. **等待你批准**
+对每个 ❌ 打开相关设计文档阅读：
 
-**Phase 2 — 执行阶段（你批准后）：**
+- 代码与设计文档不一致时：**确认哪端更正确**
+  - 代码更正确 → 标记"需更新设计文档"
+  - 设计更正确 → 代码是 bug，正常修
+- 跨文档交叉检查：HTML 原型、API 设计文档、数据库结构文档之间是否自洽？发现不一致时强制停止，等你拍板。
 
-1. 执行所有修复（代码 + 设计文档同步更新）
-2. 跑测试：`dart analyze` + `flutter test`（Flutter 端） / `pytest` + `flake8`（server 端）
-3. 精确 `git add`（只添加本次修复的文件）
-4. 提交
-5. 出状态报告（对话形式）
+#### 2e. 标注修复类型
+
+| 类型 | 含义 |
+|:----:|------|
+| `code-only` | 纯代码改动 |
+| `design-sync` | 需要同步设计文档和代码 |
+| `api-dependent` | 需要服务端新增/修改 API |
+| `infrastructure` | 构建工具链/平台配置问题（排除） |
+| `data-exists-but-not-wired` | 数据在 DAO/Repository 存在但 UI 没消费 |
+| `data-missing` | 数据根本不存在 |
+
+#### 2f. 分解复合问题 + 搜影响点
+
+一个 ❌ 对应多个根因时分解为子问题。涉及字段/端点/表名等命名概念时，`grep -rn '<概念>'` 搜全项目，列消费者。
+
+#### 2g. 输出诊断结果
+
+已核实+已分类+已分解的 ❌ 列表。**这个列表直接进入 Phase 3，不需要重新核实。**
+
+|---
+
+### Step 3 — 方案与执行
+
+不再委托外部 skill。Phase 2 已完成核实（代码已读过），Phase 3 直接出方案。
+
+**Phase 3a — 出方案（仅对话，不写文件）**
+
+基于 Phase 2 的输出，按以下格式出修改方案：
+
+```
+## 修改方案
+
+| # | 问题 | 涉及文件 | 设计文档更新 | 类型 | 说明 |
+|---|------|---------|:----------:|:----:|------|
+| 1 | ... | server/courses/views.py, flutter_app/... | ✅ API设计.md | design-sync | 代码>文档,需同步 |
+| 2 | ... | flutter_app/lib/pages/xxx.dart | — 无需修改 | code-only | 纯 UI 修复 |
+| 3 | ... | — | — | false-alarm | git history:已修复 |
+```
+
+**规则：**
+- 不要因为"更简单"就提交简化方案。简单不是决策依据。
+- 每条修复必须完整，不含 stub / TODO。
+- 设计文档更新列每有一个 ✅，修改计划中必须对应一个 docs/ 行。
+- 涉及命名概念时，把 Phase 2f 搜到的所有消费点一并列在方案中。
+
+**Phase 3b — 等批准**
+
+出方案后停止。不写文件、不执行。等你说了"执行吧"后再进入 Phase 3c。
+
+**Phase 3c — 执行（你批准后）**
+
+1. 按方案列表一次执行所有改动
+2. 设计文档与代码同步更新
+3. `git add` 只加本次修复的文件（精确路径）
+4. `git diff --cached --stat` 检查 staging 区
+
+**Phase 3d — 测试**
+
+```
+Flutter:  dart analyze && flutter test
+Server:   pytest server/scripts/tests/ && flake8 --config .flake8
+```
+
+测试失败则修。不能宣布"部分成功"。
+
+**Phase 3e — 提交**
+
+```bash
+git commit -m "fix: N项问题修复 — <摘要>"
+```
+
+**Phase 3f — 状态报告**
+
+对话形式输出（不写文件），包含：
+- 总览（计划 N 项，已修复 M 项）
+- 逐项明细表（# → 问题 → DONE/FAIL）
+- 测试结果
+- 提交 hash
 
 ---
 
