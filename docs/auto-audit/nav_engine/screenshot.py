@@ -79,13 +79,14 @@ def capture(hwnd: int, page: str, dimension: str = "full") -> str:
     Returns:
         截图文件的绝对路径
     """
-    rect = win32gui.GetWindowRect(hwnd)
+    # 用 ClientToScreen 精确获取客户区屏幕坐标（DPI 自适应）
+    client_origin = win32gui.ClientToScreen(hwnd, (0, 0))
     client_rect = win32gui.GetClientRect(hwnd)
 
     with mss.mss() as sct:
         monitor = {
-            "left": rect[0] + 8,       # 去掉窗口边框
-            "top": rect[1] + 30,        # 去掉标题栏
+            "left": client_origin[0],
+            "top": client_origin[1],
             "width": client_rect[2] - client_rect[0],
             "height": client_rect[3] - client_rect[1],
         }

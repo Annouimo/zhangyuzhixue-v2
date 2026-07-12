@@ -36,18 +36,18 @@ DPI_SCALE = detect_dpi_scale()
 # ── OCR 定位器 ──
 from ocr_locator import find_text, locate
 
-# 窗口在屏幕左上角 (0,0)，客户区偏移量（与 screenshot.capture 保持一致）
-CLIENT_OFFSET_X = int(8 * DPI_SCALE)
-CLIENT_OFFSET_Y = int(30 * DPI_SCALE)
+# 客户区内固定偏移（屏幕坐标通过 ClientToScreen 动态计算）
+BACK_BTN_CLIENT_X = 24  # 返回图标在客户区内的 X（左箭头，AppBar 左上角）
+BACK_BTN_CLIENT_Y = 28  # 返回图标在客户区内的 Y（AppBar 56px，居中≈28）
 
 # 基准窗口尺寸（仅用于越界检查）
 WINDOW_W = int(390 * DPI_SCALE)
 WINDOW_H = int(844 * DPI_SCALE)
 
-# 返回按钮（左箭头图标，无文字）— 在 Flutter AppBar 左上角
-# 客户区内 AppBar 56px，返回图标中心 ≈ (24, 28) 客户区坐标
-BACK_BTN_SCREEN_X = CLIENT_OFFSET_X + int(24 * DPI_SCALE)
-BACK_BTN_SCREEN_Y = CLIENT_OFFSET_Y + int(28 * DPI_SCALE)
+
+def _client_origin(hwnd: int) -> tuple[int, int]:
+    """获取客户区左上角的屏幕坐标（DPI 自适应，替代硬编码 +8/+30）"""
+    return win32gui.ClientToScreen(hwnd, (0, 0))
 
 
 def _check_bounds(x: int, y: int, label: str) -> bool:
@@ -82,8 +82,8 @@ def click_tab(index: int, hwnd: int, page: str = "nav"):
         return
 
     x, y = coord
-    screen_x = CLIENT_OFFSET_X + x
-    screen_y = CLIENT_OFFSET_Y + y
+    ox, oy = _client_origin(hwnd)
+    screen_x, screen_y = ox + x, oy + y
     if not _check_bounds(screen_x, screen_y, f"Tab:{label}"):
         return
     print(f"  [Tab] {label} → ({screen_x}, {screen_y}) 📷")
@@ -98,10 +98,12 @@ def click_text(text: str, hwnd: int, page: str = "nav"):
     - "返回"：Flutter 左箭头图标（无文字），硬编码坐标
     """
     if text == "返回":
-        if not _check_bounds(BACK_BTN_SCREEN_X, BACK_BTN_SCREEN_Y, "返回"):
+        ox, oy = _client_origin(hwnd)
+        bx, by = ox + BACK_BTN_CLIENT_X, oy + BACK_BTN_CLIENT_Y
+        if not _check_bounds(bx, by, "返回"):
             return
-        print(f"  [返回] → ({BACK_BTN_SCREEN_X}, {BACK_BTN_SCREEN_Y}) 📷")
-        pyautogui.click(BACK_BTN_SCREEN_X, BACK_BTN_SCREEN_Y)
+        print(f"  [返回] → ({bx}, {by}) 📷")
+        pyautogui.click(bx, by)
         time.sleep(0.5)
         return
 
@@ -109,8 +111,8 @@ def click_text(text: str, hwnd: int, page: str = "nav"):
     coord = find_text(text, mapping)
     if coord:
         x, y = coord
-        screen_x = CLIENT_OFFSET_X + x
-        screen_y = CLIENT_OFFSET_Y + y
+        ox, oy = _client_origin(hwnd)
+        screen_x, screen_y = ox + x, oy + y
         if _check_bounds(screen_x, screen_y, f"OCR:{text}"):
             print(f"  [点击] {text} → ({screen_x}, {screen_y}) 📷")
             pyautogui.click(screen_x, screen_y)
