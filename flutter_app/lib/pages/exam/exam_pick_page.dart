@@ -100,7 +100,16 @@ class _ExamPickPageState extends State<ExamPickPage> {
               child: Row(children: [
                 Expanded(child: Text('已选 ${_selectedIds.length} 题',
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                Text('test'),
+                SizedBox(
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
+                    child: _saving
+                        ? const SizedBox(width: 20, height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text('确认组卷 (${_selectedIds.length})'),
+                  ),
+                ),
               ]),
             ),
           ]);
