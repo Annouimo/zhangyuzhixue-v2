@@ -13,8 +13,6 @@ import sys
 import time
 import ctypes
 
-import mss
-import numpy as np
 import pyautogui
 import win32gui
 import win32con
@@ -60,38 +58,24 @@ def _check_bounds(x: int, y: int, label: str) -> bool:
     return True
 
 
-def _capture_client(hwnd: int) -> np.ndarray:
-    """截取窗口客户区为 numpy array（内存操作，无文件 I/O）"""
-    rect = win32gui.GetWindowRect(hwnd)
-    client_rect = win32gui.GetClientRect(hwnd)
-    with mss.mss() as sct:
-        monitor = {
-            "left": rect[0] + 8,
-            "top": rect[1] + 30,
-            "width": client_rect[2] - client_rect[0],
-            "height": client_rect[3] - client_rect[1],
-        }
-        return np.array(sct.grab(monitor))
-
-
-def _ocr_screen(hwnd: int) -> dict[str, tuple[int, int]]:
-    """截图当前窗口并 OCR，返回文字→坐标映射（纯内存操作）"""
-    img = _capture_client(hwnd)
-    return locate(img)
+def _ocr_screen(hwnd: int, page: str) -> dict[str, tuple[int, int]]:
+    """截图当前窗口并 OCR，返回文字→坐标映射（截图作为审计轨迹保存）"""
+    fpath = capture(hwnd, page, "ocr")
+    return locate(fpath)
 
 
 # 底部 Tab 标签文字
 _TAB_LABELS = {0: '首页', 1: '推荐', 2: '组卷', 3: '我的'}
 
 
-def click_tab(index: int, hwnd: int):
+def click_tab(index: int, hwnd: int, page: str = "nav"):
     """点击底部 Tab — 实时截图 + OCR 定位"""
     label = _TAB_LABELS.get(index)
     if label is None:
         print(f"  ⚠️ 无效的 Tab index: {index}")
         return
 
-    mapping = _ocr_screen(hwnd)
+    mapping = _ocr_screen(hwnd, page)
     coord = find_text(label, mapping)
     if not coord:
         print(f"  ⚠️ Tab \"{label}\" 未在页面中识别到")
@@ -107,7 +91,7 @@ def click_tab(index: int, hwnd: int):
     time.sleep(0.8)
 
 
-def click_text(text: str, hwnd: int):
+def click_text(text: str, hwnd: int, page: str = "nav"):
     """点击页面上的文字 — 实时截图 + OCR 定位，找不到即报告为 UI 设计问题。
 
     特殊处理：
@@ -121,7 +105,7 @@ def click_text(text: str, hwnd: int):
         time.sleep(0.5)
         return
 
-    mapping = _ocr_screen(hwnd)
+    mapping = _ocr_screen(hwnd, page)
     coord = find_text(text, mapping)
     if coord:
         x, y = coord
@@ -142,9 +126,9 @@ def walk_target(tgt: NavTarget, hwnd: int):
     results = []
     for action, *args in tgt.nav_seq:
         if action == "click_bottom_tab":
-            click_tab(args[0], hwnd)
+            click_tab(args[0], hwnd, tgt.name)
         elif action == "click_text":
-            click_text(args[0], hwnd)
+            click_text(args[0], hwnd, tgt.name)
         elif action == "wait":
             time.sleep(args[0])
         elif action == "screenshot":
