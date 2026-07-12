@@ -91,10 +91,15 @@ REGISTRY = [
         ("click_text", "自主选题"),
         ("click_text", "确认组卷"),
         ("click_text", "开始做题"),
+        ("wait", 1.0),
+        ("click_text", "选项A"),       # 选答案
+        ("wait", 0.3),
+        ("click_text", "提交答案"),   # 提交
+        ("wait", 1.0),               # 等结果
         ("screenshot", "full"),
     ]),
     NavTarget("G3", "SolveFillPage", "填空题解题", parent="SolveChoicePage", nav_seq=[
-        ("click_text", "下一题"),
+        ("click_text", "下一题"),     # 选择题答完后出现
         ("screenshot", "full"),
     ]),
     NavTarget("G3", "SolveStepPage", "步骤题解题", parent="SolveFillPage", nav_seq=[

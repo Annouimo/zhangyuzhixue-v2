@@ -45,7 +45,7 @@ NAV_Y0 = TITLE_BAR + CLIENT_H - NAV_H  # ≈ 750
 NAV_TAB_CENTER_Y = NAV_Y0 + NAV_H // 2  # ≈ 782
 
 # Tab 在底部导航中的水平中心（4 个平均分布）
-TAB_CENTERS = [50, 145, 240, 335]  # (已有 BOTTOM_TAB_X 保持不变)
+TAB_CENTERS = [50, 145, 240, 341]  # Tab 3 原 335 → 341 (四等分 390/8=48.75×7)
 
 # 页面内容区域水平中心
 CONTENT_CENTER_X = LEFT_BORDER + CLIENT_W // 2  # ≈ 195
@@ -168,8 +168,17 @@ CLICK_MAP = {
     # ── ExamQuicklookPage (试卷预览) ──
     "其它答案": (CONTENT_CENTER_X, sy(450)),   # 页面靠下位置
     "答题卡": (CONTENT_CENTER_X, sy(350)),     # "快对答案"按钮区域
+    "自主选题": (CONTENT_CENTER_X, sy(64 + 16 + 15 + 12 + 35 + 8 + 35 + 8 + 17)),  # 比"智能组卷"多一个按钮间距
 
-    # ── SolveChoicePage (解题) ──
+    # ── SolveChoicePage (解题) — 答题流程 ──
+    # options-grid: flex column, gap 8px
+    # 每个 option-btn: padding 12px top, label 28px + text 15px, padding 12px bottom = 67px
+    # 起始 client Y: header(56)+solve-container(16)+meta(~16)+stem(88)+gap(12) ≈ 188
+    "选项A": (CONTENT_CENTER_X, sy(188 + 67 // 2)),
+    "选项B": (CONTENT_CENTER_X, sy(188 + 67 + 8 + 67 // 2)),
+    "选项C": (CONTENT_CENTER_X, sy(188 + (67 + 8) * 2 + 67 // 2)),
+    "选项D": (CONTENT_CENTER_X, sy(188 + (67 + 8) * 3 + 67 // 2)),
+    "提交答案": (CONTENT_CENTER_X, sy(188 + (67 + 8) * 4 + 12 + 12 + 17)),
     "下一题": (CONTENT_CENTER_X, sy(600)),     # done-section "下一题" 按钮
     "评分": (CONTENT_CENTER_X, sy(500)),       # solve-rate 评分按钮
     "解题地图": (CONTENT_CENTER_X, sy(400)),   # 解题地图入口
