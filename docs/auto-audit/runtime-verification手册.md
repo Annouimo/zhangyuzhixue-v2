@@ -91,12 +91,12 @@
 
 **👤 你在 ECS 上执行：**
 
-- [ ] 构建题库数据：`python manage.py build_assets --test && python manage.py build_lectures --test`
-- [ ] 生成邀请码：Admin → `/admin/system/tools/` → 数量 5、有效期 30 天
-- [ ] 创建作业：Admin 中创建 2 份 HomeworkAssignment，assign 给 test_audit
-- [ ] 创建公开组卷：创建 2 份试卷 → 设为公开
-- [ ] 确认讲义数据：调 `GET /api/v1/lectures/courses/` 返回非空
-- [ ] 确认 test_audit 账号存在：Admin 中查 User 表
+- [x] 构建题库数据：`python scripts/build_assets.py --test && python scripts/build_lectures.py --test`
+- [x] 生成邀请码：Admin → `/admin/system/tools/` → 数量 5、有效期 30 天
+- [x] 创建作业：Admin 中创建 2 份 HomeworkAssignment，assign 给 test_audit
+- [x] 创建公开组卷：创建 2 份试卷 → 设为公开
+- [x] 确认讲义数据：调 `GET /api/v1/lectures/courses/` 返回非空
+- [x] 确认 test_audit 账号存在：Admin 中查 User 表
 
 **👤 你本地执行：**
 
