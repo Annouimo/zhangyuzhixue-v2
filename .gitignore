@@ -26,6 +26,7 @@ flutter_app/devtools_options.yaml
 
 # 视觉审计截图
 audit_screenshots/
+docs/auto-audit/screenshots/
 
 # IDE
 .idea/

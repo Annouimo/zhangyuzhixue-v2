@@ -1,12 +1,25 @@
-# 章鱼智学 · 视觉理解审计手册（Type V）
+# 章鱼智学 · 视觉理解审计手册（Type V — RV 扩展模式）
 
-> 版本: 0.3.0 — 方案设计稿（2026-07-12 评审更新）
-> 相关技能: `visual-e2e-audit`
-> 相关审计类型: Type V (Visual Audit) — 与 Type A-G (代码审计) + Type R (运行时日志审计) 并列
+> 版本: 0.3.1 — 已整合为 RV 模式的 Vision 组件（2026-07-12）
+> 相关技能: `runtime-verification`
+> 相关审计类型: **V 不再独立运行，作为 RV（R + Vision）的一部分**
+> 独立入口：❌ 已取消。所有 Vision 检查通过 `--type RV` 或 skill 的“全自动运行时审计”触发。
 
 ---
 
-## Skill 命令（8 条，加载 skill + 执行）
+## Skill 命令（1 条）
+
+```text
+/skill runtime-verification 执行 RV — 全自动运行时审计（走查+NDJSON+Vision），项目目录"D:\Hermes\zhangyuzhixue_app_v2"
+```
+
+## 架构
+
+```
+RV 模式 = walker.py (自动走查) → audit_engine.py --type R (NDJSON断言) → vision_report/ (Vision + 合并)
+                                                                                ↑
+                                                                    visual-audit手册.md 描述此处
+```
 
 加载本 skill 后，直接发送以下消息即可执行对应模式：
 
