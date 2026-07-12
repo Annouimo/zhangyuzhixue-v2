@@ -118,10 +118,15 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   Widget _buildScrollContent() {
     if (_loadingQ) {
-      return const Center(child: LoadingIndicator(message: '搜索中…'));
+      return LayoutBuilder(builder: (ctx, c) {
+        AuditLogger.instance.page('ExamPickPage.debug', {'phase': 'loading', 'w': c.maxWidth, 'h': c.maxHeight});
+        return const Center(child: LoadingIndicator(message: '搜索中…'));
+      });
     }
     if (_questions == null) {
-      return ListView(
+      return LayoutBuilder(builder: (ctx, c) {
+        AuditLogger.instance.page('ExamPickPage.debug', {'phase': 'empty-init', 'w': c.maxWidth, 'h': c.maxHeight});
+        return ListView(
         padding: EdgeInsets.zero,
         children: [
           if (_filterOpts != null)
@@ -143,6 +148,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
           const Center(child: EmptyPlaceholder(icon: '🔍', message: '设置筛选条件后搜索')),
         ],
       );
+        });
     }
     if (_questions!.isEmpty) {
       return ListView(
