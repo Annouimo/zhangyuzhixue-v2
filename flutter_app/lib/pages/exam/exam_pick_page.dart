@@ -86,7 +86,13 @@ class _ExamPickPageState extends State<ExamPickPage> {
     appBar: AppBar(title: const Text('自主选题')),
     body: _loadingOpts
         ? const LoadingIndicator()
-        : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        : LayoutBuilder(builder: (context, constraints) {
+            AuditLogger.instance.page('ExamPickPage.body', {
+              'w': constraints.maxWidth,
+              'h': constraints.maxHeight,
+              'hasInfiniteW': constraints.maxWidth.isInfinite,
+            });
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(child: _buildScrollContent()),
             Container(
               color: Colors.white,
@@ -105,7 +111,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
                 ),
               ]),
             ),
-          ]),
+          ]);
+        },
+      ),
   );
 
   Widget _buildScrollContent() {
