@@ -169,22 +169,52 @@ Type V:   看截图 + 操作 App → 检查"看起来对不对"
                                                    (见 §六 命名/清理规则)
 ```
 
-#### Step 0.4：启动应用
+#### Step 0.4：启动应用（flutter run + 日志捕获）
 
 ```python
-# 启动 flutter_app.exe
-subprocess.Popen([exe_path])
+import subprocess, threading, time, os
 
-# 等待窗口出现
-hwnd = win32gui.FindWindow(None, "章鱼智学")
+project_root = "D:/Hermes/zhangyuzhixue_app_v2/flutter_app"
+log_file = os.path.join(project_root, "..", "audit_screenshots", session_dir, "flutter_run.log")
+
+# 后台启动 flutter run，捕获 stdout/stderr
+proc = subprocess.Popen(
+    ["flutter", "run", "-d", "windows", "--verbose"],
+    cwd=project_root,
+    stdout=open(log_file, "w"),
+    stderr=subprocess.STDOUT,
+)
+
+# 等待应用窗口出现
+hwnd = None
+for _ in range(30):  # 最多等 30s
+    time.sleep(1)
+    hwnd = win32gui.FindWindow(None, "章鱼智学")
+    if hwnd:
+        break
+
+if not hwnd:
+    # 读取日志最后 30 行检查崩溃原因
+    with open(log_file) as f:
+        tail = f.readlines()[-30:]
+    print("ERROR: app window not found. Log tail:")
+    print("".join(tail))
+    # 终止进程
+    proc.terminate()
+    raise RuntimeError("App failed to start")
+
+# 窗口置前 + 调整尺寸
 win32gui.ShowWindow(hwnd, SW_RESTORE)
 win32gui.SetForegroundWindow(hwnd)
-
-# 调整至标准尺寸 1266×627（桌面主流分辨率）
 win32gui.MoveWindow(hwnd, 100, 100, 1266, 627, True)
-
-# 等待渲染稳定
 time.sleep(3)
+```
+
+**后续审计过程中：** 所有 Flutter/Dart 错误会自动写入 `flutter_run.log`。遇到异常时先查日志尾部的 `[ERROR]` / `[FATAL]` 标记。审计结束时关闭进程：
+
+```python
+proc.terminate()
+proc.wait(timeout=5)
 ```
 
 #### Step 0.5：基准截图
@@ -493,10 +523,17 @@ pyautogui.press('escape')
 ### 5.1 目录
 
 ```yaml
-根目录: %TEMP%\zhangyuzhixue_audit_V\
+截图目录（相对于项目根）: audit_screenshots\
+  例: D:\Hermes\zhangyuzhixue_app_v2\audit_screenshots\2026-07-12_1430\
+
 每次审计创建日期子目录:
-  %TEMP%\zhangyuzhixue_audit_V\2026-07-12_1430\   # 格式: YYYY-MM-DD_HHmm
+  audit_screenshots\2026-07-12_1430\   # 格式: YYYY-MM-DD_HHmm
 ```
+
+原因：放在项目内可以：
+- 在报告中引用相对路径（如 `audit_screenshots/2026-07-12_1430/index_V2_count.png`）
+- 便于你随时查看截图
+- gitignore 排除，不污染仓库
 
 ### 5.2 命名规则
 
@@ -521,10 +558,10 @@ exam-pick_V1_empty_state.png         # 组卷页 — 布局 — 空状态
 
 | 时机 | 操作 |
 |------|------|
-| 每次审计开始前 | 删除 7 天前的旧截图目录（`for %%d in (%TEMP%\zhangyuzhixue_audit_V\) do if %%~td < 7天 rd /s /q`） |
+| 每次审计开始前 | 删除 7 天前的旧截图目录（Python: `shutil.rmtree` 遍历 `audit_screenshots/` 下的日期子目录） |
 | 审计正常结束时 | 保留本次截图（供报告引用），不自动删除 |
-| 用户手动清理 | `rd /s /q %TEMP%\zhangyuzhixue_audit_V\` |
-| 截图自动回收 | 超过 30 天未访问的截图在下次审计启动时自动删除 |
+| 用户手动清理 | `rmdir /s /q audit_screenshots` 或直接进文件管理器删除 |
+| 截图自动回收 | 超过 30 天的子目录在下次审计启动时自动删除 |
 
 ### 5.4 空间预估
 

@@ -24,6 +24,9 @@ flutter_app/.pub/
 flutter_app/pubspec.lock
 flutter_app/devtools_options.yaml
 
+# 视觉审计截图
+audit_screenshots/
+
 # IDE
 .idea/
 *.iml
