@@ -33,11 +33,19 @@ def click_tab(index: int):
     time.sleep(0.8)
 
 
+from coordinate_map import get as coord_get
+
+
 def click_text(text: str):
-    """尝试通过 pyautogui.locateOnScreen 点击文字（备用方案：使用坐标猜测）"""
-    # 简化实现：对常见按钮使用固定坐标偏移
-    # 正式使用时应接入 OCR 定位或 OpenCV 模板匹配
-    pyautogui.click(195, 400)  # 中间点，等待实际定位实现
+    """根据设计图推算的坐标点击文字，未找到则 fallback 中心点击"""
+    coord = coord_get(text)
+    if coord:
+        x, y = coord
+        print(f"  [点击] {text} → ({x}, {y}) (来自设计图推算坐标)")
+        pyautogui.click(x, y)
+    else:
+        print(f"  [点击] {text} → (195, 400) ⚠️ fallback: 未知文本坐标")
+        pyautogui.click(195, 400)
     time.sleep(0.5)
 
 
