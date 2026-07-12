@@ -92,7 +92,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
               onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) { _years = y; _regions = r; _conceptTags = ct; _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; })
           : const SizedBox.shrink()),
         if (_filterOpts != null) SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _search, child: const Text('搜索'))))),
+          child: OutlinedButton(onPressed: _search, child: const Text('搜索')))),
         if (_loadingQ) const SliverFillRemaining(child: LoadingIndicator(message: '搜索中…'))
         else if (_questions == null) const SliverFillRemaining(child: EmptyPlaceholder(icon: '🔍', message: '设置筛选条件后搜索'))
         else if (_questions!.isEmpty) const SliverFillRemaining(child: EmptyPlaceholder(icon: '📭', message: '未找到匹配的题目'))
