@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -79,7 +80,12 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
         const SizedBox(height: 16),
         ...p.questions.map((q) => Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Card(child: Padding(padding: const EdgeInsets.all(12), child: MdLatexBody(q.title, fontSize: 14))),
+          child: Card(
+            child: InkWell(
+              onTap: () => context.push('/solve/choice?id=${q.questionId}'),
+              child: Padding(padding: const EdgeInsets.all(12), child: MdLatexBody(q.title, fontSize: 14)),
+            ),
+          ),
         )),
       ],
     );

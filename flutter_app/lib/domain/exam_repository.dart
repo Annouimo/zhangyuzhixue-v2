@@ -91,9 +91,10 @@ class ExamPreviewOther {
 
 /// 组卷中的题目
 class ExamQuestion {
+  final int questionId;
   final String title;
   final String meta;
-  const ExamQuestion({required this.title, required this.meta});
+  const ExamQuestion({required this.questionId, required this.title, required this.meta});
 }
 
 /// 答案项
@@ -269,6 +270,7 @@ class ExamRepository {
       solutionCount: qRows.where((q) => q.questionType == 'solution').length,
       totalCount: qRows.length,
       questions: qRows.map((q) => ExamQuestion(
+        questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',
         meta: q.questionType,
       )).toList(),
@@ -293,6 +295,7 @@ class ExamRepository {
       likeCount: like != null ? 1 : 0,
       collectCount: collect != null ? 1 : 0,
       questions: qRows.map((q) => ExamQuestion(
+        questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',
         meta: q.questionType,
       )).toList(),

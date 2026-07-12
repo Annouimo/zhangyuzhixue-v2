@@ -100,10 +100,15 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         const SizedBox(height: 16),
         ...p.questions.map((q) => Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Card(child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: MdLatexBody(q.title, fontSize: 14),
-          )),
+          child: Card(
+            child: InkWell(
+              onTap: () => context.push('/solve/choice?id=${q.questionId}'),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: MdLatexBody(q.title, fontSize: 14),
+              ),
+            ),
+          ),
         )),
       ],
     );
