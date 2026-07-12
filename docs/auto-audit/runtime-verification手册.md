@@ -1,8 +1,8 @@
 # 章鱼智学 · 运行时审计流程手册
 
 > 对应 Hermes skill：`runtime-verification`
-> 对应审计引擎模块：⑫（运行态审计日志验证）
-> 版本：1.1 | 最后更新：2026-07-12
+> 对应审计引擎模块：⑫（运行态审计日志验证 + R12 模式分析）
+> 版本：1.2 | 最后更新：2026-07-12
 
 ---
 
@@ -198,7 +198,7 @@ python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2 --type R
 python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2
 ```
 
-## 引擎 8 项检查速览
+## 引擎 12 项检查速览
 
 | # | 查什么 | 级别 | 能查出什么问题 |
 |---|-------|:----:|--------------|
@@ -210,6 +210,10 @@ python docs/auto-audit/audit_engine.py D:\Hermes\zhangyuzhixue_app_v2
 | 6 | **服务端 vs 客户端数据对比** | CERTAIN | 服务端 799 题 vs 客户端 0 题 → ❌ |
 | 7 | **运行时有没有抛异常** | CERTAIN | catch 块捕获的错误、全局错误 |
 | 8 | **API 有没有返回 4xx/5xx** | SUSPICIOUS | 哪个端点报错、报了多少次 |
+| 9 | **冷启动时序错误 (R12.1)** | CERTAIN | DatabaseProvider 在 ensureOpen 前被调用 |
+| 10 | **DAO 调用模式 N+1 (R12.2)** | SUSPICIOUS | ProgressDao 被调用 798 次逐个查 |
+| 11 | **API 层注入完整性 (R12.3)** | CERTAIN | ApiClient 的 AuditLogger 未注入 |
+| 12 | **AuditLogger 页面覆盖 (R12.5)** | CERTAIN | 35 页中只有 5 页有 page 日志 |
 
 ---
 

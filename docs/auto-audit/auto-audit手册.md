@@ -95,7 +95,7 @@ python docs/auto-audit/audit_engine.py <workspace_path>
 python docs/auto-audit/audit_engine.py <workspace_path> --type C
 ```
 
-### 检查范围（10 个模块）
+### 检查范围（14 个模块）
 
 | 模块 | 检查内容 | 输出置信度 | 适用类型 |
 |------|---------|-----------|---------|
@@ -109,6 +109,9 @@ python docs/auto-audit/audit_engine.py <workspace_path> --type C
 | ⑧ | **入口初始化链完整性（H0）** — main.dart provider/callback 注册差集 | CERTAIN | A C D |
 | ⑨ | **API 响应类型安全（H1）** — `remote['xxx'] as T` 不安全强转扫描 | SUSPICIOUS | **B** |
 | ⑩ | **跨层算法一致性（H2）** — 服务端与客户端相同算法检测 | LIKELY | **G** |
+| ⑪ | **捆绑 DB 内容完整性（H4）** — assets.db/lectures.db 表名和行数检查 | CERTAIN + SUSPICIOUS | A B |
+| ⑫ | **运行时审计日志验证 + R12 模式分析** — NDJSON 日志 + 服务端预期比对 + R12 模式检测 | CERTAIN + LIKELY + SUSPICIOUS | **R** |
+| ⑬ | **测试质量检查（H7）** — FlutterError.onError、测试尺寸、断言模式多样性 | CERTAIN + SUSPICIOUS | C G |
 
 ### 输出格式
 
@@ -267,6 +270,35 @@ Source → Step1 → Step2 → Step3 → Sink
 - choices → 全部枚举值存在
 - 字段类型 → CharField vs TextField vs IntegerField
 - unique → 匹配
+
+### 4.12 测试质量检查（H7 — 新增模块⑬）
+
+引擎模块⑬执行自动化检查（FlutterError.onError、测试尺寸、断言模式），人工确认 SUSPICIOUS 项：
+
+| 检查项 | 引擎检出方式 | 人工确认内容 |
+|--------|------------|-------------|
+| H7.1 FlutterError.onError | 扫描所有 _test.dart，检查是否设置了 onError | 确认无钩子的测试是否真的不会误判 |
+| H7.2 桌面测试尺寸 | 桌面页面的测试中扫描 MediaQueryData(size:) | 确认手机尺寸是疏忽还是刻意（手机页面测试不需改）|
+| H7.4 断言模式 | 统计 find.text vs find.byType 的比例 | 确认"只查文字"的测试是否需要补充结构断言 |
+
+**人工补充（引擎不完全覆盖）：**
+- **Mock 数据深度（H7.3）** — 打开引擎标记为"返回空列表"的 Mock 类，判断返回空列表是否意味着"布局路径未触发"
+- **合成分析（盲点 E）** — 如果 H7.1+H7.2+H7.3+H7.4 同时触发对同一页面，标记为 ❌ 组合盲点
+
+### 4.13 运行时模式分析（R12 — 模块⑫ 扩展）
+
+引擎模块⑫ 在原有 8 项检查基础上新增 6 项模式分析：
+
+| R12 检查 | 引擎级别 | 查出问题 |
+|----------|:-------:|---------|
+| 冷启动时序错误 | CERTAIN | DatabaseProvider 在 ensureOpen 前被调用 → 初始化顺序问题 |
+| DAO N+1 查询 | SUSPICIOUS | 同一 DAO 被调用 >20 次且全返回 0 行 |
+| API 层注入完整性 | CERTAIN | page 日志存在但 api 日志为零 → AuditLogger 未注入 ApiClient |
+| 页面间异常间隙 | LIKELY | 两页面间 >100 条非页面日志 → 可能卡住 |
+| AuditLogger 页面覆盖 | CERTAIN/LIKELY | 预期 35 页 vs 实际有日志的页数 |
+| null vs 空字符串 | SUSPICIOUS | vt='null' 但 val='' 的字段 → 误报 |
+
+**人工补充：** 对引擎标记的间隙和 N+1 查询，确认是真阻塞还是正常的初始化预加载。
 
 ---
 

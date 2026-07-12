@@ -1129,6 +1129,16 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
     # 运行时错误审查
     _check_runtime_errors(entries, findings, log_path)
 
+    # ═══════════════════════════════════════════════
+    # R12 — 运行时模式分析（R12.1-R12.6）
+    # ═══════════════════════════════════════════════
+    _check_init_timing(entries, findings, log_path)           # R12.1
+    _check_dao_call_pattern(entries, findings, log_path)      # R12.2
+    _check_api_instrumentation(entries, findings, log_path)   # R12.3
+    _check_page_gaps(entries, findings, log_path)             # R12.4
+    _check_logger_injection(entries, findings, log_path, cfg) # R12.5
+    _check_null_vs_empty(entries, findings, log_path)         # R12.6
+
     return findings
 
 
@@ -1292,6 +1302,165 @@ def _check_runtime_errors(entries, findings, log_path):
 
 
 # ═══════════════════════════════════════════════
+# R12 — 运行时模式分析函数 (R12.1-R12.6)
+# ═══════════════════════════════════════════════
+
+def _check_init_timing(entries, findings, log_path):
+    """R12.1 — 冷启动时序错误检测"""
+    init_keywords = ['ensureopen', 'bad state', 'before first calling', 'queryexecutor']
+    for i, e in enumerate(entries):
+        seq_num = e.get('seq', 999)
+        if (e.get('cat') == 'error'
+                and (seq_num < 10 or i < 10)
+                and any(kw in str(e.get('val', '')).lower() for kw in init_keywords)):
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f"❌ 冷启动时序错误: {e.get('src', '?')} → {str(e.get('val', ''))[:80]}",
+                source='R12.1: 初始化时序规则',
+                path=log_path,
+                evidence=f"seq={seq_num}, 错误出现在前10条内 → 初始化链顺序问题",
+            ))
+            break
+
+
+def _check_dao_call_pattern(entries, findings, log_path):
+    """R12.2 — DAO N+1 查询模式检测"""
+    from collections import defaultdict
+    dao_rows = defaultdict(list)
+    for e in entries:
+        if e.get('cat') == 'dao' and e.get('key') == 'rowCount':
+            dao_rows[e.get('src', '?')].append(e.get('val', '0'))
+
+    for src, vals in dao_rows.items():
+        total = len(vals)
+        if total >= 20:
+            zero_count = sum(1 for v in vals if v == '0')
+            if zero_count == total:
+                findings.append(Finding(
+                    certainty=Certainty.SUSPICIOUS,
+                    issue=f"⚠️ 潜在 N+1 查询: {src} 被调用 {total} 次，全部返回 0 行",
+                    source='R12.2: DAO 调用模式规则',
+                    path=log_path,
+                    evidence=f"{total} consecutive zero-row calls — consider batch query",
+                ))
+            elif zero_count > total * 0.8:
+                findings.append(Finding(
+                    certainty=Certainty.SUSPICIOUS,
+                    issue=f"⚠️ 高比例 0 行: {src} 调用 {total} 次，{zero_count} 次返回 0",
+                    source='R12.2: DAO 调用模式规则',
+                    path=log_path,
+                    evidence=f"{zero_count}/{total} calls returned 0 rows",
+                ))
+
+
+def _check_api_instrumentation(entries, findings, log_path):
+    """R12.3 — 零 API 调用检测"""
+    has_page = any(e.get('cat') == 'page' for e in entries)
+    has_api = any(e.get('cat') == 'api' for e in entries)
+    if has_page and not has_api:
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue="❌ API 层零调用: AuditLogger 未注入到 ApiClient 或 app 全程离线",
+            source='R12.3: API 调用存在性规则',
+            path=log_path,
+            evidence="page entries exist but zero api entries — ApiClient interceptor never triggered",
+        ))
+    elif not has_page and not has_api:
+        pass
+    else:
+        api_count = len([e for e in entries if e.get('cat') == 'api'])
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f"✅ API 调用存在 ({api_count} 条日志)",
+            source='R12.3: API 调用存在性规则',
+            path=log_path,
+            evidence=f"cat='api' entries: {api_count}",
+        ))
+
+
+def _check_page_gaps(entries, findings, log_path):
+    """R12.4 — 页面间异常间隙检测"""
+    page_indices = [(i, e) for i, e in enumerate(entries) if e.get('cat') == 'page']
+    for idx in range(len(page_indices) - 1):
+        i_curr, e_curr = page_indices[idx]
+        i_next, e_next = page_indices[idx + 1]
+        gap = i_next - i_curr - 1
+        if gap > 100:
+            gap_entries = entries[i_curr + 1:i_next]
+            dao_count = sum(1 for e in gap_entries if e.get('cat') == 'dao')
+            error_count = sum(1 for e in gap_entries if e.get('cat') == 'error')
+            if dao_count > gap * 0.5:
+                hint = f"密集 DAO 调用 ({dao_count}/{gap}) — 可能 N+1 查询阻塞 UI"
+            elif error_count > 0:
+                hint = f"错误 ({error_count} 条) — 可能卡在异常处理"
+            else:
+                hint = f"其他日志 ({gap} 条)"
+            findings.append(Finding(
+                certainty=Certainty.LIKELY,
+                issue=f"⚠️ 页面间异常间隙: {e_curr.get('src','?')} → {e_next.get('src','?')} 间有 {gap} 条非页面日志",
+                source='R12.4: 页面连续性规则',
+                path=log_path,
+                evidence=hint,
+            ))
+
+
+def _check_logger_injection(entries, findings, log_path, cfg):
+    """R12.5 — AuditLogger 注入完整性检查"""
+    logged_pages = {e.get('src') for e in entries if e.get('cat') == 'page'}
+    expected_pages = set(_EXPECTED_RT_PAGES)
+    missing = expected_pages - logged_pages
+
+    if len(logged_pages) == 0:
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue="❌ AuditLogger 完全未注入: 0 个页面有 page 日志",
+            source='R12.5: AuditLogger 注入完整性规则',
+            path=log_path,
+            evidence=f"Expected {len(expected_pages)} pages, found 0 page entries",
+        ))
+    elif len(missing) > len(expected_pages) * 0.7:
+        findings.append(Finding(
+            certainty=Certainty.CERTAIN,
+            issue=f"❌ AuditLogger 大面积缺失: {len(missing)}/{len(expected_pages)} 页面无日志",
+            source='R12.5: AuditLogger 注入完整性规则',
+            path=log_path,
+            evidence=f"Missing (sample): {sorted(missing)[:8]}",
+        ))
+    elif missing:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f"⚠️ 部分页面无审计日志 ({len(missing)}/{len(expected_pages)})",
+            source='R12.5: AuditLogger 注入完整性规则',
+            path=log_path,
+            evidence=f"Missing: {sorted(missing)[:10]}{' …' if len(missing) > 10 else ''}",
+        ))
+    else:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f"✅ AuditLogger 全覆盖: {len(logged_pages)}/{len(expected_pages)}",
+            source='R12.5: AuditLogger 注入完整性规则',
+            path=log_path,
+            evidence='All expected pages have audit log entries',
+        ))
+
+
+def _check_null_vs_empty(entries, findings, log_path):
+    """R12.6 — vt='null' 误报检测（空字符串 vs null）"""
+    for e in entries:
+        if (e.get('cat') == 'page'
+                and e.get('vt') == 'null'
+                and e.get('val') == ''):
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f"⚠️ 疑似误报 null: {e.get('src','?')}.{e.get('key','?')} 标记为 null 但值为空字符串",
+                source='R12.6: null vs 空字符串规则',
+                path=log_path,
+                evidence="vt='null' but val='' — serializer recorded empty string, not null",
+            ))
+            break
+
+
+# ═══════════════════════════════════════════════
 # ═══════════════════════════════════════════════
 # 报告生成
 # ═══════════════════════════════════════════════
@@ -1360,18 +1529,158 @@ def generate_report(findings: list[Finding], output_path: str = ""):
 
 
 # ═══════════════════════════════════════════════
+# 检查模块 13: 测试质量检查 (H7)
+# ═══════════════════════════════════════════════
+
+def check_test_quality(cfg: Config) -> list[Finding]:
+    """H7 — 测试质量检查
+
+    检查项:
+      H7.1 — FlutterError.onError 是否在所有 widget test 中设置
+      H7.2 — 桌面页面的测试尺寸是否匹配实际运行环境
+      H7.4 — 断言模式是否单一（只查文字不查结构）
+    """
+    findings = []
+    test_dir = os.path.join(cfg.workspace, 'flutter_app', 'test')
+    if not path_exists(test_dir):
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue='⚠️ Flutter test 目录不存在',
+            source='H7: 测试质量规则',
+            path=test_dir,
+            evidence='',
+        ))
+        return findings
+
+    # ── H7.1: FlutterError.onError 钩子检查 ──
+    # 找 test_setup.dart 或全局 setup
+    setup_files = [f for f in os.listdir(test_dir)
+                   if f.endswith('.dart') and f.startswith('test_setup')]
+    has_global_hook = False
+    for sf in setup_files:
+        content = read_file(os.path.join(test_dir, sf))
+        if 'FlutterError.onError' in content:
+            has_global_hook = True
+            break
+
+    # 没找到全局钩子 → 扫描每个 _test.dart
+    test_files = []
+    for dirpath, dirnames, filenames in os.walk(test_dir):
+        for fn in filenames:
+            if fn.endswith('_test.dart'):
+                test_files.append(os.path.join(dirpath, fn))
+
+    if not has_global_hook:
+        # 进一步检查每个测试文件是否自己设了 onError
+        files_with_hook = 0
+        for tf in test_files:
+            content = read_file(tf)
+            if 'FlutterError.onError' in content:
+                files_with_hook += 1
+
+        if files_with_hook == 0 and test_files:
+            findings.append(Finding(
+                certainty=Certainty.CERTAIN,
+                issue=f'❌ FlutterError.onError 未设置: {len(test_files)} 个 widget test 全部无布局断言错误捕获',
+                source='H7.1: 测试基础设施规则',
+                path=os.path.join(test_dir, 'test_setup.dart'),
+                evidence=f'{len(test_files)} test files, 0 with FlutterError.onError',
+            ))
+        elif files_with_hook < len(test_files) and test_files:
+            findings.append(Finding(
+                certainty=Certainty.SUSPICIOUS,
+                issue=f'⚠️ FlutterError.onError 仅部分覆盖: {files_with_hook}/{len(test_files)} 测试文件设置了',
+                source='H7.1: 测试基础设施规则',
+                path=os.path.join(test_dir, 'test_setup.dart'),
+                evidence=f'{files_with_hook}/{len(test_files)} files have FlutterError.onError',
+            ))
+    else:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f'✅ FlutterError.onError 全局钩子已设置 (via {setup_files[0]})',
+            source='H7.1: 测试基础设施规则',
+            path=os.path.join(test_dir, setup_files[0]),
+            evidence='Global setup file defines FlutterError.onError',
+        ))
+
+    # ── H7.2: 桌面页面测试尺寸检查 ──
+    DESKTOP_PAGES = ['main_shell', 'exam_pick', 'exam_auto', 'exam_home',
+                     'index', 'profile', 'recommend']
+    phone_pattern = re.compile(r'MediaQueryData\(size:\s*Size\((\d+),\s*(\d+)\)\)')
+    phone_size_found = False
+    for tf in test_files:
+        fname = os.path.basename(tf)
+        is_desktop = any(fname.startswith(p) for p in DESKTOP_PAGES)
+        if not is_desktop:
+            continue
+        content = read_file(tf)
+        for m in phone_pattern.finditer(content):
+            w, h = int(m.group(1)), int(m.group(2))
+            if w < 800:
+                findings.append(Finding(
+                    certainty=Certainty.CERTAIN,
+                    issue=f'❌ 桌面页面 {fname} 使用手机测试尺寸 {w}x{h}（期望 ≥ 1266）',
+                    source='H7.2: 测试尺寸规则',
+                    path=os.path.relpath(tf, cfg.workspace),
+                    evidence=f'MediaQueryData(size: Size({w}, {h})) — 桌面约束链完全不同',
+                ))
+                phone_size_found = True
+                break
+    if not phone_size_found and test_files:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue='✅ 桌面页面测试尺寸无手机模式误用',
+            source='H7.2: 测试尺寸规则',
+            path=test_dir,
+            evidence='No desktop-page test uses phone-size MediaQuery',
+        ))
+
+    # ── H7.4: 断言模式多样性检查 ──
+    # 检查测试文件是否有 find.byType 等结构断言
+    text_only_count = 0
+    total_with_assert = 0
+    for tf in test_files:
+        content = read_file(tf)
+        has_text_assert = 'find.text' in content or 'find.textContaining' in content
+        has_type_assert = 'find.byType' in content or 'find.byWidget' in content or 'find.byKey' in content
+        if has_text_assert and not has_type_assert:
+            text_only_count += 1
+        if has_text_assert or has_type_assert:
+            total_with_assert += 1
+
+    if total_with_assert > 3 and text_only_count > total_with_assert * 0.5:
+        findings.append(Finding(
+            certainty=Certainty.SUSPICIOUS,
+            issue=f'⚠️ 断言模式单一: {text_only_count}/{total_with_assert} 测试文件只查文字存在性，无结构/类型断言',
+            source='H7.4: 测试断言模式规则',
+            path=test_dir,
+            evidence='Tests only check find.text() — layout errors undetected',
+        ))
+    elif total_with_assert > 0:
+        findings.append(Finding(
+            certainty=Certainty.LIKELY,
+            issue=f'✅ 断言模式多样: {total_with_assert - text_only_count}/{total_with_assert} 测试含结构断言',
+            source='H7.4: 测试断言模式规则',
+            path=test_dir,
+            evidence=f'{text_only_count} text-only, {total_with_assert - text_only_count} with byType/byKey',
+        ))
+
+    return findings
+
+
+# ═══════════════════════════════════════════════
 # 审计类型 → 模块映射
 # ═══════════════════════════════════════════════
 
 TYPE_MODULES = {
     "A": [1, 3, 4, 5, 8, 11],       # 服务端 (+H0 初始化链 + H4 DB内容)
     "B": [1, 3, 4, 5, 6, 9, 11],    # Flutter 数据层 (+H1 API类型安全 + H4 DB内容)
-    "C": [1, 2, 4, 5, 6, 7, 8],     # Flutter UI (+H0 初始化链)
+    "C": [1, 2, 4, 5, 6, 7, 8, 13], # Flutter UI (+H0 初始化链 + H7 测试质量)
     "D": [1, 3, 4, 5, 8],           # 教师端 (+H0 初始化链)
     "E": [1, 3, 4],                  # 部署
     "F": [1, 4],                     # 数据迁移
-    "G": [4, 6, 10],                 # 全项目横切 (+H2 跨层算法)
-    "R": [12],                       # 运行时审计（模块 12 独占）
+    "G": [4, 6, 10, 13],             # 全项目横切 (+H2 跨层算法 + H7 测试质量)
+    "R": [12],                       # 运行时审计（模块 12 + R12 扩展）
 }
 
 MODULE_NAMES = {
@@ -1386,7 +1695,8 @@ MODULE_NAMES = {
     9: "API 响应类型安全 (H1)",
     10: "跨层算法一致性 (H2)",
     11: "捆绑 DB 内容完整性 (H4)",
-    12: "运行态审计日志验证 (Runtime)",
+    12: "运行态审计日志验证 + R12 模式分析 (Runtime)",
+    13: "测试质量检查 (H7)",
 }
 
 def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
@@ -1394,42 +1704,45 @@ def run_modules(cfg: Config, modules: list[int]) -> list[Finding]:
     all_findings = []
 
     if 1 in modules:
-        log("[模块 1/12] 目录/文件存在性...")
+        log("[模块 1/13] 目录/文件存在性...")
         all_findings.extend(check_directory_exists(cfg))
     if 2 in modules:
-        log("[模块 2/12] HTML→Flutter 页面覆盖 + 元素清单提取...")
+        log("[模块 2/13] HTML→Flutter 页面覆盖 + 元素清单提取...")
         all_findings.extend(check_html_to_flutter_pages(cfg))
         all_findings.extend(check_html_element_inventory(cfg))
     if 3 in modules:
-        log("[模块 3/12] pubspec.yaml 资产声明...")
+        log("[模块 3/13] pubspec.yaml 资产声明...")
         all_findings.extend(check_pubspec_assets(cfg))
     if 4 in modules:
-        log("[模块 4/12] 设计文档待完成标记...")
+        log("[模块 4/13] 设计文档待完成标记...")
         all_findings.extend(check_design_doc_pending_markers(cfg))
     if 5 in modules:
-        log("[模块 5/12] 测试文件覆盖率...")
+        log("[模块 5/13] 测试文件覆盖率...")
         all_findings.extend(check_test_coverage(cfg))
     if 6 in modules:
-        log("[模块 6/12] stub/TODO 扫描...")
+        log("[模块 6/13] stub/TODO 扫描...")
         all_findings.extend(check_stubs_and_todos(cfg))
     if 7 in modules:
-        log("[模块 7/12] 导航架构...")
+        log("[模块 7/13] 导航架构...")
         all_findings.extend(check_navigation_architecture(cfg))
     if 8 in modules:
-        log("[模块 8/12] 入口初始化链完整性 (H0)...")
+        log("[模块 8/13] 入口初始化链完整性 (H0)...")
         all_findings.extend(check_init_chain(cfg))
     if 9 in modules:
-        log("[模块 9/12] API 响应类型安全 (H1)...")
+        log("[模块 9/13] API 响应类型安全 (H1)...")
         all_findings.extend(check_api_type_safety(cfg))
     if 10 in modules:
-        log("[模块 10/12] 跨层算法一致性 (H2)...")
+        log("[模块 10/13] 跨层算法一致性 (H2)...")
         all_findings.extend(check_cross_layer_algo(cfg))
     if 11 in modules:
-        log("[模块 11/12] 捆绑 DB 内容完整性 (H4)...")
+        log("[模块 11/13] 捆绑 DB 内容完整性 (H4)...")
         all_findings.extend(check_bundled_db_content(cfg))
     if 12 in modules:
-        log("[模块 12/12] 运行态审计日志验证 (Runtime)...")
+        log("[模块 12/13] 运行态审计日志验证 + R12 模式分析 (Runtime)...")
         all_findings.extend(check_runtime_audit_log(cfg))
+    if 13 in modules:
+        log("[模块 13/13] 测试质量检查 (H7)...")
+        all_findings.extend(check_test_quality(cfg))
 
     return all_findings
 
