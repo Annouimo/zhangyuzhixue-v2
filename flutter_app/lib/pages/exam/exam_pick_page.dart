@@ -111,7 +111,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             ]))));
         }, childCount: _questions!.length)),
       ])),
-      Container(width: double.infinity, color: Colors.white, padding: const EdgeInsets.all(16), child: Row(children: [
+      Container(color: Colors.white, padding: const EdgeInsets.all(16), child: Row(children: [
         Expanded(child: Text('已选 ${_selectedIds.length} 题', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
         ElevatedButton(onPressed: (_selectedIds.isEmpty || _saving) ? null : _save, child: _saving
           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
