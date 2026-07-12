@@ -45,7 +45,7 @@ NAV_Y0 = TITLE_BAR + CLIENT_H - NAV_H  # ≈ 750
 NAV_TAB_CENTER_Y = NAV_Y0 + NAV_H // 2  # ≈ 782
 
 # Tab 在底部导航中的水平中心（4 个平均分布）
-TAB_CENTERS = [50, 145, 240, 341]  # Tab 3 原 335 → 341 (四等分 390/8=48.75×7)
+TAB_CENTERS = [50, 145, 240, 325]  # Tab 3 从 341 改为 325（Flutter 默认 nav padding约 12px）
 
 # 页面内容区域水平中心
 CONTENT_CENTER_X = LEFT_BORDER + CLIENT_W // 2  # ≈ 195
@@ -168,7 +168,7 @@ CLICK_MAP = {
     # ── ExamQuicklookPage (试卷预览) ──
     "其它答案": (CONTENT_CENTER_X, sy(450)),   # 页面靠下位置
     "答题卡": (CONTENT_CENTER_X, sy(350)),     # "快对答案"按钮区域
-    "自主选题": (CONTENT_CENTER_X, sy(64 + 16 + 15 + 12 + 35 + 8 + 35 + 8 + 17)),  # 比"智能组卷"多一个按钮间距
+    "自主选题": (CONTENT_CENTER_X, sy(64 + 16 + 15 + 12 + 35 + 8 + 17)),  # "智能组卷"下方 35+8 后居中
 
     # ── SolveChoicePage (解题) — 答题流程 ──
     # options-grid: flex column, gap 8px
