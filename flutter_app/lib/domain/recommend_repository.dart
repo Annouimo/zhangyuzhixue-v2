@@ -3,6 +3,8 @@ import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/database/database_provider.dart';
+import '../data/database/assets_database.dart' as assets_db;
+import '../data/database/app_database.dart' as user_db;
 import 'preference_repository.dart';
 
 /// 推荐题目
@@ -108,12 +110,33 @@ class _RecommendationEngine {
   static const double decayLambda = 0.099;
   static const int minConfidence = 5;
 
+  /// 智能推荐计算 — 7 次 DB 查询（预加载 + 纯内存计算）
   Future<List<RecommendedQuestion>> compute() async {
+    // ── 一次性预加载全部数据（共 7 次查询）──
     final allQuestions = await _questionDao.getAll();
     if (allQuestions.isEmpty) return [];
 
-    // 冷启动：做题数 < 5 时返回空（批量查询避免 N+1）
-    final attemptedIds = await _progressDao.getAttemptedQuestionIds();
+    final allAttemptRows = await _progressDao.getAllAttempts();
+    final tagLinks = await _questionDao.getAllQuestionTagLinks();
+    final allTags = await _questionDao.getAllConceptTags();
+
+    // tagId → Set<questionId>
+    final tagQuestionMap = <int, Set<int>>{};
+    // questionId → Set<tagId>
+    final questionTagMap = <int, Set<int>>{};
+    for (final link in tagLinks) {
+      tagQuestionMap.putIfAbsent(link.conceptTagId, () => {}).add(link.questionId);
+      questionTagMap.putIfAbsent(link.questionId, () => {}).add(link.conceptTagId);
+    }
+
+    // questionId → List<SubmissionDetailRow>
+    final attemptsMap = <int, List<user_db.SubmissionDetailRow>>{};
+    for (final a in allAttemptRows) {
+      attemptsMap.putIfAbsent(a.questionId, () => []).add(a);
+    }
+
+    // 冷启动：做题数 < 5 时返回空
+    final attemptedIds = allAttemptRows.map((r) => r.questionId).toSet();
     int totalAttempts = 0;
     for (final q in allQuestions) {
       if (attemptedIds.contains(q.id)) totalAttempts++;
@@ -121,31 +144,30 @@ class _RecommendationEngine {
     }
     if (totalAttempts < coldStartThreshold) return [];
 
-    final allTags = await _questionDao.getAllConceptTags();
-    final doneIds = await _getDoneQuestionIds();
+    final doneIds = attemptedIds;
 
-    // 路线A：选填题 — 概念掌握度（含时间衰减 + 小样本收缩）
-    final weakTag = await _findWeakestConcept(allTags);
+    // 路线A：选填题 — 概念掌握度（纯内存）
+    final weakTag = _findWeakestConcept(
+      allTags, tagQuestionMap, attemptsMap,
+    );
     final choiceFill = <RecommendedQuestion>[];
     if (weakTag != null) {
-      final candidates = <dynamic>[];
-      for (final q in allQuestions) {
-        if (doneIds.contains(q.id)) continue;
-        if (q.questionType == 'solution') continue;
-        final tags = await _questionDao.getTagsByQuestion(q.id);
-        if (tags.any((t) => t.id == weakTag.id)) {
-          candidates.add(q);
-        }
-      }
+      final taggedQIds = tagQuestionMap[weakTag.id] ?? {};
+      final candidates = allQuestions.where((q) =>
+        !doneIds.contains(q.id) &&
+        q.questionType != 'solution' &&
+        taggedQIds.contains(q.id)
+      ).toList();
+
       final wrongIds = await _getRecentWrongIds();
       for (final q in candidates) {
         if (choiceFill.length >= 4) break;
-        if (wrongIds.contains((q as dynamic).id)) continue;
+        if (wrongIds.contains(q.id)) continue;
         choiceFill.add(RecommendedQuestion(
-          id: (q as dynamic).id,
-          title: (q.stem as String).length > 80 ? '${(q.stem as String).substring(0, 80)}...' : (q.stem as String),
-          questionType: (q as dynamic).questionType,
-          difficulty: (q as dynamic).difficulty ?? 0.0,
+          id: q.id,
+          title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
+          questionType: q.questionType,
+          difficulty: q.difficulty ?? 0.0,
           recommendReason: '薄弱概念：${weakTag.name}',
           status: 'pending',
         ));
@@ -178,22 +200,24 @@ class _RecommendationEngine {
     return result;
   }
 
-  Future<dynamic> _findWeakestConcept(List<dynamic> allTags) async {
+  /// 纯内存查找最薄弱概念 — 零 DB 查询
+  assets_db.ConceptTagRow? _findWeakestConcept(
+    List<assets_db.ConceptTagRow> allTags,
+    Map<int, Set<int>> tagQuestionMap,
+    Map<int, List<user_db.SubmissionDetailRow>> attemptsMap,
+  ) {
     if (allTags.isEmpty) return null;
     final mastery = <int, double>{};
     final now = DateTime.now();
+
     for (final tag in allTags) {
-      final tagQuestions = <int>[];
-      final allQs = await _questionDao.getAll();
-      for (final q in allQs) {
-        final tags = await _questionDao.getTagsByQuestion(q.id);
-        if (tags.any((t) => t.id == tag.id)) tagQuestions.add(q.id);
-      }
-      if (tagQuestions.isEmpty) { mastery[tag.id] = double.infinity; continue; }
+      final tagQIds = tagQuestionMap[tag.id] ?? {};
+      if (tagQIds.isEmpty) { mastery[tag.id] = double.infinity; continue; }
+
       var weightedCorrect = 0.0;
       var weightedTotal = 0.0;
-      for (final qId in tagQuestions) {
-        for (final a in await _progressDao.getAttempts(qId)) {
+      for (final qId in tagQIds) {
+        for (final a in attemptsMap[qId] ?? []) {
           final daysAgo = now.difference(DateTime.parse(a.createdAt)).inDays;
           final weight = exp(-decayLambda * daysAgo);
           weightedTotal += weight;
@@ -205,19 +229,14 @@ class _RecommendationEngine {
       final shrinkage = weightedTotal / (weightedTotal + minConfidence);
       mastery[tag.id] = 1.0 - (shrinkage * rawMastery + (1 - shrinkage) * 0.5);
     }
-    dynamic best;
+
+    assets_db.ConceptTagRow? best;
     double? bestScore;
     for (final tag in allTags) {
       final score = mastery[tag.id] ?? double.infinity;
       if (best == null || score < bestScore!) { best = tag; bestScore = score; }
     }
     return best;
-  }
-
-  Future<Set<int>> _getDoneQuestionIds() async {
-    final attempted = await _progressDao.getAttemptedQuestionIds();
-    final available = await _questionDao.getAll();
-    return available.map((q) => q.id).where((id) => attempted.contains(id)).toSet();
   }
 
   Future<Set<int>> _getRecentWrongIds() async {

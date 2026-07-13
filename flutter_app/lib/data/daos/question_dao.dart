@@ -104,6 +104,13 @@ class QuestionDao {
     return rows;
   }
 
+  /// 一次读取全部 question_concept_tag 链接，返回 [questionId, conceptTagId] 行
+  Future<List<db.QuestionConceptTagRow>> getAllQuestionTagLinks() async {
+    final rows = await _db.select(_db.questionConceptTags).get();
+    AuditLogger.instance.dao('QuestionDao.getAllQuestionTagLinks', rows.length, {});
+    return rows;
+  }
+
   Future<List<db.ConceptTagRow>> getTagsByQuestion(int questionId) async {
     final links = await (_db.select(_db.questionConceptTags)
       ..where((t) => t.questionId.equals(questionId))).get();

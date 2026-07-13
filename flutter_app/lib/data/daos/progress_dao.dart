@@ -139,6 +139,13 @@ class ProgressDao {
     return result.isNotEmpty;
   }
 
+  /// 一次读取全部 submission_details，按 questionId 分组
+  Future<List<db.SubmissionDetailRow>> getAllAttempts() async {
+    final rows = await _db.select(_db.submissionDetails).get();
+    AuditLogger.instance.dao('ProgressDao.getAllAttempts', rows.length, {});
+    return rows;
+  }
+
   /// 批量查询哪些题目有做题记录 — 替代 N+1 的逐条 hasAttempt
   Future<Set<int>> getAttemptedQuestionIds() async {
     final rows = await _db.select(_db.submissionDetails).get();
