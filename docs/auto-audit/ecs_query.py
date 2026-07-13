@@ -12,6 +12,7 @@
     python ecs_query.py dbshell                     # 交互式数据库控制台
     python ecs_query.py models <model_name>         # 查模型字段定义
     python ecs_query.py files [path_pattern]        # 列服务器文件
+    python ecs_query.py verify <模块号>              # 验证模块所有动态数据（基于 HTML data-db 标记）
 """
 
 import json
@@ -322,6 +323,36 @@ def main():
         elif cmd == "files":
             pattern = sys.argv[2] if len(sys.argv) > 2 else "*"
             result = cmd_files(pattern)
+        elif cmd == "verify":
+            if len(sys.argv) < 3:
+                print("用法: python ecs_query.py verify <模块号>")
+                return
+            mod = int(sys.argv[2])
+            as_json = "--json" in sys.argv
+            from data_db_verify import verify
+            result = verify(mod)
+            if as_json:
+                import json
+                print(json.dumps(result, ensure_ascii=False, indent=2))
+                return
+            print(f'模块 {mod} — 数据验证报告')
+            print('=' * 50)
+            for fn, items in result["pages"].items():
+                print(f'\n📄 {fn}')
+                for it in items:
+                    v = it["server_value"]
+                    if isinstance(v, list):
+                        print(f'  {it["path"]}: [{len(v)} 项]')
+                        for x in v[:3]:
+                            s = str(x)
+                            print(f'    - {s[:80]}')
+                        if len(v) > 3:
+                            print(f'    ... {len(v)-3} more')
+                    elif isinstance(v, dict):
+                        print(f'  {it["path"]}: {json.dumps(v, ensure_ascii=False)[:80]}')
+                    else:
+                        print(f'  {it["path"]}: {v}')
+            return
         else:
             print(f"未知命令: {cmd}")
             print(__doc__.strip())
