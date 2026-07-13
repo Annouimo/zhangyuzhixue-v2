@@ -127,6 +127,14 @@ class QuestionDao {
     return rows;
   }
 
+  Future<db.KnowledgeCardRow?> getKnowledgeCardByTitle(String title) async {
+    final q = _db.select(_db.knowledgeCards)
+      ..where((t) => t.title.equals(title));
+    final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('QuestionDao.getKnowledgeCardByTitle', result != null ? 1 : 0, {'title': title});
+    return result;
+  }
+
   Future<db.MetaRow?> getMeta() async {
     final row = await _db.select(_db.meta).getSingleOrNull();
     AuditLogger.instance.dao('QuestionDao.getMeta', row != null ? 1 : 0, {});

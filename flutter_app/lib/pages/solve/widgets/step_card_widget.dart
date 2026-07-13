@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../domain/progress_repository.dart' as progress;
 import '../../../widgets/md_latex_body.dart';
+import '../../../data/daos/question_dao.dart';
+import '../../../data/database/database_provider.dart';
 import 'cooling_timer.dart';
 import 'feedback_buttons.dart';
 import 'knowledge_card_dialog.dart';
@@ -74,6 +76,17 @@ class _StepCardWidgetState extends State<StepCardWidget> {
     widget.onFeedback?.call(type);
   }
 
+  Future<void> _showKnowledgeCard(BuildContext context, String tag) async {
+    final dao = QuestionDao(DatabaseProvider().assetsDb);
+    final card = await dao.getKnowledgeCardByTitle(tag);
+    if (!context.mounted) return;
+    KnowledgeCardDialog.show(
+      context,
+      title: tag,
+      content: card?.content ?? '知识卡片：$tag',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -107,7 +120,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             ...widget.step.cardTitles.take(2).map((tag) => Padding(
               padding: const EdgeInsets.only(left: 4),
               child: GestureDetector(
-                onTap: () => KnowledgeCardDialog.show(context, title: tag, content: '知识卡片：$tag'),
+                onTap: () => _showKnowledgeCard(context, tag),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(

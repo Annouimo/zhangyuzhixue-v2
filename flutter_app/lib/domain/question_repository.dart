@@ -101,7 +101,7 @@ class QuestionRepository {
       }
     }
 
-    // 答案与解析（选填题直读 sub_question.answer + explanation）
+    // 答案与解析（选填题直读 sub_question.answer + explanation，回退到 solution_step.content）
     String? answer;
     String? explanation;
     if (q.questionType == 'choice' || q.questionType == 'fill') {
@@ -109,6 +109,15 @@ class QuestionRepository {
       if (subs.isNotEmpty) {
         answer = subs.first.answer;
         explanation = subs.first.explanation;
+        if ((explanation ?? '').isEmpty) {
+          try {
+            final methods = await _dao.getMethods(subs.first.id);
+            if (methods.isNotEmpty) {
+              final steps = await _dao.getSteps(methods.first.id);
+              if (steps.isNotEmpty) explanation = steps.first.content;
+            }
+          } catch (_) {}
+        }
       }
     }
 
