@@ -206,7 +206,7 @@ class ExamRepository {
 
   // ── 发现组卷 ──
   Future<List<ExploreExamSummary>> getExploreList() async {
-    final rows = await _examDao.listCreated();
+    final rows = await _examDao.listPublic();
     final futures = rows.map((r) async {
       final like = await _examDao.getLike(r.id);
       final collect = await _examDao.getCollect(r.id);

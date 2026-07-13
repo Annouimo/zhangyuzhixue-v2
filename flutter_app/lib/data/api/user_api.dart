@@ -28,4 +28,10 @@ class UserApi {
     final res = await _client.dio.post('/user/checkin/');
     return res.data['data'] as Map<String, dynamic>;
   }
+
+  /// 待办作业列表（含 deadline 信息）
+  Future<Map<String, dynamic>> pendingAssignments() async {
+    final res = await _client.dio.get('/user/pending-assignments/');
+    return res.data['data'] as Map<String, dynamic>;
+  }
 }

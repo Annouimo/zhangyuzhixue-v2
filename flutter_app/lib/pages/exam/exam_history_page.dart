@@ -63,6 +63,14 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     }
   }
 
+  String _formatTime(String iso) {
+    try {
+      return iso.substring(0, 16).replaceFirst('T', ' ');
+    } catch (_) {
+      return iso;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('我的组卷')),
@@ -94,7 +102,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                       children: [
                         Text(e.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
-                        Text('创建于 ${e.createdAt}',
+                        Text('创建于 ${_formatTime(e.createdAt)}',
                           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                       ],
                     ),

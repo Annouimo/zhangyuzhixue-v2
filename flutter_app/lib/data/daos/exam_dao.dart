@@ -15,6 +15,15 @@ class ExamDao {
     return rows;
   }
 
+  Future<List<db.CustomPaperRow>> listPublic() async {
+    final q = _db.select(_db.customPapers)
+      ..where((t) => t.isPublic.equals(1))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]);
+    final rows = await q.get();
+    AuditLogger.instance.dao('ExamDao.listPublic', rows.length, {});
+    return rows;
+  }
+
   Future<db.CustomPaperRow?> getById(int id) async {
     final q = _db.select(_db.customPapers)..where((t) => t.id.equals(id));
     final result = await q.getSingleOrNull();

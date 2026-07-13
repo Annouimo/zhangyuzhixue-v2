@@ -18,6 +18,7 @@ from accounts.serializers import (
     UserUpdateSerializer,
 )
 from system.models import PointsTransaction
+from courses.models import ClassCourseAssignment
 
 # ── 统一响应格式 ──────────────────────────────────────────────
 
@@ -406,4 +407,64 @@ def level_percentile_view(request):
         'title': title,
         'total_xp': my_total,
         'level_percentile': percentile,
+    })
+
+
+# ── 待办作业 ─────────────────────────────────────────────────
+
+
+@extend_schema(
+    responses={200: OpenApiResponse(description='待办作业列表')},
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def pending_assignments_view(request):
+    """当前学生班级的待办作业列表（含 deadline 信息）"""
+    if not hasattr(request.user, 'student'):
+        return _err(40003, '仅学生可查看待办作业')
+
+    student = request.user.student
+    class_group_id = student.class_group_id
+    if class_group_id is None:
+        return _ok(data={
+            'accessible_course_ids': [],
+            'assignments': [],
+        })
+
+    from django.utils import timezone
+    today = timezone.localdate()
+
+    ccas = ClassCourseAssignment.objects.filter(
+        class_course__class_group_id=class_group_id,
+        is_active=True,
+    ).select_related(
+        'assignment', 'class_course__course',
+    )
+
+    accessible_course_ids = set()
+    assignments = []
+    for cca in ccas:
+        course_id = cca.class_course.course_id
+        accessible_course_ids.add(course_id)
+
+        deadline_remaining = None
+        if cca.deadline:
+            delta = (cca.deadline - today).days
+            deadline_remaining = max(delta, 0)
+
+        q_count = cca.assignment.assignment_questions.count()
+
+        assignments.append({
+            'id': cca.assignment.id,
+            'title': cca.assignment.title,
+            'course_id': course_id,
+            'course_name': cca.class_course.course.name,
+            'total_count': q_count,
+            'deadline': cca.deadline.isoformat() if cca.deadline else None,
+            'deadline_remaining': deadline_remaining,
+        })
+
+    return _ok(data={
+        'accessible_course_ids': sorted(accessible_course_ids),
+        'assignments': assignments,
     })

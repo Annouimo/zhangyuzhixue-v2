@@ -1,6 +1,9 @@
 import '../data/daos/assignment_dao.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/api/user_api.dart';
+import '../data/api/api_client.dart';
+import '../data/prefs/app_prefs.dart';
 
 /// 作业摘要
 class AssignmentSummary {
@@ -57,31 +60,96 @@ class AssignmentDetail {
   });
 }
 
-/// 作业 Repository — 跨 3 库查询
+/// 作业 Repository — 跨 3 库查询 + API
 ///
 /// 依赖：
 /// - AssignmentDao (lectures 库) — 作业定义
 /// - ProgressDao (user 库) — 答题进度
 /// - QuestionDao (assets 库) — 题号/题型
+/// - UserApi — 待办作业 API（含班级过滤 + deadline）
 class AssignmentRepository {
   final AssignmentDao _assignmentDao;
   final ProgressDao _progressDao;
   final QuestionDao _questionDao;
+  final UserApi _userApi;
 
-  AssignmentRepository(this._assignmentDao, this._progressDao, this._questionDao);
+  AssignmentRepository(this._assignmentDao, this._progressDao, this._questionDao,
+      {UserApi? userApi})
+      : _userApi = userApi ?? UserApi(ApiClient());
 
   Future<List<AssignmentSummary>> getPending() async {
+    // 优先走 API（含班级过滤 + deadline）
+    try {
+      final data = await _userApi.pendingAssignments();
+      final accessibleIds = (data['accessible_course_ids'] as List)
+          .cast<int>();
+      if (accessibleIds.isNotEmpty) {
+        try {
+          await AppPrefs().setAccessibleCourseIds(accessibleIds);
+        } catch (_) {
+          // AppPrefs 未初始化，静默跳过
+        }
+      }
+
+      final rawList = data['assignments'] as List;
+      final attempted = await _progressDao.getAttemptedQuestionIds();
+
+      // 预加载所有 question IDs（避免 N+1）
+      final allQids = <int, List<int>>{};
+      for (final r in rawList) {
+        final id = r['id'] as int;
+        allQids[id] = await _assignmentDao.getQuestionIds(id);
+      }
+
+      final result = <AssignmentSummary>[];
+      for (final r in rawList) {
+        final id = r['id'] as int;
+        final totalCount = r['total_count'] as int;
+        final deadlineRemaining = r['deadline_remaining'] as int?;
+        final qIds = allQids[id] ?? [];
+
+        var doneCount = 0;
+        for (final qid in qIds) {
+          if (attempted.contains(qid)) doneCount++;
+        }
+
+        result.add(AssignmentSummary(
+          id: id,
+          title: r['title'] as String,
+          courseName: r['course_name'] as String? ?? '',
+          doneCount: doneCount,
+          totalCount: totalCount,
+          deadlineDays: deadlineRemaining ?? 0,
+          status: doneCount > 0
+              ? (doneCount == totalCount ? 'completed' : 'in_progress')
+              : 'pending',
+        ));
+      }
+      return result;
+    } catch (_) {
+      // API 失败 → 回退本地查询
+      return _getPendingLocal();
+    }
+  }
+
+  /// 本地回退方案（无 deadline 信息，accessibleCourseIds 过滤）
+  Future<List<AssignmentSummary>> _getPendingLocal() async {
     final rows = await _assignmentDao.listAll();
-    // 批量查询已做题 ID，避免 N+1
+    final accessibleIds = _safeAccessibleIds();
     final attempted = await _progressDao.getAttemptedQuestionIds();
     final result = <AssignmentSummary>[];
     for (final r in rows) {
+      // 用 accessibleCourseIds 过滤
+      if (accessibleIds.isNotEmpty && r.courseId != null &&
+          !accessibleIds.contains(r.courseId)) {
+        continue;
+      }
+
       final qLinks = await _assignmentDao.getQuestions(r.id);
       final courseName = r.courseId != null
           ? (await _assignmentDao.getCourseName(r.courseId!)) ?? ''
           : '';
 
-      // 统计已做题数（内存判断，无 DB 调用）
       var doneCount = 0;
       for (final ql in qLinks) {
         if (attempted.contains(ql.questionId)) doneCount++;
@@ -93,7 +161,7 @@ class AssignmentRepository {
         courseName: courseName,
         doneCount: doneCount,
         totalCount: qLinks.length,
-        deadlineDays: 0,  // 见下方说明
+        deadlineDays: 0,  // 本地回退无 deadline 信息
         status: doneCount > 0 ? (doneCount == qLinks.length ? 'completed' : 'in_progress') : 'pending',
       ));
     }
@@ -113,7 +181,6 @@ class AssignmentRepository {
     var doneCount = 0;
     final questions = <QuestionSummary>[];
     for (final ql in qLinks) {
-      // 题号/题型
       String number = '', questionType = '';
       try {
         final q = await _questionDao.getById(ql.questionId);
@@ -123,7 +190,6 @@ class AssignmentRepository {
         }
       } catch (_) {}
 
-      // 进度（内存判断 + 仅对已做题查最新记录）
       final status = attempted.contains(ql.questionId)
           ? await _questionStatusDetail(ql.questionId)
           : 'pending';
@@ -155,4 +221,13 @@ class AssignmentRepository {
   }
 
   Future<int> pendingCount() => _assignmentDao.count();
+
+  /// AppPrefs 未初始化时安全返回空列表
+  List<int> _safeAccessibleIds() {
+    try {
+      return AppPrefs().accessibleCourseIds;
+    } catch (_) {
+      return [];
+    }
+  }
 }
