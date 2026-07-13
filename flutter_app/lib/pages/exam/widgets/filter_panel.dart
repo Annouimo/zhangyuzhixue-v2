@@ -45,10 +45,10 @@ class FilterPanelState extends State<FilterPanel> {
   double _diffMin = 0, _diffMax = 10;
   double _calcMin = 0, _calcMax = 10;
 
-  final _sourceExpanded = true;
-  final _conceptExpanded = true;
-  final _knowledgeExpanded = true;
-  final _diffExpanded = true;
+  bool _sourceExpanded = true;
+  bool _conceptExpanded = true;
+  bool _knowledgeExpanded = true;
+  bool _diffExpanded = true;
 
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
@@ -143,7 +143,9 @@ class FilterPanelState extends State<FilterPanel> {
               ],
             ),
           ),
-        _buildSection('按来源筛选', _sourceExpanded, [
+        _buildSection('按来源筛选', _sourceExpanded, () {
+          setState(() => _sourceExpanded = !_sourceExpanded);
+        }, [
           _buildChipGroup('年份', widget.yearOptions, _selectedYears),
           const SizedBox(height: 8),
           _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
@@ -154,18 +156,24 @@ class FilterPanelState extends State<FilterPanel> {
         ]),
         const SizedBox(height: 8),
         if (widget.conceptTagOptions.isNotEmpty)
-          _buildSection('按概念标签筛选', _conceptExpanded, [
+          _buildSection('按概念标签筛选', _conceptExpanded, () {
+            setState(() => _conceptExpanded = !_conceptExpanded);
+          }, [
             _buildChipGroup('', widget.conceptTagOptions, _selectedConceptTags),
           ]),
         if (widget.conceptTagOptions.isNotEmpty)
           const SizedBox(height: 8),
         if (widget.knowledgeCardOptions.isNotEmpty)
-          _buildSection('按知识卡片筛选', _knowledgeExpanded, [
+          _buildSection('按知识卡片筛选', _knowledgeExpanded, () {
+            setState(() => _knowledgeExpanded = !_knowledgeExpanded);
+          }, [
             _buildChipGroup('', widget.knowledgeCardOptions, _selectedKnowledgeCards),
           ]),
         if (widget.knowledgeCardOptions.isNotEmpty)
           const SizedBox(height: 8),
-        _buildSection('按难度/计算量筛选', _diffExpanded, [
+        _buildSection('按难度/计算量筛选', _diffExpanded, () {
+          setState(() => _diffExpanded = !_diffExpanded);
+        }, [
           DifficultySlider(
             label: '难度范围', min: 0, max: 10,
             lower: _diffMin, upper: _diffMax,
@@ -184,12 +192,12 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
-  Widget _buildSection(String title, bool expanded, List<Widget> children) {
+  Widget _buildSection(String title, bool expanded, VoidCallback onToggle, List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         InkWell(
-          onTap: () {}, // 折叠功能预留
+          onTap: onToggle,
           child: Row(
             children: [
               Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
