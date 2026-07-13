@@ -94,10 +94,59 @@
 
 ---
 
-## 三者的协作关系
+## 四、竞品心态审计
+
+**skill 名：** `competitive-audit`
+**定位：** 预设每段非固定文字是错的，上服务器证伪才能放行。以竞争者的心态挑刺，发现 7 条 bug 后暂停。
+
+| 项目 | 内容 |
+|:----|:------|
+| 宪法规则 | 1) 有罪推定：所有非固定文字预设为错，ecs_query 验证才能放行；2) 无跳过机制；3) 7 bug 暂停；4) 🔴 立即停；5) vision 仲裁；6) 不预读后续步骤 |
+| 输入 | 无（自动走查 Flutter App） |
+| 输出 | `docs/auto-audit/审计日志/competitive_audit_<日期>.json` |
+| 何时用 | 你想系统性地以竞品心态扫描整个 App，不放过任何可疑数据 |
+
+**特有机制：**
+
+| 机制 | 说明 |
+|:----|:------|
+| 有罪推定 | 看到数字（"6项未完成""共0题"）→ 预设是错的 → 查服务器 → 证伪才能放行 |
+| 7 bug 暂停 | ❌+🔴+🟡 累计 7 条 → 立即暂停，输出阶段性报告，等用户批示 |
+| vision 仲裁 | 怀疑工具误报 → snap → `vision_analyze(screenshot)` → 模型判断 |
+| 冷却感知 | 解题页用 OCR 检测"还剩 X 秒"文字消失作为信号，不固定 sleep |
+| OCR 容差 | 空格/标点/全半角差异忽略 |
+| 步骤链 | 8 步递进，每步末尾指向下一步，agent 不预读 |
+
+**步骤链一览：**
 
 ```
-你手动走查
+SKILL.md
+ └─→ .hermes/tmp/competitive-audit/step-1-init.md     # 初始化 + 确认用户
+       └─→ step-2-home.md                               # 首页走查
+             └─→ step-3-homework.md                     # 待办作业列表
+                   └─→ step-4-solve.md                   # 解题流程（冷却感知 + vision 仲裁）
+                         └─→ step-5-recommend.md         # 推荐页
+                               └─→ step-6-exam.md        # 组卷（含 🔴 隐私检查）
+                                     └─→ step-7-profile.md  # 我的页
+                                           └─→ step-8-finalize.md  # 汇总输出
+```
+
+**与 manual-audit-recorder 的区别：**
+
+| 维度 | manual-audit-recorder | competitive-audit |
+|:----|:---------------------|:-----------------|
+| 角色 | 记录员（你指挥，它记录） | 审计员（自主走查，主动找茬） |
+| 心态 | 中性 | 竞争者——预设每段文字是错的 |
+| 暂停 | 你手动说停 | 发现 7 bug 自动暂停 |
+| 仲裁 | 无 | vision_analyze 辅助判断 |
+| 输入 | 你给操作清单 | 无（全自动） |
+
+---
+
+## 四者的协作关系
+
+```
+你手动走查（一次性清单）
     │
     ▼
 manual-audit-recorder     ← 你指挥，agent 记录
@@ -114,6 +163,12 @@ fix-batch-workflow         ← 拿到问题列表，核实→方案→执行
       runtime-diagnosis-tools  ← 用户手动加载，深入排查
          │
          └─ 诊断结果 → 回到 fix-batch-workflow 继续
+
+competitive-audit            ← 替代手动走查，全自动挑刺
+    │
+    │ 输出 JSON（格式与 manual-audit-recorder 兼容）
+    ▼
+fix-batch-workflow           ← 直接进入修复流程
 ```
 
 ---
