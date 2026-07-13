@@ -34,6 +34,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   double _targetDifficulty = 5;
   bool _generating = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
+  Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   PoolStats? _poolStats;
 
@@ -169,7 +170,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       final filters = SearchFilters(
         name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
-        knowledgeCards: [], diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
       final stats = await _repo.getPoolStats(filters);
       if (mounted) setState(() => _poolStats = stats);
@@ -183,8 +187,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
         name: _nameController.text, choiceCount: _choiceCount, fillCount: _fillCount,
         solutionCount: _solutionCount, targetDifficulty: _targetDifficulty,
         years: _years.toList(), regions: _regions.toList(),
-        conceptTags: _conceptTags.toList(), knowledgeCards: [],
+        conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
       final paperId = await _repo.confirm(filters);
       if (!mounted) return;
@@ -238,6 +244,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         onLoadPreference: _loadPreference,
                         onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) async {
                           setState(() { _years = y; _regions = r; _conceptTags = ct;
+                            _selectedTypes = t; _selectedExamTypes = et; _selectedKnowledgeCards = kc;
                             _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; });
                           _updatePoolStats();
                         },

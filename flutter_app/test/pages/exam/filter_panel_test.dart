@@ -22,7 +22,7 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
         body: FilterPanel(yearOptions: [], regionOptions: [], conceptTagOptions: ['函数', '三角函数']),
       )));
-      expect(find.text('概念标签'), findsOneWidget);
+      expect(find.text('按概念标签筛选'), findsOneWidget);
       expect(find.text('函数'), findsOneWidget);
       expect(find.text('三角函数'), findsOneWidget);
     });

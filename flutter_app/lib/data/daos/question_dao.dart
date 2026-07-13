@@ -32,6 +32,8 @@ class QuestionDao {
     double? diffMin, double? diffMax,
     double? calcMin, double? calcMax,
     String? questionType, int? limit,
+    List<String>? conceptTagNames, List<String>? knowledgeCardNames,
+    List<String>? examTypes, List<String>? questionTypes,
   }) async {
     final q = _db.select(_db.questions);
     if (years != null && years.isNotEmpty) q.where((t) => t.year.isIn(years));
@@ -41,9 +43,46 @@ class QuestionDao {
     if (calcMin != null) q.where((t) => t.calculation.isBiggerOrEqual(Variable(calcMin)));
     if (calcMax != null) q.where((t) => t.calculation.isSmallerOrEqual(Variable(calcMax)));
     if (questionType != null) q.where((t) => t.questionType.equals(questionType));
+    if (questionTypes != null && questionTypes.isNotEmpty) q.where((t) => t.questionType.isIn(questionTypes));
+    if (examTypes != null && examTypes.isNotEmpty) q.where((t) => t.examType.isIn(examTypes));
     if (limit != null) q.limit(limit);
-    final rows = await q.get();
-    AuditLogger.instance.dao('QuestionDao.search', rows.length, {'years': years?.length, 'regions': regions?.length, 'limit': limit});
+    var rows = await q.get();
+
+    // 内存过滤：概念标签
+    if (conceptTagNames != null && conceptTagNames.isNotEmpty) {
+      final tagRows = _db.select(_db.conceptTags)
+        ..where((t) => t.name.isIn(conceptTagNames));
+      final tagIds = (await tagRows.get()).map((t) => t.id).toSet();
+      if (tagIds.isNotEmpty) {
+        final links = await (_db.select(_db.questionConceptTags)
+          ..where((t) => t.conceptTagId.isIn(tagIds))).get();
+        final questionIds = links.map((l) => l.questionId).toSet();
+        rows = rows.where((r) => questionIds.contains(r.id)).toList();
+      } else {
+        return []; // 选中的概念标签在 DB 中不存在 → 空结果
+      }
+    }
+
+    // 内存过滤：知识卡片
+    if (knowledgeCardNames != null && knowledgeCardNames.isNotEmpty) {
+      final kcRows = _db.select(_db.knowledgeCards)
+        ..where((t) => t.title.isIn(knowledgeCardNames));
+      final kcIds = (await kcRows.get()).map((k) => k.id).toSet();
+      if (kcIds.isNotEmpty) {
+        final links = await (_db.select(_db.questionKnowledgeCards)
+          ..where((t) => t.knowledgeCardId.isIn(kcIds))).get();
+        final questionIds = links.map((l) => l.questionId).toSet();
+        rows = rows.where((r) => questionIds.contains(r.id)).toList();
+      } else {
+        return [];
+      }
+    }
+
+    AuditLogger.instance.dao('QuestionDao.search', rows.length, {
+      'years': years?.length, 'regions': regions?.length,
+      'conceptTags': conceptTagNames?.length, 'examTypes': examTypes?.length,
+      'limit': limit,
+    });
     return rows;
   }
 

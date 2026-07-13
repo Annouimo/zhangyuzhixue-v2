@@ -142,6 +142,8 @@ class SearchFilters {
   final double? calcMin;
   final double? calcMax;
   final List<int> selectedIds;
+  final List<String>? examTypes;
+  final List<String>? questionTypes;
 
   const SearchFilters({
     required this.name,
@@ -155,6 +157,8 @@ class SearchFilters {
     required this.knowledgeCards,
     this.diffMin, this.diffMax, this.calcMin, this.calcMax,
     this.selectedIds = const [],
+    this.examTypes,
+    this.questionTypes,
   });
 }
 
@@ -368,6 +372,10 @@ class ExamRepository {
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
+      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
     );
     return (await q).map((r) => SearchQuestion(
       id: r.id,
@@ -411,6 +419,10 @@ class _ExamFilterEngine {
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
+      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
     );
 
     var choicePool = pool.where((q) => q.questionType == 'choice').toList();
@@ -447,6 +459,10 @@ class _ExamGenerator {
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
+      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
     );
 
     // 2. 按题型分类

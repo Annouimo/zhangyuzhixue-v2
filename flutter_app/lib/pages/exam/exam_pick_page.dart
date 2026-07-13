@@ -35,6 +35,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   final _nameController = TextEditingController(text: '智能练习卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
+  Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   @override
@@ -166,8 +167,11 @@ class _ExamPickPageState extends State<ExamPickPage> {
     setState(() => _loadingQ = true);
     try {
       final filters = SearchFilters(name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: [],
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax);
+        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+      );
       final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
@@ -262,6 +266,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             onLoadPreference: _loadPreference,
             onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
               _years = y; _regions = r; _conceptTags = ct;
+              _selectedTypes = t; _selectedExamTypes = et; _selectedKnowledgeCards = kc;
               _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
             },
           )
