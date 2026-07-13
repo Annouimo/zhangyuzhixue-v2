@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/md_latex_body.dart';
@@ -15,7 +16,7 @@ class SolveFlowWidget extends StatefulWidget {
   final bool isCorrect;
   final String? correctAnswer;
   final String? explanation;
-  final VoidCallback? onSubmit;
+  final Future<void> Function()? onSubmit;
   final VoidCallback? onNext;
   final VoidCallback? onRate;
   final bool submitLoading;
@@ -53,9 +54,9 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
     }
   }
 
-  void _submit() {
-    widget.onSubmit?.call();
-    setState(() => _resultShown = true);
+  Future<void> _submit() async {
+    await widget.onSubmit?.call();
+    if (mounted) setState(() => _resultShown = true);
   }
 
   @override

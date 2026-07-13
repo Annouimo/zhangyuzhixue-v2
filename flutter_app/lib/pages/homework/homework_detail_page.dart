@@ -173,7 +173,13 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     'solution' => '/solve/map',
                     _ => '/solve/choice',
                   };
-                  await context.push('$route?id=${q.id}');
+                  final currentIdx = d.questions.indexWhere((q2) => q2.id == q.id);
+                  final nextId = (currentIdx >= 0 && currentIdx + 1 < d.questions.length)
+                      ? d.questions[currentIdx + 1].id
+                      : null;
+                  await context.push(
+                    '$route?id=${q.id}${nextId != null ? '&next=$nextId' : ''}',
+                  );
                   _load();
                 },
               );

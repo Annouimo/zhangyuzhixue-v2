@@ -106,19 +106,13 @@ class _InlineLatexSyntax extends md.InlineSyntax {
 class _InlineLatexBuilder extends MarkdownElementBuilder {
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    final m = Math.tex(
-      element.textContent,
+    return _SafeMath(
+      tex: element.textContent,
       mathStyle: MathStyle.text,
       textStyle: TextStyle(
         fontSize: preferredStyle?.fontSize ?? 14,
         color: preferredStyle?.color,
       ),
-    );
-    final br = m.texBreak();
-    if (br.parts.length <= 1) return m;
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: br.parts,
     );
   }
 }
@@ -162,18 +156,62 @@ class _BlockMathSyntax extends md.BlockSyntax {
 class _BlockMathBuilder extends MarkdownElementBuilder {
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    return _SafeMath(
+      tex: element.textContent,
+      mathStyle: MathStyle.display,
+      textStyle: TextStyle(
+        fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+      ),
+    );
+  }
+}
+
+// ─── 安全的 Math.tex 包裹器 ───
+
+class _SafeMath extends StatefulWidget {
+  final String tex;
+  final MathStyle mathStyle;
+  final TextStyle? textStyle;
+  const _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
+
+  @override
+  State<_SafeMath> createState() => _SafeMathState();
+}
+
+class _SafeMathState extends State<_SafeMath> {
+  bool _errored = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_errored) {
+      return SelectableText(widget.tex, style: widget.textStyle);
+    }
+    final oldHandler = FlutterError.onError;
+    FlutterError.onError = (details) {
+      final msg = details.exceptionAsString();
+      if (msg.contains('CrNode') || msg.contains('TemporaryNode')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _errored = true);
+        });
+        return;
+      }
+      oldHandler?.call(details);
+    };
+    final m = Math.tex(widget.tex, mathStyle: widget.mathStyle, textStyle: widget.textStyle);
+    if (widget.mathStyle == MathStyle.text) {
+      final br = m.texBreak();
+      if (br.parts.length <= 1) return m;
+      return Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: br.parts,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Math.tex(
-            element.textContent,
-            mathStyle: MathStyle.display,
-            textStyle: TextStyle(
-              fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
-            ),
-          ),
+          child: m,
         ),
       ),
     );

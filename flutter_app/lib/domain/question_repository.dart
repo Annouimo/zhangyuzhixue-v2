@@ -161,6 +161,21 @@ class QuestionRepository {
     return idx < sorted.length - 1 ? sorted[idx + 1] : null;
   }
 
+  /// 保存作答记录到 user.db
+  Future<void> saveAttempt(int questionId, {
+    required String answerText,
+    required bool isCorrect,
+  }) async {
+    final latest = await _progressDao.getLatestAttempt(questionId);
+    if (latest != null) {
+      await _progressDao.updateAttemptAnswer(
+        latest.id,
+        answerText,
+        isCorrect ? 1 : 0,
+      );
+    }
+  }
+
   List<String> _parseImages(String? raw) {
     if (raw == null || raw.isEmpty) return [];
     try {

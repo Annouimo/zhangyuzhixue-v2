@@ -91,12 +91,23 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_selected == null) return;
-    setState(() {
-      _submitted = true;
-      _isCorrect = _selected == _detail?.answer;
-    });
+    try {
+      await _repo.saveAttempt(
+        widget.questionId,
+        answerText: _selected!,
+        isCorrect: _selected == _detail?.answer,
+      );
+      if (!mounted) return;
+      setState(() {
+        _submitted = true;
+        _isCorrect = _selected == _detail?.answer;
+      });
+    } catch (e) {
+      AuditLogger.instance.error('SolveChoicePage._submit', e);
+      debugPrint('_submit save error: $e');
+    }
   }
 
   String _typeLabel(String type) {
@@ -148,7 +159,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             onNext: widget.nextQuestionId != null
                 ? () => context.go('/solve/choice?id=${widget.nextQuestionId}')
                 : null,
-            onRate: () => context.push('/solve/rate?id=${widget.questionId}'),
+            onRate: () async {
+              await context.push('/solve/rate?id=${widget.questionId}');
+              _load();
+            },
             child: _buildContent(),
           ),
         ),

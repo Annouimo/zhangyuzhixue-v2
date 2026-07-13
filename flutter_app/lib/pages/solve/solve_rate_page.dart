@@ -68,7 +68,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   String _algoNote(String label, double algoScore) {
     if (algoScore <= 0) return '';
-    return '$label · 算法评分: ${algoScore.toStringAsFixed(1)}';
+    return '· 算法评分: ${algoScore.toStringAsFixed(1)}';
   }
 
   Future<void> _submit() async {

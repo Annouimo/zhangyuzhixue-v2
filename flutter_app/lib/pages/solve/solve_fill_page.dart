@@ -83,13 +83,24 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final answer = _answerCtrl.text.trim();
     if (answer.isEmpty) return;
-    setState(() {
-      _submitted = true;
-      _isCorrect = answer == _detail?.answer;
-    });
+    try {
+      await _repo.saveAttempt(
+        widget.questionId,
+        answerText: answer,
+        isCorrect: answer == _detail?.answer,
+      );
+      if (!mounted) return;
+      setState(() {
+        _submitted = true;
+        _isCorrect = answer == _detail?.answer;
+      });
+    } catch (e) {
+      AuditLogger.instance.error('SolveFillPage._submit', e);
+      debugPrint('_submit save error: $e');
+    }
   }
 
   @override
@@ -132,7 +143,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
           onNext: widget.nextQuestionId != null
               ? () => context.go('/solve/fill?id=${widget.nextQuestionId}')
               : null,
-          onRate: () => context.push('/solve/rate?id=${widget.questionId}'),
+          onRate: () async {
+              await context.push('/solve/rate?id=${widget.questionId}');
+              _load();
+            },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

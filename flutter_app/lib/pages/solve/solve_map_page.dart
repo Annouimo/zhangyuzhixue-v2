@@ -178,7 +178,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
                       final stepLocked = !isStepDone && si > 0 &&
                           m.steps.take(si).every((ps) => !_completedSteps.contains(ps.stepNumber));
                       return InkWell(
-                        onTap: stepLocked ? null : () => context.push('/solve/step?id=${widget.questionId}&method=$mi&step=$si'),
+                        onTap: stepLocked ? null : () async {
+                          await context.push('/solve/step?id=${widget.questionId}&method=$mi&step=$si');
+                          _load();
+                        },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(children: [
