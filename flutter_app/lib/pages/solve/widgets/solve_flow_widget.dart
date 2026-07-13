@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/md_latex_body.dart';
 import 'cooling_timer.dart';
+import 'done_banner.dart';
 
 /// 选填解题流程的阶段
 enum SolveStage { cooling, submitting, result, done }
@@ -97,7 +98,7 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
         ],
         if (done) ...[
           const SizedBox(height: 16),
-          _DoneBanner(
+          DoneBanner(
             isRated: widget.isRated,
             onNext: widget.onNext,
             onRate: widget.onRate,
@@ -152,46 +153,6 @@ class _ResultBanner extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _DoneBanner extends StatelessWidget {
-  final bool isRated;
-  final VoidCallback? onNext;
-  final VoidCallback? onRate;
-
-  const _DoneBanner({this.isRated = false, this.onNext, this.onRate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(children: [
-        const Text('🎉', style: TextStyle(fontSize: 20)),
-        const SizedBox(width: 8),
-        Text(isRated ? '已完成 ⭐ 已评分' : '已完成',
-          style: const TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
-          ),
-        ),
-        const Spacer(),
-        if (onNext != null)
-          TextButton.icon(
-            onPressed: onNext,
-            icon: const Text('下一题'),
-            label: const Icon(Icons.arrow_forward, size: 16),
-          ),
-        if (onRate != null)
-          TextButton(
-            onPressed: onRate,
-            child: const Text('⭐ 评分'),
-          ),
-      ]),
     );
   }
 }

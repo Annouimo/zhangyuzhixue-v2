@@ -104,7 +104,7 @@ class AppColors {
 **router.dart：** 基于 `go_router`（需加 pubspec 依赖）或原生 Navigator 2.0，路由表包含 Phase 3 全部页面。
 
 **Widget 复用原则（来自页面设计说明 §1）：**
-- 选填题流程抽取 `SolveFlowWidget`（冷却→提交→结果→完成横幅）
+|- 选择题流程抽取 `SolveFlowWidget`（冷却→提交→结果→完成横幅）；填空题独立抽取 `SolveRevealWidget`（冷却→查看答案→显示正确答案→完成横幅）
 - 解答题步骤卡抽取 `StepCardWidget`（冷却箭头→展开→反馈按钮）
 - 筛选模块（组卷、推荐共用）抽取 `FilterPanel`
 
@@ -204,26 +204,40 @@ flutter_app/lib/pages/solve/
 ├── solve_step_page.dart         # 新建：解答题步骤详情页
 ├── solve_rate_page.dart         # 新建：评分页（3维×10星）
 ├── widgets/
-│   ├── solve_flow_widget.dart   # 新建：选填共用流程 Widget
+│   ├── solve_flow_widget.dart    # 新建：选择题流程 Widget
+│   ├── solve_reveal_widget.dart  # 新建：填空题揭示流程 Widget
 │   ├── step_card_widget.dart    # 新建：解答步骤卡 Widget
 │   ├── feedback_buttons.dart    # 新建：反馈按钮组
+│   ├── done_banner.dart         # 新建：完成横幅（选填共用）
 │   └── cooling_timer.dart       # 新建：冷却倒计时组件
 ```
 
 ### 实现要点
 
-#### 3b.1 — 选填共用流程（SolveFlowWidget）
+#### 3b.1 — 选择题流程（SolveFlowWidget）与填空题流程（SolveRevealWidget）
 
-从 `solve-choice.html` / `solve-fill.html` 原型抽取共享流程：
+**选择题**从 `solve-choice.html` 原型抽取流程：
 
 ```
 [题干区 — MdLatexBody]
-[选项区 — ChoiceGrid / 填空输入框]   （仅选择题/填空题不同）
+[选项区 — ChoiceGrid]
 [冷却计时器 — CoolingTimer]
-  └───────── 显示「提交」或「查看答案」按钮
+  └───────── 显示「提交」按钮
 [结果展示区 — 正确/错误 + 解析]
 [完成横幅 — 🎉 已完成 + 「下一题」「⭐ 评分」]
 ```
+
+**填空题**从 `solve-fill.html` 原型抽取流程：
+
+```
+[题干区 — MdLatexBody]
+[冷却计时器 — CoolingTimer]
+  └───────── 显示「查看答案」按钮
+[揭示结果区 — 蓝色「正确答案」徽章 + 答案值 + 解析]
+[完成横幅 — 🎉 已完成 + 「下一题」「⭐ 评分」]
+```
+
+两者共用 `CoolingTimer` + `DoneBanner` 积木组件，但交互主流程各自独立。
 
 **状态机（ProgressRepository.getPreviousState 驱动）：**
 
@@ -313,6 +327,8 @@ flutter_app/lib/pages/solve/
 | SolveFlowWidget | 首次：冷却→提交→正确/错误→完成横幅 | 4 |
 | SolveFlowWidget | 复访已完成：跳过冷却直接展示 | 2 |
 | SolveFlowWidget | 复访已评分：额外显示评分 | 1 |
+| SolveRevealWidget | 首次：冷却→查看答案→正确答案揭示→完成横幅 | 3 |
+| SolveRevealWidget | 复访：跳过冷却直接展示答案 | 1 |
 | StepCardWidget | 冷却→箭头展开→反馈→下一步 | 3 |
 | StepCardWidget | 最后一步→完成横幅 | 1 |
 | StepCardWidget | 知识标签可点→弹层显示 | 1 |

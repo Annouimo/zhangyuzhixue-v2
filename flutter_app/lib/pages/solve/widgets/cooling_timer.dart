@@ -5,12 +5,14 @@ import '../../../app_theme.dart';
 /// 冷却倒计时组件 — 纯展示，由外层通过 GlobalKey 控制
 class CoolingTimer extends StatefulWidget {
   final int seconds;
+  final String label;
   final Widget? child;
   final VoidCallback? onCooldownEnd;
 
   const CoolingTimer({
     super.key,
     required this.seconds,
+    this.label = '可提交',
     this.child,
     this.onCooldownEnd,
   });
@@ -70,7 +72,7 @@ class CoolingTimerState extends State<CoolingTimer> {
           ),
           const SizedBox(height: 6),
           Text(
-            '⏳ 还剩 $_remaining 秒可提交',
+            '⏳ 还剩 $_remaining 秒${widget.label}',
             style: const TextStyle(
               color: AppColors.textSecondary, fontSize: 12,
             ),

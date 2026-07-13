@@ -21,6 +21,7 @@ class _MockQRepo implements QuestionRepository {
       SolveAttempt(id: 1, questionId: questionId, attemptNumber: 1, createdAt: DateTime.now(), isCompleted: false, isStarted: true);
   @override Future<List<SolveAttempt>> getAttempts(int questionId) async => [];
   @override Future<int?> nextQuestion(int currentId) async => currentId < 3 ? currentId + 1 : null;
+  @override Future<void> saveAttempt(int questionId, {String? answerText, bool isCorrect = false}) async {}
 }
 
 void main() {

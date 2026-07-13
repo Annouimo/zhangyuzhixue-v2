@@ -21,18 +21,20 @@ class _MockQRepo implements QuestionRepository {
       SolveAttempt(id: 1, questionId: questionId, attemptNumber: 1, createdAt: DateTime.now(), isCompleted: false, isStarted: true);
   @override Future<List<SolveAttempt>> getAttempts(int questionId) async => [];
   @override Future<int?> nextQuestion(int currentId) async => currentId < 3 ? currentId + 1 : null;
+  @override Future<void> saveAttempt(int questionId, {String? answerText, bool isCorrect = false}) async {}
 }
 
 void main() {
     setUp(() => setupTestHooks());
   group('SolveFillPage', () {
-    testWidgets('renders fill page with real stem', (tester) async {
+    testWidgets('renders fill page with stem and reveal button', (tester) async {
       await tester.pumpWidget(MaterialApp(
         home: SolveFillPage(questionId: 1, questionRepository: _MockQRepo()),
       ));
       await tester.pumpAndSettle();
       expect(find.text('测试题目 1 的题干'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
+      expect(find.text('查看答案'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
     });
   });
 }
