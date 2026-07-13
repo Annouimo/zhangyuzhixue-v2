@@ -5603,6 +5603,28 @@ class $PreferenceFiltersTable extends PreferenceFilters
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _knowledgeCardsMeta = const VerificationMeta(
+    'knowledgeCards',
+  );
+  @override
+  late final GeneratedColumn<String> knowledgeCards = GeneratedColumn<String>(
+    'knowledge_cards',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _questionTypesMeta = const VerificationMeta(
+    'questionTypes',
+  );
+  @override
+  late final GeneratedColumn<String> questionTypes = GeneratedColumn<String>(
+    'question_types',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _diffMinMeta = const VerificationMeta(
     'diffMin',
   );
@@ -5655,6 +5677,8 @@ class $PreferenceFiltersTable extends PreferenceFilters
     regions,
     conceptTags,
     types,
+    knowledgeCards,
+    questionTypes,
     diffMin,
     diffMax,
     calcMin,
@@ -5716,6 +5740,24 @@ class $PreferenceFiltersTable extends PreferenceFilters
         types.isAcceptableOrUnknown(data['types']!, _typesMeta),
       );
     }
+    if (data.containsKey('knowledge_cards')) {
+      context.handle(
+        _knowledgeCardsMeta,
+        knowledgeCards.isAcceptableOrUnknown(
+          data['knowledge_cards']!,
+          _knowledgeCardsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('question_types')) {
+      context.handle(
+        _questionTypesMeta,
+        questionTypes.isAcceptableOrUnknown(
+          data['question_types']!,
+          _questionTypesMeta,
+        ),
+      );
+    }
     if (data.containsKey('diff_min')) {
       context.handle(
         _diffMinMeta,
@@ -5773,6 +5815,14 @@ class $PreferenceFiltersTable extends PreferenceFilters
         DriftSqlType.string,
         data['${effectivePrefix}types'],
       ),
+      knowledgeCards: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}knowledge_cards'],
+      ),
+      questionTypes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}question_types'],
+      ),
       diffMin: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}diff_min'],
@@ -5806,6 +5856,8 @@ class PreferenceFilterRow extends DataClass
   final String regions;
   final String conceptTags;
   final String? types;
+  final String? knowledgeCards;
+  final String? questionTypes;
   final double? diffMin;
   final double? diffMax;
   final double? calcMin;
@@ -5817,6 +5869,8 @@ class PreferenceFilterRow extends DataClass
     required this.regions,
     required this.conceptTags,
     this.types,
+    this.knowledgeCards,
+    this.questionTypes,
     this.diffMin,
     this.diffMax,
     this.calcMin,
@@ -5832,6 +5886,12 @@ class PreferenceFilterRow extends DataClass
     map['concept_tags'] = Variable<String>(conceptTags);
     if (!nullToAbsent || types != null) {
       map['types'] = Variable<String>(types);
+    }
+    if (!nullToAbsent || knowledgeCards != null) {
+      map['knowledge_cards'] = Variable<String>(knowledgeCards);
+    }
+    if (!nullToAbsent || questionTypes != null) {
+      map['question_types'] = Variable<String>(questionTypes);
     }
     if (!nullToAbsent || diffMin != null) {
       map['diff_min'] = Variable<double>(diffMin);
@@ -5858,6 +5918,12 @@ class PreferenceFilterRow extends DataClass
       types: types == null && nullToAbsent
           ? const Value.absent()
           : Value(types),
+      knowledgeCards: knowledgeCards == null && nullToAbsent
+          ? const Value.absent()
+          : Value(knowledgeCards),
+      questionTypes: questionTypes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(questionTypes),
       diffMin: diffMin == null && nullToAbsent
           ? const Value.absent()
           : Value(diffMin),
@@ -5885,6 +5951,8 @@ class PreferenceFilterRow extends DataClass
       regions: serializer.fromJson<String>(json['regions']),
       conceptTags: serializer.fromJson<String>(json['conceptTags']),
       types: serializer.fromJson<String?>(json['types']),
+      knowledgeCards: serializer.fromJson<String?>(json['knowledgeCards']),
+      questionTypes: serializer.fromJson<String?>(json['questionTypes']),
       diffMin: serializer.fromJson<double?>(json['diffMin']),
       diffMax: serializer.fromJson<double?>(json['diffMax']),
       calcMin: serializer.fromJson<double?>(json['calcMin']),
@@ -5901,6 +5969,8 @@ class PreferenceFilterRow extends DataClass
       'regions': serializer.toJson<String>(regions),
       'conceptTags': serializer.toJson<String>(conceptTags),
       'types': serializer.toJson<String?>(types),
+      'knowledgeCards': serializer.toJson<String?>(knowledgeCards),
+      'questionTypes': serializer.toJson<String?>(questionTypes),
       'diffMin': serializer.toJson<double?>(diffMin),
       'diffMax': serializer.toJson<double?>(diffMax),
       'calcMin': serializer.toJson<double?>(calcMin),
@@ -5915,6 +5985,8 @@ class PreferenceFilterRow extends DataClass
     String? regions,
     String? conceptTags,
     Value<String?> types = const Value.absent(),
+    Value<String?> knowledgeCards = const Value.absent(),
+    Value<String?> questionTypes = const Value.absent(),
     Value<double?> diffMin = const Value.absent(),
     Value<double?> diffMax = const Value.absent(),
     Value<double?> calcMin = const Value.absent(),
@@ -5926,6 +5998,12 @@ class PreferenceFilterRow extends DataClass
     regions: regions ?? this.regions,
     conceptTags: conceptTags ?? this.conceptTags,
     types: types.present ? types.value : this.types,
+    knowledgeCards: knowledgeCards.present
+        ? knowledgeCards.value
+        : this.knowledgeCards,
+    questionTypes: questionTypes.present
+        ? questionTypes.value
+        : this.questionTypes,
     diffMin: diffMin.present ? diffMin.value : this.diffMin,
     diffMax: diffMax.present ? diffMax.value : this.diffMax,
     calcMin: calcMin.present ? calcMin.value : this.calcMin,
@@ -5941,6 +6019,12 @@ class PreferenceFilterRow extends DataClass
           ? data.conceptTags.value
           : this.conceptTags,
       types: data.types.present ? data.types.value : this.types,
+      knowledgeCards: data.knowledgeCards.present
+          ? data.knowledgeCards.value
+          : this.knowledgeCards,
+      questionTypes: data.questionTypes.present
+          ? data.questionTypes.value
+          : this.questionTypes,
       diffMin: data.diffMin.present ? data.diffMin.value : this.diffMin,
       diffMax: data.diffMax.present ? data.diffMax.value : this.diffMax,
       calcMin: data.calcMin.present ? data.calcMin.value : this.calcMin,
@@ -5957,6 +6041,8 @@ class PreferenceFilterRow extends DataClass
           ..write('regions: $regions, ')
           ..write('conceptTags: $conceptTags, ')
           ..write('types: $types, ')
+          ..write('knowledgeCards: $knowledgeCards, ')
+          ..write('questionTypes: $questionTypes, ')
           ..write('diffMin: $diffMin, ')
           ..write('diffMax: $diffMax, ')
           ..write('calcMin: $calcMin, ')
@@ -5973,6 +6059,8 @@ class PreferenceFilterRow extends DataClass
     regions,
     conceptTags,
     types,
+    knowledgeCards,
+    questionTypes,
     diffMin,
     diffMax,
     calcMin,
@@ -5988,6 +6076,8 @@ class PreferenceFilterRow extends DataClass
           other.regions == this.regions &&
           other.conceptTags == this.conceptTags &&
           other.types == this.types &&
+          other.knowledgeCards == this.knowledgeCards &&
+          other.questionTypes == this.questionTypes &&
           other.diffMin == this.diffMin &&
           other.diffMax == this.diffMax &&
           other.calcMin == this.calcMin &&
@@ -6001,6 +6091,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   final Value<String> regions;
   final Value<String> conceptTags;
   final Value<String?> types;
+  final Value<String?> knowledgeCards;
+  final Value<String?> questionTypes;
   final Value<double?> diffMin;
   final Value<double?> diffMax;
   final Value<double?> calcMin;
@@ -6012,6 +6104,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     this.regions = const Value.absent(),
     this.conceptTags = const Value.absent(),
     this.types = const Value.absent(),
+    this.knowledgeCards = const Value.absent(),
+    this.questionTypes = const Value.absent(),
     this.diffMin = const Value.absent(),
     this.diffMax = const Value.absent(),
     this.calcMin = const Value.absent(),
@@ -6024,6 +6118,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     required String regions,
     required String conceptTags,
     this.types = const Value.absent(),
+    this.knowledgeCards = const Value.absent(),
+    this.questionTypes = const Value.absent(),
     this.diffMin = const Value.absent(),
     this.diffMax = const Value.absent(),
     this.calcMin = const Value.absent(),
@@ -6039,6 +6135,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     Expression<String>? regions,
     Expression<String>? conceptTags,
     Expression<String>? types,
+    Expression<String>? knowledgeCards,
+    Expression<String>? questionTypes,
     Expression<double>? diffMin,
     Expression<double>? diffMax,
     Expression<double>? calcMin,
@@ -6051,6 +6149,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
       if (regions != null) 'regions': regions,
       if (conceptTags != null) 'concept_tags': conceptTags,
       if (types != null) 'types': types,
+      if (knowledgeCards != null) 'knowledge_cards': knowledgeCards,
+      if (questionTypes != null) 'question_types': questionTypes,
       if (diffMin != null) 'diff_min': diffMin,
       if (diffMax != null) 'diff_max': diffMax,
       if (calcMin != null) 'calc_min': calcMin,
@@ -6065,6 +6165,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     Value<String>? regions,
     Value<String>? conceptTags,
     Value<String?>? types,
+    Value<String?>? knowledgeCards,
+    Value<String?>? questionTypes,
     Value<double?>? diffMin,
     Value<double?>? diffMax,
     Value<double?>? calcMin,
@@ -6077,6 +6179,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
       regions: regions ?? this.regions,
       conceptTags: conceptTags ?? this.conceptTags,
       types: types ?? this.types,
+      knowledgeCards: knowledgeCards ?? this.knowledgeCards,
+      questionTypes: questionTypes ?? this.questionTypes,
       diffMin: diffMin ?? this.diffMin,
       diffMax: diffMax ?? this.diffMax,
       calcMin: calcMin ?? this.calcMin,
@@ -6105,6 +6209,12 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     if (types.present) {
       map['types'] = Variable<String>(types.value);
     }
+    if (knowledgeCards.present) {
+      map['knowledge_cards'] = Variable<String>(knowledgeCards.value);
+    }
+    if (questionTypes.present) {
+      map['question_types'] = Variable<String>(questionTypes.value);
+    }
     if (diffMin.present) {
       map['diff_min'] = Variable<double>(diffMin.value);
     }
@@ -6129,6 +6239,8 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
           ..write('regions: $regions, ')
           ..write('conceptTags: $conceptTags, ')
           ..write('types: $types, ')
+          ..write('knowledgeCards: $knowledgeCards, ')
+          ..write('questionTypes: $questionTypes, ')
           ..write('diffMin: $diffMin, ')
           ..write('diffMax: $diffMax, ')
           ..write('calcMin: $calcMin, ')
@@ -9754,6 +9866,8 @@ typedef $$PreferenceFiltersTableCreateCompanionBuilder =
       required String regions,
       required String conceptTags,
       Value<String?> types,
+      Value<String?> knowledgeCards,
+      Value<String?> questionTypes,
       Value<double?> diffMin,
       Value<double?> diffMax,
       Value<double?> calcMin,
@@ -9767,6 +9881,8 @@ typedef $$PreferenceFiltersTableUpdateCompanionBuilder =
       Value<String> regions,
       Value<String> conceptTags,
       Value<String?> types,
+      Value<String?> knowledgeCards,
+      Value<String?> questionTypes,
       Value<double?> diffMin,
       Value<double?> diffMax,
       Value<double?> calcMin,
@@ -9809,6 +9925,16 @@ class $$PreferenceFiltersTableFilterComposer
 
   ColumnFilters<String> get types => $composableBuilder(
     column: $table.types,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get knowledgeCards => $composableBuilder(
+    column: $table.knowledgeCards,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get questionTypes => $composableBuilder(
+    column: $table.questionTypes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9872,6 +9998,16 @@ class $$PreferenceFiltersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get knowledgeCards => $composableBuilder(
+    column: $table.knowledgeCards,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get questionTypes => $composableBuilder(
+    column: $table.questionTypes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get diffMin => $composableBuilder(
     column: $table.diffMin,
     builder: (column) => ColumnOrderings(column),
@@ -9921,6 +10057,16 @@ class $$PreferenceFiltersTableAnnotationComposer
 
   GeneratedColumn<String> get types =>
       $composableBuilder(column: $table.types, builder: (column) => column);
+
+  GeneratedColumn<String> get knowledgeCards => $composableBuilder(
+    column: $table.knowledgeCards,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get questionTypes => $composableBuilder(
+    column: $table.questionTypes,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<double> get diffMin =>
       $composableBuilder(column: $table.diffMin, builder: (column) => column);
@@ -9981,6 +10127,8 @@ class $$PreferenceFiltersTableTableManager
                 Value<String> regions = const Value.absent(),
                 Value<String> conceptTags = const Value.absent(),
                 Value<String?> types = const Value.absent(),
+                Value<String?> knowledgeCards = const Value.absent(),
+                Value<String?> questionTypes = const Value.absent(),
                 Value<double?> diffMin = const Value.absent(),
                 Value<double?> diffMax = const Value.absent(),
                 Value<double?> calcMin = const Value.absent(),
@@ -9992,6 +10140,8 @@ class $$PreferenceFiltersTableTableManager
                 regions: regions,
                 conceptTags: conceptTags,
                 types: types,
+                knowledgeCards: knowledgeCards,
+                questionTypes: questionTypes,
                 diffMin: diffMin,
                 diffMax: diffMax,
                 calcMin: calcMin,
@@ -10005,6 +10155,8 @@ class $$PreferenceFiltersTableTableManager
                 required String regions,
                 required String conceptTags,
                 Value<String?> types = const Value.absent(),
+                Value<String?> knowledgeCards = const Value.absent(),
+                Value<String?> questionTypes = const Value.absent(),
                 Value<double?> diffMin = const Value.absent(),
                 Value<double?> diffMax = const Value.absent(),
                 Value<double?> calcMin = const Value.absent(),
@@ -10016,6 +10168,8 @@ class $$PreferenceFiltersTableTableManager
                 regions: regions,
                 conceptTags: conceptTags,
                 types: types,
+                knowledgeCards: knowledgeCards,
+                questionTypes: questionTypes,
                 diffMin: diffMin,
                 diffMax: diffMax,
                 calcMin: calcMin,

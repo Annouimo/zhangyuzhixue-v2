@@ -55,6 +55,7 @@ class FilterPanelState extends State<FilterPanel> {
   Set<String> get selectedConceptTags => _selectedConceptTags;
   Set<String> get selectedExamTypes => _selectedExamTypes;
   Set<String> get selectedKnowledgeCards => _selectedKnowledgeCards;
+  Set<String> get selectedTypes => _selectedTypes;
   double get diffMin => _diffMin;
   double get diffMax => _diffMax;
   double get calcMin => _calcMin;
@@ -63,6 +64,7 @@ class FilterPanelState extends State<FilterPanel> {
   void applyFilter({
     Set<String>? years, Set<String>? regions, Set<String>? conceptTags,
     Set<String>? examTypes, Set<String>? knowledgeCards,
+    Set<String>? types,
     double? diffMin, double? diffMax, double? calcMin, double? calcMax,
   }) {
     setState(() {
@@ -71,6 +73,7 @@ class FilterPanelState extends State<FilterPanel> {
       if (conceptTags != null) { _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags); }
       if (examTypes != null) { _selectedExamTypes.clear(); _selectedExamTypes.addAll(examTypes); }
       if (knowledgeCards != null) { _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards); }
+      if (types != null) { _selectedTypes.clear(); _selectedTypes.addAll(types); }
       if (diffMin != null) _diffMin = diffMin;
       if (diffMax != null) _diffMax = diffMax;
       if (calcMin != null) _calcMin = calcMin;

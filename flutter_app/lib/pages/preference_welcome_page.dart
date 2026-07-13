@@ -35,6 +35,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   Set<String> _regions = {};
   Set<String> _types = {};
   Set<String> _conceptTags = {};
+  Set<String> _examTypes = {};
+  Set<String> _knowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   // 筛选选项（内存缓存）
@@ -148,7 +150,9 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           years: _years.toList(),
           regions: _regions.toList(),
           conceptTags: _conceptTags.toList(),
-          types: _types.toList(),
+          types: _examTypes.toList(),
+          knowledgeCards: _knowledgeCards.toList(),
+          questionTypes: _types.toList(),
           diffMin: _diffMin,
           diffMax: _diffMax,
           calcMin: _calcMin,
@@ -192,6 +196,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   conceptTagOptions: _tagOpts ?? [],
                   onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
                     _years = y; _regions = r; _types = t; _conceptTags = ct;
+                    _examTypes = et; _knowledgeCards = kc;
                     _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
                   },
                 ),

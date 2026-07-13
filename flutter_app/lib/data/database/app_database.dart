@@ -200,6 +200,8 @@ class PreferenceFilters extends Table {
   TextColumn get regions => text()();
   TextColumn get conceptTags => text()();
   TextColumn? get types => text().nullable()();
+  TextColumn? get knowledgeCards => text().nullable()();
+  TextColumn? get questionTypes => text().nullable()();
   RealColumn? get diffMin => real().nullable()();
   RealColumn? get diffMax => real().nullable()();
   RealColumn? get calcMin => real().nullable()();

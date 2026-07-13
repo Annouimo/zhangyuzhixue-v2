@@ -19,6 +19,8 @@ class PreferenceFilter {
   final List<String> regions;
   final List<String> conceptTags;
   final List<String> types;
+  final List<String> knowledgeCards;
+  final List<String> questionTypes;
   final double? diffMin;
   final double? diffMax;
   final double? calcMin;
@@ -29,6 +31,8 @@ class PreferenceFilter {
     required this.regions,
     required this.conceptTags,
     this.types = const [],
+    this.knowledgeCards = const [],
+    this.questionTypes = const [],
     this.diffMin,
     this.diffMax,
     this.calcMin,
@@ -40,6 +44,8 @@ class PreferenceFilter {
         'regions': regions,
         'concept_tags': conceptTags,
         if (types.isNotEmpty) 'types': types,
+        if (knowledgeCards.isNotEmpty) 'knowledge_cards': knowledgeCards,
+        if (questionTypes.isNotEmpty) 'question_types': questionTypes,
         if (diffMin != null) 'diff_min': diffMin,
         if (diffMax != null) 'diff_max': diffMax,
         if (calcMin != null) 'calc_min': calcMin,
@@ -91,6 +97,8 @@ class PreferenceRepository {
       regions: _parseJsonList(row.regions),
       conceptTags: _parseJsonList(row.conceptTags),
       types: row.types != null ? _parseJsonList(row.types!) : [],
+      knowledgeCards: row.knowledgeCards != null ? _parseJsonList(row.knowledgeCards!) : [],
+      questionTypes: row.questionTypes != null ? _parseJsonList(row.questionTypes!) : [],
       diffMin: row.diffMin,
       diffMax: row.diffMax,
       calcMin: row.calcMin,
@@ -108,6 +116,8 @@ class PreferenceRepository {
       regions: _jsonEncode(filter.regions),
       conceptTags: _jsonEncode(filter.conceptTags),
       types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
+      knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
+      questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
       diffMin: filter.diffMin,
       diffMax: filter.diffMax,
       calcMin: filter.calcMin,
