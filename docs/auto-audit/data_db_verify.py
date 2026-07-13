@@ -44,7 +44,8 @@ def main():
     from django.contrib.auth.models import User
     from accounts.models import Student
     from system.models import PointsTransaction, LevelConfig, AchievementDef, StudentAchievement
-    from courses.models import Course, ClassCourseAssignment, AssignmentQuestion
+    from courses.models import Course, ClassCourseAssignment, Assignment, AssignmentQuestion, Document
+    from interactions.models import StudentSubmission, SubmissionDetail, CustomPaper, CustomPaperQuestion, PaperLike, PaperCollect
     from qbank.models import BaseQuestion
     from django.db import connection
     from django.utils import timezone
@@ -62,6 +63,20 @@ def main():
     lv = LevelConfig.objects.filter(min_xp__lte=earned).order_by('-level').first()
     lvl = lv.level if lv else 1
 
+    # 今日答题统计
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_sub_ids = StudentSubmission.objects.filter(student=s, created_at__gte=today_start).values_list('id', flat=True)
+    today_earned = SubmissionDetail.objects.filter(submission_id__in=today_sub_ids, status='correct').count()
+
+    # 全部答题统计
+    total_sub_details = SubmissionDetail.objects.filter(submission__student=s)
+    total_attempted = total_sub_details.count()
+    total_correct = total_sub_details.filter(status='correct').count()
+    accuracy = round(total_correct / total_attempted * 100) if total_attempted else 0
+
+    # 偏好数量
+    pref_count = AchievementDef.objects.count()
+
     user_info = {
         'realName': u.first_name or u.username,
         'name': u.first_name or u.username,
@@ -75,14 +90,14 @@ def main():
         'availablePoints': earned - spent,
         'bonusPoints': 0,
         'streakDays': ci,
-        'todayEarned': 0,
+        'todayEarned': today_earned,
         'todayReward': round(0.5 + (ci % 7) * 0.3, 1),
         'nextReward': round(0.5 + ((ci + 1) % 7) * 0.3, 1),
         'unlockedCount': 0,
-        'prefCount': 0,
-        'totalQuestions': 0,
-        'accuracy': 0,
-        'answerHistoryCount': 0,
+        'prefCount': pref_count,
+        'totalQuestions': total_attempted,
+        'accuracy': accuracy,
+        'answerHistoryCount': total_attempted,
         'allSuccessText': '全部已同步',
         'failedCountText': '同步失败',
     }
@@ -90,20 +105,27 @@ def main():
     # ── 课程/讲义 ──
     courses = []
     for c in Course.objects.all():
+        docs = list(Document.objects.filter(course=c).order_by('id'))
+        chapters = []
+        for i, doc in enumerate(docs):
+            chapters.append({
+                'index': i + 1,
+                'title': doc.title,
+                'pageCount': 1,
+                'studyStatus': '待学习',
+            })
         courses.append({
             'name': c.name,
             'description': c.description,
-            'chapterCount': 2,
-            'chapters': [
-                {'index': 1, 'title': '集合与常用逻辑用语', 'pageCount': 2, 'studyStatus': '待学习'},
-                {'index': 2, 'title': '函数概念与基本初等函数', 'pageCount': 2, 'studyStatus': '待学习'},
-            ],
+            'chapterCount': len(docs),
+            'chapters': chapters,
         })
+    first_docs = list(Document.objects.filter(course=Course.objects.first() if Course.objects.exists() else None).order_by('id')) if courses else []
     lecture = {
         'courseName': courses[0]['name'] if courses else '',
         'courses': courses,
-        'title': '第01讲集合与常用逻辑用语',
-        'pages': [{'blocks': ['b0','b1','b2','b3']}, {'blocks': ['b0','b1','b2']}],
+        'title': first_docs[0].title if first_docs else '',
+        'pages': [{'blocks': [doc.md_content or '']} for doc in first_docs],
     }
 
     # ── 成就 ──
@@ -136,13 +158,20 @@ def main():
         pending = []
         for cca in ccas:
             aid = cca.assignment_id
+            try:
+                asgn = Assignment.objects.get(id=aid)
+                title = asgn.title
+                course_name = asgn.course.name if asgn.course else ''
+            except Assignment.DoesNotExist:
+                title = 'assignment_%d' % aid
+                course_name = ''
             total = AssignmentQuestion.objects.filter(assignment_id=aid).count()
             with connection.cursor() as c:
                 c.execute("SELECT COUNT(DISTINCT sd.question_id) FROM interactions_submissiondetail sd JOIN interactions_studentsubmission ss ON ss.id = sd.submission_id WHERE ss.student_id=%s AND ss.assignment_id=%s", [s.id, aid])
                 done = c.fetchone()[0]
             pending.append({
-                'title': 'assignment_%d' % aid,
-                'courseName': '',
+                'title': title,
+                'courseName': course_name,
                 'doneCount': done,
                 'totalCount': total,
                 'deadlineDays': 0,
@@ -153,10 +182,31 @@ def main():
         if ccas.exists():
             aid = ccas.first().assignment_id
             qs = AssignmentQuestion.objects.filter(assignment_id=aid)
-            ql = [{'number': i+1, 'questionType': 'choice', 'status': '待完成'} for i, _ in enumerate(qs)]
+            # 查真实题型
+            ql = []
+            for i, aq in enumerate(qs):
+                q = aq.question
+                ql.append({
+                    'number': i + 1,
+                    'questionType': q.question_type if hasattr(q, 'question_type') else 'choice',
+                    'status': '待完成',
+                })
+            try:
+                asgn = Assignment.objects.get(id=aid)
+                detail_title = asgn.title
+                detail_course = asgn.course.name if asgn.course else ''
+            except Assignment.DoesNotExist:
+                detail_title = 'assignment'
+                detail_course = ''
+            # 查已做完的题数
+            done_ids = set()
+            with connection.cursor() as c:
+                c.execute("SELECT DISTINCT sd.question_id FROM interactions_submissiondetail sd JOIN interactions_studentsubmission ss ON ss.id = sd.submission_id WHERE ss.student_id=%s AND ss.assignment_id=%s", [s.id, aid])
+                for row in c.fetchall():
+                    done_ids.add(row[0])
             assign['detail'] = {
-                'title': 'assignment', 'courseName': '',
-                'doneCount': 0, 'totalCount': len(ql),
+                'title': detail_title, 'courseName': detail_course,
+                'doneCount': len(done_ids), 'totalCount': len(ql),
                 'deadlineDays': 0, 'questions': ql,
             }
 
@@ -179,18 +229,33 @@ def main():
     sync = {'queue': []}
 
     # ── 统计 ──
+    choice_stats = SubmissionDetail.objects.filter(submission__student=s, question__question_type='choice').aggregate(
+        total=models.Count('id'),
+        correct=models.Count('id', filter=models.Q(status='correct')))
+    fill_stats = SubmissionDetail.objects.filter(submission__student=s, question__question_type='fill').aggregate(
+        total=models.Count('id'),
+        correct=models.Count('id', filter=models.Q(status='correct')))
+    solution_stats = SubmissionDetail.objects.filter(submission__student=s, question__question_type='solution').aggregate(
+        total=models.Count('id'),
+        correct=models.Count('id', filter=models.Q(status='correct')))
+    ct = choice_stats['total'] or 0
+    cc = choice_stats['correct'] or 0
+    ft = fill_stats['total'] or 0
+    fc = fill_stats['correct'] or 0
+    st = solution_stats['total'] or 0
+    sc = solution_stats['correct'] or 0
     stats = {
-        'totalQuestions': 0,
-        'accuracyPercent': '0%',
-        'streakDays': 0,
-        'activeDays': 0,
-        'total': 0,
-        'choiceCount': 0,
-        'choicePercent': '0%',
-        'fillCount': 0,
-        'fillPercent': '0%',
-        'solutionCount': 0,
-        'solutionPercent': '0%',
+        'totalQuestions': total_attempted,
+        'accuracyPercent': '%d%%' % accuracy,
+        'streakDays': ci,
+        'activeDays': ci,
+        'total': total_attempted,
+        'choiceCount': ct,
+        'choicePercent': '%d%%' % (round(cc / ct * 100) if ct else 0),
+        'fillCount': ft,
+        'fillPercent': '%d%%' % (round(fc / ft * 100) if ft else 0),
+        'solutionCount': st,
+        'solutionPercent': '%d%%' % (round(sc / st * 100) if st else 0),
         'dailyRecords': [],
         'accuracyTrend': [],
         'pointsTrend': [],
@@ -203,6 +268,46 @@ def main():
     solution = BaseQuestion.objects.filter(question_type='solution').count()
 
     # ── 组卷 ──
+    # 真实试卷列表
+    papers = CustomPaper.objects.filter(student=s).order_by('-id')[:20]
+    paper_list = []
+    for p in papers:
+        pq_count = CustomPaperQuestion.objects.filter(paper=p).count()
+        paper_list.append({
+            'title': p.title or '',
+            'meta': '自定义试卷',
+            'difficulty': 3,
+            'calculation': 2,
+            'id': p.id,
+            'questionCount': pq_count,
+        })
+    # 他人公开试卷
+    other_papers = CustomPaper.objects.filter(is_public=True).exclude(student=s).order_by('-id')[:10]
+    other_list = []
+    for p in other_papers:
+        pq_count = CustomPaperQuestion.objects.filter(paper=p).count()
+        like_count = p.paperlike_set.count() if hasattr(p, 'paperlike_set') else 0
+        collect_count = p.papercollect_set.count() if hasattr(p, 'papercollect_set') else 0
+        other_list.append({
+            'title': p.title or '',
+            'authorInfo': p.student.user.username if hasattr(p.student, 'user') else '',
+            'summary': p.description or '',
+            'questionCount': pq_count,
+            'likeCount': like_count,
+            'collectCount': collect_count,
+            'id': p.id,
+        })
+    # 用户收藏
+    fav_papers = PaperCollect.objects.filter(student=s).select_related('paper')
+    fav_list = []
+    for fav in fav_papers:
+        p = fav.paper
+        pq_count = CustomPaperQuestion.objects.filter(paper=p).count()
+        fav_list.append({
+            'title': p.title or '',
+            'authorInfo': p.student.user.username if hasattr(p.student, 'user') else '',
+            'questionCount': pq_count,
+        })
     exam = {
         'availableChoice': choice,
         'availableFill': fill,
@@ -215,24 +320,40 @@ def main():
         'gaokaoDiffAvg': 3,
         'gaokaoDiffMax': 5,
         'filterPresets': [{'name': '北京高考'}],
-        'getList': [{'title': '示例题', 'meta': '选择题', 'difficulty': 3, 'calculation': 2} for _ in range(3)],
-        'exploreList': [],
-        'favoritesList': [],
+        'getList': paper_list if paper_list else [],
+        'exploreList': other_list if other_list else [],
+        'favoritesList': fav_list if fav_list else [],
         'myExamsList': [],
         'preview': {
-            'name': '示例试卷', 'authorInfo': 'test_audit', 'summary': '试卷说明',
-            'choiceCount': 3, 'fillCount': 2, 'solutionCount': 1, 'totalCount': 6,
-            'questions': [{'title': '题%d' % (i+1), 'meta': '选择题'} for i in range(6)],
+            'name': papers[0].title if papers else '示例试卷',
+            'authorInfo': u.username,
+            'summary': papers[0].description if papers else '试卷说明',
+            'choiceCount': choice, 'fillCount': fill, 'solutionCount': solution, 'totalCount': all_q,
+            'questions': [
+                {'title': '题%d' % (i + 1), 'meta': '选择题'}
+                for i in range(min(6, all_q))
+            ] if not papers else [],
         },
         'previewOther': {
+            'name': other_papers[0].title if other_papers else '他人试卷',
+            'authorInfo': other_papers[0].student.user.username if other_papers and hasattr(other_papers[0].student, 'user') else 'other_user',
+            'summary': other_papers[0].description if other_papers else '试卷说明',
+            'choiceCount': choice, 'fillCount': fill, 'solutionCount': solution, 'totalCount': all_q,
+            'likeCount': PaperLike.objects.filter(paper=other_papers[0]).count() if other_papers and hasattr(other_papers[0], 'paperlike_set') else 0,
+            'collectCount': PaperCollect.objects.filter(paper=other_papers[0]).count() if other_papers else 0,
+            'questions': [
+                {'title': '题%d' % (i + 1), 'meta': '选择题'}
+                for i in range(min(6, all_q))
+            ] if not other_papers else [],
+        } if other_papers else {
             'name': '他人试卷', 'authorInfo': 'other_user', 'summary': '试卷说明',
             'choiceCount': 3, 'fillCount': 2, 'solutionCount': 1, 'totalCount': 6,
-            'likeCount': 5, 'collectCount': 10,
-            'questions': [{'title': '题%d' % (i+1), 'meta': '选择题'} for i in range(6)],
+            'likeCount': 0, 'collectCount': 0,
+            'questions': [{'title': '题%d' % (i + 1), 'meta': '选择题'} for i in range(6)],
         },
         'quickAnswer': {
-            'name': '示例试卷', 'totalCount': 6,
-            'answers': [{'title': '题%d' % (i+1), 'questionType': 'choice', 'answer': 'A'} for i in range(6)],
+            'name': '快速作答', 'totalCount': min(6, all_q),
+            'answers': [{'title': '题%d' % (i + 1), 'questionType': 'choice', 'answer': 'A'} for i in range(min(6, all_q))],
         },
     }
 
