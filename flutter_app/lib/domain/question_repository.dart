@@ -175,7 +175,11 @@ class QuestionRepository {
     required String answerText,
     required bool isCorrect,
   }) async {
-    final latest = await _progressDao.getLatestAttempt(questionId);
+    var latest = await _progressDao.getLatestAttempt(questionId);
+    if (latest == null) {
+      await _progressDao.createAttempt(questionId: questionId);
+      latest = await _progressDao.getLatestAttempt(questionId);
+    }
     if (latest != null) {
       await _progressDao.updateAttemptAnswer(
         latest.id,
@@ -188,7 +192,7 @@ class QuestionRepository {
   List<String> _parseImages(String? raw) {
     if (raw == null || raw.isEmpty) return [];
     try {
-      return (jsonDecode(raw) as List).cast<String>();
+      return (jsonDecode(raw) as List).cast<String>().map((p) => p.replaceAll('\\', '/')).toList();
     } catch (_) {
       return [];
     }
