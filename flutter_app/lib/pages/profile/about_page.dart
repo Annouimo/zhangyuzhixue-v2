@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../widgets/sync_progress_dialog.dart';
+import '../../widgets/shared/app_toast.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
+import '../../constants/app_version.dart';
 import '../../data/debug/audit_logger.dart';
 
 /// 关于页
@@ -28,8 +30,7 @@ class _AboutPageState extends State<AboutPage> {
     if (ts != null && mounted) {
       setState(() => _lastSyncTime = '上次同步：$ts');
     }
-    final ver = '2.0.0';
-    AuditLogger.instance.page('AboutPage', {'version': ver});
+    AuditLogger.instance.page('AboutPage', {'version': appVersion});
   }
 
   Future<void> _onSync() async {
@@ -68,23 +69,23 @@ class _AboutPageState extends State<AboutPage> {
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        const Text(
-          '版本 2.0.0',
-          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        Text(
+          '版本 $appVersion',
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 32),
         ListTile(
           leading: const Icon(Icons.description_outlined),
           title: const Text('用户协议'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {},
+          onTap: () => AppToast.show(context, icon: '📄', message: '用户协议页面即将上线'),
         ),
         const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.privacy_tip_outlined),
           title: const Text('隐私政策'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () {},
+          onTap: () => AppToast.show(context, icon: '📄', message: '隐私政策页面即将上线'),
         ),
         const Divider(height: 1),
         ListTile(
@@ -106,9 +107,9 @@ class _AboutPageState extends State<AboutPage> {
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
-          '© 2025 章鱼智学 · 北京',
-          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        Text(
+          '© ${DateTime.now().year} 章鱼智学 · 北京',
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ]),
     ),
