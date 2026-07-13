@@ -18,6 +18,8 @@ class StepCardWidget extends StatefulWidget {
   final bool isRevisit;
   final progress.StepSolveRecord? existingRecord;
   final ValueChanged<FeedbackType>? onFeedback;
+  final int? questionId;
+  final int? submissionDetailId;
 
   const StepCardWidget({
     super.key,
@@ -28,6 +30,8 @@ class StepCardWidget extends StatefulWidget {
     this.isRevisit = false,
     this.existingRecord,
     this.onFeedback,
+    this.questionId,
+    this.submissionDetailId,
   });
 
   @override
@@ -89,17 +93,18 @@ class _StepCardWidgetState extends State<StepCardWidget> {
     // 如果用户选择了反馈，保存到数据库
     if (feedback != null && context.mounted) {
       final pDao = ProgressDao(DatabaseProvider().appDb);
-      // 使用当前 questionId 写入 card_feedback
-      // 注意: 这里没有 submission_detail_id 上下文，用 0 占位
-      // 外层 SolveStepPage 应传递 attemptId 来获取正确的 submissionDetailId
-      try {
-        await pDao.insertCardFeedback(
-          submissionDetailId: 0, // TODO: 从外部传递实际的 submissionDetailId
-          questionId: 0,          // TODO: 从外部传递实际的 questionId
-          cardTitle: tag,
-          cardStatus: feedback,
-        );
-      } catch (_) {}
+      final submissionDetailId = widget.submissionDetailId ?? 0;
+      final questionId = widget.questionId ?? 0;
+      if (submissionDetailId > 0 && questionId > 0) {
+        try {
+          await pDao.insertCardFeedback(
+            submissionDetailId: submissionDetailId,
+            questionId: questionId,
+            cardTitle: tag,
+            cardStatus: feedback,
+          );
+        } catch (_) {}
+      }
     }
   }
 

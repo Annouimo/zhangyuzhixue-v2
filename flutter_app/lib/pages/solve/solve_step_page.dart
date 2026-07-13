@@ -255,6 +255,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
                         totalSteps: _totalSteps,
                         isRevisit: _isRevisit,
                         existingRecord: _existingRecord,
+                        questionId: widget.questionId,
+                        submissionDetailId: _currentSubmissionDetailId,
                         onFeedback: _onFeedback,
                       ),
                     ],

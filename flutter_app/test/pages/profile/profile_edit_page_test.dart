@@ -24,6 +24,7 @@ class _MockRepo implements UserRepository {
   @override Future<int> streakDays() async => 0;
   @override Future<Map<String, dynamic>> checkin() async => {};
   @override Future<String> questionBankVersion() async => '1.0';
+  @override Future<void> syncAccessibleCourseIds() async {}
 }
 
 void main() {

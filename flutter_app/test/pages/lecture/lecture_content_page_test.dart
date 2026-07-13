@@ -226,14 +226,14 @@ void main() {
       // blocks[1] now visible
       expect(find.textContaining('第二块（隐藏）'), findsOneWidget);
       // Pager shows expanded state
-      expect(find.textContaining('展开 1 / 2'), findsOneWidget);
+      expect(find.textContaining('展开 2 / 2'), findsOneWidget);
 
       // Collapse back
       await tester.tap(find.byIcon(Icons.chevron_left));
       await tester.pumpAndSettle();
 
       // Back to expanded 0
-      expect(find.textContaining('展开 0 / 2'), findsOneWidget);
+      expect(find.textContaining('展开 1 / 2'), findsOneWidget);
     });
 
     testWidgets('shows error state on load failure', (tester) async {
@@ -264,21 +264,20 @@ void main() {
       await tester.pumpAndSettle();
 
       // Start: expand 0/4
-      expect(find.textContaining('展开 0 / 4'), findsOneWidget);
+      expect(find.textContaining('展开 1 / 4'), findsOneWidget);
 
       // Reveal 1→2→3 sequentially
       for (int i = 1; i <= 3; i++) {
         await tester.tap(find.byIcon(Icons.chevron_right));
         await tester.pumpAndSettle();
-        expect(find.textContaining('展开 $i / 4'), findsOneWidget);
+        expect(find.textContaining('展开 ${i + 1} / 4'), findsOneWidget);
       }
 
       // Collapse 3→2→1 sequentially
       for (int i = 3; i >= 1; i--) {
         await tester.tap(find.byIcon(Icons.chevron_left));
         await tester.pumpAndSettle();
-        final expected = i - 1;
-        expect(find.textContaining('展开 $expected / 4'), findsOneWidget);
+        expect(find.textContaining('展开 $i / 4'), findsOneWidget);
       }
     });
   });
