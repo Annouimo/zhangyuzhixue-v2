@@ -45,3 +45,4 @@ docs/_archive/
 # Auto-audit generated output
 docs/auto-audit/audit_report_latest.txt
 docs/auto-audit/verify_results/
+docs/auto-audit/log-snapshots/
