@@ -95,11 +95,12 @@ python docs/auto-audit/ecs_query.py page 2 index.html
 |:----:|------|---------|
 | `winnav_init` | 找窗口+置前+截图+OCR | `window_class` 默认 `FLUTTER_RUNNER_WIN32_WINDOW`, `window_title` 默认 `flutter_app` |
 | `winnav_snap` | 截图+OCR（~0.6s） | `label` 可选，用于命名截图 |
+| `winnav_type` | 在当前焦点处输入文字 | `text` 必填；`interval` 默认 0.05s（字符间隔） |
 | `winnav_click` | OCR 定位文字并点击 | `text` 必填；`exact` 默认 false；`y_range=[min, max]` 过滤 y 百分比范围 |
 | `winnav_click_at` | 锚点百分比+像素偏移点击 | `x_pct`, `y_pct` 锚点；`dx`, `dy` 偏移 |
 | `winnav_mouse_pos` | 读取鼠标位置 | 配合 `click_at` 的 `dx/dy` 校准坐标 |
 | `winnav_scroll` | 按窗口高度百分比滚动 | `dy` 负值=向下，-1.0=向下一整屏 |
-| `winnav_close` | 释放 OCR 缓存 | 每次走查结束必须调用 |
+| `winnav_close` | 释放 OCR 缓存，输出完整 JSON 操作日志 | 每次走查结束必须调用 |
 
 **核心设计：** 所有坐标用百分比（窗口相对），不涉及像素。截图到 `%TEMP%/winnav/screenshots/`。
 
