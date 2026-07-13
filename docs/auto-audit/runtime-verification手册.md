@@ -1,6 +1,6 @@
 # 章鱼智学 · 运行时审计流程手册
 
-> **版本：** v3.0 | **最后更新：** 2026-07-12
+> **版本：** v3.1 | **最后更新：** 2026-07-13
 > **对应 Skill：** `runtime-verification`
 > **代替：** 旧版全量走查→R→Vision 模式（已废弃）
 
@@ -79,7 +79,8 @@
 |:----:|------|---------|
 | `winnav_init` | 找窗口+置前+截图+OCR | `window_class` (默认 `FLUTTER_RUNNER_WIN32_WINDOW`), `window_title` (默认 `flutter_app`), `target_w`/`target_h` (默认 None=不 resize) |
 | `winnav_snap` | 截图+OCR（~0.6s） | `label` 可选，用于命名截图 |
-| `winnav_click` | OCR 定位文字并点击 | `text` 必填，`exact` 默认 false（模糊匹配） |
+| `winnav_click` | OCR 定位文字并点击 | `text` 必填，`exact` 默认 false（模糊匹配）；`y_range=[min, max]` 可选，过滤 y 百分比范围，如 `[0.9, 1.0]` 只匹配底部 10% |
+| `winnav_click_at` | 按百分比坐标点击（绕过 Icon 盲区） | `x_pct`, `y_pct`: 0.0~1.0 窗口客户区百分比 |
 | `winnav_scroll` | 按窗口高度百分比滚动 | `dy` 负值=向下，-1.0=向下一整屏 |
 | `winnav_close` | 输出完整 JSON 操作日志 | 无参数，必须在每次走查结束时调用 |
 
@@ -127,16 +128,20 @@ winnav_snap(label="首页")
 # 3. 决策：看到"自主选题"→ 点它
 winnav_click(text="自主选题")
 
-# 4. 确认页面变化
-winnav_snap(label="选题页")
+# 4. 同一文字在顶部和底部同时出现（如 AppBar "←" vs pager "←"）
+#    用 y_range 过滤底部区域
+winnav_click(text="←", y_range=[0.9, 1.0])
 
-# 5. 如果需要滚动
+# 5. 按钮是 Material Icon（OCR 不可见）→ 坐标点击
+winnav_click_at(x_pct=0.05, y_pct=0.96)  # 翻页栏左箭头
+
+# 6. 如果需要滚动
 winnav_scroll(dy=-1.0)
 
-# 6. 点底部 Tab
+# 7. 点底部 Tab
 winnav_click(text="组卷")
 
-# 7. 走查结束时输出操作日志
+# 8. 走查结束时输出操作日志
 winnav_close()
 ```
 
@@ -171,7 +176,7 @@ python docs/auto-audit/audit_engine.py D:\\Hermes\\zhangyuzhixue_app_v2 --type R
 
 | 场景 | 做法 |
 |:----|:-----|
-| DAO 返回 0 行 | 用 server-driven 对比：`SELECT COUNT(*) FROM qbank_basequestion` vs NDJSON 中的 `QuestionDao.search.rowCount` |
+| DAO 返回 0 行 | 用 server-driven 对比：`python docs/auto-audit/ecs_query.py count questions` vs NDJSON 中的 `QuestionDao.search.rowCount` |
 | 页面崩溃 | 用 crash chain 分析：找最后一个 page 日志 → 找第一个 error → 统计 error 来源 → 构建时间线 |
 | API 未调用 | 检查 `cat='api'` 条目数是否为 0（R12.3 — ApiClient 未注入） |
 | 冷启动时序 | 检查 seq<10 内是否有 `ensureOpen`/`Bad state` 错误（R12.1） |
@@ -179,6 +184,32 @@ python docs/auto-audit/audit_engine.py D:\\Hermes\\zhangyuzhixue_app_v2 --type R
 | N+1 查询 | 检查同一 DAO 调用 ≥20 次且全 0 行（R12.2） |
 | AuditLogger 覆盖 | 检查预期 35 页 vs 实际有 page 日志的页数（R12.5） |
 | null vs 空串误报 | 检查 `vt='null'` 且 `val=''`（R12.6） |
+
+#### 2a-ECS. 服务器端数据核实
+
+当 ❌ 涉及**服务器持有状态**（签到/积分/进度/作业/课程）时，用 `ecs_query.py`（避免 SSH 引号地狱）快速查证：
+
+```bash
+# 一次检查所有关键指标
+python docs/auto-audit/ecs_query.py health
+
+# 查单表行数（支持别名：questions/courses/configs/users/homework）
+python docs/auto-audit/ecs_query.py count questions
+
+# 查用户详情
+python docs/auto-audit/ecs_query.py check-user test_audit
+
+# 任意 SQL
+python docs/auto-audit/ecs_query.py sql "SELECT COUNT(*) FROM system_systemconfig"
+
+# 查模型字段定义
+python docs/auto-audit/ecs_query.py models Assignment
+```
+
+**输出标记：**
+- `server-confirmed-bug` — 服务器有数据但客户端不匹配 → 客户端 bug
+- `client-data-inconsistency` — 服务器有数据但客户端未同步 → 同步 bug
+- `data-missing` — 服务器无此数据 → 旧版残余 / 从未生成
 
 **对于崩溃页面，标准诊断流程：**
 
@@ -402,6 +433,12 @@ NDJSON 文件在 `flutter run` 关闭后会写全。如果 app 完全卡死，�
 
 服务器端数据变更（构建题库、创建邀请码等）必须在 ECS 上执行。做完后需要**重新 `flutter run`** 才能取到新数据。
 
+### winnav 滚动距离太短（旧版本已知问题）
+
+问题表现：`winnav_scroll(dy=-1.0)` 期望滚一屏，实际只滚了极小距离。
+**根因：** pyautogui.scroll(clicks) 的 `clicks` 参数会直接传入 `mouse_event` 的 `dwData`，而 Windows 的 `dwData` 单位是 WHEEL_DELTA(120)。旧代码 `scroll(notches)` 传的是物理齿数（如 31），实际发送 `dwData=31` 相当于 31/120 = 0.26 个滚轮齿。
+**修复：** 2026-07-13 已改为 `scroll(notches * 120)`，重启 winnav MCP 后生效。新会话正常。`winnav_at` 和 `y_range` 功能需要同时更新。
+
 ---
 
 ## 推进日志（每次循环更新）
@@ -409,8 +446,10 @@ NDJSON 文件在 `flutter run` 关闭后会写全。如果 app 完全卡死，�
 | 轮次 | 模块 | 走查进度 | ❌ 数 | 已修复 | 时间 |
 |:----:|:----:|:--------:|:----:|:------:|:----:|
 | — | — | — | — | — | — |
+| 1 | 2（首页+讲义） | 2.1~2.7 已走查，2.8 待验证 | 0 | winnav 增强(3项)+ecs_query 脚本 | 2026-07-13 |
 
 ---
 
-> **文件版本：** v3.0 · 三步循环模式 · 2026-07-12
+> **文件版本：** v3.1 · 增强 winnav + ecs_query · 2026-07-13
 > **替代旧版：** 全量走查→R→Vision 模式（v2.1 及之前）
+> **工具变更：** `winnav_click` 新增 `y_range` 参数、新增 `winnav_click_at` 坐标点击、`winnav_scroll` 修复 WHEEL_DELTA 乘数、`ecs_query.py` 替代手动 SSH
