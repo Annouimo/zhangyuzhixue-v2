@@ -118,18 +118,20 @@ def _run_py(python_code: str) -> dict:
 
 def _raw_sql(sql: str) -> dict:
     """执行原始 SQL，返回 {ok, rows, count}。"""
-    code = textwrap.dedent(f"""\
+    code = textwrap.dedent("""\
     from django.db import connection
+    q = {sql!r}
     with connection.cursor() as c:
-        c.execute({json.dumps(sql)})
-        if sql.strip().upper().startswith("SELECT"):
+        c.execute(q)
+        if q.strip().upper().startswith("SELECT"):
             rows = c.fetchall()
             cols = [desc[0] for desc in c.description]
-            print(json.dumps({{"ok": True, "columns": cols, "rows": [list(r) for r in rows], "count": len(rows)}},
+            print(json.dumps({"ok": True, "columns": cols, "rows": [list(r) for r in rows], "count": len(rows)},
                              ensure_ascii=False))
         else:
-            print(json.dumps({{"ok": True, "affected": c.rowcount}}, ensure_ascii=False))
+            print(json.dumps({"ok": True, "affected": c.rowcount}, ensure_ascii=False))
     """)
+    code = code.replace("{sql!r}", repr(sql))
     return _run_py(code)
 
 
