@@ -1,7 +1,7 @@
 # 章鱼智学 v2 · 运行时审计 Skill 备查
 
 > 用途：快速查阅各 skill 的职责、输入输出、调用时机。
-> 最后更新：2026-07-13
+> 最后更新：2026-07-14（新增 五、横切探查工具 cross-cut-investigation）
 
 ---
 
@@ -143,7 +143,7 @@ SKILL.md
 
 ---
 
-## 四者的协作关系
+## 五者的协作关系
 
 ```
 你手动走查（一次性清单）
@@ -170,6 +170,84 @@ competitive-audit            ← 替代手动走查，全自动挑刺
     ▼
 fix-batch-workflow           ← 直接进入修复流程
 ```
+
+---
+
+## 五、横切探查工具
+
+**skill 名：** `cross-cut-investigation`
+**定位：** 输入一个模糊方向（"筛选""积分""作业""同步""解题"），在该方向横切整个技术栈，系统性地发现全部可能的问题。**不做修复，只做发现。**
+
+| 项目 | 内容 |
+|:----|:------|
+| 输入 | 一个方向性主题（自然语言） |
+| 输出 | 对话：JSON 格式探查报告，兼容 fix-batch-workflow 输入 |
+| 何时用 | 你想全面扫查某个功能方向的所有问题，而不是给具体 bug 列表 |
+
+**5 个探查维度（横切面）：**
+
+| 维度 | 检查内容 | 核心方法 |
+|:----:|---------|---------|
+| ① UI 层 | 设计合规性：控件/状态/交互是否与 HTML 原型一致 | 对照设计文档读代码 |
+| ② 数据流链路 | 从 UI 控件 → callback → state → Repository → DAO → SQL，逐层追踪参数不被丢弃 | 追踪链路，标记每层存活状态 |
+| ③ 数据层完备性 | DAO 参数覆盖、Repository 组合、N-copy 一致性、类型转换安全 | 读 DAO/Repository 代码 |
+| ④ 服务端 API | 端点存在性、请求响应匹配、权限过滤 | 仅涉及网络请求时执行 |
+| ⑤ 边界情况 | 空数据崩溃、非法值处理、组合条件、异步安全、操作顺序 | 基于代码逻辑推演 |
+
+**输出 JSON 格式（兼容 fix-batch-workflow）：**
+
+```json
+{
+  "meta": { "topic": "筛选", "investigation_date": "2026-07-14" },
+  "findings": [
+    {
+      "id": "F-01",
+      "dimension": "数据流链路",
+      "severity": "🔴 阻塞|🟡 非阻塞|⚪ 信息",
+      "type": "UI-原型不符|数据断连|查询缺失|边界遗漏|代码异味",
+      "title": "简短的标题",
+      "evidence": { "file": "path/to/file.dart", "line": "L42-L55", "snippet": "...", "design_ref": "..." },
+      "description": "完整问题描述",
+      "suggested_next": "建议的后续步骤"
+    }
+  ]
+}
+```
+
+**与四者的协作关系（更新版）：**
+
+```
+用户输入模糊方向:"探查一下筛选"
+    │
+    ▼
+cross-cut-investigation    ← 新 skill：横切探查
+    │ 发现 N 个问题
+    │ 输出 JSON
+    ▼
+用户审阅 → 确认问题列表
+    │
+    ▼
+fix-batch-workflow          ← 拿到问题列表，核实→方案→执行
+    │
+    ├─ 代码读出了根因 → 直接出方案
+    │
+    └─ 代码读不出根因 → 暂停
+         │
+         ▼
+      runtime-diagnosis-tools  ← 深入排查
+         │
+         └─ 诊断结果 → 回到 fix-batch-workflow 继续
+```
+
+**与 manual-audit-recorder / competitive-audit 的区分：**
+
+| 维度 | manual-audit-recorder | competitive-audit | cross-cut-investigation |
+|:----|:---------------------|:-----------------|:-----------------------|
+| 角色 | 记录员（你指挥，它记录） | 审计员（自动走查 App） | 分析师（静态代码探查） |
+| 输入 | 你给的操作清单 | 无（全自动走查 Flutter App） | 一个模糊方向关键词 |
+| 方法 | 操作 GUI + OCR 验证 | winnav 走查 + vision 仲裁 | 读文档 + 读代码 + 逐层追踪 |
+| 产出 | 操作 JSON | 走查 JSON | 问题清单 JSON |
+| 何时用 | 你设计好步骤让 agent 批量执行 | 你想自动扫 App 找茬 | 你想全面了解某个方向的代码问题 |
 
 ---
 
