@@ -126,6 +126,8 @@ def _raw_sql(sql: str) -> dict:
         if q.strip().upper().startswith("SELECT"):
             rows = c.fetchall()
             cols = [desc[0] for desc in c.description]
+            # datetime 对象 JSON 不直接支持，转 ISO 字符串
+            rows = [[v.isoformat() if hasattr(v, 'isoformat') else v for v in r] for r in rows]
             print(json.dumps({"ok": True, "columns": cols, "rows": [list(r) for r in rows], "count": len(rows)},
                              ensure_ascii=False))
         else:
@@ -145,17 +147,25 @@ def cmd_health() -> dict:
     from courses.models import Course, Assignment
     from system.models import SystemConfig
     from django.contrib.auth.models import User
+    from accounts.models import Student
     u = User.objects.filter(username='test_audit').first()
+    sid = u.student.id if u and hasattr(u, 'student') else None
+    if sid:
+        s = Student.objects.get(pk=sid)
+        hw_count = Assignment.objects.filter(
+            class_course_assignments__class_course__class_group=s.class_group
+        ).distinct().count() if s.class_group_id else 0
+    else:
+        hw_count = 0
     result = {
         "test_audit": {
             "exists": u is not None,
-            "student_id": u.student.id if u and hasattr(u, 'student') else None,
+            "student_id": sid,
         },
         "questions": BaseQuestion.objects.count(),
         "courses": Course.objects.count(),
         "configs": SystemConfig.objects.count(),
-        "assignments_for_test_audit": Assignment.objects.filter(
-            student__user__username='test_audit').count() if hasattr(Assignment, 'student') else 0,
+        "assignments_for_test_audit": hw_count,
     }
     print(json.dumps(result, ensure_ascii=False))
     """)
@@ -168,14 +178,20 @@ def cmd_check_user(username: str) -> dict:
     code = textwrap.dedent(f"""\
     from django.contrib.auth.models import User
     from courses.models import Assignment
+    from accounts.models import Student
     u = User.objects.filter(username={safe_name}).first()
     if not u:
         print(json.dumps({{"exists": False}}, ensure_ascii=False))
     else:
         has_student = hasattr(u, 'student')
         sid = u.student.id if has_student else None
-        hw = Assignment.objects.filter(student__user__username={safe_name}).count() \\
-            if has_student and hasattr(Assignment, 'student') else 0
+        hw = 0
+        if has_student and sid:
+            s = Student.objects.get(pk=sid)
+            if s.class_group_id:
+                hw = Assignment.objects.filter(
+                    class_course_assignments__class_course__class_group=s.class_group
+                ).distinct().count()
         print(json.dumps({{
             "exists": True,
             "id": u.id,
