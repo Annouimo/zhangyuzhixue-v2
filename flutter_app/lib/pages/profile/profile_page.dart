@@ -8,15 +8,31 @@ import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
+import '../../../data/daos/preference_dao.dart';
+import '../../../data/daos/achievement_dao.dart';
+import '../../../data/daos/statistics_dao.dart';
+import '../../../data/daos/exam_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../domain/auth_repository.dart';
+import '../../../domain/preference_repository.dart';
+import '../../../domain/achievement_repository.dart';
+import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserRepository? userRepository;
-  const ProfilePage({super.key, this.userRepository});
+  final PreferenceRepository? preferenceRepository;
+  final StatisticsRepository? statisticsRepository;
+  final AchievementRepository? achievementRepository;
+  const ProfilePage({
+    super.key,
+    this.userRepository,
+    this.preferenceRepository,
+    this.statisticsRepository,
+    this.achievementRepository,
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -24,10 +40,20 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   late final UserRepository _repo;
+  late final PreferenceRepository _prefRepo;
+  late final StatisticsRepository _statsRepo;
+  late final AchievementRepository _achieveRepo;
   UserInfo? _info;
   bool _loading = true;
   bool _uploading = false;
   String? _error;
+  int? _preferenceCount;
+  int? _statsTotalQuestions;
+  double? _statsAccuracy;
+  int? _answerHistoryCount;
+  int? _achievementUnlocked;
+  double? _earnedPoints;
+  double? _availablePoints;
 
   @override
   void initState() {
@@ -36,15 +62,40 @@ class _ProfilePageState extends State<ProfilePage> {
     _repo = widget.userRepository ?? UserRepository(
       UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
     );
+    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(db.appDb));
+    _statsRepo = widget.statisticsRepository ?? StatisticsRepository(StatisticsDao(db.appDb));
+    _achieveRepo = widget.achievementRepository ?? AchievementRepository(
+      AchievementDao(db.appDb), QuestionDao(db.assetsDb), ExamDao(db.appDb),
+    );
     _load();
   }
 
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final info = await _repo.getUserInfo();
+      final results = await Future.wait([
+        _repo.getUserInfo(),
+        _prefRepo.getCount(),
+        _statsRepo.getOverview(),
+        _repo.getAnswerHistoryCount(),
+        _achieveRepo.unlockedCount(),
+        _repo.earnedPoints(),
+        _repo.availablePoints(),
+      ]);
       if (!mounted) return;
-      setState(() { _info = info; _loading = false; });
+      final info = results[0] as UserInfo;
+      setState(() {
+        _info = info;
+        _preferenceCount = results[1] as int;
+        final overview = results[2] as StatsOverview;
+        _statsTotalQuestions = overview.totalQuestions;
+        _statsAccuracy = overview.accuracyPercent;
+        _answerHistoryCount = results[3] as int;
+        _achievementUnlocked = results[4] as int;
+        _earnedPoints = results[5] as double;
+        _availablePoints = results[6] as double;
+        _loading = false;
+      });
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._load', e);
@@ -241,19 +292,32 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildMenuEntries(BuildContext context) {
-    final info = _info;
+    final prefSubtitle = _preferenceCount != null
+        ? '已设置 $_preferenceCount 个偏好'
+        : null;
+    final statsSubtitle = (_statsTotalQuestions != null && _statsAccuracy != null)
+        ? '共 $_statsTotalQuestions 题 · 正确率 ${_statsAccuracy!.toStringAsFixed(0)}%'
+        : null;
+    final historySubtitle = _answerHistoryCount != null
+        ? '共 $_answerHistoryCount 题'
+        : null;
+    final achieveSubtitle = _achievementUnlocked != null
+        ? '已解锁 $_achievementUnlocked 个'
+        : null;
+    final pointsSubtitle = (_earnedPoints != null && _availablePoints != null)
+        ? '学习积分 $_earnedPoints · 可用 $_availablePoints'
+        : null;
     final sections = [
       ('学习', [
-        (Icons.tune, '学习偏好',
-          info?.studentId != null ? '已登录' : null,
+        (Icons.tune, '学习偏好', prefSubtitle,
           () => context.push('/profile/preferences')),
-        (Icons.bar_chart, '学习统计', null, () => context.push('/statistics')),
-        (Icons.replay, '做题历史', null, () => context.push('/profile/history')),
+        (Icons.bar_chart, '学习统计', statsSubtitle, () => context.push('/statistics')),
+        (Icons.replay, '做题历史', historySubtitle, () => context.push('/profile/history')),
       ]),
       ('成长', [
-        (Icons.emoji_events_outlined, '成就', null, () => context.push('/profile/achievements')),
+        (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push('/profile/achievements')),
         (Icons.trending_up, '等级进度', null, () => context.push('/profile/level')),
-        (Icons.monetization_on_outlined, '积分流水', null, () => context.push('/profile/points')),
+        (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push('/profile/points')),
       ]),
       ('系统', [
         (Icons.sync, '同步状态', null, () => context.push('/sync/queue')),

@@ -67,7 +67,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('作业')),
+      appBar: AppBar(title: const Text('待办作业')),
       body: _buildBody(),
     );
   }
