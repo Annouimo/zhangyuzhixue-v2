@@ -78,7 +78,7 @@ Future<bool> submitExitRating({
     await provider.appDb.into(provider.appDb.pointsTransactions).insert(
       app_db.PointsTransactionsCompanion(
         amount: Value(pts),
-        source: const Value('EXIT_RATING_REWARD'),
+        source: const Value('REVIEW_REWARD'),
         transactionType: const Value('earn'),
         createdAt: Value(now),
       ),

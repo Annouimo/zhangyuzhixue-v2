@@ -11,12 +11,19 @@ import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
 import 'widgets/filter_panel.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/api/api_client.dart';
+import '../../../data/api/user_api.dart';
+import '../../../data/daos/user_dao.dart';
+import '../../../domain/user_repository.dart';
+import '../../../data/database/app_database.dart' as app_db;
+import 'package:drift/drift.dart' hide Column;
 
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
   final ExamRepository? examRepository;
   final PreferenceRepository? preferenceRepository;
-  const ExamPickPage({super.key, this.examRepository, this.preferenceRepository});
+  final UserRepository? userRepository;
+  const ExamPickPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
 
   @override
   State<ExamPickPage> createState() => _ExamPickPageState();
@@ -27,6 +34,8 @@ class _ExamPickPageState extends State<ExamPickPage> {
   final _filterKey = GlobalKey<FilterPanelState>();
   late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
       PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+  late final UserRepository _userRepo = widget.userRepository ??
+      UserRepository(UserDao(DatabaseProvider().appDb), UserApi(ApiClient()), QuestionDao(DatabaseProvider().assetsDb));
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
   List<SearchQuestion>? _questions;
@@ -184,10 +193,37 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   Future<void> _save() async {
     if (_selectedIds.isEmpty) return;
+    // 积分检查
+    final available = await _userRepo.availablePoints();
+    if (available < 20) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('积分不足，自主选题需要 20 积分'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _saving = true);
     try {
       await _repo.confirm(SearchFilters(name: _nameController.text, choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
         targetDifficulty: 0, years: [], regions: [], conceptTags: [], knowledgeCards: [], selectedIds: _selectedIds.toList()));
+      // 扣分
+      final now = DateTime.now().toIso8601String();
+      final db = DatabaseProvider();
+      await db.appDb.into(db.appDb.pointsTransactions).insert(
+        app_db.PointsTransactionsCompanion(
+          amount: const Value(-20),
+          source: const Value('PAPER_PURCHASE'),
+          transactionType: const Value('SPEND'),
+          createdAt: Value(now),
+          description: const Value('自主选题'),
+        ),
+      );
       if (!mounted) return;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

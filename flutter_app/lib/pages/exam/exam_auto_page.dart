@@ -11,12 +11,19 @@ import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/difficulty_slider.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/api/api_client.dart';
+import '../../../data/api/user_api.dart';
+import '../../../data/daos/user_dao.dart';
+import '../../../domain/user_repository.dart';
+import '../../../data/database/app_database.dart' as app_db;
+import 'package:drift/drift.dart' hide Column;
 
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
   final ExamRepository? examRepository;
   final PreferenceRepository? preferenceRepository;
-  const ExamAutoPage({super.key, this.examRepository, this.preferenceRepository});
+  final UserRepository? userRepository;
+  const ExamAutoPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
 
   @override
   State<ExamAutoPage> createState() => _ExamAutoPageState();
@@ -37,6 +44,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   PoolStats? _poolStats;
+
+  late final UserRepository _userRepo = widget.userRepository ??
+      UserRepository(UserDao(DatabaseProvider().appDb), UserApi(ApiClient()), QuestionDao(DatabaseProvider().assetsDb));
 
   @override
   void initState() {
@@ -185,6 +195,21 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   }
 
   Future<void> _confirm() async {
+    // 积分检查
+    final available = await _userRepo.availablePoints();
+    if (available < 10) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('积分不足，智能组卷需要 10 积分'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _generating = true);
     try {
       final filters = SearchFilters(
@@ -197,6 +222,18 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
         questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
       final paperId = await _repo.confirm(filters);
+      // 扣分
+      final now = DateTime.now().toIso8601String();
+      final db = DatabaseProvider();
+      await db.appDb.into(db.appDb.pointsTransactions).insert(
+        app_db.PointsTransactionsCompanion(
+          amount: const Value(-10),
+          source: const Value('PAPER_PURCHASE'),
+          transactionType: const Value('SPEND'),
+          createdAt: Value(now),
+          description: const Value('智能组卷'),
+        ),
+      );
       if (!mounted) return;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

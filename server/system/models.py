@@ -101,6 +101,7 @@ class PointsTransaction(models.Model):
         ('TASK_REWARD', '完成任务'),
         ('SIGNUP_BONUS', '新人赠送'),
         ('PAPER_PURCHASE', '组卷消费'),
+        ('REVIEW_REWARD', '退出评价奖励'),
         ('ADMIN_ADJUST', '管理员调整'),
     ]
 
