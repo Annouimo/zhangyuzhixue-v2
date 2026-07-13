@@ -5,31 +5,34 @@
 
 ---
 
-## 一、手动走查记录器
+## 一、批量走查记录器
 
 **skill 名：** `manual-audit-recorder`
-**定位：** 你指挥，agent 执行并记录。适合手动走查时当书记员。
+**定位：** 你一次性给出全部操作清单（点击、SQL、截图等），agent 逐条执行并记录结果，最后输出 JSON。**不需要逐条指挥。**
 
 | 项目 | 内容 |
 |:----|:------|
-| 输入 | 你逐条发指令（点击、SQL、读文件等） |
+| 输入 | 你一次性给的批量操作清单（模块号 + 步骤列表） |
 | 输出 | `docs/auto-audit/审计日志/manual_audit_<模块号>_<日期>_<序号>.json` |
 | 格式 | 与 fix-batch-workflow 的格式化输入兼容 |
-| 何时用 | 你自己走查页面，让 agent 执行工具操作+记录结果 |
+| 何时用 | 你自己设计好走查步骤，让 agent 批量执行+记录 |
 
-**常用指挥指令：**
-- `snap` / `截图` → winnav_snap
-- `点 签到` / `click 待办作业` → winnav_click
-- `点 x=0.1 y=0.2` → winnav_click_at
-- `向下滚` / `scroll -1.0` → winnav_scroll
-- `输入 test_audit` → winnav_type
-- `sql SELECT count(*) FROM ...` → ecs_query.py sql
-- `查 test_audit` → ecs_query.py check-user
-- `读 lib/pages/xxx.dart` → read_file
-- `记一个问题` → 引导补全 bug 字段
-- `保存` / `输出` → 写入 JSON
+**步骤指令速查：**
 
----
+| 你写 | agent 执行 |
+|:----|:-----------|
+| `snap` / `截图` | winnav_snap，自动记 OCR 文字 |
+| `click <文字>` | winnav_click |
+| `click_at <x> <y>` | winnav_click_at |
+| `scroll -1.0` | winnav_scroll |
+| `输入 <文字>` | winnav_type |
+| `sql "<查询>"` | ecs_query.py sql |
+| `check-user <用户名>` | ecs_query.py check-user |
+| `read <路径>` | read_file |
+| `wait <秒>` | 等 N 秒 |
+| `记问题: <描述>, severity=<等级>` | 记录一个 ❌ bug |
+| `记通过: <描述>` | 记录一个 ✅ pass |
+| `记诊断: <根因>, path=<路径>` | 给上一个问题追加诊断 |
 
 ## 二、批量修复工作流
 
