@@ -224,15 +224,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       firstChild: const SizedBox.shrink(),
       secondChild: Padding(
         padding: const EdgeInsets.only(top: 12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: MdLatexBody(content, fontSize: 15),
-        ),
+        child: MdLatexBody(content, fontSize: 15),
       ),
       crossFadeState: visible
           ? CrossFadeState.showSecond

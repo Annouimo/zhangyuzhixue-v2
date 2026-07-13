@@ -106,13 +106,19 @@ class _InlineLatexSyntax extends md.InlineSyntax {
 class _InlineLatexBuilder extends MarkdownElementBuilder {
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    return Math.tex(
+    final m = Math.tex(
       element.textContent,
       mathStyle: MathStyle.text,
       textStyle: TextStyle(
         fontSize: preferredStyle?.fontSize ?? 14,
         color: preferredStyle?.color,
       ),
+    );
+    final br = m.texBreak();
+    if (br.parts.length <= 1) return m;
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: br.parts,
     );
   }
 }
@@ -159,11 +165,14 @@ class _BlockMathBuilder extends MarkdownElementBuilder {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
-        child: Math.tex(
-          element.textContent,
-          mathStyle: MathStyle.display,
-          textStyle: TextStyle(
-            fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Math.tex(
+            element.textContent,
+            mathStyle: MathStyle.display,
+            textStyle: TextStyle(
+              fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
+            ),
           ),
         ),
       ),
