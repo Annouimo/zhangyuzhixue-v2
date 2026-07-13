@@ -291,7 +291,9 @@ def main():
         return
 
     cmd = sys.argv[1]
-    print(LOGO)
+    as_json = "--json" in sys.argv
+    if not as_json:
+        print(LOGO)
 
     try:
         if cmd == "health":
