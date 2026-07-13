@@ -35,7 +35,6 @@ class _ExamPickPageState extends State<ExamPickPage> {
   final _nameController = TextEditingController(text: '智能练习卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
-  Set<String> _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   @override
@@ -261,7 +260,6 @@ class _ExamPickPageState extends State<ExamPickPage> {
             onLoadPreference: _loadPreference,
             onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
               _years = y; _regions = r; _conceptTags = ct;
-              _selectedExamTypes = et; _selectedKnowledgeCards = kc;
               _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
             },
           )
