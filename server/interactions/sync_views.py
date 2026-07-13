@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS user_profile (
     gaokao_year TEXT,
     class_group_id INTEGER,
     phone TEXT,
+    accessible_course_ids TEXT,
     updated_at TEXT
 );
 
@@ -227,11 +228,20 @@ def _fmt_dt(dt):
 
 def _dump_user_profile(conn, student):
     user = student.user
+    # 查询该学生班级可访问的 course_id 列表
+    from courses.models import ClassCourseAssignment
+    cids = list(ClassCourseAssignment.objects.filter(
+        class_course__class_group_id=student.class_group_id,
+        is_active=True,
+    ).values_list(
+        'class_course__course_id', flat=True,
+    ).distinct().order_by('class_course__course_id'))
+    course_ids_str = ','.join(str(c) for c in cids) if cids else None
     conn.execute(
         'INSERT OR REPLACE INTO user_profile '
         '(id, name, real_name, student_id, avatar, school, '
-        'gaokao_year, class_group_id, phone, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'gaokao_year, class_group_id, phone, accessible_course_ids, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
             user.pk,
             user.username,
@@ -242,6 +252,7 @@ def _dump_user_profile(conn, student):
             str(student.gaokao_year) if student.gaokao_year else None,
             student.class_group_id,
             student.phone or None,
+            course_ids_str,
             _fmt_dt(student.updated_at),
         ],
     )

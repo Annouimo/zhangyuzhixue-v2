@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -102,6 +103,8 @@ class ProfilePageState extends State<ProfilePage> {
         _availablePoints = results[6] as double;
         _loading = false;
       });
+      // 同步后缓存 accessible_course_ids（如有）
+      unawaited(_repo.syncAccessibleCourseIds());
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._load', e);

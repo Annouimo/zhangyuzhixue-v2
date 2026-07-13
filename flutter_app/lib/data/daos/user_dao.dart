@@ -121,4 +121,19 @@ class UserDao {
     }
     return total;
   }
+
+  /// 读取 user_profile 中的 accessible_course_ids（由服务器 pull 时写入）
+  Future<String?> getAccessibleCourseIds() async {
+    try {
+      final result = await _db.customSelect(
+        'SELECT accessible_course_ids FROM user_profile LIMIT 1',
+      ).getSingleOrNull();
+      final val = result?.data.values.firstOrNull as String?;
+      AuditLogger.instance.dao('UserDao.getAccessibleCourseIds', val != null ? 1 : 0, {'val': val});
+      return val;
+    } catch (e) {
+      AuditLogger.instance.error('UserDao.getAccessibleCourseIds', e);
+      return null;
+    }
+  }
 }
