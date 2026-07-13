@@ -5,7 +5,7 @@ import 'difficulty_slider.dart';
 /// 筛选面板（智能组卷/自主选题/推荐 三页共用）
 typedef FilterChangedCallback = void Function(
   Set<String> years, Set<String> regions, Set<String> types,
-  Set<String> conceptTags,
+  Set<String> conceptTags, Set<String> examTypes, Set<String> knowledgeCards,
   double diffMin, double diffMax, double calcMin, double calcMax,
 );
 
@@ -13,6 +13,8 @@ class FilterPanel extends StatefulWidget {
   final List<String> yearOptions;
   final List<String> regionOptions;
   final List<String> conceptTagOptions;
+  final List<String> examTypeOptions;
+  final List<String> knowledgeCardOptions;
   final FilterChangedCallback? onChanged;
   final VoidCallback? onSavePreference;
   final VoidCallback? onLoadPreference;
@@ -22,6 +24,8 @@ class FilterPanel extends StatefulWidget {
     required this.yearOptions,
     required this.regionOptions,
     this.conceptTagOptions = const [],
+    this.examTypeOptions = const [],
+    this.knowledgeCardOptions = const [],
     this.onChanged,
     this.onSavePreference,
     this.onLoadPreference,
@@ -36,27 +40,37 @@ class FilterPanelState extends State<FilterPanel> {
   final _selectedRegions = <String>{};
   final _selectedTypes = <String>{};
   final _selectedConceptTags = <String>{};
+  final _selectedExamTypes = <String>{};
+  final _selectedKnowledgeCards = <String>{};
   double _diffMin = 0, _diffMax = 10;
   double _calcMin = 0, _calcMax = 10;
 
-  /// 获取当前筛选状态（供外部保存偏好使用）
+  final _sourceExpanded = true;
+  final _conceptExpanded = true;
+  final _knowledgeExpanded = true;
+  final _diffExpanded = true;
+
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
   Set<String> get selectedConceptTags => _selectedConceptTags;
+  Set<String> get selectedExamTypes => _selectedExamTypes;
+  Set<String> get selectedKnowledgeCards => _selectedKnowledgeCards;
   double get diffMin => _diffMin;
   double get diffMax => _diffMax;
   double get calcMin => _calcMin;
   double get calcMax => _calcMax;
 
-  /// 应用外部偏好（从偏好库读取后调用）
   void applyFilter({
     Set<String>? years, Set<String>? regions, Set<String>? conceptTags,
+    Set<String>? examTypes, Set<String>? knowledgeCards,
     double? diffMin, double? diffMax, double? calcMin, double? calcMax,
   }) {
     setState(() {
       if (years != null) { _selectedYears.clear(); _selectedYears.addAll(years); }
       if (regions != null) { _selectedRegions.clear(); _selectedRegions.addAll(regions); }
       if (conceptTags != null) { _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags); }
+      if (examTypes != null) { _selectedExamTypes.clear(); _selectedExamTypes.addAll(examTypes); }
+      if (knowledgeCards != null) { _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards); }
       if (diffMin != null) _diffMin = diffMin;
       if (diffMax != null) _diffMax = diffMax;
       if (calcMin != null) _calcMin = calcMin;
@@ -65,64 +79,129 @@ class FilterPanelState extends State<FilterPanel> {
     _emit();
   }
 
+  void clearAll() {
+    setState(() {
+      _selectedYears.clear();
+      _selectedRegions.clear();
+      _selectedExamTypes.clear();
+      _selectedConceptTags.clear();
+      _selectedKnowledgeCards.clear();
+      _selectedTypes.clear();
+      _diffMin = 0; _diffMax = 10;
+      _calcMin = 0; _calcMax = 10;
+    });
+    _emit();
+  }
+
   void _emit() {
     widget.onChanged?.call(
       _selectedYears, _selectedRegions, _selectedTypes, _selectedConceptTags,
+      _selectedExamTypes, _selectedKnowledgeCards,
       _diffMin, _diffMax, _calcMin, _calcMax,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.baseSpacing),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 筛选偏好保存/读取区域
-          if (widget.onSavePreference != null || widget.onLoadPreference != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  if (widget.onSavePreference != null)
-                    TextButton.icon(
-                      icon: const Icon(Icons.save_outlined, size: 16),
-                      label: const Text('保存为学习偏好', style: TextStyle(fontSize: 12)),
-                      onPressed: widget.onSavePreference,
-                    ),
-                  if (widget.onLoadPreference != null)
-                    TextButton.icon(
-                      icon: const Icon(Icons.folder_open_outlined, size: 16),
-                      label: const Text('读取学习偏好', style: TextStyle(fontSize: 12)),
-                      onPressed: widget.onLoadPreference,
-                    ),
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 标题行：筛选条件 + 清除全部
+        Row(
+          children: [
+            const Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            const Spacer(),
+            TextButton(
+              onPressed: clearAll,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              child: const Text('清除全部', style: TextStyle(fontSize: 12)),
             ),
-          _buildChipGroup('年份', widget.yearOptions, _selectedYears),
-          const SizedBox(height: 12),
-          _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
-          const SizedBox(height: 12),
-          if (widget.conceptTagOptions.isNotEmpty) ...[
-            _buildChipGroup('概念标签', widget.conceptTagOptions, _selectedConceptTags),
-            const SizedBox(height: 12),
           ],
-          _buildTypeGroup(),
-          const SizedBox(height: 16),
+        ),
+        // 保存/读取预设
+        if (widget.onSavePreference != null || widget.onLoadPreference != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                if (widget.onSavePreference != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.save_outlined, size: 16),
+                    label: const Text('保存为学习偏好', style: TextStyle(fontSize: 12)),
+                    onPressed: widget.onSavePreference,
+                  ),
+                if (widget.onLoadPreference != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.folder_open_outlined, size: 16),
+                    label: const Text('读取学习偏好', style: TextStyle(fontSize: 12)),
+                    onPressed: widget.onLoadPreference,
+                  ),
+              ],
+            ),
+          ),
+        _buildSection('按来源筛选', _sourceExpanded, [
+          _buildChipGroup('年份', widget.yearOptions, _selectedYears),
+          const SizedBox(height: 8),
+          _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
+          if (widget.examTypeOptions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildChipGroup('考试', widget.examTypeOptions, _selectedExamTypes),
+          ],
+        ]),
+        const SizedBox(height: 8),
+        if (widget.conceptTagOptions.isNotEmpty)
+          _buildSection('按概念标签筛选', _conceptExpanded, [
+            _buildChipGroup('', widget.conceptTagOptions, _selectedConceptTags),
+          ]),
+        if (widget.conceptTagOptions.isNotEmpty)
+          const SizedBox(height: 8),
+        if (widget.knowledgeCardOptions.isNotEmpty)
+          _buildSection('按知识卡片筛选', _knowledgeExpanded, [
+            _buildChipGroup('', widget.knowledgeCardOptions, _selectedKnowledgeCards),
+          ]),
+        if (widget.knowledgeCardOptions.isNotEmpty)
+          const SizedBox(height: 8),
+        _buildSection('按难度/计算量筛选', _diffExpanded, [
           DifficultySlider(
             label: '难度范围', min: 0, max: 10,
             lower: _diffMin, upper: _diffMax,
             onChanged: (v) { setState(() { _diffMin = v.start; _diffMax = v.end; }); _emit(); },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           DifficultySlider(
             label: '计算量范围', min: 0, max: 10,
             lower: _calcMin, upper: _calcMax,
             onChanged: (v) { setState(() { _calcMin = v.start; _calcMax = v.end; }); _emit(); },
           ),
-        ],
-      ),
+          const SizedBox(height: 4),
+          _buildTypeGroup(),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildSection(String title, bool expanded, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {}, // 折叠功能预留
+          child: Row(
+            children: [
+              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+              const Spacer(),
+              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        if (expanded) ...[const SizedBox(height: 6), ...children],
+        const SizedBox(height: 4),
+      ],
     );
   }
 
@@ -131,8 +210,11 @@ class FilterPanelState extends State<FilterPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-        const SizedBox(height: 6),
+        if (label.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+          ),
         Wrap(
           spacing: 6, runSpacing: 4,
           children: options.map((o) => FilterChip(
@@ -155,8 +237,8 @@ class FilterPanelState extends State<FilterPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('题型', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-        const SizedBox(height: 6),
+        const Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+        const SizedBox(height: 4),
         Wrap(
           spacing: 6, runSpacing: 4,
           children: types.map((t) => FilterChip(

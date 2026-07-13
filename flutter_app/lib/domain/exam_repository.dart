@@ -115,9 +115,14 @@ class FilterOptions {
   final List<String> regions;
   final List<String> conceptTags;
   final List<String> knowledgeCards;
+  final List<String> examTypes;
+
   const FilterOptions({
-    required this.years, required this.regions,
-    required this.conceptTags, required this.knowledgeCards,
+    required this.years,
+    required this.regions,
+    required this.conceptTags,
+    this.knowledgeCards = const [],
+    this.examTypes = const [],
   });
 }
 
@@ -344,11 +349,14 @@ class ExamRepository {
     final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
     final regions = await _questionDao.getDistinctRegions();
     final tags = await _questionDao.getAllConceptTags();
+    final kcs = await _questionDao.getAllKnowledgeCards();
+    final examTypes = await _questionDao.getDistinctExamTypes();
     return FilterOptions(
       years: years,
       regions: regions,
       conceptTags: tags.map((t) => t.name).toList(),
-      knowledgeCards: [],
+      knowledgeCards: kcs.map((k) => k.title).toList(),
+      examTypes: examTypes,
     );
   }
 

@@ -190,7 +190,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
                   conceptTagOptions: _tagOpts ?? [],
-                  onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
+                  onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
                     _years = y; _regions = r; _types = t; _conceptTags = ct;
                     _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
                   },

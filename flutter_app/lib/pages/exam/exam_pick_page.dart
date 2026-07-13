@@ -35,6 +35,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   final _nameController = TextEditingController(text: '智能练习卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
+  Set<String> _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
 
   @override
@@ -236,42 +237,59 @@ class _ExamPickPageState extends State<ExamPickPage> {
   );
 
   Widget _buildScrollContent() {
+    final nameField = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: TextField(
+        controller: _nameController,
+        decoration: const InputDecoration(
+          labelText: '试卷名称',
+          hintText: '输入试卷名称',
+          border: OutlineInputBorder(),
+        ),
+      ),
+    );
+
+    final filterPanel = _filterOpts != null
+        ? FilterPanel(
+            key: _filterKey,
+            yearOptions: _filterOpts!.years,
+            regionOptions: _filterOpts!.regions,
+            conceptTagOptions: _filterOpts!.conceptTags,
+            examTypeOptions: _filterOpts!.examTypes,
+            knowledgeCardOptions: _filterOpts!.knowledgeCards,
+            onSavePreference: _savePreference,
+            onLoadPreference: _loadPreference,
+            onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
+              _years = y; _regions = r; _conceptTags = ct;
+              _selectedExamTypes = et; _selectedKnowledgeCards = kc;
+              _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
+            },
+          )
+        : null;
+
+    final searchButton = _filterOpts != null
+        ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
+          )
+        : null;
+
     if (_loadingQ) {
       return const Center(child: LoadingIndicator(message: '搜索中…'));
     }
+
+    // 组装：filterPanel + searchButton 在顶部，下方根据状态切换
+    final headerChildren = <Widget>[
+      nameField,
+      if (filterPanel != null) filterPanel,
+      if (searchButton != null) searchButton,
+    ];
+
     if (_questions == null) {
       return ListView(
         padding: EdgeInsets.zero,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '试卷名称',
-                hintText: '输入试卷名称',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          if (_filterOpts != null)
-            FilterPanel(
-              key: _filterKey,
-              yearOptions: _filterOpts!.years,
-              regionOptions: _filterOpts!.regions,
-              conceptTagOptions: _filterOpts!.conceptTags,
-              onSavePreference: _savePreference,
-              onLoadPreference: _loadPreference,
-              onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
-                _years = y; _regions = r; _conceptTags = ct;
-                _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
-              },
-            ),
-          if (_filterOpts != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
-            ),
+          ...headerChildren,
           const SizedBox(height: 80),
           const Center(child: EmptyPlaceholder(icon: '🔍', message: '设置筛选条件后搜索')),
         ],
@@ -281,35 +299,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       return ListView(
         padding: EdgeInsets.zero,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '试卷名称',
-                hintText: '输入试卷名称',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-          if (_filterOpts != null)
-            FilterPanel(
-              key: _filterKey,
-              yearOptions: _filterOpts!.years,
-              regionOptions: _filterOpts!.regions,
-              conceptTagOptions: _filterOpts!.conceptTags,
-              onSavePreference: _savePreference,
-              onLoadPreference: _loadPreference,
-              onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
-                _years = y; _regions = r; _conceptTags = ct;
-                _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
-              },
-            ),
-          if (_filterOpts != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
-            ),
+          ...headerChildren,
           const SizedBox(height: 80),
           const Center(child: EmptyPlaceholder(icon: '📭', message: '未找到匹配的题目')),
         ],
@@ -318,43 +308,12 @@ class _ExamPickPageState extends State<ExamPickPage> {
     // 有搜索结果
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: _questions!.length + (_filterOpts != null ? 3 : 1),
+      itemCount: _questions!.length + headerChildren.length,
       itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: '试卷名称',
-                hintText: '输入试卷名称',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          );
+        if (index < headerChildren.length) {
+          return headerChildren[index];
         }
-        if (_filterOpts != null && index == 1) {
-          return FilterPanel(
-            key: _filterKey,
-            yearOptions: _filterOpts!.years,
-            regionOptions: _filterOpts!.regions,
-            conceptTagOptions: _filterOpts!.conceptTags,
-            onSavePreference: _savePreference,
-            onLoadPreference: _loadPreference,
-            onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
-              _years = y; _regions = r; _conceptTags = ct;
-              _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
-            },
-          );
-        }
-        final btnIdx = _filterOpts != null ? 2 : 1;
-        if (_filterOpts != null && index == btnIdx) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
-          );
-        }
-        final qIdx = index - (_filterOpts != null ? 3 : 1);
+        final qIdx = index - headerChildren.length;
         final q = _questions![qIdx];
         final sel = _selectedIds.contains(q.id);
         return Card(

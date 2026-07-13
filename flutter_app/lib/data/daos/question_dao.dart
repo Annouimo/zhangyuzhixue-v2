@@ -62,6 +62,13 @@ class QuestionDao {
     return regions;
   }
 
+  Future<List<String>> getDistinctExamTypes() async {
+    final all = await _db.select(_db.questions).get();
+    final types = all.map((q) => q.examType).toSet().toList()..sort();
+    AuditLogger.instance.dao('QuestionDao.getDistinctExamTypes', types.length, {});
+    return types;
+  }
+
   Future<int> countByType(String type) async {
     final rows = await (_db.select(_db.questions)
       ..where((t) => t.questionType.equals(type))).get();
