@@ -26,8 +26,15 @@ abstract final class AppSizes {
 
 /// 应用主题
 class AppTheme {
+  static const _fontFamilyFallback = [
+    'Microsoft YaHei',
+    'PingFang SC',
+    'Noto Sans CJK SC',
+  ];
+
   static ThemeData get light => ThemeData(
         useMaterial3: true,
+        fontFamilyFallback: _fontFamilyFallback,
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
           onPrimary: Colors.white,
