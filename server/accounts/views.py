@@ -104,6 +104,10 @@ def login_view(request):
     if user.is_staff:
         return _err(40003, '管理员账号不允许登录 App')
 
+    from django.utils import timezone as tz
+    user.last_login = tz.now()
+    user.save(update_fields=['last_login'])
+
     refresh = RefreshToken.for_user(user)
 
     if hasattr(user, 'student'):

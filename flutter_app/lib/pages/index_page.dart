@@ -346,7 +346,7 @@ class _IndexPageState extends State<IndexPage> {
           const Divider(height: 20),
           // 任务列表
           _buildTaskItem(dayInWeek >= 1, '开张有礼（完成第1题）', '0.5'),
-          _buildTaskItem(dayInWeek >= 2, '小试牛刀（完成5题）', '1.0'),
+          _buildTaskItem(dayInWeek >= 2, '小试牛刀（完成10题）', '1.0'),
           _buildTaskItem(dayInWeek >= 3, '精益求精（正确率≥60%）', '1.0', inProgress: dayInWeek == 2),
           _buildTaskItem(dayInWeek >= 4, '更进一步（完成15题）', '2.0', inProgress: dayInWeek == 3),
           // 等级进度行

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:meta/meta.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -23,6 +23,16 @@ class DatabaseProvider {
   LecturesDatabase? _lecturesDb;
   bool _initialized = false;
   String? _dbDirPath;
+  int _dbVersion = 0;
+  final ValueNotifier<int> _dbVersionNotifier = ValueNotifier<int>(0);
+
+  /// 数据库版本号——每次替换/清空时递增，供 UI 层监听以重建页面
+  ValueNotifier<int> get dbVersionNotifier => _dbVersionNotifier;
+
+  void _bumpVersion() {
+    _dbVersion++;
+    _dbVersionNotifier.value = _dbVersion;
+  }
 
   Future<void> init() async {
     if (_initialized) return;
@@ -114,6 +124,7 @@ class DatabaseProvider {
     final target = File('${_dbDirPath!}/assets.db');
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
+    _bumpVersion();
   }
 
   Future<void> replaceLecturesDb(String newPath) async {
@@ -121,6 +132,7 @@ class DatabaseProvider {
     final target = File('${_dbDirPath!}/lectures.db');
     await File(newPath).copy(target.path);
     _lecturesDb = LecturesDatabase(NativeDatabase(target));
+    _bumpVersion();
   }
 
   /// 替换 user.db（与 replaceAssetsDb / replaceLecturesDb 同构）
@@ -130,6 +142,7 @@ class DatabaseProvider {
     await File(newPath).copy(target.path);
     _appDb = AppDatabase(NativeDatabase(target));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+    _bumpVersion();
   }
 
   Future<void> clearUserDb() async {
@@ -140,6 +153,7 @@ class DatabaseProvider {
     }
     _appDb = AppDatabase(NativeDatabase(file));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+    _bumpVersion();
   }
 
   /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。

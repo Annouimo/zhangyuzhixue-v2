@@ -3,6 +3,7 @@ import 'index_page.dart';
 import 'recommend_page.dart';
 import 'exam/exam_home_page.dart';
 import 'profile/profile_page.dart';
+import '../data/database/database_provider.dart';
 
 /// Tab 页枚举
 enum MainTab { home, recommend, exam, profile }
@@ -17,15 +18,34 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
+  int _pageKey = 0;
 
   final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
+  final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
 
   List<Widget> get _pages => [
-    const IndexPage(),
-    RecommendPage(key: _recommendKey),
+    IndexPage(key: ValueKey('index_$_pageKey')),
+    RecommendPage(key: ValueKey('recommend_$_pageKey')),
     const ExamHomePage(),
-    const ProfilePage(),
+    ProfilePage(key: ValueKey('profile_$_pageKey')),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
+  }
+
+  @override
+  void dispose() {
+    DatabaseProvider().dbVersionNotifier.removeListener(_onDbVersionChanged);
+    super.dispose();
+  }
+
+  void _onDbVersionChanged() {
+    if (!mounted) return;
+    setState(() => _pageKey++);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +59,7 @@ class _MainShellState extends State<MainShell> {
         onTap: (index) {
           setState(() => _currentIndex = index);
           if (index == 1) _recommendKey.currentState?.refresh();
+          if (index == 3) _profileKey.currentState?.reload();
         },
         type: BottomNavigationBarType.fixed,
         items: const [

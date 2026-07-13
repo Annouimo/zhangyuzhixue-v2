@@ -35,10 +35,10 @@ class ProfilePage extends StatefulWidget {
   });
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   late final UserRepository _repo;
   late final PreferenceRepository _prefRepo;
   late final StatisticsRepository _statsRepo;
@@ -54,6 +54,9 @@ class _ProfilePageState extends State<ProfilePage> {
   int? _achievementUnlocked;
   double? _earnedPoints;
   double? _availablePoints;
+
+  /// 供 MainShell 切 Tab 时调用，触发数据刷新
+  void reload() => _load();
 
   @override
   void initState() {
