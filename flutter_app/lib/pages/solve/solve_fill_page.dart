@@ -21,12 +21,16 @@ class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
   final QuestionRepository? questionRepository;
+  final String? mode;
+  final int? attemptId;
 
   const SolveFillPage({
     super.key,
     required this.questionId,
     this.nextQuestionId,
     this.questionRepository,
+    this.mode,
+    this.attemptId,
   });
 
   @override
@@ -79,13 +83,26 @@ class _SolveFillPageState extends State<SolveFillPage> {
   Future<void> _load() async {
     try {
       final detail = await _repo.getDetail(widget.questionId);
-      final attempts = await _repo.getAttempts(widget.questionId);
-      final latest = attempts.isNotEmpty ? attempts.last : null;
+      var attempts = await _repo.getAttempts(widget.questionId);
+
+      // 首次访问且未指定存档时，自动创建
+      if (attempts.isEmpty && widget.mode != 'review') {
+        await _repo.startSolve(widget.questionId);
+        attempts = await _repo.getAttempts(widget.questionId);
+      }
+
+      SolveAttempt? latest;
+      if (widget.attemptId != null) {
+        latest = attempts.where((a) => a.id == widget.attemptId).firstOrNull;
+      }
+      latest ??= attempts.isNotEmpty ? attempts.last : null;
+
       if (!mounted) return;
       setState(() {
         _detail = detail;
         _attempts = attempts;
         _currentAttempt = latest;
+        _revealed = latest?.isCompleted ?? false;
         _loading = false;
       });
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId});
@@ -105,7 +122,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 存档选择器（复用 choice 页模式）
+  /// 存档选择器
   Widget _buildAttemptSelector() {
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
@@ -207,6 +224,30 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
+  /// 揭示答案时保存记录
+  Future<void> _onReveal() async {
+    setState(() => _revealed = true);
+    if (_currentAttempt == null) {
+      await _repo.startSolve(widget.questionId);
+      final attempts = await _repo.getAttempts(widget.questionId);
+      if (!mounted) return;
+      setState(() {
+        _attempts = attempts;
+        _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
+      });
+    }
+    // 记录答案揭示（作为正确回答存入存档）
+    if (_detail?.answer != null && _currentAttempt != null) {
+      try {
+        await _repo.saveAttempt(
+          widget.questionId,
+          answerText: _detail!.answer!,
+          isCorrect: true,
+        );
+      } catch (_) {}
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -221,7 +262,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
           const SizedBox(height: 8),
-          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试') ),
         ])),
       );
     }
@@ -242,7 +283,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             isRevisit: _revealed,
             answerValue: _detail?.answer,
             explanation: _detail?.explanation,
-            onReveal: () => setState(() => _revealed = true),
+            onReveal: _onReveal,
             onNext: widget.nextQuestionId != null
                 ? () => context.go('/solve/fill?id=${widget.nextQuestionId}')
                 : null,
@@ -316,7 +357,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
-            child: const Text('📋 回顾模式 · 只读浏览，不可修改',
+            child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
               style: TextStyle(fontSize: 13, color: AppColors.primary),
             ),
           ),

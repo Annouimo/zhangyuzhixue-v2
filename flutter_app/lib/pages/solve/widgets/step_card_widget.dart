@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../domain/progress_repository.dart' as progress;
 import '../../../widgets/md_latex_body.dart';
+import '../../../data/daos/progress_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import 'cooling_timer.dart';
@@ -80,11 +81,26 @@ class _StepCardWidgetState extends State<StepCardWidget> {
     final dao = QuestionDao(DatabaseProvider().assetsDb);
     final card = await dao.getKnowledgeCardByTitle(tag);
     if (!context.mounted) return;
-    KnowledgeCardDialog.show(
+    final feedback = await KnowledgeCardDialog.show(
       context,
       title: tag,
       content: card?.content ?? '知识卡片：$tag',
     );
+    // 如果用户选择了反馈，保存到数据库
+    if (feedback != null && context.mounted) {
+      final pDao = ProgressDao(DatabaseProvider().appDb);
+      // 使用当前 questionId 写入 card_feedback
+      // 注意: 这里没有 submission_detail_id 上下文，用 0 占位
+      // 外层 SolveStepPage 应传递 attemptId 来获取正确的 submissionDetailId
+      try {
+        await pDao.insertCardFeedback(
+          submissionDetailId: 0, // TODO: 从外部传递实际的 submissionDetailId
+          questionId: 0,          // TODO: 从外部传递实际的 questionId
+          cardTitle: tag,
+          cardStatus: feedback,
+        );
+      } catch (_) {}
+    }
   }
 
   @override

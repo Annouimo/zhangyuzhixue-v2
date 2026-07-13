@@ -18,12 +18,16 @@ class SolveChoicePage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
   final QuestionRepository? questionRepository;
+  final String? mode;
+  final int? attemptId;
 
   const SolveChoicePage({
     super.key,
     required this.questionId,
     this.nextQuestionId,
     this.questionRepository,
+    this.mode,
+    this.attemptId,
   });
 
   @override
@@ -70,12 +74,37 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     }
   }
 
+  /// 根据存档恢复选择状态
+  Future<void> _restoreAttemptState(SolveAttempt attempt) async {
+    if (attempt.isCompleted) {
+      final dao = ProgressDao(DatabaseProvider().appDb);
+      final rows = await dao.getAttempts(widget.questionId);
+      final match = rows.where((r) => r.attemptNumber == attempt.attemptNumber).toList();
+      if (match.isNotEmpty && mounted) {
+        setState(() {
+          _selected = match.first.answerText;
+          _submitted = true;
+          _isCorrect = match.first.isCorrect == 1;
+        });
+      }
+    } else {
+      setState(() {
+        _selected = null;
+        _submitted = false;
+        _isCorrect = false;
+      });
+    }
+  }
+
   Future<void> _load() async {
     try {
       final detail = await _repo.getDetail(widget.questionId);
-      // 加载作答次数
       final attempts = await _repo.getAttempts(widget.questionId);
-      final latest = attempts.isNotEmpty ? attempts.last : null;
+      SolveAttempt? latest;
+      if (widget.attemptId != null) {
+        latest = attempts.where((a) => a.id == widget.attemptId).firstOrNull;
+      }
+      latest ??= attempts.isNotEmpty ? attempts.last : null;
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -83,6 +112,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _currentAttempt = latest;
         _loading = false;
       });
+      // 恢复选择状态
+      if (latest != null) {
+        await _restoreAttemptState(latest);
+      }
       AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
     } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._load', e);
@@ -178,7 +211,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         ? '第 ${_currentAttempt!.attemptNumber} 次作答'
         : '第 ${_attempts.length + 1} 次作答';
 
-    // 仅一次作答时显示纯文字标签
     if (_attempts.length <= 1) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -192,7 +224,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       );
     }
 
-    // 多次作答时显示下拉选择器
     return PopupMenuButton<Object>(
       onSelected: (value) {
         if (value is SolveAttempt) {
@@ -256,12 +287,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     setState(() {
       _currentAttempt = attempt;
     });
-    // 重置答题状态（切换到存档对应状态）
-    setState(() {
-      _selected = null;
-      _submitted = false;
-      _isCorrect = false;
-    });
+    _restoreAttemptState(attempt);
   }
 
   /// 创建新作答
@@ -328,7 +354,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                 ),
               ),
               const SizedBox(width: 8),
-              // 作答次数选择器
               _buildAttemptSelector(),
             ],
           ),
@@ -342,6 +367,35 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         // 选项
         ...(detail.options?.entries.map((e) {
           final isSel = _selected == e.key;
+          final isCorrectOption = _submitted && e.key == detail.answer;
+          final isWrongSelection = _submitted && isSel && !_isCorrect;
+
+          Color? borderColor;
+          Color? bgColor;
+          if (isCorrectOption) {
+            borderColor = AppColors.success;
+            bgColor = AppColors.success.withValues(alpha: 0.08);
+          } else if (isWrongSelection) {
+            borderColor = AppColors.error;
+            bgColor = AppColors.error.withValues(alpha: 0.08);
+          } else if (isSel) {
+            borderColor = AppColors.primary;
+            bgColor = AppColors.primaryLight;
+          }
+
+          Color dotBg = Colors.grey[200]!;
+          Color dotText = AppColors.textSecondary;
+          if (isCorrectOption) {
+            dotBg = AppColors.success;
+            dotText = Colors.white;
+          } else if (isWrongSelection) {
+            dotBg = AppColors.error;
+            dotText = Colors.white;
+          } else if (isSel) {
+            dotBg = AppColors.primary;
+            dotText = Colors.white;
+          }
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: GestureDetector(
@@ -349,11 +403,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isSel ? AppColors.primaryLight : Colors.white,
+                  color: bgColor ?? Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isSel ? AppColors.primary : const Color(0xFFE5E7EB),
-                    width: isSel ? 1.5 : 1,
+                    color: borderColor ?? const Color(0xFFE5E7EB),
+                    width: borderColor != null ? 1.5 : 1,
                   ),
                 ),
                 child: Row(
@@ -364,15 +418,19 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                       margin: const EdgeInsets.only(top: 1),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSel ? AppColors.primary : Colors.grey[200],
+                        color: dotBg,
                       ),
                       child: Center(
-                        child: Text(e.key,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isSel ? Colors.white : AppColors.textSecondary,
-                          ),
-                        ),
+                        child: isCorrectOption
+                            ? const Icon(Icons.check, size: 16, color: Colors.white)
+                            : isWrongSelection
+                                ? const Icon(Icons.close, size: 16, color: Colors.white)
+                                : Text(e.key,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: dotText,
+                                    ),
+                                  ),
                       ),
                     ),
                     const SizedBox(width: 12),

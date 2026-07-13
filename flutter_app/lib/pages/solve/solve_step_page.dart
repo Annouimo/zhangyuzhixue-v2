@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/exit_rating_popup.dart';
+import '../../widgets/md_latex_body.dart';
+import '../../app_theme.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/progress_repository.dart' as progress;
+import '../../domain/question_repository.dart';
 import 'widgets/step_card_widget.dart';
 import 'widgets/feedback_buttons.dart';
 import '../../data/debug/audit_logger.dart';
@@ -24,11 +27,14 @@ class SolveStepPage extends StatefulWidget {
   final int questionId;
   final int methodIndex;
   final int stepIndex;
+  final int? attemptId;
+
   const SolveStepPage({
     super.key,
     required this.questionId,
     required this.methodIndex,
     required this.stepIndex,
+    this.attemptId,
   });
   @override
   State<SolveStepPage> createState() => _SolveStepPageState();
@@ -41,6 +47,15 @@ class _SolveStepPageState extends State<SolveStepPage> {
   String? _error;
   late final progress.ProgressRepository _repo;
   DateTime? _entryTime;
+
+  // 题目信息
+  QuestionDetail? _detail;
+
+  // 当前存档信息
+  int? _currentAttemptNumber;
+  int? _currentSubmissionDetailId;
+  bool _isRevisit = false;
+  progress.StepSolveRecord? _existingRecord;
 
   @override
   void initState() { super.initState(); _entryTime = DateTime.now(); _load(); _loadCooldown(); }
@@ -62,10 +77,57 @@ class _SolveStepPageState extends State<SolveStepPage> {
       ProgressDao(DatabaseProvider().appDb),
       QuestionDao(DatabaseProvider().assetsDb),
     );
+    final qRepo = QuestionRepository(
+      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider().appDb),
+    );
     try {
       final s = await _repo.getSolveState(widget.questionId);
-      setState(() { _state = s; _loading = false; });
-      AuditLogger.instance.page('SolveStepPage', {'stepCount': _totalSteps, 'currentStep': widget.stepIndex});
+      QuestionDetail? detail;
+      try { detail = await qRepo.getDetail(widget.questionId); } catch (_) {}
+
+      // 解析存档信息
+      int? attemptNumber;
+      int? submissionDetailId;
+      bool isRevisit = false;
+      progress.StepSolveRecord? existingRecord;
+
+      if (widget.attemptId != null) {
+        // 从路由参数解析 attempt
+        final dao = ProgressDao(DatabaseProvider().appDb);
+        final attempts = await dao.getAttempts(widget.questionId);
+        final match = attempts.where((a) => a.id == widget.attemptId).toList();
+        if (match.isNotEmpty) {
+          attemptNumber = match.first.attemptNumber;
+          submissionDetailId = match.first.id;
+          // 查询历史步骤反馈
+          final feedbacks = await dao.getStepFeedbacks(match.first.id);
+          final stepFeedback = feedbacks.where((f) => f.stepNumber == widget.stepIndex + 1).toList();
+          if (stepFeedback.isNotEmpty) {
+            isRevisit = true;
+            existingRecord = progress.StepSolveRecord(
+              stepOrder: widget.stepIndex + 1,
+              feedbackGiven: true,
+              feedbackType: stepFeedback.last.status,
+            );
+          }
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _state = s;
+        _detail = detail;
+        _currentAttemptNumber = attemptNumber;
+        _currentSubmissionDetailId = submissionDetailId;
+        _isRevisit = isRevisit;
+        _existingRecord = existingRecord;
+        _loading = false;
+      });
+      AuditLogger.instance.page('SolveStepPage', {
+        'stepCount': _totalSteps, 'currentStep': widget.stepIndex,
+        'isRevisit': _isRevisit,
+      });
     } catch (e) {
       AuditLogger.instance.error('SolveStepPage._load', e);
       debugPrint('_load error: $e');
@@ -85,19 +147,21 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   void _goNextStep() {
     if (_isLastStep) return;
-    context.pushReplacement(
-      '/solve/step?id=${widget.questionId}&method=${widget.methodIndex}&step=${widget.stepIndex + 1}',
-    );
+    final buf = StringBuffer('/solve/step?id=${widget.questionId}'
+        '&method=${widget.methodIndex}&step=${widget.stepIndex + 1}');
+    if (_currentSubmissionDetailId != null) {
+      buf.write('&attemptId=$_currentSubmissionDetailId');
+    }
+    context.pushReplacement(buf.toString());
   }
 
   Future<void> _onFeedback(FeedbackType type) async {
     await _repo.submitStepFeedback(
       questionId: widget.questionId,
-      attemptNumber: 1,
+      attemptNumber: _currentAttemptNumber ?? 1,
       stepNumber: widget.stepIndex + 1,
       status: _feedbackToStatus(type),
     );
-    // 不是最后一步 → 自动导航到下一步
     if (!_isLastStep) {
       _goNextStep();
     }
@@ -109,6 +173,25 @@ class _SolveStepPageState extends State<SolveStepPage> {
     } catch (_) {
       return null;
     }
+  }
+
+  // 获取当前步骤所属的小问&方法名
+  String _buildContextLabel() {
+    if (_state == null || _state!.subQuestions.isEmpty) return '';
+    final sq = _state!.subQuestions[0];
+    final buf = StringBuffer(sq.label);
+    try {
+      final m = sq.solutions[widget.methodIndex];
+      if (m.methodName != null && m.methodName!.isNotEmpty) {
+        buf.write(' · ${m.methodName}');
+      }
+    } catch (_) {}
+    buf.write(' · 第 ${widget.stepIndex + 1} 步');
+    final step = _currentStep();
+    if (step != null && step.title.isNotEmpty) {
+      buf.write(' · ${step.title}');
+    }
+    return buf.toString();
   }
 
   @override
@@ -135,12 +218,46 @@ class _SolveStepPageState extends State<SolveStepPage> {
               ? const Center(child: Text('步骤数据不存在'))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: StepCardWidget(
-                    cooldownSeconds: _coolDownSec,
-                    step: step,
-                    stepIndex: widget.stepIndex,
-                    totalSteps: _totalSteps,
-                    onFeedback: _onFeedback,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 上下文位置标识
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(_buildContextLabel(),
+                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // 精简题干
+                      if (_detail != null && _detail!.stem.isNotEmpty) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: MdLatexBody(_detail!.stem, fontSize: 14),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      // 步骤卡片
+                      StepCardWidget(
+                        cooldownSeconds: _coolDownSec,
+                        step: step,
+                        stepIndex: widget.stepIndex,
+                        totalSteps: _totalSteps,
+                        isRevisit: _isRevisit,
+                        existingRecord: _existingRecord,
+                        onFeedback: _onFeedback,
+                      ),
+                    ],
                   ),
                 ),
     ));

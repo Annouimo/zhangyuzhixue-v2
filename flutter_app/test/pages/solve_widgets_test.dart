@@ -121,7 +121,7 @@ void main() {
           child: SolveFlowWidget(
             isCorrect: true,
             isRevisit: true, // 跳过冷却，直接进入结果展示
-            onSubmit: () {},
+            onSubmit: () async {},
             child: const Text('题目'),
           ),
         )),

@@ -89,13 +89,32 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.register, name: 'register', builder: (_, _) => const RegisterPage()),
     GoRoute(path: AppRoutes.mainShell, name: 'home', builder: (_, _) => const MainShell()),
     GoRoute(path: AppRoutes.solveChoice, name: 'solve-choice', builder: (_, state) {
-      return SolveChoicePage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, nextQuestionId: _intParam(state.uri.queryParameters, 'next')); }),
+      return SolveChoicePage(
+        questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+        nextQuestionId: _intParam(state.uri.queryParameters, 'next'),
+        mode: state.uri.queryParameters['mode'],
+        attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
+      ); }),
     GoRoute(path: AppRoutes.solveFill, name: 'solve-fill', builder: (_, state) {
-      return SolveFillPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, nextQuestionId: _intParam(state.uri.queryParameters, 'next')); }),
+      return SolveFillPage(
+        questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+        nextQuestionId: _intParam(state.uri.queryParameters, 'next'),
+        mode: state.uri.queryParameters['mode'],
+        attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
+      ); }),
     GoRoute(path: AppRoutes.solveMap, name: 'solve-map', builder: (_, state) {
-      return SolveMapPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
+      return SolveMapPage(
+        questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+        mode: state.uri.queryParameters['mode'],
+        attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
+      ); }),
     GoRoute(path: AppRoutes.solveStep, name: 'solve-step', builder: (_, state) {
-      return SolveStepPage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0, methodIndex: _intParam(state.uri.queryParameters, 'method') ?? 0, stepIndex: _intParam(state.uri.queryParameters, 'step') ?? 0); }),
+      return SolveStepPage(
+        questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+        methodIndex: _intParam(state.uri.queryParameters, 'method') ?? 0,
+        stepIndex: _intParam(state.uri.queryParameters, 'step') ?? 0,
+        attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
+      ); }),
     GoRoute(path: AppRoutes.solveRate, name: 'solve-rate', builder: (_, state) {
       return SolveRatePage(questionId: _intParam(state.uri.queryParameters, 'id') ?? 0); }),
     GoRoute(path: AppRoutes.lectureChapters, name: 'lecture-chapters', builder: (_, state) {

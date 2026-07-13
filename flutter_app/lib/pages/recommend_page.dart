@@ -5,6 +5,7 @@ import '../../data/daos/progress_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/recommend_repository.dart';
+import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/error_placeholder.dart';
@@ -122,7 +123,20 @@ class RecommendPageState extends State<RecommendPage> {
                         questionType: q.questionType,
                         difficulty: q.difficulty,
                         reason: q.recommendReason,
-                        onTap: () => context.push('/solve/choice?id=${q.id}'),
+                        onTap: () async {
+                          final repo = QuestionRepository(
+                            QuestionDao(DatabaseProvider().assetsDb),
+                            ProgressDao(DatabaseProvider().appDb),
+                          );
+                          final attempts = await repo.getAttempts(q.id);
+                          final mode = attempts.isEmpty ? 'first' : 'review';
+                          final attemptId = attempts.isNotEmpty ? attempts.last.id.toString() : null;
+                          final page = SolveRouteHelper.pageName(q.questionType);
+                          if (!context.mounted) return;
+                          context.push('/$page?id=${q.id}'
+                              '${mode != 'first' ? '&mode=$mode' : ''}'
+                              '${attemptId != null ? '&attemptId=$attemptId' : ''}');
+                        },
                       );
                     },
                   ),
