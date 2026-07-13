@@ -5,6 +5,8 @@ import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/exam_repository.dart';
+import '../../../domain/preference_repository.dart';
+import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/difficulty_slider.dart';
@@ -13,7 +15,8 @@ import '../../data/debug/audit_logger.dart';
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
   final ExamRepository? examRepository;
-  const ExamAutoPage({super.key, this.examRepository});
+  final PreferenceRepository? preferenceRepository;
+  const ExamAutoPage({super.key, this.examRepository, this.preferenceRepository});
 
   @override
   State<ExamAutoPage> createState() => _ExamAutoPageState();
@@ -21,8 +24,12 @@ class ExamAutoPage extends StatefulWidget {
 
 class _ExamAutoPageState extends State<ExamAutoPage> {
   late final ExamRepository _repo;
+  final _filterKey = GlobalKey<FilterPanelState>();
+  late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
+      PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
+  final _nameController = TextEditingController(text: '智能练习卷');
   int _choiceCount = 10, _fillCount = 5, _solutionCount = 6;
   double _targetDifficulty = 5;
   bool _generating = false;
@@ -40,6 +47,12 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     _loadFilterOptions();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadFilterOptions() async {
     try {
       final opts = await _repo.getFilterOptions();
@@ -49,10 +62,98 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
+  /// 保存当前筛选条件为学习偏好
+  Future<void> _savePreference() async {
+    final state = _filterKey.currentState;
+    if (state == null) return;
+    if (!context.mounted) return;
+    final nameCtrl = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('保存为学习偏好'),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(
+            hintText: '偏好名称（如"北京高考模拟"）',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, nameCtrl.text), child: const Text('保存')),
+        ],
+      ),
+    );
+    nameCtrl.dispose();
+    if (name == null || name.trim().isEmpty) return;
+    await _prefRepo.save(
+      name: name.trim(),
+      filter: PreferenceFilter(
+        years: state.selectedYears.toList(),
+        regions: state.selectedRegions.toList(),
+        conceptTags: state.selectedConceptTags.toList(),
+        diffMin: state.diffMin,
+        diffMax: state.diffMax,
+        calcMin: state.calcMin,
+        calcMax: state.calcMax,
+      ),
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  /// 读取学习偏好并应用到筛选面板
+  Future<void> _loadPreference() async {
+    final state = _filterKey.currentState;
+    if (state == null) return;
+    final presets = await _prefRepo.getList();
+    if (!context.mounted) return;
+    if (presets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('暂无保存的学习偏好'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('选择学习偏好'),
+        children: presets.map((p) => SimpleDialogOption(
+          onPressed: () => Navigator.pop(ctx, p.id),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (p.summary.isNotEmpty)
+                Text(p.summary, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+    if (selected == null) return;
+    final filter = await _prefRepo.getEdit(selected);
+    if (!context.mounted) return;
+    state.applyFilter(
+      years: filter.years.toSet(),
+      regions: filter.regions.toSet(),
+      conceptTags: filter.conceptTags.toSet(),
+      diffMin: filter.diffMin,
+      diffMax: filter.diffMax,
+      calcMin: filter.calcMin,
+      calcMax: filter.calcMax,
+    );
+  }
+
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
         knowledgeCards: [], diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
       );
@@ -65,10 +166,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     setState(() => _generating = true);
     try {
       final filters = SearchFilters(
-        name: '', choiceCount: _choiceCount, fillCount: _fillCount,
+        name: _nameController.text, choiceCount: _choiceCount, fillCount: _fillCount,
         solutionCount: _solutionCount, targetDifficulty: _targetDifficulty,
         years: _years.toList(), regions: _regions.toList(),
-        conceptTags: [], knowledgeCards: [],
+        conceptTags: _conceptTags.toList(), knowledgeCards: [],
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
       );
       final paperId = await _repo.confirm(filters);
@@ -100,11 +201,25 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
               Expanded(
                 child: ListView(
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: '试卷名称',
+                          hintText: '输入试卷名称',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
                     if (_filterOpts != null)
                       FilterPanel(
+                        key: _filterKey,
                         yearOptions: _filterOpts!.years,
                         regionOptions: _filterOpts!.regions,
                         conceptTagOptions: _filterOpts!.conceptTags,
+                        onSavePreference: _savePreference,
+                        onLoadPreference: _loadPreference,
                         onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) async {
                           setState(() { _years = y; _regions = r; _conceptTags = ct;
                             _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; });

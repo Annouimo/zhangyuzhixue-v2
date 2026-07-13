@@ -4,6 +4,8 @@ import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/exam_repository.dart';
+import '../../../domain/preference_repository.dart';
+import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
@@ -13,7 +15,8 @@ import '../../data/debug/audit_logger.dart';
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
   final ExamRepository? examRepository;
-  const ExamPickPage({super.key, this.examRepository});
+  final PreferenceRepository? preferenceRepository;
+  const ExamPickPage({super.key, this.examRepository, this.preferenceRepository});
 
   @override
   State<ExamPickPage> createState() => _ExamPickPageState();
@@ -21,11 +24,15 @@ class ExamPickPage extends StatefulWidget {
 
 class _ExamPickPageState extends State<ExamPickPage> {
   late final ExamRepository _repo;
+  final _filterKey = GlobalKey<FilterPanelState>();
+  late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
+      PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
   List<SearchQuestion>? _questions;
   bool _loadingQ = false;
   final _selectedIds = <int>{};
+  final _nameController = TextEditingController(text: '智能练习卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
@@ -38,6 +45,12 @@ class _ExamPickPageState extends State<ExamPickPage> {
     _loadFilterOptions();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadFilterOptions() async {
     try {
       final opts = await _repo.getFilterOptions();
@@ -47,10 +60,98 @@ class _ExamPickPageState extends State<ExamPickPage> {
     } catch (e) { AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
+  /// 保存当前筛选条件为学习偏好
+  Future<void> _savePreference() async {
+    final state = _filterKey.currentState;
+    if (state == null) return;
+    if (!context.mounted) return;
+    final nameCtrl = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('保存为学习偏好'),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(
+            hintText: '偏好名称（如"北京高考模拟"）',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, nameCtrl.text), child: const Text('保存')),
+        ],
+      ),
+    );
+    nameCtrl.dispose();
+    if (name == null || name.trim().isEmpty) return;
+    await _prefRepo.save(
+      name: name.trim(),
+      filter: PreferenceFilter(
+        years: state.selectedYears.toList(),
+        regions: state.selectedRegions.toList(),
+        conceptTags: state.selectedConceptTags.toList(),
+        diffMin: state.diffMin,
+        diffMax: state.diffMax,
+        calcMin: state.calcMin,
+        calcMax: state.calcMax,
+      ),
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
+      );
+    }
+  }
+
+  /// 读取学习偏好并应用到筛选面板
+  Future<void> _loadPreference() async {
+    final state = _filterKey.currentState;
+    if (state == null) return;
+    final presets = await _prefRepo.getList();
+    if (!context.mounted) return;
+    if (presets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('暂无保存的学习偏好'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    final selected = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('选择学习偏好'),
+        children: presets.map((p) => SimpleDialogOption(
+          onPressed: () => Navigator.pop(ctx, p.id),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+              if (p.summary.isNotEmpty)
+                Text(p.summary, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+    if (selected == null) return;
+    final filter = await _prefRepo.getEdit(selected);
+    if (!context.mounted) return;
+    state.applyFilter(
+      years: filter.years.toSet(),
+      regions: filter.regions.toSet(),
+      conceptTags: filter.conceptTags.toSet(),
+      diffMin: filter.diffMin,
+      diffMax: filter.diffMax,
+      calcMin: filter.calcMin,
+      calcMax: filter.calcMax,
+    );
+  }
+
   Future<void> _search() async {
     setState(() => _loadingQ = true);
     try {
-      final filters = SearchFilters(name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+      final filters = SearchFilters(name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: [],
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax);
       final qs = await _repo.getFilteredQuestions(filters);
@@ -63,7 +164,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     if (_selectedIds.isEmpty) return;
     setState(() => _saving = true);
     try {
-      await _repo.confirm(SearchFilters(name: '', choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
+      await _repo.confirm(SearchFilters(name: _nameController.text, choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
         targetDifficulty: 0, years: [], regions: [], conceptTags: [], knowledgeCards: [], selectedIds: _selectedIds.toList()));
       if (!mounted) return;
       if (context.mounted) {
@@ -130,11 +231,25 @@ class _ExamPickPageState extends State<ExamPickPage> {
       return ListView(
         padding: EdgeInsets.zero,
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '试卷名称',
+                hintText: '输入试卷名称',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
           if (_filterOpts != null)
             FilterPanel(
+              key: _filterKey,
               yearOptions: _filterOpts!.years,
               regionOptions: _filterOpts!.regions,
               conceptTagOptions: _filterOpts!.conceptTags,
+              onSavePreference: _savePreference,
+              onLoadPreference: _loadPreference,
               onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
                 _years = y; _regions = r; _conceptTags = ct;
                 _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
@@ -154,11 +269,25 @@ class _ExamPickPageState extends State<ExamPickPage> {
       return ListView(
         padding: EdgeInsets.zero,
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '试卷名称',
+                hintText: '输入试卷名称',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
           if (_filterOpts != null)
             FilterPanel(
+              key: _filterKey,
               yearOptions: _filterOpts!.years,
               regionOptions: _filterOpts!.regions,
               conceptTagOptions: _filterOpts!.conceptTags,
+              onSavePreference: _savePreference,
+              onLoadPreference: _loadPreference,
               onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
                 _years = y; _regions = r; _conceptTags = ct;
                 _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
@@ -177,27 +306,43 @@ class _ExamPickPageState extends State<ExamPickPage> {
     // 有搜索结果
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: _questions!.length + (_filterOpts != null ? 2 : 1),
+      itemCount: _questions!.length + (_filterOpts != null ? 3 : 1),
       itemBuilder: (context, index) {
-        if (_filterOpts != null && index == 0) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: '试卷名称',
+                hintText: '输入试卷名称',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          );
+        }
+        if (_filterOpts != null && index == 1) {
           return FilterPanel(
+            key: _filterKey,
             yearOptions: _filterOpts!.years,
             regionOptions: _filterOpts!.regions,
             conceptTagOptions: _filterOpts!.conceptTags,
+            onSavePreference: _savePreference,
+            onLoadPreference: _loadPreference,
             onChanged: (y, r, t, ct, dmn, dmx, cmn, cmx) {
               _years = y; _regions = r; _conceptTags = ct;
               _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
             },
           );
         }
-        final btnIdx = _filterOpts != null ? 1 : 0;
+        final btnIdx = _filterOpts != null ? 2 : 1;
         if (_filterOpts != null && index == btnIdx) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
           );
         }
-        final qIdx = index - (_filterOpts != null ? 2 : 1);
+        final qIdx = index - (_filterOpts != null ? 3 : 1);
         final q = _questions![qIdx];
         final sel = _selectedIds.contains(q.id);
         return Card(

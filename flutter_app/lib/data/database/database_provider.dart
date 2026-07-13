@@ -80,23 +80,14 @@ class DatabaseProvider {
   Future<void> _ensureUserDbSchema(Directory dir) async {
     final file = File('${dir.path}/user.db');
     if (!await file.exists()) return;
-    NativeDatabase? conn;
+    AppDatabase? db;
     try {
-      conn = NativeDatabase(file);
-      // 先查表是否存在，避免 runCustom 抛异常
-      final result = await conn.runSelect(
-        'SELECT name FROM sqlite_master WHERE type="table" AND name="user_profile"', [],
-      );
-      if (result.isEmpty) {
-        await conn.close();
-        await file.delete();
-        return;
-      }
-      await conn.runSelect('SELECT 1 FROM user_profile LIMIT 1', []);
-      await conn.close();
+      db = AppDatabase(NativeDatabase(file));
+      await db.customStatement('SELECT 1');
+      await db.close();
     } catch (e) {
       AuditLogger.instance.error('DatabaseProvider._checkSchema', e);
-      await conn?.close();
+      await db?.close();
       // ignore: avoid_print
       print('user.db schema mismatch detected, deleting...');
       await file.delete();

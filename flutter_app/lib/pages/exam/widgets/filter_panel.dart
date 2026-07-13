@@ -14,6 +14,8 @@ class FilterPanel extends StatefulWidget {
   final List<String> regionOptions;
   final List<String> conceptTagOptions;
   final FilterChangedCallback? onChanged;
+  final VoidCallback? onSavePreference;
+  final VoidCallback? onLoadPreference;
 
   const FilterPanel({
     super.key,
@@ -21,19 +23,47 @@ class FilterPanel extends StatefulWidget {
     required this.regionOptions,
     this.conceptTagOptions = const [],
     this.onChanged,
+    this.onSavePreference,
+    this.onLoadPreference,
   });
 
   @override
-  State<FilterPanel> createState() => _FilterPanelState();
+  State<FilterPanel> createState() => FilterPanelState();
 }
 
-class _FilterPanelState extends State<FilterPanel> {
+class FilterPanelState extends State<FilterPanel> {
   final _selectedYears = <String>{};
   final _selectedRegions = <String>{};
   final _selectedTypes = <String>{};
   final _selectedConceptTags = <String>{};
   double _diffMin = 0, _diffMax = 10;
   double _calcMin = 0, _calcMax = 10;
+
+  /// 获取当前筛选状态（供外部保存偏好使用）
+  Set<String> get selectedYears => _selectedYears;
+  Set<String> get selectedRegions => _selectedRegions;
+  Set<String> get selectedConceptTags => _selectedConceptTags;
+  double get diffMin => _diffMin;
+  double get diffMax => _diffMax;
+  double get calcMin => _calcMin;
+  double get calcMax => _calcMax;
+
+  /// 应用外部偏好（从偏好库读取后调用）
+  void applyFilter({
+    Set<String>? years, Set<String>? regions, Set<String>? conceptTags,
+    double? diffMin, double? diffMax, double? calcMin, double? calcMax,
+  }) {
+    setState(() {
+      if (years != null) { _selectedYears.clear(); _selectedYears.addAll(years); }
+      if (regions != null) { _selectedRegions.clear(); _selectedRegions.addAll(regions); }
+      if (conceptTags != null) { _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags); }
+      if (diffMin != null) _diffMin = diffMin;
+      if (diffMax != null) _diffMax = diffMax;
+      if (calcMin != null) _calcMin = calcMin;
+      if (calcMax != null) _calcMax = calcMax;
+    });
+    _emit();
+  }
 
   void _emit() {
     widget.onChanged?.call(
@@ -49,6 +79,27 @@ class _FilterPanelState extends State<FilterPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 筛选偏好保存/读取区域
+          if (widget.onSavePreference != null || widget.onLoadPreference != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  if (widget.onSavePreference != null)
+                    TextButton.icon(
+                      icon: const Icon(Icons.save_outlined, size: 16),
+                      label: const Text('保存为学习偏好', style: TextStyle(fontSize: 12)),
+                      onPressed: widget.onSavePreference,
+                    ),
+                  if (widget.onLoadPreference != null)
+                    TextButton.icon(
+                      icon: const Icon(Icons.folder_open_outlined, size: 16),
+                      label: const Text('读取学习偏好', style: TextStyle(fontSize: 12)),
+                      onPressed: widget.onLoadPreference,
+                    ),
+                ],
+              ),
+            ),
           _buildChipGroup('年份', widget.yearOptions, _selectedYears),
           const SizedBox(height: 12),
           _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
