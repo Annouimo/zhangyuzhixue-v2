@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/md_latex_body.dart';
 import 'cooling_timer.dart';
 
 /// 选填解题流程的阶段
@@ -142,17 +143,11 @@ class _ResultBanner extends StatelessWidget {
           ]),
           if (correctAnswer != null && !isCorrect) ...[
             const SizedBox(height: 8),
-            Text('正确答案：$correctAnswer',
-              style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-            ),
+            MdLatexBody('正确答案：$correctAnswer'),
           ],
           if (explanation != null && explanation!.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Text(explanation!,
-              style: const TextStyle(
-                fontSize: 13, color: AppColors.textSecondary, height: 1.5,
-              ),
-            ),
+            MdLatexBody(explanation!),
           ],
         ],
       ),

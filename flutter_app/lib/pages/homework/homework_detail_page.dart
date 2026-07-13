@@ -166,14 +166,15 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 number: q.number,
                 questionType: q.questionType,
                 status: q.status,
-                onTap: () {
+                onTap: () async {
                   final route = switch (q.questionType) {
                     'choice' => '/solve/choice',
                     'fill' => '/solve/fill',
                     'solution' => '/solve/map',
                     _ => '/solve/choice',
                   };
-                  context.push('$route?id=${q.id}');
+                  await context.push('$route?id=${q.id}');
+                  _load();
                 },
               );
             },
