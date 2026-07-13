@@ -80,7 +80,8 @@
 | `winnav_init` | 找窗口+置前+截图+OCR | `window_class` (默认 `FLUTTER_RUNNER_WIN32_WINDOW`), `window_title` (默认 `flutter_app`), `target_w`/`target_h` (默认 None=不 resize) |
 | `winnav_snap` | 截图+OCR（~0.6s） | `label` 可选，用于命名截图 |
 | `winnav_click` | OCR 定位文字并点击 | `text` 必填，`exact` 默认 false（模糊匹配）；`y_range=[min, max]` 可选，过滤 y 百分比范围，如 `[0.9, 1.0]` 只匹配底部 10% |
-| `winnav_click_at` | 按百分比坐标点击（绕过 Icon 盲区） | `x_pct`, `y_pct`: 0.0~1.0 窗口客户区百分比 |
+| `winnav_click_at` | 按锚点百分比+像素偏移点击（绕过 Icon 盲区） | `x_pct`, `y_pct`: 锚点 0.0~1.0；`dx`, `dy`: 像素偏移（默认 0）。偏移值见 `button_positions.md` |
+| `winnav_mouse_pos` | 读取鼠标位置，返回锚点/偏移 px 和 pct 双份坐标 | `x_pct`, `y_pct`: 锚点百分比，默认 (0,0)。配合 `click_at` 的 `dx/dy` 校准按钮坐标 |
 | `winnav_scroll` | 按窗口高度百分比滚动 | `dy` 负值=向下，-1.0=向下一整屏 |
 | `winnav_close` | 输出完整 JSON 操作日志 | 无参数，必须在每次走查结束时调用 |
 
@@ -116,6 +117,11 @@ flutter run --dart-define=AUDIT_MODE=true
 
 **🤖 agent 执行：** 按 `docs/auto-audit/基础功能排查清单.md` 中定义的**模块 1 起**逐项走查。
 
+> **走查心态：排查清单是保底，不是天花板。**
+> 看到"同步""刷新""重试"等按钮主动点击试试，不只盯着清单上的那几个检查项。
+> 弹窗/toast/error banner 先记录再关闭，不得当作"清理障碍"直接关掉。
+> 做得比清单多可以，不能比清单少。
+
 标准操作模式：
 
 ```python
@@ -132,8 +138,9 @@ winnav_click(text="自主选题")
 #    用 y_range 过滤底部区域
 winnav_click(text="←", y_range=[0.9, 1.0])
 
-# 5. 按钮是 Material Icon（OCR 不可见）→ 坐标点击
-winnav_click_at(x_pct=0.05, y_pct=0.96)  # 翻页栏左箭头
+# 5. 按钮是 Material Icon（OCR 不可见）→ 锚点+偏移坐标点击
+#    具体偏移值见 button_positions.md
+winnav_click_at(x=0, y=1.0, dx=<偏移>)  # 翻页栏左箭头 (左下角锚点)
 
 # 6. 如果需要滚动
 winnav_scroll(dy=-1.0)
@@ -446,7 +453,7 @@ NDJSON 文件在 `flutter run` 关闭后会写全。如果 app 完全卡死，�
 | 轮次 | 模块 | 走查进度 | ❌ 数 | 已修复 | 时间 |
 |:----:|:----:|:--------:|:----:|:------:|:----:|
 | — | — | — | — | — | — |
-| 1 | 2（首页+讲义） | 2.1~2.7 已走查，2.8 待验证 | 0 | winnav 增强(3项)+ecs_query 脚本 | 2026-07-13 |
+| 1 | 2（首页+讲义） | 2.1~2.8 已走查 | 2（溢出+同步失败） | 待修复 | 2026-07-13 |
 
 ---
 
