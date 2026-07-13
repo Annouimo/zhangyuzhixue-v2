@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('amount', models.IntegerField(verbose_name='金额（正=收入，负=支出）')),
                 ('transaction_type', models.CharField(choices=[('EARN', '收入'), ('SPEND', '支出')], max_length=16, verbose_name='类型')),
-                ('source', models.CharField(choices=[('LOGIN_BONUS', '签到'), ('PRACTICE_REWARD', '做题奖励'), ('TASK_REWARD', '完成任务'), ('SIGNUP_BONUS', '新人赠送'), ('PAPER_PURCHASE', '组卷消费'), ('ADMIN_ADJUST', '管理员调整')], max_length=32, verbose_name='来源')),
+                ('source', models.CharField(choices=[('LOGIN_BONUS', '签到'), ('PRACTICE_REWARD', '做题奖励'), ('TASK_REWARD', '完成任务'), ('SIGNUP_BONUS', '新人赠送'), ('PAPER_PURCHASE', '组卷消费'), ('REVIEW_REWARD', '退出评价奖励'), ('ADMIN_ADJUST', '管理员调整')], max_length=32, verbose_name='来源')),
                 ('source_object_id', models.IntegerField(blank=True, null=True, verbose_name='关联业务ID')),
                 ('description', models.CharField(blank=True, default='', max_length=255, verbose_name='描述')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='创建时间')),

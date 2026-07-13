@@ -59,7 +59,7 @@ def register_view(request):
     user.first_name = data.get('real_name', '')
     user.save()
 
-    Student.objects.create(
+    student = Student.objects.create(
         user=user,
         school=data.get('school', ''),
         phone=data.get('phone', ''),
@@ -72,6 +72,15 @@ def register_view(request):
     from django.utils import timezone
     code.used_at = timezone.now()
     code.save()
+
+    # 赠送注册积分
+    PointsTransaction.objects.create(
+        student=student,
+        amount=10,
+        transaction_type='EARN',
+        source='SIGNUP_BONUS',
+        description='新用户注册赠送',
+    )
 
     return _ok(message='注册成功，请登录')
 
