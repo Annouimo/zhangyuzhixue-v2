@@ -81,8 +81,18 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, nameCtrl.text), child: const Text('保存')),
+          TextButton(
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            }),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (ctx.mounted) Navigator.of(ctx).pop(nameCtrl.text);
+            }),
+            child: const Text('保存'),
+          ),
         ],
       ),
     );
@@ -124,7 +134,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       builder: (ctx) => SimpleDialog(
         title: const Text('选择学习偏好'),
         children: presets.map((p) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(ctx, p.id),
+          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (ctx.mounted) Navigator.of(ctx).pop(p.id);
+          }),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
