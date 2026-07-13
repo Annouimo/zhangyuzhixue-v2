@@ -1,4 +1,5 @@
 import '../data/daos/statistics_dao.dart';
+import '../data/daos/question_dao.dart';
 
 /// 统计概览
 class StatsOverview {
@@ -51,10 +52,12 @@ class Distribution {
   });
 }
 
-/// 统计 Repository — 委托 StatisticsDao + _StatisticsAggregator
+/// 统计 Repository — 委托 StatisticsDao + QuestionDao
 class StatisticsRepository {
   final StatisticsDao _dao;
-  const StatisticsRepository(this._dao);
+  final QuestionDao? _questionDao;
+
+  const StatisticsRepository(this._dao, {this._questionDao});
 
   Future<StatsOverview> getOverview() async {
     final total = await _dao.getTotalQuestions();
@@ -80,14 +83,12 @@ class StatisticsRepository {
   Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
     final raw = await _dao.getDailyRecords(rangeDays);
     if (raw.isEmpty) return [];
-    // 每日正确率作为趋势点
     final points = <TrendPoint>[];
     for (final r in raw) {
       if (r.count == 0) continue;
       final acc = r.correct / r.count;
       points.add(TrendPoint(label: r.date, value: acc * 100));
     }
-    // 点数 > 30 时降采样
     if (points.length > 30) {
       final sampled = <TrendPoint>[];
       final step = (points.length / 30).ceil();
@@ -102,14 +103,12 @@ class StatisticsRepository {
   Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
     final raw = await _dao.getPointsByDay(rangeDays);
     if (raw.isEmpty) return [];
-    // 累计求和
     var cum = 0.0;
     final points = <TrendPoint>[];
     for (final r in raw) {
       cum += r.amount;
       points.add(TrendPoint(label: r.date, value: cum));
     }
-    // 点数 > 30 时降采样
     if (points.length > 30) {
       final sampled = <TrendPoint>[];
       final step = (points.length / 30).ceil();
@@ -122,16 +121,29 @@ class StatisticsRepository {
   }
 
   Future<Distribution> getDistribution() async {
-    final counts = await _dao.getTypeCounts();
-    final total = counts.choice + counts.fill + counts.solution;
+    final qids = await _dao.getAttemptedQuestionIds();
+    var choice = 0, fill = 0, solution = 0;
+    if (_questionDao != null && qids.isNotEmpty) {
+      final questions = await _questionDao.getByIds(qids);
+      for (final q in questions) {
+        if (q.questionType == 'choice') {
+          choice++;
+        } else if (q.questionType == 'fill') {
+          fill++;
+        } else if (q.questionType == 'solution') {
+          solution++;
+        }
+      }
+    }
+    final total = choice + fill + solution;
     return Distribution(
       total: total,
-      choiceCount: counts.choice,
-      choicePercent: total > 0 ? counts.choice / total * 100 : 0,
-      fillCount: counts.fill,
-      fillPercent: total > 0 ? counts.fill / total * 100 : 0,
-      solutionCount: counts.solution,
-      solutionPercent: total > 0 ? counts.solution / total * 100 : 0,
+      choiceCount: choice,
+      choicePercent: total > 0 ? choice / total * 100 : 0,
+      fillCount: fill,
+      fillPercent: total > 0 ? fill / total * 100 : 0,
+      solutionCount: solution,
+      solutionPercent: total > 0 ? solution / total * 100 : 0,
     );
   }
 }

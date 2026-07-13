@@ -267,7 +267,7 @@ class _PointsCalculator {
   int get earned {
     var total = 0;
     for (final r in _rows) {
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'].contains(r.source)) {
+      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'].contains(r.source)) {
         total += r.amount;
       }
     }

@@ -66,7 +66,10 @@ class ProfilePageState extends State<ProfilePage> {
       UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
     );
     _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(db.appDb));
-    _statsRepo = widget.statisticsRepository ?? StatisticsRepository(StatisticsDao(db.appDb));
+    _statsRepo = widget.statisticsRepository ?? StatisticsRepository(
+      StatisticsDao(db.appDb),
+      questionDao: QuestionDao(db.assetsDb),
+    );
     _achieveRepo = widget.achievementRepository ?? AchievementRepository(
       AchievementDao(db.appDb), QuestionDao(db.assetsDb), ExamDao(db.appDb),
     );

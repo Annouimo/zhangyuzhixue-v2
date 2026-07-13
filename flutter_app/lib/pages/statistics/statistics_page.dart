@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/daos/statistics_dao.dart';
+import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
@@ -34,7 +35,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.statisticsRepository ?? StatisticsRepository(StatisticsDao(DatabaseProvider().appDb));
+    final db = DatabaseProvider();
+    _repo = widget.statisticsRepository ?? StatisticsRepository(
+      StatisticsDao(db.appDb),
+      questionDao: QuestionDao(db.assetsDb),
+    );
     _loadAll();
   }
 

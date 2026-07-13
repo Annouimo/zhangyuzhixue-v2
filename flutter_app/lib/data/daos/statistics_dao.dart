@@ -84,9 +84,12 @@ class StatisticsDao {
     return groups.entries.map((e) => (date: e.key, amount: e.value)).toList();
   }
 
-  /// 按题型统计答题数
-  Future<({int choice, int fill, int solution})> getTypeCounts() async {
-    // 需要联表查询 question 的 type，本地无此关联
-    return (choice: 0, fill: 0, solution: 0);
+  /// 获取所有做过题的 question_id（去重，用于题型分布统计）
+  Future<List<int>> getAttemptedQuestionIds() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
+    final ids = rows.map((r) => r.questionId).toSet().toList();
+    AuditLogger.instance.dao('StatisticsDao.getAttemptedQuestionIds', ids.length, {});
+    return ids;
   }
 }
