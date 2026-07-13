@@ -347,6 +347,30 @@ def build_database(schema, db_type, version_info, test_mode=False):
             print(f'  💾 DbVersion 已更新 (v{version_info["data_version"]})')
 
         print(f'  📄 输出: {output_path}')
+
+        # 清理旧版产物：保留当前版 + 上一版
+        if not test_mode:
+            import glob
+            pattern = os.path.join(output_dir, f'{db_type}_v*.db.gz')
+            files = []
+            for f in glob.glob(pattern):
+                try:
+                    v = int(f.split('_v')[1].split('.db')[0])
+                    files.append((v, f))
+                except (IndexError, ValueError):
+                    continue
+            files.sort(key=lambda x: x[0])
+            keep_versions = {version_info['data_version']}
+            if len(files) >= 2:
+                prev_v = files[-2][0] if len(files) >= 2 else None
+                if prev_v:
+                    keep_versions.add(prev_v)
+            for v, f in files:
+                if v not in keep_versions:
+                    os.unlink(f)
+                    print(f'  🗑️ 清理旧版: {os.path.basename(f)}')
+            print(f'  💾 保留 {len(keep_versions)} 版: {sorted(keep_versions)}')
+
         return output_path
 
     except Exception:
