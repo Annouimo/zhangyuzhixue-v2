@@ -71,6 +71,10 @@ class SyncPusher {
                 await (db_.appDb.update(db_.appDb.submissionDetails)
                   ..where((t) => t.id.equals(entry.entityId)))
                   .write(db.SubmissionDetailsCompanion(serverId: Value(sid)));
+              } else if (entry.entityType == 'custom_paper') {
+                await (db_.appDb.update(db_.appDb.customPapers)
+                  ..where((t) => t.id.equals(entry.entityId)))
+                  .write(db.CustomPapersCompanion(serverId: Value(sid)));
               }
             } catch (_) {}
           }

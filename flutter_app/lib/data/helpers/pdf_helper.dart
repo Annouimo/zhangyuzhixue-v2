@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/pdf_guide_dialog.dart';
 import '../../constants/app_version.dart';
 import '../../data/api/api_client.dart';
+import '../../data/database/database_provider.dart';
 
 const pdfGuideDismissedKey = 'app_pdf_guide_dismissed';
 
@@ -49,6 +50,16 @@ class PdfHelper {
     required int sourceId,
     required String sourceType,
   }) async {
+    // 如果是组卷，解析本地 ID → 服务端 ID
+    if (sourceType == 'paper') {
+      final db = DatabaseProvider().appDb;
+      final paper = await (db.select(db.customPapers)
+        ..where((t) => t.id.equals(sourceId))).getSingleOrNull();
+      if (paper?.serverId != null) {
+        sourceId = paper!.serverId!;
+      }
+    }
+
     _cancelToken?.cancel();
     _cancelToken = CancelToken();
     final res = await ApiClient().dio.post(

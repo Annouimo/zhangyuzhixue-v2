@@ -29,6 +29,13 @@ class RecommendPageState extends State<RecommendPage> {
   List<RecommendPreset> _presets = [];
   int _selectedPresetIndex = -1;
 
+  /// 切换到偏好推荐模式：若未选中预设，自动选中第一个
+  void _switchToPresetMode() {
+    if (_presets.isEmpty) return;
+    final idx = _selectedPresetIndex >= 0 ? _selectedPresetIndex : 0;
+    _switchToPreset(idx);
+  }
+
   /// 供 MainShell 切 Tab 时调用：刷新偏好预设列表
   void refresh() {
     _repo.getPresets().then((p) {
@@ -157,7 +164,7 @@ class RecommendPageState extends State<RecommendPage> {
             selected: !_preferSmart,
             label: '偏好推荐',
             icon: Icons.list,
-            onPressed: _presets.isNotEmpty ? () => _switchToPreset(_selectedPresetIndex) : null,
+            onPressed: _presets.isNotEmpty ? _switchToPresetMode : null,
           ),
         ],
       ),
