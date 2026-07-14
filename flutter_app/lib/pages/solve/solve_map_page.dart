@@ -424,7 +424,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
           ),
 
         // 解题树
-        ..._state!.subQuestions.map((sq) {
+        ..._state!.subQuestions.asMap().entries.map((sqEntry) {
+          final subQIdx = sqEntry.key; // 0-based
+          final sq = sqEntry.value;
           // 方法级完成检测
           bool anyMethodFullyDone = false;
           bool allMethodsFullyDone = true;
@@ -519,7 +521,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             m.steps.take(si).every((ps) => !_completedSteps.contains('${sq.index}_${mi}_${ps.stepNumber}'));
                         return InkWell(
                           onTap: stepLocked ? null : () async {
-                            await context.push(_buildStepRoute(sq.index, mi, si));
+                            await context.push(_buildStepRoute(subQIdx, mi, si));
                             _load();
                           },
                           child: Padding(
