@@ -33,6 +33,7 @@ ENTITY_ORDER = [
     'paper_collect',
     'exitRating',
     'preference',
+    'points_transaction',
 ]
 
 # ── 响应工具 ──────────────────────────────────────────────────
@@ -238,3 +239,18 @@ class SyncPushView(APIView):
             },
         )
         return pref
+
+    def _handle_points_transaction(self, data, student, server_ids, detail_cache):
+        """处理积分流水同步"""
+        from system.models import PointsTransaction
+        from django.utils import timezone
+
+        return PointsTransaction.objects.create(
+            student=student,
+            amount=data.get('amount', 0),
+            transaction_type=data.get('transaction_type', 'EARN'),
+            source=data.get('source', ''),
+            source_object_id=data.get('source_object_id'),
+            description=data.get('description', ''),
+            created_at=timezone.now(),
+        )

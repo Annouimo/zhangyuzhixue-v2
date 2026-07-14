@@ -115,40 +115,40 @@ void main() {
       expect(await repo.earnedPoints(), 0);
     });
 
-    test('earned=50 仅 LOGIN_BONUS', () async {
+    test('earned=0 LOGIN_BONUS 不再计入（现为 bonus）', () async {
       await insertTx(amount: 30, source: 'LOGIN_BONUS');
       await insertTx(amount: 20, source: 'LOGIN_BONUS');
       final repo = makeRepo();
-      expect(await repo.earnedPoints(), 50);
+      expect(await repo.earnedPoints(), 0);
     });
 
-    test('earned=60 混合来源（LOGIN_BONUS+PRACTICE_REWARD+TASK_REWARD）', () async {
+    test('earned=30 仅 PRACTICE_REWARD', () async {
       await insertTx(amount: 10, source: 'LOGIN_BONUS');
       await insertTx(amount: 30, source: 'PRACTICE_REWARD');
       await insertTx(amount: 20, source: 'TASK_REWARD');
       final repo = makeRepo();
-      expect(await repo.earnedPoints(), 60);
+      expect(await repo.earnedPoints(), 30);
     });
 
-    test('earned 排除非 earned 来源（SIGNUP_BONUS 不计入）', () async {
+    test('earned 排除非 earned 来源（LOGIN_BONUS+SIGNUP_BONUS 不计入）', () async {
       await insertTx(amount: 100, source: 'SIGNUP_BONUS');
       await insertTx(amount: 15, source: 'LOGIN_BONUS');
       final repo = makeRepo();
-      expect(await repo.earnedPoints(), 15);
+      expect(await repo.earnedPoints(), 0);
     });
 
     // ── bonus ──
-    test('bonus=0 无 SIGNUP_BONUS', () async {
+    test('bonus=50 LOGIN_BONUS 计入 bonus', () async {
       await insertTx(amount: 50, source: 'LOGIN_BONUS');
       final repo = makeRepo();
-      expect(await repo.bonusPoints(), 0);
+      expect(await repo.bonusPoints(), 50);
     });
 
-    test('bonus=200 含 SIGNUP_BONUS', () async {
+    test('bonus=250 SIGNUP_BONUS+LOGIN_BONUS 合计', () async {
       await insertTx(amount: 200, source: 'SIGNUP_BONUS');
-      await insertTx(amount: 50, source: 'LOGIN_BONUS'); // 不应计入 bonus
+      await insertTx(amount: 50, source: 'LOGIN_BONUS');
       final repo = makeRepo();
-      expect(await repo.bonusPoints(), 200);
+      expect(await repo.bonusPoints(), 250);
     });
 
     // ── spent ──
@@ -167,20 +167,20 @@ void main() {
 
     // ── available（公式：earned + bonus - spent）──
     test('available=earned+bonus-spent 公式正确', () async {
-      await insertTx(amount: 100, source: 'LOGIN_BONUS');     // earned
-      await insertTx(amount: 200, source: 'SIGNUP_BONUS');    // bonus
-      await insertTx(amount: -30, source: 'PAPER_PURCHASE');  // spent
+      await insertTx(amount: 100, source: 'PRACTICE_REWARD');  // earned
+      await insertTx(amount: 200, source: 'SIGNUP_BONUS');     // bonus
+      await insertTx(amount: -30, source: 'PAPER_PURCHASE');   // spent
       final repo = makeRepo();
       // available = 100 + 200 - 30 = 270
       expect(await repo.availablePoints(), 270);
     });
 
     test('available=0 当 earned+bonus < spent', () async {
-      await insertTx(amount: 10, source: 'LOGIN_BONUS');      // earned
-      await insertTx(amount: 0, source: 'SIGNUP_BONUS');      // bonus=0（无正数项）
-      await insertTx(amount: -50, source: 'PAPER_PURCHASE');  // spent
+      await insertTx(amount: 10, source: 'PRACTICE_REWARD');   // earned
+      await insertTx(amount: 0, source: 'SIGNUP_BONUS');       // bonus=0
+      await insertTx(amount: -50, source: 'PAPER_PURCHASE');   // spent=50
       final repo = makeRepo();
-      // available = 10 + 0 - 50 = -40 → 负数场景
+      // available = 10 + 0 - 50 = -40
       expect(await repo.availablePoints(), -40);
     });
 
@@ -192,16 +192,19 @@ void main() {
       final history = await repo.getPointsHistory();
       expect(history.length, 2);
       // 最新一条排前面（SIGNUP_BONUS）
-      expect(history[0].type, 'SIGNUP_BONUS');
+      expect(history[0].type, '新人赠送');
       expect(history[0].change, 50);
-      expect(history[0].available, 150); // 100+50-0
+      expect(history[0].earned, 0);      // 无 PRACTICE_REWARD
+      expect(history[0].bonus, 150);     // 100+50
+      expect(history[0].spent, 0);
+      expect(history[0].available, 150);
       // 第二条（LOGIN_BONUS）
-      expect(history[1].type, 'LOGIN_BONUS');
+      expect(history[1].type, '签到');
       expect(history[1].change, 100);
-      expect(history[1].earned, 100);
-      expect(history[1].bonus, 50);   // calculator 对所有行汇总
+      expect(history[1].earned, 0);
+      expect(history[1].bonus, 100);
       expect(history[1].spent, 0);
-      expect(history[1].available, 150);
+      expect(history[1].available, 100);
     });
   });
 }

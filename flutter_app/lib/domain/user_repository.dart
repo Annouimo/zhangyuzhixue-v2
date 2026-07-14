@@ -191,6 +191,7 @@ class UserRepository {
     'RATING_REWARD': '题目评价',
     'SIGNUP_BONUS': '新人赠送',
     'PAPER_PURCHASE': '组卷',
+    'ADMIN_ADJUST': '管理员调整',
   };
 
   Future<List<PointsRecord>> getPointsHistory() async {
@@ -201,9 +202,9 @@ class UserRepository {
     final records = <PointsRecord>[];
     for (var i = rows.length - 1; i >= 0; i--) {
       final r = rows[i];
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'].contains(r.source)) {
+      if (r.source == 'PRACTICE_REWARD') {
         cumEarned += r.amount;
-      } else if (r.source == 'SIGNUP_BONUS') {
+      } else if (['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST'].contains(r.source)) {
         cumBonus += r.amount;
       } else if (r.source == 'PAPER_PURCHASE') {
         cumSpent += r.amount.abs();
@@ -397,7 +398,7 @@ class _PointsCalculator {
   int get earned {
     var total = 0;
     for (final r in _rows) {
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'].contains(r.source)) {
+      if (r.source == 'PRACTICE_REWARD') {
         total += r.amount;
       }
     }
@@ -407,7 +408,9 @@ class _PointsCalculator {
   int get bonus {
     var total = 0;
     for (final r in _rows) {
-      if (r.source == 'SIGNUP_BONUS') total += r.amount;
+      if (['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST'].contains(r.source)) {
+        total += r.amount;
+      }
     }
     return total;
   }

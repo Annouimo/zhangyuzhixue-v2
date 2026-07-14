@@ -79,7 +79,7 @@ Future<bool> submitExitRating({
     final cfg = config ??
         ExitRatingConfig(SystemConfigDao(provider.assetsDb));
     final pts = await cfg.rewardPoints;
-    await provider.appDb.into(provider.appDb.pointsTransactions).insert(
+    final newId = await provider.appDb.into(provider.appDb.pointsTransactions).insert(
       app_db.PointsTransactionsCompanion(
         amount: Value(pts * 10),
         source: const Value('REVIEW_REWARD'),
@@ -87,6 +87,20 @@ Future<bool> submitExitRating({
         createdAt: Value(now),
       ),
     );
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.pointsTransaction,
+        operation: SyncOperationType.upsert,
+        localId: newId,
+        payload: jsonEncode({
+          'amount': (pts * 10).round(),
+          'source': 'REVIEW_REWARD',
+          'transaction_type': 'EARN',
+          'created_at': now,
+        }),
+      );
+    } catch (_) {}
     // 所有操作成功后，再设冷却
     await AppPrefs().setRatingCooldown(pageUrl);
     return true;

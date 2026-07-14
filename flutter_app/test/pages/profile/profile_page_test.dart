@@ -23,6 +23,7 @@ class _MockUserRepo implements UserRepository {
   @override Future<double> spentPoints() async => 0;
   @override Future<double> availablePoints() async => 0;
   @override Future<double> todayPoints() async => 0;
+  @override Future<({double earned, double bonus, double spent, double available})> getPointsSummary() async => (earned: 0.0, bonus: 0.0, spent: 0.0, available: 0.0);
   @override Future<List<LevelRow>> getLevels() async => [];
   @override Future<String> levelProgress() async => '0/0';
   @override Future<int> levelPercentile() async => 0;

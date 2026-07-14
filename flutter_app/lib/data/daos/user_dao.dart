@@ -57,7 +57,7 @@ class UserDao {
 
   Future<int> getEarnedPoints() async {
     final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']))).get();
+      ..where((t) => t.source.equals('PRACTICE_REWARD'))).get();
     AuditLogger.instance.dao('UserDao.getEarnedPoints', rows.length, {});
     var total = 0;
     for (final r in rows) { total += r.amount; }

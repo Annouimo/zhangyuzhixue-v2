@@ -239,7 +239,7 @@ class QuestionRepository {
         final question = await _dao.getById(questionId);
         final difficulty = question?.difficulty ?? 0.0;
         final amount = difficulty.floor(); // floor(难度) 厘分 = 0~10厘 = 0~1.0分
-        await db.appDb.into(db.appDb.pointsTransactions).insert(
+        final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
           app_db.PointsTransactionsCompanion(
             amount: Value(amount),
             source: const Value('PRACTICE_REWARD'),
@@ -248,6 +248,21 @@ class QuestionRepository {
             description: const Value('做题奖励'),
           ),
         );
+        // 入同步队列
+        try {
+          await SyncManager().enqueue(
+            entityType: SyncEntityType.pointsTransaction,
+            operation: SyncOperationType.upsert,
+            localId: newId,
+            payload: jsonEncode({
+              'amount': amount,
+              'source': 'PRACTICE_REWARD',
+              'transaction_type': 'EARN',
+              'description': '做题奖励',
+              'created_at': now,
+            }),
+          );
+        } catch (_) {}
       } catch (_) {}
     }
   }

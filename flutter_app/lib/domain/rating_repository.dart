@@ -93,7 +93,8 @@ class RatingRepository {
       final cfg = SystemConfigDao(DatabaseProvider().assetsDb);
       final pts = await cfg.getDouble('question_rating_reward', 0.3);
       final now = DateTime.now().toIso8601String();
-      await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+      final db = DatabaseProvider();
+      final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
           amount: Value((pts * 10).round()),
           source: const Value('RATING_REWARD'),
@@ -102,6 +103,21 @@ class RatingRepository {
           description: const Value('题目评价奖励'),
         ),
       );
+      // 入同步队列
+      try {
+        await SyncManager().enqueue(
+          entityType: SyncEntityType.pointsTransaction,
+          operation: SyncOperationType.upsert,
+          localId: newId,
+          payload: jsonEncode({
+            'amount': (pts * 10).round(),
+            'source': 'RATING_REWARD',
+            'transaction_type': 'EARN',
+            'description': '题目评价奖励',
+            'created_at': now,
+          }),
+        );
+      } catch (_) {}
     } catch (e) {
       AuditLogger.instance.error('RatingRepository.submitRating.points', e);
     }

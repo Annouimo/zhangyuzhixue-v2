@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert';
 import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
@@ -13,6 +14,8 @@ import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
 import 'widgets/difficulty_slider.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../data/sync/sync_manager.dart';
+import '../../../data/sync/sync_types.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/user_dao.dart';
@@ -165,7 +168,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       // 扣分
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();
-      await db.appDb.into(db.appDb.pointsTransactions).insert(
+      final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
           amount: const Value(-_kAutoPaperCost * 10),
           source: const Value('PAPER_PURCHASE'),
@@ -174,6 +177,21 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           description: const Value('智能组卷'),
         ),
       );
+      // 入同步队列
+      try {
+        await SyncManager().enqueue(
+          entityType: SyncEntityType.pointsTransaction,
+          operation: SyncOperationType.upsert,
+          localId: pointId,
+          payload: jsonEncode({
+            'amount': -_kAutoPaperCost * 10,
+            'source': 'PAPER_PURCHASE',
+            'transaction_type': 'SPEND',
+            'description': '智能组卷',
+            'created_at': now,
+          }),
+        );
+      } catch (_) {}
       if (!mounted) return;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -137,8 +137,8 @@ class _PointsPageState extends State<PointsPage> {
     const SizedBox(height: 4),
     Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: const Text('💡 类型说明：做题/签到/首题奖励/完成任务 → 学习积分增加；\n'
-          '新人赠送 → 赠送积分增加；组卷消费 → 消耗增加+可用减少',
+      child: const Text('💡 类型说明：做题 → 学习积分增加；\n'
+          '签到/首题奖励/完成任务/退出评价/题目评价 → 赠送积分增加；新人赠送 → 赠送积分增加；组卷消费 → 消耗增加+可用减少',
         style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
     ),
   ];
