@@ -161,9 +161,9 @@ class AchievementDao {
       ..where((t) => t.submissionDetailId.isIn(idSet))
     ).get();
 
-    final groups = <(int, int?), List<String>>{};
+    final groups = <(int, int?, int?), List<String>>{};
     for (final sf in stepRows) {
-      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex), () => []).add(sf.status);
+      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex, sf.methodId), () => []).add(sf.status);
     }
 
     var stepTotal = 0; var stepCorrect = 0;

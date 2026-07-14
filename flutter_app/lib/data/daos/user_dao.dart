@@ -167,10 +167,10 @@ class UserDao {
       ..where((t) => t.submissionDetailId.isIn(idSet))
     ).get();
 
-    // Dart 层按 (submission_detail_id, sub_question_index) 分组
-    final groups = <(int, int?), List<String>>{};
+    // Dart 层按 (submission_detail_id, sub_question_index, method_id) 分组
+    final groups = <(int, int?, int?), List<String>>{};
     for (final sf in rows) {
-      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex), () => []).add(sf.status);
+      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex, sf.methodId), () => []).add(sf.status);
     }
 
     var total = 0; var correct = 0;
