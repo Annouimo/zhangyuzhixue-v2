@@ -51,8 +51,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   // 作答次数
   List<SolveAttempt> _attempts = [];
   SolveAttempt? _currentAttempt;
-  /// 自评结果: true=正确, false=错误, null=未自评
-  bool? _feedbackResult;
 
   DateTime? _entryTime;
 
@@ -260,41 +258,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackButtons() {
-    if (_feedbackGiven) {
-      final points = (_detail?.difficulty ?? 0).floor() / 10.0;
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: (_feedbackResult == true ? AppColors.success : AppColors.error).withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: (_feedbackResult == true ? AppColors.success : AppColors.error).withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              _feedbackResult == true ? Icons.check_circle : Icons.cancel,
-              color: _feedbackResult == true ? AppColors.success : AppColors.error,
-              size: 28,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _feedbackResult == true ? '回答正确！' : '回答有误',
-              style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w600,
-                color: _feedbackResult == true ? AppColors.success : AppColors.error,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _feedbackResult == true ? '已获得 +${points.toStringAsFixed(1)} 积分' : '继续加油 💪',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-      );
-    }
-
     return Column(
       children: [
         const Text('你觉得自己答对了吗？',

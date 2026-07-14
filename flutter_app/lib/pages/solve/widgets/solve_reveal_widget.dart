@@ -80,10 +80,8 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
   Widget build(BuildContext context) {
     // answerShown: 冷却结束或复访，答案/解析已可见
     final answerShown = widget.isRevisit || _revealed;
-    // feedbackPending: 等待用户自评
-    final feedbackPending = _revealed && widget.feedbackWidget != null;
-    // done: 已过自评阶段（含反馈结果展示），显示 DoneBanner
-    final done = answerShown && !feedbackPending;
+    // done: 已过自评阶段（feedbackWidget 消失），显示 DoneBanner
+    final done = answerShown && widget.feedbackWidget == null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -108,18 +106,9 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           _RevealResultBanner(
             answerValue: widget.answerValue,
             explanation: widget.explanation,
+            feedbackWidget: _revealed ? widget.feedbackWidget : null,
+            feedbackResult: _revealed ? widget.feedbackResult : null,
           ),
-        ],
-        if (feedbackPending) ...[
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: widget.feedbackWidget!,
-          ),
-        ],
-        if (_revealed && widget.feedbackResult != null) ...[
-          const SizedBox(height: 16),
-          widget.feedbackResult!,
         ],
         if (done) ...[
           const SizedBox(height: 16),
@@ -133,12 +122,19 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
   }
 }
 
-/// 揭示结果横幅 — 蓝色的「正确答案」徽章 + 大号答案 + 解析
+/// 揭示结果横幅 — 蓝色的「正确答案」徽章 + 大号答案 + 解析 + 自评反馈
 class _RevealResultBanner extends StatelessWidget {
   final String? answerValue;
   final String? explanation;
+  final Widget? feedbackWidget;
+  final Widget? feedbackResult;
 
-  const _RevealResultBanner({this.answerValue, this.explanation});
+  const _RevealResultBanner({
+    this.answerValue,
+    this.explanation,
+    this.feedbackWidget,
+    this.feedbackResult,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -174,6 +170,14 @@ class _RevealResultBanner extends StatelessWidget {
           if (explanation != null && explanation!.isNotEmpty) ...[
             const SizedBox(height: 8),
             MdLatexBody(explanation!),
+          ],
+          if (feedbackWidget != null) ...[
+            const SizedBox(height: 16),
+            feedbackWidget!,
+          ],
+          if (feedbackResult != null) ...[
+            const SizedBox(height: 16),
+            feedbackResult!,
           ],
         ],
       ),
