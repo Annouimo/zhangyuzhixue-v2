@@ -27,7 +27,7 @@ void main() {
     testWidgets('renders loading state initially', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: SolveStepPage(questionId: 1, methodIndex: 0, stepIndex: 0),
+          home: SolveStepPage(questionId: 1, subQuestionIndex: 0, methodIndex: 0, stepIndex: 0),
         ),
       );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);

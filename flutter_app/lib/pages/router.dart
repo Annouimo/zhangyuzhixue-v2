@@ -111,6 +111,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: AppRoutes.solveStep, name: 'solve-step', builder: (_, state) {
       return SolveStepPage(
         questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+        subQuestionIndex: _intParam(state.uri.queryParameters, 'subQ') ?? 0,
         methodIndex: _intParam(state.uri.queryParameters, 'method') ?? 0,
         stepIndex: _intParam(state.uri.queryParameters, 'step') ?? 0,
         attemptId: _intParam(state.uri.queryParameters, 'attemptId'),

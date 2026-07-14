@@ -257,8 +257,9 @@ class AssignmentRepository {
   /// 设计文档 §10.2: is_correct 有值(true/false) = 已完成
   Future<String> _questionStatusDetail(int questionId) async {
     final latest = await _progressDao.getLatestAttempt(questionId);
-    if (latest == null) return 'in_progress';
-    return latest.isCorrect != null ? 'completed' : 'in_progress';
+    if (latest == null) return 'pending';
+    return (latest.isCorrect != null || latest.status == 'completed')
+        ? 'completed' : 'in_progress';
   }
 
   Future<int> pendingCount() async => AppPrefs().pendingHomeworkCount;

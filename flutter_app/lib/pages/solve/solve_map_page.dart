@@ -29,7 +29,7 @@ class SolveMapPage extends StatefulWidget {
 
 class _SolveMapPageState extends State<SolveMapPage> {
   progress.SolveProgressState? _state;
-  Set<int> _completedSteps = {};
+  Set<String> _completedSteps = {};
   bool _loading = true;
   String? _error;
   bool _isFresh = false;
@@ -80,7 +80,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
            widget.attemptId != null && widget.attemptId != lastStarted.id);
 
       // 计算已完成步骤（按当前 attemptId 或最新存档）
-      Set<int> doneSteps = {};
+      Set<String> doneSteps = {};
       int? currentSubmissionDetailId;
       int? currentAttemptNumber;
 
@@ -98,10 +98,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
         );
         if (prevState != null) {
           doneSteps = prevState.subQRecords
-              .expand((sq) => sq.methods)
-              .expand((m) => m.steps)
-              .where((s) => s.feedbackGiven)
-              .map((s) => s.stepOrder)
+              .expand((sq) => sq.methods.asMap().entries
+                  .expand((mEntry) => mEntry.value.steps
+                      .where((s) => s.feedbackGiven)
+                      .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
               .toSet();
         }
       }
@@ -131,9 +131,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
   }
 
   // 入口分流路由构造
-  String _buildStepRoute(int methodIndex, int stepIndex) {
+  String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
     final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
-        '&method=$methodIndex&step=$stepIndex');
+        '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
     if (_currentAttemptNumber != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
     }
@@ -192,7 +192,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 );
                 await repo.createAttempt(widget.questionId);
                 if (!context.mounted) return;
-                await context.push(_buildStepRoute(0, 0));
+                await context.push(_buildStepRoute(0, 0, 0));
                 _load();
               },
               icon: const Text('\u25B6'),
@@ -235,13 +235,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
           final prevState = await repo.getAttemptState(
             widget.questionId, value.attemptNumber,
           );
-          Set<int> doneSteps = {};
+          Set<String> doneSteps = {};
           if (prevState != null) {
             doneSteps = prevState.subQRecords
-                .expand((sq) => sq.methods)
-                .expand((m) => m.steps)
-                .where((s) => s.feedbackGiven)
-                .map((s) => s.stepOrder)
+                .expand((sq) => sq.methods.asMap().entries
+                    .expand((mEntry) => mEntry.value.steps
+                        .where((s) => s.feedbackGiven)
+                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
                 .toSet();
           }
           if (!mounted) return;
@@ -387,10 +387,19 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
         // 解题树
         ..._state!.subQuestions.map((sq) {
-          final allMethodsSteps = sq.solutions.expand((m) => m.steps);
-          final totalSteps = allMethodsSteps.length;
-          final doneStepsLocal = allMethodsSteps.where((s) => _completedSteps.contains(s.stepNumber)).length;
-          final anyInProgress = allMethodsSteps.any((s) => s.stepNumber == (doneStepsLocal + 1) && !_completedSteps.contains(s.stepNumber));
+          int totalSteps = 0;
+          int doneStepsLocal = 0;
+          for (final mEntry in sq.solutions.asMap().entries) {
+            final mi = mEntry.key;
+            final m = mEntry.value;
+            for (final s in m.steps) {
+              totalSteps++;
+              if (_completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')) {
+                doneStepsLocal++;
+              }
+            }
+          }
+          final anyInProgress = doneStepsLocal < totalSteps;
 
           String statusLabel;
           Color statusColor;
@@ -446,7 +455,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                           Text(m.methodName?.isNotEmpty == true ? '\u{1F4D0} ${m.methodName}' : '唯一解法',
                             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
                           const Spacer(),
-                          Text('${m.steps.where((s) => _completedSteps.contains(s.stepNumber)).length}/${m.steps.length} 步',
+                          Text('${m.steps.where((s) => _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')).length}/${m.steps.length} 步',
                             style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                           const SizedBox(width: 4),
                           Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
@@ -459,12 +468,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
                       ...m.steps.asMap().entries.map((sEntry) {
                         final si = sEntry.key;
                         final st = sEntry.value;
-                        final isStepDone = _completedSteps.contains(st.stepNumber);
+                        final stepKey = '${sq.index}_${mi}_${st.stepNumber}';
+                        final isStepDone = _completedSteps.contains(stepKey);
                         final stepLocked = !isStepDone && si > 0 &&
-                            m.steps.take(si).every((ps) => !_completedSteps.contains(ps.stepNumber));
+                            m.steps.take(si).every((ps) => !_completedSteps.contains('${sq.index}_${mi}_${ps.stepNumber}'));
                         return InkWell(
                           onTap: stepLocked ? null : () async {
-                            await context.push(_buildStepRoute(mi, si));
+                            await context.push(_buildStepRoute(sq.index, mi, si));
                             _load();
                           },
                           child: Padding(

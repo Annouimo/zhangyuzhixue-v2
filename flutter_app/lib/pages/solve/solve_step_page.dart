@@ -25,6 +25,7 @@ String _feedbackToStatus(FeedbackType type) {
 /// 解答题步骤详情页
 class SolveStepPage extends StatefulWidget {
   final int questionId;
+  final int subQuestionIndex;
   final int methodIndex;
   final int stepIndex;
   final int? attemptId;
@@ -32,6 +33,7 @@ class SolveStepPage extends StatefulWidget {
   const SolveStepPage({
     super.key,
     required this.questionId,
+    required this.subQuestionIndex,
     required this.methodIndex,
     required this.stepIndex,
     this.attemptId,
@@ -146,6 +148,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   void _goNextStep() {
     if (_isLastStep) return;
     final buf = StringBuffer('/solve/step?id=${widget.questionId}'
+        '&subQ=${widget.subQuestionIndex}'
         '&method=${widget.methodIndex}&step=${widget.stepIndex + 1}');
     if (_currentSubmissionDetailId != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
@@ -157,6 +160,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
     await _repo.submitStepFeedback(
       questionId: widget.questionId,
       attemptNumber: _currentAttemptNumber ?? 1,
+      subQuestionIndex: widget.subQuestionIndex,
+      methodIndex: widget.methodIndex,
       stepNumber: widget.stepIndex + 1,
       status: _feedbackToStatus(type),
     );
@@ -167,7 +172,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   progress.Step? _currentStep() {
     try {
-      return _state!.subQuestions[0].solutions[widget.methodIndex].steps[widget.stepIndex];
+      return _state!.subQuestions[widget.subQuestionIndex].solutions[widget.methodIndex].steps[widget.stepIndex];
     } catch (_) {
       return null;
     }
@@ -176,7 +181,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   // 获取当前步骤所属的小问&方法名
   String _buildContextLabel() {
     if (_state == null || _state!.subQuestions.isEmpty) return '';
-    final sq = _state!.subQuestions[0];
+    final sq = _state!.subQuestions[widget.subQuestionIndex];
     final buf = StringBuffer(sq.label);
     try {
       final m = sq.solutions[widget.methodIndex];

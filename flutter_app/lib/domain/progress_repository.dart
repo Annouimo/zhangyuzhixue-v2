@@ -231,6 +231,8 @@ class ProgressRepository {
   Future<void> submitStepFeedback({
     required int questionId,
     required int attemptNumber,
+    int? subQuestionIndex,
+    int? methodIndex,
     required int stepNumber,
     required String status,
   }) async {
@@ -241,6 +243,8 @@ class ProgressRepository {
     final id = await _dao.insertStepFeedback(
       submissionDetailId: detail.id,
       questionId: questionId,
+      subQuestionIndex: subQuestionIndex,
+      methodId: methodIndex,
       stepNumber: stepNumber,
       status: status,
     );
@@ -254,7 +258,8 @@ class ProgressRepository {
           'submission_detail_id': null,
           'question_id': questionId,
           'step_number': stepNumber,
-          'sub_question_index': 0,
+          'sub_question_index': subQuestionIndex ?? 0,
+          'method_id': methodIndex,
           'status': status,
         }),
       );

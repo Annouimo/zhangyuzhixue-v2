@@ -3,6 +3,9 @@ import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
 import '../api/api_client.dart';
 import '../network/connectivity_monitor.dart';
+import 'package:drift/drift.dart';
+import '../database/database_provider.dart';
+import '../database/app_database.dart' as db;
 import 'package:flutter_app/data/debug/audit_logger.dart';
 /// 推送结果汇总
 class PushSummary {
@@ -60,6 +63,15 @@ class SyncPusher {
         for (final entry in batch) {
           final sid = result.serverIds[entry.entityId];
           await _dao.markSuccess(entry.id, serverId: sid);
+          // 写回 server_id 到实体表
+          if (sid != null && entry.entityType == 'submission') {
+            try {
+              final db_ = DatabaseProvider();
+              await (db_.appDb.update(db_.appDb.submissionDetails)
+                ..where((t) => t.id.equals(entry.entityId)))
+                .write(db.SubmissionDetailsCompanion(serverId: Value(sid)));
+            } catch (_) {}
+          }
           if (sid != null) {
             success++;
           } else {
