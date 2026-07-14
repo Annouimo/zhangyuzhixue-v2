@@ -94,7 +94,7 @@ def pdf_request_token(request):
     return _ok(data={
         'sig': sig,
         'expire_in': 300,
-        'url': '/pdf/view?pid={0}&type={1}&sid={2}&exp={3}&sig={4}'.format(
+        'url': '/pdf/view/?pid={0}&type={1}&sid={2}&exp={3}&sig={4}'.format(
             source_id, source_type, student.pk, expire, sig),
     })
 

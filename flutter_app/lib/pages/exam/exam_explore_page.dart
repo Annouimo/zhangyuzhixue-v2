@@ -133,7 +133,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                             _actionChip(
                               icon: '📥',
                               label: 'PDF',
-                              onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper'),
+                              onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context),
                             ),
                             const Spacer(),
                             TextButton(

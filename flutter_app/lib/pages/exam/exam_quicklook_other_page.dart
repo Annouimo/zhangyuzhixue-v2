@@ -57,7 +57,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
             IconButton(icon: const Icon(Icons.assignment), tooltip: '快对答案',
               onPressed: () => context.push('/exam/answersheet?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
-          onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper')),
+          onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
       ],
     ),
     body: _buildBody(),

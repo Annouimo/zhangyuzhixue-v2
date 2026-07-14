@@ -155,7 +155,7 @@ def pdf_view(request):
 
 ### 2.4 配图
 
-- 构建脚本在生成 assets.db 的同时，将图片复制一份到 Django 的 `static/questions/images/` 目录
+- 构建脚本在生成 assets.db 的同时，将图片从 `static/questions/images/` 复制到 Flutter assets（供离线使用）
 - HTML 中用 `{% static %}` 标签引用
 - 图片格式保持 WebP
 

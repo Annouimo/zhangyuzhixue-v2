@@ -66,7 +66,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             IconButton(icon: const Icon(Icons.assignment), tooltip: '快对答案',
               onPressed: () => context.push('/exam/answersheet?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
-              onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper')),
+              onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
             IconButton(icon: const Icon(Icons.share), tooltip: '公开/私密', onPressed: _togglePublic),
             IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
               onPressed: () async {

@@ -119,7 +119,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                           _load();
                         },
                       ),
-                      _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper')),
+                      _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                       const SizedBox(width: 4),
                       _actionChip('✅', '答案', () => context.push('/exam/answersheet?id=${e.id}')),
                       const SizedBox(width: 4),

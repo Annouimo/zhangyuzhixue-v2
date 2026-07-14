@@ -79,6 +79,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
             onPressed: () => PdfHelper.downloadPdf(
               sourceId: widget.assignmentId,
               sourceType: 'assignment',
+              context: context,
             ),
           ),
         ],

@@ -98,7 +98,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                       const SizedBox(width: 8),
                       _actionChip('🔖', '取消收藏', () => _removeCollect(e.id)),
                       const SizedBox(width: 8),
-                      _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper')),
+                      _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                       const Spacer(),
                       TextButton(
                         onPressed: () => context.push('/exam/quicklook_other?id=${e.id}'),
