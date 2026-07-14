@@ -104,6 +104,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         ...p.questions.map((q) => ExamQuestionCard(
           questionId: q.questionId,
           title: q.title,
+          questionType: q.questionType,
         )),
       ],
     );

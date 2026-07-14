@@ -103,8 +103,8 @@ class ExamPreviewOther {
 class ExamQuestion {
   final int questionId;
   final String title;
-  final String meta;
-  const ExamQuestion({required this.questionId, required this.title, required this.meta});
+  final String questionType;
+  const ExamQuestion({required this.questionId, required this.title, required this.questionType});
 }
 
 /// 答案项
@@ -359,7 +359,7 @@ class ExamRepository {
       questions: qRows.map((q) => ExamQuestion(
         questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',
-        meta: q.questionType,
+        questionType: q.questionType,
       )).toList(),
     );
   }
@@ -384,7 +384,7 @@ class ExamRepository {
       questions: qRows.map((q) => ExamQuestion(
         questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',
-        meta: q.questionType,
+        questionType: q.questionType,
       )).toList(),
     );
   }

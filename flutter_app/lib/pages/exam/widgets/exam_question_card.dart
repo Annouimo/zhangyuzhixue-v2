@@ -12,7 +12,7 @@ class ExamQuestionCard extends StatelessWidget {
     super.key,
     required this.questionId,
     required this.title,
-    this.questionType = 'choice',
+    required this.questionType,
   });
 
   @override

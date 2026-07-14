@@ -84,6 +84,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
         ...p.questions.map((q) => ExamQuestionCard(
           questionId: q.questionId,
           title: q.title,
+          questionType: q.questionType,
         )),
       ],
     );
