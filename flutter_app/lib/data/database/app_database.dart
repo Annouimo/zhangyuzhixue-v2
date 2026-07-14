@@ -249,7 +249,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -257,6 +257,18 @@ class AppDatabase extends _$AppDatabase {
       if (from <= 2 && to >= 3) {
         await m.addColumn(preferenceFilters, preferenceFilters.knowledgeCards);
         await m.addColumn(preferenceFilters, preferenceFilters.questionTypes);
+      }
+      if (from <= 3 && to >= 4) {
+        // 清理 submission_detail 重复记录（保留每组 question_id+attempt_number 中 id 最小的那条）
+        await customStatement(
+          'DELETE FROM submission_detail WHERE id NOT IN '
+          '(SELECT MIN(id) FROM submission_detail GROUP BY question_id, attempt_number)'
+        );
+        // 添加唯一索引防止再次产生重复
+        await customStatement(
+          'CREATE UNIQUE INDEX IF NOT EXISTS idx_submission_detail_unique '
+          'ON submission_detail(question_id, attempt_number)'
+        );
       }
     },
   );
