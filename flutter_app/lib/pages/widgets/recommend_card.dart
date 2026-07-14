@@ -30,7 +30,7 @@ class RecommendCard extends StatelessWidget {
       questionType: questionType,
       difficulty: difficulty,
       status: status,
-      reason: reason,
+      reason: (reason == '偏好推荐') ? null : reason,
       onTap: onTap,
     );
   }

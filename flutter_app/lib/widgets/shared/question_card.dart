@@ -36,7 +36,7 @@ class QuestionCard extends StatelessWidget {
   /// 选择模式下的选中态
   final bool selected;
 
-  /// 点击回调，默认使用 SolveRouteHelper.navigateTo
+  /// 点击回调，为 null 时卡片不可点击
   final VoidCallback? onTap;
 
   /// 完全自定义尾部组件，覆盖默认的 chevron/checkbox
