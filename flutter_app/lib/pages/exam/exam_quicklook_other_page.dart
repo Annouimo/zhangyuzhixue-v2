@@ -9,6 +9,7 @@ import '../../../data/helpers/pdf_helper.dart';
 import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../widgets/shared/action_chip.dart';
 import '../../data/debug/audit_logger.dart';
 import 'widgets/exam_question_card.dart';
 
@@ -76,9 +77,9 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
           style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
         const SizedBox(height: 12),
         Row(children: [
-          _actionChip(Icons.thumb_up_alt_outlined, '${p.likeCount}', _liked, () => _toggleLike()),
+          ActionChipWidget(icon: Icons.thumb_up_alt_outlined, label: '${p.likeCount}', active: _liked, onTap: _toggleLike),
           const SizedBox(width: 8),
-          _actionChip(Icons.bookmark_border, '${p.collectCount}', _collected, () => _toggleCollect()),
+          ActionChipWidget(icon: Icons.bookmark_border, label: '${p.collectCount}', active: _collected, onTap: _toggleCollect),
         ]),
         const SizedBox(height: 16),
         ...p.questions.map((q) => ExamQuestionCard(
@@ -87,17 +88,6 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
           questionType: q.questionType,
         )),
       ],
-    );
-  }
-
-  Widget _actionChip(IconData icon, String label, bool active, VoidCallback onTap) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: active ? AppColors.primary : AppColors.textSecondary),
-      label: Text(label, style: TextStyle(fontSize: 12, color: active ? AppColors.primary : AppColors.textSecondary)),
-      onPressed: onTap,
-      backgroundColor: active ? AppColors.primaryLight : Colors.grey[100],
-      side: BorderSide.none,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
