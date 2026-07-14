@@ -56,6 +56,7 @@ class ProfilePageState extends State<ProfilePage> {
   int? _achievementUnlocked;
   double? _earnedPoints;
   double? _availablePoints;
+  int? _currentLevel;
 
   /// 供 MainShell 切 Tab 时调用，触发数据刷新
   void reload() => _load();
@@ -104,6 +105,10 @@ class ProfilePageState extends State<ProfilePage> {
         _availablePoints = results[6] as double;
         _loading = false;
       });
+      // 等级（在 setState 外 await）
+      final lv = await _repo.currentLevel();
+      if (!mounted) return;
+      setState(() => _currentLevel = lv);
       // 同步后缓存 accessible_course_ids（如有）
       unawaited(_repo.syncAccessibleCourseIds());
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
@@ -326,7 +331,7 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('成长', [
         (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
-        (Icons.trending_up, '等级', _availablePoints != null ? '可用积分 $_availablePoints' : null, () => context.push(AppRoutes.profileLevel)),
+        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 $_availablePoints' : null, () => context.push(AppRoutes.profileLevel)),
         (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [

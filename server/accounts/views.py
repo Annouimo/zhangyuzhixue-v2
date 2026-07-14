@@ -403,10 +403,10 @@ def level_percentile_view(request):
     level = config.level if config else 1
     title = config.title if config else '青铜学徒'
 
-    # 计算所有学生的总积分
-    all_totals = PointsTransaction.objects.values(
-        'student_id'
-    ).annotate(total=Sum('amount')).values_list('total', flat=True)
+    # 计算所有学生的总积分（与当前用户相同口径：仅 earned 分类）
+    all_totals = PointsTransaction.objects.filter(
+        source__in=['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD']
+    ).values('student_id').annotate(total=Sum('amount')).values_list('total', flat=True)
 
     total_count = len(all_totals)
     if total_count == 0:

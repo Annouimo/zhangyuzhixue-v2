@@ -59,7 +59,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('等级进度')),
+    appBar: AppBar(title: const Text('等级详情')),
     body: _loading
         ? const LoadingIndicator()
         : _error != null
