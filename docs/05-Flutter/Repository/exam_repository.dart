@@ -202,12 +202,14 @@ class FilterOptions {
   final List<String> regions;
   final List<String> conceptTags;
   final List<String> knowledgeCards;
+  final List<String> examTypes;
 
   const FilterOptions({
     required this.years,
     required this.regions,
     required this.conceptTags,
     required this.knowledgeCards,
+    this.examTypes = const [],
   });
 
   factory FilterOptions.fromJson(Map<String, dynamic> json) => FilterOptions(
@@ -215,6 +217,7 @@ class FilterOptions {
         regions: (json['regions'] as List).cast<String>(),
         conceptTags: (json['concept_tags'] as List).cast<String>(),
         knowledgeCards: (json['knowledge_cards'] as List).cast<String>(),
+        examTypes: (json['exam_types'] as List?)?.cast<String>() ?? [],
       );
 }
 

@@ -251,15 +251,22 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         children: [
                           const Text('题型配比', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                           const SizedBox(height: 8),
-                          _countStepper('选择题', _choiceCount, (v) => _choiceCount = v),
-                          _countStepper('填空题', _fillCount, (v) => _fillCount = v),
-                          _countStepper('解答题', _solutionCount, (v) => _solutionCount = v),
+                          _countStepper('选择题', _choiceCount, (v) => _choiceCount = v, availableCount: _poolStats?.availableChoice ?? 0),
+                          _countStepper('填空题', _fillCount, (v) => _fillCount = v, availableCount: _poolStats?.availableFill ?? 0),
+                          _countStepper('解答题', _solutionCount, (v) => _solutionCount = v, availableCount: _poolStats?.availableSolution ?? 0),
                           const SizedBox(height: 16),
                           DifficultySlider(
                             label: '目标难度', min: 0, max: 10,
                             lower: _targetDifficulty, upper: _targetDifficulty,
                             onChanged: (v) => setState(() => _targetDifficulty = v.start),
                           ),
+                          if (_poolStats != null) ...[
+                            const SizedBox(height: 8),
+                            Text('当前筛选池：${_poolStats!.poolDiffMin.toStringAsFixed(2)} — ${_poolStats!.poolDiffMax.toStringAsFixed(2)}',
+                                style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                            Text('高考全卷参考：最小 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(2)} · 平均 ${_poolStats!.gaokaoDiffAvg.toStringAsFixed(2)} · 最大 ${_poolStats!.gaokaoDiffMax.toStringAsFixed(2)}',
+                                style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                          ],
                         ],
                       ),
                     ),
@@ -291,7 +298,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     );
   }
 
-  Widget _countStepper(String label, int count, ValueChanged<int> onChanged) {
+  Widget _countStepper(String label, int count, ValueChanged<int> onChanged, {int availableCount = 0}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -302,6 +309,11 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           SizedBox(width: 32, child: Center(child: Text('$count', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)))),
           IconButton(icon: const Icon(Icons.add_circle_outline, size: 20),
             onPressed: count < 30 ? () => setState(() => onChanged(count + 1)) : null),
+          if (availableCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Text('（可用 $availableCount 题）', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ),
         ],
       ),
     );
