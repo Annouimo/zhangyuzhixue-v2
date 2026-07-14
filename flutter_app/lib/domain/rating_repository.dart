@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import '../data/daos/rating_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/daos/system_config_dao.dart';
+import '../data/database/database_provider.dart';
+import '../data/database/app_database.dart' as app_db;
 import '../data/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -83,6 +87,23 @@ class RatingRepository {
       );
     } catch (e) {
       AuditLogger.instance.sync('enqueue_error', {'type': 'rating', 'error': '$e'});
+    }
+    // 赠送积分
+    try {
+      final cfg = SystemConfigDao(DatabaseProvider().assetsDb);
+      final pts = await cfg.getDouble('question_rating_reward', 0.3);
+      final now = DateTime.now().toIso8601String();
+      await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+        app_db.PointsTransactionsCompanion(
+          amount: Value((pts * 10).round()),
+          source: const Value('PRACTICE_REWARD'),
+          transactionType: const Value('EARN'),
+          createdAt: Value(now),
+          description: const Value('题目评价奖励'),
+        ),
+      );
+    } catch (e) {
+      AuditLogger.instance.error('RatingRepository.submitRating.points', e);
     }
   }
 }

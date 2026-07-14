@@ -187,6 +187,10 @@ class UserRepository {
     return earned.toDouble();
   }
 
+  /// 今日做题统计
+  Future<({int total, int correct})> getTodaySubmissionStats() =>
+      _dao.getTodaySubmissionStats();
+
   // ── 等级 ──
   Future<List<LevelRow>> getLevels() async {
     final configs = await _questionDao.getAllLevelConfigs();

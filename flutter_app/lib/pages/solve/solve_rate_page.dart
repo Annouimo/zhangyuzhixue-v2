@@ -82,7 +82,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       setState(() { _submitted = true; _saving = false; });
       if (!mounted) return;
       AppToast.show(context,
-        icon: Icons.check_circle, message: '评分已提交，+0.3 赠送积分',
+        icon: Icons.check_circle, message: '评分已提交',
         backgroundColor: AppColors.success,
       );
     } catch (e) {
@@ -127,7 +127,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                     onPressed: (_submitted || _saving) ? null : _submit,
                     child: _saving
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(_submitted ? '已评分' : '提交评分（可获得 +0.3 赠送积分）'),
+                        : Text(_submitted ? '已评分' : '提交评分'),
                   ),
                   if (_submitted) ...[
                     const SizedBox(height: 12),

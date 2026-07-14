@@ -187,6 +187,11 @@ ASSETS_TABLES = {
             ('solve_cooldown_choice', '10', '选择题冷却时长(秒)'),
             ('solve_cooldown_fill', '10', '填空题冷却时长(秒)'),
             ('solve_cooldown_step', '5', '解答题每步冷却时长(秒)'),
+            ('signup_bonus_amount', '10', '新用户注册赠送积分'),
+            ('first_question_reward', '0.5', '每日首题额外奖励积分'),
+            ('task_reward_amount', '1.0', '完成任务奖励积分'),
+            ('question_rating_reward', '0.3', '题目评价赠送积分'),
+            ('page_rating_reward', '1.0', '页面评价赠送积分'),
         ],
     },
 }

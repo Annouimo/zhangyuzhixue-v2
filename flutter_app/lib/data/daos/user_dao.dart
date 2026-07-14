@@ -122,6 +122,21 @@ class UserDao {
     return total;
   }
 
+  /// 今日做题统计（总数 + 正确数）
+  Future<({int total, int correct})> getTodaySubmissionStats() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final q = (_db.select(_db.submissionDetails)
+      ..where((t) => t.createdAt.isBiggerOrEqual(Variable(today))));
+    final rows = await q.get();
+    AuditLogger.instance.dao('UserDao.getTodaySubmissionStats', rows.length, {});
+    var total = 0, correct = 0;
+    for (final r in rows) {
+      total++;
+      if (r.isCorrect == 1) correct++;
+    }
+    return (total: total, correct: correct);
+  }
+
   /// 读取 user_profile 中的 accessible_course_ids（由服务器 pull 时写入）
   Future<String?> getAccessibleCourseIds() async {
     try {

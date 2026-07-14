@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'router.dart';
 import '../app_theme.dart';
 import '../widgets/shared/loading_indicator.dart';
@@ -16,6 +17,7 @@ import '../data/daos/question_dao.dart';
 import '../data/prefs/app_prefs.dart';
 import '../domain/user_repository.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/database/app_database.dart' as app_db;
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
@@ -36,6 +38,8 @@ class _IndexPageState extends State<IndexPage> {
   String _levelProgress = '';
   int _currentLevel = 1;
   double _todayEarned = 0;
+  int _todayTotal = 0;
+  int _todayCorrect = 0;
 
   static const List<String> _welcomeMessages = [
     '每一次练习，都在为高考蓄力 💪',
@@ -77,6 +81,26 @@ class _IndexPageState extends State<IndexPage> {
       final lvProgress = await _repo.levelProgress();
       final lv = await _repo.currentLevel();
       final todayEarned = await _repo.todayPoints();
+      final stats = await _repo.getTodaySubmissionStats();
+
+      // 任务奖励检测（每日仅发放一次）
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final tasks = _computeTasks(stats.total, stats.total > 0 ? stats.correct / stats.total : 0);
+      for (var i = 0; i < tasks.length; i++) {
+        if (tasks[i].done && prefs.getString('task_reward_${i}_date') != today) {
+          await prefs.setString('task_reward_${i}_date', today);
+          final now = DateTime.now().toIso8601String();
+          await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+            app_db.PointsTransactionsCompanion(
+              amount: Value((tasks[i].reward * 10).round()),
+              source: const Value('TASK_REWARD'),
+              transactionType: const Value('EARN'),
+              createdAt: Value(now),
+              description: Value('完成任务: ${tasks[i].label}'),
+            ),
+          );
+        }
+      }
 
       if (!mounted) return;
       setState(() {
@@ -86,6 +110,8 @@ class _IndexPageState extends State<IndexPage> {
         _levelProgress = lvProgress;
         _currentLevel = lv;
         _todayEarned = todayEarned;
+        _todayTotal = stats.total;
+        _todayCorrect = stats.correct;
         _loading = false;
       });
       AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn, 'level': _currentLevel});
@@ -272,7 +298,7 @@ class _IndexPageState extends State<IndexPage> {
     final todayReward = _calcTodayReward();
     final nextReward = _calcNextReward();
     final progress = (_streakDays % 7) / 7.0;
-    final dayInWeek = (_streakDays % 7) + 1;
+    final tasks = _computeTasks(_todayTotal, _todayTotal > 0 ? _todayCorrect / _todayTotal : 0);
 
     return Container(
       width: double.infinity,
@@ -346,10 +372,7 @@ class _IndexPageState extends State<IndexPage> {
           ),
           const Divider(height: 20),
           // 任务列表
-          _buildTaskItem(dayInWeek >= 1, '开张有礼（完成第1题）', '0.5'),
-          _buildTaskItem(dayInWeek >= 2, '小试牛刀（完成5题）', '1.0'),
-          _buildTaskItem(dayInWeek >= 3, '精益求精（正确率≥60%）', '1.0', inProgress: dayInWeek == 2),
-          _buildTaskItem(dayInWeek >= 4, '更进一步（完成15题）', '2.0', inProgress: dayInWeek == 3),
+          ...tasks.map((t) => _buildTaskItem(t.done, t.label, t.rewardText, inProgress: t.inProgress)),
           // 等级进度行
           const Divider(height: 12),
           Row(
@@ -398,4 +421,37 @@ class _IndexPageState extends State<IndexPage> {
 
   double _calcTodayReward() => 0.5 + (_streakDays % 7) * 0.3;
   double _calcNextReward() => 0.5 + ((_streakDays + 1) % 7) * 0.3;
+
+  /// 任务信息
+  static ({bool done, bool inProgress, String label, String rewardText, double reward}) _taskInfo(
+    int index, int total, double accuracy) {
+    const defs = [
+      (label: '开张有礼（完成第1题）', reward: 0.5),
+      (label: '小试牛刀（完成5题）', reward: 1.0),
+      (label: '精益求精（正确率≥60%）', reward: 1.0),
+      (label: '更进一步（完成15题）', reward: 2.0),
+    ];
+    final d = defs[index];
+    final checks = [total >= 1, total >= 5, accuracy >= 0.6, total >= 15];
+    final done = checks[index];
+    final inProgress = !done && (index == 0 || _prevDone(index, total, accuracy));
+    return (
+      done: done,
+      inProgress: inProgress,
+      label: d.label,
+      rewardText: d.reward.toStringAsFixed(1),
+      reward: d.reward,
+    );
+  }
+
+  static bool _prevDone(int index, int total, double accuracy) {
+    if (index == 0) return false;
+    return _taskInfo(index - 1, total, accuracy).done;
+  }
+
+  /// 计算四个任务的状态
+  static List<({bool done, bool inProgress, String label, String rewardText, double reward})>
+      _computeTasks(int total, double accuracy) {
+    return List.generate(4, (i) => _taskInfo(i, total, accuracy));
+  }
 }
