@@ -10,6 +10,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../data/prefs/app_prefs.dart';
 
 /// 等级详情页 — 匹配 HTML 原型 level_detail.html
 class LevelDetailPage extends StatefulWidget {
@@ -24,13 +25,14 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   bool _loading = true;
   String? _error;
   int _level = 1;
-  int _percentile = 0;
+  late int _percentile;
   double _earned = 0, _bonus = 0, _spent = 0, _available = 0;
   List<LevelRow> _levels = [];
 
   @override
   void initState() {
     super.initState();
+    _percentile = AppPrefs().levelPercentile;
     final db = DatabaseProvider();
     _repo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb));
     _load();
@@ -40,17 +42,21 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
     setState(() { _loading = true; _error = null; });
     try {
       final lv = await _repo.currentLevel();
-      final pctl = await _repo.levelPercentile();
       final summary = await _repo.getPointsSummary();
       final levels = await _repo.getLevels();
       if (!mounted) return;
       setState(() {
-        _level = lv; _percentile = pctl;
+        _level = lv;
         _earned = summary.earned; _bonus = summary.bonus;
         _spent = summary.spent; _available = summary.available;
         _levels = levels; _loading = false;
       });
       AuditLogger.instance.page('LevelDetailPage', {'level': _level, 'earned': _earned});
+      // 百分位调 API，后台加载不阻塞首屏
+      try {
+        final pctl = await _repo.levelPercentile();
+        if (mounted) setState(() => _percentile = pctl);
+      } catch (_) {}
     } catch (e) {
       AuditLogger.instance.error('LevelDetailPage._load', e);
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
