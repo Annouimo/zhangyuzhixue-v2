@@ -300,7 +300,7 @@ POST /api/v1/sync/push/
       "payload": {
         "student_id": 1,
         "assignment_id": null,
-        "submission_details": [
+        "details": [
           {
             "question_id": 42,
             "answer_text": "A",

@@ -226,11 +226,13 @@ class QuestionRepository {
           operation: SyncOperationType.upsert,
           localId: latest.id,
           payload: jsonEncode({
-            'question_id': questionId,
-            'attempt_number': latest.attemptNumber,
-            'status': 'completed',
-            'answer_text': answerText,
-            'is_correct': isCorrect ? 1 : 0,
+            'details': [{
+              'question_id': questionId,
+              'attempt_number': latest.attemptNumber,
+              'status': 'completed',
+              'answer_text': answerText,
+              'is_correct': isCorrect ? 1 : 0,
+            }],
           }),
         );
       } catch (_) {
