@@ -95,9 +95,12 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             label: '可查看',
             child: FractionallySizedBox(
               widthFactor: 1,
-              child: ElevatedButton(
-                onPressed: _reveal,
-                child: const Text('查看答案'),
+              child: SizedBox(
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: _reveal,
+                  child: const Text('查看答案'),
+                ),
               ),
             ),
           ),

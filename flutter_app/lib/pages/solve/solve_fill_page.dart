@@ -273,22 +273,30 @@ class _SolveFillPageState extends State<SolveFillPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton.icon(
-              onPressed: () => _submitFeedback(true),
-              icon: const Icon(Icons.check_circle, size: 18),
-              label: const Text('正确'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                foregroundColor: Colors.white,
+            SizedBox(
+              width: 100,
+              height: 40,
+              child: ElevatedButton.icon(
+                onPressed: () => _submitFeedback(true),
+                icon: const Icon(Icons.check_circle, size: 18),
+                label: const Text('正确'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                ),
               ),
             ),
             const SizedBox(width: 16),
-            OutlinedButton.icon(
-              onPressed: () => _submitFeedback(false),
-              icon: const Icon(Icons.cancel, size: 18),
-              label: const Text('错误'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
+            SizedBox(
+              width: 100,
+              height: 40,
+              child: OutlinedButton.icon(
+                onPressed: () => _submitFeedback(false),
+                icon: const Icon(Icons.cancel, size: 18),
+                label: const Text('错误'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textSecondary,
+                ),
               ),
             ),
           ],

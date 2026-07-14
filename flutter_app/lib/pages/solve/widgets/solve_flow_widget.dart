@@ -75,16 +75,19 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
             seconds: widget.cooldownSeconds,
             child: FractionallySizedBox(
               widthFactor: 1,
-              child: ElevatedButton(
-                onPressed: widget.submitLoading ? null : _submit,
-                child: widget.submitLoading
-                    ? const SizedBox(
-                        height: 20, width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white,
-                        ),
-                      )
-                    : const Text('提交答案'),
+              child: SizedBox(
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: widget.submitLoading ? null : _submit,
+                  child: widget.submitLoading
+                      ? const SizedBox(
+                          height: 20, width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white,
+                          ),
+                        )
+                      : const Text('提交答案'),
+                ),
               ),
             ),
           ),
