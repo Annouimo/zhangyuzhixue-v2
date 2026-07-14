@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/md_latex_body.dart';
 
 /// 推荐卡片
 ///
@@ -44,8 +45,12 @@ class RecommendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),),
+              ClipRect(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 48),
+                  child: MdLatexBody(title, fontSize: 14),
+                ),
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
