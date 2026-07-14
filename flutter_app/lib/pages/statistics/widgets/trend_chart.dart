@@ -24,7 +24,7 @@ class TrendChart extends StatelessWidget {
           children: [
             Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
-            if (points.isEmpty)
+            if (points.length < 2)
               SizedBox(
                 width: double.infinity, height: 160,
                 child: Center(
