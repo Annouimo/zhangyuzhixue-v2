@@ -214,7 +214,11 @@ class SyncPushView(APIView):
     def _handle_preference(self, data, student, server_ids, detail_cache):
         """处理筛选预设保存（含 json 序列化 + client_id 唯一键）"""
         client_id = data.get('_local_id')
-        _json = lambda v: json.dumps(v, ensure_ascii=False) if isinstance(v, (list, tuple)) else (v or '[]')
+
+        def _json(v):
+            if isinstance(v, (list, tuple)):
+                return json.dumps(v, ensure_ascii=False)
+            return v or '[]'
 
         pref, _ = PreferenceFilter.objects.update_or_create(
             student=student,
