@@ -89,6 +89,8 @@ class SyncRepository {
       case 'exitRating': return '退出评价';
       case 'paper_like': return '点赞';
       case 'paper_collect': return '收藏';
+      case 'preference': return '筛选预设';
+      case 'points_transaction': return '积分流水';
       default: return type;
     }
   }
@@ -103,6 +105,8 @@ class SyncRepository {
       case 'exitRating': return Icons.chat;
       case 'paper_like': return Icons.thumb_up;
       case 'paper_collect': return Icons.push_pin;
+      case 'preference': return Icons.tune;
+      case 'points_transaction': return Icons.account_balance_wallet;
       default: return Icons.push_pin;
     }
   }
