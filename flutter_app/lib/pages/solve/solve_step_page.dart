@@ -170,7 +170,17 @@ class _SolveStepPageState extends State<SolveStepPage> {
     if (!_isLastStep) {
       _goNextStep();
     } else {
-      if (context.mounted) context.pop();
+      // 最后一步显示完成提示后返回地图
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ 该题全部步骤已完成'),
+            duration: Duration(milliseconds: 1000),
+          ),
+        );
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) context.pop();
+      }
     }
   }
 
@@ -212,7 +222,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         if (shown && context.mounted) context.pop();
       },
       child: Scaffold(
-      appBar: AppBar(title: Text('步骤 ${widget.stepIndex + 1}')),
+      appBar: AppBar(title: const Text('步骤详情')),
       body: _loading
           ? const LoadingIndicator()
           : _error != null
@@ -265,6 +275,19 @@ class _SolveStepPageState extends State<SolveStepPage> {
                         questionId: widget.questionId,
                         submissionDetailId: _currentSubmissionDetailId,
                         onFeedback: _onFeedback,
+                      ),
+                      const SizedBox(height: 16),
+                      // 底部导航栏
+                      Row(
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => context.pop(),
+                            icon: const Icon(Icons.arrow_back, size: 16),
+                            label: const Text('解题地图',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

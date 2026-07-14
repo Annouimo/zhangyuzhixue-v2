@@ -195,13 +195,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             explanation: _detail?.explanation,
             onSubmit: _submit,
             onNext: widget.nextQuestionId != null
-                ? () async {
-                    try {
-                      final detail = await _repo.getDetail(widget.nextQuestionId!);
-                      if (context.mounted) {
-                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, detail.questionType);
-                      }
-                    } catch (_) {}
+                ? () {
+                    SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
                   }
                 : null,
             onRate: () async {
@@ -411,6 +406,13 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             ),
           ),
         // 题干（含 LaTeX）
+        if (detail.conceptTags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text('相关概念：${detail.conceptTags.join("、")}',
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
         MdLatexBody(detail.stem, fontSize: 15),
         const SizedBox(height: 20),
         // 图片

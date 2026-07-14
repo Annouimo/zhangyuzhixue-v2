@@ -4,6 +4,7 @@ import '../../widgets/shared/app_toast.dart';
 import '../../app_theme.dart';
 import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
+import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
 import '../../data/debug/audit_logger.dart';
@@ -32,6 +33,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
   bool _saving = false;
   bool _loading = true;
   String? _error;
+  double _rewardPoints = 0.3;
   late final RatingRepository _ratingRepo;
 
   @override
@@ -46,6 +48,12 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   Future<void> _loadRating() async {
     try {
+      // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
+      try {
+        final cfg = SystemConfigDao(DatabaseProvider().assetsDb);
+        _rewardPoints = await cfg.getDouble('question_rating_reward', 0.3);
+      } catch (_) {} 
+
       final rating = await _ratingRepo.getRating(widget.questionId);
       setState(() {
         _algoDifficulty = rating.algorithmDifficulty;
@@ -63,11 +71,6 @@ class _SolveRatePageState extends State<SolveRatePage> {
       AuditLogger.instance.error('SolveRatePage._loadRating', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
-  }
-
-  String _algoNote(String label, double algoScore) {
-    if (algoScore <= 0) return '';
-    return ' \u00B7 算法评分: ${algoScore.toStringAsFixed(1)}';
   }
 
   Future<void> _submit() async {
@@ -117,9 +120,9 @@ class _SolveRatePageState extends State<SolveRatePage> {
                   const SizedBox(height: 8),
                   const Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                   const SizedBox(height: 24),
-                  _StarRating(label: '难度', value: _difficulty, note: _algoNote('难度', _algoDifficulty), max: 10, onChanged: (v) => setState(() => _difficulty = v)),
+                  _StarRating(label: '难度', value: _difficulty, note: '', algorithmScore: _algoDifficulty > 0 ? _algoDifficulty : null, max: 10, onChanged: (v) => setState(() => _difficulty = v)),
                   const SizedBox(height: 20),
-                  _StarRating(label: '计算量', value: _calculation, note: _algoNote('计算量', _algoCalculation), max: 10, onChanged: (v) => setState(() => _calculation = v)),
+                  _StarRating(label: '计算量', value: _calculation, note: '', algorithmScore: _algoCalculation > 0 ? _algoCalculation : null, max: 10, onChanged: (v) => setState(() => _calculation = v)),
                   const SizedBox(height: 20),
                   _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
                   const SizedBox(height: 12),
@@ -132,7 +135,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                     onPressed: (_submitted || _saving) ? null : _submit,
                     child: _saving
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(_submitted ? '已评分' : '提交评分'),
+                        : Text(_submitted ? '已评分' : '提交评分（可获得 +$_rewardPoints 赠送积分）'),
                   ),
                   if (_submitted) ...[
                     const SizedBox(height: 12),
@@ -153,8 +156,9 @@ class _StarRating extends StatelessWidget {
   final int value;
   final String note;
   final int max;
+  final double? algorithmScore;
   final ValueChanged<int> onChanged;
-  const _StarRating({required this.label, required this.value, required this.note, required this.max, required this.onChanged});
+  const _StarRating({required this.label, required this.value, required this.note, required this.max, this.algorithmScore, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +168,19 @@ class _StarRating extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          if (algorithmScore != null && algorithmScore! > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text('算法: ${algorithmScore!.toStringAsFixed(1)}',
+                style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
           if (note.isNotEmpty) ...[
             const SizedBox(width: 8),
             Text(note, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
