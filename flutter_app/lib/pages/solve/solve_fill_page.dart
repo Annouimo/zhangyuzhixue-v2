@@ -259,8 +259,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   Widget _buildFeedbackButtons() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text('你觉得自己答对了吗？',
+          textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 8),

@@ -146,6 +146,7 @@ class _RevealResultBanner extends StatelessWidget {
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -154,6 +155,7 @@ class _RevealResultBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text('正确答案',
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
               ),
