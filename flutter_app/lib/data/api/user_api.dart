@@ -34,4 +34,10 @@ class UserApi {
     final res = await _client.dio.get('/user/pending-assignments/');
     return res.data['data'] as Map<String, dynamic>;
   }
+
+  /// 等级百分位（调用服务端专用端点）
+  Future<Map<String, dynamic>> getLevelPercentile() async {
+    final res = await _client.dio.get('/user/level-percentile/');
+    return res.data['data'] as Map<String, dynamic>;
+  }
 }

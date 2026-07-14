@@ -88,8 +88,7 @@ class ProfilePageState extends State<ProfilePage> {
         _statsRepo.getOverview(),
         _repo.getAnswerHistoryCount(),
         _achieveRepo.unlockedCount(),
-        _repo.earnedPoints(),
-        _repo.availablePoints(),
+        _repo.getPointsSummary(),
       ]);
       if (!mounted) return;
       final info = results[0] as UserInfo;
@@ -101,8 +100,9 @@ class ProfilePageState extends State<ProfilePage> {
         _statsAccuracy = overview.accuracyPercent;
         _answerHistoryCount = results[3] as int;
         _achievementUnlocked = results[4] as int;
-        _earnedPoints = results[5] as double;
-        _availablePoints = results[6] as double;
+        final ps = results[5] as ({double earned, double bonus, double spent, double available});
+        _earnedPoints = ps.earned;
+        _availablePoints = ps.available;
         _loading = false;
       });
       // 等级（在 setState 外 await）

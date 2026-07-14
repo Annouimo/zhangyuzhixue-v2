@@ -56,7 +56,8 @@ class StatisticsDao {
 
   /// 按日期统计每日做题数和正确数
   Future<List<({String date, int count, int correct})>> getDailyRecords(int rangeDays) async {
-    var q = _db.select(_db.submissionDetails);
+    var q = _db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull());
     if (rangeDays > 0) {
       final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
       q.where((t) => t.createdAt.isBiggerThanValue(threshold));
@@ -91,6 +92,30 @@ class StatisticsDao {
       groups[date] = (groups[date] ?? 0) + r.amount;
     }
     return groups.entries.map((e) => (date: e.key, amount: e.value)).toList();
+  }
+
+  /// 获取概览四项统计（一次查询推导全部）
+  Future<({int totalQuestions, double accuracy, int streakDays, int activeDays})> getOverviewRaw() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
+    AuditLogger.instance.dao('StatisticsDao.getOverviewRaw', rows.length, {});
+    if (rows.isEmpty) return (totalQuestions: 0, accuracy: 0.0, streakDays: 0, activeDays: 0);
+    final correct = rows.where((r) => r.isCorrect == 1).length;
+    final accuracy = correct / rows.length;
+    final dates = rows.map((r) => r.createdAt.substring(0, 10)).toSet().toList()
+      ..sort((a, b) => b.compareTo(a));
+    final today = DateTime.now();
+    var streak = 0;
+    for (final dateStr in dates) {
+      final d = DateTime.parse(dateStr);
+      final expected = today.subtract(Duration(days: streak));
+      if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return (totalQuestions: rows.length, accuracy: accuracy, streakDays: streak, activeDays: dates.length);
   }
 
   /// 获取所有做过题的 question_id（去重，用于题型分布统计）

@@ -56,7 +56,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
       if (!mounted) return;
       setState(() {
         _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist;
-        _accuracySummary = at.isNotEmpty ? '${at.last.value.toStringAsFixed(0)}%' : null;
+        // 全时段整体正确率（sum(correct)/sum(count)），匹配 HTML 原型
+        _accuracySummary = dr.isNotEmpty
+            ? '${(dr.fold<int>(0, (s, r) => s + r.correct) / dr.fold<int>(0, (s, r) => s + r.count) * 100).toStringAsFixed(0)}%'
+            : null;
         _pointsSummary = pt.isNotEmpty ? pt.last.value.toStringAsFixed(1) : null;
         _loading = false;
       });

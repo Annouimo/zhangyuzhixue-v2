@@ -37,12 +37,19 @@ class _PointsPageState extends State<PointsPage> {
   Future<void> _load() async {
     try {
       final list = await _repo.getPointsHistory();
-      final earned = await _repo.earnedPoints();
-      final bonus = await _repo.bonusPoints();
-      final spent = await _repo.spentPoints();
-      final available = await _repo.availablePoints();
       if (!mounted) return;
-      setState(() { _records = list; _earned = earned; _bonus = bonus; _spent = spent; _available = available; _loading = false; });
+      // 从累积列表的最后一个元素获取汇总值（第一条是最新，累积到最终值）
+      final summary = list.isNotEmpty
+          ? list.first
+          : null;
+      setState(() {
+        _records = list;
+        _earned = summary?.earned ?? 0;
+        _bonus = summary?.bonus ?? 0;
+        _spent = summary?.spent ?? 0;
+        _available = summary?.available ?? 0;
+        _loading = false;
+      });
       AuditLogger.instance.page('PointsPage', {'recordCount': _records?.length});
     } catch (e) {
       AuditLogger.instance.error('PointsPage._load', e);

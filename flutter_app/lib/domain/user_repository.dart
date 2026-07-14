@@ -304,8 +304,8 @@ class UserRepository {
 
   Future<int> levelPercentile() async {
     try {
-      final info = await _api.getInfo();
-      final raw = info['level_percentile'];
+      final data = await _api.getLevelPercentile();
+      final raw = data['level_percentile'];
       final result = (raw is num) ? raw.toInt() : 0;
       // 缓存到 AppPrefs，供离线使用
       if (result > 0) AppPrefs().setLevelPercentile(result);

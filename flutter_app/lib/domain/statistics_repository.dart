@@ -20,8 +20,9 @@ class StatsOverview {
 class DailyRecord {
   final String date;
   final int count;
+  final int correct;
   final int level;
-  const DailyRecord({required this.date, required this.count, required this.level});
+  const DailyRecord({required this.date, required this.count, required this.correct, required this.level});
 }
 
 /// 趋势点
@@ -60,15 +61,12 @@ class StatisticsRepository {
   const StatisticsRepository(this._dao, {this._questionDao});
 
   Future<StatsOverview> getOverview() async {
-    final total = await _dao.getTotalQuestions();
-    final acc = await _dao.getAccuracy();
-    final streak = await _dao.getStreakDays();
-    final active = await _dao.getActiveDays();
+    final raw = await _dao.getOverviewRaw();
     return StatsOverview(
-      totalQuestions: total,
-      accuracyPercent: acc * 100,
-      streakDays: streak,
-      activeDays: active,
+      totalQuestions: raw.totalQuestions,
+      accuracyPercent: raw.accuracy * 100,
+      streakDays: raw.streakDays,
+      activeDays: raw.activeDays,
     );
   }
 
@@ -93,7 +91,13 @@ class StatisticsRepository {
       final sampled = <TrendPoint>[];
       final step = (points.length / 30).ceil();
       for (var i = 0; i < points.length; i += step) {
-        sampled.add(points[i]);
+        final end = (i + step > points.length) ? points.length : i + step;
+        final slice = points.sublist(i, end);
+        final avgValue = slice.fold<double>(0, (s, p) => s + p.value) / slice.length;
+        sampled.add(TrendPoint(
+          label: slice[slice.length ~/ 2].label,
+          value: avgValue,
+        ));
       }
       return sampled;
     }
@@ -163,6 +167,7 @@ class _StatisticsAggregator {
     final list = grouped.entries.map((e) => DailyRecord(
       date: e.key,
       count: e.value.count,
+      correct: e.value.correct,
       level: _relativeLevel(e.value.count, maxCount),
     )).toList();
     list.sort((a, b) => a.date.compareTo(b.date));
