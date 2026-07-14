@@ -149,9 +149,15 @@ class FilterPanelState extends State<FilterPanel> {
     setState(() {
       if (years != null) { _selectedYears.clear(); _selectedYears.addAll(years); }
       if (regions != null) { _selectedRegions.clear(); _selectedRegions.addAll(regions); }
-      if (conceptTags != null) { _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags); }
+      if (conceptTags != null) {
+        _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags);
+        _selectedConceptTagNames.clear(); // 让 _emit 回退到 _selectedConceptTags
+      }
       if (examTypes != null) { _selectedExamTypes.clear(); _selectedExamTypes.addAll(examTypes); }
-      if (knowledgeCards != null) { _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards); }
+      if (knowledgeCards != null) {
+        _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards);
+        _selectedKnowledgeCardTitles.clear(); // 同上
+      }
       if (types != null) { _selectedTypes.clear(); _selectedTypes.addAll(types); }
       if (diffMin != null) _diffMin = diffMin;
       if (diffMax != null) _diffMax = diffMax;
