@@ -75,9 +75,9 @@ class RatingRepository {
         localId: questionId,
         payload: jsonEncode({
           'question_id': questionId,
-          'difficulty': difficulty,
-          'calculation': calculation,
-          'elegance': elegance,
+          'difficulty_score': difficulty.round(),
+          'calculation_score': calculation.round(),
+          'elegance_score': elegance.round(),
         }),
       );
     } catch (_) {

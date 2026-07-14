@@ -247,6 +247,7 @@ class ProgressRepository {
         operation: SyncOperationType.upsert,
         localId: id,
         payload: jsonEncode({
+          'submission_detail_id': match.first.id,
           'question_id': questionId,
           'step_number': stepNumber,
           'status': status,
