@@ -5,7 +5,7 @@ import '../../app_theme.dart';
 import '../../data/debug/audit_logger.dart';
 
 /// 智能组卷积分消耗
-const int _autoPaperCost = 20;
+const int _autoPaperCost = 10;
 /// 自主选题积分消耗
 const int _pickPaperCost = 20;
 

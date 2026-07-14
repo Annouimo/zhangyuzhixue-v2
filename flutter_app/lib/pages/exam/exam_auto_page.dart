@@ -24,7 +24,7 @@ import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
 /// 智能组卷积分消耗常量
-const _kAutoPaperCost = 20; // 智能组卷消耗 20 积分
+const _kAutoPaperCost = 10; // 智能组卷消耗 10 积分
 
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
