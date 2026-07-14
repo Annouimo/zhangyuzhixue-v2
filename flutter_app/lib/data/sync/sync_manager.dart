@@ -4,6 +4,7 @@ import '../database/database_provider.dart';
 import 'sync_types.dart';
 import 'sync_pusher.dart';
 import 'update_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
 /// 同步引擎总入口（单例）
 class SyncManager {
@@ -47,7 +48,7 @@ class SyncManager {
   }) async {
     _ensureInitialized();
     await _queueDao!.enqueue(
-      entityType: entityType.name,
+      entityType: entityType.serverName,
       operationType: operation.name,
       entityId: localId,
       payload: payload,
@@ -176,5 +177,18 @@ class SyncManager {
     if (!_initialized) {
       throw StateError('SyncManager not initialized. Call init() first.');
     }
+  }
+
+  /// 重置单例状态（仅测试用）
+  @visibleForTesting
+  static Future<void> resetForTesting() async {
+    _instance._queueDao = null;
+    _instance._pusher = null;
+    _instance._updateManager = null;
+    _instance._api = null;
+    _instance._dbProvider = null;
+    _instance._initialized = false;
+    _instance._lastPushTime = DateTime(2000);
+    _instance._pendingUpdates = [];
   }
 }

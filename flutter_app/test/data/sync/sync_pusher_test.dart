@@ -12,11 +12,15 @@ import 'package:flutter_app/data/database/database_provider.dart';
 
 class _MockAdapter implements HttpClientAdapter {
   final handlers = <String, Function(RequestOptions)>{};
+  List<Map<String, dynamic>>? sentBatch;
   void on(String method, String path, Function(RequestOptions) h) {
     handlers['$method $path'] = h;
   }
   @override
   Future<ResponseBody> fetch(RequestOptions o, Stream<Uint8List>? rs, Future? cf) async {
+    if (o.data is Map && (o.data as Map).containsKey('batch')) {
+      sentBatch = ((o.data as Map)['batch'] as List).cast<Map<String, dynamic>>();
+    }
     final h = handlers['${o.method} ${o.path}'];
     if (h != null) return h(o);
     return ResponseBody.fromString('{"code":0,"data":{}}', 200, headers: {'content-type': ['application/json']});
@@ -54,13 +58,18 @@ void main() {
         '{"code":0,"data":{"server_ids":{"1":101,"2":102}}}', 200,
         headers: {'content-type': ['application/json']},
       ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      await dao.enqueue(entityType: 'rating', operationType: 'create', entityId: 2, payload: '{}');
+      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{"qid":42}');
+      await dao.enqueue(entityType: 'rating', operationType: 'create', entityId: 2, payload: '{"score":5}');
       final pusher = SyncPusher(dao, SyncApi(client));
       final result = await pusher.pushAll();
       expect(result.successCount, 2);
       expect(result.failCount, 0);
       expect(await dao.isEmpty(), isTrue); // cleanup 后 done 被删除
+      // 验证发送格式：使用 data 而非 payload
+      expect(adapter.sentBatch, isNotNull);
+      expect(adapter.sentBatch!.first['data'], {'qid': 42});
+      expect(adapter.sentBatch!.first.keys, contains('data'));
+      expect(adapter.sentBatch!.first.keys, isNot(contains('payload')));
     });
 
     test('partial success: some get serverId, some dont', () async {

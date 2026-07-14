@@ -59,7 +59,7 @@ void main() {
     });
 
     testWidgets('shows pending items', (tester) async {
-      await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      await dao.enqueue(entityType: 'question_rating', operationType: 'upsert', entityId: 1, payload: '{}');
       await tester.pumpWidget(
         MaterialApp(home: SyncQueuePage(syncRepository: repo)),
       );

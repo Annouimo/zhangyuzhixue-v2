@@ -1,5 +1,7 @@
+import 'dart:convert';
 import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
+import '../network/connectivity_monitor.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
 /// 推送结果汇总
 class PushSummary {
@@ -22,6 +24,12 @@ class SyncPusher {
 
   /// 推送所有待同步数据，逐批处理，逐条处理 server_ids
   Future<PushSummary> pushAll() async {
+    // 离线时跳过推送
+    if (!ConnectivityMonitor().isOnline) {
+      AuditLogger.instance.sync('push_offline', {'skip': true});
+      return PushSummary(successCount: 0, failCount: 0);
+    }
+
     var success = 0;
     var fail = 0;
 
@@ -33,11 +41,10 @@ class SyncPusher {
         await _dao.markInProgress(entry.id);
       }
 
-      final items = batch.map((e) => {
+      final items = batch.map((e) => <String, dynamic>{
         'entity_type': e.entityType,
-        'operation': e.operationType,
         'local_id': e.entityId,
-        'payload': e.payload,
+        'data': jsonDecode(e.payload),
       }).toList();
 
       try {

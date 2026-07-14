@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -66,8 +67,11 @@ Future<bool> submitExitRating({
       entityType: SyncEntityType.exitRating,
       operation: SyncOperationType.upsert,
       localId: 0,
-      payload:
-          '{"score":$score,"feedback":${feedback != null ? '"$feedback"' : 'null'},"page_url":"$pageUrl"}',
+      payload: jsonEncode({
+        'score': score,
+        'feedback': feedback,
+        'page_url': pageUrl,
+      }),
     );
     // 赠送积分
     final now = DateTime.now().toIso8601String();

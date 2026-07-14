@@ -75,11 +75,15 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       // 同步用户数据（展示进度弹窗）
-      await showSyncProgress(context, (onProgress) async {
+      final syncOk = await showSyncProgress(context, (onProgress) async {
         await SyncManager().onLogin(onProgress: onProgress);
       });
-
       if (!mounted) return;
+
+      // 同步失败时页面内显示提示（登录流程已走完，token 已保存）
+      if (!syncOk) {
+        _showError('数据同步失败，可稍后在「我的」页面手动同步');
+      }
 
       // 检查是否有学习偏好
       final hasPrefs = await _checkPreferences();

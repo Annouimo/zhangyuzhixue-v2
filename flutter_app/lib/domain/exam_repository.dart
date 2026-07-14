@@ -1,7 +1,10 @@
 
+import 'dart:convert';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
 import '../data/helpers/pdf_helper.dart';
+import '../data/sync/sync_manager.dart';
+import '../data/sync/sync_types.dart';
 
 /// 组卷构建状态
 
@@ -230,10 +233,32 @@ class ExamRepository {
 
   Future<void> toggleLike(int paperId) async {
     await _examDao.toggleLike(paperId);
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.paperLike,
+        operation: SyncOperationType.upsert,
+        localId: paperId,
+        payload: jsonEncode({'paper_id': paperId}),
+      );
+    } catch (_) {
+      // 静默
+    }
   }
 
   Future<void> toggleCollect(int paperId) async {
     await _examDao.toggleCollect(paperId);
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.paperCollect,
+        operation: SyncOperationType.upsert,
+        localId: paperId,
+        payload: jsonEncode({'paper_id': paperId}),
+      );
+    } catch (_) {
+      // 静默
+    }
   }
 
   // ── 收藏 ──
@@ -398,7 +423,24 @@ class ExamRepository {
 
   Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
     final engine = _ExamGenerator(_questionDao, _examDao);
-    return engine.confirm(filters, allowShortfall: allowShortfall);
+    final paperId = await engine.confirm(filters, allowShortfall: allowShortfall);
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.exam,
+        operation: SyncOperationType.upsert,
+        localId: paperId,
+        payload: jsonEncode({
+          'title': filters.name.isNotEmpty ? filters.name : '智能组卷',
+          'questions': filters.selectedIds.isNotEmpty
+              ? filters.selectedIds
+              : [],
+        }),
+      );
+    } catch (_) {
+      // 静默
+    }
+    return paperId;
   }
 }
 

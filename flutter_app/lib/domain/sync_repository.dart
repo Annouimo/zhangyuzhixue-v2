@@ -83,8 +83,11 @@ class SyncRepository {
       case 'submission': return '提交';
       case 'step_feedback': return '步骤反馈';
       case 'card_feedback': return '卡片反馈';
-      case 'rating': return '评分';
-      case 'exam': return '组卷';
+      case 'question_rating': return '评分';
+      case 'custom_paper': return '组卷';
+      case 'exitRating': return '退出评价';
+      case 'paper_like': return '点赞';
+      case 'paper_collect': return '收藏';
       default: return type;
     }
   }
@@ -94,8 +97,11 @@ class SyncRepository {
       case 'submission': return '📝';
       case 'step_feedback': return '👣';
       case 'card_feedback': return '🃏';
-      case 'rating': return '⭐';
-      case 'exam': return '📄';
+      case 'question_rating': return '⭐';
+      case 'custom_paper': return '📄';
+      case 'exitRating': return '💬';
+      case 'paper_like': return '👍';
+      case 'paper_collect': return '📌';
       default: return '📌';
     }
   }

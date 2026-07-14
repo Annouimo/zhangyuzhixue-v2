@@ -40,6 +40,7 @@ void main() {
       final queue = await repo.getQueue();
       expect(queue.length, 1);
       expect(queue.first.entityType, 'submission');
+      expect(queue.first.entityTypeName, '提交');
     });
   });
 }

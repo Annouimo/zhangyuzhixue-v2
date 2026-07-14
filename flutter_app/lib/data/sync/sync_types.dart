@@ -8,6 +8,32 @@ enum SyncEntityType {
   rating,
   exam,
   exitRating,
+  paperLike,
+  paperCollect,
+}
+
+/// 服务器期望的 entity_type 字符串
+extension SyncEntityTypeServerName on SyncEntityType {
+  String get serverName {
+    switch (this) {
+      case SyncEntityType.submissionDetail:
+        return 'submission';
+      case SyncEntityType.stepFeedback:
+        return 'step_feedback';
+      case SyncEntityType.cardFeedback:
+        return 'card_feedback';
+      case SyncEntityType.rating:
+        return 'question_rating';
+      case SyncEntityType.exam:
+        return 'custom_paper';
+      case SyncEntityType.exitRating:
+        return 'exitRating';
+      case SyncEntityType.paperLike:
+        return 'paper_like';
+      case SyncEntityType.paperCollect:
+        return 'paper_collect';
+    }
+  }
 }
 
 /// 操作类型

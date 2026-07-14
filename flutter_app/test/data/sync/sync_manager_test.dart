@@ -22,8 +22,9 @@ void main() {
     await manager.init(dao, SyncApi(ApiClient()), DatabaseProvider());
   });
 
-  tearDown(() {
-    // 不关闭 database，后续 test 复用（singleton 无法重新 init）
+  tearDown(() async {
+    await database.close();
+    await SyncManager.resetForTesting();
   });
 
   test('enqueue adds to queue', () async {
