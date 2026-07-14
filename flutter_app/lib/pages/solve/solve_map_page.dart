@@ -179,7 +179,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             const Text('准备开始答题',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
-            const Text('本题为解答题，支持多种解法。\n点击下方按钮开始你的首次作答。',
+            Text('本题为解答题，共 ${_state?.subQuestions.length ?? 0} 小问，支持多种解法。\n点击下方按钮开始你的首次作答。',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5)),
             const SizedBox(height: 24),

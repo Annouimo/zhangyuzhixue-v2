@@ -23,9 +23,9 @@ class SolveRatePage extends StatefulWidget {
 }
 
 class _SolveRatePageState extends State<SolveRatePage> {
-  int _difficulty = 5;
-  int _calculation = 5;
-  int _elegance = 5;
+  int _difficulty = 0;
+  int _calculation = 0;
+  int _elegance = 0;
   double _algoDifficulty = 0;
   double _algoCalculation = 0;
   bool _submitted = false;
@@ -177,7 +177,7 @@ class _StarRating extends StatelessWidget {
           );
         })),
         const SizedBox(height: 4),
-        Text('$value / $max', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(value > 0 ? '$value / $max' : '—', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ]),
     );
   }

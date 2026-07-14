@@ -31,12 +31,16 @@ class UserInfo {
 class HistoryItem {
   final String title;
   final String questionType;
+  final int questionId;
   final String date;
   final String status;
+
+  bool get isCompleted => status == 'completed';
 
   const HistoryItem({
     required this.title,
     required this.questionType,
+    required this.questionId,
     required this.date,
     required this.status,
   });
@@ -132,12 +136,22 @@ class UserRepository {
   Future<List<HistoryItem>> getAnswerHistory() async {
     // 从本地 submission_detail 取最近做题记录
     final submissions = await _dao.getRecentSubmissions(limit: 10);
-    return submissions.map((s) => HistoryItem(
-      title: '#${s.questionId}',
-      questionType: '',
-      date: s.createdAt.substring(0, 10),
-      status: s.status,
-    )).toList();
+    final items = <HistoryItem>[];
+    for (final s in submissions) {
+      String qType = '';
+      try {
+        final q = await _questionDao.getById(s.questionId);
+        qType = q?.questionType ?? '';
+      } catch (_) {}
+      items.add(HistoryItem(
+        title: '#${s.questionId}',
+        questionType: qType,
+        questionId: s.questionId,
+        date: s.createdAt.substring(0, 10),
+        status: s.status,
+      ));
+    }
+    return items;
   }
 
   Future<int> getAnswerHistoryCount() async {

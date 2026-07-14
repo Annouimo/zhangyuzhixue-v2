@@ -8,6 +8,7 @@ import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/assignment_repository.dart';
+import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../data/debug/audit_logger.dart';
@@ -175,12 +176,29 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     'solution' => AppRoutes.solveMap,
                     _ => AppRoutes.solveChoice,
                   };
+                  // 查 attempts 决定 mode/attemptId
+                  String mode = 'first';
+                  int? attemptId;
+                  try {
+                    final qRepo = QuestionRepository(
+                      QuestionDao(DatabaseProvider().assetsDb),
+                      ProgressDao(DatabaseProvider().appDb),
+                    );
+                    final attempts = await qRepo.getAttempts(q.id);
+                    if (attempts.isNotEmpty) {
+                      mode = 'review';
+                      attemptId = attempts.last.id;
+                    }
+                  } catch (_) {}
                   final currentIdx = d.questions.indexWhere((q2) => q2.id == q.id);
                   final nextId = (currentIdx >= 0 && currentIdx + 1 < d.questions.length)
                       ? d.questions[currentIdx + 1].id
                       : null;
                   await context.push(
-                    '$route?id=${q.id}${nextId != null ? '&next=$nextId' : ''}',
+                    '$route?id=${q.id}'
+                    '${mode != 'first' ? '&mode=$mode' : ''}'
+                    '${attemptId != null ? '&attemptId=$attemptId' : ''}'
+                    '${nextId != null ? '&next=$nextId' : ''}',
                   );
                   _load();
                 },

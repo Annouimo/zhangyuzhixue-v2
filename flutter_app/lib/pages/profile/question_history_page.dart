@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/shared/loading_indicator.dart';
-import '../../../widgets/shared/error_placeholder.dart';
-import '../../../data/api/api_client.dart';
-import '../../../data/api/user_api.dart';
-import '../../../data/daos/question_dao.dart';
-import '../../../data/daos/user_dao.dart';
-import '../../../data/database/database_provider.dart';
-import '../../../domain/user_repository.dart';
-import '../../../data/debug/audit_logger.dart';
+import 'package:go_router/go_router.dart';
+import '../../app_theme.dart';
+import '../../widgets/shared/loading_indicator.dart';
+import '../../widgets/shared/error_placeholder.dart';
+import '../../data/api/api_client.dart';
+import '../../data/api/user_api.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/daos/user_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../domain/user_repository.dart';
+import '../../data/debug/audit_logger.dart';
 
 class QuestionHistoryPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -62,7 +63,19 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
                 title: Text(h.title, style: const TextStyle(fontSize: 14)),
                 subtitle: Text('${h.date} · ${h.status}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
-                onTap: () {},
+                onTap: () {
+                  final route = switch (h.questionType) {
+                    'choice' => '/solve/choice',
+                    'fill' => '/solve/fill',
+                    'solution' => '/solve/map',
+                    _ => '/solve/choice',
+                  };
+                  final mode = h.isCompleted ? 'review' : 'resume';
+                  context.push(
+                    '$route?id=${h.questionId}'
+                    '&mode=$mode',
+                  );
+                },
               );
             },
           ),
