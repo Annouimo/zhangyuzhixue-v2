@@ -6,7 +6,7 @@ import 'done_banner.dart';
 
 /// 填空题专用揭示流程 Widget
 ///
-/// 交互序列：冷却 → 查看答案 → 显示正确答案 → 🎉 已完成
+/// 交互序列：冷却 → 查看答案 → 显示正确答案 → (自评反馈) → 🎉 已完成
 /// 与 SolveFlowWidget（选择题提交→判对错）完全独立。
 class SolveRevealWidget extends StatefulWidget {
   /// 冷却秒数
@@ -30,6 +30,9 @@ class SolveRevealWidget extends StatefulWidget {
   /// 揭示回调（用户点击「查看答案」时触发，可在此记录状态）
   final VoidCallback? onReveal;
 
+  /// 自评反馈（揭示答案后、已完成之前展示）
+  final Widget? feedbackWidget;
+
   /// 展示题库的内容 widget（stem / 选项等）
   final Widget child;
 
@@ -42,6 +45,7 @@ class SolveRevealWidget extends StatefulWidget {
     this.onNext,
     this.onRate,
     this.onReveal,
+    this.feedbackWidget,
     required this.child,
   });
 
@@ -70,7 +74,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final done = widget.isRevisit || _revealed;
+    final done = widget.isRevisit || (_revealed && widget.feedbackWidget == null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,6 +99,13 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           _RevealResultBanner(
             answerValue: widget.answerValue,
             explanation: widget.explanation,
+          ),
+        ],
+        if (_revealed && widget.feedbackWidget != null) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: widget.feedbackWidget!,
           ),
         ],
         if (done) ...[

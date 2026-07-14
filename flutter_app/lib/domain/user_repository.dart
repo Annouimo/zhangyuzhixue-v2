@@ -81,6 +81,22 @@ class LevelRow {
   });
 }
 
+/// 首页任务状态
+class TaskState {
+  final bool done;
+  final bool inProgress;
+  final String label;
+  final String rewardText;
+  final int reward;
+  const TaskState({
+    required this.done,
+    required this.inProgress,
+    required this.label,
+    required this.rewardText,
+    required this.reward,
+  });
+}
+
 /// 用户 Repository — 本地 + API
 class UserRepository {
   final UserDao _dao;
@@ -243,6 +259,44 @@ class UserRepository {
   /// 今日做题统计
   Future<({int total, int correct})> getTodaySubmissionStats() =>
       _dao.getTodaySubmissionStats();
+
+  // ── 首页任务 ──
+
+  /// 任务状态
+  static const _taskDefs = [
+    (label: '开张有礼（完成第1题）', threshold: 1, reward: 5),
+    (label: '小试牛刀（完成5题）', threshold: 5, reward: 10),
+    (label: '精益求精（正确完成3题）', threshold: 3, reward: 10),
+    (label: '更进一步（完成15题）', threshold: 15, reward: 20),
+  ];
+
+  /// 今日任务状态
+  static List<TaskState> computeTodayTasks(int total, int correct) {
+    final results = <TaskState>[];
+    for (var i = 0; i < _taskDefs.length; i++) {
+      final d = _taskDefs[i];
+      final done = i == 2 ? correct >= d.threshold : total >= d.threshold;
+      final prevDone = i == 0 || results.last.done;
+      results.add(TaskState(
+        done: done,
+        inProgress: !done && prevDone,
+        label: d.label,
+        rewardText: (d.reward / 10).toStringAsFixed(1),
+        reward: d.reward,
+      ));
+    }
+    return results;
+  }
+
+  /// 今日签到奖励（基于连续天数）
+  static double todayReward(int streakDays) => 0.5 + (streakDays % 7) * 0.3;
+  static double nextReward(int streakDays) => 0.5 + ((streakDays + 1) % 7) * 0.3;
+
+  /// 今日签到奖励文本
+  static String todayRewardText(int streakDays) =>
+      todayReward(streakDays).toStringAsFixed(1);
+  static String nextRewardText(int streakDays) =>
+      nextReward(streakDays).toStringAsFixed(1);
 
   // ── 等级 ──
   Future<List<LevelRow>> getLevels() async {

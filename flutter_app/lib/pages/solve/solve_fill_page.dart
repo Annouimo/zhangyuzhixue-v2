@@ -41,6 +41,7 @@ class SolveFillPage extends StatefulWidget {
 class _SolveFillPageState extends State<SolveFillPage> {
   bool _loading = true;
   bool _revealed = false;
+  bool _feedbackGiven = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -222,7 +223,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 揭示答案时保存记录
+  /// 揭示答案时展开结果区域，等待用户自评
   Future<void> _onReveal() async {
     setState(() => _revealed = true);
     if (_currentAttempt == null) {
@@ -234,16 +235,56 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
       });
     }
-    // 记录答案揭示（作为正确回答存入存档）
+  }
+
+  /// 用户自评后保存记录
+  Future<void> _submitFeedback(bool correct) async {
+    if (!_revealed || _feedbackGiven) return;
     if (_detail?.answer != null && _currentAttempt != null) {
       try {
         await _repo.saveAttempt(
           widget.questionId,
           answerText: _detail!.answer!,
-          isCorrect: true,
+          isCorrect: correct,
         );
       } catch (_) {}
     }
+    if (!mounted) return;
+    setState(() => _feedbackGiven = true);
+  }
+
+  Widget _buildFeedbackButtons() {
+    return Column(
+      children: [
+        const Text('你觉得自己答对了吗？',
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () => _submitFeedback(true),
+              icon: const Icon(Icons.check_circle, size: 18),
+              label: const Text('正确'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 16),
+            OutlinedButton.icon(
+              onPressed: () => _submitFeedback(false),
+              icon: const Icon(Icons.cancel, size: 18),
+              label: const Text('错误'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -282,6 +323,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             answerValue: _detail?.answer,
             explanation: _detail?.explanation,
             onReveal: _onReveal,
+            feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
             onNext: widget.nextQuestionId != null
                 ? () => context.pushReplacement('${AppRoutes.solveFill}?id=${widget.nextQuestionId}&mode=first')
                 : null,

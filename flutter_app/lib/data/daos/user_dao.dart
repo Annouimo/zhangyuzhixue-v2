@@ -111,11 +111,14 @@ class UserDao {
     return rows;
   }
 
-  /// 获取今天获得的积分
+  /// 获取今天获得的学习积分（仅 earned 分类，不含 bonus/spent）
   Future<int> getTodayEarnedPoints() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     final q = (_db.select(_db.pointsTransactions)
-      ..where((t) => t.createdAt.isBiggerOrEqual(Variable(today)) & t.amount.isBiggerThanValue(0)));
+      ..where((t) =>
+          t.createdAt.isBiggerOrEqual(Variable(today)) &
+          t.amount.isBiggerThanValue(0) &
+          t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'])));
     final rows = await q.get();
     AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', rows.length, {});
     var total = 0;

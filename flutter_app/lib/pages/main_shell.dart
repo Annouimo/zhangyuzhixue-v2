@@ -58,6 +58,7 @@ class _MainShellState extends State<MainShell> {
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
+          if (index == 0) setState(() => _pageKey++);
           if (index == 1) _recommendKey.currentState?.refresh();
           if (index == 3) _profileKey.currentState?.reload();
         },

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,8 @@ import '../data/daos/user_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/prefs/app_prefs.dart';
 import '../domain/user_repository.dart';
+import '../data/sync/sync_manager.dart';
+import '../data/sync/sync_types.dart';
 import '../data/debug/audit_logger.dart';
 import '../data/database/app_database.dart' as app_db;
 
@@ -70,8 +73,22 @@ class _IndexPageState extends State<IndexPage> {
   Future<void> _load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final pending = AppPrefs().pendingHomeworkCount;
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+
+      // 每日初始化：检测跨天，重置签到状态 + 写入登录日志
+      final lastDate = prefs.getString('last_checkin_date');
+      if (lastDate != today) {
+        await prefs.setBool('checked_in_today', false);
+        await prefs.setString('last_checkin_date', today);
+        final now = DateTime.now().toIso8601String();
+        await AchievementDao(DatabaseProvider().appDb).insertLoginLog(
+          loginDate: today,
+          createdAt: now,
+        );
+      }
+
       final checkedIn = prefs.getBool('checked_in_today') ?? false;
+      final pending = AppPrefs().pendingHomeworkCount;
 
       // 通过 AchievementDao 从登录日志推算连续签到天数
       final dao = AchievementDao(DatabaseProvider().appDb);
@@ -84,21 +101,35 @@ class _IndexPageState extends State<IndexPage> {
       final stats = await _repo.getTodaySubmissionStats();
 
       // 任务奖励检测（每日仅发放一次）
-      final today = DateTime.now().toIso8601String().substring(0, 10);
-      final tasks = _computeTasks(stats.total, stats.total > 0 ? stats.correct / stats.total : 0);
+      final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
       for (var i = 0; i < tasks.length; i++) {
         if (tasks[i].done && prefs.getString('task_reward_${i}_date') != today) {
           await prefs.setString('task_reward_${i}_date', today);
           final now = DateTime.now().toIso8601String();
-          await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+          final newId = await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
             app_db.PointsTransactionsCompanion(
-              amount: Value((tasks[i].reward * 10).round()),
+              amount: Value(tasks[i].reward),
               source: const Value('TASK_REWARD'),
               transactionType: const Value('EARN'),
               createdAt: Value(now),
               description: Value('完成任务: ${tasks[i].label}'),
             ),
           );
+          // 入同步队列
+          try {
+            await SyncManager().enqueue(
+              entityType: SyncEntityType.pointsTransaction,
+              operation: SyncOperationType.upsert,
+              localId: newId,
+              payload: jsonEncode({
+                'amount': tasks[i].reward,
+                'source': 'TASK_REWARD',
+                'transaction_type': 'EARN',
+                'description': '完成任务: ${tasks[i].label}',
+                'created_at': now,
+              }),
+            );
+          } catch (_) {}
         }
       }
 
@@ -295,10 +326,10 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildCheckinCard() {
-    final todayReward = _calcTodayReward();
-    final nextReward = _calcNextReward();
+    final todayReward = UserRepository.todayRewardText(_streakDays);
+    final nextReward = UserRepository.nextRewardText(_streakDays);
     final progress = (_streakDays % 7) / 7.0;
-    final tasks = _computeTasks(_todayTotal, _todayTotal > 0 ? _todayCorrect / _todayTotal : 0);
+    final tasks = UserRepository.computeTodayTasks(_todayTotal, _todayCorrect);
 
     return Container(
       width: double.infinity,
@@ -419,39 +450,4 @@ class _IndexPageState extends State<IndexPage> {
     );
   }
 
-  double _calcTodayReward() => 0.5 + (_streakDays % 7) * 0.3;
-  double _calcNextReward() => 0.5 + ((_streakDays + 1) % 7) * 0.3;
-
-  /// 任务信息
-  static ({bool done, bool inProgress, String label, String rewardText, double reward}) _taskInfo(
-    int index, int total, double accuracy) {
-    const defs = [
-      (label: '开张有礼（完成第1题）', reward: 0.5),
-      (label: '小试牛刀（完成5题）', reward: 1.0),
-      (label: '精益求精（正确率≥60%）', reward: 1.0),
-      (label: '更进一步（完成15题）', reward: 2.0),
-    ];
-    final d = defs[index];
-    final checks = [total >= 1, total >= 5, accuracy >= 0.6, total >= 15];
-    final done = checks[index];
-    final inProgress = !done && (index == 0 || _prevDone(index, total, accuracy));
-    return (
-      done: done,
-      inProgress: inProgress,
-      label: d.label,
-      rewardText: d.reward.toStringAsFixed(1),
-      reward: d.reward,
-    );
-  }
-
-  static bool _prevDone(int index, int total, double accuracy) {
-    if (index == 0) return false;
-    return _taskInfo(index - 1, total, accuracy).done;
-  }
-
-  /// 计算四个任务的状态
-  static List<({bool done, bool inProgress, String label, String rewardText, double reward})>
-      _computeTasks(int total, double accuracy) {
-    return List.generate(4, (i) => _taskInfo(i, total, accuracy));
-  }
 }
