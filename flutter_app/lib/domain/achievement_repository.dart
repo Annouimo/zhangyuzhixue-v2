@@ -71,7 +71,10 @@ class AchievementRepository {
     return AchievementSummary(unlockedCount: unlocked, totalCount: total);
   }
 
-  Future<int> unlockedCount() => _dao.getUnlockedCount();
+  Future<int> unlockedCount() async {
+    final summary = await getSummary();
+    return summary.unlockedCount;
+  }
 
   Future<List<AchievementCategory>> getCategories() async {
     final defs = await _questionDao.getAllAchievementDefs();
