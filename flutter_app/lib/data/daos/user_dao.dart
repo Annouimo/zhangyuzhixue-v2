@@ -129,17 +129,54 @@ class UserDao {
     return total;
   }
 
-  /// 今日做题统计（总数 + 正确数）
+  /// 今日做题统计（选择/填空 is_correct + 解答题小问全对）
   Future<({int total, int correct})> getTodaySubmissionStats() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    final q = (_db.select(_db.submissionDetails)
-      ..where((t) => t.createdAt.isBiggerOrEqual(Variable(today))));
-    final rows = await q.get();
-    AuditLogger.instance.dao('UserDao.getTodaySubmissionStats', rows.length, {});
-    var total = 0, correct = 0;
-    for (final r in rows) {
+
+    // ① 选择/填空
+    final cfRows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.createdAt.isBiggerOrEqual(Variable(today)))).get();
+    var cfTotal = 0; var cfCorrect = 0;
+    for (final r in cfRows) { cfTotal++; if (r.isCorrect == 1) cfCorrect++; }
+
+    // ② 解答题小问
+    final step = await getTodayStepSubQuestionStats();
+
+    AuditLogger.instance.dao('UserDao.getTodaySubmissionStats', cfTotal + step.total, {
+      'cfTotal': cfTotal, 'cfCorrect': cfCorrect,
+      'stepTotal': step.total, 'stepCorrect': step.correct,
+    });
+    return (total: cfTotal + step.total, correct: cfCorrect + step.correct);
+  }
+
+  /// 今日解答题按小问统计（全对的小问数）
+  Future<({int total, int correct})> getTodayStepSubQuestionStats() async {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+
+    // 先查今日解答题的 submission_detail ID
+    final sdIds = await (_db.select(_db.submissionDetails)
+      ..where((t) =>
+          t.createdAt.isBiggerOrEqual(Variable(today)) &
+          t.isCorrect.isNull())
+    ).get();
+    if (sdIds.isEmpty) return (total: 0, correct: 0);
+    final idSet = sdIds.map((r) => r.id).toSet();
+
+    // 查这些提交的 step_feedback
+    final rows = await (_db.select(_db.stepFeedbacks)
+      ..where((t) => t.submissionDetailId.isIn(idSet))
+    ).get();
+
+    // Dart 层按 (submission_detail_id, sub_question_index) 分组
+    final groups = <(int, int?), List<String>>{};
+    for (final sf in rows) {
+      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex), () => []).add(sf.status);
+    }
+
+    var total = 0; var correct = 0;
+    for (final ss in groups.values) {
       total++;
-      if (r.isCorrect == 1) correct++;
+      if (ss.every((s) => s == 'full_correct')) correct++;
     }
     return (total: total, correct: correct);
   }

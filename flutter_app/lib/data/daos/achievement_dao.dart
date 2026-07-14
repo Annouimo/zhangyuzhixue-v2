@@ -135,6 +135,49 @@ class AchievementDao {
     return (correct, rows.length);
   }
 
+  /// 全量做题统计（选填 is_correct + 解答题小问全对），成就引擎用
+  Future<({int total, int correct})> getFullAccuracyStats() async {
+    // ① 选择/填空
+    final cfRows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
+    var cfCorrect = cfRows.where((r) => r.isCorrect == 1).length;
+
+    // ② 解答题小问（全量）
+    final sdIds = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNull())
+    ).get();
+    if (sdIds.isEmpty) {
+      AuditLogger.instance.dao('AchievementDao.getFullAccuracyStats', cfCorrect, {
+        'cfTotal': cfRows.length, 'cfCorrect': cfCorrect,
+        'stepTotal': 0, 'stepCorrect': 0,
+      });
+      return (total: cfRows.length, correct: cfCorrect);
+    }
+    final idSet = sdIds.map((r) => r.id).toSet();
+
+    final stepRows = await (_db.select(_db.stepFeedbacks)
+      ..where((t) => t.submissionDetailId.isIn(idSet))
+    ).get();
+
+    final groups = <(int, int?), List<String>>{};
+    for (final sf in stepRows) {
+      groups.putIfAbsent((sf.submissionDetailId, sf.subQuestionIndex), () => []).add(sf.status);
+    }
+
+    var stepTotal = 0; var stepCorrect = 0;
+    for (final ss in groups.values) {
+      stepTotal++;
+      if (ss.every((s) => s == 'full_correct')) stepCorrect++;
+    }
+
+    AuditLogger.instance.dao('AchievementDao.getFullAccuracyStats',
+      cfCorrect + stepCorrect, {
+      'cfTotal': cfRows.length, 'cfCorrect': cfCorrect,
+      'stepTotal': stepTotal, 'stepCorrect': stepCorrect,
+    });
+    return (total: cfRows.length + stepTotal, correct: cfCorrect + stepCorrect);
+  }
+
   /// 扫描提交记录，按时间排序后的最大连续正确数
   Future<int> getMaxConsecutiveCorrect() async {
     final rows = await (_db.select(_db.submissionDetails)
