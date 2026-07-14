@@ -143,4 +143,18 @@ class ExamDao {
     AuditLogger.instance.dao('ExamDao.getPaperCount', rows.length, {});
     return rows.length;
   }
+
+  /// 获取试卷点赞总数
+  Future<int> getLikeCount(int paperId) async {
+    final rows = await (_db.select(_db.paperLikes)
+      ..where((t) => t.paperId.equals(paperId))).get();
+    return rows.length;
+  }
+
+  /// 获取试卷收藏总数
+  Future<int> getCollectCount(int paperId) async {
+    final rows = await (_db.select(_db.paperCollects)
+      ..where((t) => t.paperId.equals(paperId))).get();
+    return rows.length;
+  }
 }

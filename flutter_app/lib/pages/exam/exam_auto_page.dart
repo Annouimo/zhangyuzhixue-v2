@@ -167,8 +167,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       ),
     );
     if (selected == null) return;
-    final filter = await _prefRepo.getEdit(selected);
+    final editData = await _prefRepo.getEdit(selected);
     if (!context.mounted) return;
+    final filter = editData.filter;
     state.applyFilter(
       years: filter.years.toSet(),
       regions: filter.regions.toSet(),

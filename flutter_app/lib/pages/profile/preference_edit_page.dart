@@ -69,9 +69,10 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
 
   Future<void> _loadExisting() async {
     try {
-      final filter = await _repo.getEdit(widget.editId!);
+      final editData = await _repo.getEdit(widget.editId!);
       if (!mounted) return;
-      _nameCtrl.text = '偏好 ${widget.editId}';
+      _nameCtrl.text = editData.name;
+      final filter = editData.filter;
       _filterKey.currentState?.applyFilter(
         years: filter.years.toSet(),
         regions: filter.regions.toSet(),

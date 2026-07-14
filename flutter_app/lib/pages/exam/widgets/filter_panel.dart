@@ -9,6 +9,29 @@ typedef FilterChangedCallback = void Function(
   double diffMin, double diffMax, double calcMin, double calcMax,
 );
 
+final _difficultySegments = [
+  _DifficultySegment(max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'),
+  _DifficultySegment(max: 5.0, label: '中档', sample: '单选4-6·填空12-13·常规解答'),
+  _DifficultySegment(max: 7.0, label: '中难', sample: '选填后半·填空14·解答多步推理'),
+  _DifficultySegment(max: 8.5, label: '较难', sample: '选填压轴·解答最后两问'),
+  _DifficultySegment(max: 10.0, label: '压轴', sample: '解答压轴问·创新综合题'),
+];
+
+final _workloadSegments = [
+  _DifficultySegment(max: 2.0, label: '少量', sample: '心算即可，不需动笔'),
+  _DifficultySegment(max: 4.0, label: '较少', sample: '简单代入化简，2-3步'),
+  _DifficultySegment(max: 6.0, label: '适中', sample: '常规运算量，需完整步骤'),
+  _DifficultySegment(max: 8.0, label: '较多', sample: '多步代数运算，需仔细'),
+  _DifficultySegment(max: 10.0, label: '繁琐', sample: '大量代数变换，需耐心推导'),
+];
+
+class _DifficultySegment {
+  final double max;
+  final String label;
+  final String sample;
+  const _DifficultySegment({required this.max, required this.label, required this.sample});
+}
+
 class FilterPanel extends StatefulWidget {
   final List<String> yearOptions;
   final List<String> regionOptions;
@@ -106,9 +129,13 @@ class FilterPanelState extends State<FilterPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
         // 标题行：筛选条件 + 清除全部
         Row(
           children: [
@@ -182,16 +209,19 @@ class FilterPanelState extends State<FilterPanel> {
             lower: _diffMin, upper: _diffMax,
             onChanged: (v) { setState(() { _diffMin = v.start; _diffMax = v.end; }); _emit(); },
           ),
+          _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
           const SizedBox(height: 8),
           DifficultySlider(
             label: '计算量范围', min: 0, max: 10,
             lower: _calcMin, upper: _calcMax,
             onChanged: (v) { setState(() { _calcMin = v.start; _calcMax = v.end; }); _emit(); },
           ),
+          _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
           const SizedBox(height: 4),
-          _buildTypeGroup(),
         ]),
-      ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -242,27 +272,32 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
-  Widget _buildTypeGroup() {
-    const types = ['choice', 'fill', 'solution'];
-    const labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'};
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-        const SizedBox(height: 4),
-        Wrap(
-          spacing: 6, runSpacing: 4,
-          children: types.map((t) => FilterChip(
-            label: Text(labels[t]!, style: const TextStyle(fontSize: 12)),
-            selected: _selectedTypes.contains(t),
-            onSelected: (v) { setState(() { v ? _selectedTypes.add(t) : _selectedTypes.remove(t); }); _emit(); },
-            selectedColor: AppColors.primaryLight,
-            checkmarkColor: AppColors.primary,
-            side: BorderSide.none,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          )).toList(),
-        ),
-      ],
+  Widget _buildSegmentDesc(List<_DifficultySegment> segments, double lower, double upper) {
+    int segIndex(double v) => segments.lastIndexWhere((s) => v <= s.max);
+    final minIdx = segIndex(lower).clamp(0, segments.length - 1);
+    final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
+    final same = minIdx == maxIdx;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (!same) const Text('← ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              Text(segments[minIdx].label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+              if (!same) ...[
+                const Text('  →  ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                Text(segments[maxIdx].label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+              ],
+            ],
+          ),
+          Text(
+            same ? segments[minIdx].sample : '${segments[minIdx].sample} · ${segments[maxIdx].sample}',
+            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          ),
+        ],
+      ),
     );
   }
 }

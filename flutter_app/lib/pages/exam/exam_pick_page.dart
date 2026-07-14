@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -49,6 +50,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
+  Timer? _debouncedSearch;
 
   @override
   void initState() {
@@ -61,6 +63,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _debouncedSearch?.cancel();
     super.dispose();
   }
 
@@ -163,8 +166,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
       ),
     );
     if (selected == null) return;
-    final filter = await _prefRepo.getEdit(selected);
+    final editData = await _prefRepo.getEdit(selected);
     if (!context.mounted) return;
+    final filter = editData.filter;
     state.applyFilter(
       years: filter.years.toSet(),
       regions: filter.regions.toSet(),
@@ -308,17 +312,12 @@ class _ExamPickPageState extends State<ExamPickPage> {
             onSavePreference: _savePreference,
             onLoadPreference: _loadPreference,
             onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
-              _years = y; _regions = r; _conceptTags = ct;
-              _selectedTypes = t; _selectedExamTypes = et; _selectedKnowledgeCards = kc;
-              _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
+            _years = y; _regions = r; _conceptTags = ct;
+            _selectedTypes = t; _selectedExamTypes = et; _selectedKnowledgeCards = kc;
+            _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
+            _debouncedSearch?.cancel();
+            _debouncedSearch = Timer(const Duration(milliseconds: 300), _search);
             },
-          )
-        : null;
-
-    final searchButton = _filterOpts != null
-        ? Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: OutlinedButton(onPressed: _search, child: const Text('搜索')),
           )
         : null;
 
@@ -326,11 +325,10 @@ class _ExamPickPageState extends State<ExamPickPage> {
       return const Center(child: LoadingIndicator(message: '搜索中…'));
     }
 
-    // 组装：filterPanel + searchButton 在顶部，下方根据状态切换
+    // 组装：filterPanel 在顶部，下方根据状态切换
     final headerChildren = <Widget>[
       nameField,
       if (filterPanel != null) filterPanel,
-      if (searchButton != null) searchButton,
     ];
 
     if (_questions == null) {

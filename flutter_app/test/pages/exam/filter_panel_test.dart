@@ -27,13 +27,13 @@ void main() {
       expect(find.text('三角函数'), findsOneWidget);
     });
 
-    testWidgets('renders type chips', (tester) async {
+    testWidgets('renders difficulty segment descriptions', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
         body: FilterPanel(yearOptions: [], regionOptions: []),
       )));
-      expect(find.text('选择题'), findsOneWidget);
-      expect(find.text('填空题'), findsOneWidget);
-      expect(find.text('解答题'), findsOneWidget);
+      // 段位标签应存在（难度/计算量覆盖范围的提示）
+      expect(find.textContaining('基础'), findsWidgets);
+      expect(find.textContaining('压轴'), findsWidgets);
     });
   });
 }

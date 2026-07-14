@@ -43,6 +43,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   List<String>? _yearOpts;
   List<String>? _regionOpts;
   List<String>? _tagOpts;
+  List<String>? _examTypeOpts;
+  List<String>? _knowledgeCardOpts;
 
   // 积分值
   double _bonusPoints = 0;
@@ -66,8 +68,10 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final years = (await _qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await _qDao.getDistinctRegions();
       final tags = (await _qDao.getAllConceptTags()).map((t) => t.name).toList();
+      final examTypes = await _qDao.getDistinctExamTypes();
+      final kcs = (await _qDao.getAllKnowledgeCards()).map((k) => k.title).toList();
       if (!mounted) return;
-      setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; });
+      setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; _examTypeOpts = examTypes; _knowledgeCardOpts = kcs; });
       AuditLogger.instance.page('PreferenceWelcomePage', {'loaded': _yearOpts != null});
     } catch (_) {}
   }
@@ -194,6 +198,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
                   conceptTagOptions: _tagOpts ?? [],
+                  examTypeOptions: _examTypeOpts ?? [],
+                  knowledgeCardOptions: _knowledgeCardOpts ?? [],
                   onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
                     _years = y; _regions = r; _types = t; _conceptTags = ct;
                     _examTypes = et; _knowledgeCards = kc;

@@ -62,14 +62,10 @@ class RecommendRepository {
   }
 
   Future<List<PresetQuestion>> getPresetQuestions(int presetId) async {
-    PreferenceFilter? filter;
     try {
-      filter = await _prefRepo.getEdit(presetId);
-    } catch (_) {
-      return [];
-    }
-    final f = filter;
-    final candidates = await _questionDao.search(
+      final editData = await _prefRepo.getEdit(presetId);
+      final f = editData.filter;
+      final candidates = await _questionDao.search(
       years: f.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
       regions: f.regions.isNotEmpty ? f.regions : null,
       diffMin: f.diffMin,
@@ -96,6 +92,9 @@ class RecommendRepository {
       difficulty: q.difficulty ?? 0,
       status: 'pending',
     )).toList();
+    } catch (_) {
+      return [];
+    }
   }
 }
 

@@ -53,6 +53,13 @@ class PreferenceFilter {
       };
 }
 
+/// 筛选预设编辑数据（含名称）
+class PreferenceEditData {
+  final String name;
+  final PreferenceFilter filter;
+  const PreferenceEditData({required this.name, required this.filter});
+}
+
 class PreferenceRepository {
   final PreferenceDao _dao;
   const PreferenceRepository(this._dao);
@@ -89,20 +96,23 @@ class PreferenceRepository {
 
   Future<int> getCount() => _dao.count();
 
-  Future<PreferenceFilter> getEdit(int id) async {
+  Future<PreferenceEditData> getEdit(int id) async {
     final row = await _dao.getById(id);
     if (row == null) throw Exception('Preference not found: $id');
-    return PreferenceFilter(
-      years: _parseJsonList(row.years),
-      regions: _parseJsonList(row.regions),
-      conceptTags: _parseJsonList(row.conceptTags),
-      types: row.types != null ? _parseJsonList(row.types!) : [],
-      knowledgeCards: row.knowledgeCards != null ? _parseJsonList(row.knowledgeCards!) : [],
-      questionTypes: row.questionTypes != null ? _parseJsonList(row.questionTypes!) : [],
-      diffMin: row.diffMin,
-      diffMax: row.diffMax,
-      calcMin: row.calcMin,
-      calcMax: row.calcMax,
+    return PreferenceEditData(
+      name: row.name,
+      filter: PreferenceFilter(
+        years: _parseJsonList(row.years),
+        regions: _parseJsonList(row.regions),
+        conceptTags: _parseJsonList(row.conceptTags),
+        types: row.types != null ? _parseJsonList(row.types!) : [],
+        knowledgeCards: row.knowledgeCards != null ? _parseJsonList(row.knowledgeCards!) : [],
+        questionTypes: row.questionTypes != null ? _parseJsonList(row.questionTypes!) : [],
+        diffMin: row.diffMin,
+        diffMax: row.diffMax,
+        calcMin: row.calcMin,
+        calcMax: row.calcMax,
+      ),
     );
   }
 

@@ -222,9 +222,14 @@ class ExamRepository {
     final futures = rows.map((r) async {
       final like = await _examDao.getLike(r.id);
       final collect = await _examDao.getCollect(r.id);
+      final likeCount = await _examDao.getLikeCount(r.id);
+      final collectCount = await _examDao.getCollectCount(r.id);
       return ExploreExamSummary(
-        id: r.id, name: r.title, authorInfo: '', summary: '',
-        likeCount: 0, collectCount: 0, createdAt: r.createdAt,
+        id: r.id, name: r.title, authorInfo: '',
+        summary: r.description ?? '',
+        likeCount: likeCount,
+        collectCount: collectCount,
+        createdAt: r.createdAt,
         isLiked: like != null, isCollected: collect != null,
       );
     });
