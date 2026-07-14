@@ -18,6 +18,9 @@ class _MockAssignmentRepo implements AssignmentRepository {
   Future<List<AssignmentSummary>> getPendingLocal() async => assignments;
 
   @override
+  Future<List<AssignmentSummary>?> getPendingCached() async => null;
+
+  @override
   Future<AssignmentDetail> getQuestions(int id) async =>
       throw UnimplementedError();
 
@@ -33,6 +36,9 @@ class _FailingAssignmentRepo implements AssignmentRepository {
   @override
   Future<List<AssignmentSummary>> getPendingLocal() async =>
       throw Exception('加载失败');
+
+  @override
+  Future<List<AssignmentSummary>?> getPendingCached() async => null;
 
   @override
   Future<AssignmentDetail> getQuestions(int id) async =>
