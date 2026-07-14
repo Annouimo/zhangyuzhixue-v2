@@ -24,7 +24,7 @@ import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
 /// 自主选题积分消耗常量
-const _kPickPaperCost = 2; // 自主选题消耗 2 分
+const _kPickPaperCost = 20; // 自主选题消耗 20 积分
 
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
