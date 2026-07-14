@@ -159,12 +159,22 @@ class _StatisticsAggregator {
       final cur = grouped[r.date] ?? (count: 0, correct: 0);
       grouped[r.date] = (count: cur.count + r.count, correct: cur.correct + r.correct);
     }
+    final maxCount = grouped.values.fold(0, (int m, v) => v.count > m ? v.count : m);
     final list = grouped.entries.map((e) => DailyRecord(
       date: e.key,
       count: e.value.count,
-      level: e.value.count > 5 ? 3 : (e.value.count > 2 ? 2 : (e.value.count > 0 ? 1 : 0)),
+      level: _relativeLevel(e.value.count, maxCount),
     )).toList();
     list.sort((a, b) => a.date.compareTo(b.date));
     return list;
+  }
+
+  /// 按当前最大值做三等分相对分档（匹配 HTML 的 levelOf(v, max)）
+  static int _relativeLevel(int count, int max) {
+    if (max == 0 || count == 0) return 0;
+    final r = count / max;
+    if (r <= 0.33) return 1;
+    if (r <= 0.66) return 2;
+    return 3;
   }
 }

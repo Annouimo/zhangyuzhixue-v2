@@ -8,9 +8,11 @@ class TrendChart extends StatelessWidget {
   final String title;
   final List<TrendPoint> points;
   final Color lineColor;
-  final bool fixedYRange; // true: Y轴固定 0~100%; false: 自动缩放
+  final bool fixedYRange;
+  final String? summaryLabel;
+  final String? summaryValue;
 
-  const TrendChart({super.key, required this.title, required this.points, this.lineColor = AppColors.primary, this.fixedYRange = false});
+  const TrendChart({super.key, required this.title, required this.points, this.lineColor = AppColors.primary, this.fixedYRange = false, this.summaryLabel, this.summaryValue});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,18 @@ class TrendChart extends StatelessWidget {
               )
             else
               SizedBox(height: 160, child: CustomPaint(painter: _TrendPainter(points, lineColor, fixedYRange: fixedYRange))),
-          ],
+          if (summaryLabel != null && summaryValue != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(summaryLabel!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(summaryValue!, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: lineColor)),
+                ],
+              ),
+            ),
+        ],
         ),
       ),
     );

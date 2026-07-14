@@ -55,7 +55,13 @@ class HeatmapChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('做题热力图', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Row(
+              children: [
+                const Text('做题热力图', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                Text(_rangeHint(), style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+              ],
+            ),
             const SizedBox(height: 12),
             SizedBox(height: mode == 'bar' ? (displayDays + 1) * 20.0 : 160, child: chart),
             const SizedBox(height: 8),
@@ -278,6 +284,18 @@ class HeatmapChart extends StatelessWidget {
     if (r <= 0.33) return 1;
     if (r <= 0.66) return 2;
     return 3;
+  }
+
+  String _rangeHint() {
+    final labels = {7: '近7天', 30: '近一月', 90: '近三月', 365: '近一年'};
+    final label = labels[rangeDays] ?? (rangeDays > 0 ? '近$rangeDays天' : '全部时段');
+    final modeText = switch (_mode(_actualDataDays())) {
+      'bar' => '按天',
+      'weeks' => '按天',
+      'weekly' => '按周',
+      _ => '按月',
+    };
+    return '$label · $modeText（${_actualDataDays()}天）';
   }
 
   Color _color(int level) {

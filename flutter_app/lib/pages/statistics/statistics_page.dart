@@ -31,6 +31,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
   List<TrendPoint>? _accuracyTrend;
   List<TrendPoint>? _pointsTrend;
   Distribution? _distribution;
+  String? _accuracySummary;
+  String? _pointsSummary;
 
   @override
   void initState() {
@@ -52,7 +54,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
       final pt = await _repo.getPointsTrend(_rangeDays);
       final dist = await _repo.getDistribution();
       if (!mounted) return;
-      setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
+      setState(() {
+        _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist;
+        _accuracySummary = at.isNotEmpty ? '${at.last.value.toStringAsFixed(0)}%' : null;
+        _pointsSummary = pt.isNotEmpty ? pt.last.value.toStringAsFixed(1) : null;
+        _loading = false;
+      });
       AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});
     } catch (e) { AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { setState(() { _error = e.toString(); _loading = false; }); } }
   }
@@ -94,9 +101,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  TrendChart(title: '正确率趋势', points: _accuracyTrend ?? [], fixedYRange: true),
+                  TrendChart(title: '正确率趋势', points: _accuracyTrend ?? [], fixedYRange: true,
+                    summaryLabel: '该时段正确率', summaryValue: _accuracySummary),
                   const SizedBox(height: 8),
-                  TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: AppColors.success),
+                  TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: AppColors.success,
+                    summaryLabel: '时段累计积分', summaryValue: _pointsSummary),
                   const SizedBox(height: 8),
                   DonutChart(data: _distribution ?? const Distribution(total: 0, choiceCount: 0, choicePercent: 0, fillCount: 0, fillPercent: 0, solutionCount: 0, solutionPercent: 0)),
                 ],
