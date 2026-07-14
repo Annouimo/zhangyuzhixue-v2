@@ -103,7 +103,10 @@ class _SolveStepPageState extends State<SolveStepPage> {
           submissionDetailId = match.first.id;
           // 查询历史步骤反馈
           final feedbacks = await dao.getStepFeedbacks(match.first.id);
-          final stepFeedback = feedbacks.where((f) => f.stepNumber == widget.stepIndex + 1).toList();
+          final stepFeedback = feedbacks.where((f) =>
+              f.stepNumber == widget.stepIndex + 1 &&
+              f.subQuestionIndex == widget.subQuestionIndex &&
+              f.methodId == widget.methodIndex).toList();
           if (stepFeedback.isNotEmpty) {
             isRevisit = true;
             existingRecord = progress.StepSolveRecord(
