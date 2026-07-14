@@ -11,6 +11,7 @@ import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
 import 'package:flutter_app/widgets/sync_progress_dialog.dart';
+import 'package:flutter_app/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
 import 'data/debug/audit_logger.dart';
 
@@ -29,7 +30,7 @@ void main() async {
 
   await AppPrefs().init();
   await AuditLogger.instance.init();
-  ApiClient().init(baseUrl: 'https://zhangyuzhixue.top/api/v1/');
+  ApiClient().init(baseUrl: appBaseUrl);
 
   // 注册 token 提供器：所有 API 请求自动携带 Authorization header
   final prefs = AppPrefs();
@@ -115,7 +116,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.system_update, size: 40, color: Color(0xFF4A6CF7)),
+              const Icon(Icons.system_update, size: 40, color: AppColors.primary),
               const SizedBox(height: 12),
               const Text(
                 '数据更新',
@@ -133,7 +134,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
                 child: ElevatedButton(
                   onPressed: () => _startUpdate(ctx, summary, label),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A6CF7),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),

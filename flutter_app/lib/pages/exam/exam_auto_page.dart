@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -10,13 +11,16 @@ import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/difficulty_slider.dart';
-import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/audit_logger.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
+
+/// 智能组卷积分消耗常量
+const _kAutoPaperCost = 10;
 
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
@@ -197,11 +201,11 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   Future<void> _confirm() async {
     // 积分检查
     final available = await _userRepo.availablePoints();
-    if (available < 10) {
+    if (available < _kAutoPaperCost) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('积分不足，智能组卷需要 10 积分'),
+          SnackBar(
+            content: Text('积分不足，智能组卷需要 $_kAutoPaperCost 积分'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -227,7 +231,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       final db = DatabaseProvider();
       await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-10),
+          amount: const Value(-_kAutoPaperCost),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),
@@ -238,7 +242,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('组卷成功！'), behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(label: '查看', onPressed: () => context.push('/exam/quicklook?id=$paperId')),
+            action: SnackBarAction(label: '查看', onPressed: () => context.push('${AppRoutes.examQuicklook}?id=$paperId')),
           ),
         );
       }

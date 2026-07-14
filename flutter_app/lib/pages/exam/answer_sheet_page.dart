@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
@@ -66,8 +67,8 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(width: 28, height: 28,
-                decoration: BoxDecoration(color: const Color(0xFFEEF1FF), borderRadius: BorderRadius.circular(6)),
-                child: Center(child: Text('${i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF4A6CF7))))),
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                child: Center(child: Text('${i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary)))),
               const SizedBox(width: 12),
               Expanded(child: MdLatexBody(a.answer, fontSize: 14)),
             ],

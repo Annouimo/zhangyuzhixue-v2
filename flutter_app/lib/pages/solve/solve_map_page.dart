@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../app_theme.dart';
 import '../../data/daos/question_dao.dart';
@@ -125,14 +126,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
       });
     } catch (e) {
       AuditLogger.instance.error('SolveMapPage._load', e);
-      debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
   // 入口分流路由构造
   String _buildStepRoute(int methodIndex, int stepIndex) {
-    final buf = StringBuffer('/solve/step?id=${widget.questionId}'
+    final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
         '&method=$methodIndex&step=$stepIndex');
     if (_currentAttemptNumber != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
@@ -157,7 +157,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           ? const LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+                  const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
                 ]))
@@ -501,7 +501,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             label: const Text('返回'))),
           const SizedBox(width: 12),
           Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.push('/solve/rate?id=${widget.questionId}'),
+            onPressed: () => context.push('${AppRoutes.solveRate}?id=${widget.questionId}'),
             icon: const Text('\u2B50'),
             label: const Text('评分'))),
         ]),

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../app_theme.dart';
 import '../../data/debug/audit_logger.dart';
+
+/// 智能组卷积分消耗
+const int _autoPaperCost = 10;
+/// 自主选题积分消耗
+const int _pickPaperCost = 20;
 
 /// 组卷首页 — 新组卷入口 + 功能列表（匹配 exam.html）
 class ExamHomePage extends StatelessWidget {
@@ -32,18 +38,18 @@ class ExamHomePage extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.push('/exam/auto'),
+                    onPressed: () => context.push(AppRoutes.examAuto),
                     icon: const Text('🤖'),
-                    label: const Text('智能组卷 · 消耗 10 积分'),
+                    label: Text('智能组卷 · 消耗 $_autoPaperCost 积分'),
                   ),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.push('/exam/pick'),
+                    onPressed: () => context.push(AppRoutes.examPick),
                     icon: const Text('🖐'),
-                    label: const Text('自主选题 · 消耗 20 积分'),
+                    label: Text('自主选题 · 消耗 $_pickPaperCost 积分'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryLight,
                       foregroundColor: AppColors.primary,
@@ -59,21 +65,21 @@ class ExamHomePage extends StatelessWidget {
             icon: '📋',
             title: '我的组卷',
             subtitle: '管理我创建的试卷',
-            onTap: () => context.push('/exam/history'),
+            onTap: () => context.push(AppRoutes.examHistory),
           ),
           // 发现组卷
           _EntryItem(
             icon: '🌐',
             title: '发现组卷',
             subtitle: '浏览他人分享的公开试卷',
-            onTap: () => context.push('/exam/explore'),
+            onTap: () => context.push(AppRoutes.examExplore),
           ),
           // 我的收藏
           _EntryItem(
             icon: '🔖',
             title: '我的收藏',
             subtitle: '收藏的他人试卷',
-            onTap: () => context.push('/exam/favorites'),
+            onTap: () => context.push(AppRoutes.examFavorites),
           ),
         ],
       ),

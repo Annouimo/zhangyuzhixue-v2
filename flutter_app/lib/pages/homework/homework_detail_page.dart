@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../app_theme.dart';
 import '../../data/daos/assignment_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -169,10 +170,10 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                 status: q.status,
                 onTap: () async {
                   final route = switch (q.questionType) {
-                    'choice' => '/solve/choice',
-                    'fill' => '/solve/fill',
-                    'solution' => '/solve/map',
-                    _ => '/solve/choice',
+                    'choice' => AppRoutes.solveChoice,
+                    'fill' => AppRoutes.solveFill,
+                    'solution' => AppRoutes.solveMap,
+                    _ => AppRoutes.solveChoice,
                   };
                   final currentIdx = d.questions.indexWhere((q2) => q2.id == q.id);
                   final nextId = (currentIdx >= 0 && currentIdx + 1 < d.questions.length)

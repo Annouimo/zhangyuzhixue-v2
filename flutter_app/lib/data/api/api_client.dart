@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../../constants/app_version.dart';
 import '../debug/audit_logger.dart';
 
 /// API 异常
@@ -57,7 +58,7 @@ class ApiClient {
   Dio? _dio;
   bool _initialized = false;
 
-  void init({String baseUrl = 'https://zhangyuzhixue.top/api/v1'}) {
+  void init({String baseUrl = appBaseUrl}) {
     if (_initialized) return;
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
@@ -97,9 +98,9 @@ class _AuthInterceptor extends Interceptor {
     final token = _tokenProvider.call();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
-      debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — Auth: Bearer ${token.length > 20 ? "${token.substring(0, 20)}..." : token}');
+      // debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — Auth: Bearer ${token.length > 20 ? "${token.substring(0, 20)}..." : token}');
     } else {
-      debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — NO token');
+      // debugPrint('[Hermes] ➡️ ${options.method} ${options.path} — NO token');
     }
     AuditLogger.instance.apiRequest(options.method, options.path, options.data);
     handler.next(options);

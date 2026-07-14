@@ -41,7 +41,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       _phoneCtrl.text = info.phone ?? '';
       setState(() => _loading = false);
       AuditLogger.instance.page('ProfileEditPage', {'name': _nameCtrl.text, 'gaokaoYear': _gaokaoCtrl.text, 'loading': _loading});
-    } catch (e) { AuditLogger.instance.error('ProfileEditPage._load', e); if (mounted) { debugPrint('_load error: $e'); setState(() => _loading = false); } }
+    } catch (e) { AuditLogger.instance.error('ProfileEditPage._load', e); if (mounted) setState(() => _loading = false); }
   }
 
   Future<void> _save() async {

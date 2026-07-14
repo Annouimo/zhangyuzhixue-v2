@@ -18,6 +18,9 @@ import '../../../domain/user_repository.dart';
 import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
+/// 自主选题积分消耗常量
+const _kPickPaperCost = 20;
+
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
   final ExamRepository? examRepository;
@@ -195,11 +198,11 @@ class _ExamPickPageState extends State<ExamPickPage> {
     if (_selectedIds.isEmpty) return;
     // 积分检查
     final available = await _userRepo.availablePoints();
-    if (available < 20) {
+    if (available < _kPickPaperCost) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('积分不足，自主选题需要 20 积分'),
+          SnackBar(
+            content: Text('积分不足，自主选题需要 $_kPickPaperCost 积分'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -217,7 +220,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final db = DatabaseProvider();
       await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-20),
+          amount: const Value(-_kPickPaperCost),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),

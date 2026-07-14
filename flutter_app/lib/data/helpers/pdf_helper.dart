@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/pdf_guide_dialog.dart';
-import '../api/api_client.dart';
+import '../../constants/app_version.dart';
+import '../../data/api/api_client.dart';
 
 const _guideDismissedKey = 'app_pdf_guide_dismissed';
 
@@ -57,7 +59,7 @@ class PdfHelper {
     final expireIn = data['expire_in'] as int;
 
     // 缓存状态（用于续期）
-    _cachedUrl = 'https://zhangyuzhixue.top$url';
+    _cachedUrl = '$appServerOrigin$url';
     _cachedSourceId = sourceId;
     _cachedSourceType = sourceType;
 
@@ -133,7 +135,7 @@ class PdfHelper {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('[PdfHelper] 打开 PDF 失败: $e');
+      if (kDebugMode) debugPrint('[PdfHelper] 打开 PDF 失败: $e');
     }
   }
 }

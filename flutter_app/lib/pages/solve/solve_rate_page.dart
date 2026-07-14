@@ -61,7 +61,6 @@ class _SolveRatePageState extends State<SolveRatePage> {
       AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
     } catch (e) {
       AuditLogger.instance.error('SolveRatePage._loadRating', e);
-      debugPrint('_loadRating error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
@@ -105,7 +104,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
           ? const LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+                  const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: const Text('重试')),
                 ]))

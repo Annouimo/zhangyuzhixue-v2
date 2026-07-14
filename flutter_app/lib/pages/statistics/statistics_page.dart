@@ -54,7 +54,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       if (!mounted) return;
       setState(() { _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist; _loading = false; });
       AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});
-    } catch (e) { AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); } }
+    } catch (e) { AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { setState(() { _error = e.toString(); _loading = false; }); } }
   }
 
   @override
@@ -83,13 +83,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     children: [
                       const Text('少', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                       Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(2))),
+                        decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
                       Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(color: const Color(0xFFDBEAFE), borderRadius: BorderRadius.circular(2))),
                       Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(color: const Color(0xFF60A5FA), borderRadius: BorderRadius.circular(2))),
                       Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: const Color(0xFF4A6CF7), borderRadius: BorderRadius.circular(2))),
+                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
                       const Text('多', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
                     ],
                   ),

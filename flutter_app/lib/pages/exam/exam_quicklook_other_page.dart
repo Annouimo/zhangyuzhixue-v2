@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/progress_dao.dart';
@@ -55,7 +56,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       title: Text(_preview?.name ?? '预览'),
       actions: [
             IconButton(icon: const Icon(Icons.assignment), tooltip: '快对答案',
-              onPressed: () => context.push('/exam/answersheet?id=${widget.examId}')),
+              onPressed: () => context.push('${AppRoutes.answerSheet}?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
           onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
       ],

@@ -162,7 +162,7 @@ class _AchievementPageState extends State<AchievementPage> {
                             borderRadius: BorderRadius.circular(2),
                             child: LinearProgressIndicator(
                               value: (a.progressPercent / 100).clamp(0.0, 1.0),
-                              backgroundColor: const Color(0xFFE5E7EB),
+                              backgroundColor: AppColors.border,
                             ),
                           ),
                         ),

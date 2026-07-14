@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -80,7 +81,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InkWell(
-                    onTap: () => context.push('/exam/quicklook_other?id=${e.id}'),
+                    onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -101,7 +102,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                       _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                       const Spacer(),
                       TextButton(
-                        onPressed: () => context.push('/exam/quicklook_other?id=${e.id}'),
+                        onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
                         child: const Text('查看试卷', style: TextStyle(fontSize: 12)),
                       ),
                     ],

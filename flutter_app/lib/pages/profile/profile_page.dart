@@ -21,6 +21,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
+import '../router.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -108,7 +109,7 @@ class ProfilePageState extends State<ProfilePage> {
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._load', e);
-      if (mounted) { debugPrint('_load error: $e'); setState(() { _error = e.toString(); _loading = false; }); }
+      if (mounted) { setState(() { _error = e.toString(); _loading = false; }); }
     }
   }
 
@@ -196,7 +197,7 @@ class ProfilePageState extends State<ProfilePage> {
     try {
       await AuthRepository(AuthApi(ApiClient())).logout();
       if (!mounted) return;
-      context.go('/login');
+      context.go(AppRoutes.login);
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._logout', e);
       if (!mounted) return;
@@ -228,7 +229,7 @@ class ProfilePageState extends State<ProfilePage> {
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
-        onTap: () => context.push('/profile/edit'),
+        onTap: () => context.push(AppRoutes.profileEdit),
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -319,18 +320,18 @@ class ProfilePageState extends State<ProfilePage> {
     final sections = [
       ('学习', [
         (Icons.tune, '学习偏好', prefSubtitle,
-          () => context.push('/profile/preferences')),
-        (Icons.bar_chart, '学习统计', statsSubtitle, () => context.push('/statistics')),
-        (Icons.replay, '做题历史', historySubtitle, () => context.push('/profile/history')),
+          () => context.push(AppRoutes.profilePreferences)),
+        (Icons.bar_chart, '学习统计', statsSubtitle, () => context.push(AppRoutes.statistics)),
+        (Icons.replay, '做题历史', historySubtitle, () => context.push(AppRoutes.profileHistory)),
       ]),
       ('成长', [
-        (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push('/profile/achievements')),
-        (Icons.trending_up, '等级进度', null, () => context.push('/profile/level')),
-        (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push('/profile/points')),
+        (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
+        (Icons.trending_up, '等级进度', null, () => context.push(AppRoutes.profileLevel)),
+        (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [
-        (Icons.sync, '同步状态', null, () => context.push('/sync/queue')),
-        (Icons.info_outline, '关于', null, () => context.push('/profile/about')),
+        (Icons.sync, '同步状态', null, () => context.push(AppRoutes.syncQueue)),
+        (Icons.info_outline, '关于', null, () => context.push(AppRoutes.profileAbout)),
         (Icons.logout, '退出登录', null, _logout),
       ]),
     ];

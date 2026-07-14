@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
 import '../../widgets/shared/loading_indicator.dart';
@@ -71,7 +72,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
       setState(() => _coolDownSec = sec);
     } catch (e) {
       AuditLogger.instance.error('SolveFillPage._loadCooldown', e);
-      debugPrint('_loadCooldown error: $e');
     }
   }
 
@@ -108,7 +108,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId});
     } catch (e) {
       AuditLogger.instance.error('SolveFillPage._load', e);
-      debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
@@ -220,7 +219,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
       });
     } catch (e) {
       AuditLogger.instance.error('SolveFillPage._createNewAttempt', e);
-      debugPrint('_createNewAttempt error: $e');
     }
   }
 
@@ -260,7 +258,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+          const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 8),
           ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试') ),
         ])),
@@ -285,10 +283,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
             explanation: _detail?.explanation,
             onReveal: _onReveal,
             onNext: widget.nextQuestionId != null
-                ? () => context.go('/solve/fill?id=${widget.nextQuestionId}')
+                ? () => context.go('${AppRoutes.solveFill}?id=${widget.nextQuestionId}')
                 : null,
             onRate: () async {
-              await context.push('/solve/rate?id=${widget.questionId}');
+              await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
             },
             child: _buildContent(),
           ),

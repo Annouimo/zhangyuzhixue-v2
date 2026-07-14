@@ -39,7 +39,6 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       AuditLogger.instance.page('QuestionHistoryPage', {'total': _history?.length});
     } catch (e) {
       AuditLogger.instance.error('QuestionHistoryPage._load', e);
-      debugPrint('_load error: $e');
       if (mounted) setState(() { _error = e.toString(); _loading = false; });
     }
   }

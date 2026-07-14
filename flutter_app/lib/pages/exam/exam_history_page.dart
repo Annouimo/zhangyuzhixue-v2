@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -96,7 +97,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   InkWell(
-                    onTap: () => context.push('/exam/quicklook?id=${e.id}'),
+                    onTap: () => context.push('${AppRoutes.examQuicklook}?id=${e.id}'),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -121,7 +122,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                       ),
                       _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                       const SizedBox(width: 4),
-                      _actionChip('✅', '答案', () => context.push('/exam/answersheet?id=${e.id}')),
+                      _actionChip('✅', '答案', () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
                       const SizedBox(width: 4),
                       _actionChip('🗑️', '删除', () => _deleteExam(e.id)),
                     ],

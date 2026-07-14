@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../app_theme.dart';
 import '../../data/daos/assignment_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -97,7 +98,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
             doneCount: a.doneCount,
             totalCount: a.totalCount,
             deadlineDays: a.deadlineDays,
-            onTap: () => context.push('/homework/detail?id=${a.id}'),
+            onTap: () => context.push('${AppRoutes.homeworkDetail}?id=${a.id}'),
           );
         },
       ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../app_theme.dart';
 
 /// 同步进度弹窗
 ///
@@ -107,8 +108,8 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
           child: LinearProgressIndicator(
             value: _progress,
             minHeight: 6,
-            backgroundColor: const Color(0xFFE5E7EB),
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4A6CF7)),
+            backgroundColor: AppColors.border,
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
         ),
         const SizedBox(height: 8),
@@ -124,7 +125,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle, size: 40, color: Color(0xFF10B981)),
+        const Icon(Icons.check_circle, size: 40, color: AppColors.success),
         const SizedBox(height: 12),
         const Text(
           '同步完成',
@@ -139,7 +140,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4A6CF7),
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -155,7 +156,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.error, size: 40, color: Color(0xFFEF4444)),
+        const Icon(Icons.error, size: 40, color: AppColors.error),
         const SizedBox(height: 12),
         const Text(
           '同步失败',
@@ -171,7 +172,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4A6CF7),
+            backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),

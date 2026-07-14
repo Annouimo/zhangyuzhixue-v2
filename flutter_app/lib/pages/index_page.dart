@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'router.dart';
 import '../app_theme.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/error_placeholder.dart';
@@ -198,7 +199,7 @@ class _IndexPageState extends State<IndexPage> {
 
   Widget _buildPendingHomework() {
     return InkWell(
-      onTap: () => context.push('/homework/list'),
+      onTap: () => context.push(AppRoutes.homeworkList),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
@@ -234,7 +235,7 @@ class _IndexPageState extends State<IndexPage> {
 
   Widget _buildLectureEntry() {
     return InkWell(
-      onTap: () => context.push('/lecture/courses'),
+      onTap: () => context.push(AppRoutes.lectureCourses),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
@@ -328,7 +329,7 @@ class _IndexPageState extends State<IndexPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 4,
-              backgroundColor: const Color(0xFFE5E7EB),
+              backgroundColor: AppColors.border,
               valueColor: const AlwaysStoppedAnimation(AppColors.primary),
             ),
           ),

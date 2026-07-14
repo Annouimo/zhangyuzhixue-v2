@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import '../../app_theme.dart';
 import '../../widgets/md_latex_body.dart';
 import '../../widgets/shared/loading_indicator.dart';
@@ -70,7 +71,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       setState(() => _coolDownSec = sec);
     } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._loadCooldown', e);
-      debugPrint('_loadCooldown error: $e');
     }
   }
 
@@ -119,7 +119,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
     } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._load', e);
-      debugPrint('_load error: $e');
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
   }
@@ -139,7 +138,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       });
     } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._submit', e);
-      debugPrint('_submit save error: $e');
     }
   }
 
@@ -164,7 +162,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(title: const Text('选择题')),
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('加载失败', style: TextStyle(color: Color(0xFF6B7280))),
+          const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 8),
           ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
         ])),
@@ -190,10 +188,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             explanation: _detail?.explanation,
             onSubmit: _submit,
             onNext: widget.nextQuestionId != null
-                ? () => context.go('/solve/choice?id=${widget.nextQuestionId}')
+                ? () => context.go('${AppRoutes.solveChoice}?id=${widget.nextQuestionId}')
                 : null,
             onRate: () async {
-              await context.push('/solve/rate?id=${widget.questionId}');
+              await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
               _load();
             },
             child: _buildContent(),
@@ -305,7 +303,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       });
     } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._createNewAttempt', e);
-      debugPrint('_createNewAttempt error: $e');
     }
   }
 
@@ -406,7 +403,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                   color: bgColor ?? Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: borderColor ?? const Color(0xFFE5E7EB),
+                    color: borderColor ?? AppColors.border,
                     width: borderColor != null ? 1.5 : 1,
                   ),
                 ),

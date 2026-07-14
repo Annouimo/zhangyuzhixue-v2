@@ -46,7 +46,7 @@ class QuestionImage extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 80),
       width: width ?? double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
+        color: AppColors.border,
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Center(
