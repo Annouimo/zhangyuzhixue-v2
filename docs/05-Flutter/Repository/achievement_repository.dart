@@ -116,17 +116,21 @@ class AchievementRepository {
 // 从 AchievementDao 获取定义和用户数据，在 Dart 侧推算状态。
 //
 // achievement_def 表结构（数据来源：数据库结构设计.md §5.6）：
-//   code          VARCHAR UNIQUE    标识（LOGIN_7, COURSE_MASTER 等）
-//   category      VARCHAR            5 类：LOGIN / PRACTICE / COURSE / PAPER / RATING
-//   trigger_type  VARCHAR            判定类型：LOGIN_STREAK / PRACTICE_COUNT / COURSE_COMPLETE / PAPER_COUNT / RATING_COUNT
-//   threshold     INTEGER            达成阈值（如连续签到 7 天、做题 100 道）
+//   code          VARCHAR UNIQUE    标识（LOGIN_7, PRACTICE_100 等）
+//   category      VARCHAR            6 类：LOGIN / PRACTICE / STREAK / ACCURACY / PAPER / RATING
+//   trigger_type  VARCHAR            判定类型：LOGIN_STREAK / PRACTICE_COUNT / PRACTICE_STREAK /
+//                                     ACCURACY_RATE / CONSECUTIVE_CORRECT / PAPER_COUNT / RATING_COUNT
+//   threshold     INTEGER            达成阈值
 //
 // 调用链（通过 DAO 获取，不在引擎内写 SQL）：
-//   LOGIN    → dao.getLoginStreak() 返回连续签到天数
-//   PRACTICE → dao.getSubmissionCount() 返回做题总数
-//   COURSE   → dao.getCompletedLectureCount() 返回已学完讲义数
-//   PAPER    → dao.getPaperCount() 返回组卷数
-//   RATING   → dao.getRatingCount() 返回评分数
+//   LOGIN             → dao.getLoginStreak()             返回连续签到天数
+//   PRACTICE          → dao.getSubmissionCount()         返回做题总数
+//   PRACTICE_STREAK   → dao.getPracticeStreak()          返回连续做题天数
+//   ACCURACY_RATE     → dao.getAccuracyStats()           返回 (correct, total)，引擎算百分比
+//                       解锁条件：progress >= threshold && total >= 10
+//   CONSECUTIVE_CORRECT→ dao.getMaxConsecutiveCorrect()  返回最大连续正确数
+//   PAPER             → dao.getPaperCount()              返回组卷数
+//   RATING            → dao.getRatingCount()             返回评分数
 //
 // 判定：
 //   progress >= threshold → unlocked（同时写 student_achievement 缓存）
@@ -134,6 +138,9 @@ class AchievementRepository {
 //   其余                    → locked
 //
 // 进度百分比：min(progress / threshold * 100, 100)
+// ACCURACY_RATE 特殊：progress 本身是百分比整数（0~100），threshold 是目标百分比
+//   进度条百分比 = progress / threshold * 100
+//   判断 unlocked = progress >= threshold && total >= 10
 //
 // student_achievement 表（数据库结构设计.md §5.7）仅缓存已解锁记录，
 // 引擎每次实时推算，不依赖缓存。

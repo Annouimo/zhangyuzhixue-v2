@@ -53,5 +53,63 @@ void main() {
       ));
       expect(await dao.getRatingCount(), 1);
     });
+
+    test('getPracticeStreak returns 0 initially', () async {
+      expect(await dao.getPracticeStreak(), 0);
+    });
+
+    test('getAccuracyStats returns 0,0 initially', () async {
+      final (correct, total) = await dao.getAccuracyStats();
+      expect(correct, 0);
+      expect(total, 0);
+    });
+
+    test('getMaxConsecutiveCorrect returns 0 initially', () async {
+      expect(await dao.getMaxConsecutiveCorrect(), 0);
+    });
+
+    test('getAccuracyStats counts correct submissions', () async {
+      final now = DateTime.now().toIso8601String();
+      // 3 correct + 2 wrong
+      for (int i = 0; i < 3; i++) {
+        await database.into(database.submissionDetails).insert(db.SubmissionDetailsCompanion(
+          questionId: Value(i),
+          attemptNumber: const Value(1),
+          isCorrect: const Value(1),
+          status: const Value('completed'),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+      for (int i = 3; i < 5; i++) {
+        await database.into(database.submissionDetails).insert(db.SubmissionDetailsCompanion(
+          questionId: Value(i),
+          attemptNumber: const Value(1),
+          isCorrect: const Value(0),
+          status: const Value('completed'),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+      final (correct, total) = await dao.getAccuracyStats();
+      expect(correct, 3);
+      expect(total, 5);
+    });
+
+    test('getMaxConsecutiveCorrect finds longest streak', () async {
+      final now = DateTime.now().toIso8601String();
+      final corrects = [1, 1, 0, 1, 1];
+      for (int i = 0; i < 5; i++) {
+        await database.into(database.submissionDetails).insert(db.SubmissionDetailsCompanion(
+          questionId: Value(i),
+          attemptNumber: const Value(1),
+          isCorrect: Value(corrects[i]),
+          status: const Value('completed'),
+          createdAt: Value(now),
+          updatedAt: Value(now),
+        ));
+      }
+      expect(await dao.getMaxConsecutiveCorrect(), 2);
+    });
   });
 }

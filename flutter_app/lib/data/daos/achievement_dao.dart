@@ -8,10 +8,10 @@ class AchievementDao {
   const AchievementDao(this._db);
 
   Future<int> getUnlockedCount() async {
-    final rows = await (_db.select(_db.studentAchievements)
-      ..where((t) => t.isUnlocked.equals(1))).get();
-    AuditLogger.instance.dao('AchievementDao.getUnlockedCount', rows.length, {});
-    return rows.length;
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM student_achievement WHERE is_unlocked = 1',
+    ).getSingle();
+    return result.read<int>('cnt');
   }
 
   Future<List<db.StudentAchievementRow>> getAllProgress() {
@@ -51,15 +51,17 @@ class AchievementDao {
   }
 
   Future<int> getSubmissionCount() async {
-    final rows = await _db.select(_db.submissionDetails).get();
-    AuditLogger.instance.dao('AchievementDao.getSubmissionCount', rows.length, {});
-    return rows.length;
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM submission_detail',
+    ).getSingle();
+    return result.read<int>('cnt');
   }
 
   Future<int> getRatingCount() async {
-    final rows = await _db.select(_db.questionRatings).get();
-    AuditLogger.instance.dao('AchievementDao.getRatingCount', rows.length, {});
-    return rows.length;
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM question_rating',
+    ).getSingle();
+    return result.read<int>('cnt');
   }
 
   /// 从登录日志推算连续签到天数
@@ -95,5 +97,59 @@ class AchievementDao {
       mode: InsertMode.insertOrReplace,
     );
     AuditLogger.instance.dao('AchievementDao.insertLoginLog', 1, {'loginDate': loginDate});
+  }
+
+  // ── 新增成就引擎方法 ──
+
+  /// 连续有做题记录的天数（从今天倒推）
+  Future<int> getPracticeStreak() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+      .get();
+    if (rows.isEmpty) return 0;
+    final dates = rows.map((r) => r.createdAt.substring(0, 10)).toSet().toList()..sort();
+    var streak = 0;
+    final today = DateTime.now();
+    for (var i = dates.length - 1; i >= 0; i--) {
+      final d = DateTime.parse(dates[i]);
+      final expected = today.subtract(Duration(days: streak));
+      if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    AuditLogger.instance.dao('AchievementDao.getPracticeStreak', streak, {});
+    return streak;
+  }
+
+  /// 返回 (correctCount, totalCount) — 所有有 is_correct 标记的提交
+  Future<(int, int)> getAccuracyStats() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull()))
+      .get();
+    final correct = rows.where((r) => r.isCorrect == 1).length;
+    AuditLogger.instance.dao('AchievementDao.getAccuracyStats', correct, {
+      'total': rows.length,
+    });
+    return (correct, rows.length);
+  }
+
+  /// 扫描提交记录，按时间排序后的最大连续正确数
+  Future<int> getMaxConsecutiveCorrect() async {
+    final rows = await (_db.select(_db.submissionDetails)
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.asc)]))
+      .get();
+    var maxStreak = 0, currentStreak = 0;
+    for (final r in rows) {
+      if (r.isCorrect == 1) {
+        currentStreak++;
+        if (currentStreak > maxStreak) maxStreak = currentStreak;
+      } else {
+        currentStreak = 0;
+      }
+    }
+    AuditLogger.instance.dao('AchievementDao.getMaxConsecutiveCorrect', maxStreak, {});
+    return maxStreak;
   }
 }

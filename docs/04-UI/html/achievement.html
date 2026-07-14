@@ -106,32 +106,27 @@
       <div class="num">
         <span data-db="achievement.summary.unlockedCount">5</span>
         /
-        <span data-db="achievement.summary.totalCount">18</span>
+        <span data-db="achievement.summary.totalCount">22</span>
       </div>
       <div class="label">已解锁成就</div>
     </div>
 
-    <!-- 🔥 登录 - 分类循环 data-db-loop="achievement.getCategories" -->
+    <!-- 🔥 登录 -->
     <div data-db-loop="achievement.getCategories">
       <div class="ach-category">
         <div class="cat-title" data-db="achievement.getCategories[].label">🔥 登录</div>
-
-        <!-- 该类下的成就循环 -->
         <div data-db-loop="achievement.getCategories[].list">
-
           <div class="ach-item">
             <div class="ach-icon" data-db="achievement.getCategories[].list[].iconEmoji">🌱</div>
             <div class="ach-info">
               <div class="ach-name" data-db="achievement.getCategories[].list[].name">开启旅程</div>
               <div class="ach-desc" data-db="achievement.getCategories[].list[].description">初次登录</div>
-              <!-- 已解锁：显示解锁时间 -->
               <div class="ach-time" style="" data-db-show="achievement.getCategories[].list[].status" data-db-show-value="unlocked">
                 <span data-db="achievement.getCategories[].list[].unlockedAt">2025-03-01</span> 解锁
               </div>
-              <!-- 进行中：显示进度条 -->
               <div class="ach-progress" style="display:none;" data-db-show="achievement.getCategories[].list[].status" data-db-show-value="in_progress">
-                <span class="bar"><span class="fill" style="width:71%" data-db-style-width="achievement.getCategories[].list[].progressPercent"></span></span>
-                <span data-db="achievement.getCategories[].list[].progress">5</span> / <span data-db="achievement.getCategories[].list[].threshold">7</span>
+                <span class="bar"><span class="fill" style="width:100%" data-db-style-width="achievement.getCategories[].list[].progressPercent"></span></span>
+                <span data-db="achievement.getCategories[].list[].progress">1</span> / <span data-db="achievement.getCategories[].list[].threshold">1</span>
               </div>
             </div>
             <span class="ach-status unlocked" data-db-class="achievement.getCategories[].list[].statusClass" data-db="achievement.getCategories[].list[].statusLabel">已解锁</span>
@@ -172,7 +167,6 @@
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
         </div>
       </div>
     </div>
@@ -182,31 +176,24 @@
       <div class="ach-category">
         <div class="cat-title" data-db="achievement.getCategories[].label">🎯 刷题</div>
         <div data-db-loop="achievement.getCategories[].list">
-
           <div class="ach-item">
             <div class="ach-icon">🎯</div>
             <div class="ach-info">
               <div class="ach-name">破零</div>
               <div class="ach-desc">完成第 1 题</div>
-              <div class="ach-time" style="">
-                <span data-db="...unlockedAt">2025-03-01</span> 解锁
-              </div>
+              <div class="ach-time" style=""><span data-db="...unlockedAt">2025-03-01</span> 解锁</div>
             </div>
             <span class="ach-status unlocked">已解锁</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">🗡️</div>
             <div class="ach-info">
               <div class="ach-name">小试牛刀</div>
               <div class="ach-desc">完成 10 题</div>
-              <div class="ach-time" style="">
-                <span data-db="...unlockedAt">2025-03-06</span> 解锁
-              </div>
+              <div class="ach-time" style=""><span data-db="...unlockedAt">2025-03-06</span> 解锁</div>
             </div>
             <span class="ach-status unlocked">已解锁</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">🏅</div>
             <div class="ach-info">
@@ -219,7 +206,6 @@
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">👑</div>
             <div class="ach-info">
@@ -228,7 +214,6 @@
             </div>
             <span class="ach-status locked">未解锁</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">💎</div>
             <div class="ach-info">
@@ -237,7 +222,15 @@
             </div>
             <span class="ach-status locked">未解锁</span>
           </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- 💪 毅力 -->
+    <div data-db-loop="achievement.getCategories">
+      <div class="ach-category">
+        <div class="cat-title" data-db="achievement.getCategories[].label">💪 毅力</div>
+        <div data-db-loop="achievement.getCategories[].list">
           <div class="ach-item">
             <div class="ach-icon">🔗</div>
             <div class="ach-info">
@@ -250,64 +243,71 @@
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
+          <div class="ach-item">
+            <div class="ach-icon">📅</div>
+            <div class="ach-info">
+              <div class="ach-name">月不间断</div>
+              <div class="ach-desc">连续 30 天有做题记录</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 📚 课程 -->
+    <!-- 🏆 精确度 -->
     <div data-db-loop="achievement.getCategories">
       <div class="ach-category">
-        <div class="cat-title" data-db="achievement.getCategories[].label">📚 课程</div>
+        <div class="cat-title" data-db="achievement.getCategories[].label">🏆 精确度</div>
         <div data-db-loop="achievement.getCategories[].list">
-
           <div class="ach-item">
-            <div class="ach-icon">📜</div>
+            <div class="ach-icon">🎯</div>
             <div class="ach-info">
-              <div class="ach-name">学有所成</div>
-              <div class="ach-desc">完成 1 门课程</div>
-              <div class="ach-time" style="">
-                <span data-db="...unlockedAt">2025-03-10</span> 解锁
-              </div>
-            </div>
-            <span class="ach-status unlocked">已解锁</span>
-          </div>
-
-          <div class="ach-item">
-            <div class="ach-icon">📚</div>
-            <div class="ach-info">
-              <div class="ach-name">三好学生</div>
-              <div class="ach-desc">完成 3 门课程</div>
+              <div class="ach-name">初露锋芒</div>
+              <div class="ach-desc">累计正确率 ≥ 50%（需至少 10 题）</div>
               <div class="ach-progress" style="">
-                <span class="bar"><span class="fill" style="width:33%"></span></span>
-                <span data-db="...progress">1</span> / <span data-db="...threshold">3</span>
+                <span class="bar"><span class="fill" style="width:75%"></span></span>
+                <span data-db="...progress">75</span>% / <span data-db="...threshold">50</span>%
               </div>
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
           <div class="ach-item">
-            <div class="ach-icon">🎓</div>
+            <div class="ach-icon">🎯</div>
             <div class="ach-info">
-              <div class="ach-name">全面发展</div>
-              <div class="ach-desc">完成 5 门课程</div>
+              <div class="ach-name">稳扎稳打</div>
+              <div class="ach-desc">累计正确率 ≥ 70%（需至少 10 题）</div>
             </div>
             <span class="ach-status locked">未解锁</span>
           </div>
-
           <div class="ach-item">
-            <div class="ach-icon">📖</div>
+            <div class="ach-icon">🎯</div>
             <div class="ach-info">
-              <div class="ach-name">博览群书</div>
-              <div class="ach-desc">浏览 10 份讲义</div>
+              <div class="ach-name">接近完美</div>
+              <div class="ach-desc">累计正确率 ≥ 90%（需至少 10 题）</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
+          <div class="ach-item">
+            <div class="ach-icon">⚡</div>
+            <div class="ach-info">
+              <div class="ach-name">势如破竹</div>
+              <div class="ach-desc">连续答对 5 题</div>
               <div class="ach-progress" style="">
                 <span class="bar"><span class="fill" style="width:40%"></span></span>
-                <span data-db="...progress">4</span> / <span data-db="...threshold">10</span>
+                <span data-db="...progress">2</span> / <span data-db="...threshold">5</span>
               </div>
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
+          <div class="ach-item">
+            <div class="ach-icon">💥</div>
+            <div class="ach-info">
+              <div class="ach-name">十连斩</div>
+              <div class="ach-desc">连续答对 10 题</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
         </div>
       </div>
     </div>
@@ -317,19 +317,15 @@
       <div class="ach-category">
         <div class="cat-title" data-db="achievement.getCategories[].label">📝 组卷</div>
         <div data-db-loop="achievement.getCategories[].list">
-
           <div class="ach-item">
             <div class="ach-icon">📝</div>
             <div class="ach-info">
               <div class="ach-name">出题人</div>
               <div class="ach-desc">创建第 1 张组卷</div>
-              <div class="ach-time" style="">
-                <span data-db="...unlockedAt">2025-03-12</span> 解锁
-              </div>
+              <div class="ach-time" style=""><span data-db="...unlockedAt">2025-03-12</span> 解锁</div>
             </div>
             <span class="ach-status unlocked">已解锁</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">✍️</div>
             <div class="ach-info">
@@ -342,7 +338,14 @@
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
+          <div class="ach-item">
+            <div class="ach-icon">👑</div>
+            <div class="ach-info">
+              <div class="ach-name">组卷大神</div>
+              <div class="ach-desc">创建 10 张组卷</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
         </div>
       </div>
     </div>
@@ -352,7 +355,6 @@
       <div class="ach-category">
         <div class="cat-title" data-db="achievement.getCategories[].label">🖊️ 评价</div>
         <div data-db-loop="achievement.getCategories[].list">
-
           <div class="ach-item">
             <div class="ach-icon">🖊️</div>
             <div class="ach-info">
@@ -361,7 +363,6 @@
             </div>
             <span class="ach-status in-progress">进行中</span>
           </div>
-
           <div class="ach-item">
             <div class="ach-icon">✨</div>
             <div class="ach-info">
@@ -370,7 +371,14 @@
             </div>
             <span class="ach-status locked">未解锁</span>
           </div>
-
+          <div class="ach-item">
+            <div class="ach-icon">🏅</div>
+            <div class="ach-info">
+              <div class="ach-name">资深评委</div>
+              <div class="ach-desc">评分 50 次</div>
+            </div>
+            <span class="ach-status locked">未解锁</span>
+          </div>
         </div>
       </div>
     </div>

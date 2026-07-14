@@ -25,7 +25,8 @@ class AchievementDef(models.Model):
     CATEGORY_CHOICES = [
         ('LOGIN', '登录'),
         ('PRACTICE', '练习'),
-        ('COURSE', '课程'),
+        ('STREAK', '毅力'),
+        ('ACCURACY', '精确度'),
         ('PAPER', '组卷'),
         ('RATING', '评分'),
     ]
@@ -33,7 +34,9 @@ class AchievementDef(models.Model):
     TRIGGER_CHOICES = [
         ('LOGIN_STREAK', '连续登录'),
         ('PRACTICE_COUNT', '做题数量'),
-        ('COURSE_COMPLETE', '课程完成'),
+        ('PRACTICE_STREAK', '连续做题'),
+        ('ACCURACY_RATE', '正确率'),
+        ('CONSECUTIVE_CORRECT', '连续正确'),
         ('PAPER_COUNT', '组卷数量'),
         ('RATING_COUNT', '评分数量'),
     ]

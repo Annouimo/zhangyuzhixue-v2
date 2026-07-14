@@ -139,9 +139,12 @@ class ExamDao {
 
   /// 获取已创建的组卷总数
   Future<int> getPaperCount() async {
-    final rows = await _db.select(_db.customPapers).get();
-    AuditLogger.instance.dao('ExamDao.getPaperCount', rows.length, {});
-    return rows.length;
+    final result = await _db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM custom_paper',
+    ).getSingle();
+    final count = result.read<int>('cnt');
+    AuditLogger.instance.dao('ExamDao.getPaperCount', count, {});
+    return count;
   }
 
   /// 获取试卷点赞总数

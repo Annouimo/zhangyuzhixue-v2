@@ -105,6 +105,31 @@ class _AchievementEngine {
       case 'RATING_COUNT':
         progress = await _dao.getRatingCount();
         break;
+      case 'PRACTICE_STREAK':
+        progress = await _dao.getPracticeStreak();
+        break;
+      case 'CONSECUTIVE_CORRECT':
+        progress = await _dao.getMaxConsecutiveCorrect();
+        break;
+      case 'ACCURACY_RATE': {
+        final (correct, total) = await _dao.getAccuracyStats();
+        // 正确率百分比
+        progress = total > 0 ? (correct * 100 ~/ total) : 0;
+        // ACCURACY_RATE 特殊判定：需同时满足 threshold（正确率%）和最少 10 题
+        final pct = (progress / threshold * 100.0).clamp(0.0, 100.0);
+        final isUnlocked = progress >= threshold && total >= 10;
+        final status = isUnlocked ? 'unlocked' : (total > 0 ? 'in_progress' : 'locked');
+        return AchievementItem(
+          iconEmoji: def.iconEmoji ?? '🏆',
+          name: def.name,
+          description: def.description ?? '',
+          status: status,
+          unlockedAt: cached?.unlockedAt,
+          progressPercent: pct,
+          progress: progress,
+          threshold: threshold,
+        );
+      }
       default:
         progress = 0;
     }
