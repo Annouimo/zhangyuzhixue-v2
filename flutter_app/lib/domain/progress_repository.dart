@@ -248,9 +248,10 @@ class ProgressRepository {
         operation: SyncOperationType.upsert,
         localId: id,
         payload: jsonEncode({
-          'submission_detail_id': match.first.id,
+          'submission_detail_id': null,
           'question_id': questionId,
           'step_number': stepNumber,
+          'sub_question_index': 0,
           'status': status,
         }),
       );

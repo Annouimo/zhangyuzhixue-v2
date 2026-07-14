@@ -214,7 +214,7 @@ class QuestionRepository {
       // 入同步队列（完成一道题后推送）
       try {
         await SyncManager().enqueue(
-          entityType: SyncEntityType.submissionDetail,
+          entityType: SyncEntityType.submission,
           operation: SyncOperationType.upsert,
           localId: latest.id,
           payload: jsonEncode({

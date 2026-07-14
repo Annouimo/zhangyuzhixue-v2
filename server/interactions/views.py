@@ -74,8 +74,11 @@ class SyncPushView(APIView):
     def _process_batch(self, batch, student):
         """事务内处理全部 batch item，返回 local_id → server_id 映射"""
         server_ids = {}
-        # 存已创建的 submission detail，给后续 feedback 用
         detail_cache = {}  # local_submission_id → local_detail_ids[]
+
+        # 按 ENTITY_ORDER 排序，确保 submission 先于 step_feedback/card_feedback
+        entity_rank = {name: i for i, name in enumerate(ENTITY_ORDER)}
+        batch.sort(key=lambda item: entity_rank.get(item['entity_type'], 999))
 
         for item in batch:
             entity_type = item['entity_type']
@@ -118,6 +121,13 @@ class SyncPushView(APIView):
 
     def _handle_step_feedback(self, data, student, server_ids, detail_cache):
         detail_id = data.get('submission_detail_id')
+        # 如果 submission_detail_id 为 null，从 detail_cache 取最近创建的 detail_id
+        if detail_id is None:
+            # 取 detail_cache 中第一个 submission 的最后一个 detail_id
+            for sub_id in detail_cache:
+                if detail_cache[sub_id]:
+                    detail_id = detail_cache[sub_id][-1]
+                    break
         return StepFeedback.objects.create(
             submission_detail_id=detail_id,
             question_id=data['question_id'],
@@ -129,6 +139,12 @@ class SyncPushView(APIView):
 
     def _handle_card_feedback(self, data, student, server_ids, detail_cache):
         detail_id = data.get('submission_detail_id')
+        # 如果 submission_detail_id 为 null，从 detail_cache 取最近创建的 detail_id
+        if detail_id is None:
+            for sub_id in detail_cache:
+                if detail_cache[sub_id]:
+                    detail_id = detail_cache[sub_id][-1]
+                    break
         return CardFeedback.objects.create(
             submission_detail_id=detail_id,
             question_id=data['question_id'],

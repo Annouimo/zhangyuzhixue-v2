@@ -50,7 +50,7 @@ void main() {
 
   test('pushNow returns summary', () async {
     await manager.enqueue(
-      entityType: SyncEntityType.submissionDetail,
+      entityType: SyncEntityType.submission,
       operation: SyncOperationType.upsert,
       localId: 1,
       payload: '{}',

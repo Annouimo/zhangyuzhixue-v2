@@ -59,6 +59,12 @@ class SyncQueueDao {
     ));
   }
 
+  /// 将单条记录标记为永久失败
+  Future<void> markPermanentFailure(int id) async {
+    final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(id));
+    await q.write(db.SyncQueueCompanion(status: const Value('permanentFailure')));
+  }
+
   /// 将超过最大重试次数的 failed 标记为 permanentFailure
   Future<void> markPermanentFailures(int maxRetries) async {
     final rows = await (_db.select(_db.syncQueue)

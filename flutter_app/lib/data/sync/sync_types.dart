@@ -2,7 +2,7 @@
 
 /// 实体类型
 enum SyncEntityType {
-  submissionDetail,
+  submission,
   stepFeedback,
   cardFeedback,
   rating,
@@ -16,7 +16,7 @@ enum SyncEntityType {
 extension SyncEntityTypeServerName on SyncEntityType {
   String get serverName {
     switch (this) {
-      case SyncEntityType.submissionDetail:
+      case SyncEntityType.submission:
         return 'submission';
       case SyncEntityType.stepFeedback:
         return 'step_feedback';

@@ -113,7 +113,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
               operation: SyncOperationType.upsert,
               localId: fbId,
               payload: jsonEncode({
-                'submission_detail_id': submissionDetailId,
+                'submission_detail_id': null,
                 'question_id': questionId,
                 'card_title': tag,
                 'card_status': feedback,

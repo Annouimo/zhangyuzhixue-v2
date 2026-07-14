@@ -1,6 +1,7 @@
 import 'dart:convert';
 import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
+import '../api/api_client.dart';
 import '../network/connectivity_monitor.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
 /// 推送结果汇总
@@ -68,10 +69,17 @@ class SyncPusher {
       } catch (e) {
         AuditLogger.instance.error('SyncPusher.pushAll', e);
         for (final entry in batch) {
-          await _dao.markFailed(entry.id);
+          // 4xx 业务错误 → permanentFailure（不可重试）
+          // 网络错误（DioException） → markFailed（可重试）
+          if (e is ApiException) {
+            await _dao.markPermanentFailure(entry.id);
+          } else {
+            await _dao.markFailed(entry.id);
+          }
           fail++;
         }
-        break;
+        // 网络错误时中断后续批次，4xx 不中断
+        if (e is! ApiException) break;
       }
     }
 
