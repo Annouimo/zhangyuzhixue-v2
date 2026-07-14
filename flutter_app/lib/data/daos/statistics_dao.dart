@@ -23,14 +23,17 @@ class StatisticsDao {
     return correct / rows.length;
   }
 
+  /// 连续做题天数（从 submissionDetail 推算，从今天回溯）
   Future<int> getStreakDays() async {
-    final rows = await (_db.select(_db.userLoginLogs)
-      ..orderBy([(t) => OrderingTerm(expression: t.loginDate, mode: OrderingMode.desc)])).get();
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
     if (rows.isEmpty) return 0;
+    final studyDates = rows.map((r) => r.createdAt.substring(0, 10)).toSet().toList()
+      ..sort((a, b) => b.compareTo(a)); // 降序
     var streak = 0;
     final today = DateTime.now();
-    for (final row in rows) {
-      final d = DateTime.parse(row.loginDate);
+    for (final dateStr in studyDates) {
+      final d = DateTime.parse(dateStr);
       final expected = today.subtract(Duration(days: streak));
       if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
         streak++;

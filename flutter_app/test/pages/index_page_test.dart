@@ -28,6 +28,7 @@ class _MockUserRepo implements UserRepository {
   @override Future<List<HistoryItem>> getAnswerHistory() async => [];
   @override Future<int> getAnswerHistoryCount() async => 0;
   @override Future<void> syncAccessibleCourseIds() async {}
+  @override Future<({int total, int correct})> getTodaySubmissionStats() async => (total: 0, correct: 0);
 }
 
 void main() {

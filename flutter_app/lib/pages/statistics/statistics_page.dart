@@ -94,7 +94,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  TrendChart(title: '正确率趋势', points: _accuracyTrend ?? []),
+                  TrendChart(title: '正确率趋势', points: _accuracyTrend ?? [], fixedYRange: true),
                   const SizedBox(height: 8),
                   TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: AppColors.success),
                   const SizedBox(height: 8),

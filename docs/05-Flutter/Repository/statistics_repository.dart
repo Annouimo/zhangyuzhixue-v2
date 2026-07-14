@@ -83,46 +83,12 @@ class Distribution {
       );
 }
 
-class StatisticsRepository {
-  /// GET /api/stats/overview/
-  Future<StatsOverview> getOverview() async {
-    throw UnimplementedError('StatisticsRepository.getOverview');
-  }
-
-  /// 总做题数（profile.html 快捷用法）
-  Future<int> totalQuestions() async {
-    throw UnimplementedError('StatisticsRepository.totalQuestions');
-  }
-
-  /// 总体正确率（profile.html 快捷用法）
-  Future<double> accuracy() async {
-    throw UnimplementedError('StatisticsRepository.accuracy');
-  }
-
-  /// GET /api/stats/daily-records?range={days}
-  Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
-    throw UnimplementedError('StatisticsRepository.getDailyRecords');
-  }
-
-  /// GET /api/stats/accuracy-trend?range={days}
-  Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
-    throw UnimplementedError('StatisticsRepository.getAccuracyTrend');
-  }
-
-  /// GET /api/stats/points-trend?range={days}
-  Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {
-    throw UnimplementedError('StatisticsRepository.getPointsTrend');
-  }
-
-  /// GET /api/stats/distribution/
-  Future<Distribution> getDistribution() async {
-    throw UnimplementedError('StatisticsRepository.getDistribution');
-  }
-}
-
-// ---- 统计聚合引擎 ----
+/// 实际实现见 `flutter_app/lib/domain/statistics_repository.dart`
+/// （本地查询，委托 StatisticsDao + QuestionDao，不走 API）
+///
+/// ---- 统计聚合引擎 ----
 // 从 StatisticsDAO 获取原始数据，在 Dart 侧做聚合计算。
-// 渲染层设计见 spec/UI_html/statistics.html（含 4 种自适应模式 + 示例 JS）
+// 渲染层设计见 docs/04-UI/html/statistics.html（含 4 种自适应模式 + 示例 JS）
 //
 // 4 个数据源（调用 StatisticsDAO，不走 API）：
 //
@@ -141,13 +107,13 @@ class StatisticsRepository {
 //     → Dart 侧算累计值（cumulative sum）
 //
 //   getDistribution()
-//     → dao.getTypeDistribution() 返回 [{questionType, count}]
-//     → Dart 侧算百分比
+//     → dao.getAttemptedQuestionIds() + QuestionDao.getByIds()
+//     → Dart 侧按 questionType 分组并算百分比
 //
 // 概览（getOverview）：从上述数据计算：
 //   totalQuestions = sum of count
 //   accuracyPercent = sum(correct) / sum(count)
-//   streakDays = 从记录的连续有做题的天数推算（最长连续）
+//   streakDays = 从 submissionDetail 推算的当前连续做题天数（从今天回溯）
 //   activeDays = COUNT DISTINCT date
 //
 // 等级百分位（levelPercentile）需要全量用户数据，必须调服务端 API

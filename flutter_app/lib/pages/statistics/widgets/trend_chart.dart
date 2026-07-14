@@ -8,8 +8,9 @@ class TrendChart extends StatelessWidget {
   final String title;
   final List<TrendPoint> points;
   final Color lineColor;
+  final bool fixedYRange; // true: Y轴固定 0~100%; false: 自动缩放
 
-  const TrendChart({super.key, required this.title, required this.points, this.lineColor = AppColors.primary});
+  const TrendChart({super.key, required this.title, required this.points, this.lineColor = AppColors.primary, this.fixedYRange = false});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,7 @@ class TrendChart extends StatelessWidget {
                 ),
               )
             else
-              SizedBox(height: 160, child: CustomPaint(painter: _TrendPainter(points, lineColor))),
+              SizedBox(height: 160, child: CustomPaint(painter: _TrendPainter(points, lineColor, fixedYRange: fixedYRange))),
           ],
         ),
       ),
@@ -40,7 +41,8 @@ class TrendChart extends StatelessWidget {
 class _TrendPainter extends CustomPainter {
   final List<TrendPoint> points;
   final Color color;
-  _TrendPainter(this.points, this.color);
+  final bool fixedYRange;
+  _TrendPainter(this.points, this.color, {this.fixedYRange = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -51,8 +53,8 @@ class _TrendPainter extends CustomPainter {
       colors: [color.withValues(alpha: 0.2), color.withValues(alpha: 0.0)],
     ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    final maxVal = points.map((p) => p.value).reduce(math.max);
-    final minVal = points.map((p) => p.value).reduce(math.min);
+    final maxVal = fixedYRange ? 100 : points.map((p) => p.value).reduce(math.max);
+    final minVal = fixedYRange ? 0 : points.map((p) => p.value).reduce(math.min);
     final range = (maxVal - minVal).clamp(1e-6, double.maxFinite);
     final stepX = size.width / (points.length - 1);
 

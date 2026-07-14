@@ -31,6 +31,7 @@ class _MockUserRepo implements UserRepository {
   @override Future<Map<String, dynamic>> checkin() async => {};
   @override Future<String> questionBankVersion() async => '1.0';
   @override Future<void> syncAccessibleCourseIds() async {}
+  @override Future<({int total, int correct})> getTodaySubmissionStats() async => (total: 0, correct: 0);
 }
 
 class _MockPrefRepo implements PreferenceRepository {
@@ -81,7 +82,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('张三'), findsOneWidget);
       expect(find.text('学号 2024001'), findsOneWidget);
-      expect(find.text('点击编辑个人信息 ✏️'), findsOneWidget);
+      expect(find.text('点击编辑个人信息'), findsOneWidget);
       expect(find.text('成就'), findsOneWidget);
     });
   });

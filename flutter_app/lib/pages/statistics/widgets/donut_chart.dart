@@ -30,7 +30,17 @@ class DonutChart extends StatelessWidget {
             else
               Row(
                 children: [
-                  SizedBox(width: 100, height: 100, child: CustomPaint(painter: _DonutPainter(pcts, _colors))),
+                  SizedBox(
+                    width: 100, height: 100,
+                    child: Stack(
+                      children: [
+                        CustomPaint(painter: _DonutPainter(pcts, _colors), size: const Size(100, 100)),
+                        Center(
+                          child: Text('${data.total}题', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 24),
                   Expanded(
                     child: Column(
