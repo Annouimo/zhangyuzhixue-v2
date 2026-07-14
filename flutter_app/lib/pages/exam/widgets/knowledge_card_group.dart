@@ -143,11 +143,12 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
           ),
         ),
         if (expanded) ...[
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            padding: const EdgeInsets.only(left: 20, bottom: 4),
-            children: group.cards.map((card) => FilterChip(
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: group.cards.map((card) => FilterChip(
               label: Text(card.title, style: const TextStyle(fontSize: 12)),
               selected: widget.selectedTitles.contains(card.title),
               onSelected: (_) => _toggleCard(card.title),
@@ -156,6 +157,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
               side: BorderSide.none,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             )).toList(),
+            ),
           ),
           const SizedBox(height: 2),
         ],

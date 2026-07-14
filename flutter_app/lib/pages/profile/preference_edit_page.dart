@@ -5,6 +5,7 @@ import '../../data/daos/preference_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
+import '../../domain/exam_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../exam/widgets/filter_panel.dart';
 import '../../data/debug/audit_logger.dart';
@@ -31,6 +32,8 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
 
   // 筛选选项（内存缓存）
   List<String>? _yearOpts, _regionOpts, _tagOpts, _examTypeOpts, _knowledgeCardOpts;
+  List<ConceptTagNode>? _tagTree;
+  List<KnowledgeCardGroup>? _kcGroups;
 
   @override
   void initState() {
@@ -51,16 +54,20 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       final qDao = QuestionDao(DatabaseProvider().assetsDb);
       final years = (await qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await qDao.getDistinctRegions();
-      final tags = (await qDao.getAllConceptTags()).map((t) => t.name).toList();
+      final allTags = await qDao.getAllConceptTags();
+      final tags = allTags.map((t) => t.name).toList();
       final examTypes = await qDao.getDistinctExamTypes();
-      final kcs = (await qDao.getAllKnowledgeCards()).map((k) => k.title).toList();
+      final allKcs = await qDao.getAllKnowledgeCards();
+      final kcs = allKcs.map((k) => k.title).toList();
       if (!mounted) return;
       setState(() {
         _yearOpts = years;
         _regionOpts = regions;
         _tagOpts = tags;
+        _tagTree = ExamRepository.buildTagTree(allTags);
         _examTypeOpts = examTypes;
         _knowledgeCardOpts = kcs;
+        _kcGroups = ExamRepository.buildKnowledgeCardGroups(allKcs);
         _loadingOpts = false;
       });
     } catch (_) {
@@ -184,8 +191,10 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                     yearOptions: _yearOpts ?? [],
                     regionOptions: _regionOpts ?? [],
                     conceptTagOptions: _tagOpts ?? [],
+                    conceptTagTree: _tagTree ?? [],
                     examTypeOptions: _examTypeOpts ?? [],
                     knowledgeCardOptions: _knowledgeCardOpts ?? [],
+                    knowledgeCardGroups: _kcGroups ?? [],
                   ),
                 ],
               ),

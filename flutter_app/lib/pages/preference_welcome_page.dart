@@ -8,6 +8,7 @@ import '../data/api/api_client.dart';
 import '../data/api/user_api.dart';
 import '../data/database/database_provider.dart';
 import '../domain/preference_repository.dart';
+import '../domain/exam_repository.dart';
 import '../domain/user_repository.dart';
 import 'exam/widgets/filter_panel.dart';
 import 'router.dart';
@@ -45,6 +46,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   List<String>? _tagOpts;
   List<String>? _examTypeOpts;
   List<String>? _knowledgeCardOpts;
+  List<ConceptTagNode>? _tagTree;
+  List<KnowledgeCardGroup>? _kcGroups;
 
   // 积分值
   double _bonusPoints = 0;
@@ -67,11 +70,18 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     try {
       final years = (await _qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await _qDao.getDistinctRegions();
-      final tags = (await _qDao.getAllConceptTags()).map((t) => t.name).toList();
+      final allTags = await _qDao.getAllConceptTags();
+      final tags = allTags.map((t) => t.name).toList();
       final examTypes = await _qDao.getDistinctExamTypes();
-      final kcs = (await _qDao.getAllKnowledgeCards()).map((k) => k.title).toList();
+      final allKcs = await _qDao.getAllKnowledgeCards();
+      final kcs = allKcs.map((k) => k.title).toList();
       if (!mounted) return;
-      setState(() { _yearOpts = years; _regionOpts = regions; _tagOpts = tags; _examTypeOpts = examTypes; _knowledgeCardOpts = kcs; });
+      setState(() {
+        _yearOpts = years; _regionOpts = regions; _tagOpts = tags;
+        _tagTree = ExamRepository.buildTagTree(allTags);
+        _examTypeOpts = examTypes; _knowledgeCardOpts = kcs;
+        _kcGroups = ExamRepository.buildKnowledgeCardGroups(allKcs);
+      });
       AuditLogger.instance.page('PreferenceWelcomePage', {'loaded': _yearOpts != null});
     } catch (_) {}
   }
@@ -228,8 +238,10 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   regionOptions: _regionOpts!,
                   typeOptions: const ['choice', 'fill', 'solution'],
                   conceptTagOptions: _tagOpts ?? [],
+                  conceptTagTree: _tagTree ?? [],
                   examTypeOptions: _examTypeOpts ?? [],
                   knowledgeCardOptions: _knowledgeCardOpts ?? [],
+                  knowledgeCardGroups: _kcGroups ?? [],
                   onChanged: (state) {
                     _years = state.years; _regions = state.regions; _types = state.types; _conceptTags = state.conceptTags;
                     _examTypes = state.examTypes; _knowledgeCards = state.knowledgeCards;

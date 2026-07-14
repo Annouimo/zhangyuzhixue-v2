@@ -415,26 +415,7 @@ class ExamRepository {
     return [];
   }
 
-  // ── 筛选 ──
-  Future<FilterOptions> getFilterOptions() async {
-    final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
-    final regions = await _questionDao.getDistinctRegions();
-    final tags = await _questionDao.getAllConceptTags();
-    final kcs = await _questionDao.getAllKnowledgeCards();
-    final examTypes = await _questionDao.getDistinctExamTypes();
-    return FilterOptions(
-      years: years,
-      regions: regions,
-      conceptTags: tags.map((t) => t.name).toList(),
-      conceptTagTree: _buildTagTree(tags),
-      knowledgeCards: kcs.map((k) => k.title).toList(),
-      knowledgeCardGroups: _buildKnowledgeCardGroups(kcs),
-      examTypes: examTypes,
-      questionTypes: const ['choice', 'fill', 'solution'],
-    );
-  }
-
-  List<ConceptTagNode> _buildTagTree(List<assets_db.ConceptTagRow> tags) {
+  static List<ConceptTagNode> buildTagTree(List<assets_db.ConceptTagRow> tags) {
     final byParent = <int?, List<assets_db.ConceptTagRow>>{};
     for (final t in tags) {
       byParent.putIfAbsent(t.parentId, () => []).add(t);
@@ -448,7 +429,7 @@ class ExamRepository {
     return (byParent[null] ?? []).map(buildNode).toList();
   }
 
-  List<KnowledgeCardGroup> _buildKnowledgeCardGroups(List<assets_db.KnowledgeCardRow> cards) {
+  static List<KnowledgeCardGroup> buildKnowledgeCardGroups(List<assets_db.KnowledgeCardRow> cards) {
     final byCategory = <String, List<KnowledgeCardItem>>{};
     for (final c in cards) {
       byCategory.putIfAbsent(c.category, () => []).add(KnowledgeCardItem(id: c.id, title: c.title));
@@ -456,6 +437,25 @@ class ExamRepository {
     return byCategory.entries.map((e) => KnowledgeCardGroup(
       category: e.key, cards: e.value,
     )).toList();
+  }
+
+  // ── 筛选 ──
+  Future<FilterOptions> getFilterOptions() async {
+    final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
+    final regions = await _questionDao.getDistinctRegions();
+    final tags = await _questionDao.getAllConceptTags();
+    final kcs = await _questionDao.getAllKnowledgeCards();
+    final examTypes = await _questionDao.getDistinctExamTypes();
+    return FilterOptions(
+      years: years,
+      regions: regions,
+      conceptTags: tags.map((t) => t.name).toList(),
+      conceptTagTree: buildTagTree(tags),
+      knowledgeCards: kcs.map((k) => k.title).toList(),
+      knowledgeCardGroups: buildKnowledgeCardGroups(kcs),
+      examTypes: examTypes,
+      questionTypes: const ['choice', 'fill', 'solution'],
+    );
   }
 
   Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters) async {

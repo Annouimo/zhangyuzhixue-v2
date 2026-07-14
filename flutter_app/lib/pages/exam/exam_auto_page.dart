@@ -238,8 +238,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         regionOptions: _filterOpts!.regions,
                         typeOptions: _filterOpts!.questionTypes,
                         conceptTagOptions: _filterOpts!.conceptTags,
+                        conceptTagTree: _filterOpts!.conceptTagTree,
                         examTypeOptions: _filterOpts!.examTypes,
                         knowledgeCardOptions: _filterOpts!.knowledgeCards,
+                        knowledgeCardGroups: _filterOpts!.knowledgeCardGroups,
                         onSavePreference: _savePreference,
                         onLoadPreference: _loadPreference,
                         onChanged: (state) async {

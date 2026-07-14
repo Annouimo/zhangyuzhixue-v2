@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/pages/exam/widgets/filter_panel.dart';
+import 'package:flutter_app/domain/exam_repository.dart';
 import '../../test_setup.dart';
 
 void main() {
@@ -18,20 +19,42 @@ void main() {
       expect(find.text('西城'), findsOneWidget);
     });
 
-    testWidgets('renders concept tags when provided', (tester) async {
+    testWidgets('renders concept tag tree section when tree provided', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
-        body: SingleChildScrollView(child: FilterPanel(yearOptions: [], regionOptions: [], conceptTagOptions: ['函数', '三角函数'])),
+        body: SingleChildScrollView(child: FilterPanel(
+          yearOptions: [], regionOptions: [],
+          conceptTagOptions: ['代数', '函数', '三角函数'],
+          conceptTagTree: [
+            ConceptTagNode(id: 1, name: '代数', children: [
+              ConceptTagNode(id: 2, name: '函数', parentId: 1, children: [
+                ConceptTagNode(id: 3, name: '三角函数', parentId: 2),
+              ]),
+            ]),
+          ],
+        )),
       )));
+      // Section header visible even when collapsed
       expect(find.text('按概念标签筛选'), findsOneWidget);
-      expect(find.text('函数'), findsOneWidget);
-      expect(find.text('三角函数'), findsOneWidget);
+      // Root node hidden when collapsed
+      expect(find.text('代数'), findsNothing);
+      // Tap to expand
+      await tester.tap(find.text('按概念标签筛选'));
+      await tester.pumpAndSettle();
+      // Now root node visible
+      expect(find.text('代数'), findsOneWidget);
     });
 
-    testWidgets('renders difficulty segment descriptions', (tester) async {
+    testWidgets('difficulty section collapsed by default', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
-        body: FilterPanel(yearOptions: [], regionOptions: []),
+        body: SingleChildScrollView(child: FilterPanel(yearOptions: [], regionOptions: [])),
       )));
-      // 段位标签应存在（难度/计算量覆盖范围的提示）
+      // Default collapsed: difficulty labels not visible
+      expect(find.textContaining('基础'), findsNothing);
+      expect(find.textContaining('压轴'), findsNothing);
+      // Tap section header to expand
+      await tester.tap(find.text('按难度/计算量筛选'));
+      await tester.pumpAndSettle();
+      // Now should be visible
       expect(find.textContaining('基础'), findsWidgets);
       expect(find.textContaining('压轴'), findsWidgets);
     });
