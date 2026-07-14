@@ -132,8 +132,9 @@ def _build_sections(qs):
         except (ChoiceExt.DoesNotExist, json.JSONDecodeError, TypeError):
             pass
 
-        # 图片
-        imgs = q.images if isinstance(q.images, list) else []
+        # 图片 — 归一化反斜杠（兼容旧数据）
+        imgs_raw = q.images if isinstance(q.images, list) else []
+        imgs = [img.replace('\\', '/') for img in imgs_raw]
 
         sections[-1]['questions'].append({
             'stem': q.stem,

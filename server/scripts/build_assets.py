@@ -78,20 +78,20 @@ def main():
         print(f'  ⚠ 配图源目录不存在: {image_src}')
     else:
         os.makedirs(flutter_assets, exist_ok=True)
+        total_count = 0
         for subdir in ['一模', '二模', '高考']:
             src_sub = os.path.join(image_src, subdir)
             dst_sub = os.path.join(flutter_assets, subdir)
             if os.path.isdir(src_sub):
-                os.makedirs(dst_sub, exist_ok=True)
-                count = 0
-                for f in os.listdir(src_sub):
-                    if f.lower().endswith('.webp'):
-                        shutil.copy2(os.path.join(src_sub, f), os.path.join(dst_sub, f))
-                        count += 1
+                if os.path.exists(dst_sub):
+                    shutil.rmtree(dst_sub)
+                shutil.copytree(src_sub, dst_sub)
+                count = sum(1 for root, _, files in os.walk(dst_sub) for f in files if f.lower().endswith('.webp'))
+                total_count += count
                 print(f'  {subdir}: {count} 张配图')
             else:
                 print(f'  {subdir}: 目录不存在(跳过)')
-        print('✅ 配图同步完成')
+        print(f'✅ 配图同步完成（共 {total_count} 张）')
 
 
 if __name__ == '__main__':
