@@ -23,6 +23,7 @@ from interactions.models import (
     CustomPaper,
     PaperCollect,
     PaperLike,
+    PreferenceFilter,
     QuestionRating,
     StudentSubmission,
     SubmissionDetail,
@@ -196,6 +197,8 @@ CREATE TABLE IF NOT EXISTS preference_filter (
     regions TEXT NOT NULL,
     concept_tags TEXT NOT NULL,
     types TEXT,
+    knowledge_cards TEXT,
+    question_types TEXT,
     diff_min REAL,
     diff_max REAL,
     calc_min REAL,
@@ -413,6 +416,24 @@ def _dump_collects(conn, student):
         )
 
 
+def _dump_preferences(conn, student):
+    for pref in PreferenceFilter.objects.filter(student=student):
+        conn.execute(
+            'INSERT INTO preference_filter '
+            '(id, name, years, regions, concept_tags, types, '
+            'knowledge_cards, question_types, '
+            'diff_min, diff_max, calc_min, calc_max) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                pref.pk, pref.name, pref.years, pref.regions,
+                pref.concept_tags, pref.types,
+                pref.knowledge_cards, pref.question_types,
+                pref.diff_min, pref.diff_max,
+                pref.calc_min, pref.calc_max,
+            ],
+        )
+
+
 # ── View ──────────────────────────────────────────────────────
 
 
@@ -445,6 +466,7 @@ def pull_user_db(request):
         _dump_custom_papers(conn, student)
         _dump_likes(conn, student)
         _dump_collects(conn, student)
+        _dump_preferences(conn, student)
 
         conn.commit()
         conn.close()

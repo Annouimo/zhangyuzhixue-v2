@@ -74,19 +74,22 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       if (!mounted) return;
       _nameCtrl.text = editData.name;
       final filter = editData.filter;
-      _filterKey.currentState?.applyFilter(
-        years: filter.years.toSet(),
-        regions: filter.regions.toSet(),
-        conceptTags: filter.conceptTags.toSet(),
-        examTypes: filter.types.toSet(),
-        knowledgeCards: filter.knowledgeCards.toSet(),
-        types: filter.questionTypes.toSet(),
-        diffMin: filter.diffMin ?? 0,
-        diffMax: filter.diffMax ?? 10,
-        calcMin: filter.calcMin ?? 0,
-        calcMax: filter.calcMax ?? 10,
-      );
-      setState(() => _loading = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _filterKey.currentState?.applyFilter(
+          years: filter.years.toSet(),
+          regions: filter.regions.toSet(),
+          conceptTags: filter.conceptTags.toSet(),
+          examTypes: filter.types.toSet(),
+          knowledgeCards: filter.knowledgeCards.toSet(),
+          types: filter.questionTypes.toSet(),
+          diffMin: filter.diffMin ?? 0,
+          diffMax: filter.diffMax ?? 10,
+          calcMin: filter.calcMin ?? 0,
+          calcMax: filter.calcMax ?? 10,
+        );
+        setState(() => _loading = false);
+      });
       AuditLogger.instance.page('PreferenceEditPage', {'loaded': true});
     } catch (e) {
       AuditLogger.instance.error('PreferenceEditPage._loadExisting', e);

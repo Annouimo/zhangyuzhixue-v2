@@ -14,6 +14,7 @@ class BatchItemSerializer(serializers.Serializer):
         'paper_like',
         'paper_collect',
         'exitRating',
+        'preference',
     ])
     local_id = serializers.IntegerField()
     data = serializers.JSONField()

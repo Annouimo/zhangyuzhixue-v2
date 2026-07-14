@@ -29,9 +29,8 @@ class RecommendPageState extends State<RecommendPage> {
   List<RecommendPreset> _presets = [];
   int _selectedPresetIndex = 0;
 
-  /// 供 MainShell 切 Tab 时调用：如果 presets 为空则从 DB 刷新
+  /// 供 MainShell 切 Tab 时调用：刷新偏好预设列表
   void refresh() {
-    if (_presets.isNotEmpty) return;
     _repo.getPresets().then((p) {
       if (mounted) setState(() => _presets = p);
     });

@@ -10,6 +10,7 @@ enum SyncEntityType {
   exitRating,
   paperLike,
   paperCollect,
+  preference,
 }
 
 /// 服务器期望的 entity_type 字符串
@@ -32,6 +33,8 @@ extension SyncEntityTypeServerName on SyncEntityType {
         return 'paper_like';
       case SyncEntityType.paperCollect:
         return 'paper_collect';
+      case SyncEntityType.preference:
+        return 'preference';
     }
   }
 }

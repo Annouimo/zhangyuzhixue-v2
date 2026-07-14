@@ -1082,7 +1082,7 @@ GET /api/v1/lectures/chapters/{chapterId}/content/
 | 积分计算 | user.db | `_PointsCalculator` 在本地实时计算 |
 | 成就推算 | assets.db + user.db | `_AchievementEngine` 在本地推算 |
 | 学习统计 | user.db | `_StatisticsAggregator` 本地聚合 |
-| 筛选预设 | user.db（preference_filter）| 纯本地数据 |
+| 筛选预设 | user.db（preference_filter）| 已加入同步队列，登录时 pull_user_db 恢复 |
 
 ---
 

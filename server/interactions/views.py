@@ -13,6 +13,7 @@ from interactions.models import (
     PageSatisfactionFeedback,
     PaperCollect,
     PaperLike,
+    PreferenceFilter,
     QuestionRating,
     StepFeedback,
     StudentSubmission,
@@ -29,6 +30,7 @@ ENTITY_ORDER = [
     'paper_like',
     'paper_collect',
     'exitRating',
+    'preference',
 ]
 
 # ── 响应工具 ──────────────────────────────────────────────────
@@ -204,3 +206,23 @@ class SyncPushView(APIView):
             comment=data.get('feedback', ''),
             device_type=data.get('device_type'),
         )
+
+    def _handle_preference(self, data, student, server_ids, detail_cache):
+        """处理筛选预设保存"""
+        pref, _ = PreferenceFilter.objects.update_or_create(
+            student=student,
+            name=data.get('name', ''),
+            defaults={
+                'years': data.get('years', '[]'),
+                'regions': data.get('regions', '[]'),
+                'concept_tags': data.get('concept_tags', '[]'),
+                'types': data.get('types', '[]'),
+                'knowledge_cards': data.get('knowledge_cards', '[]'),
+                'question_types': data.get('question_types', '[]'),
+                'diff_min': data.get('diff_min'),
+                'diff_max': data.get('diff_max'),
+                'calc_min': data.get('calc_min'),
+                'calc_max': data.get('calc_max'),
+            },
+        )
+        return pref

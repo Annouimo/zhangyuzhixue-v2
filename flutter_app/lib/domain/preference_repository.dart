@@ -1,4 +1,8 @@
+import 'dart:convert';
 import '../data/daos/preference_dao.dart';
+import '../data/debug/audit_logger.dart';
+import '../data/sync/sync_manager.dart';
+import '../data/sync/sync_types.dart';
 
 
 /// 筛选预设 — 委托 PreferenceDao
@@ -116,11 +120,12 @@ class PreferenceRepository {
     );
   }
 
-  Future<void> save({
+  /// 保存偏好并加入同步队列。返回插入记录的本地 ID。
+  Future<int> save({
     required String name,
     required PreferenceFilter filter,
   }) async {
-    await _dao.save(
+    final id = await _dao.save(
       name: name,
       years: _jsonEncode(filter.years),
       regions: _jsonEncode(filter.regions),
@@ -133,9 +138,37 @@ class PreferenceRepository {
       calcMin: filter.calcMin,
       calcMax: filter.calcMax,
     );
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.preference,
+        operation: SyncOperationType.upsert,
+        localId: id,
+        payload: jsonEncode({
+          'name': name,
+          ...filter.toJson(),
+        }),
+      );
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'preference_save', 'error': '$e'});
+    }
+    return id;
   }
 
-  Future<void> delete(int id) => _dao.delete(id);
+  Future<void> delete(int id) async {
+    await _dao.delete(id);
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.preference,
+        operation: SyncOperationType.delete,
+        localId: id,
+        payload: '{}',
+      );
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'preference_delete', 'error': '$e'});
+    }
+  }
 
   List<String> _parseJsonList(String raw) {
     if (raw.isEmpty) return [];

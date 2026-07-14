@@ -268,3 +268,31 @@ class PageSatisfactionFeedback(models.Model):
 
     def __str__(self):
         return f'评价 {self.rating}/5 ({self.user.username})'
+
+
+class PreferenceFilter(models.Model):
+    """筛选预设 — 通过同步队列从客户端接收"""
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE,
+        related_name='preference_filters'
+    )
+    name = models.CharField('预设名称', max_length=128)
+    years = models.TextField('年份(JSON list)', blank=True, default='')
+    regions = models.TextField('地区(JSON list)', blank=True, default='')
+    concept_tags = models.TextField('概念标签(JSON list)', blank=True, default='')
+    types = models.TextField('考试类型(JSON list)', blank=True, default='')
+    knowledge_cards = models.TextField('知识卡片(JSON list)', blank=True, default='')
+    question_types = models.TextField('题型(JSON list)', blank=True, default='')
+    diff_min = models.FloatField('难度下限', null=True, blank=True)
+    diff_max = models.FloatField('难度上限', null=True, blank=True)
+    calc_min = models.FloatField('计算量下限', null=True, blank=True)
+    calc_max = models.FloatField('计算量上限', null=True, blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '筛选预设'
+        verbose_name_plural = '筛选预设'
+
+    def __str__(self):
+        return f'{self.name} ({self.student})'
