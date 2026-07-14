@@ -185,13 +185,20 @@ class FilterPanelState extends State<FilterPanel> {
     final flatKcs = _selectedKnowledgeCardTitles.isNotEmpty
         ? _selectedKnowledgeCardTitles
         : _selectedKnowledgeCards;
+    // 全选时传空集 = 不过滤（避免关联表过滤排除无标签题）
+    final effectiveTags = widget.conceptTagOptions.isEmpty || flatTags.length == widget.conceptTagOptions.length
+        ? const <String>{}
+        : flatTags;
+    final effectiveKcs = widget.knowledgeCardOptions.isEmpty || flatKcs.length == widget.knowledgeCardOptions.length
+        ? const <String>{}
+        : flatKcs;
     widget.onChanged?.call(FilterState(
       years: _selectedYears,
       regions: _selectedRegions,
       types: _selectedTypes,
-      conceptTags: flatTags,
+      conceptTags: effectiveTags,
       examTypes: _selectedExamTypes,
-      knowledgeCards: flatKcs,
+      knowledgeCards: effectiveKcs,
       diffMin: _diffMin,
       diffMax: _diffMax,
       calcMin: _calcMin,
