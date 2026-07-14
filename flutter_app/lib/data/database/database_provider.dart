@@ -142,7 +142,33 @@ class DatabaseProvider {
     await File(newPath).copy(target.path);
     _appDb = AppDatabase(NativeDatabase(target));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+    await _ensurePreferenceSchema();
     _bumpVersion();
+  }
+
+  /// 确保 preference_filter 表有 knowledge_cards 和 question_types 列。
+  /// 服务端 pull_user_db 生成的 user.db 可能缺失（旧版本 schema），
+  /// 替换后补齐以防 INSERT 崩溃。
+  Future<void> _ensurePreferenceSchema() async {
+    if (_appDb == null) return;
+    try {
+      final cols = await (_appDb!.customSelect(
+        "SELECT name FROM pragma_table_info('preference_filter')",
+      )).get();
+      final names = cols.map((r) => r.data['name'] as String).toSet();
+      if (!names.contains('knowledge_cards')) {
+        await _appDb!.customStatement(
+          'ALTER TABLE preference_filter ADD COLUMN knowledge_cards TEXT',
+        );
+      }
+      if (!names.contains('question_types')) {
+        await _appDb!.customStatement(
+          'ALTER TABLE preference_filter ADD COLUMN question_types TEXT',
+        );
+      }
+    } catch (_) {
+      // 表不存在则跳过，Drift 会在首次使用时按 schema 创建
+    }
   }
 
   Future<void> clearUserDb() async {

@@ -250,4 +250,14 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 3;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from <= 2 && to >= 3) {
+        await m.addColumn(preferenceFilters, preferenceFilters.knowledgeCards);
+        await m.addColumn(preferenceFilters, preferenceFilters.questionTypes);
+      }
+    },
+  );
 }
