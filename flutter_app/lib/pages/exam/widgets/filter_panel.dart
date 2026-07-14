@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../domain/exam_repository.dart' as repo;
 import 'difficulty_slider.dart';
+import 'concept_tag_tree.dart';
+import 'knowledge_card_group.dart';
 
 /// 筛选状态（替代 10 个 positional 参数）
 class FilterState {
@@ -29,7 +32,7 @@ class FilterState {
   });
 }
 
-/// 筛选面板（智能组卷/自主选题 / 推荐 三页共用）
+/// 筛选面板（智能组卷/自主选题/推荐 三页共用）
 typedef FilterChangedCallback = void Function(FilterState state);
 
 final _difficultySegments = [
@@ -59,9 +62,11 @@ class FilterPanel extends StatefulWidget {
   final List<String> yearOptions;
   final List<String> regionOptions;
   final List<String> typeOptions; // 题型选项：choice/fill/solution
-  final List<String> conceptTagOptions;
+  final List<String> conceptTagOptions; // 展平的概念标签名
+  final List<repo.ConceptTagNode> conceptTagTree;
   final List<String> examTypeOptions;
-  final List<String> knowledgeCardOptions;
+  final List<String> knowledgeCardOptions; // 展平的知识卡片标题
+  final List<repo.KnowledgeCardGroup> knowledgeCardGroups;
   final FilterChangedCallback? onChanged;
   final VoidCallback? onSavePreference;
   final VoidCallback? onLoadPreference;
@@ -72,8 +77,10 @@ class FilterPanel extends StatefulWidget {
     required this.regionOptions,
     this.typeOptions = const ['choice', 'fill', 'solution'],
     this.conceptTagOptions = const [],
+    this.conceptTagTree = const [],
     this.examTypeOptions = const [],
     this.knowledgeCardOptions = const [],
+    this.knowledgeCardGroups = const [],
     this.onChanged,
     this.onSavePreference,
     this.onLoadPreference,
@@ -90,13 +97,17 @@ class FilterPanelState extends State<FilterPanel> {
   final _selectedConceptTags = <String>{};
   final _selectedExamTypes = <String>{};
   final _selectedKnowledgeCards = <String>{};
+  final _selectedConceptTagNames = <String>{};
+  final _selectedKnowledgeCardTitles = <String>{};
   double _diffMin = 0, _diffMax = 10;
   double _calcMin = 0, _calcMax = 10;
 
   bool _sourceExpanded = true;
-  bool _conceptExpanded = true;
-  bool _knowledgeExpanded = true;
-  bool _diffExpanded = true;
+  bool _conceptExpanded = false;
+  bool _knowledgeExpanded = false;
+  bool _diffExpanded = false;
+
+  bool _initialized = false;
 
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
@@ -108,6 +119,26 @@ class FilterPanelState extends State<FilterPanel> {
   double get diffMax => _diffMax;
   double get calcMin => _calcMin;
   double get calcMax => _calcMax;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _selectAllInitial());
+  }
+
+  void _selectAllInitial() {
+    if (_initialized) return;
+    setState(() {
+      _selectedYears.addAll(widget.yearOptions);
+      _selectedRegions.addAll(widget.regionOptions);
+      _selectedTypes.addAll(widget.typeOptions);
+      _selectedExamTypes.addAll(widget.examTypeOptions);
+      _selectedConceptTagNames.addAll(widget.conceptTagOptions);
+      _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
+      _initialized = true;
+    });
+    _emit();
+  }
 
   void applyFilter({
     Set<String>? years, Set<String>? regions, Set<String>? conceptTags,
@@ -138,6 +169,8 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedConceptTags.clear();
       _selectedKnowledgeCards.clear();
       _selectedTypes.clear();
+      _selectedConceptTagNames.clear();
+      _selectedKnowledgeCardTitles.clear();
       _diffMin = 0; _diffMax = 10;
       _calcMin = 0; _calcMax = 10;
     });
@@ -145,18 +178,56 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   void _emit() {
+    // 合并树/分组选中状态到展平集合
+    final flatTags = _selectedConceptTagNames.isNotEmpty
+        ? _selectedConceptTagNames
+        : _selectedConceptTags;
+    final flatKcs = _selectedKnowledgeCardTitles.isNotEmpty
+        ? _selectedKnowledgeCardTitles
+        : _selectedKnowledgeCards;
     widget.onChanged?.call(FilterState(
       years: _selectedYears,
       regions: _selectedRegions,
       types: _selectedTypes,
-      conceptTags: _selectedConceptTags,
+      conceptTags: flatTags,
       examTypes: _selectedExamTypes,
-      knowledgeCards: _selectedKnowledgeCards,
+      knowledgeCards: flatKcs,
       diffMin: _diffMin,
       diffMax: _diffMax,
       calcMin: _calcMin,
       calcMax: _calcMax,
     ));
+  }
+
+  // ── 摘要行 ──
+  String get _summaryText {
+    final parts = <String>[];
+    if (_selectedYears.isNotEmpty && _selectedYears.length < widget.yearOptions.length) {
+      parts.add(_selectedYears.join(' '));
+    }
+    if (_selectedRegions.isNotEmpty && _selectedRegions.length < widget.regionOptions.length) {
+      parts.add(_selectedRegions.join('/'));
+    }
+    if (_selectedTypes.isNotEmpty && _selectedTypes.length < widget.typeOptions.length) {
+      parts.add(_selectedTypes.map((t) => QuestionTypeLabels.of(t)).join('/'));
+    }
+    if (_selectedExamTypes.isNotEmpty && _selectedExamTypes.length < widget.examTypeOptions.length) {
+      parts.add(_selectedExamTypes.join('/'));
+    }
+    final tagCount = _selectedConceptTagNames.length;
+    final kcCount = _selectedKnowledgeCardTitles.length;
+    if (tagCount > 0 && tagCount < widget.conceptTagOptions.length) {
+      parts.add('概念标签 $tagCount');
+    }
+    if (kcCount > 0 && kcCount < widget.knowledgeCardOptions.length) {
+      parts.add('知识卡片 $kcCount');
+    }
+    if ((_diffMin > 0 || _diffMax < 10) || (_calcMin > 0 || _calcMax < 10)) {
+      final d = _diffMin > 0 || _diffMax < 10 ? '难度 ${_diffMin.toStringAsFixed(0)}-${_diffMax.toStringAsFixed(0)}' : null;
+      final c = _calcMin > 0 || _calcMax < 10 ? '计算量 ${_calcMin.toStringAsFixed(0)}-${_calcMax.toStringAsFixed(0)}' : null;
+      parts.add([d, c].nonNulls.join(' '));
+    }
+    return parts.join(' · ');
   }
 
   @override
@@ -168,7 +239,7 @@ class FilterPanelState extends State<FilterPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-        // 标题行：筛选条件 + 清除全部
+        // 标题行：筛选条件 + 取消全选
         Row(
           children: [
             const Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
@@ -180,10 +251,16 @@ class FilterPanelState extends State<FilterPanel> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('清除全部', style: TextStyle(fontSize: 12)),
+              child: const Text('取消全选', style: TextStyle(fontSize: 12)),
             ),
           ],
         ),
+        // 摘要行
+        if (_summaryText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(_summaryText, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          ),
         // 保存/读取预设
         if (widget.onSavePreference != null || widget.onLoadPreference != null)
           Padding(
@@ -221,21 +298,35 @@ class FilterPanelState extends State<FilterPanel> {
           ],
         ]),
         const SizedBox(height: 8),
-        if (widget.conceptTagOptions.isNotEmpty)
-          _buildSection('按概念标签筛选', _conceptExpanded, () {
+        if (widget.conceptTagTree.isNotEmpty)
+          _section('按概念标签筛选', _conceptExpanded, () {
             setState(() => _conceptExpanded = !_conceptExpanded);
-          }, [
-            _buildChipGroup('', widget.conceptTagOptions, _selectedConceptTags),
-          ]),
-        if (widget.conceptTagOptions.isNotEmpty)
+          }, ConceptTagTreeView(
+            nodes: widget.conceptTagTree,
+            selectedNames: _selectedConceptTagNames,
+            onChanged: (names) {
+              setState(() => _selectedConceptTagNames
+                ..clear()
+                ..addAll(names));
+              _emit();
+            },
+          )),
+        if (widget.conceptTagTree.isNotEmpty)
           const SizedBox(height: 8),
-        if (widget.knowledgeCardOptions.isNotEmpty)
-          _buildSection('按知识卡片筛选', _knowledgeExpanded, () {
+        if (widget.knowledgeCardGroups.isNotEmpty)
+          _section('按知识卡片筛选', _knowledgeExpanded, () {
             setState(() => _knowledgeExpanded = !_knowledgeExpanded);
-          }, [
-            _buildChipGroup('', widget.knowledgeCardOptions, _selectedKnowledgeCards),
-          ]),
-        if (widget.knowledgeCardOptions.isNotEmpty)
+          }, KnowledgeCardGroupView(
+            groups: widget.knowledgeCardGroups,
+            selectedTitles: _selectedKnowledgeCardTitles,
+            onChanged: (titles) {
+              setState(() => _selectedKnowledgeCardTitles
+                ..clear()
+                ..addAll(titles));
+              _emit();
+            },
+          )),
+        if (widget.knowledgeCardGroups.isNotEmpty)
           const SizedBox(height: 8),
         _buildSection('按难度/计算量筛选', _diffExpanded, () {
           setState(() => _diffExpanded = !_diffExpanded);
@@ -258,6 +349,28 @@ class FilterPanelState extends State<FilterPanel> {
           ],
         ),
       ),
+    );
+  }
+
+  /// 简化 section 构建（直接包裹子 widget，非列表）
+  Widget _section(String title, bool expanded, VoidCallback onToggle, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onToggle,
+          child: Row(
+            children: [
+              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+              const Spacer(),
+              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        if (expanded) ...[const SizedBox(height: 6), child],
+        const SizedBox(height: 4),
+      ],
     );
   }
 
