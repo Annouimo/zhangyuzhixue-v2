@@ -11,7 +11,7 @@ class _MockStatsRepo implements StatisticsRepository {
   @override Future<List<DailyRecord>> getDailyRecords(int rangeDays) async => [const DailyRecord(date: '2025-01-01', count: 3, correct: 2, level: 2)];
   @override Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async => [];
   @override Future<List<TrendPoint>> getPointsTrend(int rangeDays) async => [];
-  @override Future<Distribution> getDistribution() async => const Distribution(total: 10, choiceCount: 5, choicePercent: 50, fillCount: 3, fillPercent: 30, solutionCount: 2, solutionPercent: 20);
+  @override Future<Distribution> getDistribution({int rangeDays = 0}) async => const Distribution(total: 10, choiceCount: 5, choicePercent: 50, fillCount: 3, fillPercent: 30, solutionCount: 2, solutionPercent: 20);
 }
 
 void main() {

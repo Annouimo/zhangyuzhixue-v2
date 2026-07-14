@@ -167,7 +167,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       final db = DatabaseProvider();
       await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kAutoPaperCost),
+          amount: const Value(-_kAutoPaperCost * 10),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),

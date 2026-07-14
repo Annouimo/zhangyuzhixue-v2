@@ -168,7 +168,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final db = DatabaseProvider();
       await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kPickPaperCost),
+          amount: const Value(-_kPickPaperCost * 10),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),

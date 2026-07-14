@@ -96,7 +96,8 @@ class UserDao {
   }
 
   Future<int> getTotalSubmissions() async {
-    final rows = await _db.select(_db.submissionDetails).get();
+    final rows = await (_db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull())).get();
     AuditLogger.instance.dao('UserDao.getTotalSubmissions', rows.length, {});
     return rows.length;
   }

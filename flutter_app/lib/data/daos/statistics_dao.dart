@@ -119,9 +119,14 @@ class StatisticsDao {
   }
 
   /// 获取所有做过题的 question_id（去重，用于题型分布统计）
-  Future<List<int>> getAttemptedQuestionIds() async {
-    final rows = await (_db.select(_db.submissionDetails)
-      ..where((t) => t.isCorrect.isNotNull())).get();
+  Future<List<int>> getAttemptedQuestionIds({int rangeDays = 0}) async {
+    var q = _db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull());
+    if (rangeDays > 0) {
+      final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
+      q.where((t) => t.createdAt.isBiggerThanValue(threshold));
+    }
+    final rows = await q.get();
     final ids = rows.map((r) => r.questionId).toSet().toList();
     AuditLogger.instance.dao('StatisticsDao.getAttemptedQuestionIds', ids.length, {});
     return ids;

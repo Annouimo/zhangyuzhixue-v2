@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:drift/drift.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/database/database_provider.dart';
+import '../data/database/app_database.dart' as app_db;
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
@@ -238,6 +240,21 @@ class QuestionRepository {
       } catch (_) {
         // 入队失败不阻塞主流程
       }
+      // 赠送做题积分（写本地流水）
+      try {
+        final now = DateTime.now().toIso8601String();
+        final db = DatabaseProvider();
+        const reward = 3; // 0.3分 = 3厘，默认做题奖励
+        await db.appDb.into(db.appDb.pointsTransactions).insert(
+          app_db.PointsTransactionsCompanion(
+            amount: const Value(reward),
+            source: const Value('PRACTICE_REWARD'),
+            transactionType: const Value('EARN'),
+            createdAt: Value(now),
+            description: const Value('做题奖励'),
+          ),
+        );
+      } catch (_) {}
     }
   }
 

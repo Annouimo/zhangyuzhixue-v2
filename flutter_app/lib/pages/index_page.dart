@@ -177,6 +177,19 @@ class _IndexPageState extends State<IndexPage> {
       );
 
       if (!mounted) return;
+      // 在本地创建签到积分流水（服务端已创建，本地镜像）
+      try {
+        final now = DateTime.now();
+        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+          app_db.PointsTransactionsCompanion(
+            amount: Value(points),
+            source: const Value('LOGIN_BONUS'),
+            transactionType: const Value('EARN'),
+            createdAt: Value(now.toIso8601String()),
+            description: Value('第$streak天签到奖励'),
+          ),
+        );
+      } catch (_) {}
       setState(() {
         _streakDays = streak;
         _checkedIn = true;
@@ -411,7 +424,7 @@ class _IndexPageState extends State<IndexPage> {
             children: [
               Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
+              Text('今日学习积分 +${(_todayEarned / 10).toStringAsFixed(1)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
             ],
           ),

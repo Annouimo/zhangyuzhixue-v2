@@ -155,12 +155,16 @@ class UserRepository {
     final items = <HistoryItem>[];
     for (final s in submissions) {
       String qType = '';
+      String title = '#${s.questionId}';
       try {
         final q = await _questionDao.getById(s.questionId);
-        qType = q?.questionType ?? '';
+        if (q != null) {
+          qType = q.questionType;
+          title = '${q.year} ${q.region}${q.examType} ${q.number}';
+        }
       } catch (_) {}
       items.add(HistoryItem(
-        title: '#${s.questionId}',
+        title: title,
         questionType: qType,
         questionId: s.questionId,
         date: s.createdAt.substring(0, 10),

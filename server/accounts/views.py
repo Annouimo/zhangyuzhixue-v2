@@ -76,7 +76,7 @@ def register_view(request):
     # 赠送注册积分
     PointsTransaction.objects.create(
         student=student,
-        amount=10,
+        amount=100,
         transaction_type='EARN',
         source='SIGNUP_BONUS',
         description='新用户注册赠送',

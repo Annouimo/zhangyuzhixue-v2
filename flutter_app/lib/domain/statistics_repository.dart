@@ -124,8 +124,8 @@ class StatisticsRepository {
     return points;
   }
 
-  Future<Distribution> getDistribution() async {
-    final qids = await _dao.getAttemptedQuestionIds();
+  Future<Distribution> getDistribution({int rangeDays = 0}) async {
+    final qids = await _dao.getAttemptedQuestionIds(rangeDays: rangeDays);
     var choice = 0, fill = 0, solution = 0;
     if (_questionDao != null && qids.isNotEmpty) {
       final questions = await _questionDao.getByIds(qids);

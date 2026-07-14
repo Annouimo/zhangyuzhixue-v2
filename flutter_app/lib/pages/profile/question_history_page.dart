@@ -45,6 +45,8 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
     }
   }
 
+  static const _statusLabels = {'completed': '已完成', 'in_progress': '进行中'};
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('做题历史')),
@@ -61,7 +63,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
               final h = _history![i];
               return ListTile(
                 title: Text(h.title, style: const TextStyle(fontSize: 14)),
-                subtitle: Text('${h.date} · ${h.status}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                subtitle: Text('${h.questionType} · ${h.date} · ${_statusLabels[h.status] ?? h.status}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                 trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
                 onTap: () {
                   final route = switch (h.questionType) {
