@@ -109,8 +109,6 @@ class ProfilePageState extends State<ProfilePage> {
       final lv = await _repo.currentLevel();
       if (!mounted) return;
       setState(() => _currentLevel = lv);
-      // 同步后缓存 accessible_course_ids（如有）
-      unawaited(_repo.syncAccessibleCourseIds());
       AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._load', e);

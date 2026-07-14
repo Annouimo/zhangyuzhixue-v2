@@ -325,17 +325,6 @@ class UserRepository {
 
   Future<String> questionBankVersion() async => AppPrefs().qbankVersion.toString();
 
-  /// 从 user_profile 读取 accessible_course_ids 并缓存到 AppPrefs
-  Future<void> syncAccessibleCourseIds() async {
-    final raw = await _dao.getAccessibleCourseIds();
-    if (raw != null && raw.isNotEmpty) {
-      final ids = raw.split(',').map((e) => int.tryParse(e.trim()) ?? 0)
-          .where((id) => id > 0).toList();
-      if (ids.isNotEmpty) {
-        await AppPrefs().setAccessibleCourseIds(ids);
-      }
-    }
-  }
 }
 
 // ── 积分计算引擎 ──

@@ -12,7 +12,7 @@ class AssignmentSummary {
   final String courseName;
   final int doneCount;
   final int totalCount;
-  final int deadlineDays;
+  final int? deadlineDays;  // null = 无截止日期
   final String status;
 
   const AssignmentSummary({
@@ -47,7 +47,7 @@ class AssignmentDetail {
   final String courseName;
   final int doneCount;
   final int totalCount;
-  final int deadlineDays;
+  final int? deadlineDays;  // null = 无截止日期
   final List<QuestionSummary> questions;
 
   const AssignmentDetail({
@@ -80,56 +80,65 @@ class AssignmentRepository {
   Future<List<AssignmentSummary>> getPending() async {
     // 优先走 API（含班级过滤 + deadline）
     try {
-      final data = await _userApi.pendingAssignments();
-      final accessibleIds = (data['accessible_course_ids'] as List)
-          .cast<int>();
-      if (accessibleIds.isNotEmpty) {
-        try {
-          await AppPrefs().setAccessibleCourseIds(accessibleIds);
-        } catch (_) {
-          // AppPrefs 未初始化，静默跳过
-        }
-      }
-
-      final rawList = data['assignments'] as List;
-      final attempted = await _progressDao.getAttemptedQuestionIds();
-
-      // 预加载所有 question IDs（避免 N+1）
-      final allQids = <int, List<int>>{};
-      for (final r in rawList) {
-        final id = r['id'] as int;
-        allQids[id] = await _assignmentDao.getQuestionIds(id);
-      }
-
-      final result = <AssignmentSummary>[];
-      for (final r in rawList) {
-        final id = r['id'] as int;
-        final totalCount = r['total_count'] as int;
-        final deadlineRemaining = r['deadline_remaining'] as int?;
-        final qIds = allQids[id] ?? [];
-
-        var doneCount = 0;
-        for (final qid in qIds) {
-          if (attempted.contains(qid)) doneCount++;
-        }
-
-        result.add(AssignmentSummary(
-          id: id,
-          title: r['title'] as String,
-          courseName: r['course_name'] as String? ?? '',
-          doneCount: doneCount,
-          totalCount: totalCount,
-          deadlineDays: deadlineRemaining ?? 0,
-          status: doneCount > 0
-              ? (doneCount == totalCount ? 'completed' : 'in_progress')
-              : 'pending',
-        ));
-      }
-      return result;
+      return await _getPendingFromApi();
     } catch (_) {
       // API 失败 → 回退本地查询
-      return _getPendingLocal();
+      return getPendingLocal();
     }
+  }
+
+  /// 纯本地查询（不依赖 API），用于离线回退和首页快速展示
+  Future<List<AssignmentSummary>> getPendingLocal() async {
+    return _getPendingLocal();
+  }
+
+  /// 仅走 API，不含本地回退
+  Future<List<AssignmentSummary>> _getPendingFromApi() async {
+    final data = await _userApi.pendingAssignments();
+    final accessibleIds = (data['accessible_course_ids'] as List).cast<int>();
+    if (accessibleIds.isNotEmpty) {
+      try {
+        await AppPrefs().setAccessibleCourseIds(accessibleIds);
+      } catch (_) {
+        // AppPrefs 未初始化，静默跳过
+      }
+    }
+
+    final rawList = data['assignments'] as List;
+    final completed = await _progressDao.getCompletedQuestionIds();
+
+    // 预加载所有 question IDs（避免 N+1）
+    final allQids = <int, List<int>>{};
+    for (final r in rawList) {
+      final id = r['id'] as int;
+      allQids[id] = await _assignmentDao.getQuestionIds(id);
+    }
+
+    final result = <AssignmentSummary>[];
+    for (final r in rawList) {
+      final id = r['id'] as int;
+      final totalCount = r['total_count'] as int;
+      final deadlineRemaining = r['deadline_remaining'] as int?;
+      final qIds = allQids[id] ?? [];
+
+      var doneCount = 0;
+      for (final qid in qIds) {
+        if (completed.contains(qid)) doneCount++;
+      }
+
+      result.add(AssignmentSummary(
+        id: id,
+        title: r['title'] as String,
+        courseName: r['course_name'] as String? ?? '',
+        doneCount: doneCount,
+        totalCount: totalCount,
+        deadlineDays: deadlineRemaining,
+        status: doneCount > 0
+            ? (doneCount == totalCount ? 'completed' : 'in_progress')
+            : 'pending',
+      ));
+    }
+    return result;
   }
 
   /// 本地回退方案（无 deadline 信息，accessibleCourseIds 过滤）
@@ -161,7 +170,7 @@ class AssignmentRepository {
         courseName: courseName,
         doneCount: doneCount,
         totalCount: qLinks.length,
-        deadlineDays: 0,  // 本地回退无 deadline 信息
+        deadlineDays: null,  // 本地回退无 deadline 信息
         status: doneCount > 0 ? (doneCount == qLinks.length ? 'completed' : 'in_progress') : 'pending',
       ));
     }
@@ -208,19 +217,20 @@ class AssignmentRepository {
       courseName: courseName,
       doneCount: doneCount,
       totalCount: questions.length,
-      deadlineDays: 0,
+      deadlineDays: null,  // 详情页从本地查，无 deadline 信息
       questions: questions,
     );
   }
 
   /// 推算单题状态（用于详情页，跳过 hasAttempt 检查）
+  /// 设计文档 §10.2: is_correct 有值(true/false) = 已完成
   Future<String> _questionStatusDetail(int questionId) async {
     final latest = await _progressDao.getLatestAttempt(questionId);
     if (latest == null) return 'in_progress';
-    return latest.isCorrect == 1 ? 'completed' : 'in_progress';
+    return latest.isCorrect != null ? 'completed' : 'in_progress';
   }
 
-  Future<int> pendingCount() => _assignmentDao.count();
+  Future<int> pendingCount() async => AppPrefs().pendingHomeworkCount;
 
   /// AppPrefs 未初始化时安全返回空列表
   List<int> _safeAccessibleIds() {

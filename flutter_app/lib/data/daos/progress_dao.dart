@@ -154,6 +154,16 @@ class ProgressDao {
     return ids;
   }
 
+  /// 批量查询已完成的题目 ID（is_correct IS NOT NULL，含答对和答错）
+  Future<Set<int>> getCompletedQuestionIds() async {
+    final q = _db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.isNotNull());
+    final rows = await q.get();
+    final ids = rows.map((r) => r.questionId).toSet();
+    AuditLogger.instance.dao('ProgressDao.getCompletedQuestionIds', ids.length, {});
+    return ids;
+  }
+
   /// 是否有任何提交记录（判断是否有学习历史）
   Future<bool> hasAnySubmission() async {
     final rows = await _db.select(_db.submissions).get();

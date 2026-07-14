@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
+import '../data/api/user_api.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../domain/auth_repository.dart';
@@ -79,6 +80,17 @@ class _LoginPageState extends State<LoginPage> {
         await SyncManager().onLogin(onProgress: onProgress);
       });
       if (!mounted) return;
+
+      // 缓存 accessible_course_ids（登录即获取，供离线过滤用）
+      try {
+        final data = await UserApi(ApiClient()).pendingAssignments();
+        final ids = (data['accessible_course_ids'] as List).cast<int>();
+        if (ids.isNotEmpty) {
+          await AppPrefs().setAccessibleCourseIds(ids);
+        }
+      } catch (e) {
+        AuditLogger.instance.error('LoginPage.cacheCourseIds', e);
+      }
 
       // 同步失败时页面内显示提示（登录流程已走完，token 已保存）
       if (!syncOk) {

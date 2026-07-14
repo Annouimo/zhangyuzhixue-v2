@@ -48,7 +48,8 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       _error = null;
     });
     try {
-      final list = await _repo.getPending();
+      // 先读本地（秒开），再后台刷 API 获取截止时间等实时信息
+      final list = await _repo.getPendingLocal();
       if (!mounted) return;
       AppPrefs().setPendingHomeworkCount(list.length);
       setState(() {
@@ -56,6 +57,8 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
         _loading = false;
       });
       AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length});
+      // 后台静默刷新
+      _refreshFromApi();
     } catch (e) {
       AuditLogger.instance.error('HomeworkListPage._load', e);
       if (!mounted) return;
@@ -63,6 +66,17 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
         _error = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _refreshFromApi() async {
+    try {
+      final list = await _repo.getPending();
+      if (!mounted) return;
+      AppPrefs().setPendingHomeworkCount(list.length);
+      setState(() => _assignments = list);
+    } catch (_) {
+      // API 失败静默忽略，已有本地数据兜底
     }
   }
 
@@ -98,6 +112,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
             doneCount: a.doneCount,
             totalCount: a.totalCount,
             deadlineDays: a.deadlineDays,
+            status: a.status,
             onTap: () => context.push('${AppRoutes.homeworkDetail}?id=${a.id}'),
           );
         },

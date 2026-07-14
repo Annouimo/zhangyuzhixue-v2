@@ -30,6 +30,7 @@ class HomeworkDetailPage extends StatefulWidget {
 
 class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   late final AssignmentRepository _repo;
+  late final QuestionRepository _qRepo;
   AssignmentDetail? _detail;
   bool _loading = true;
   String? _error;
@@ -37,12 +38,17 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   @override
   void initState() {
     super.initState();
+    final db = DatabaseProvider();
     _repo = widget.assignmentRepository ??
         AssignmentRepository(
-          AssignmentDao(DatabaseProvider().lecturesDb),
-          ProgressDao(DatabaseProvider().appDb),
-          QuestionDao(DatabaseProvider().assetsDb),
+          AssignmentDao(db.lecturesDb),
+          ProgressDao(db.appDb),
+          QuestionDao(db.assetsDb),
         );
+    _qRepo = QuestionRepository(
+      QuestionDao(db.assetsDb),
+      ProgressDao(db.appDb),
+    );
     _load();
   }
 
@@ -176,20 +182,20 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     'solution' => AppRoutes.solveMap,
                     _ => AppRoutes.solveChoice,
                   };
-                  // 查 attempts 决定 mode/attemptId
+                  // 据 q.status 决定 mode/attemptId
                   String mode = 'first';
                   int? attemptId;
-                  try {
-                    final qRepo = QuestionRepository(
-                      QuestionDao(DatabaseProvider().assetsDb),
-                      ProgressDao(DatabaseProvider().appDb),
-                    );
-                    final attempts = await qRepo.getAttempts(q.id);
-                    if (attempts.isNotEmpty) {
-                      mode = 'review';
-                      attemptId = attempts.last.id;
+                  if (q.status != 'pending') {
+                    try {
+                      final attempts = await _qRepo.getAttempts(q.id);
+                      if (attempts.isNotEmpty) {
+                        mode = q.status == 'completed' ? 'review' : 'resume';
+                        attemptId = attempts.last.id;
+                      }
+                    } catch (e) {
+                      AuditLogger.instance.error('HomeworkDetailPage.onTap', e);
                     }
-                  } catch (_) {}
+                  }
                   final currentIdx = d.questions.indexWhere((q2) => q2.id == q.id);
                   final nextId = (currentIdx >= 0 && currentIdx + 1 < d.questions.length)
                       ? d.questions[currentIdx + 1].id
