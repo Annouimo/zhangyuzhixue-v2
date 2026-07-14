@@ -171,16 +171,34 @@ class UserRepository {
 
   Future<List<PointsRecord>> getPointsHistory() async {
     final rows = await _dao.getPointsHistory();
-    final calc = _PointsCalculator(rows);
-    return rows.map((r) => PointsRecord(
-      time: r.createdAt,
-      type: _sourceLabels[r.source] ?? r.source,
-      change: r.amount.toDouble(),
-      earned: calc.earned.toDouble(),
-      bonus: calc.bonus.toDouble(),
-      spent: calc.spent.toDouble(),
-      available: calc.available.toDouble(),
-    )).toList();
+    // 计算每行的累计值。rows 按 createdAt DESC（最新在前）。
+    // 从最旧的行（数组末端）向前遍历，逐行累积四种积分。
+    var cumEarned = 0, cumBonus = 0, cumSpent = 0;
+    final records = <PointsRecord>[];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      final r = rows[i];
+      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'].contains(r.source)) {
+        cumEarned += r.amount;
+      } else if (r.source == 'SIGNUP_BONUS') {
+        cumBonus += r.amount;
+      } else if (r.source == 'PAPER_PURCHASE') {
+        cumSpent += r.amount.abs();
+      }
+      records.add(PointsRecord(
+        time: r.createdAt,
+        type: _sourceLabels[r.source] ?? r.source,
+        change: r.amount.toDouble(),
+        earned: cumEarned.toDouble(),
+        bonus: cumBonus.toDouble(),
+        spent: cumSpent.toDouble(),
+        available: (cumEarned + cumBonus - cumSpent).toDouble(),
+      ));
+    }
+    // records 现在是倒序（最新在前），最前面已经是累加到最后的值
+    // 但我们需要每行是"到该笔交易时的累计值" — 从旧到新累积后反转
+    // 因为我们是反向遍历（从旧到新），records 是按 createdAt ASC 添加的
+    // 所以需要再反转一次得到 DESC（最新在前）
+    return records.reversed.toList();
   }
 
   /// 一次性获取所有积分汇总（earned + bonus + spent + available）
