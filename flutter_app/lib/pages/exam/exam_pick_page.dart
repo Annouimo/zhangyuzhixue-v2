@@ -55,6 +55,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   Timer? _debouncedSearch;
+  PoolStats? _poolStats;
 
   @override
   void initState() {
@@ -78,6 +79,21 @@ class _ExamPickPageState extends State<ExamPickPage> {
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamPickPage', {'totalCount': _questions?.length});
     } catch (e) { AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+  }
+
+  Future<void> _updatePoolStats() async {
+    try {
+      final filters = SearchFilters(
+        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
+        knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+      );
+      final stats = await _repo.getPoolStats(filters);
+      if (mounted) setState(() => _poolStats = stats);
+    } catch (_) {}
   }
 
   /// 保存当前筛选条件为学习偏好
@@ -132,6 +148,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
+      _updatePoolStats();
     } catch (e) { AuditLogger.instance.error('ExamPickPage._search', e); if (mounted) setState(() => _loadingQ = false); }
   }
 
@@ -281,7 +298,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
             _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(const Duration(milliseconds: 300), _search);
+            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); _updatePoolStats(); });
             },
           )
         : null;
@@ -290,10 +307,31 @@ class _ExamPickPageState extends State<ExamPickPage> {
       return const Center(child: LoadingIndicator(message: '搜索中…'));
     }
 
-    // 组装：filterPanel 在顶部，下方根据状态切换
+    // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
     final headerChildren = <Widget>[
       nameField,
       if (filterPanel != null) filterPanel,
+      if (_poolStats != null)
+        Card(
+          margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                _statChip('选择', _poolStats!.availableChoice),
+                const SizedBox(width: 8),
+                _statChip('填空', _poolStats!.availableFill),
+                const SizedBox(width: 8),
+                _statChip('解答', _poolStats!.availableSolution),
+              ],
+            ),
+          ),
+        ),
     ];
 
     if (_questions == null) {
@@ -352,6 +390,17 @@ class _ExamPickPageState extends State<ExamPickPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _statChip(String label, int count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
     );
   }
 }

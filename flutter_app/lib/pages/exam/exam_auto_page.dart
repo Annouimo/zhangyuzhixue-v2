@@ -252,6 +252,28 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                           _updatePoolStats();
                         },
                       ),
+                    // 池统计
+                    if (_poolStats != null)
+                      Card(
+                        margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                          side: const BorderSide(color: AppColors.border),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Row(
+                            children: [
+                              _statChip('选择', _poolStats!.availableChoice),
+                              const SizedBox(width: 8),
+                              _statChip('填空', _poolStats!.availableFill),
+                              const SizedBox(width: 8),
+                              _statChip('解答', _poolStats!.availableSolution),
+                            ],
+                          ),
+                        ),
+                      ),
                     // 题型配比 Card
                     Card(
                       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -270,21 +292,6 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                             _countStepper('选择题', _choiceCount, (v) => _choiceCount = v, availableCount: _poolStats?.availableChoice ?? 0),
                             _countStepper('填空题', _fillCount, (v) => _fillCount = v, availableCount: _poolStats?.availableFill ?? 0),
                             _countStepper('解答题', _solutionCount, (v) => _solutionCount = v, availableCount: _poolStats?.availableSolution ?? 0),
-                            if (_poolStats != null) ...[
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  _statChip('选择', _poolStats!.availableChoice),
-                                  const SizedBox(width: 8),
-                                  _statChip('填空', _poolStats!.availableFill),
-                                  const SizedBox(width: 8),
-                                  _statChip('解答', _poolStats!.availableSolution),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              const Divider(height: 1),
-                              const SizedBox(height: 8),
-                            ],
                             const Text('难度调优（可选）', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                             const SizedBox(height: 4),
                             Text('设置目标平均难度，系统自动挑选最接近的题目组合',

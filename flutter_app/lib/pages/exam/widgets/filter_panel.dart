@@ -246,7 +246,7 @@ class FilterPanelState extends State<FilterPanel> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.zero,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -283,8 +283,47 @@ class FilterPanelState extends State<FilterPanel> {
               children: _summaryChips,
             ),
           ),
-        // 按来源筛选（header 内嵌保存/读取偏好）
-        _buildSourceSection([
+        // 保存/读取偏好
+        if (widget.onSavePreference != null || widget.onLoadPreference != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              children: [
+                if (widget.onSavePreference != null)
+                  GestureDetector(
+                    onTap: widget.onSavePreference,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.save_outlined, size: 14, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      const Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                    ]),
+                  ),
+                if (widget.onSavePreference != null && widget.onLoadPreference != null)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('|', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                  ),
+                if (widget.onLoadPreference != null)
+                  GestureDetector(
+                    onTap: widget.onLoadPreference,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.folder_open_outlined, size: 14, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      const Text('读取学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                    ]),
+                  ),
+              ],
+            ),
+          ),
+        // 按来源筛选
+        _buildSection('按来源筛选', _sourceExpanded, () {
+          setState(() => _sourceExpanded = !_sourceExpanded);
+        }, [
           _buildChipGroup('年份', widget.yearOptions, _selectedYears),
           const SizedBox(height: 8),
           _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
@@ -349,44 +388,6 @@ class FilterPanelState extends State<FilterPanel> {
           ],
         ),
       ),
-    );
-  }
-
-  /// 来源 section（header 内嵌保存/读取偏好）
-  Widget _buildSourceSection(List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader('按来源筛选', _sourceExpanded, () {
-          setState(() => _sourceExpanded = !_sourceExpanded);
-        }, trailing: widget.onSavePreference != null || widget.onLoadPreference != null
-            ? Row(mainAxisSize: MainAxisSize.min, children: [
-                if (widget.onSavePreference != null)
-                  GestureDetector(
-                    onTap: widget.onSavePreference,
-                    child: const Text('保存偏好', style: TextStyle(fontSize: 11, color: AppColors.primary)),
-                  ),
-                if (widget.onSavePreference != null && widget.onLoadPreference != null)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Text('|', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                  ),
-                if (widget.onLoadPreference != null)
-                  GestureDetector(
-                    onTap: widget.onLoadPreference,
-                    child: const Text('读取偏好', style: TextStyle(fontSize: 11, color: AppColors.primary)),
-                  ),
-              ])
-            : null),
-        if (_sourceExpanded) ...[
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
-          ),
-          const SizedBox(height: 4),
-        ],
-      ],
     );
   }
 
