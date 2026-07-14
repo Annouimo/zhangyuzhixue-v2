@@ -10,6 +10,7 @@ import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
 import '../../data/debug/audit_logger.dart';
+import '../router.dart';
 
 class QuestionHistoryPage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -67,15 +68,16 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
                 trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
                 onTap: () {
                   final route = switch (h.questionType) {
-                    'choice' => '/solve/choice',
-                    'fill' => '/solve/fill',
-                    'solution' => '/solve/map',
-                    _ => '/solve/choice',
+                    'choice' => AppRoutes.solveChoice,
+                    'fill' => AppRoutes.solveFill,
+                    'solution' => AppRoutes.solveMap,
+                    _ => AppRoutes.solveChoice,
                   };
                   final mode = h.isCompleted ? 'review' : 'resume';
                   context.push(
                     '$route?id=${h.questionId}'
-                    '&mode=$mode',
+                    '&mode=$mode'
+                    '&attemptId=${h.id}',
                   );
                 },
               );

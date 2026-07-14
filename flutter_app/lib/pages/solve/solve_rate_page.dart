@@ -67,7 +67,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   String _algoNote(String label, double algoScore) {
     if (algoScore <= 0) return '';
-    return '· 算法评分: ${algoScore.toStringAsFixed(1)}';
+    return ' \u00B7 算法评分: ${algoScore.toStringAsFixed(1)}';
   }
 
   Future<void> _submit() async {
@@ -122,7 +122,12 @@ class _SolveRatePageState extends State<SolveRatePage> {
                   _StarRating(label: '计算量', value: _calculation, note: _algoNote('计算量', _algoCalculation), max: 10, onChanged: (v) => setState(() => _calculation = v)),
                   const SizedBox(height: 20),
                   _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+                  const Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: (_submitted || _saving) ? null : _submit,
                     child: _saving

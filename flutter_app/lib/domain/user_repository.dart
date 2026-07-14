@@ -29,6 +29,7 @@ class UserInfo {
 
 /// 做题历史
 class HistoryItem {
+  final int id;
   final String title;
   final String questionType;
   final int questionId;
@@ -38,6 +39,7 @@ class HistoryItem {
   bool get isCompleted => status == 'completed';
 
   const HistoryItem({
+    required this.id,
     required this.title,
     required this.questionType,
     required this.questionId,
@@ -164,6 +166,7 @@ class UserRepository {
         }
       } catch (_) {}
       items.add(HistoryItem(
+        id: s.id,
         title: title,
         questionType: qType,
         questionId: s.questionId,

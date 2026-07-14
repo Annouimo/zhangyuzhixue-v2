@@ -325,7 +325,14 @@ class _SolveFillPageState extends State<SolveFillPage> {
             onReveal: _onReveal,
             feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
             onNext: widget.nextQuestionId != null
-                ? () => context.pushReplacement('${AppRoutes.solveFill}?id=${widget.nextQuestionId}&mode=first')
+                ? () async {
+                    try {
+                      final detail = await _repo.getDetail(widget.nextQuestionId!);
+                      if (context.mounted) {
+                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, detail.questionType);
+                      }
+                    } catch (_) {}
+                  }
                 : null,
             onRate: () async {
               await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');

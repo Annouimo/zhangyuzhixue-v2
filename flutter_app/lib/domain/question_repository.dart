@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
+import '../pages/router.dart';
 import '../data/database/database_provider.dart';
 import '../data/database/app_database.dart' as app_db;
 import '../data/sync/sync_manager.dart';
@@ -66,20 +67,11 @@ class SolveAttempt {
 class SolveRouteHelper {
   static String pageName(String questionType) {
     switch (questionType) {
-      case 'choice': return 'solve-choice';
-      case 'fill': return 'solve-fill';
-      case 'solution': return 'solve-map';
-      default: return 'solve-map';
+      case 'choice': return AppRoutes.solveChoice;
+      case 'fill': return AppRoutes.solveFill;
+      case 'solution': return AppRoutes.solveMap;
+      default: return AppRoutes.solveMap;
     }
-  }
-
-  static String resolve(String questionType, int attemptCount,
-      {int? latestAttemptId, bool latestIsInProgress = false}) {
-    final page = 'solve-pages/${pageName(questionType)}';
-    if (attemptCount == 0) return '$page?mode=first';
-    if (latestIsInProgress) return '$page?mode=resume&attempt_id=$latestAttemptId';
-    if (attemptCount == 1) return '$page?mode=review&attempt_id=$latestAttemptId';
-    return '$page?mode=review&attempt_id=$latestAttemptId';
   }
 
   /// 从题目入口页跳转到解题页，自动查询存档决定 mode/attemptId
@@ -105,7 +97,7 @@ class SolveRouteHelper {
     }
     final page = pageName(questionType);
     if (!context.mounted) return;
-    context.push('/$page?id=$questionId'
+    context.push('$page?id=$questionId'
         '${mode != 'first' ? '&mode=$mode' : ''}'
         '${attemptId != null ? '&attemptId=$attemptId' : ''}');
   }

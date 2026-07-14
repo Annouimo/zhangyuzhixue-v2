@@ -188,7 +188,14 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             explanation: _detail?.explanation,
             onSubmit: _submit,
             onNext: widget.nextQuestionId != null
-                ? () => context.pushReplacement('${AppRoutes.solveChoice}?id=${widget.nextQuestionId}&mode=first')
+                ? () async {
+                    try {
+                      final detail = await _repo.getDetail(widget.nextQuestionId!);
+                      if (context.mounted) {
+                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, detail.questionType);
+                      }
+                    } catch (_) {}
+                  }
                 : null,
             onRate: () async {
               await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
@@ -355,6 +362,22 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             ],
           ),
         ),
+        // 回顾横幅
+        if (_submitted) ...[
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+            ),
+            child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
+              style: TextStyle(fontSize: 13, color: AppColors.primary),
+            ),
+          ),
+        ],
         // 题干（含 LaTeX）
         MdLatexBody(detail.stem, fontSize: 15),
         const SizedBox(height: 20),

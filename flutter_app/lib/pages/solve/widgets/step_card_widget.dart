@@ -194,6 +194,8 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             const SizedBox(height: 12),
             if (!_feedbackGiven)
               FeedbackButtons(onChanged: _onFeedback)
+            else if (widget.isRevisit)
+              FeedbackButtons(selected: _feedbackType)
             else
               FeedbackButtons(selected: _feedbackType, onChanged: _onFeedback),
             if (_feedbackGiven && isLast)
