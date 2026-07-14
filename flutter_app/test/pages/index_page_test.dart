@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/index_page.dart';
-import 'package:flutter_app/widgets/shared/error_placeholder.dart';
 import '../test_setup.dart';
 
 class _MockUserRepo implements UserRepository {
