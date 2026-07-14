@@ -136,6 +136,12 @@ class _RecommendationEngine {
     }
     if (totalAttempts < coldStartThreshold) return [];
 
+    // 全部 completed 的 attempt 都是 correct → "已掌握"空状态
+    final judgedAttempts = allAttemptRows.where((a) => a.isCorrect != null).toList();
+    if (judgedAttempts.isNotEmpty && judgedAttempts.every((a) => a.isCorrect == 1)) {
+      return [];
+    }
+
     final doneIds = attemptedIds;
 
     // 路线A：选填题 — 概念掌握度（纯内存）
@@ -166,20 +172,42 @@ class _RecommendationEngine {
       }
     }
 
-    // 路线B：解答题
+    // 路线B：解答题 — 按概念标签排序
     final solution = <RecommendedQuestion>[];
-    for (final q in allQuestions) {
-      if (solution.length >= 2) break;
-      if (q.questionType != 'solution') continue;
-      if (doneIds.contains(q.id)) continue;
-      solution.add(RecommendedQuestion(
-        id: q.id,
-        title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
-        questionType: q.questionType,
-        difficulty: q.difficulty ?? 0.0,
-        recommendReason: '解答题推荐练习',
-        status: 'pending',
-      ));
+    final solutionCandidates = allQuestions.where((q) =>
+      q.questionType == 'solution' && !doneIds.contains(q.id)
+    ).toList();
+    if (solutionCandidates.isNotEmpty) {
+      // 按 weakTag 匹配度排序：有 weakTag 标签的解答题优先
+      final wrongIds = await _getRecentWrongIds();
+      solutionCandidates.sort((a, b) {
+        final aHasWeak = weakTag != null && (questionTagMap[a.id]?.contains(weakTag.id) == true);
+        final bHasWeak = weakTag != null && (questionTagMap[b.id]?.contains(weakTag.id) == true);
+        if (aHasWeak != bHasWeak) return aHasWeak ? -1 : 1;
+        // 其次按错误上下文排序
+        final aWrongContext = wrongIds.any((wid) =>
+          (questionTagMap[wid] ?? {}).intersection(questionTagMap[a.id] ?? {}).isNotEmpty
+        );
+        final bWrongContext = wrongIds.any((wid) =>
+          (questionTagMap[wid] ?? {}).intersection(questionTagMap[b.id] ?? {}).isNotEmpty
+        );
+        if (aWrongContext != bWrongContext) return aWrongContext ? -1 : 1;
+        return 0;
+      });
+      for (final q in solutionCandidates) {
+        if (solution.length >= 2) break;
+        final reason = weakTag != null && (questionTagMap[q.id]?.contains(weakTag.id) == true)
+            ? '薄弱概念：${weakTag.name}'
+            : '解答题推荐练习';
+        solution.add(RecommendedQuestion(
+          id: q.id,
+          title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
+          questionType: q.questionType,
+          difficulty: q.difficulty ?? 0.0,
+          recommendReason: reason,
+          status: 'pending',
+        ));
+      }
     }
 
     // 合并

@@ -61,14 +61,14 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: RecommendPage(recommendRepository: repo)));
       await tester.pumpAndSettle();
       // Initially shows smart recommendation
-      expect(find.text('🔮 智能推荐'), findsOneWidget);
+      expect(find.text('智能推荐'), findsOneWidget);
       expect(find.text('智能题'), findsOneWidget);
 
       // Tap the preset pill directly
-      await tester.tap(find.text('📋 偏好推荐'));
+      await tester.tap(find.text('偏好推荐'));
       await tester.pumpAndSettle();
       // Switches to preset mode
-      expect(find.text('📋 偏好推荐'), findsOneWidget);
+      expect(find.text('偏好推荐'), findsOneWidget);
     });
   });
 }

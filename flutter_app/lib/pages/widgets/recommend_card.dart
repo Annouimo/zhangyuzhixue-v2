@@ -60,7 +60,7 @@ class RecommendCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  Text(reason, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(reason, style: const TextStyle(fontSize: 11, color: Colors.orange)),
                   const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
                 ],
               ),

@@ -163,14 +163,12 @@ class ProgressDao {
 
   /// 获取最近 N 天内做错的题目 ID
   Future<Set<int>> getRecentWrongQuestionIds(int days) async {
-    final all = await _db.select(_db.submissionDetails).get();
     final threshold = DateTime.now().subtract(Duration(days: days)).toIso8601String();
-    final wrong = <int>{};
-    for (final row in all) {
-      if (row.isCorrect == 0 && row.createdAt.compareTo(threshold) >= 0) {
-        wrong.add(row.questionId);
-      }
-    }
+    final q = _db.select(_db.submissionDetails)
+      ..where((t) => t.isCorrect.equals(0))
+      ..where((t) => t.createdAt.isBiggerThanValue(threshold));
+    final rows = await q.get();
+    final wrong = rows.map((r) => r.questionId).toSet();
     AuditLogger.instance.dao('ProgressDao.getRecentWrongQuestionIds', wrong.length, {'days': days});
     return wrong;
   }

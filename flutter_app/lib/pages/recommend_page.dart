@@ -113,6 +113,24 @@ class RecommendPageState extends State<RecommendPage> {
           ),
         if (!_preferSmart && _presets.length > 1)
           _buildPresetSelector(),
+        if (!_preferSmart && _presets.length == 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+            child: Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('选择学习偏好', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 6),
+                    Text(_presets[0].name, style: const TextStyle(fontSize: 14)),
+                  ],
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: _questions == null || _questions!.isEmpty
               ? const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂无推荐，先去组卷或做几道题吧')

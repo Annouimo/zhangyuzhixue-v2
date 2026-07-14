@@ -91,8 +91,16 @@ class SolveRouteHelper {
       ProgressDao(DatabaseProvider().appDb),
     );
     final attempts = await repo.getAttempts(questionId);
-    final mode = attempts.isEmpty ? 'first' : 'review';
-    final attemptId = attempts.isNotEmpty ? attempts.last.id.toString() : null;
+    String mode;
+    String? attemptId;
+    if (attempts.isEmpty) {
+      mode = 'first';
+      attemptId = null;
+    } else {
+      final last = attempts.last;
+      attemptId = last.id.toString();
+      mode = !last.isCompleted ? 'resume' : 'review';
+    }
     final page = pageName(questionType);
     if (!context.mounted) return;
     context.push('/$page?id=$questionId'
