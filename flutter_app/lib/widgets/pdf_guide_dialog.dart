@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
-
-/// SharedPreferences key（与 pdf_helper.dart 中的 _guideDismissedKey 同步）
-const _guideDismissedKey = 'app_pdf_guide_dismissed';
+import '../data/helpers/pdf_helper.dart';
 
 /// PDF 引导弹窗
 ///
@@ -70,7 +68,7 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
             onPressed: () async {
               if (dontShowAgain) {
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool(_guideDismissedKey, true);
+                await prefs.setBool(pdfGuideDismissedKey, true);
               }
               if (ctx.mounted) Navigator.of(ctx).pop(true);
             },

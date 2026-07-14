@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,7 +10,7 @@ import '../../widgets/pdf_guide_dialog.dart';
 import '../../constants/app_version.dart';
 import '../../data/api/api_client.dart';
 
-const _guideDismissedKey = 'app_pdf_guide_dismissed';
+const pdfGuideDismissedKey = 'app_pdf_guide_dismissed';
 
 /// PDF 下载引导工具
 ///
@@ -26,17 +27,18 @@ class PdfHelper {
   static int? _cachedSourceId;
   static String? _cachedSourceType;
   static Timer? _renewTimer;
+  static CancelToken? _cancelToken;
 
   /// 是否已关闭引导
   static Future<bool> isGuideDismissed() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_guideDismissedKey) ?? false;
+    return prefs.getBool(pdfGuideDismissedKey) ?? false;
   }
 
   /// 标记引导已关闭
   static Future<void> dismissGuide() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_guideDismissedKey, true);
+    await prefs.setBool(pdfGuideDismissedKey, true);
   }
 
   /// 请求 PDF 浏览 URL
@@ -47,12 +49,16 @@ class PdfHelper {
     required int sourceId,
     required String sourceType,
   }) async {
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
     final res = await ApiClient().dio.post(
       '/interactions/pdf/request-token/',
       data: {
         'source_id': sourceId,
         'source_type': sourceType,
       },
+      options: Options(sendTimeout: Duration(seconds: 10), receiveTimeout: Duration(seconds: 15)),
+      cancelToken: _cancelToken,
     );
     final data = res.data['data'] as Map<String, dynamic>;
     final url = data['url'] as String;
@@ -92,10 +98,12 @@ class PdfHelper {
     });
   }
 
-  /// 取消自动续期
+  /// 取消自动续期，同时取消未完成的 HTTP 请求
   static void cancelRenew() {
     _renewTimer?.cancel();
+    _cancelToken?.cancel();
     _renewTimer = null;
+    _cancelToken = null;
     _cachedUrl = null;
     _cachedSourceId = null;
     _cachedSourceType = null;

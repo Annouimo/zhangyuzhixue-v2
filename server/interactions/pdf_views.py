@@ -2,6 +2,7 @@
 import hashlib
 import hmac
 import json
+import re
 import time
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
 from courses.models import Assignment, AssignmentQuestion
+from qbank.models import ChoiceExt
 
 
 def _ok(data=None, message='ok'):
@@ -108,7 +110,14 @@ def _build_sections(qs):
     type_labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'}
     seen_types = set()
 
-    for pq in qs:
+    # 批量查询 ChoiceExt（N+1 -> 1）
+    qs_list = list(qs)
+    q_ids = [pq.question_id for pq in qs_list]
+    ce_map = {}
+    for ce in ChoiceExt.objects.filter(question_id__in=q_ids):
+        ce_map[ce.question_id] = ce
+
+    for pq in qs_list:
         q = pq.question
         qt = q.question_type
         if qt not in seen_types:
@@ -119,25 +128,22 @@ def _build_sections(qs):
                 'questions': [],
             })
 
-        # 选项：JSON dict → 渲染用 list
-        from qbank.models import ChoiceExt
+        # 选项：JSON dict -> 渲染用 list
         opts = []
-        try:
-            ce = ChoiceExt.objects.get(question_id=q.pk)
+        ce = ce_map.get(q.pk)
+        if ce:
             raw = json.loads(ce.options) if isinstance(ce.options, str) else ce.options
             if isinstance(raw, dict):
                 opts = ['<strong>({0})</strong> {1}'.format(k, v) for k, v in raw.items()]
             elif isinstance(raw, list):
                 opts = raw
-        except (ChoiceExt.DoesNotExist, json.JSONDecodeError, TypeError):
-            pass
 
         # 图片 — 归一化反斜杠（兼容旧数据）
         imgs_raw = q.images if isinstance(q.images, list) else []
         imgs = [img.replace('\\', '/') for img in imgs_raw]
 
         sections[-1]['questions'].append({
-            'stem': q.stem,
+            'stem': re.sub(r'<img[^>]*>', '', q.stem or ''),
             'options': opts,
             'images': imgs,
         })
@@ -161,6 +167,7 @@ def pdf_view(request):
 
     # O(1) 签名校验
     try:
+        source_id = int(source_id)
         student_id = int(sid)
         expire = int(exp)
     except (ValueError, TypeError):

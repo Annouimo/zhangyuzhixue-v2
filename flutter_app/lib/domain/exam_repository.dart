@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
 import '../data/debug/audit_logger.dart';
@@ -353,8 +354,10 @@ class ExamRepository {
     );
   }
 
-  Future<void> downloadPdf(int paperId) async {
-    await PdfHelper.downloadPdf(sourceId: paperId, sourceType: 'paper');
+  Future<void> downloadPdf(int paperId, {BuildContext? context}) async {
+    await PdfHelper.downloadPdf(
+      sourceId: paperId, sourceType: 'paper', context: context,
+    );
   }
 
   // ── 快对答案 ──
