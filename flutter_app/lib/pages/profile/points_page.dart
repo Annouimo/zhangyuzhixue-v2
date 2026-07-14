@@ -90,8 +90,8 @@ class _PointsPageState extends State<PointsPage> {
         ),
         child: Row(
           children: [
-            Expanded(flex: 2, child: Text('类型', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
             Expanded(flex: 2, child: Text('时间', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            Expanded(flex: 2, child: Text('类型', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
             SizedBox(width: 48, child: Text('变动', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
             SizedBox(width: 48, child: Text('学习', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
             SizedBox(width: 48, child: Text('赠送', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
@@ -109,9 +109,9 @@ class _PointsPageState extends State<PointsPage> {
         ),
         child: Row(
           children: [
-            Expanded(flex: 2, child: Text(r.type, style: const TextStyle(fontSize: 13))),
-            Expanded(flex: 2, child: Text(r.time.length >= 10 ? r.time.substring(0, 10) : r.time,
+            Expanded(flex: 2, child: Text(r.time.length >= 10 ? r.time.substring(5, 10) : r.time,
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+            Expanded(flex: 2, child: Text(r.type, style: const TextStyle(fontSize: 13))),
             SizedBox(width: 48, child: Text('${isPositive ? '+' : ''}${r.change.toStringAsFixed(1)}',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
                 color: isPositive ? AppColors.success : AppColors.error))),
@@ -126,6 +126,14 @@ class _PointsPageState extends State<PointsPage> {
           ],
         ),
       );
-    })];
-  }
+    }),
+    const SizedBox(height: 4),
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: const Text('💡 类型说明：做题/签到/首题奖励/完成任务 → 学习积分增加；\n'
+          '新人赠送 → 赠送积分增加；组卷消费 → 消耗增加+可用减少',
+        style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+    ),
+  ];
+ }
 }
