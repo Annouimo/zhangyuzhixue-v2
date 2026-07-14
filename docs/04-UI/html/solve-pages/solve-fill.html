@@ -49,6 +49,15 @@
       <div class="analysis-text" style="text-align:left;margin-top:8px;">
         <p>由余弦定理 cos C = (a² + b² - c²) / (2ab)，代入 a² + b² - c² = ab，得 cos C = 1/2，故 C = 60°。</p>
       </div>
+      <!-- 自评反馈 -->
+      <div class="feedback-row" id="feedback-row">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">你觉得自己答对了吗？</div>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-sm btn-primary" id="fb-correct" onclick="onFeedback('correct')">✅ 正确</button>
+          <button class="btn btn-sm btn-outline" id="fb-wrong" onclick="onFeedback('wrong')">❌ 错误</button>
+        </div>
+      </div>
+      <div id="feedback-result" style="display:none;text-align:center;padding:8px 0;"></div>
     </div>
 
     <div id="done-section" class="done-section" style="display:none;">
@@ -67,7 +76,7 @@
   // =================================================================
 
   var DEMO_ATTEMPTS = [
-    { id: 1, label: '第 1 次作答', completed: true, answerRevealed: true },
+    { id: 1, label: '第 1 次作答', completed: true, answerRevealed: true, feedbackGiven: true, feedbackCorrect: true },
     { id: 2, label: '第 2 次作答', completed: false, answerRevealed: false },
     { id: 3, label: '第 3 次作答', completed: false, answerRevealed: false }
   ];
@@ -115,6 +124,19 @@
       document.getElementById('fill-action').style.display = 'none';
       document.getElementById('result-area').style.display = 'block';
       document.getElementById('done-section').style.display = 'block';
+      var fbRow = document.getElementById('feedback-row');
+      var fbResult = document.getElementById('feedback-result');
+      if (att.feedbackGiven) {
+        fbRow.style.display = 'none';
+        fbResult.style.display = 'block';
+        fbResult.innerHTML = att.feedbackCorrect
+          ? '✅ 回答正确！<br><span style="font-size:12px;color:var(--text-secondary);">+1.0 积分</span>'
+          : '❌ 回答有误<br><span style="font-size:12px;color:var(--text-secondary);">继续加油 💪</span>';
+        fbResult.style.color = att.feedbackCorrect ? 'var(--primary)' : 'var(--text-secondary)';
+      } else {
+        fbRow.style.display = 'block';
+        fbResult.style.display = 'none';
+      }
     } else {
       document.getElementById('fill-action').style.display = 'block';
       document.getElementById('result-area').style.display = 'none';
@@ -169,11 +191,29 @@
   }
   document.addEventListener('click', function(e) { var s=document.getElementById('attempt-selector'); if(s&&!s.contains(e.target)) closeDropdown(); });
 
+  var FEEDBACK_GIVEN = false;
+
   document.getElementById('reveal-btn').addEventListener('click', function() {
     document.getElementById('fill-action').style.display = 'none';
     document.getElementById('result-area').style.display = 'block';
-    document.getElementById('done-section').style.display = 'block';
+    document.getElementById('feedback-row').style.display = 'block';
   });
+
+  function onFeedback(type) {
+    if (FEEDBACK_GIVEN) return;
+    FEEDBACK_GIVEN = true;
+    document.getElementById('feedback-row').style.display = 'none';
+    var resultEl = document.getElementById('feedback-result');
+    resultEl.style.display = 'block';
+    if (type === 'correct') {
+      resultEl.innerHTML = '✅ 回答正确！<br><span style="font-size:12px;color:var(--text-secondary);">+1.0 积分</span>';
+      resultEl.style.color = 'var(--primary)';
+    } else {
+      resultEl.innerHTML = '❌ 回答有误<br><span style="font-size:12px;color:var(--text-secondary);">继续加油 💪</span>';
+      resultEl.style.color = 'var(--text-secondary)';
+    }
+    document.getElementById('done-section').style.display = 'block';
+  }
 
   function goNext() { showToast('📝', '进入下一题（Flutter 中执行路由跳转）'); }
   function goRate() { parent.goFile('solve-rate.html'); }
