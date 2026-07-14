@@ -106,12 +106,63 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           ),
         if (answerShown) ...[
           const SizedBox(height: 16),
-          _RevealResultBanner(
-            answerValue: widget.answerValue,
-            explanation: widget.explanation,
-            feedbackWidget: _revealed ? widget.feedbackWidget : null,
-            feedbackResult: _revealed ? widget.feedbackResult : null,
+          // 答案卡
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('正确答案',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                if (widget.answerValue != null) ...[
+                  const SizedBox(height: 12),
+                  Text(widget.answerValue!,
+                    style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
+          // 解析卡
+          if (widget.explanation != null && widget.explanation!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: MdLatexBody(widget.explanation!),
+            ),
+          ],
+          // 自评区
+          if (_revealed && widget.feedbackWidget != null) ...[
+            const SizedBox(height: 12),
+            widget.feedbackWidget!,
+          ],
+          if (_revealed && widget.feedbackResult != null) ...[
+            const SizedBox(height: 12),
+            widget.feedbackResult!,
+          ],
         ],
         if (done) ...[
           const SizedBox(height: 16),
@@ -121,71 +172,6 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           ),
         ],
       ],
-    );
-  }
-}
-
-/// 揭示结果横幅 — 蓝色的「正确答案」徽章 + 大号答案 + 解析 + 自评反馈
-class _RevealResultBanner extends StatelessWidget {
-  final String? answerValue;
-  final String? explanation;
-  final Widget? feedbackWidget;
-  final Widget? feedbackResult;
-
-  const _RevealResultBanner({
-    this.answerValue,
-    this.explanation,
-    this.feedbackWidget,
-    this.feedbackResult,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primaryLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text('正确答案',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
-              ),
-            ),
-          ),
-          if (answerValue != null) ...[
-            const SizedBox(height: 12),
-            Text(answerValue!,
-              style: const TextStyle(
-                fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary,
-              ),
-            ),
-          ],
-          if (explanation != null && explanation!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            MdLatexBody(explanation!),
-          ],
-          if (feedbackWidget != null) ...[
-            const SizedBox(height: 16),
-            feedbackWidget!,
-          ],
-          if (feedbackResult != null) ...[
-            const SizedBox(height: 16),
-            feedbackResult!,
-          ],
-        ],
-      ),
     );
   }
 }
