@@ -24,7 +24,7 @@ void main() {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
       expect(provider.assetsDb, isNotNull);
-      expect(provider.lecturesDb, isNotNull);
+      expect(provider.coursesDb, isNotNull);
       expect(provider.appDb, isNotNull);
     });
 
@@ -40,7 +40,7 @@ void main() {
       final provider = DatabaseProvider();
       expect(() => provider.appDb, throwsStateError);
       expect(() => provider.assetsDb, throwsStateError);
-      expect(() => provider.lecturesDb, throwsStateError);
+      expect(() => provider.coursesDb, throwsStateError);
     });
 
     test('replaceAssetsDb swaps file', () async {
@@ -65,14 +65,14 @@ void main() {
       expect(tables.length, 1);
     });
 
-    test('replaceLecturesDb swaps file', () async {
+    test('replaceCoursesDb swaps file', () async {
       final provider = DatabaseProvider();
       await provider.initWithPath(tempDir.path);
-      await provider.lecturesDb.select(provider.lecturesDb.courses).get();
-      final newPath = '${tempDir.path}/new_lectures.db';
-      await File('${tempDir.path}/lectures.db').copy(newPath);
-      await provider.replaceLecturesDb(newPath);
-      final courses = await provider.lecturesDb.select(provider.lecturesDb.courses).get();
+      await provider.coursesDb.select(provider.coursesDb.courses).get();
+      final newPath = '${tempDir.path}/new_courses.db';
+      await File('${tempDir.path}/courses.db').copy(newPath);
+      await provider.replaceCoursesDb(newPath);
+      final courses = await provider.coursesDb.select(provider.coursesDb.courses).get();
       expect(courses, isEmpty);
     });
 

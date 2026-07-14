@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import 'package:flutter_app/data/database/lectures_database.dart' as ldb;
+import 'package:flutter_app/data/database/courses_database.dart' as ldb;
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/daos/assignment_dao.dart';
@@ -26,7 +26,7 @@ Future<int> _insertQuestion(adb.AssetsDatabase db, {
 }
 
 /// 快速插入一条作业 + 题目关联
-Future<int> _insertAssignment(ldb.LecturesDatabase db, {
+Future<int> _insertAssignment(ldb.CoursesDatabase db, {
   int id = 1, int courseId = 1, List<int> questionIds = const [1],
 }) async {
   await db.into(db.courses).insert(ldb.CoursesCompanion(
@@ -48,7 +48,7 @@ Future<int> _insertAssignment(ldb.LecturesDatabase db, {
 void main() {
   group('AssignmentRepository', () {
     test('getPending returns 0 done when no attempts', () async {
-      final lDb = ldb.LecturesDatabase(NativeDatabase.memory());
+      final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
 
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('getPending counts attempts as done', () async {
-      final lDb = ldb.LecturesDatabase(NativeDatabase.memory());
+      final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
 
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('getQuestions returns number/type from assets and status from user', () async {
-      final lDb = ldb.LecturesDatabase(NativeDatabase.memory());
+      final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
 
@@ -128,7 +128,7 @@ void main() {
     });
 
     test('getQuestions throws for nonexistent', () async {
-      final lDb = ldb.LecturesDatabase(NativeDatabase.memory());
+      final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
 
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('pendingCount returns 0 initially', () async {
-      final lDb = ldb.LecturesDatabase(NativeDatabase.memory());
+      final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
 

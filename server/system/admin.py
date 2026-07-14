@@ -127,8 +127,8 @@ class ToolsView(View):
 
         if action == 'build_assets':
             self._run_build('qbank', request.POST.get('mode') == 'test')
-        elif action == 'build_lectures':
-            self._run_build('lecture', request.POST.get('mode') == 'test')
+        elif action == 'build_courses':
+            self._run_build('courses', request.POST.get('mode') == 'test')
         elif action == 'generate_codes':
             self._generate_codes(request)
 
@@ -139,7 +139,7 @@ class ToolsView(View):
         from accounts.models import InvitationCode
         return {
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
-            'lecture_version': DbVersion.objects.filter(db_type='lecture').first(),
+            'courses_version': DbVersion.objects.filter(db_type='courses').first(),
             'invitation_codes': InvitationCode.objects.all().order_by('-created_at')[:50],
             'has_error': False,
             'messages': [],

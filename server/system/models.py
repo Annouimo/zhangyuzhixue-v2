@@ -134,7 +134,7 @@ class DbVersion(models.Model):
     """数据库版本"""
     DB_TYPE_CHOICES = [
         ('qbank', '题库'),
-        ('lecture', '讲义'),
+        ('courses', '课程'),
     ]
 
     db_type = models.CharField('数据库类型', max_length=16,

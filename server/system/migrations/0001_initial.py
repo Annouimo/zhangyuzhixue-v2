@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             name='DbVersion',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('db_type', models.CharField(choices=[('qbank', '题库'), ('lecture', '讲义')], max_length=16, unique=True, verbose_name='数据库类型')),
+                ('db_type', models.CharField(choices=[('qbank', '题库'), ('courses', '课程')], max_length=16, unique=True, verbose_name='数据库类型')),
                 ('schema_version', models.IntegerField(default=1, verbose_name='Schema版本')),
                 ('data_version', models.IntegerField(default=1, verbose_name='数据版本')),
                 ('checksum', models.CharField(blank=True, default='', max_length=128, verbose_name='SHA256校验和')),

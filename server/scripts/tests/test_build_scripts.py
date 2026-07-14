@@ -3,7 +3,7 @@
 import os
 
 
-from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+from scripts.build_schemas import ASSETS_TABLES, COURSES_TABLES
 from scripts.build_utils import build_database
 
 
@@ -106,20 +106,20 @@ class TestBuildIdempotent:
 class TestBuildLectures:
     """lectures.db 构建冒烟测试"""
 
-    def test_build_lectures_test_mode(self, db):
-        """--test 模式运行 lectures 构建"""
+    def test_build_courses_test_mode(self, db):
+        """--test 模式运行 courses 构建"""
         from system.models import DbVersion
-        before_count = DbVersion.objects.filter(db_type='lecture').count()
+        before_count = DbVersion.objects.filter(db_type='courses').count()
 
         output = build_database(
-            schema=LECTURE_TABLES,
-            db_type='lecture',
+            schema=COURSES_TABLES,
+            db_type='courses',
             version_info={'schema_version': 1, 'data_version': 1},
             test_mode=True,
         )
 
         assert output is not None
-        after_count = DbVersion.objects.filter(db_type='lecture').count()
+        after_count = DbVersion.objects.filter(db_type='courses').count()
         assert after_count == before_count
         if os.path.exists(output):
             try:
@@ -130,8 +130,8 @@ class TestBuildLectures:
     def test_lectures_has_chapter_table(self, db):
         """lectures.db 包含 chapter 表"""
         output = build_database(
-            schema=LECTURE_TABLES,
-            db_type='lecture',
+            schema=COURSES_TABLES,
+            db_type='courses',
             version_info={'schema_version': 1, 'data_version': 1},
             test_mode=True,
         )

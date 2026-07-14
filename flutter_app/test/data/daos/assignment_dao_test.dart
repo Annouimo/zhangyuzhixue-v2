@@ -1,15 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import 'package:flutter_app/data/database/lectures_database.dart' as db;
+import 'package:flutter_app/data/database/courses_database.dart' as db;
 import 'package:flutter_app/data/daos/assignment_dao.dart';
 
 void main() {
-  late db.LecturesDatabase database;
+  late db.CoursesDatabase database;
   late AssignmentDao dao;
 
   setUp(() {
-    database = db.LecturesDatabase(NativeDatabase.memory());
+    database = db.CoursesDatabase(NativeDatabase.memory());
     dao = AssignmentDao(database);
   });
 

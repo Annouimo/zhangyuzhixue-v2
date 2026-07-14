@@ -1,5 +1,5 @@
 """构建脚本 Schema 定义验证测试"""
-from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+from scripts.build_schemas import ASSETS_TABLES, COURSES_TABLES
 
 
 class TestAssetsTables:
@@ -78,24 +78,24 @@ class TestLectureTables:
             'assignment', 'assignment_question',
         ]
         for name in required:
-            assert name in LECTURE_TABLES, f'缺少表: {name}'
+            assert name in COURSES_TABLES, f'缺少表: {name}'
 
     def test_all_tables_5(self):
         """lectures.db 应有 5 个表"""
-        assert len(LECTURE_TABLES) == 5
+        assert len(COURSES_TABLES) == 5
 
     def test_chapter_is_generated(self):
         """chapter 表 source 应为 generate"""
-        src = LECTURE_TABLES['chapter'].get('source', '')
+        src = COURSES_TABLES['chapter'].get('source', '')
         assert src.startswith('generate:'), f'chapter source 错误: {src}'
 
     def test_lecture_content_has_transform(self):
         """lecture_content 应有 transform 字段"""
-        trans = LECTURE_TABLES['lecture_content'].get('transform', '')
+        trans = COURSES_TABLES['lecture_content'].get('transform', '')
         assert trans == 'lecture_transform', 'transform 应为 lecture_transform'
 
     def test_chapter_columns(self):
         """chapter 表应有 course_id/index/title"""
-        cols = dict(LECTURE_TABLES['chapter']['columns'])
+        cols = dict(COURSES_TABLES['chapter']['columns'])
         for col in ['course_id', 'index', 'title']:
             assert col in cols, f'缺少字段: {col}'

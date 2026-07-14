@@ -196,7 +196,7 @@ ASSETS_TABLES = {
     },
 }
 
-LECTURE_TABLES = {
+COURSES_TABLES = {
     'course': {
         'columns': [
             ('id', 'INTEGER PRIMARY KEY'),

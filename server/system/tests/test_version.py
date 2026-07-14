@@ -27,13 +27,13 @@ def qbank_version(db):
 
 
 @pytest.fixture
-def lecture_version(db):
+def courses_version(db):
     return DbVersion.objects.create(
-        db_type='lecture',
+        db_type='courses',
         schema_version=1,
         data_version=3,
         force_update=True,
-        download_url='/static/dbs/lecture_v3.db.gz',
+        download_url='/static/dbs/courses_v3.db.gz',
         checksum='def456',
         size_bytes=512000,
         message='修正公式渲染',
@@ -56,9 +56,9 @@ class TestVersionCheck:
         assert resp.data['data']['checksum'] == 'abc123'
         assert resp.data['data']['size_bytes'] == 1024000
 
-    def test_lecture_version_exists(self, api_client, lecture_version):
-        """讲义版本存在：正确返回版本信息"""
-        resp = api_client.get(reverse('sync-lecture-version'))
+    def test_courses_version_exists(self, api_client, courses_version):
+        """课程版本存在：正确返回版本信息"""
+        resp = api_client.get(reverse('sync-courses-version'))
 
         assert resp.status_code == 200
         assert resp.data['code'] == 0

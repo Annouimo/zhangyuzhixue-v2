@@ -10,7 +10,7 @@ abstract final class PrefKeys {
   static const refreshToken = 'app_refresh_token';
   static const userCache = 'app_user_cache';
   static const qbankVersion = 'app_qbank_version';
-  static const lectureVersion = 'app_lecture_version';
+  static const coursesVersion = 'app_courses_version';
   static const accessibleCourses = 'app_accessible_courses';
   static const lastUpdatePrompt = 'app_last_update_prompt';
   static const ratingCooldownPrefix = 'app_rating_cooldown_';
@@ -88,12 +88,12 @@ class AppPrefs {
   }
   Future<bool> setQbankVersion(int v) => p.setInt(PrefKeys.qbankVersion, v);
 
-  int get lectureVersion {
-    final v = p.getInt(PrefKeys.lectureVersion) ?? 0;
-    AuditLogger.instance.prefs(PrefKeys.lectureVersion, v);
+  int get coursesVersion {
+    final v = p.getInt(PrefKeys.coursesVersion) ?? 0;
+    AuditLogger.instance.prefs(PrefKeys.coursesVersion, v);
     return v;
   }
-  Future<bool> setLectureVersion(int v) => p.setInt(PrefKeys.lectureVersion, v);
+  Future<bool> setCoursesVersion(int v) => p.setInt(PrefKeys.coursesVersion, v);
 
   // ── 可访问课程缓存 ──
 
