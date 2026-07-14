@@ -188,6 +188,7 @@ class UserRepository {
     'PRACTICE_REWARD': '做题',
     'TASK_REWARD': '完成任务',
     'REVIEW_REWARD': '退出评价',
+    'RATING_REWARD': '题目评价',
     'SIGNUP_BONUS': '新人赠送',
     'PAPER_PURCHASE': '组卷',
   };
@@ -200,7 +201,7 @@ class UserRepository {
     final records = <PointsRecord>[];
     for (var i = rows.length - 1; i >= 0; i--) {
       final r = rows[i];
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'].contains(r.source)) {
+      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'].contains(r.source)) {
         cumEarned += r.amount;
       } else if (r.source == 'SIGNUP_BONUS') {
         cumBonus += r.amount;
@@ -396,7 +397,7 @@ class _PointsCalculator {
   int get earned {
     var total = 0;
     for (final r in _rows) {
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'].contains(r.source)) {
+      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'].contains(r.source)) {
         total += r.amount;
       }
     }

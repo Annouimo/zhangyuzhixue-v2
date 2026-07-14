@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/app_database.dart' as db;
+import '../data/database/database_provider.dart';
 import '../data/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -235,8 +237,9 @@ class ProgressRepository {
     final all = await _dao.getAttempts(questionId);
     final match = all.where((a) => a.attemptNumber == attemptNumber).toList();
     if (match.isEmpty) return;
+    final detail = match.first;
     final id = await _dao.insertStepFeedback(
-      submissionDetailId: match.first.id,
+      submissionDetailId: detail.id,
       questionId: questionId,
       stepNumber: stepNumber,
       status: status,
@@ -258,6 +261,40 @@ class ProgressRepository {
     } catch (e) {
       AuditLogger.instance.sync('enqueue_error', {'type': 'stepFeedback', 'error': '$e'});
     }
+
+    // 检查是否所有步骤已完成，若是则标记完成并发放积分
+    try {
+      final subQuestions = await _questionDao.getSubQuestions(questionId);
+      int totalSteps = 0;
+      for (final sq in subQuestions) {
+        final methods = await _questionDao.getMethods(sq.id);
+        for (final m in methods) {
+          final steps = await _questionDao.getSteps(m.id);
+          totalSteps += steps.length;
+        }
+      }
+      if (totalSteps == 0) return;
+      final feedbacks = await _dao.getStepFeedbacks(detail.id);
+      if (feedbacks.length >= totalSteps) {
+        await _dao.updateAttemptStatus(detail.id, 'completed');
+        // 发放做题积分
+        final now = DateTime.now().toIso8601String();
+        final question = await _questionDao.getById(questionId);
+        final difficulty = question?.difficulty ?? 0.0;
+        final amount = difficulty.floor(); // floor(难度) 厘分 = 0~10厘 = 0~1.0分
+        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+          db.PointsTransactionsCompanion(
+            amount: Value(amount),
+            source: const Value('PRACTICE_REWARD'),
+            transactionType: const Value('EARN'),
+            createdAt: Value(now),
+            description: const Value('做题奖励'),
+          ),
+        );
+        AuditLogger.instance.dao('submitStepFeedback.complete',
+            amount, {'questionId': questionId, 'attemptNumber': attemptNumber});
+      }
+    } catch (_) {}
   }
 
   List<String> _parseCardTitles(String? raw) {

@@ -57,7 +57,7 @@ class UserDao {
 
   Future<int> getEarnedPoints() async {
     final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD']))).get();
+      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']))).get();
     AuditLogger.instance.dao('UserDao.getEarnedPoints', rows.length, {});
     var total = 0;
     for (final r in rows) { total += r.amount; }
@@ -119,7 +119,7 @@ class UserDao {
       ..where((t) =>
           t.createdAt.isBiggerOrEqual(Variable(today)) &
           t.amount.isBiggerThanValue(0) &
-          t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'])));
+          t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'])));
     final rows = await q.get();
     AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', rows.length, {});
     var total = 0;

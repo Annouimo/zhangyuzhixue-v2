@@ -96,7 +96,7 @@ class RatingRepository {
       await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
           amount: Value((pts * 10).round()),
-          source: const Value('PRACTICE_REWARD'),
+          source: const Value('RATING_REWARD'),
           transactionType: const Value('EARN'),
           createdAt: Value(now),
           description: const Value('题目评价奖励'),

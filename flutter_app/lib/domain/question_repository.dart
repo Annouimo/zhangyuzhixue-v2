@@ -236,10 +236,12 @@ class QuestionRepository {
       try {
         final now = DateTime.now().toIso8601String();
         final db = DatabaseProvider();
-        const reward = 3; // 0.3分 = 3厘，默认做题奖励
+        final question = await _dao.getById(questionId);
+        final difficulty = question?.difficulty ?? 0.0;
+        final amount = difficulty.floor(); // floor(难度) 厘分 = 0~10厘 = 0~1.0分
         await db.appDb.into(db.appDb.pointsTransactions).insert(
           app_db.PointsTransactionsCompanion(
-            amount: const Value(reward),
+            amount: Value(amount),
             source: const Value('PRACTICE_REWARD'),
             transactionType: const Value('EARN'),
             createdAt: Value(now),
