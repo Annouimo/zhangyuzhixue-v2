@@ -69,6 +69,7 @@ class FilterPanel extends StatefulWidget {
   final List<String> knowledgeCardOptions;
   final List<repo.KnowledgeCardGroup> knowledgeCardGroups;
   final FilterChangedCallback? onChanged;
+  final int? questionCount;
 
   const FilterPanel({
     super.key,
@@ -81,6 +82,7 @@ class FilterPanel extends StatefulWidget {
     this.knowledgeCardOptions = const [],
     this.knowledgeCardGroups = const [],
     this.onChanged,
+    this.questionCount,
   });
 
   @override
@@ -138,8 +140,23 @@ class FilterPanelState extends State<FilterPanel> {
     _notify();
   }
 
+  /// 当前已选筛选条件数量
+  int get _activeFilterCount {
+    int count = 0;
+    if (_selectedTypes.isNotEmpty) count++;
+    if (_selectedYears.isNotEmpty) count++;
+    if (_selectedRegions.isNotEmpty) count++;
+    if (_selectedConceptTags.isNotEmpty) count++;
+    if (_selectedExamTypes.isNotEmpty) count++;
+    if (_selectedKnowledgeCards.isNotEmpty) count++;
+    if (_diffMin > 0 || _diffMax < 10) count++;
+    if (_calcMin > 0 || _calcMax < 10) count++;
+    return count;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filterCount = _activeFilterCount;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,7 +172,35 @@ class FilterPanelState extends State<FilterPanel> {
                 const Text('筛选条件',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.primary),
                 ),
-                const Spacer(),
+                if (filterCount > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text('$filterCount',
+                      style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+                // 已选题目数
+                if (widget.questionCount != null) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text('已选 ${widget.questionCount} 题',
+                      style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ] else
+                  const Spacer(),
                 Text(_expanded ? '收起' : '展开',
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
@@ -306,15 +351,58 @@ class FilterPanelState extends State<FilterPanel> {
     if (_selectedYears.isNotEmpty) {
       chips.add(_MiniChip('${_selectedYears.length}个年份'));
     }
+    if (_selectedRegions.isNotEmpty) {
+      chips.add(_MiniChip('${_selectedRegions.length}个地区'));
+    }
     if (_selectedConceptTags.isNotEmpty) {
       chips.add(_MiniChip('${_selectedConceptTags.length}个标签'));
+    }
+    if (_selectedExamTypes.isNotEmpty) {
+      chips.add(_MiniChip('${_selectedExamTypes.length}种考试'));
+    }
+    if (_selectedKnowledgeCards.isNotEmpty) {
+      chips.add(_MiniChip('${_selectedKnowledgeCards.length}张卡片'));
+    }
+    if (_diffMin > 0 || _diffMax < 10) {
+      chips.add(_MiniChip('难度 ${_diffMin.toStringAsFixed(1)}-${_diffMax.toStringAsFixed(1)}'));
+    }
+    if (_calcMin > 0 || _calcMax < 10) {
+      chips.add(_MiniChip('计算量 ${_calcMin.toStringAsFixed(1)}-${_calcMax.toStringAsFixed(1)}'));
+    }
+
+    if (chips.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(left: 16, bottom: 4),
+        child: Text('暂无筛选条件',
+          style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+      );
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(
-        spacing: 4, runSpacing: 4,
-        children: chips,
+      child: Row(
+        children: [
+          Expanded(
+            child: Wrap(
+              spacing: 4, runSpacing: 4,
+              children: chips,
+            ),
+          ),
+          if (widget.questionCount != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+              ),
+              child: Text('${widget.questionCount} 题',
+                style: const TextStyle(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

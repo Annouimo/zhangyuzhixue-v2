@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../data/update_manager.dart';
+import '../data/database/database_provider.dart';
 import 'question_bank/question_bank_page.dart';
 import 'lecture/courses_page.dart';
 import 'settings/settings_page.dart';
@@ -19,6 +22,75 @@ class _HomePageState extends State<HomePage> {
     LectureCoursesPage(),
     SettingsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUpdates();
+  }
+
+  Future<void> _checkUpdates() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl =
+          prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+      final manager = TeacherUpdateManager(DatabaseProvider(), baseUrl);
+
+      final qbank = await manager.checkVersion('qbank');
+      final courses = await manager.checkVersion('courses');
+
+      if (!mounted) return;
+
+      if (qbank.hasUpdate) {
+        _showUpdateBanner('题库', qbank);
+      } else if (courses.hasUpdate) {
+        _showUpdateBanner('讲义', courses);
+      }
+    } catch (_) {
+      // 静默失败，不影响启动
+    }
+  }
+
+  void _showUpdateBanner(String label, UpdateInfo info) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label 有新版本 v${info.serverVersion}'),
+        duration: const Duration(seconds: 10),
+        action: SnackBarAction(
+          label: '更新',
+          onPressed: () => _doUpdate(label, info),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _doUpdate(String label, UpdateInfo info) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final baseUrl =
+          prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+      final manager = TeacherUpdateManager(DatabaseProvider(), baseUrl);
+
+      await manager.downloadAndReplace(
+        type: info.type,
+        url: info.downloadUrl,
+        expectedChecksum: info.checksum,
+        newVersion: info.serverVersion,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('更新完成，即将刷新')),
+      );
+      // 刷新界面：切到首页 Tab 并触发重建
+      setState(() => _currentIndex = 0);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label 更新失败：$e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

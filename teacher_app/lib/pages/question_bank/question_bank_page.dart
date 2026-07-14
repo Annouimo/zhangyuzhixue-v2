@@ -181,6 +181,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
             examTypeOptions: _filterOpts!.examTypes,
             knowledgeCardOptions: _filterOpts!.knowledgeCards,
             knowledgeCardGroups: _filterOpts!.knowledgeCardGroups,
+            questionCount: _questions?.length,
             onChanged: (state) {
               _debouncedSearch?.cancel();
               _debouncedSearch = Timer(

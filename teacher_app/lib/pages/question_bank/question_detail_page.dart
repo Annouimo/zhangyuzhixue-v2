@@ -54,6 +54,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           MdLatexBody(q.stem, fontSize: 15),
           const SizedBox(height: 16),
 
+          // 配图（images 字段为 JSON 字符串，存储图片路径数组）
+          if (q.images != null && q.images!.isNotEmpty) ...[
+            _buildImages(q.images!),
+            const SizedBox(height: 16),
+          ],
+
           // 元信息
           _metaInfo(q),
           const SizedBox(height: 16),
@@ -147,6 +153,51 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
         Text(value,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+      ],
+    );
+  }
+
+  /// 解析 images JSON 并显示配图
+  Widget _buildImages(String imagesJson) {
+    List<String> paths;
+    try {
+      final decoded = const JsonDecoder().convert(imagesJson);
+      paths = (decoded as List).map((e) => e.toString()).toList();
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+    if (paths.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _section('配图'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+          child: Column(
+            children: paths.map((path) {
+              final assetPath = 'assets/questions/images/$path';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Image.asset(
+                  assetPath,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  errorBuilder: (_, _, _) => Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text('图片加载失败',
+                        style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
