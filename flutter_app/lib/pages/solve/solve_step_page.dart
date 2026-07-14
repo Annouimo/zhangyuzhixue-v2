@@ -126,7 +126,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         _loading = false;
       });
       AuditLogger.instance.page('SolveStepPage', {
-        'stepCount': _totalSteps, 'currentStep': widget.stepIndex,
+        'stepCount': _currentMethodStepCount, 'currentStep': widget.stepIndex,
         'isRevisit': _isRevisit,
       });
     } catch (e) {
@@ -135,15 +135,17 @@ class _SolveStepPageState extends State<SolveStepPage> {
     }
   }
 
-  int get _totalSteps {
-    if (_state == null) return 0;
-    return _state!.subQuestions
-        .expand((sq) => sq.solutions)
-        .expand((m) => m.steps)
-        .length;
+  int get _currentMethodStepCount {
+    if (_state == null || _state!.subQuestions.isEmpty) return 0;
+    try {
+      return _state!.subQuestions[widget.subQuestionIndex]
+          .solutions[widget.methodIndex].steps.length;
+    } catch (_) {
+      return 0;
+    }
   }
 
-  bool get _isLastStep => widget.stepIndex >= _totalSteps - 1;
+  bool get _isLastStep => widget.stepIndex + 1 >= _currentMethodStepCount;
 
   void _goNextStep() {
     if (_isLastStep) return;
@@ -167,6 +169,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
     );
     if (!_isLastStep) {
       _goNextStep();
+    } else {
+      if (context.mounted) context.pop();
     }
   }
 
@@ -255,7 +259,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                         cooldownSeconds: _coolDownSec,
                         step: step,
                         stepIndex: widget.stepIndex,
-                        totalSteps: _totalSteps,
+                        totalSteps: _currentMethodStepCount,
                         isRevisit: _isRevisit,
                         existingRecord: _existingRecord,
                         questionId: widget.questionId,

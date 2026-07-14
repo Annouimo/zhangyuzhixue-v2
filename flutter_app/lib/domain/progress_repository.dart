@@ -267,38 +267,61 @@ class ProgressRepository {
       AuditLogger.instance.sync('enqueue_error', {'type': 'stepFeedback', 'error': '$e'});
     }
 
-    // 检查是否所有步骤已完成，若是则标记完成并发放积分
+    // 检查是否所有步骤已完成（当前方法完成，且所有小问至少一个解法完成）
     try {
       final subQuestions = await _questionDao.getSubQuestions(questionId);
-      int totalSteps = 0;
-      for (final sq in subQuestions) {
-        final methods = await _questionDao.getMethods(sq.id);
-        for (final m in methods) {
-          final steps = await _questionDao.getSteps(m.id);
-          totalSteps += steps.length;
-        }
-      }
-      if (totalSteps == 0) return;
+      if (subQuestions.isEmpty) return;
+      final sqIdx = subQuestionIndex?.clamp(0, subQuestions.length - 1) ?? 0;
+      final sq = subQuestions[sqIdx];
+      final methods = await _questionDao.getMethods(sq.id);
+      if (methods.isEmpty) return;
+      final mIdx = methodIndex?.clamp(0, methods.length - 1) ?? 0;
+      final currentMethod = methods[mIdx];
+      final methodSteps = await _questionDao.getSteps(currentMethod.id);
+      if (methodSteps.isEmpty) return;
+
+      // 获取当前方法的步骤编号集合
       final feedbacks = await _dao.getStepFeedbacks(detail.id);
-      if (feedbacks.length >= totalSteps) {
-        await _dao.updateAttemptStatus(detail.id, 'completed');
-        // 发放做题积分
-        final now = DateTime.now().toIso8601String();
-        final question = await _questionDao.getById(questionId);
-        final difficulty = question?.difficulty ?? 0.0;
-        final amount = difficulty.floor().toDouble(); // 难度 floor 后作为分
-        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
-          db.PointsTransactionsCompanion(
-            amount: Value(amount),
-            source: const Value('PRACTICE_REWARD'),
-            transactionType: const Value('EARN'),
-            createdAt: Value(now),
-            description: const Value('做题奖励'),
-          ),
-        );
-        AuditLogger.instance.dao('submitStepFeedback.complete',
-            amount.toInt(), {'questionId': questionId, 'attemptNumber': attemptNumber});
+      final methodDone = methodSteps
+          .every((s) => feedbacks.any((f) => f.stepNumber == s.stepNumber));
+
+      if (!methodDone) return;
+
+      // 检查每个小问是否至少有一个解法完成
+      bool allResolved = true;
+      for (final sq2 in subQuestions) {
+        final sqMethods = await _questionDao.getMethods(sq2.id);
+        bool sqResolved = false;
+        for (final m in sqMethods) {
+          final mSteps = await _questionDao.getSteps(m.id);
+          if (mSteps.isEmpty) continue;
+          if (mSteps.every((s) => feedbacks.any((f) => f.stepNumber == s.stepNumber))) {
+            sqResolved = true;
+            break;
+          }
+        }
+        if (!sqResolved) { allResolved = false; break; }
       }
+
+      if (!allResolved) return;
+
+      await _dao.updateAttemptStatus(detail.id, 'completed');
+      // 发放做题积分
+      final now = DateTime.now().toIso8601String();
+      final question = await _questionDao.getById(questionId);
+      final difficulty = question?.difficulty ?? 0.0;
+      final amount = difficulty.floor() / 10.0;
+      await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+        db.PointsTransactionsCompanion(
+          amount: Value(amount),
+          source: const Value('PRACTICE_REWARD'),
+          transactionType: const Value('EARN'),
+          createdAt: Value(now),
+          description: const Value('做题奖励'),
+        ),
+      );
+      AuditLogger.instance.dao('submitStepFeedback.complete',
+          amount.toInt(), {'questionId': questionId, 'attemptNumber': attemptNumber});
     } catch (_) {}
   }
 
