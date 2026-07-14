@@ -155,29 +155,31 @@ class UserRepository {
 
   Future<double> earnedPoints() async => (await _dao.getEarnedPoints()).toDouble();
 
+  /// 一次性获取所有积分行，通过 _PointsCalculator 计算四种积分汇总
+  Future<({double earned, double bonus, double spent, double available})> _computePointsSummary() async {
+    final rows = await _dao.getPointsHistory();
+    final calc = _PointsCalculator(rows);
+    return (
+      earned: calc.earned.toDouble(),
+      bonus: calc.bonus.toDouble(),
+      spent: calc.spent.toDouble(),
+      available: calc.available.toDouble(),
+    );
+  }
+
   Future<double> bonusPoints() async {
-    final rows = await _dao.getTransactionsBySource(['SIGNUP_BONUS']);
-    var total = 0;
-    for (final r in rows) { total += r.amount; }
-    return total.toDouble();
+    final s = await _computePointsSummary();
+    return s.bonus;
   }
 
   Future<double> spentPoints() async {
-    final rows = await _dao.getTransactionsBySource(['PAPER_PURCHASE']);
-    var total = 0;
-    for (final r in rows) { total += r.amount; }
-    return total.abs().toDouble();
+    final s = await _computePointsSummary();
+    return s.spent;
   }
 
   Future<double> availablePoints() async {
-    final e = await _dao.getEarnedPoints();
-    final bRows = await _dao.getTransactionsBySource(['SIGNUP_BONUS']);
-    final pRows = await _dao.getTransactionsBySource(['PAPER_PURCHASE']);
-    var bonus = 0;
-    for (final r in bRows) { bonus += r.amount; }
-    var spent = 0;
-    for (final r in pRows) { spent += r.amount; }
-    return (e + bonus + spent).toDouble();
+    final s = await _computePointsSummary();
+    return s.available;
   }
 
   Future<double> todayPoints() async {
@@ -279,7 +281,7 @@ class _PointsCalculator {
   int get earned {
     var total = 0;
     for (final r in _rows) {
-      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD', 'EXIT_RATING_REWARD'].contains(r.source)) {
+      if (['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD'].contains(r.source)) {
         total += r.amount;
       }
     }

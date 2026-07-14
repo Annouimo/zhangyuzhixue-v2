@@ -74,7 +74,7 @@ class StatisticsDao {
   Future<List<({String date, double amount})>> getPointsByDay(int rangeDays) async {
     final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
     final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+      ..where((t) => t.createdAt.isBiggerThanValue(threshold) & t.source.isNotIn(['PAPER_PURCHASE']))).get();
     AuditLogger.instance.dao('StatisticsDao.getPointsByDay', rows.length, {'rangeDays': rangeDays});
     final groups = <String, double>{};
     for (final r in rows) {

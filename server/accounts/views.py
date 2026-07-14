@@ -179,7 +179,7 @@ def _get_points_summary(user):
         earned=Sum('amount', filter=Q(
             source__in=[
                 'LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD',
-                'REVIEW_REWARD', 'EXIT_RATING_REWARD',
+                'REVIEW_REWARD',
             ])),
         bonus=Sum('amount', filter=Q(source='SIGNUP_BONUS')),
         spent=Sum('amount', filter=Q(source='PAPER_PURCHASE')),

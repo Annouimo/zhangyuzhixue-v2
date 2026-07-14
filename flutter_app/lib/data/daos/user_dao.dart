@@ -57,7 +57,7 @@ class UserDao {
 
   Future<int> getEarnedPoints() async {
     final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD', 'EXIT_RATING_REWARD']))).get();
+      ..where((t) => t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD']))).get();
     AuditLogger.instance.dao('UserDao.getEarnedPoints', rows.length, {});
     var total = 0;
     for (final r in rows) { total += r.amount; }
@@ -111,13 +111,13 @@ class UserDao {
   /// 获取今天获得的积分
   Future<int> getTodayEarnedPoints() async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    final all = await _db.select(_db.pointsTransactions).get();
-    AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', all.length, {});
+    final q = (_db.select(_db.pointsTransactions)
+      ..where((t) => t.createdAt.isBiggerOrEqual(Variable(today)) & t.amount.isBiggerThanValue(0)));
+    final rows = await q.get();
+    AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', rows.length, {});
     var total = 0;
-    for (final row in all) {
-      if (row.createdAt.startsWith(today) && row.amount > 0) {
-        total += row.amount;
-      }
+    for (final row in rows) {
+      total += row.amount;
     }
     return total;
   }

@@ -83,7 +83,7 @@ Future<bool> submitExitRating({
       app_db.PointsTransactionsCompanion(
         amount: Value(pts),
         source: const Value('REVIEW_REWARD'),
-        transactionType: const Value('earn'),
+        transactionType: const Value('EARN'),
         createdAt: Value(now),
       ),
     );
