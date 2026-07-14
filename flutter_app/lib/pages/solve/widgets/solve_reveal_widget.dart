@@ -132,11 +132,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
                 ),
                 if (widget.answerValue != null) ...[
                   const SizedBox(height: 12),
-                  Text(widget.answerValue!,
-                    style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary,
-                    ),
-                  ),
+                  MdLatexBody(widget.answerValue!, fontSize: 20),
                 ],
               ],
             ),
