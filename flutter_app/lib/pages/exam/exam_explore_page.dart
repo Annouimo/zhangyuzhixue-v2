@@ -9,7 +9,9 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../widgets/shared/action_chip.dart';
 import '../../../data/helpers/pdf_helper.dart';
+import 'widgets/paper_card.dart';
 import '../../data/debug/audit_logger.dart';
 
 /// 发现组卷 — 匹配 HTML 原型 paper_explore.html
@@ -98,81 +100,40 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (ctx, i) {
                 final e = _list![i];
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(e.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 4),
-                              Text(e.summary.isNotEmpty ? e.summary : '${e.likeCount} 赞 · ${e.collectCount} 收藏',
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _actionChip(
-                              icon: e.isLiked ? '❤️' : '🤍',
-                              label: '${e.likeCount}',
-                              onTap: () => _toggleLike(e.id),
-                            ),
-                            const SizedBox(width: 8),
-                            _actionChip(
-                              icon: e.isCollected ? '🔖' : '🏷️',
-                              label: '${e.collectCount}',
-                              onTap: () => _toggleCollect(e.id),
-                            ),
-                            const SizedBox(width: 8),
-                            _actionChip(
-                              icon: '📥',
-                              label: 'PDF',
-                              onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context),
-                            ),
-                            const Spacer(),
-                            TextButton(
-                              onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
-                              child: const Text('查看试卷', style: TextStyle(fontSize: 12)),
-                            ),
-                          ],
-                        ),
-                      ],
+                return PaperCard(
+                  title: e.name,
+                  subtitle: e.summary.isNotEmpty ? e.summary : '${e.likeCount} 赞 · ${e.collectCount} 收藏',
+                  onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+                  actions: [
+                    ActionChipWidget(
+                      emoji: e.isLiked ? '❤️' : '🤍',
+                      label: '${e.likeCount}',
+                      onTap: () => _toggleLike(e.id),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    ActionChipWidget(
+                      emoji: e.isCollected ? '🔖' : '🏷️',
+                      label: '${e.collectCount}',
+                      onTap: () => _toggleCollect(e.id),
+                    ),
+                    const SizedBox(width: 8),
+                    ActionChipWidget(
+                      emoji: '📥',
+                      label: 'PDF',
+                      onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+                      child: const Text('查看试卷', style: TextStyle(fontSize: 12)),
+                    ),
+                  ],
                 );
               },
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _actionChip({required String icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 12)),
-            const SizedBox(width: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-          ],
-        ),
-      ),
     );
   }
 }

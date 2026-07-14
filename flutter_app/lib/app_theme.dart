@@ -24,6 +24,34 @@ abstract final class AppSizes {
   static const double maxContentWidth = 480.0;
 }
 
+/// 题型中文映射
+abstract final class QuestionTypeLabels {
+  static const Map<String, String> labels = {
+    'choice': '选择题',
+    'fill': '填空题',
+    'solution': '解答题',
+  };
+
+  static String of(String type) => labels[type] ?? type;
+}
+
+/// 难度分段（0~10）常量
+abstract final class DifficultySegments {
+  static const List<double> diffBreaks = [0.0, 3.0, 5.0, 7.0, 8.5, 10.0];
+  static const List<String> diffLabels = ['基础', '中档', '中难', '较难', '压轴'];
+  static const List<double> calcBreaks = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0];
+  static const List<String> calcLabels = ['少量', '较少', '适中', '较多', '繁琐'];
+
+  /// 根据分段标准取段名
+  static String nameFor(double value, {required List<double> breaks, required List<String> labels}) {
+    final idx = breaks.lastIndexWhere((b) => value >= b);
+    return labels[idx.clamp(0, labels.length - 1)];
+  }
+
+  static String diffNameFor(double value) => nameFor(value, breaks: diffBreaks, labels: diffLabels);
+  static String calcNameFor(double value) => nameFor(value, breaks: calcBreaks, labels: calcLabels);
+}
+
 /// 应用主题
 class AppTheme {
   static const _fontFamilyFallback = [

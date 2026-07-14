@@ -12,15 +12,10 @@ class DifficultySlider extends StatelessWidget {
   final ValueChanged<RangeValues> onChanged;
   final String label;
 
-  static const _diffBreaks = [0.0, 3.0, 5.0, 7.0, 8.5, 10.0];
-  static const _calcBreaks = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0];
-  static const _diffLabels = ['基础', '中档', '中难', '较难', '压轴'];
-  static const _calcLabels = ['少量', '较少', '适中', '较多', '繁琐'];
-
   bool get _isDifficulty => label.contains('难度');
 
-  List<double> get _breaks => _isDifficulty ? _diffBreaks : _calcBreaks;
-  List<String> get _labels => _isDifficulty ? _diffLabels : _calcLabels;
+  List<double> get _breaks => _isDifficulty ? DifficultySegments.diffBreaks : DifficultySegments.calcBreaks;
+  List<String> get _labels => _isDifficulty ? DifficultySegments.diffLabels : DifficultySegments.calcLabels;
 
   const DifficultySlider({
     super.key,
@@ -61,7 +56,6 @@ class DifficultySlider extends StatelessWidget {
   }
 
   String _segNameFor(double v) {
-    final idx = _breaks.lastIndexWhere((b) => v >= b);
-    return _labels[idx.clamp(0, _labels.length - 1)];
+    return DifficultySegments.nameFor(v, breaks: _breaks, labels: _labels);
   }
 }

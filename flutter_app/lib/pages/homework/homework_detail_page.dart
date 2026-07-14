@@ -194,14 +194,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
 }
 
 /// 题型中文映射
-String _typeLabel(String type) {
-  switch (type) {
-    case 'choice': return '选择题';
-    case 'fill': return '填空题';
-    case 'solution': return '解答题';
-    default: return type;
-  }
-}
+String _typeLabel(String type) => QuestionTypeLabels.of(type);
 
 /// 状态标签
 ({String label, Color color, Color bg}) _statusStyle(String status) {

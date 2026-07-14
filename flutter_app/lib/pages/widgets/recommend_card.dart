@@ -22,14 +22,7 @@ class RecommendCard extends StatelessWidget {
     required this.onTap,
   });
 
-  static const _segLabels = ['基础', '中档', '中难', '较难', '压轴'];
-  static const _segBreaks = [0.0, 3.0, 5.0, 7.0, 8.5, 10.0];
-  static const _typeLabels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'};
-
-  String get _diffLabel {
-    final idx = _segBreaks.lastIndexWhere((b) => difficulty >= b);
-    return _segLabels[idx.clamp(0, _segLabels.length - 1)];
-  }
+  String get _diffLabel => DifficultySegments.diffNameFor(difficulty);
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +39,7 @@ class RecommendCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _tag(_typeLabels[questionType] ?? questionType, AppColors.primaryLight, AppColors.primary),
+                  _tag(QuestionTypeLabels.of(questionType), AppColors.primaryLight, AppColors.primary),
                   const SizedBox(width: 6),
                   _tag(_diffLabel, Colors.orange[50]!, Colors.orange[700]!),
                   const Spacer(),

@@ -9,7 +9,9 @@ import '../../../domain/exam_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../widgets/shared/action_chip.dart';
 import '../../../data/helpers/pdf_helper.dart';
+import 'widgets/paper_card.dart';
 import '../../data/debug/audit_logger.dart';
 
 /// 我的组卷列表 — 匹配 HTML 原型 paper_history.html
@@ -90,69 +92,24 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (ctx, i) {
           final e = _list![i];
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () => context.push('${AppRoutes.examQuicklook}?id=${e.id}'),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(e.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 2),
-                        Text('创建于 ${_formatTime(e.createdAt)}',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      // 公开/私密开关
-                      IconButton(
-                        icon: Icon(e.isPublic ? Icons.public : Icons.lock, size: 18),
-                        tooltip: e.isPublic ? '公开' : '私密',
-                        onPressed: () async {
-                          await _repo.togglePublic(e.id);
-                          _load();
-                        },
-                      ),
-                      _actionChip('📥', 'PDF', () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
-                      const SizedBox(width: 4),
-                      _actionChip('✅', '答案', () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
-                      const SizedBox(width: 4),
-                      _actionChip('🗑️', '删除', () => _deleteExam(e.id)),
-                    ],
-                  ),
-                ],
+          return PaperCard(
+            title: e.name,
+            subtitle: '创建于 ${_formatTime(e.createdAt)}',
+            onTap: () => context.push('${AppRoutes.examQuicklook}?id=${e.id}'),
+            actions: [
+              IconButton(
+                icon: Icon(e.isPublic ? Icons.public : Icons.lock, size: 18),
+                tooltip: e.isPublic ? '公开' : '私密',
+                onPressed: () async { await _repo.togglePublic(e.id); _load(); },
               ),
-            ),
+              ActionChipWidget(emoji: '📥', label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
+              const SizedBox(width: 4),
+              ActionChipWidget(emoji: '✅', label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
+              const SizedBox(width: 4),
+              ActionChipWidget(emoji: '🗑️', label: '删除', onTap: () => _deleteExam(e.id)),
+            ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _actionChip(String icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 11)),
-            const SizedBox(width: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-          ],
-        ),
       ),
     );
   }
