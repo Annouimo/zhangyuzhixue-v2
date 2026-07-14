@@ -150,6 +150,28 @@ class QuestionDao {
     return rows;
   }
 
+  /// 批量查询多个方法的步骤（替代 N+1 循环）
+  Future<List<db.SolutionStepRow>> getStepsByMethodIds(List<int> methodIds) async {
+    if (methodIds.isEmpty) return [];
+    final q = _db.select(_db.solutionSteps)
+      ..where((t) => t.methodId.isIn(methodIds));
+    q.orderBy([(t) => OrderingTerm(expression: t.stepNumber)]);
+    final rows = await q.get();
+    AuditLogger.instance.dao('QuestionDao.getStepsByMethodIds', rows.length, {'methodCount': methodIds.length});
+    return rows;
+  }
+
+  /// 批量查询多个子题的所有解法（替代 N+1 循环）
+  Future<List<db.SolutionMethodRow>> getMethodsBySubQuestionIds(List<int> subQuestionIds) async {
+    if (subQuestionIds.isEmpty) return [];
+    final q = _db.select(_db.solutionMethods)
+      ..where((t) => t.subQuestionId.isIn(subQuestionIds));
+    q.orderBy([(t) => OrderingTerm(expression: t.sortOrder)]);
+    final rows = await q.get();
+    AuditLogger.instance.dao('QuestionDao.getMethodsBySubQuestionIds', rows.length, {'subQCount': subQuestionIds.length});
+    return rows;
+  }
+
   /// 一次读取全部 question_concept_tag 链接，返回 [questionId, conceptTagId] 行
   Future<List<db.QuestionConceptTagRow>> getAllQuestionTagLinks() async {
     final rows = await _db.select(_db.questionConceptTags).get();

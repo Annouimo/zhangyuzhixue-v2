@@ -152,7 +152,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('解答题')),
+      appBar: AppBar(title: const Text('解题地图')),
       body: _loading
           ? const LoadingIndicator()
           : _error != null
@@ -212,14 +212,52 @@ class _SolveMapPageState extends State<SolveMapPage> {
         : '第 ${_attempts.length + 1} 次作答';
 
     if (_attempts.length <= 1) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.primary),
+      return PopupMenuButton<String>(
+        onSelected: (value) async {
+          if (value == 'new') {
+            final repo = progress.ProgressRepository(
+              ProgressDao(DatabaseProvider().appDb),
+              QuestionDao(DatabaseProvider().assetsDb),
+            );
+            await repo.createAttempt(widget.questionId);
+            final attempts = await repo.getAttempts(widget.questionId);
+            if (!mounted) return;
+            setState(() {
+              _attempts = attempts;
+              if (attempts.isNotEmpty) {
+                _currentAttemptNumber = attempts.last.attemptNumber;
+                _currentSubmissionDetailId = attempts.last.id;
+              }
+              _completedSteps = {};
+              _reviewMode = false;
+            });
+          }
+        },
+        offset: const Offset(0, 28),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        itemBuilder: (context) => [
+          const PopupMenuItem<String>(
+            value: 'new',
+            child: Text('重新作答',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(label,
+                style: const TextStyle(fontSize: 11, color: AppColors.primary),
+              ),
+              const Icon(Icons.expand_more, size: 14, color: AppColors.primary),
+            ],
+          ),
         ),
       );
     }
@@ -387,26 +425,33 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
         // 解题树
         ..._state!.subQuestions.map((sq) {
-          int totalSteps = 0;
-          int doneStepsLocal = 0;
+          // 方法级完成检测
+          bool anyMethodFullyDone = false;
+          bool allMethodsFullyDone = true;
+          bool hasAnyStepDone = false;
+
           for (final mEntry in sq.solutions.asMap().entries) {
             final mi = mEntry.key;
             final m = mEntry.value;
+            bool thisMethodAllDone = true;
             for (final s in m.steps) {
-              totalSteps++;
-              if (_completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')) {
-                doneStepsLocal++;
-              }
+              final isDone = _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}');
+              if (isDone) { hasAnyStepDone = true; } else { thisMethodAllDone = false; }
             }
+            if (thisMethodAllDone) { anyMethodFullyDone = true; } else { allMethodsFullyDone = false; }
           }
-          final anyInProgress = doneStepsLocal < totalSteps;
+          // 没有方法（空题）
+          if (sq.solutions.isEmpty) allMethodsFullyDone = false;
 
           String statusLabel;
           Color statusColor;
-          if (doneStepsLocal == totalSteps && totalSteps > 0) {
+          if (allMethodsFullyDone && sq.solutions.isNotEmpty) {
+            statusLabel = '完全掌握';
+            statusColor = const Color(0xFFf5a623); // 金色
+          } else if (anyMethodFullyDone) {
             statusLabel = '已完成';
             statusColor = AppColors.success;
-          } else if (doneStepsLocal > 0 || anyInProgress) {
+          } else if (hasAnyStepDone) {
             statusLabel = '进行中...';
             statusColor = AppColors.warning;
           } else {
