@@ -132,7 +132,12 @@ class SyncPushView(APIView):
             # 如果 detail_cache 为空（没有前置 submission），自动创建
             if not detail_cache:
                 sub = StudentSubmission.objects.create(student=student)
-                detail_cache[sub.pk] = []
+                detail = SubmissionDetail.objects.create(
+                    submission=sub,
+                    question_id=data['question_id'],
+                    attempt_number=data.get('attempt_number', 1),
+                )
+                detail_cache[sub.pk] = [detail.pk]
             for sub_id in detail_cache:
                 if detail_cache[sub_id]:
                     detail_id = detail_cache[sub_id][-1]
@@ -150,6 +155,14 @@ class SyncPushView(APIView):
         detail_id = data.get('submission_detail_id')
         # 如果 submission_detail_id 为 null，从 detail_cache 取最近创建的 detail_id
         if detail_id is None:
+            # 如果 detail_cache 为空（没有前置 submission），自动创建
+            if not detail_cache:
+                sub = StudentSubmission.objects.create(student=student)
+                detail = SubmissionDetail.objects.create(
+                    submission=sub,
+                    question_id=data['question_id'],
+                )
+                detail_cache[sub.pk] = [detail.pk]
             for sub_id in detail_cache:
                 if detail_cache[sub_id]:
                     detail_id = detail_cache[sub_id][-1]
