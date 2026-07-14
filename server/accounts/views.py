@@ -176,11 +176,8 @@ def _get_points_summary(user):
 
     student = user.student
     agg = PointsTransaction.objects.filter(student=student).aggregate(
-        earned=Sum('amount', filter=Q(
-            source__in=[
-                'LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD',
-            ])),
-        bonus=Sum('amount', filter=Q(source__in=['SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD'])),
+        earned=Sum('amount', filter=Q(source='PRACTICE_REWARD')),
+        bonus=Sum('amount', filter=Q(source__in=['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD'])),
         spent=Sum('amount', filter=Q(source='PAPER_PURCHASE')),
     )
     earned = agg['earned'] or 0
@@ -394,7 +391,7 @@ def level_percentile_view(request):
     # 等级依据学习积分计算（只统计 earned 分类）
     my_total = PointsTransaction.objects.filter(
         student=student,
-        source__in=['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']
+        source='PRACTICE_REWARD'
     ).aggregate(total=Sum('amount'))['total'] or 0
 
     # 从 LevelConfig 表查询等级
@@ -404,7 +401,7 @@ def level_percentile_view(request):
 
     # 计算所有学生的总积分（与当前用户相同口径：仅 earned 分类）
     all_totals = PointsTransaction.objects.filter(
-        source__in=['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD']
+        source='PRACTICE_REWARD'
     ).values('student_id').annotate(total=Sum('amount')).values_list('total', flat=True)
 
     total_count = len(all_totals)
