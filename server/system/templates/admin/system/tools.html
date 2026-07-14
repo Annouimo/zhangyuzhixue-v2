@@ -33,7 +33,7 @@
   <h2>📦 构建 & 发布</h2>
   <div class="version-info">
     <span>📚 题库: v{{ qbank_version.data_version|default:"—" }}</span>
-    <span>📖 讲义: v{{ lecture_version.data_version|default:"—" }}</span>
+    <span>📖 课程: v{{ courses_version.data_version|default:"—" }}</span>
   </div>
   <div class="tool-grid">
     <form method="post" style="display:inline">
@@ -50,15 +50,15 @@
     </form>
     <form method="post" style="display:inline">
       {% csrf_token %}
-      <input type="hidden" name="action" value="build_lectures">
+      <input type="hidden" name="action" value="build_courses">
       <input type="hidden" name="mode" value="release">
-      <button type="submit" class="tool-btn tool-btn-primary">🚀 构建并发布 · 讲义</button>
+      <button type="submit" class="tool-btn tool-btn-primary">🚀 构建并发布 · 课程</button>
     </form>
     <form method="post" style="display:inline">
       {% csrf_token %}
-      <input type="hidden" name="action" value="build_lectures">
+      <input type="hidden" name="action" value="build_courses">
       <input type="hidden" name="mode" value="test">
-      <button type="submit" class="tool-btn tool-btn-secondary">🧪 仅构建测试 · 讲义</button>
+      <button type="submit" class="tool-btn tool-btn-secondary">🧪 仅构建测试 · 课程</button>
     </form>
   </div>
 </div>

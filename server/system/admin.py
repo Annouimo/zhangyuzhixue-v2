@@ -150,11 +150,11 @@ class ToolsView(View):
         """执行构建"""
         import io
         import sys
-        from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+        from scripts.build_schemas import ASSETS_TABLES, COURSES_TABLES
         from scripts.build_utils import build_database
         from system.models import DbVersion
 
-        schema = ASSETS_TABLES if db_type == 'qbank' else LECTURE_TABLES
+        schema = ASSETS_TABLES if db_type == 'qbank' else COURSES_TABLES
 
         try:
             ver = DbVersion.objects.get(db_type=db_type)
