@@ -45,12 +45,7 @@ class RecommendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRect(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 48),
-                  child: MdLatexBody(title, fontSize: 14),
-                ),
-              ),
+              MdLatexBody(title, fontSize: 14),
               const SizedBox(height: 8),
               Row(
                 children: [
