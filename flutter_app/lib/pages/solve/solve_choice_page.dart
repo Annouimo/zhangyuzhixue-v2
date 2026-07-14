@@ -99,7 +99,14 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   Future<void> _load() async {
     try {
       final detail = await _repo.getDetail(widget.questionId);
-      final attempts = await _repo.getAttempts(widget.questionId);
+      var attempts = await _repo.getAttempts(widget.questionId);
+
+      // 首次访问且未指定回顾模式时，自动创建存档
+      if (attempts.isEmpty && widget.mode != 'review') {
+        await _repo.startSolve(widget.questionId);
+        attempts = await _repo.getAttempts(widget.questionId);
+      }
+
       SolveAttempt? latest;
       if (widget.attemptId != null) {
         latest = attempts.where((a) => a.id == widget.attemptId).firstOrNull;
@@ -378,6 +385,31 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             ),
           ),
         ],
+        // 概念标签
+        if (detail.conceptTags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text('\u{1F3F7}\u{FE0F}',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                ...detail.conceptTags.map((tag) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+                )),
+              ],
+            ),
+          ),
         // 题干（含 LaTeX）
         MdLatexBody(detail.stem, fontSize: 15),
         const SizedBox(height: 20),

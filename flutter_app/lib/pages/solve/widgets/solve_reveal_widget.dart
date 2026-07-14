@@ -33,6 +33,9 @@ class SolveRevealWidget extends StatefulWidget {
   /// 自评反馈（揭示答案后、已完成之前展示）
   final Widget? feedbackWidget;
 
+  /// 自评反馈结果（反馈提交后、DoneBanner 出现前展示，与 DoneBanner 同时可见）
+  final Widget? feedbackResult;
+
   /// 展示题库的内容 widget（stem / 选项等）
   final Widget child;
 
@@ -46,6 +49,7 @@ class SolveRevealWidget extends StatefulWidget {
     this.onRate,
     this.onReveal,
     this.feedbackWidget,
+    this.feedbackResult,
     required this.child,
   });
 
@@ -74,14 +78,19 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final done = widget.isRevisit || (_revealed && widget.feedbackWidget == null);
+    // answerShown: 冷却结束或复访，答案/解析已可见
+    final answerShown = widget.isRevisit || _revealed;
+    // feedbackPending: 等待用户自评
+    final feedbackPending = _revealed && widget.feedbackWidget != null;
+    // done: 已过自评阶段（含反馈结果展示），显示 DoneBanner
+    final done = answerShown && !feedbackPending;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.child,
         const SizedBox(height: 20),
-        if (!done)
+        if (!answerShown)
           CoolingTimer(
             key: _timerKey,
             seconds: widget.cooldownSeconds,
@@ -94,19 +103,23 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
               ),
             ),
           ),
-        if (done) ...[
+        if (answerShown) ...[
           const SizedBox(height: 16),
           _RevealResultBanner(
             answerValue: widget.answerValue,
             explanation: widget.explanation,
           ),
         ],
-        if (_revealed && widget.feedbackWidget != null) ...[
+        if (feedbackPending) ...[
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: widget.feedbackWidget!,
           ),
+        ],
+        if (_revealed && widget.feedbackResult != null) ...[
+          const SizedBox(height: 16),
+          widget.feedbackResult!,
         ],
         if (done) ...[
           const SizedBox(height: 16),

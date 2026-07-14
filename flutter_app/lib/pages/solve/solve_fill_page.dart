@@ -42,6 +42,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   bool _loading = true;
   bool _revealed = false;
   bool _feedbackGiven = false;
+  bool _feedbackCorrect = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -250,7 +251,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
       } catch (_) {}
     }
     if (!mounted) return;
-    setState(() => _feedbackGiven = true);
+    setState(() {
+      _feedbackGiven = true;
+      _feedbackCorrect = correct;
+    });
   }
 
   Widget _buildFeedbackButtons() {
@@ -324,6 +328,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             explanation: _detail?.explanation,
             onReveal: _onReveal,
             feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
+            feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
             onNext: widget.nextQuestionId != null
                 ? () async {
                     try {
@@ -340,6 +345,52 @@ class _SolveFillPageState extends State<SolveFillPage> {
             child: _buildContent(),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFeedbackResult() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _feedbackCorrect
+            ? AppColors.success.withValues(alpha: 0.08)
+            : AppColors.textSecondary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _feedbackCorrect
+              ? AppColors.success.withValues(alpha: 0.3)
+              : AppColors.textSecondary.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _feedbackCorrect ? Icons.check_circle : Icons.cancel,
+                size: 20,
+                color: _feedbackCorrect ? AppColors.success : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _feedbackCorrect ? '回答正确！' : '回答有误',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _feedbackCorrect ? AppColors.success : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _feedbackCorrect ? '' : '继续加油 💪',
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
+        ],
       ),
     );
   }
@@ -409,6 +460,31 @@ class _SolveFillPageState extends State<SolveFillPage> {
             ),
           ),
         ],
+        // 概念标签
+        if (detail.conceptTags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Text('\u{1F3F7}\u{FE0F}',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+                ...detail.conceptTags.map((tag) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+                )),
+              ],
+            ),
+          ),
         // 题干（含 LaTeX）
         MdLatexBody(detail.stem, fontSize: 15),
         const SizedBox(height: 16),

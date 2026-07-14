@@ -182,14 +182,14 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     'solution' => AppRoutes.solveMap,
                     _ => AppRoutes.solveChoice,
                   };
-                  // 据 q.status 决定 mode/attemptId
+                  // 据存档状态决定 mode/attemptId
                   String mode = 'first';
                   int? attemptId;
                   if (q.status != 'pending') {
                     try {
                       final attempts = await _qRepo.getAttempts(q.id);
                       if (attempts.isNotEmpty) {
-                        mode = q.status == 'completed' ? 'review' : 'resume';
+                        mode = !attempts.last.isCompleted ? 'resume' : 'review';
                         attemptId = attempts.last.id;
                       }
                     } catch (e) {
