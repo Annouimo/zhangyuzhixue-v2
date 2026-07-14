@@ -81,7 +81,26 @@ class _PointsPageState extends State<PointsPage> {
         child: Text('暂无流水记录', style: TextStyle(color: AppColors.textSecondary)),
       ))];
     }
-    return list.map((r) {
+    return [
+      // 表头
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.border)),
+        ),
+        child: Row(
+          children: [
+            Expanded(flex: 2, child: Text('类型', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            Expanded(flex: 2, child: Text('时间', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('变动', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('学习', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('赠送', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('消耗', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            SizedBox(width: 48, child: Text('可用', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+          ],
+        ),
+      ),
+      ...list.map((r) {
       final isPositive = r.change >= 0;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -107,6 +126,6 @@ class _PointsPageState extends State<PointsPage> {
           ],
         ),
       );
-    }).toList();
+    })];
   }
 }

@@ -160,12 +160,21 @@ class UserRepository {
   }
 
   // ── 积分 ──
+  static const Map<String, String> _sourceLabels = {
+    'LOGIN_BONUS': '签到',
+    'PRACTICE_REWARD': '做题',
+    'TASK_REWARD': '完成任务',
+    'REVIEW_REWARD': '退出评价',
+    'SIGNUP_BONUS': '新人赠送',
+    'PAPER_PURCHASE': '组卷',
+  };
+
   Future<List<PointsRecord>> getPointsHistory() async {
     final rows = await _dao.getPointsHistory();
     final calc = _PointsCalculator(rows);
     return rows.map((r) => PointsRecord(
       time: r.createdAt,
-      type: r.source,
+      type: _sourceLabels[r.source] ?? r.source,
       change: r.amount.toDouble(),
       earned: calc.earned.toDouble(),
       bonus: calc.bonus.toDouble(),
