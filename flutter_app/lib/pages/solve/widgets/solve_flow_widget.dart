@@ -73,8 +73,8 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
           CoolingTimer(
             key: _timerKey,
             seconds: widget.cooldownSeconds,
-            child: SizedBox(
-              width: double.infinity,
+            child: FractionallySizedBox(
+              widthFactor: 1,
               child: ElevatedButton(
                 onPressed: widget.submitLoading ? null : _submit,
                 child: widget.submitLoading

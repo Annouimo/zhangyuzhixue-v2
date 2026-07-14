@@ -93,8 +93,8 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             key: _timerKey,
             seconds: widget.cooldownSeconds,
             label: '可查看',
-            child: SizedBox(
-              width: double.infinity,
+            child: FractionallySizedBox(
+              widthFactor: 1,
               child: ElevatedButton(
                 onPressed: _reveal,
                 child: const Text('查看答案'),
