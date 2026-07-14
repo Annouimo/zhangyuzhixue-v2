@@ -258,7 +258,7 @@ ASSETS_COLUMNS = {
     for tname, tdef in ASSETS_TABLES.items()
 }
 
-LECTURE_COLUMNS = {
+COURSES_COLUMNS = {
     tname: {col[0] for col in tdef['columns']}
-    for tname, tdef in LECTURE_TABLES.items()
+    for tname, tdef in COURSES_TABLES.items()
 }
