@@ -277,27 +277,35 @@ class FilterPanelState extends State<FilterPanel> {
     final minIdx = segIndex(lower).clamp(0, segments.length - 1);
     final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
     final same = minIdx == maxIdx;
+    if (same) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 2, bottom: 4),
+        child: Text.rich(TextSpan(children: [
+          TextSpan(text: segments[minIdx].label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+          TextSpan(text: ' ${segments[minIdx].sample}',
+            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        ])),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(top: 2, bottom: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (!same) const Text('← ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-              Text(segments[minIdx].label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
-              if (!same) ...[
-                const Text('  →  ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                Text(segments[maxIdx].label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
-              ],
-            ],
-          ),
-          Text(
-            same ? segments[minIdx].sample : '${segments[minIdx].sample} · ${segments[maxIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-          ),
-        ],
-      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text.rich(TextSpan(children: [
+          const WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+          TextSpan(text: segments[minIdx].label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+          TextSpan(text: ' ${segments[minIdx].sample}',
+            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        ])),
+        Text.rich(TextSpan(children: [
+          const WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+          TextSpan(text: segments[maxIdx].label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+          TextSpan(text: ' ${segments[maxIdx].sample}',
+            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+        ])),
+      ]),
     );
   }
 }
