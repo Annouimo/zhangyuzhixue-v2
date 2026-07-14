@@ -336,7 +336,10 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('系统', [
         (Icons.sync, '同步状态', null, () => context.push(AppRoutes.syncQueue)),
-        (Icons.info_outline, '关于', null, () => context.push(AppRoutes.profileAbout)),
+        (Icons.info_outline, '关于', null, () async {
+          await context.push(AppRoutes.profileAbout);
+          reload();
+        }),
         (Icons.logout, '退出登录', null, _logout),
       ]),
     ];

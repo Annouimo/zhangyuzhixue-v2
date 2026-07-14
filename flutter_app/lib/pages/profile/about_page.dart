@@ -55,7 +55,11 @@ class _AboutPageState extends State<AboutPage> {
       final label =
           '${now.month}/${now.day} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
       await AppPrefs().setLastSyncTime(label);
-      setState(() => _lastSyncTime = '上次同步：$label');
+      if (mounted) {
+        setState(() => _lastSyncTime = '上次同步：$label');
+        // 同步完成后返回"我的"页面并刷新
+        Navigator.of(context).pop();
+      }
     }
     if (mounted) setState(() => _syncing = false);
   }
