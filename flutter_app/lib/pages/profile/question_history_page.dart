@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
@@ -46,7 +47,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('做题历史')),
-    body: _loading ? const Center(child: CircularProgressIndicator())
+    body: _loading ? const LoadingIndicator()
       : _error != null
           ? ErrorPlaceholder(message: _error!, onRetry: _load)
           : _history == null || _history!.isEmpty

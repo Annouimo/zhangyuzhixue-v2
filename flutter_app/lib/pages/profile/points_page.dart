@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../widgets/shared/point_summary_card.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
@@ -52,7 +54,7 @@ class _PointsPageState extends State<PointsPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('积分流水')),
     body: _loading
-        ? const Center(child: CircularProgressIndicator())
+        ? const LoadingIndicator()
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _load)
             : ListView(
@@ -66,33 +68,8 @@ class _PointsPageState extends State<PointsPage> {
   );
 
   Widget _buildSummary() {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(
-          children: [
-            _pointItem('学习积分', _earned, AppColors.primary),
-            _pointItem('赠送积分', _bonus, AppColors.warning),
-            _pointItem('消耗积分', _spent, AppColors.error),
-            _pointItem('可用积分', _available, AppColors.primary),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _pointItem(String label, double value, Color color) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(value.toStringAsFixed(1),
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
-          const SizedBox(height: 2),
-          Text(label,
-            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        ],
-      ),
+    return PointSummaryCard(
+      earned: _earned, bonus: _bonus, spent: _spent, available: _available,
     );
   }
 
