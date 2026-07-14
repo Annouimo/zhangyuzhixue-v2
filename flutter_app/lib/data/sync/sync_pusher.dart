@@ -34,6 +34,12 @@ class SyncPusher {
     var fail = 0;
 
     while (true) {
+      // 每批推送前检查网络状态
+      if (!ConnectivityMonitor().isOnline) {
+        AuditLogger.instance.sync('push_offline', {'skip_remaining': true});
+        break;
+      }
+
       final batch = await _dao.getPending(limit: batchSize);
       if (batch.isEmpty) break;
 

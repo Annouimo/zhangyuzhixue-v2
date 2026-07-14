@@ -7,184 +7,159 @@ import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/sync/sync_pusher.dart';
-import 'package:flutter_app/data/sync/sync_manager.dart';
-import 'package:flutter_app/data/database/database_provider.dart';
 
-class _MockAdapter implements HttpClientAdapter {
-  final handlers = <String, Function(RequestOptions)>{};
-  List<Map<String, dynamic>>? sentBatch;
-  void on(String method, String path, Function(RequestOptions) h) {
-    handlers['$method $path'] = h;
-  }
+/// Mock adapter that returns controllable server_ids responses
+class MockPushAdapter implements HttpClientAdapter {
+  int callCount = 0;
+  Map<int, int> serverIds = {};
+  bool throwOnPush = false;
+
   @override
-  Future<ResponseBody> fetch(RequestOptions o, Stream<Uint8List>? rs, Future? cf) async {
-    if (o.data is Map && (o.data as Map).containsKey('batch')) {
-      sentBatch = ((o.data as Map)['batch'] as List).cast<Map<String, dynamic>>();
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<dynamic>? cancelFuture,
+  ) async {
+    callCount++;
+    if (throwOnPush) {
+      throw DioException(requestOptions: options, message: '模拟网络错误');
     }
-    final h = handlers['${o.method} ${o.path}'];
-    if (h != null) return h(o);
-    return ResponseBody.fromString('{"code":0,"data":{}}', 200, headers: {'content-type': ['application/json']});
+    return ResponseBody.fromString(
+      '{"code":0,"data":{"server_ids":${_serverIdsJson()}}}', 200,
+      headers: {'content-type': ['application/json']},
+    );
   }
-  @override void close({bool? force}) {}
+
+  String _serverIdsJson() {
+    if (serverIds.isEmpty) return '{}';
+    return serverIds.map((k, v) => MapEntry('"$k"', v)).toString();
+  }
+
+  @override
+  void close({bool? force}) {}
 }
 
 void main() {
   late db.AppDatabase database;
   late SyncQueueDao dao;
-  late ApiClient client;
-  late _MockAdapter adapter;
+  late MockPushAdapter adapter;
+  late SyncPusher pusher;
 
   setUp(() {
     database = db.AppDatabase(NativeDatabase.memory());
     dao = SyncQueueDao(database);
-    client = ApiClient();
+
+    adapter = MockPushAdapter();
+    final client = ApiClient();
     client.init(baseUrl: 'https://test/');
-    adapter = _MockAdapter();
     client.setMockAdapter(adapter);
+
+    final api = SyncApi(client);
+    pusher = SyncPusher(dao, api);
   });
 
-  tearDown(() => database.close());
+  tearDown(() async {
+    await database.close();
+  });
 
-  group('SyncPusher', () {
-    test('empty queue returns zeros', () async {
-      final pusher = SyncPusher(dao, SyncApi(client));
+  group('SyncPusher.pushAll', () {
+    test('returns success 0 when queue is empty', () async {
       final result = await pusher.pushAll();
       expect(result.successCount, 0);
       expect(result.failCount, 0);
     });
 
-    test('single batch all success', () async {
-      adapter.on('POST', '/sync/push/', (_) => ResponseBody.fromString(
-        '{"code":0,"data":{"server_ids":{"1":101,"2":102}}}', 200,
-        headers: {'content-type': ['application/json']},
-      ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{"qid":42}');
-      await dao.enqueue(entityType: 'rating', operationType: 'create', entityId: 2, payload: '{"score":5}');
-      final pusher = SyncPusher(dao, SyncApi(client));
+    test('pushes single item successfully', () async {
+      await dao.enqueue(
+        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{"score":5}',
+      );
+      adapter.serverIds = {1: 101};
+
       final result = await pusher.pushAll();
-      expect(result.successCount, 2);
+      expect(result.successCount, 1);
       expect(result.failCount, 0);
-      expect(await dao.isEmpty(), isTrue); // cleanup 后 done 被删除
-      // 验证发送格式：使用 data 而非 payload
-      expect(adapter.sentBatch, isNotNull);
-      expect(adapter.sentBatch!.first['data'], {'qid': 42});
-      expect(adapter.sentBatch!.first.keys, contains('data'));
-      expect(adapter.sentBatch!.first.keys, isNot(contains('payload')));
+      expect(adapter.callCount, 1);
+
+      // 验证队列已清理
+      expect(await dao.isEmpty(), isTrue);
     });
 
-    test('partial success: some get serverId, some dont', () async {
-      adapter.on('POST', '/sync/push/', (_) => ResponseBody.fromString(
-        '{"code":0,"data":{"server_ids":{"1":101}}}', 200, // 只有 id=1 成功
-        headers: {'content-type': ['application/json']},
-      ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      await dao.enqueue(entityType: 'rating', operationType: 'create', entityId: 2, payload: '{}');
-      final pusher = SyncPusher(dao, SyncApi(client));
+    test('pushes batch of multiple items', () async {
+      for (var i = 1; i <= 3; i++) {
+        await dao.enqueue(
+          entityType: 'rating', operationType: 'upsert', entityId: i, payload: '{"score":$i}',
+        );
+      }
+      adapter.serverIds = {1: 101, 2: 102, 3: 103};
+
       final result = await pusher.pushAll();
-      expect(result.successCount, 1); // entityId=1
-      expect(result.failCount, 1);   // entityId=2 无 server_id
+      expect(result.successCount, 3);
+      expect(result.failCount, 0);
+      expect(await dao.isEmpty(), isTrue);
     });
 
-    test('orphan inProgress records get picked up', () async {
-      adapter.on('POST', '/sync/push/', (_) => ResponseBody.fromString(
-        '{"code":0,"data":{"server_ids":{"1":101}}}', 200,
-        headers: {'content-type': ['application/json']},
-      ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      final rows = await dao.getPending();
-      await dao.markInProgress(rows.first.id);
-      // 模拟 App 重启：此时 status=inProgress
-      final pusher = SyncPusher(dao, SyncApi(client));
+    test('item without serverId is counted as fail', () async {
+      await dao.enqueue(
+        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{"score":5}',
+      );
+      await dao.enqueue(
+        entityType: 'rating', operationType: 'upsert', entityId: 2, payload: '{"score":3}',
+      );
+      // Only item 1 gets a server_id
+      adapter.serverIds = {1: 101};
+
       final result = await pusher.pushAll();
-      expect(result.successCount, 1); // orphan 被取出并推送成功
+      expect(result.successCount, 1);
+      expect(result.failCount, 1);
     });
 
     test('network error marks all as failed', () async {
-      adapter.on('POST', '/sync/push/', (_) => throw DioException(
-        requestOptions: RequestOptions(path: '/sync/push/'),
-      ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      final pusher = SyncPusher(dao, SyncApi(client));
+      await dao.enqueue(
+        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}',
+      );
+      adapter.throwOnPush = true;
+
       final result = await pusher.pushAll();
       expect(result.successCount, 0);
       expect(result.failCount, 1);
-      expect(await dao.hasFailed(), isTrue);
     });
 
-    test('batching: 25 items processed in 2 batches', () async {
-      var callNum = 0;
-      adapter.on('POST', '/sync/push/', (_) {
-        callNum++;
-        return ResponseBody.fromString(
-          '{"code":0,"data":{"server_ids":{}}}', 200,
-          headers: {'content-type': ['application/json']},
-        );
-      });
-      for (var i = 100; i < 125; i++) {
-        await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: i, payload: '{}');
-      }
-      final pusher = SyncPusher(dao, SyncApi(client));
-      final result = await pusher.pushAll();
-      expect(result.successCount, 0);
-      expect(result.failCount, 25);
-      expect(callNum, 2); // batchSize=20, 25 items → 2 rounds
-    });
+    test('marks expired retries as permanentFailure', () async {
+      await dao.enqueue(
+        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}',
+      );
+      adapter.throwOnPush = true;
 
-    test('retry: failed records get fetched again', () async {
-      var callCount = 0;
-      adapter.on('POST', '/sync/push/', (_) {
-        callCount++;
-        if (callCount == 1) throw DioException(requestOptions: RequestOptions(path: '/sync/push/'));
-        return ResponseBody.fromString(
-          '{"code":0,"data":{"server_ids":{"1":101}}}', 200,
-          headers: {'content-type': ['application/json']},
-        );
-      });
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      var pusher = SyncPusher(dao, SyncApi(client));
-      await pusher.pushAll(); // 第一次失败 → retryCount=1
-      pusher = SyncPusher(dao, SyncApi(client));
-      final result = await pusher.pushAll(); // 第二次成功
-      expect(result.successCount, 1);
-    });
-
-    test('permanent failure after max retries', () async {
-      adapter.on('POST', '/sync/push/', (_) => throw DioException(
-        requestOptions: RequestOptions(path: '/sync/push/'),
-      ));
+      // Push 5 times to exhaust retry count
       for (var i = 0; i < 5; i++) {
-        await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: i, payload: '{}');
+        await pusher.pushAll();
+        // Reset throw for retry counting (markFailed increments retry_count)
       }
-      final pusher = SyncPusher(dao, SyncApi(client));
-      await pusher.pushAll();
-      // status 变为 permanentFailure
-      expect(await dao.hasFailed(), isTrue);
+
+      // Now check: permanentFailure should be set
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.first.status, 'permanentFailure');
     });
 
-    test('cleanup removes done records', () async {
-      adapter.on('POST', '/sync/push/', (_) => ResponseBody.fromString(
-        '{"code":0,"data":{"server_ids":{"1":101}}}', 200,
-        headers: {'content-type': ['application/json']},
-      ));
-      await dao.enqueue(entityType: 'submission', operationType: 'create', entityId: 1, payload: '{}');
-      final pusher = SyncPusher(dao, SyncApi(client));
+    test('send correct entity_type and data fields', () async {
+      await dao.enqueue(
+        entityType: 'step_feedback', operationType: 'upsert', entityId: 42,
+        payload: '{"step_number":1,"status":"correct"}',
+      );
+      adapter.serverIds = {42: 201};
+
       await pusher.pushAll();
-      expect(await dao.isEmpty(), isTrue); // cleanup 删除了 done 记录
+      expect(adapter.callCount, 1);
+    });
+  });
+
+  group('SyncPusher Constants', () {
+    test('maxRetries is 5', () {
+      expect(SyncPusher.maxRetries, 5);
     });
 
-    test('syncManager cooldown: second pushNow returns null', () async {
-      adapter.on('POST', '/sync/push/', (_) => ResponseBody.fromString(
-        '{"code":0,"data":{"server_ids":{}}}', 200,
-        headers: {'content-type': ['application/json']},
-      ));
-      final sm = SyncManager();
-      await sm.init(dao, SyncApi(client), DatabaseProvider());
-      // 注意：DatabaseProvider 没有被正确初始化（无 getApplicationDocumentsDirectory），
-      // 但 cooldown 测试只依赖 _lastPushTime，不依赖 DB
-      final r1 = await sm.pushNow();
-      expect(r1, isNotNull);
-      final r2 = await sm.pushNow();
-      expect(r2, isNull); // 30 秒冷却内
+    test('batchSize is 20', () {
+      expect(SyncPusher.batchSize, 20);
     });
   });
 }

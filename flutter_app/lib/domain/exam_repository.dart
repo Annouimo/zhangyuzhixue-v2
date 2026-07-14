@@ -2,6 +2,7 @@
 import 'dart:convert';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
+import '../data/debug/audit_logger.dart';
 import '../data/helpers/pdf_helper.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -246,8 +247,8 @@ class ExamRepository {
         localId: paperId,
         payload: jsonEncode({'paper_id': paperId}),
       );
-    } catch (_) {
-      // 静默
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'toggleLike', 'error': '$e'});
     }
   }
 
@@ -261,8 +262,8 @@ class ExamRepository {
         localId: paperId,
         payload: jsonEncode({'paper_id': paperId}),
       );
-    } catch (_) {
-      // 静默
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'toggleCollect', 'error': '$e'});
     }
   }
 
@@ -442,8 +443,8 @@ class ExamRepository {
               : [],
         }),
       );
-    } catch (_) {
-      // 静默
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'confirm', 'error': '$e'});
     }
     return paperId;
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/app_database.dart' as db;
+import '../data/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
@@ -253,8 +254,8 @@ class ProgressRepository {
           'status': status,
         }),
       );
-    } catch (_) {
-      // 静默—队列写入失败不影响用户体验
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'stepFeedback', 'error': '$e'});
     }
   }
 

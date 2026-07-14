@@ -1,6 +1,7 @@
 import 'dart:convert';
 import '../data/daos/rating_dao.dart';
 import '../data/daos/question_dao.dart';
+import '../data/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
@@ -80,8 +81,8 @@ class RatingRepository {
           'elegance_score': elegance.round(),
         }),
       );
-    } catch (_) {
-      // 静默
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'rating', 'error': '$e'});
     }
   }
 }

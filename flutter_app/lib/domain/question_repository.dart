@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/database/database_provider.dart';
+import '../data/sync/sync_manager.dart';
+import '../data/sync/sync_types.dart';
 
 
 /// 题目详情
@@ -209,6 +211,23 @@ class QuestionRepository {
         answerText,
         isCorrect ? 1 : 0,
       );
+      // 入同步队列（完成一道题后推送）
+      try {
+        await SyncManager().enqueue(
+          entityType: SyncEntityType.submissionDetail,
+          operation: SyncOperationType.upsert,
+          localId: latest.id,
+          payload: jsonEncode({
+            'question_id': questionId,
+            'attempt_number': latest.attemptNumber,
+            'status': 'completed',
+            'answer_text': answerText,
+            'is_correct': isCorrect ? 1 : 0,
+          }),
+        );
+      } catch (_) {
+        // 入队失败不阻塞主流程
+      }
     }
   }
 

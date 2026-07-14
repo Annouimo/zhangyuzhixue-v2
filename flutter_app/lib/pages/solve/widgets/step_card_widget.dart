@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../domain/progress_repository.dart' as progress;
@@ -5,6 +6,8 @@ import '../../../widgets/md_latex_body.dart';
 import '../../../data/daos/progress_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
+import '../../../data/sync/sync_manager.dart';
+import '../../../data/sync/sync_types.dart';
 import 'cooling_timer.dart';
 import 'feedback_buttons.dart';
 import 'knowledge_card_dialog.dart';
@@ -97,12 +100,26 @@ class _StepCardWidgetState extends State<StepCardWidget> {
       final questionId = widget.questionId ?? 0;
       if (submissionDetailId > 0 && questionId > 0) {
         try {
-          await pDao.insertCardFeedback(
+          final fbId = await pDao.insertCardFeedback(
             submissionDetailId: submissionDetailId,
             questionId: questionId,
             cardTitle: tag,
             cardStatus: feedback,
           );
+          // 入同步队列
+          try {
+            await SyncManager().enqueue(
+              entityType: SyncEntityType.cardFeedback,
+              operation: SyncOperationType.upsert,
+              localId: fbId,
+              payload: jsonEncode({
+                'submission_detail_id': submissionDetailId,
+                'question_id': questionId,
+                'card_title': tag,
+                'card_status': feedback,
+              }),
+            );
+          } catch (_) {}
         } catch (_) {}
       }
     }
