@@ -56,9 +56,12 @@ class StatisticsDao {
 
   /// 按日期统计每日做题数和正确数
   Future<List<({String date, int count, int correct})>> getDailyRecords(int rangeDays) async {
-    final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
-    final rows = await (_db.select(_db.submissionDetails)
-      ..where((t) => t.createdAt.isBiggerThanValue(threshold))).get();
+    var q = _db.select(_db.submissionDetails);
+    if (rangeDays > 0) {
+      final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
+      q.where((t) => t.createdAt.isBiggerThanValue(threshold));
+    }
+    final rows = await q.get();
     AuditLogger.instance.dao('StatisticsDao.getDailyRecords', rows.length, {'rangeDays': rangeDays});
     final groups = <String, ({int count, int correct})>{};
     for (final r in rows) {
@@ -75,9 +78,12 @@ class StatisticsDao {
 
   /// 按日期统计每日获得积分
   Future<List<({String date, double amount})>> getPointsByDay(int rangeDays) async {
-    final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
-    final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.createdAt.isBiggerThanValue(threshold) & t.source.isNotIn(['PAPER_PURCHASE']))).get();
+    var q = _db.select(_db.pointsTransactions)..where((t) => t.source.isNotIn(['PAPER_PURCHASE']));
+    if (rangeDays > 0) {
+      final threshold = DateTime.now().subtract(Duration(days: rangeDays)).toIso8601String();
+      q.where((t) => t.createdAt.isBiggerThanValue(threshold));
+    }
+    final rows = await q.get();
     AuditLogger.instance.dao('StatisticsDao.getPointsByDay', rows.length, {'rangeDays': rangeDays});
     final groups = <String, double>{};
     for (final r in rows) {
