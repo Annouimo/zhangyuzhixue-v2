@@ -242,6 +242,8 @@ class InsufficientPoolException implements Exception {
   final int available;
   const InsufficientPoolException({required this.type, required this.needed, required this.available});
   String get message => '$type 类题目池子不足（需要 $needed 道，池中只有 $available 道）';
+  @override
+  String toString() => message;
 }
 
 /// 组卷 Repository — 本地 + API

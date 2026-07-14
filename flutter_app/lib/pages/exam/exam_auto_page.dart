@@ -203,8 +203,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     } catch (e) {
       AuditLogger.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
+        final msg = e is InsufficientPoolException ? e.message : '$e';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
         );
       }
     } finally { if (mounted) setState(() => _generating = false); }
