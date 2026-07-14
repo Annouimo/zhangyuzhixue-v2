@@ -236,15 +236,17 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         key: _filterKey,
                         yearOptions: _filterOpts!.years,
                         regionOptions: _filterOpts!.regions,
+                        typeOptions: _filterOpts!.questionTypes,
                         conceptTagOptions: _filterOpts!.conceptTags,
                         examTypeOptions: _filterOpts!.examTypes,
                         knowledgeCardOptions: _filterOpts!.knowledgeCards,
                         onSavePreference: _savePreference,
                         onLoadPreference: _loadPreference,
-                        onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) async {
-                          setState(() { _years = y; _regions = r; _conceptTags = ct;
-                            _selectedTypes = t; _selectedExamTypes = et; _selectedKnowledgeCards = kc;
-                            _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx; });
+                        onChanged: (state) async {
+                          setState(() { _years = state.years; _regions = state.regions;
+                            _conceptTags = state.conceptTags;
+                            _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
+                            _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax; });
                           _updatePoolStats();
                         },
                       ),

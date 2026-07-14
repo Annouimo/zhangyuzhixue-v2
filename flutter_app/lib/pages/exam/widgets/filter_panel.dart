@@ -2,12 +2,35 @@ import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import 'difficulty_slider.dart';
 
-/// 筛选面板（智能组卷/自主选题/推荐 三页共用）
-typedef FilterChangedCallback = void Function(
-  Set<String> years, Set<String> regions, Set<String> types,
-  Set<String> conceptTags, Set<String> examTypes, Set<String> knowledgeCards,
-  double diffMin, double diffMax, double calcMin, double calcMax,
-);
+/// 筛选状态（替代 10 个 positional 参数）
+class FilterState {
+  final Set<String> years;
+  final Set<String> regions;
+  final Set<String> types; // question types: choice/fill/solution
+  final Set<String> conceptTags;
+  final Set<String> examTypes;
+  final Set<String> knowledgeCards;
+  final double diffMin;
+  final double diffMax;
+  final double calcMin;
+  final double calcMax;
+
+  const FilterState({
+    this.years = const {},
+    this.regions = const {},
+    this.types = const {},
+    this.conceptTags = const {},
+    this.examTypes = const {},
+    this.knowledgeCards = const {},
+    this.diffMin = 0,
+    this.diffMax = 10,
+    this.calcMin = 0,
+    this.calcMax = 10,
+  });
+}
+
+/// 筛选面板（智能组卷/自主选题 / 推荐 三页共用）
+typedef FilterChangedCallback = void Function(FilterState state);
 
 final _difficultySegments = [
   _DifficultySegment(max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'),
@@ -35,6 +58,7 @@ class _DifficultySegment {
 class FilterPanel extends StatefulWidget {
   final List<String> yearOptions;
   final List<String> regionOptions;
+  final List<String> typeOptions; // 题型选项：choice/fill/solution
   final List<String> conceptTagOptions;
   final List<String> examTypeOptions;
   final List<String> knowledgeCardOptions;
@@ -46,6 +70,7 @@ class FilterPanel extends StatefulWidget {
     super.key,
     required this.yearOptions,
     required this.regionOptions,
+    this.typeOptions = const ['choice', 'fill', 'solution'],
     this.conceptTagOptions = const [],
     this.examTypeOptions = const [],
     this.knowledgeCardOptions = const [],
@@ -120,11 +145,18 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   void _emit() {
-    widget.onChanged?.call(
-      _selectedYears, _selectedRegions, _selectedTypes, _selectedConceptTags,
-      _selectedExamTypes, _selectedKnowledgeCards,
-      _diffMin, _diffMax, _calcMin, _calcMax,
-    );
+    widget.onChanged?.call(FilterState(
+      years: _selectedYears,
+      regions: _selectedRegions,
+      types: _selectedTypes,
+      conceptTags: _selectedConceptTags,
+      examTypes: _selectedExamTypes,
+      knowledgeCards: _selectedKnowledgeCards,
+      diffMin: _diffMin,
+      diffMax: _diffMax,
+      calcMin: _calcMin,
+      calcMax: _calcMax,
+    ));
   }
 
   @override
@@ -182,6 +214,10 @@ class FilterPanelState extends State<FilterPanel> {
           if (widget.examTypeOptions.isNotEmpty) ...[
             const SizedBox(height: 8),
             _buildChipGroup('考试', widget.examTypeOptions, _selectedExamTypes),
+          ],
+          if (widget.typeOptions.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildTypeChipGroup(widget.typeOptions, _selectedTypes),
           ],
         ]),
         const SizedBox(height: 8),
@@ -260,6 +296,32 @@ class FilterPanelState extends State<FilterPanel> {
           spacing: 6, runSpacing: 4,
           children: options.map((o) => FilterChip(
             label: Text(o, style: const TextStyle(fontSize: 12)),
+            selected: selected.contains(o),
+            onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
+            selectedColor: AppColors.primaryLight,
+            checkmarkColor: AppColors.primary,
+            side: BorderSide.none,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          )).toList(),
+        ),
+      ],
+    );
+  }
+
+  /// 题型 chip 组：options 存储原始值（choice/fill/solution），显示中文标签
+  Widget _buildTypeChipGroup(List<String> rawOptions, Set<String> selected) {
+    if (rawOptions.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 4),
+          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+        ),
+        Wrap(
+          spacing: 6, runSpacing: 4,
+          children: rawOptions.map((o) => FilterChip(
+            label: Text(QuestionTypeLabels.of(o), style: const TextStyle(fontSize: 12)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
             selectedColor: AppColors.primaryLight,

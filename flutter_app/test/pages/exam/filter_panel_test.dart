@@ -8,7 +8,7 @@ void main() {
   group('FilterPanel', () {
     testWidgets('renders year and region chips', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
-        body: FilterPanel(yearOptions: ['2025', '2024'], regionOptions: ['海淀', '西城']),
+        body: SingleChildScrollView(child: FilterPanel(yearOptions: ['2025', '2024'], regionOptions: ['海淀', '西城'])),
       )));
       expect(find.text('年份'), findsOneWidget);
       expect(find.text('2025'), findsOneWidget);
@@ -20,7 +20,7 @@ void main() {
 
     testWidgets('renders concept tags when provided', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
-        body: FilterPanel(yearOptions: [], regionOptions: [], conceptTagOptions: ['函数', '三角函数']),
+        body: SingleChildScrollView(child: FilterPanel(yearOptions: [], regionOptions: [], conceptTagOptions: ['函数', '三角函数'])),
       )));
       expect(find.text('按概念标签筛选'), findsOneWidget);
       expect(find.text('函数'), findsOneWidget);

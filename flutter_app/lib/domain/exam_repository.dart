@@ -121,6 +121,7 @@ class FilterOptions {
   final List<String> conceptTags;
   final List<String> knowledgeCards;
   final List<String> examTypes;
+  final List<String> questionTypes;
 
   const FilterOptions({
     required this.years,
@@ -128,6 +129,7 @@ class FilterOptions {
     required this.conceptTags,
     this.knowledgeCards = const [],
     this.examTypes = const [],
+    this.questionTypes = const ['choice', 'fill', 'solution'],
   });
 }
 
@@ -395,6 +397,7 @@ class ExamRepository {
       conceptTags: tags.map((t) => t.name).toList(),
       knowledgeCards: kcs.map((k) => k.title).toList(),
       examTypes: examTypes,
+      questionTypes: const ['choice', 'fill', 'solution'],
     );
   }
 

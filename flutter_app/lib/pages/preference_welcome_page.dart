@@ -226,13 +226,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 FilterPanel(
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
+                  typeOptions: const ['choice', 'fill', 'solution'],
                   conceptTagOptions: _tagOpts ?? [],
                   examTypeOptions: _examTypeOpts ?? [],
                   knowledgeCardOptions: _knowledgeCardOpts ?? [],
-                  onChanged: (y, r, t, ct, et, kc, dmn, dmx, cmn, cmx) {
-                    _years = y; _regions = r; _types = t; _conceptTags = ct;
-                    _examTypes = et; _knowledgeCards = kc;
-                    _diffMin = dmn; _diffMax = dmx; _calcMin = cmn; _calcMax = cmx;
+                  onChanged: (state) {
+                    _years = state.years; _regions = state.regions; _types = state.types; _conceptTags = state.conceptTags;
+                    _examTypes = state.examTypes; _knowledgeCards = state.knowledgeCards;
+                    _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
                   },
                 ),
                 const SizedBox(height: 24),
