@@ -28,7 +28,7 @@ levels = [
     (15, 481, '巅峰王者', '🎯'),
 ]
 for level, min_xp, title, emoji in levels:
-    _, created = LevelConfig.objects.get_or_create(
+    LevelConfig.objects.update_or_create(
         level=level, defaults={'min_xp': min_xp, 'title': title, 'icon_emoji': emoji})
 
 achievements = [
@@ -66,8 +66,17 @@ achievements = [
     ('RATING_10', '品题大师', '评分 10 次', 'RATING', '🖊️ 评价', 21, 'RATING_COUNT', 10, '✨'),
     ('RATING_50', '资深评委', '评分 50 次', 'RATING', '🖊️ 评价', 22, 'RATING_COUNT', 50, '🏅'),
 ]
+# 当前种子中定义的 codes 集合
+current_codes = {a[0] for a in achievements}
+
+# 清理不在当前种子中的旧成就定义（如旧版 PRACTICE_50、PRACTICE_200）
+old_codes = set(AchievementDef.objects.values_list('code', flat=True)) - current_codes
+if old_codes:
+    deleted, _ = AchievementDef.objects.filter(code__in=old_codes).delete()
+    print(f'Deleted {deleted} old achievements: {sorted(old_codes)}')
+
 for code, name, desc, cat, cl, order, trigger, threshold, emoji in achievements:
-    AchievementDef.objects.get_or_create(
+    AchievementDef.objects.update_or_create(
         code=code,
         defaults={
             'name': name,
