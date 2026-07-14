@@ -71,7 +71,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
                     'choice' => AppRoutes.solveChoice,
                     'fill' => AppRoutes.solveFill,
                     'solution' => AppRoutes.solveMap,
-                    _ => AppRoutes.solveChoice,
+                    _ => AppRoutes.solveMap,
                   };
                   final mode = h.isCompleted ? 'review' : 'resume';
                   context.push(

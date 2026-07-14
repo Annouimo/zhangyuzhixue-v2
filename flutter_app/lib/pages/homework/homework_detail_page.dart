@@ -180,7 +180,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                     'choice' => AppRoutes.solveChoice,
                     'fill' => AppRoutes.solveFill,
                     'solution' => AppRoutes.solveMap,
-                    _ => AppRoutes.solveChoice,
+                    _ => AppRoutes.solveMap,
                   };
                   // 据存档状态决定 mode/attemptId
                   String mode = 'first';
