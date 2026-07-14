@@ -368,7 +368,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
         // 题目元信息栏
         if (_detail != null)
           Container(
-            width: double.infinity,
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
@@ -410,7 +409,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
         // 回顾横幅
         if (_reviewMode)
           Container(
-            width: double.infinity,
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(

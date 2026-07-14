@@ -352,7 +352,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   Widget _buildFeedbackResult() {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _feedbackCorrect
@@ -403,11 +402,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
         style: TextStyle(color: AppColors.textSecondary));
     }
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // 题目元信息栏
         Container(
-          width: double.infinity,
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
@@ -448,7 +446,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
         // 回顾横幅
         if (_isReviewMode) ...[
           Container(
-            width: double.infinity,
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(

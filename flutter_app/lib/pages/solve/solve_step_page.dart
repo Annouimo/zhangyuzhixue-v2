@@ -239,11 +239,10 @@ class _SolveStepPageState extends State<SolveStepPage> {
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // 上下文位置标识
                       Container(
-                        width: double.infinity,
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: AppColors.card,
@@ -257,7 +256,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       // 精简题干
                       if (_detail != null && _detail!.stem.isNotEmpty) ...[
                         Container(
-                          width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.card,
