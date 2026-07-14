@@ -26,13 +26,16 @@ class TrendChart extends StatelessWidget {
             const SizedBox(height: 12),
             if (points.isEmpty)
               SizedBox(
-                height: 160,
+                width: double.infinity, height: 160,
                 child: Center(
                   child: Text('暂无数据', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                 ),
               )
             else
-              SizedBox(height: 160, child: CustomPaint(painter: _TrendPainter(points, lineColor, fixedYRange: fixedYRange))),
+              SizedBox(
+              width: double.infinity, height: 160,
+              child: CustomPaint(painter: _TrendPainter(points, lineColor, fixedYRange: fixedYRange)),
+            ),
           if (summaryLabel != null && summaryValue != null)
             Padding(
               padding: const EdgeInsets.only(top: 8),
