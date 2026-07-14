@@ -43,7 +43,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
   void initState() {
     super.initState();
     _repo = widget.lectureRepository ??
-        LectureRepository(LectureDao(DatabaseProvider().lecturesDb));
+        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
     _pageIndex = widget.initialPage > 1 ? widget.initialPage - 1 : 0; // 1-based → 0-based
     _load();
   }

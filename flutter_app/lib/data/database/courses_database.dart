@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-part 'lectures_database.g.dart';
+part 'courses_database.g.dart';
 
 // ═══════════════════════════════════════════════
 // 表定义 — SQL 表名与设计文档 docs/02-数据/数据库结构设计.md 一致（单数）
@@ -77,8 +77,8 @@ class Meta extends Table {
   AssignmentQuestions,
   Meta,
 ])
-class LecturesDatabase extends _$LecturesDatabase {
-  LecturesDatabase(super.e);
+class CoursesDatabase extends _$CoursesDatabase {
+  CoursesDatabase(super.e);
 
   @override
   int get schemaVersion => 1;

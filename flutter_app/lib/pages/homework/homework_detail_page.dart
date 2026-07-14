@@ -41,7 +41,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
     final db = DatabaseProvider();
     _repo = widget.assignmentRepository ??
         AssignmentRepository(
-          AssignmentDao(db.lecturesDb),
+          AssignmentDao(db.coursesDb),
           ProgressDao(db.appDb),
           QuestionDao(db.assetsDb),
         );

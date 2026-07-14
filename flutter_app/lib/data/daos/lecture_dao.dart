@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
-import '../database/lectures_database.dart' as db;
+import '../database/courses_database.dart' as db;
 import '../debug/audit_logger.dart';
 
 /// 讲义数据访问层（lectures 库）
 class LectureDao {
-  final db.LecturesDatabase _db;
+  final db.CoursesDatabase _db;
   const LectureDao(this._db);
 
   // ── 课程 ──

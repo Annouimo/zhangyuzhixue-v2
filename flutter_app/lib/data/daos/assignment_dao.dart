@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
-import '../database/lectures_database.dart' as db;
+import '../database/courses_database.dart' as db;
 import '../debug/audit_logger.dart';
 
 /// 作业数据访问层（lectures 库）
 class AssignmentDao {
-  final db.LecturesDatabase _db;
+  final db.CoursesDatabase _db;
   const AssignmentDao(this._db);
 
   Future<List<db.AssignmentRow>> listAll() async {

@@ -6,7 +6,7 @@ import 'dart:io';
 import '../debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../database/assets_database.dart';
-import '../database/lectures_database.dart';
+import '../database/courses_database.dart';
 import '../database/app_database.dart';
 
 /// 三库生命周期管理
@@ -20,7 +20,7 @@ class DatabaseProvider {
 
   AppDatabase? _appDb;
   AssetsDatabase? _assetsDb;
-  LecturesDatabase? _lecturesDb;
+  CoursesDatabase? _coursesDb;
   bool _initialized = false;
   String? _dbDirPath;
   int _dbVersion = 0;
@@ -39,7 +39,7 @@ class DatabaseProvider {
     final dir = await getApplicationDocumentsDirectory();
     _dbDirPath = dir.path;
     await _ensureDefaultDb(dir, 'assets.db');
-    await _ensureDefaultDb(dir, 'lectures.db');
+    await _ensureDefaultDb(dir, 'courses.db');
     await _ensureUserDbSchema(dir);
     await _openAll(dir);
     _initialized = true;
@@ -68,8 +68,8 @@ class DatabaseProvider {
     _assetsDb = AssetsDatabase(LazyDatabase(() async {
       return NativeDatabase(File('${dir.path}/assets.db'));
     }));
-    _lecturesDb = LecturesDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/lectures.db'));
+    _coursesDb = CoursesDatabase(LazyDatabase(() async {
+      return NativeDatabase(File('${dir.path}/courses.db'));
     }));
     _appDb = AppDatabase(LazyDatabase(() async {
       return NativeDatabase(File('${dir.path}/user.db'));
@@ -114,9 +114,9 @@ class DatabaseProvider {
     return _assetsDb!;
   }
 
-  LecturesDatabase get lecturesDb {
+  CoursesDatabase get coursesDb {
     _ensureInitialized();
-    return _lecturesDb!;
+    return _coursesDb!;
   }
 
   Future<void> replaceAssetsDb(String newPath) async {
@@ -127,11 +127,11 @@ class DatabaseProvider {
     _bumpVersion();
   }
 
-  Future<void> replaceLecturesDb(String newPath) async {
-    await _lecturesDb?.close();
-    final target = File('${_dbDirPath!}/lectures.db');
+  Future<void> replaceCoursesDb(String newPath) async {
+    await _coursesDb?.close();
+    final target = File('${_dbDirPath!}/courses.db');
     await File(newPath).copy(target.path);
-    _lecturesDb = LecturesDatabase(NativeDatabase(target));
+    _coursesDb = CoursesDatabase(NativeDatabase(target));
     _bumpVersion();
   }
 
@@ -192,10 +192,10 @@ class DatabaseProvider {
   Future<void> reset() async {
     await _appDb?.close();
     await _assetsDb?.close();
-    await _lecturesDb?.close();
+    await _coursesDb?.close();
     _appDb = null;
     _assetsDb = null;
-    _lecturesDb = null;
+    _coursesDb = null;
     _initialized = false;
     _dbDirPath = null;
   }
