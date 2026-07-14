@@ -36,6 +36,7 @@ void main() {
           home: PreferenceEditPage(preferenceRepository: repo),
         ),
       );
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('新建偏好'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(find.text('保存'), findsOneWidget);
@@ -48,6 +49,7 @@ void main() {
           home: PreferenceEditPage(preferenceRepository: repo),
         ),
       );
+      await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 

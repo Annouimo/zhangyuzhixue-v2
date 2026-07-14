@@ -125,7 +125,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 children: [
                   Icon(Icons.thumb_up_alt, size: 20, color: Colors.white),
                   SizedBox(width: 6),
-                  Text('开始设置学习偏好'),
+                  Text('👌 开始设置学习偏好'),
                 ],
               ),
             ),
@@ -150,6 +150,12 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('请输入偏好名称'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    if (_years.isEmpty && _regions.isEmpty && _conceptTags.isEmpty && _examTypes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请至少选择一项筛选条件'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -191,6 +197,22 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           : SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Hero 卡片
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.auto_awesome, size: 56, color: AppColors.primary),
+                        const SizedBox(height: 12),
+                        const Text('选择你的学习偏好', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 4),
+                        const Text('我们为你推荐最合适的题目', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(

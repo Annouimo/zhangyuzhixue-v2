@@ -37,12 +37,13 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
     super.initState();
     _repo = widget.preferenceRepository ??
         PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
-    _loadOptions();
-    if (widget.editId != null) {
-      _loadExisting();
-    } else {
-      _loading = false;
-    }
+    _loadOptions().then((_) {
+      if (widget.editId != null) {
+        _loadExisting();
+      } else {
+        if (mounted) setState(() => _loading = false);
+      }
+    });
   }
 
   Future<void> _loadOptions() async {
@@ -104,6 +105,13 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
     }
     final state = _filterKey.currentState;
     if (state == null) return;
+    if (state.selectedYears.isEmpty && state.selectedRegions.isEmpty &&
+        state.selectedConceptTags.isEmpty && state.selectedExamTypes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('请至少选择一项筛选条件'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
     setState(() => _saving = true);
     try {
       await _repo.save(

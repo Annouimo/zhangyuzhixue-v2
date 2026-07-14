@@ -51,6 +51,22 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   }
 
   Future<void> _delete(int id, int index) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('确认删除'),
+        content: const Text('删除后无法恢复，确定要删除该偏好吗？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
     try {
       await _repo.delete(id);
       if (!mounted) return;
@@ -140,7 +156,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                   Row(
                     children: [
                       OutlinedButton(
-                        onPressed: () => context.push(AppRoutes.preferenceEdit),
+                        onPressed: () => context.push('${AppRoutes.preferenceEdit}?id=${p.id}'),
                         style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
                         ),
