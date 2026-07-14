@@ -188,7 +188,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             explanation: _detail?.explanation,
             onSubmit: _submit,
             onNext: widget.nextQuestionId != null
-                ? () => context.go('${AppRoutes.solveChoice}?id=${widget.nextQuestionId}')
+                ? () => context.pushReplacement('${AppRoutes.solveChoice}?id=${widget.nextQuestionId}')
                 : null,
             onRate: () async {
               await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');

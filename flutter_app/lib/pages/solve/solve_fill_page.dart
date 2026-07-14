@@ -283,7 +283,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             explanation: _detail?.explanation,
             onReveal: _onReveal,
             onNext: widget.nextQuestionId != null
-                ? () => context.go('${AppRoutes.solveFill}?id=${widget.nextQuestionId}')
+                ? () => context.pushReplacement('${AppRoutes.solveFill}?id=${widget.nextQuestionId}')
                 : null,
             onRate: () async {
               await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
