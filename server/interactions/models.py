@@ -276,6 +276,7 @@ class PreferenceFilter(models.Model):
         Student, on_delete=models.CASCADE,
         related_name='preference_filters'
     )
+    client_id = models.IntegerField('客户端本地ID', null=True, blank=True)
     name = models.CharField('预设名称', max_length=128)
     years = models.TextField('年份(JSON list)', blank=True, default='')
     regions = models.TextField('地区(JSON list)', blank=True, default='')
@@ -293,6 +294,7 @@ class PreferenceFilter(models.Model):
     class Meta:
         verbose_name = '筛选预设'
         verbose_name_plural = '筛选预设'
+        unique_together = [('student', 'client_id')]
 
     def __str__(self):
         return f'{self.name} ({self.student})'

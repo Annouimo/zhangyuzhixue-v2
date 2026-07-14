@@ -1,5 +1,7 @@
 """同步推送视图 — 接收客户端 batch 数据，按 entity_type 分发处理"""
 
+import json
+
 from django.db import transaction
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
@@ -86,6 +88,8 @@ class SyncPushView(APIView):
             entity_type = item['entity_type']
             local_id = item['local_id']
             data = item['data']
+            # 注入 local_id 供 handler 使用（避免改 handler 签名）
+            data['_local_id'] = local_id
 
             handler = getattr(self, f'_handle_{entity_type}', None)
             if handler is None:
@@ -208,17 +212,21 @@ class SyncPushView(APIView):
         )
 
     def _handle_preference(self, data, student, server_ids, detail_cache):
-        """处理筛选预设保存"""
+        """处理筛选预设保存（含 json 序列化 + client_id 唯一键）"""
+        client_id = data.get('_local_id')
+        _json = lambda v: json.dumps(v, ensure_ascii=False) if isinstance(v, (list, tuple)) else (v or '[]')
+
         pref, _ = PreferenceFilter.objects.update_or_create(
             student=student,
-            name=data.get('name', ''),
+            client_id=client_id,
             defaults={
-                'years': data.get('years', '[]'),
-                'regions': data.get('regions', '[]'),
-                'concept_tags': data.get('concept_tags', '[]'),
-                'types': data.get('types', '[]'),
-                'knowledge_cards': data.get('knowledge_cards', '[]'),
-                'question_types': data.get('question_types', '[]'),
+                'name': data.get('name', ''),
+                'years': _json(data.get('years')),
+                'regions': _json(data.get('regions')),
+                'concept_tags': _json(data.get('concept_tags')),
+                'types': _json(data.get('types')),
+                'knowledge_cards': _json(data.get('knowledge_cards')),
+                'question_types': _json(data.get('question_types')),
                 'diff_min': data.get('diff_min'),
                 'diff_max': data.get('diff_max'),
                 'calc_min': data.get('calc_min'),
