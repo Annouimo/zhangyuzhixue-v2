@@ -97,8 +97,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         canPop: true,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
-          // 遮罩点击或跳过 → 跳首页
-          context.go(AppRoutes.mainShell);
+          // 遮罩点击或跳过 → 跳推荐页
+          context.go(AppRoutes.recommend);
         },
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -133,7 +133,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                context.go(AppRoutes.mainShell);
+                context.go(AppRoutes.recommend);
               },
               child: const Text('跳过', style: TextStyle(color: AppColors.textSecondary)),
             ),
@@ -177,7 +177,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         ),
       );
       if (!mounted) return;
-      context.go(AppRoutes.mainShell);
+      context.go(AppRoutes.recommend);
     } catch (e) {
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;

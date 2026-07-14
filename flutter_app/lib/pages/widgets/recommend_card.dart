@@ -26,6 +26,14 @@ class RecommendCard extends StatelessWidget {
 
   String get _diffLabel => DifficultySegments.diffNameFor(difficulty);
 
+  String _statusLabel(String s) {
+    switch (s) {
+      case 'in_progress': return '进行中';
+      case 'completed': return '已完成';
+      default: return '未做';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -50,13 +58,13 @@ class RecommendCard extends StatelessWidget {
                       margin: const EdgeInsets.only(right: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: status == '进行中' ? Colors.orange[50] : AppColors.primaryLight,
+                        color: status == 'in_progress' ? Colors.orange[50] : AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(status!,
+                      child: Text(_statusLabel(status!),
                         style: TextStyle(
                           fontSize: 11, fontWeight: FontWeight.w500,
-                          color: status == '进行中' ? Colors.orange[700] : AppColors.primary,
+                          color: status == 'in_progress' ? Colors.orange[700] : AppColors.primary,
                         ),
                       ),
                     ),

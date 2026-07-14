@@ -167,7 +167,7 @@ class _RecommendationEngine {
           questionType: q.questionType,
           difficulty: q.difficulty ?? 0.0,
           recommendReason: '薄弱概念：${weakTag.name}',
-          status: 'pending',
+          status: _computeStatus(q.id, attemptsMap),
         ));
       }
     }
@@ -205,7 +205,7 @@ class _RecommendationEngine {
           questionType: q.questionType,
           difficulty: q.difficulty ?? 0.0,
           recommendReason: reason,
-          status: 'pending',
+          status: _computeStatus(q.id, attemptsMap),
         ));
       }
     }
@@ -218,6 +218,14 @@ class _RecommendationEngine {
     result.addAll(f);
     result.addAll(solution.take(2));
     return result;
+  }
+
+  /// 根据 attemptsMap 判断题目真实状态
+  String _computeStatus(int questionId, Map<int, List<user_db.SubmissionDetailRow>> attemptsMap) {
+    final attempts = attemptsMap[questionId];
+    if (attempts == null || attempts.isEmpty) return 'pending';
+    if (attempts.any((a) => a.isCorrect == null)) return 'in_progress';
+    return 'completed';
   }
 
   /// 纯内存查找最薄弱概念 — 零 DB 查询
@@ -238,6 +246,7 @@ class _RecommendationEngine {
       var weightedTotal = 0.0;
       for (final qId in tagQIds) {
         for (final a in attemptsMap[qId] ?? []) {
+          if (a.isCorrect == null) continue;
           final daysAgo = now.difference(DateTime.parse(a.createdAt)).inDays;
           final weight = exp(-decayLambda * daysAgo);
           weightedTotal += weight;
