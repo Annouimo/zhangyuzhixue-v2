@@ -378,7 +378,7 @@ class _IndexPageState extends State<IndexPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').lastOrNull ?? ''}',
+              Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),

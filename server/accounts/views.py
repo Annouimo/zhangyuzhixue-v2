@@ -392,8 +392,10 @@ def level_percentile_view(request):
         })
 
     student = request.user.student
+    # 等级依据学习积分计算（只统计 earned 分类）
     my_total = PointsTransaction.objects.filter(
-        student=student
+        student=student,
+        source__in=['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD', 'REVIEW_REWARD']
     ).aggregate(total=Sum('amount'))['total'] or 0
 
     # 从 LevelConfig 表查询等级

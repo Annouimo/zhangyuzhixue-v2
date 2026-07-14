@@ -17,6 +17,7 @@ abstract final class PrefKeys {
   static const firstLaunchComplete = 'app_first_launch';
   static const lastSyncTime = 'app_last_sync_time';
   static const pendingHomeworkCount = 'app_pending_homework_count';
+  static const levelPercentile = 'app_level_percentile';
 }
 
 /// SharedPreferences 封装层
@@ -118,6 +119,11 @@ class AppPrefs {
     return v;
   }
   Future<bool> setPendingHomeworkCount(int v) => p.setInt(PrefKeys.pendingHomeworkCount, v);
+
+  // ── 等级百分位缓存 ──
+
+  int get levelPercentile => p.getInt(PrefKeys.levelPercentile) ?? 0;
+  Future<bool> setLevelPercentile(int v) => p.setInt(PrefKeys.levelPercentile, v);
 
   // ── 同步时间 ──
 

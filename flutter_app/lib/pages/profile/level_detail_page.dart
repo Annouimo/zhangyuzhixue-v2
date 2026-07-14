@@ -41,15 +41,13 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
     try {
       final lv = await _repo.currentLevel();
       final pctl = await _repo.levelPercentile();
-      final earned = await _repo.earnedPoints();
-      final bonus = await _repo.bonusPoints();
-      final spent = await _repo.spentPoints();
-      final available = await _repo.availablePoints();
+      final summary = await _repo.getPointsSummary();
       final levels = await _repo.getLevels();
       if (!mounted) return;
       setState(() {
         _level = lv; _percentile = pctl;
-        _earned = earned; _bonus = bonus; _spent = spent; _available = available;
+        _earned = summary.earned; _bonus = summary.bonus;
+        _spent = summary.spent; _available = summary.available;
         _levels = levels; _loading = false;
       });
       AuditLogger.instance.page('LevelDetailPage', {'level': _level, 'earned': _earned});
@@ -86,6 +84,8 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   );
 
   Widget _buildBadge() {
+    final currentConfig = _levels.where((r) => r.level == _level).firstOrNull;
+    final badgeIcon = currentConfig?.iconEmoji ?? '🏅';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
       decoration: BoxDecoration(
@@ -95,7 +95,8 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.emoji_events, size: 28, color: Colors.white),
+          Text(badgeIcon,
+            style: const TextStyle(fontSize: 28)),
           const SizedBox(width: 6),
           Text('Lv.$_level',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),

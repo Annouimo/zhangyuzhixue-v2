@@ -67,7 +67,14 @@ class PointsRecord {
 class LevelRow {
   final int level;
   final String range;
-  const LevelRow({required this.level, required this.range});
+  final String title;
+  final String? iconEmoji;
+  const LevelRow({
+    required this.level,
+    required this.range,
+    required this.title,
+    this.iconEmoji,
+  });
 }
 
 /// 用户 Repository — 本地 + API
@@ -153,6 +160,11 @@ class UserRepository {
     )).toList();
   }
 
+  /// 一次性获取所有积分汇总（earned + bonus + spent + available）
+  /// 只查询一次数据库，避免 N+1 查询
+  Future<({double earned, double bonus, double spent, double available})> getPointsSummary() =>
+      _computePointsSummary();
+
   Future<double> earnedPoints() async => (await _dao.getEarnedPoints()).toDouble();
 
   /// 一次性获取所有积分行，通过 _PointsCalculator 计算四种积分汇总
@@ -197,10 +209,15 @@ class UserRepository {
     final list = <LevelRow>[];
     for (var i = 0; i < configs.length; i++) {
       final c = configs[i];
-      final nextMin = i + 1 < configs.length ? configs[i + 1].minXp : c.minXp * 2;
+      final isLast = i + 1 >= configs.length;
+      final range = isLast
+          ? '${c.minXp}+'
+          : '${c.minXp} ~ ${configs[i + 1].minXp - 1}';
       list.add(LevelRow(
         level: c.level,
-        range: '${c.minXp} ~ ${nextMin - 1}',
+        range: range,
+        title: c.title,
+        iconEmoji: c.iconEmoji,
       ));
     }
     return list;
@@ -248,9 +265,12 @@ class UserRepository {
     try {
       final info = await _api.getInfo();
       final raw = info['level_percentile'];
-      return (raw is num) ? raw.toInt() : 0;
+      final result = (raw is num) ? raw.toInt() : 0;
+      // 缓存到 AppPrefs，供离线使用
+      if (result > 0) AppPrefs().setLevelPercentile(result);
+      return result;
     } catch (_) {
-      return 0;
+      return AppPrefs().levelPercentile;
     }
   }
 
