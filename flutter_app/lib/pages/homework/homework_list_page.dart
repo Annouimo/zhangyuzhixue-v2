@@ -48,17 +48,27 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       _error = null;
     });
     try {
-      // 先读本地（秒开），再后台刷 API 获取截止时间等实时信息
-      final list = await _repo.getPendingLocal();
-      if (!mounted) return;
-      AppPrefs().setPendingHomeworkCount(list.length);
-      setState(() {
-        _assignments = list;
-        _loading = false;
-      });
-      AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length});
-      // 后台静默刷新
-      _refreshFromApi();
+      // 有精确缓存则秒开，否则等 API
+      final cached = await _repo.getPendingCached();
+      if (cached != null) {
+        if (!mounted) return;
+        AppPrefs().setPendingHomeworkCount(cached.length);
+        setState(() {
+          _assignments = cached;
+          _loading = false;
+        });
+        AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length, 'source': 'cache'});
+        _refreshFromApi();
+      } else {
+        final list = await _repo.getPending();
+        if (!mounted) return;
+        AppPrefs().setPendingHomeworkCount(list.length);
+        setState(() {
+          _assignments = list;
+          _loading = false;
+        });
+        AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length, 'source': 'api'});
+      }
     } catch (e) {
       AuditLogger.instance.error('HomeworkListPage._load', e);
       if (!mounted) return;

@@ -17,6 +17,7 @@ abstract final class PrefKeys {
   static const firstLaunchComplete = 'app_first_launch';
   static const lastSyncTime = 'app_last_sync_time';
   static const pendingHomeworkCount = 'app_pending_homework_count';
+  static const pendingAssignments = 'app_pending_assignments';  // JSON 缓存
   static const levelPercentile = 'app_level_percentile';
 }
 
@@ -119,6 +120,12 @@ class AppPrefs {
     return v;
   }
   Future<bool> setPendingHomeworkCount(int v) => p.setInt(PrefKeys.pendingHomeworkCount, v);
+
+  // ── 待办作业列表缓存（JSON，用于秒开） ──
+
+  String? get pendingAssignmentsJson => p.getString(PrefKeys.pendingAssignments);
+  Future<bool> setPendingAssignmentsJson(String json) =>
+      p.setString(PrefKeys.pendingAssignments, json);
 
   // ── 等级百分位缓存 ──
 

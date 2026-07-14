@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../data/daos/assignment_dao.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
@@ -24,6 +25,20 @@ class AssignmentSummary {
     required this.deadlineDays,
     required this.status,
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id, 'title': title, 'courseName': courseName,
+    'doneCount': doneCount, 'totalCount': totalCount,
+    'deadlineDays': deadlineDays, 'status': status,
+  };
+
+  factory AssignmentSummary.fromJson(Map<String, dynamic> j) => AssignmentSummary(
+    id: j['id'] as int, title: j['title'] as String,
+    courseName: j['courseName'] as String? ?? '',
+    doneCount: j['doneCount'] as int, totalCount: j['totalCount'] as int,
+    deadlineDays: j['deadlineDays'] as int?,
+    status: j['status'] as String,
+  );
 }
 
 /// 作业中的题目摘要
@@ -87,9 +102,21 @@ class AssignmentRepository {
     }
   }
 
-  /// 纯本地查询（不依赖 API），用于离线回退和首页快速展示
+  /// 纯本地查询（不依赖 API），用于离线回退
   Future<List<AssignmentSummary>> getPendingLocal() async {
     return _getPendingLocal();
+  }
+
+  /// 从 SharedPreferences 缓存读取精确作业列表（秒开）
+  Future<List<AssignmentSummary>?> getPendingCached() async {
+    final raw = AppPrefs().pendingAssignmentsJson;
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => AssignmentSummary.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 仅走 API，不含本地回退
@@ -138,6 +165,10 @@ class AssignmentRepository {
             : 'pending',
       ));
     }
+    // 缓存精确列表供下次秒开
+    try {
+      await AppPrefs().setPendingAssignmentsJson(jsonEncode(result.map((a) => a.toJson()).toList()));
+    } catch (_) {}
     return result;
   }
 
