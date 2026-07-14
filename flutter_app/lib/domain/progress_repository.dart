@@ -237,13 +237,17 @@ class ProgressRepository {
     for (final sq in subQuestions) {
       final methods = methodsBySubQ[sq.id] ?? [];
       final methodRecords = <MethodSolveRecord>[];
-      for (final m in methods) {
+      for (final mEntry in methods.asMap().entries) {
+        final mIdx = mEntry.key;
+        final m = mEntry.value;
         final steps = stepsByMethod[m.id] ?? [];
         final stepRecords = <StepSolveRecord>[];
         for (final s in steps) {
           final stepObj = s as dynamic;
           final feedbackList = feedbacksBySubQ[sq.sortOrder - 1];
-          final fb = feedbackList?.where((f) => f.stepNumber == stepObj.stepNumber).toList();
+          final fb = feedbackList
+              ?.where((f) => f.stepNumber == stepObj.stepNumber && f.methodId == mIdx)
+              .toList();
           stepRecords.add(StepSolveRecord(
             stepOrder: stepObj.stepNumber,
             feedbackGiven: fb != null && fb.isNotEmpty,
@@ -327,7 +331,10 @@ class ProgressRepository {
       // 获取当前方法的步骤编号集合
       final feedbacks = await _dao.getStepFeedbacks(detail.id);
       final methodDone = methodSteps
-          .every((s) => feedbacks.any((f) => f.stepNumber == s.stepNumber));
+          .every((s) => feedbacks.any((f) =>
+              f.stepNumber == s.stepNumber &&
+              f.subQuestionIndex == subQuestionIndex &&
+              f.methodId == methodIndex));
 
       if (!methodDone) return;
 
@@ -336,10 +343,15 @@ class ProgressRepository {
       for (final sq2 in subQuestions) {
         final sqMethods = await _questionDao.getMethods(sq2.id);
         bool sqResolved = false;
-        for (final m in sqMethods) {
+        for (final mEntry in sqMethods.asMap().entries) {
+          final mIdx = mEntry.key;
+          final m = mEntry.value;
           final mSteps = await _questionDao.getSteps(m.id);
           if (mSteps.isEmpty) continue;
-          if (mSteps.every((s) => feedbacks.any((f) => f.stepNumber == s.stepNumber))) {
+          if (mSteps.every((s) => feedbacks.any((f) =>
+              f.stepNumber == s.stepNumber &&
+              f.subQuestionIndex == sq2.sortOrder - 1 &&
+              f.methodId == mIdx))) {
             sqResolved = true;
             break;
           }
