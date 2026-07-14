@@ -165,7 +165,7 @@ ASSETS_TABLES = {
     'level_config': {
         'columns': [
             ('level', 'INTEGER PRIMARY KEY'),
-            ('min_xp', 'INTEGER NOT NULL'),
+            ('min_xp', 'REAL NOT NULL'),
             ('title', 'TEXT NOT NULL'),
             ('icon_emoji', 'TEXT'),
         ],

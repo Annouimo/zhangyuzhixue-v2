@@ -96,7 +96,7 @@ class RatingRepository {
       final db = DatabaseProvider();
       final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: Value((pts * 10).round()),
+          amount: Value(pts),
           source: const Value('RATING_REWARD'),
           transactionType: const Value('EARN'),
           createdAt: Value(now),
@@ -110,7 +110,7 @@ class RatingRepository {
           operation: SyncOperationType.upsert,
           localId: newId,
           payload: jsonEncode({
-            'amount': (pts * 10).round(),
+            'amount': pts,
             'source': 'RATING_REWARD',
             'transaction_type': 'EARN',
             'description': '题目评价奖励',

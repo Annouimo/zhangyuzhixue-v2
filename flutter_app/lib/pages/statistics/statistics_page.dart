@@ -60,7 +60,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         _accuracySummary = dr.isNotEmpty
             ? '${(dr.fold<int>(0, (s, r) => s + r.correct) / dr.fold<int>(0, (s, r) => s + r.count) * 100).toStringAsFixed(0)}%'
             : null;
-        _pointsSummary = pt.isNotEmpty ? (pt.last.value / 10).toStringAsFixed(1) : null;
+        _pointsSummary = pt.isNotEmpty ? pt.last.value.toStringAsFixed(1) : null;
         _loading = false;
       });
       AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});

@@ -318,7 +318,7 @@ class ProfilePageState extends State<ProfilePage> {
         ? '已解锁 $_achievementUnlocked 个'
         : null;
     final pointsSubtitle = (_earnedPoints != null && _availablePoints != null)
-        ? '学习积分 ${(_earnedPoints! / 10).toStringAsFixed(1)} · 可用 ${(_availablePoints! / 10).toStringAsFixed(1)}'
+        ? '学习积分 ${_earnedPoints!.toStringAsFixed(1)} · 可用 ${_availablePoints!.toStringAsFixed(1)}'
         : null;
     final sections = [
       ('学习', [
@@ -329,7 +329,7 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('成长', [
         (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
-        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${(_availablePoints! / 10).toStringAsFixed(1)}' : null, () => context.push(AppRoutes.profileLevel)),
+        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${_availablePoints!.toStringAsFixed(1)}' : null, () => context.push(AppRoutes.profileLevel)),
         (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [

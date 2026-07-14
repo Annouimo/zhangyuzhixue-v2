@@ -113,7 +113,7 @@ class PointsTransaction(models.Model):
         Student, on_delete=models.CASCADE,
         related_name='point_transactions'
     )
-    amount = models.IntegerField('金额（正=收入，负=支出）')
+    amount = models.FloatField('金额（正=收入，负=支出）（分）')
     transaction_type = models.CharField('类型', max_length=16,
                                         choices=TRANSACTION_TYPE_CHOICES)
     source = models.CharField('来源', max_length=32, choices=SOURCE_CHOICES)

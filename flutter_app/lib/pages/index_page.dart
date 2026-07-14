@@ -161,7 +161,7 @@ class _IndexPageState extends State<IndexPage> {
     try {
       final result = await _repo.checkin();
       final streak = result['streak_days'] as int? ?? 0;
-      final points = result['points_earned'] as int? ?? 0;
+      final points = (result['points_earned'] as num?)?.toDouble() ?? 0.0;
       final msg = result['message'] as String? ?? '签到成功';
 
       // 记录本地签到状态
@@ -424,7 +424,7 @@ class _IndexPageState extends State<IndexPage> {
             children: [
               Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('今日学习积分 +${(_todayEarned / 10).toStringAsFixed(1)}',
+              Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
             ],
           ),

@@ -42,7 +42,7 @@ class PointSummaryCard extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text((value / 10).toStringAsFixed(1),
+          Text(value.toStringAsFixed(1),
             style: TextStyle(fontSize: valueFontSize, fontWeight: FontWeight.w700, color: color)),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),

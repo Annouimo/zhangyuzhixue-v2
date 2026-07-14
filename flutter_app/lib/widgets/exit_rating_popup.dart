@@ -20,7 +20,7 @@ class ExitRatingConfig {
   final SystemConfigDao _dao;
   double? _probability;
   int? _minStaySeconds;
-  int? _rewardPoints;
+  double? _rewardPoints;
 
   ExitRatingConfig(this._dao);
 
@@ -28,8 +28,8 @@ class ExitRatingConfig {
       _probability ??= await _dao.getDouble(_kProbability, 0.2);
   Future<int> get minStaySeconds async =>
       _minStaySeconds ??= await _dao.getInt(_kMinStaySeconds, 30);
-  Future<int> get rewardPoints async =>
-      _rewardPoints ??= await _dao.getInt(_kRewardPoints, 5);
+  Future<double> get rewardPoints async =>
+      _rewardPoints ??= await _dao.getDouble(_kRewardPoints, 0.5);
 
   void clearCache() {
     _probability = null;
@@ -81,7 +81,7 @@ Future<bool> submitExitRating({
     final pts = await cfg.rewardPoints;
     final newId = await provider.appDb.into(provider.appDb.pointsTransactions).insert(
       app_db.PointsTransactionsCompanion(
-        amount: Value(pts * 10),
+        amount: Value(pts),
         source: const Value('REVIEW_REWARD'),
         transactionType: const Value('EARN'),
         createdAt: Value(now),
@@ -94,7 +94,7 @@ Future<bool> submitExitRating({
         operation: SyncOperationType.upsert,
         localId: newId,
         payload: jsonEncode({
-          'amount': (pts * 10).round(),
+          'amount': pts,
           'source': 'REVIEW_REWARD',
           'transaction_type': 'EARN',
           'created_at': now,
@@ -170,7 +170,7 @@ class ExitRatingResult {
 // ── 评价弹层 Widget ──
 @visibleForTesting
 class ExitRatingPopup extends StatefulWidget {
-  final Future<int> rewardPoints;
+  final Future<double> rewardPoints;
   const ExitRatingPopup({super.key, required this.rewardPoints});
 
   @override
@@ -181,7 +181,7 @@ class _ExitRatingPopupState extends State<ExitRatingPopup> {
   int? _selectedScore;
   final _feedbackController = TextEditingController();
   bool _submitting = false;
-  int? _cachedReward;
+  double? _cachedReward;
 
   static const _emojis = ['😡', '😕', '😐', '😊', '🤩'];
 

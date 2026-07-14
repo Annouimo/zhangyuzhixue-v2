@@ -286,7 +286,7 @@ class ProgressRepository {
         final now = DateTime.now().toIso8601String();
         final question = await _questionDao.getById(questionId);
         final difficulty = question?.difficulty ?? 0.0;
-        final amount = difficulty.floor(); // floor(难度) 厘分 = 0~10厘 = 0~1.0分
+        final amount = difficulty.floor().toDouble(); // 难度 floor 后作为分
         await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
           db.PointsTransactionsCompanion(
             amount: Value(amount),
@@ -297,7 +297,7 @@ class ProgressRepository {
           ),
         );
         AuditLogger.instance.dao('submitStepFeedback.complete',
-            amount, {'questionId': questionId, 'attemptNumber': attemptNumber});
+            amount.toInt(), {'questionId': questionId, 'attemptNumber': attemptNumber});
       }
     } catch (_) {}
   }

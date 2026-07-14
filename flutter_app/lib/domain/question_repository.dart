@@ -238,7 +238,7 @@ class QuestionRepository {
         final db = DatabaseProvider();
         final question = await _dao.getById(questionId);
         final difficulty = question?.difficulty ?? 0.0;
-        final amount = difficulty.floor(); // floor(难度) 厘分 = 0~10厘 = 0~1.0分
+        final amount = difficulty.floor().toDouble(); // 难度 floor 后作为分
         final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
           app_db.PointsTransactionsCompanion(
             amount: Value(amount),

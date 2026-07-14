@@ -171,7 +171,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final db = DatabaseProvider();
       final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kPickPaperCost * 10),
+          amount: const Value(-_kPickPaperCost / 10.0),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),
@@ -185,7 +185,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
           operation: SyncOperationType.upsert,
           localId: pointId,
           payload: jsonEncode({
-            'amount': -_kPickPaperCost * 10,
+            'amount': -_kPickPaperCost / 10.0,
             'source': 'PAPER_PURCHASE',
             'transaction_type': 'SPEND',
             'description': '自主选题',

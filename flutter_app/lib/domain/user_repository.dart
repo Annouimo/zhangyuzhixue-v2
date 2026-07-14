@@ -89,7 +89,7 @@ class TaskState {
   final bool inProgress;
   final String label;
   final String rewardText;
-  final int reward;
+  final double reward;
   const TaskState({
     required this.done,
     required this.inProgress,
@@ -198,7 +198,7 @@ class UserRepository {
     final rows = await _dao.getPointsHistory();
     // 计算每行的累计值。rows 按 createdAt DESC（最新在前）。
     // 从最旧的行（数组末端）向前遍历，逐行累积四种积分。
-    var cumEarned = 0, cumBonus = 0, cumSpent = 0;
+    var cumEarned = 0.0, cumBonus = 0.0, cumSpent = 0.0;
     final records = <PointsRecord>[];
     for (var i = rows.length - 1; i >= 0; i--) {
       final r = rows[i];
@@ -212,11 +212,11 @@ class UserRepository {
       records.add(PointsRecord(
         time: r.createdAt,
         type: _sourceLabels[r.source] ?? r.source,
-        change: r.amount.toDouble(),
-        earned: cumEarned.toDouble(),
-        bonus: cumBonus.toDouble(),
-        spent: cumSpent.toDouble(),
-        available: (cumEarned + cumBonus - cumSpent).toDouble(),
+        change: r.amount,
+        earned: cumEarned,
+        bonus: cumBonus,
+        spent: cumSpent,
+        available: cumEarned + cumBonus - cumSpent,
       ));
     }
     // records 现在是倒序（最新在前），最前面已经是累加到最后的值
@@ -238,10 +238,10 @@ class UserRepository {
     final rows = await _dao.getPointsHistory();
     final calc = _PointsCalculator(rows);
     return (
-      earned: calc.earned.toDouble(),
-      bonus: calc.bonus.toDouble(),
-      spent: calc.spent.toDouble(),
-      available: calc.available.toDouble(),
+      earned: calc.earned,
+      bonus: calc.bonus,
+      spent: calc.spent,
+      available: calc.available,
     );
   }
 
@@ -273,10 +273,10 @@ class UserRepository {
 
   /// 任务状态
   static const _taskDefs = [
-    (label: '开张有礼（完成第1题）', threshold: 1, reward: 5),
-    (label: '小试牛刀（完成5题）', threshold: 5, reward: 10),
-    (label: '精益求精（正确完成3题）', threshold: 3, reward: 10),
-    (label: '更进一步（完成15题）', threshold: 15, reward: 20),
+    (label: '开张有礼（完成第1题）', threshold: 1, reward: 0.5),
+    (label: '小试牛刀（完成5题）', threshold: 5, reward: 1.0),
+    (label: '精益求精（正确完成3题）', threshold: 3, reward: 1.0),
+    (label: '更进一步（完成15题）', threshold: 15, reward: 2.0),
   ];
 
   /// 今日任务状态
@@ -290,7 +290,7 @@ class UserRepository {
         done: done,
         inProgress: !done && prevDone,
         label: d.label,
-        rewardText: (d.reward / 10).toStringAsFixed(1),
+        rewardText: d.reward.toStringAsFixed(1),
         reward: d.reward,
       ));
     }
@@ -395,8 +395,8 @@ class _PointsCalculator {
   final List<db.PointsTransactionRow> _rows;
   _PointsCalculator(this._rows);
 
-  int get earned {
-    var total = 0;
+  double get earned {
+    var total = 0.0;
     for (final r in _rows) {
       if (r.source == 'PRACTICE_REWARD') {
         total += r.amount;
@@ -405,8 +405,8 @@ class _PointsCalculator {
     return total;
   }
 
-  int get bonus {
-    var total = 0;
+  double get bonus {
+    var total = 0.0;
     for (final r in _rows) {
       if (['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST'].contains(r.source)) {
         total += r.amount;
@@ -415,14 +415,14 @@ class _PointsCalculator {
     return total;
   }
 
-  int get spent {
-    var total = 0;
+  double get spent {
+    var total = 0.0;
     for (final r in _rows) {
       if (r.source == 'PAPER_PURCHASE') total += r.amount;
     }
     return total.abs();
   }
 
-  int get available => earned + bonus - spent;
+  double get available => earned + bonus - spent;
 }
 

@@ -877,11 +877,11 @@ class $PointsTransactionsTable extends PointsTransactions
   );
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
-  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
     'amount',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _transactionTypeMeta = const VerificationMeta(
@@ -1029,7 +1029,7 @@ class $PointsTransactionsTable extends PointsTransactions
         data['${effectivePrefix}id'],
       )!,
       amount: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
       transactionType: attachedDatabase.typeMapping.read(
@@ -1064,7 +1064,7 @@ class $PointsTransactionsTable extends PointsTransactions
 class PointsTransactionRow extends DataClass
     implements Insertable<PointsTransactionRow> {
   final int id;
-  final int amount;
+  final double amount;
   final String transactionType;
   final String source;
   final int? sourceObjectId;
@@ -1083,7 +1083,7 @@ class PointsTransactionRow extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['amount'] = Variable<int>(amount);
+    map['amount'] = Variable<double>(amount);
     map['transaction_type'] = Variable<String>(transactionType);
     map['source'] = Variable<String>(source);
     if (!nullToAbsent || sourceObjectId != null) {
@@ -1119,7 +1119,7 @@ class PointsTransactionRow extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PointsTransactionRow(
       id: serializer.fromJson<int>(json['id']),
-      amount: serializer.fromJson<int>(json['amount']),
+      amount: serializer.fromJson<double>(json['amount']),
       transactionType: serializer.fromJson<String>(json['transactionType']),
       source: serializer.fromJson<String>(json['source']),
       sourceObjectId: serializer.fromJson<int?>(json['sourceObjectId']),
@@ -1132,7 +1132,7 @@ class PointsTransactionRow extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'amount': serializer.toJson<int>(amount),
+      'amount': serializer.toJson<double>(amount),
       'transactionType': serializer.toJson<String>(transactionType),
       'source': serializer.toJson<String>(source),
       'sourceObjectId': serializer.toJson<int?>(sourceObjectId),
@@ -1143,7 +1143,7 @@ class PointsTransactionRow extends DataClass
 
   PointsTransactionRow copyWith({
     int? id,
-    int? amount,
+    double? amount,
     String? transactionType,
     String? source,
     Value<int?> sourceObjectId = const Value.absent(),
@@ -1218,7 +1218,7 @@ class PointsTransactionRow extends DataClass
 class PointsTransactionsCompanion
     extends UpdateCompanion<PointsTransactionRow> {
   final Value<int> id;
-  final Value<int> amount;
+  final Value<double> amount;
   final Value<String> transactionType;
   final Value<String> source;
   final Value<int?> sourceObjectId;
@@ -1235,7 +1235,7 @@ class PointsTransactionsCompanion
   });
   PointsTransactionsCompanion.insert({
     this.id = const Value.absent(),
-    required int amount,
+    required double amount,
     required String transactionType,
     required String source,
     this.sourceObjectId = const Value.absent(),
@@ -1247,7 +1247,7 @@ class PointsTransactionsCompanion
        createdAt = Value(createdAt);
   static Insertable<PointsTransactionRow> custom({
     Expression<int>? id,
-    Expression<int>? amount,
+    Expression<double>? amount,
     Expression<String>? transactionType,
     Expression<String>? source,
     Expression<int>? sourceObjectId,
@@ -1267,7 +1267,7 @@ class PointsTransactionsCompanion
 
   PointsTransactionsCompanion copyWith({
     Value<int>? id,
-    Value<int>? amount,
+    Value<double>? amount,
     Value<String>? transactionType,
     Value<String>? source,
     Value<int?>? sourceObjectId,
@@ -1292,7 +1292,7 @@ class PointsTransactionsCompanion
       map['id'] = Variable<int>(id.value);
     }
     if (amount.present) {
-      map['amount'] = Variable<int>(amount.value);
+      map['amount'] = Variable<double>(amount.value);
     }
     if (transactionType.present) {
       map['transaction_type'] = Variable<String>(transactionType.value);
@@ -7353,7 +7353,7 @@ typedef $$UserLoginLogsTableProcessedTableManager =
 typedef $$PointsTransactionsTableCreateCompanionBuilder =
     PointsTransactionsCompanion Function({
       Value<int> id,
-      required int amount,
+      required double amount,
       required String transactionType,
       required String source,
       Value<int?> sourceObjectId,
@@ -7363,7 +7363,7 @@ typedef $$PointsTransactionsTableCreateCompanionBuilder =
 typedef $$PointsTransactionsTableUpdateCompanionBuilder =
     PointsTransactionsCompanion Function({
       Value<int> id,
-      Value<int> amount,
+      Value<double> amount,
       Value<String> transactionType,
       Value<String> source,
       Value<int?> sourceObjectId,
@@ -7385,7 +7385,7 @@ class $$PointsTransactionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get amount => $composableBuilder(
+  ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
     builder: (column) => ColumnFilters(column),
   );
@@ -7430,7 +7430,7 @@ class $$PointsTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get amount => $composableBuilder(
+  ColumnOrderings<double> get amount => $composableBuilder(
     column: $table.amount,
     builder: (column) => ColumnOrderings(column),
   );
@@ -7473,7 +7473,7 @@ class $$PointsTransactionsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get amount =>
+  GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
 
   GeneratedColumn<String> get transactionType => $composableBuilder(
@@ -7539,7 +7539,7 @@ class $$PointsTransactionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> amount = const Value.absent(),
+                Value<double> amount = const Value.absent(),
                 Value<String> transactionType = const Value.absent(),
                 Value<String> source = const Value.absent(),
                 Value<int?> sourceObjectId = const Value.absent(),
@@ -7557,7 +7557,7 @@ class $$PointsTransactionsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int amount,
+                required double amount,
                 required String transactionType,
                 required String source,
                 Value<int?> sourceObjectId = const Value.absent(),

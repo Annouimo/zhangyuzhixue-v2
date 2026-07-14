@@ -114,7 +114,7 @@ class TestLevelPercentile:
         """有积分数据：正确计算百分位"""
         PointsTransaction.objects.create(
             student=student_user.student,
-            amount=500, transaction_type='EARN', source='SIGNUP_BONUS',
+            amount=50.0, transaction_type='EARN', source='SIGNUP_BONUS',
         )
         resp = auth_client.get(reverse('user-level-percentile'))
         assert resp.status_code == 200

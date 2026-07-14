@@ -178,35 +178,35 @@ if pts_count < 50:
     today = timezone.now()
     for day in range(30):
         # 每日签到
-        PointsTransaction.objects.create(student=student, amount=random.choice([3, 5, 8]),
+        PointsTransaction.objects.create(student=student, amount=random.choice([0.3, 0.5, 0.8]),
             transaction_type='EARN', source='LOGIN_BONUS',
             created_at=today - timedelta(days=day),
             description=f'签到奖励 (第{day+1}天)')
         # 随机做题奖励
         if random.random() > 0.3:
-            PointsTransaction.objects.create(student=student, amount=random.choice([2, 3, 5]),
+            PointsTransaction.objects.create(student=student, amount=random.choice([0.2, 0.3, 0.5]),
                 transaction_type='EARN', source='PRACTICE_REWARD',
                 created_at=today - timedelta(days=day, hours=random.randint(1, 12)),
                 description='做题奖励')
         # 随机完成任务
         if random.random() > 0.6:
-            PointsTransaction.objects.create(student=student, amount=random.choice([5, 10, 15]),
+            PointsTransaction.objects.create(student=student, amount=random.choice([0.5, 1.0, 1.5]),
                 transaction_type='EARN', source='TASK_REWARD',
                 created_at=today - timedelta(days=day, hours=random.randint(1, 12)),
                 description=f'完成任务奖励')
     # 新人赠送
-    PointsTransaction.objects.create(student=student, amount=100,
+    PointsTransaction.objects.create(student=student, amount=10.0,
         transaction_type='EARN', source='SIGNUP_BONUS',
         created_at=today - timedelta(days=60), description='新人注册赠送积分')
     # 退出评价
-    PointsTransaction.objects.create(student=student, amount=5,
+    PointsTransaction.objects.create(student=student, amount=0.5,
         transaction_type='EARN', source='REVIEW_REWARD',
         created_at=today - timedelta(days=3), description='退出页面评价奖励')
     # 组卷消费
-    PointsTransaction.objects.create(student=student, amount=-20,
+    PointsTransaction.objects.create(student=student, amount=-2.0,
         transaction_type='SPEND', source='PAPER_PURCHASE',
         created_at=today - timedelta(days=7), description='组卷消费')
-    PointsTransaction.objects.create(student=student, amount=-10,
+    PointsTransaction.objects.create(student=student, amount=-1.0,
         transaction_type='SPEND', source='PAPER_PURCHASE',
         created_at=today - timedelta(days=14), description='组卷消费')
     print(f'  ✅ 积分流水 ~60 条（全 6 种 source 覆盖）')

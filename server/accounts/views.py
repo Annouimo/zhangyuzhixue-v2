@@ -76,7 +76,7 @@ def register_view(request):
     # 赠送注册积分
     PointsTransaction.objects.create(
         student=student,
-        amount=100,
+        amount=10.0,
         transaction_type='EARN',
         source='SIGNUP_BONUS',
         description='新用户注册赠送',
@@ -277,9 +277,9 @@ def checkin_view(request):
     base_reward = float(getattr(settings, 'LOGIN_BONUS_BASE', 0.5))
     # 每周额外奖励
     weekly_bonus = float(getattr(settings, 'LOGIN_BONUS_WEEKLY', 3.0))
-    reward = int(base_reward * 10)  # 基础奖励（转换为整数分）
+    reward = base_reward  # 0.5 (分)
     if streak % 7 == 0:
-        reward += int(weekly_bonus * 10)
+        reward += weekly_bonus
 
     PointsTransaction.objects.create(
         student=student,

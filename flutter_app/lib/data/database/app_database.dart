@@ -42,7 +42,7 @@ class PointsTransactions extends Table {
   @override
   String get tableName => 'points_transaction';
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get amount => integer()();
+  RealColumn get amount => real()();
   TextColumn get transactionType => text()();
   TextColumn get source => text()();
   IntColumn? get sourceObjectId => integer().nullable()();
