@@ -8,7 +8,7 @@ class _MockPickRepo implements ExamRepository {
   @override Future<FilterOptions> getFilterOptions() async => const FilterOptions(
     years: ['2025', '2024'], regions: ['海淀', '西城'], conceptTags: ['函数'], knowledgeCards: []);
   @override Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters f) async => [
-    const SearchQuestion(id: 1, title: '测试题', meta: '2025·海淀·选择题·3分', difficulty: 5.0, calculation: 3.0),
+    const SearchQuestion(id: 1, title: '测试题', questionType: 'choice', meta: '2025·海淀·选择题·3分', difficulty: 5.0, calculation: 3.0),
   ];
   @override Future<int> confirm(SearchFilters f, {bool allowShortfall = false}) async => 1;
   @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();

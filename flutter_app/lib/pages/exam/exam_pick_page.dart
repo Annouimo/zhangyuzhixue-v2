@@ -10,7 +10,7 @@ import '../../../domain/preference_repository.dart';
 import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
-import '../../../widgets/md_latex_body.dart';
+import '../../../widgets/shared/question_card.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
 import '../../data/debug/audit_logger.dart';
@@ -366,29 +366,17 @@ class _ExamPickPageState extends State<ExamPickPage> {
         final qIdx = index - headerChildren.length;
         final q = _questions![qIdx];
         final sel = _selectedIds.contains(q.id);
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: InkWell(
-            onTap: () => setState(() {
-              if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); }
-            }),
-            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(children: [
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    MdLatexBody(q.title, fontSize: 14),
-                    const SizedBox(height: 4),
-                    Text(q.meta, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                  ],
-                )),
-                Icon(sel ? Icons.check_circle : Icons.radio_button_unchecked,
-                    color: sel ? AppColors.primary : AppColors.textSecondary, size: 24),
-              ]),
-            ),
-          ),
+        return QuestionCard(
+          questionId: q.id,
+          title: q.title,
+          questionType: q.questionType,
+          subtitle: q.meta,
+          difficulty: q.difficulty,
+          selectable: true,
+          selected: sel,
+          onTap: () => setState(() {
+            if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); }
+          }),
         );
       },
     );

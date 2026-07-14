@@ -229,10 +229,11 @@ class FilterPreset {
 class SearchQuestion {
   final int id;
   final String title;
+  final String questionType;
   final String meta;
   final double difficulty;
   final double calculation;
-  const SearchQuestion({required this.id, required this.title, required this.meta, required this.difficulty, required this.calculation});
+  const SearchQuestion({required this.id, required this.title, required this.questionType, required this.meta, required this.difficulty, required this.calculation});
 }
 
 /// 池子不足异常
@@ -476,6 +477,7 @@ class ExamRepository {
     return (await q).map((r) => SearchQuestion(
       id: r.id,
       title: r.stem.length > 80 ? '${r.stem.substring(0, 80)}...' : r.stem,
+      questionType: r.questionType,
       meta: '${r.year} ${r.examType} ${r.region}',
       difficulty: r.difficulty ?? 0,
       calculation: r.calculation ?? 0,

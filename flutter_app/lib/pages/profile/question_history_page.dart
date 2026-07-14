@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../app_theme.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
+import '../../widgets/shared/question_card.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
 import '../../data/daos/question_dao.dart';
@@ -46,8 +47,6 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
     }
   }
 
-  static const _statusLabels = {'completed': '已完成', 'in_progress': '进行中'};
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('做题历史')),
@@ -59,13 +58,15 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
         : ListView.separated(
             padding: const EdgeInsets.all(AppSizes.baseSpacing),
             itemCount: _history!.length,
-            separatorBuilder: (_, _) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const SizedBox(height: 6),
             itemBuilder: (_, i) {
               final h = _history![i];
-              return ListTile(
-                title: Text(h.title, style: const TextStyle(fontSize: 14)),
-                subtitle: Text('${h.questionType} · ${h.date} · ${_statusLabels[h.status] ?? h.status}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                trailing: const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+              return QuestionCard(
+                questionId: h.questionId,
+                title: h.title,
+                questionType: h.questionType,
+                subtitle: h.date,
+                status: h.status,
                 onTap: () {
                   final route = switch (h.questionType) {
                     'choice' => AppRoutes.solveChoice,

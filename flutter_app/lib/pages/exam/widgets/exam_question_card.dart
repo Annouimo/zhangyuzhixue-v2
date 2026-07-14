@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/md_latex_body.dart';
 import '../../../domain/question_repository.dart';
+import '../../../widgets/shared/question_card.dart';
 
-/// 预览页题目卡片 — 统一 quicklook/quicklook_other 的重复代码
+/// 预览页题目卡片 — 委托给全局共享的 QuestionCard
+///
+/// 保持此文件作为向后兼容的 Thin Wrapper。
 class ExamQuestionCard extends StatelessWidget {
   final int questionId;
   final String title;
@@ -17,17 +19,11 @@ class ExamQuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(
-        child: InkWell(
-          onTap: () => SolveRouteHelper.navigateTo(context, questionId, questionType),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: MdLatexBody(title, fontSize: 14),
-          ),
-        ),
-      ),
+    return QuestionCard(
+      questionId: questionId,
+      title: title,
+      questionType: questionType,
+      onTap: () => SolveRouteHelper.navigateTo(context, questionId, questionType),
     );
   }
 }
