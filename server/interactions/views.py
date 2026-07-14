@@ -128,9 +128,11 @@ class SyncPushView(APIView):
 
     def _handle_step_feedback(self, data, student, server_ids, detail_cache):
         detail_id = data.get('submission_detail_id')
-        # 如果 submission_detail_id 为 null，从 detail_cache 取最近创建的 detail_id
         if detail_id is None:
-            # 取 detail_cache 中第一个 submission 的最后一个 detail_id
+            # 如果 detail_cache 为空（没有前置 submission），自动创建
+            if not detail_cache:
+                sub = StudentSubmission.objects.create(student=student)
+                detail_cache[sub.pk] = []
             for sub_id in detail_cache:
                 if detail_cache[sub_id]:
                     detail_id = detail_cache[sub_id][-1]

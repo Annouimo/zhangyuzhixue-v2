@@ -127,20 +127,43 @@ class ProgressRepository {
 
   Future<SolveProgressState> getSolveState(int questionId) async {
     final subQuestions = await _questionDao.getSubQuestions(questionId);
+    final subQIds = subQuestions.map((sq) => sq.id).toList();
+    final allMethods = subQIds.isEmpty
+        ? []
+        : await _questionDao.getMethodsBySubQuestionIds(subQIds);
+    final methodIds = allMethods.map((m) => (m as dynamic).id as int).toList();
+    final allSteps = methodIds.isEmpty
+        ? []
+        : await _questionDao.getStepsByMethodIds(methodIds);
+
+    // 按 subQuestionId 分组方法
+    final methodsBySubQ = <int, List<dynamic>>{};
+    for (final m in allMethods) {
+      methodsBySubQ.putIfAbsent(m.subQuestionId, () => []).add(m);
+    }
+    // 按 methodId 分组步骤
+    final stepsByMethod = <int, List<dynamic>>{};
+    for (final s in allSteps) {
+      stepsByMethod.putIfAbsent(s.methodId, () => []).add(s);
+    }
+
     final blocks = <SubQuestionBlock>[];
     for (final sq in subQuestions) {
-      final methods = await _questionDao.getMethods(sq.id);
+      final methods = methodsBySubQ[sq.id] ?? [];
       final methodBlocks = <SolutionMethodBlock>[];
       for (final m in methods) {
-        final steps = await _questionDao.getSteps(m.id);
+        final steps = stepsByMethod[m.id] ?? [];
         methodBlocks.add(SolutionMethodBlock(
           methodName: m.methodName,
-          steps: steps.map((s) => Step(
-            stepNumber: s.stepNumber,
-            title: s.title,
-            analysis: s.content,
-            cardTitles: _parseCardTitles(s.cardTitles),
-          )).toList(),
+          steps: steps.map((s) {
+            final step = s as dynamic;
+            return Step(
+              stepNumber: step.stepNumber,
+              title: step.title,
+              analysis: step.content,
+              cardTitles: _parseCardTitles(step.cardTitles),
+            );
+          }).toList(),
         ));
       }
       blocks.add(SubQuestionBlock(
@@ -189,19 +212,40 @@ class ProgressRepository {
 
     // 重建 subQRecords
     final subQRecords = <SubQSolveRecord>[];
-    // 从 assets 库读题目结构
+    // 从 assets 库读题目结构（批量查询）
     final subQuestions = await _questionDao.getSubQuestions(questionId);
+    final subQIds = subQuestions.map((sq) => sq.id).toList();
+    final allMethods = subQIds.isEmpty
+        ? []
+        : await _questionDao.getMethodsBySubQuestionIds(subQIds);
+    final methodIds = allMethods.map((m) => (m as dynamic).id as int).toList();
+    final allSteps = methodIds.isEmpty
+        ? []
+        : await _questionDao.getStepsByMethodIds(methodIds);
+
+    // 按 subQuestionId 分组方法
+    final methodsBySubQ = <int, List<dynamic>>{};
+    for (final m in allMethods) {
+      methodsBySubQ.putIfAbsent(m.subQuestionId, () => []).add(m);
+    }
+    // 按 methodId 分组步骤
+    final stepsByMethod = <int, List<dynamic>>{};
+    for (final s in allSteps) {
+      stepsByMethod.putIfAbsent(s.methodId, () => []).add(s);
+    }
+
     for (final sq in subQuestions) {
-      final methods = await _questionDao.getMethods(sq.id);
+      final methods = methodsBySubQ[sq.id] ?? [];
       final methodRecords = <MethodSolveRecord>[];
       for (final m in methods) {
-        final steps = await _questionDao.getSteps(m.id);
+        final steps = stepsByMethod[m.id] ?? [];
         final stepRecords = <StepSolveRecord>[];
         for (final s in steps) {
-          final feedbackList = feedbacksBySubQ[sq.sortOrder];
-          final fb = feedbackList?.where((f) => f.stepNumber == s.stepNumber).toList();
+          final stepObj = s as dynamic;
+          final feedbackList = feedbacksBySubQ[sq.sortOrder - 1];
+          final fb = feedbackList?.where((f) => f.stepNumber == stepObj.stepNumber).toList();
           stepRecords.add(StepSolveRecord(
-            stepOrder: s.stepNumber,
+            stepOrder: stepObj.stepNumber,
             feedbackGiven: fb != null && fb.isNotEmpty,
             feedbackType: fb?.last.status,
           ));
@@ -214,7 +258,7 @@ class ProgressRepository {
       subQRecords.add(SubQSolveRecord(
         index: sq.sortOrder,
         activeMethod: '',
-        completed: methodRecords.every((m) => m.steps.every((s) => s.feedbackGiven)),
+        completed: methodRecords.any((m) => m.steps.every((s) => s.feedbackGiven)),
         methods: methodRecords,
       ));
     }
@@ -306,20 +350,22 @@ class ProgressRepository {
       if (!allResolved) return;
 
       await _dao.updateAttemptStatus(detail.id, 'completed');
-      // 发放做题积分
+      // 发放做题积分（amount > 0 才发）
       final now = DateTime.now().toIso8601String();
       final question = await _questionDao.getById(questionId);
       final difficulty = question?.difficulty ?? 0.0;
       final amount = difficulty.floor() / 10.0;
-      await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
-        db.PointsTransactionsCompanion(
-          amount: Value(amount),
-          source: const Value('PRACTICE_REWARD'),
-          transactionType: const Value('EARN'),
-          createdAt: Value(now),
-          description: const Value('做题奖励'),
-        ),
-      );
+      if (amount > 0) {
+        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+          db.PointsTransactionsCompanion(
+            amount: Value(amount),
+            source: const Value('PRACTICE_REWARD'),
+            transactionType: const Value('EARN'),
+            createdAt: Value(now),
+            description: const Value('做题奖励'),
+          ),
+        );
+      }
       AuditLogger.instance.dao('submitStepFeedback.complete',
           amount.toInt(), {'questionId': questionId, 'attemptNumber': attemptNumber});
     } catch (_) {}
