@@ -24,7 +24,7 @@ import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
 /// 自主选题积分消耗常量
-const _kPickPaperCost = 20;
+const _kPickPaperCost = 2; // 自主选题消耗 2 分
 
 /// 自主选题
 class ExamPickPage extends StatefulWidget {
@@ -171,7 +171,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final db = DatabaseProvider();
       final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kPickPaperCost / 10.0),
+          amount: const Value(-_kPickPaperCost * 1.0),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),
@@ -185,7 +185,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
           operation: SyncOperationType.upsert,
           localId: pointId,
           payload: jsonEncode({
-            'amount': -_kPickPaperCost / 10.0,
+            'amount': -_kPickPaperCost * 1.0,
             'source': 'PAPER_PURCHASE',
             'transaction_type': 'SPEND',
             'description': '自主选题',

@@ -24,7 +24,7 @@ import '../../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
 /// 智能组卷积分消耗常量
-const _kAutoPaperCost = 10;
+const _kAutoPaperCost = 1; // 智能组卷消耗 1 分
 
 /// 智能组卷
 class ExamAutoPage extends StatefulWidget {
@@ -170,7 +170,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       final db = DatabaseProvider();
       final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kAutoPaperCost / 10.0),
+          amount: const Value(-_kAutoPaperCost * 1.0),
           source: const Value('PAPER_PURCHASE'),
           transactionType: const Value('SPEND'),
           createdAt: Value(now),
@@ -184,7 +184,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           operation: SyncOperationType.upsert,
           localId: pointId,
           payload: jsonEncode({
-            'amount': -_kAutoPaperCost / 10.0,
+            'amount': -_kAutoPaperCost * 1.0,
             'source': 'PAPER_PURCHASE',
             'transaction_type': 'SPEND',
             'description': '智能组卷',
