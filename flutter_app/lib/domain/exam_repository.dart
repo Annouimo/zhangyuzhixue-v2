@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
+import '../data/database/assets_database.dart' as assets_db;
 import '../data/debug/audit_logger.dart';
 import '../data/helpers/pdf_helper.dart';
 import '../data/sync/sync_manager.dart';
@@ -114,6 +115,32 @@ class AnswerItem {
   const AnswerItem({required this.title, required this.questionType, required this.answer});
 }
 
+/// 树状概念标签节点
+class ConceptTagNode {
+  final int id;
+  final String name;
+  final int? parentId;
+  final List<ConceptTagNode> children;
+  const ConceptTagNode({
+    required this.id, required this.name, this.parentId,
+    this.children = const [],
+  });
+}
+
+/// 知识卡片项
+class KnowledgeCardItem {
+  final int id;
+  final String title;
+  const KnowledgeCardItem({required this.id, required this.title});
+}
+
+/// 分类知识卡片组
+class KnowledgeCardGroup {
+  final String category;
+  final List<KnowledgeCardItem> cards;
+  const KnowledgeCardGroup({required this.category, required this.cards});
+}
+
 /// 筛选选项
 class FilterOptions {
   final List<String> years;
@@ -122,6 +149,8 @@ class FilterOptions {
   final List<String> knowledgeCards;
   final List<String> examTypes;
   final List<String> questionTypes;
+  final List<ConceptTagNode> conceptTagTree;
+  final List<KnowledgeCardGroup> knowledgeCardGroups;
 
   const FilterOptions({
     required this.years,
@@ -130,6 +159,8 @@ class FilterOptions {
     this.knowledgeCards = const [],
     this.examTypes = const [],
     this.questionTypes = const ['choice', 'fill', 'solution'],
+    this.conceptTagTree = const [],
+    this.knowledgeCardGroups = const [],
   });
 }
 
@@ -395,10 +426,36 @@ class ExamRepository {
       years: years,
       regions: regions,
       conceptTags: tags.map((t) => t.name).toList(),
+      conceptTagTree: _buildTagTree(tags),
       knowledgeCards: kcs.map((k) => k.title).toList(),
+      knowledgeCardGroups: _buildKnowledgeCardGroups(kcs),
       examTypes: examTypes,
       questionTypes: const ['choice', 'fill', 'solution'],
     );
+  }
+
+  List<ConceptTagNode> _buildTagTree(List<assets_db.ConceptTagRow> tags) {
+    final byParent = <int?, List<assets_db.ConceptTagRow>>{};
+    for (final t in tags) {
+      byParent.putIfAbsent(t.parentId, () => []).add(t);
+    }
+    ConceptTagNode buildNode(assets_db.ConceptTagRow row) {
+      return ConceptTagNode(
+        id: row.id, name: row.name, parentId: row.parentId,
+        children: (byParent[row.id] ?? []).map(buildNode).toList(),
+      );
+    }
+    return (byParent[null] ?? []).map(buildNode).toList();
+  }
+
+  List<KnowledgeCardGroup> _buildKnowledgeCardGroups(List<assets_db.KnowledgeCardRow> cards) {
+    final byCategory = <String, List<KnowledgeCardItem>>{};
+    for (final c in cards) {
+      byCategory.putIfAbsent(c.category, () => []).add(KnowledgeCardItem(id: c.id, title: c.title));
+    }
+    return byCategory.entries.map((e) => KnowledgeCardGroup(
+      category: e.key, cards: e.value,
+    )).toList();
   }
 
   Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters) async {
