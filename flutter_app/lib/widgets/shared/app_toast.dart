@@ -3,13 +3,13 @@ import '../../app_theme.dart';
 
 /// 统一 Toast（包装 SnackBar，风格对齐 HTML 原型顶部 Toast）
 ///
-/// 用法：AppToast.show(context, icon: '🔥', message: '签到成功');
+/// 用法：AppToast.show(context, icon: Icons.local_fire_department, message: '签到成功');
 /// 替代各地零散的 ScaffoldMessenger.showSnackBar(...)
 class AppToast {
   static void show(
     BuildContext context, {
     required String message,
-    String? icon,
+    IconData? icon,
     Color? backgroundColor,
     int durationMs = 3000,
   }) {
@@ -20,7 +20,7 @@ class AppToast {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Text(icon, style: const TextStyle(fontSize: 18)),
+              Icon(icon, size: 18, color: Colors.white),
               const SizedBox(width: 8),
             ],
             Flexible(
@@ -46,19 +46,19 @@ class AppToast {
   }
 
   static void success(BuildContext context, String message,
-      {String icon = '✅'}) {
+      {IconData icon = Icons.check_circle}) {
     show(context, icon: icon, message: message,
         backgroundColor: AppColors.success);
   }
 
   static void error(BuildContext context, String message,
-      {String icon = '❌'}) {
+      {IconData icon = Icons.error}) {
     show(context, icon: icon, message: message,
         backgroundColor: AppColors.error);
   }
 
   static void info(BuildContext context, String message,
-      {String icon = 'ℹ️'}) {
+      {IconData icon = Icons.info_outline}) {
     show(context, icon: icon, message: message);
   }
 }

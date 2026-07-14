@@ -48,9 +48,9 @@ class _FeedbackChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (type) {
-      FeedbackType.fullCorrect => ('✅ 全对', AppColors.success),
-      FeedbackType.partialCorrect => ('🔶 部分对', AppColors.warning),
-      FeedbackType.wrong => ('❌ 不对', AppColors.error),
+      FeedbackType.fullCorrect => ('全对', AppColors.success),
+      FeedbackType.partialCorrect => ('部分对', AppColors.warning),
+      FeedbackType.wrong => ('不对', AppColors.error),
     };
 
     return GestureDetector(

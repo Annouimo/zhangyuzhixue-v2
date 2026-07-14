@@ -84,7 +84,7 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
                           strokeWidth: 2, color: Colors.white,
                         ),
                       )
-                    : const Text('提交'),
+                    : const Text('提交答案'),
               ),
             ),
           ),

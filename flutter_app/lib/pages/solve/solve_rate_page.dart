@@ -82,7 +82,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       setState(() { _submitted = true; _saving = false; });
       if (!mounted) return;
       AppToast.show(context,
-        icon: '✅', message: '评分已提交，+0.3 赠送积分',
+        icon: Icons.check_circle, message: '评分已提交，+0.3 赠送积分',
         backgroundColor: AppColors.success,
       );
     } catch (e) {
@@ -90,7 +90,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       setState(() => _saving = false);
       if (!mounted) return;
       AppToast.show(context,
-        icon: '❌', message: '评分提交失败，请重试',
+        icon: Icons.error, message: '评分提交失败，请重试',
         backgroundColor: AppColors.error,
       );
     }

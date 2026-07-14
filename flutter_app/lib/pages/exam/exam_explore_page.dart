@@ -68,7 +68,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: '🔍', message: '暂无公开组卷');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.search, message: '暂无公开组卷');
     return Column(
       children: [
         // 排序栏
@@ -106,19 +106,20 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
                   actions: [
                     ActionChipWidget(
-                      emoji: e.isLiked ? '❤️' : '🤍',
+                      icon: e.isLiked ? Icons.favorite : Icons.favorite_border,
+                      iconColor: e.isLiked ? Colors.red : null,
                       label: '${e.likeCount}',
                       onTap: () => _toggleLike(e.id),
                     ),
                     const SizedBox(width: 8),
                     ActionChipWidget(
-                      emoji: e.isCollected ? '🔖' : '🏷️',
+                      icon: e.isCollected ? Icons.bookmark : Icons.label_outline,
                       label: '${e.collectCount}',
                       onTap: () => _toggleCollect(e.id),
                     ),
                     const SizedBox(width: 8),
                     ActionChipWidget(
-                      emoji: '📥',
+                      icon: Icons.file_download,
                       label: 'PDF',
                       onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context),
                     ),

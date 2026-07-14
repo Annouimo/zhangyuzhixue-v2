@@ -91,7 +91,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('⬇️', style: TextStyle(fontSize: 40)),
+        const Icon(Icons.file_download, size: 40, color: AppColors.primary),
         const SizedBox(height: 12),
         const Text(
           '同步数据',

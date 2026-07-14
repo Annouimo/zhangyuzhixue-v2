@@ -119,7 +119,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
         final item = items[i];
         final isFailed = item.status == 'failed';
         return ListTile(
-          leading: Text(item.icon, style: const TextStyle(fontSize: 24)),
+          leading: Icon(item.icon, size: 24, color: AppColors.primary),
           title: Text(item.entityTypeName, style: const TextStyle(fontSize: 15)),
           subtitle: Text(item.timeAgo, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [

@@ -3,21 +3,21 @@ import '../../app_theme.dart';
 
 /// 统一操作 Chip — 替代各地零散的 _actionChip 私有方法
 ///
-/// 支持 emoji/icon 两种模式，边框圆角样式统一。
+/// 使用 Material Icon，边框圆角样式统一。
 class ActionChipWidget extends StatelessWidget {
-  final String? emoji;
-  final IconData? icon;
+  final IconData icon;
   final String label;
   final VoidCallback onTap;
   final double fontSize;
+  final Color? iconColor;
 
   const ActionChipWidget({
     super.key,
-    this.emoji,
-    this.icon,
+    required this.icon,
     required this.label,
     required this.onTap,
     this.fontSize = 11,
+    this.iconColor,
   });
 
   @override
@@ -33,11 +33,8 @@ class ActionChipWidget extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (emoji != null)
-              Text(emoji!, style: TextStyle(fontSize: fontSize + 1))
-            else if (icon != null)
-              Icon(icon, size: fontSize + 5, color: AppColors.textSecondary),
-            if (emoji != null || icon != null) const SizedBox(width: 2),
+            Icon(icon, size: fontSize + 5, color: iconColor ?? AppColors.textSecondary),
+            const SizedBox(width: 2),
             Text(label, style: TextStyle(fontSize: fontSize, color: AppColors.textSecondary)),
           ],
         ),

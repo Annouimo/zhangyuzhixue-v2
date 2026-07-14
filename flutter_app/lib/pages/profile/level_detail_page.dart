@@ -95,7 +95,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🏅', style: TextStyle(fontSize: 28)),
+          const Icon(Icons.emoji_events, size: 28, color: Colors.white),
           const SizedBox(width: 6),
           Text('Lv.$_level',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
@@ -140,7 +140,9 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
                         style: TextStyle(
                           fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
                           fontSize: 13,
-                          color: isCurrent ? AppColors.primary : AppColors.textPrimary,
+                          color: r.level > _level
+                              ? AppColors.textMuted
+                              : (isCurrent ? AppColors.primary : AppColors.textPrimary),
                         )),
                     ),
                     Padding(
@@ -149,7 +151,9 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
-                          color: isCurrent ? AppColors.primary : AppColors.textSecondary,
+                          color: r.level > _level
+                              ? AppColors.textMuted
+                              : (isCurrent ? AppColors.primary : AppColors.textSecondary),
                         )),
                     ),
                   ],

@@ -98,7 +98,7 @@ class _IndexPageState extends State<IndexPage> {
 
   Future<void> _doCheckin() async {
     if (_checkedIn) {
-      AppToast.show(context, icon: 'ℹ️', message: '今天已签到');
+      AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
       return;
     }
     try {
@@ -125,14 +125,14 @@ class _IndexPageState extends State<IndexPage> {
         _checkedIn = true;
       });
       AppToast.show(context,
-        icon: '🔥', message: '$msg · +$points 积分',
+        icon: Icons.local_fire_department, message: '$msg · +$points 积分',
         backgroundColor: AppColors.success,
       );
     } catch (e) {
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
       AppToast.show(context,
-        icon: '⚠️', message: '签到失败，请检查网络',
+        icon: Icons.warning, message: '签到失败，请检查网络',
         backgroundColor: AppColors.error,
       );
     }
@@ -210,7 +210,7 @@ class _IndexPageState extends State<IndexPage> {
         ),
         child: Row(
           children: [
-            const Text('📝', style: TextStyle(fontSize: 20)),
+            const Icon(Icons.assignment, size: 20, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -246,7 +246,7 @@ class _IndexPageState extends State<IndexPage> {
         ),
         child: Row(
           children: [
-            const Text('📖', style: TextStyle(fontSize: 20)),
+            const Icon(Icons.menu_book, size: 20, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -286,7 +286,7 @@ class _IndexPageState extends State<IndexPage> {
           // 签到行
           Row(
             children: [
-              const Text('🔥', style: TextStyle(fontSize: 20)),
+              const Icon(Icons.local_fire_department, size: 20, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
                 '已连续签到 $_streakDays 天',
@@ -317,7 +317,7 @@ class _IndexPageState extends State<IndexPage> {
               ),
               const Spacer(),
               Text('明日奖励 ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('+$nextReward 🎉',
+              Text('+$nextReward',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
               ),
             ],
@@ -347,7 +347,7 @@ class _IndexPageState extends State<IndexPage> {
           const Divider(height: 20),
           // 任务列表
           _buildTaskItem(dayInWeek >= 1, '开张有礼（完成第1题）', '0.5'),
-          _buildTaskItem(dayInWeek >= 2, '小试牛刀（完成10题）', '1.0'),
+          _buildTaskItem(dayInWeek >= 2, '小试牛刀（完成5题）', '1.0'),
           _buildTaskItem(dayInWeek >= 3, '精益求精（正确率≥60%）', '1.0', inProgress: dayInWeek == 2),
           _buildTaskItem(dayInWeek >= 4, '更进一步（完成15题）', '2.0', inProgress: dayInWeek == 3),
           // 等级进度行
@@ -355,7 +355,7 @@ class _IndexPageState extends State<IndexPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').lastOrNull ?? ''}',
+              Text('Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').lastOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
               Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),

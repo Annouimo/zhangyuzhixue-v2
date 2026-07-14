@@ -104,11 +104,18 @@ class RecommendPageState extends State<RecommendPage> {
     return Column(
       children: [
         _buildModePills(),
+        if (_preferSmart)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+            child: Text('根据你的做题记录和薄弱项智能推送',
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
         if (!_preferSmart && _presets.length > 1)
           _buildPresetSelector(),
         Expanded(
           child: _questions == null || _questions!.isEmpty
-              ? const EmptyPlaceholder(icon: '🔮', message: '暂无推荐，先去组卷或做几道题吧')
+              ? const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂无推荐，先去组卷或做几道题吧')
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
@@ -122,6 +129,7 @@ class RecommendPageState extends State<RecommendPage> {
                         questionType: q.questionType,
                         difficulty: q.difficulty,
                         reason: q.recommendReason,
+                        status: q.status,
                         onTap: () => SolveRouteHelper.navigateTo(context, q.id, q.questionType),
                       );
                     },
@@ -139,13 +147,13 @@ class RecommendPageState extends State<RecommendPage> {
         children: [
           _PillButton(
             selected: _preferSmart,
-            label: '🔮 智能推荐',
+            label: '智能推荐',
             onPressed: _switchToSmart,
           ),
           const SizedBox(width: 8),
           _PillButton(
             selected: !_preferSmart,
-            label: '📋 偏好推荐',
+            label: '偏好推荐',
             onPressed: _presets.isNotEmpty ? () => _switchToPreset(_selectedPresetIndex) : null,
           ),
         ],

@@ -78,14 +78,14 @@ class _AboutPageState extends State<AboutPage> {
           leading: const Icon(Icons.description_outlined),
           title: const Text('用户协议'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => AppToast.show(context, icon: '📄', message: '用户协议页面即将上线'),
+          onTap: () => AppToast.show(context, icon: Icons.description, message: '用户协议页面即将上线'),
         ),
         const Divider(height: 1),
         ListTile(
           leading: const Icon(Icons.privacy_tip_outlined),
           title: const Text('隐私政策'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => AppToast.show(context, icon: '📄', message: '隐私政策页面即将上线'),
+          onTap: () => AppToast.show(context, icon: Icons.description, message: '隐私政策页面即将上线'),
         ),
         const Divider(height: 1),
         ListTile(

@@ -271,7 +271,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
         children: [
           ...headerChildren,
           const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: '🔍', message: '设置筛选条件后搜索')),
+          const Center(child: EmptyPlaceholder(icon: Icons.search, message: '设置筛选条件后搜索')),
         ],
       );
     }
@@ -281,7 +281,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
         children: [
           ...headerChildren,
           const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: '📭', message: '未找到匹配的题目')),
+          const Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目')),
         ],
       );
     }

@@ -39,7 +39,7 @@ class ExamHomePage extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () => context.push(AppRoutes.examAuto),
-                    icon: const Text('🤖'),
+                    icon: const Icon(Icons.smart_toy),
                     label: Text('智能组卷 · 消耗 $_autoPaperCost 积分'),
                   ),
                 ),
@@ -48,12 +48,8 @@ class ExamHomePage extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () => context.push(AppRoutes.examPick),
-                    icon: const Text('🖐'),
+                    icon: const Icon(Icons.touch_app),
                     label: Text('自主选题 · 消耗 $_pickPaperCost 积分'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryLight,
-                      foregroundColor: AppColors.primary,
-                    ),
                   ),
                 ),
               ],
@@ -62,21 +58,21 @@ class ExamHomePage extends StatelessWidget {
           const SizedBox(height: 16),
           // 我的组卷
           _EntryItem(
-            icon: '📋',
+            icon: Icons.assignment,
             title: '我的组卷',
             subtitle: '管理我创建的试卷',
             onTap: () => context.push(AppRoutes.examHistory),
           ),
           // 发现组卷
           _EntryItem(
-            icon: '🌐',
+            icon: Icons.language,
             title: '发现组卷',
             subtitle: '浏览他人分享的公开试卷',
             onTap: () => context.push(AppRoutes.examExplore),
           ),
           // 我的收藏
           _EntryItem(
-            icon: '🔖',
+            icon: Icons.bookmark,
             title: '我的收藏',
             subtitle: '收藏的他人试卷',
             onTap: () => context.push(AppRoutes.examFavorites),
@@ -88,7 +84,7 @@ class ExamHomePage extends StatelessWidget {
 }
 
 class _EntryItem extends StatelessWidget {
-  final String icon;
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -104,7 +100,7 @@ class _EntryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: Text(icon, style: const TextStyle(fontSize: 24)),
+        leading: Icon(icon, size: 24, color: AppColors.primary),
         title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),

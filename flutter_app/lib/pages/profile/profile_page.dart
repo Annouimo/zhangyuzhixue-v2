@@ -289,7 +289,7 @@ class ProfilePageState extends State<ProfilePage> {
                   border: Border(top: BorderSide(color: AppColors.border)),
                 ),
                 child: const Text(
-                  '点击编辑个人信息 ✏️',
+                  '点击编辑个人信息',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
@@ -326,7 +326,7 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('成长', [
         (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
-        (Icons.trending_up, '等级进度', null, () => context.push(AppRoutes.profileLevel)),
+        (Icons.trending_up, '等级', _availablePoints != null ? '可用积分 $_availablePoints' : null, () => context.push(AppRoutes.profileLevel)),
         (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [

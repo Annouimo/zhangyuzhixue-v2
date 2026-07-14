@@ -83,7 +83,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载组卷…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: '📝', message: '暂无组卷');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.assignment, message: '暂无组卷');
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -102,11 +102,11 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 tooltip: e.isPublic ? '公开' : '私密',
                 onPressed: () async { await _repo.togglePublic(e.id); _load(); },
               ),
-              ActionChipWidget(emoji: '📥', label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
+              ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
               const SizedBox(width: 4),
-              ActionChipWidget(emoji: '✅', label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
+              ActionChipWidget(icon: Icons.check_circle, iconColor: Colors.green, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
               const SizedBox(width: 4),
-              ActionChipWidget(emoji: '🗑️', label: '删除', onTap: () => _deleteExam(e.id)),
+              ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
             ],
           );
         },

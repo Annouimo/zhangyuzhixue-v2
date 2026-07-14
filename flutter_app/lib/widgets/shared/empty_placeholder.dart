@@ -4,7 +4,7 @@ import '../../app_theme.dart';
 /// 空状态占位
 class EmptyPlaceholder extends StatelessWidget {
   final String message;
-  final String? icon;
+  final IconData? icon;
 
   const EmptyPlaceholder({
     super.key,
@@ -18,9 +18,10 @@ class EmptyPlaceholder extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            icon ?? '📭',
-            style: const TextStyle(fontSize: 48),
+          Icon(
+            icon ?? Icons.mail_outline,
+            size: 48,
+            color: AppColors.textSecondary,
           ),
           const SizedBox(height: 12),
           Text(

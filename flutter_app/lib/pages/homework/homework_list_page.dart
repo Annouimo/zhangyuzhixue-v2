@@ -80,8 +80,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_assignments == null || _assignments!.isEmpty) {
-      return const EmptyPlaceholder(
-        icon: '📋',
+      return const EmptyPlaceholder(icon: Icons.assignment,
         message: '暂无待办作业',
       );
     }

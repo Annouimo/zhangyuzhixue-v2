@@ -95,8 +95,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       );
     }
     if (_preferences.isEmpty) {
-      return const EmptyPlaceholder(
-        icon: '📋',
+      return const EmptyPlaceholder(icon: Icons.assignment,
         message: '暂无学习偏好，快去创建一个吧',
       );
     }
@@ -116,7 +115,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                 children: [
                   Row(
                     children: [
-                      const Text('📋', style: TextStyle(fontSize: 18)),
+                      const Icon(Icons.assignment, size: 18, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(

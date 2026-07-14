@@ -103,7 +103,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('🎉', style: TextStyle(fontSize: 64)),
+            const Icon(Icons.celebration, size: 64, color: AppColors.primary),
             const SizedBox(height: 16),
             const Text('欢迎加入章鱼智学！', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
@@ -120,7 +120,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
-              child: const Text('👌 开始设置学习偏好'),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.thumb_up_alt, size: 20, color: Colors.white),
+                  SizedBox(width: 6),
+                  Text('开始设置学习偏好'),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             TextButton(
@@ -218,7 +225,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                     ),
                     child: _saving
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('💾 保存偏好'),
+                        : const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.save, size: 20, color: Colors.white),
+                            SizedBox(width: 6),
+                            Text('保存偏好'),
+                          ],
+                        ),
                   ),
                 ),
               ],

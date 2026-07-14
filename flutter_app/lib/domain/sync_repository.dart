@@ -1,10 +1,11 @@
 import '../data/daos/sync_queue_dao.dart';
+import 'package:flutter/material.dart';
 
 /// 同步队列状态 — 委托 SyncQueueDao + SyncApi
 class SyncQueueItem {
   final String entityType;
   final String entityTypeName;
-  final String icon;
+  final IconData icon;
   final String status;
   final String createdAt;
   final String timeAgo;
@@ -92,17 +93,17 @@ class SyncRepository {
     }
   }
 
-  String _entityIcon(String type) {
+  IconData _entityIcon(String type) {
     switch (type) {
-      case 'submission': return '📝';
-      case 'step_feedback': return '👣';
-      case 'card_feedback': return '🃏';
-      case 'question_rating': return '⭐';
-      case 'custom_paper': return '📄';
-      case 'exitRating': return '💬';
-      case 'paper_like': return '👍';
-      case 'paper_collect': return '📌';
-      default: return '📌';
+      case 'submission': return Icons.assignment;
+      case 'step_feedback': return Icons.directions_walk;
+      case 'card_feedback': return Icons.style;
+      case 'question_rating': return Icons.star;
+      case 'custom_paper': return Icons.description;
+      case 'exitRating': return Icons.chat;
+      case 'paper_like': return Icons.thumb_up;
+      case 'paper_collect': return Icons.push_pin;
+      default: return Icons.push_pin;
     }
   }
 }

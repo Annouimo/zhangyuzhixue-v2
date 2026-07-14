@@ -19,9 +19,9 @@ class DoneBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(children: [
-        const Text('🎉', style: TextStyle(fontSize: 20)),
+        const Icon(Icons.celebration, size: 20, color: AppColors.primary),
         const SizedBox(width: 8),
-        Text(isRated ? '已完成 ⭐ 已评分' : '已完成',
+        Text(isRated ? '已完成 — 已评分' : '已完成',
           style: const TextStyle(
             fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
           ),
@@ -36,7 +36,14 @@ class DoneBanner extends StatelessWidget {
         if (onRate != null)
           TextButton(
             onPressed: onRate,
-            child: const Text('⭐ 评分'),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.star, size: 14, color: AppColors.warning),
+                SizedBox(width: 4),
+                Text('评分'),
+              ],
+            ),
           ),
       ]),
     );

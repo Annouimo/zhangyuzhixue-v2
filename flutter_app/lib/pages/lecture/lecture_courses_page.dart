@@ -70,8 +70,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_courses == null || _courses!.isEmpty) {
-      return const EmptyPlaceholder(
-        icon: '📖',
+      return const EmptyPlaceholder(icon: Icons.menu_book,
         message: '暂无讲义',
       );
     }

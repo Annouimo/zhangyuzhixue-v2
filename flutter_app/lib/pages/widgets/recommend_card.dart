@@ -11,6 +11,7 @@ class RecommendCard extends StatelessWidget {
   final String questionType;
   final double difficulty;
   final String reason;
+  final String? status;
   final VoidCallback onTap;
 
   const RecommendCard({
@@ -19,6 +20,7 @@ class RecommendCard extends StatelessWidget {
     required this.questionType,
     required this.difficulty,
     required this.reason,
+    this.status,
     required this.onTap,
   });
 
@@ -43,6 +45,21 @@ class RecommendCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   _tag(_diffLabel, Colors.orange[50]!, Colors.orange[700]!),
                   const Spacer(),
+                  if (status != null)
+                    Container(
+                      margin: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: status == '进行中' ? Colors.orange[50] : AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(status!,
+                        style: TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w500,
+                          color: status == '进行中' ? Colors.orange[700] : AppColors.primary,
+                        ),
+                      ),
+                    ),
                   Text(reason, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
                 ],

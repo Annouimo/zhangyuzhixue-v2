@@ -194,7 +194,14 @@ class _ExitRatingPopupState extends State<ExitRatingPopup> {
     return AlertDialog(
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('🎉 感觉怎么样？', textAlign: TextAlign.center),
+      title: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.celebration, size: 24, color: AppColors.primary),
+          SizedBox(width: 8),
+          Text('感觉怎么样？', textAlign: TextAlign.center),
+        ],
+      ),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

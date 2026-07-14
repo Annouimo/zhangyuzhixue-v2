@@ -59,7 +59,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('📊 学习统计')),
+    appBar: AppBar(title: const Text('学习统计')),
     body: _loading
         ? const LoadingIndicator(message: '加载统计数据…')
         : _error != null
@@ -71,9 +71,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 8),
-                  _buildOverviewCards(),
-                  const SizedBox(height: 12),
                   TimeRangePicker(valueDays: _rangeDays, onChanged: (d) { setState(() => _rangeDays = d); _loadAll(); }),
+                  const SizedBox(height: 12),
+                  _buildOverviewCards(),
                   const SizedBox(height: 12),
                   HeatmapChart(rangeDays: _rangeDays, records: _dailyRecords ?? []),
                   const SizedBox(height: 4),
@@ -112,11 +112,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
       child: Row(
         children: [
-          _overviewCard('答题数', '${ov.totalQuestions}', Icons.checklist, AppColors.primary),
+          _overviewCard('总做题', '${ov.totalQuestions}', Icons.checklist, AppColors.primary),
           const SizedBox(width: 8),
           _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, AppColors.success),
           const SizedBox(width: 8),
-          _overviewCard('连续学习', '${ov.streakDays} 天', Icons.local_fire_department, Colors.orange),
+          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, Colors.orange),
           const SizedBox(width: 8),
           _overviewCard('活跃天', '${ov.activeDays}', Icons.today, AppColors.primaryLight),
         ],

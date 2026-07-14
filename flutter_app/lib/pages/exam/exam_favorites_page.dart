@@ -67,7 +67,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载收藏…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: '⭐', message: '暂无收藏');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.star, message: '暂无收藏');
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -81,11 +81,11 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
             subtitle: e.authorInfo.isNotEmpty ? e.authorInfo : e.summary,
             onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
             actions: [
-              ActionChipWidget(emoji: '❤️', label: '点赞', onTap: () => _toggleLike(e.id)),
+              ActionChipWidget(icon: Icons.favorite, iconColor: Colors.red, label: '点赞', onTap: () => _toggleLike(e.id)),
               const SizedBox(width: 8),
-              ActionChipWidget(emoji: '🔖', label: '取消收藏', onTap: () => _removeCollect(e.id)),
+              ActionChipWidget(icon: Icons.bookmark, label: '取消收藏', onTap: () => _removeCollect(e.id)),
               const SizedBox(width: 8),
-              ActionChipWidget(emoji: '📥', label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
+              ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
               const Spacer(),
               TextButton(
                 onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),

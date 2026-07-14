@@ -180,7 +180,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
               const Divider(height: 1),
               const SizedBox(height: 12),
               const Text(
-                '📖 相关知识',
+                '相关知识',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

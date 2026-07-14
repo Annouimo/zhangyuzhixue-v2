@@ -154,13 +154,13 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('选择题')),
+        appBar: AppBar(title: const Text('解题模式')),
         body: const LoadingIndicator(),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('选择题')),
+        appBar: AppBar(title: const Text('解题模式')),
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
           const SizedBox(height: 8),
@@ -177,7 +177,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         if (shown && context.mounted) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('选择题')),
+        appBar: AppBar(title: const Text('解题模式')),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: SolveFlowWidget(

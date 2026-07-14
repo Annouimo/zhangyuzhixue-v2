@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../app_theme.dart';
 
 /// SharedPreferences key（与 pdf_helper.dart 中的 _guideDismissedKey 同步）
 const _guideDismissedKey = 'app_pdf_guide_dismissed';
@@ -17,9 +18,9 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setState) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Text('📄'),
+            Icon(Icons.description, size: 24, color: AppColors.primary),
             SizedBox(width: 8),
             Text('准备打印试卷',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -32,14 +33,14 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
             const Text('试卷已生成，请在浏览器中完成打印：',
                 style: TextStyle(fontSize: 14)),
             const SizedBox(height: 16),
-            const Text('🖥️ 电脑用户：',
+            const Text('电脑用户：',
                 style: TextStyle(fontWeight: FontWeight.w600)),
             const Padding(
               padding: EdgeInsets.only(left: 16),
               child: Text('按 Ctrl+P 打开打印对话框\n选择「另存为 PDF」或直接打印'),
             ),
             const SizedBox(height: 12),
-            const Text('📱 手机用户：',
+            const Text('手机用户：',
                 style: TextStyle(fontWeight: FontWeight.w600)),
             const Padding(
               padding: EdgeInsets.only(left: 16),

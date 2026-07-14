@@ -77,8 +77,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_chapterList == null || _chapterList!.items.isEmpty) {
-      return const EmptyPlaceholder(
-        icon: '📑',
+      return const EmptyPlaceholder(icon: Icons.article,
         message: '暂无章节',
       );
     }
