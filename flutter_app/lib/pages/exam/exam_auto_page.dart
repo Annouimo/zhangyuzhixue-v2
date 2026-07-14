@@ -10,6 +10,7 @@ import '../../../domain/preference_repository.dart';
 import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
+import 'widgets/preference_dialog_helper.dart';
 import 'widgets/difficulty_slider.dart';
 import '../../../data/debug/audit_logger.dart';
 import '../../../data/api/api_client.dart';
@@ -82,52 +83,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     final state = _filterKey.currentState;
     if (state == null) return;
     if (!context.mounted) return;
-    final nameCtrl = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('保存为学习偏好'),
-        content: TextField(
-          controller: nameCtrl,
-          decoration: const InputDecoration(
-            hintText: '偏好名称（如"北京高考模拟"）',
-            border: OutlineInputBorder(),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (ctx.mounted) Navigator.of(ctx).pop();
-            }),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (ctx.mounted) Navigator.of(ctx).pop(nameCtrl.text);
-            }),
-            child: const Text('保存'),
-          ),
-        ],
-      ),
-    );
-    nameCtrl.dispose();
+    final name = await showSavePreferenceDialog(context);
     if (name == null || name.trim().isEmpty) return;
-    await _prefRepo.save(
-      name: name.trim(),
-      filter: PreferenceFilter(
-        years: state.selectedYears.toList(),
-        regions: state.selectedRegions.toList(),
-        conceptTags: state.selectedConceptTags.toList(),
-        types: state.selectedExamTypes.toList(),
-        knowledgeCards: state.selectedKnowledgeCards.toList(),
-        questionTypes: state.selectedTypes.toList(),
-        diffMin: state.diffMin,
-        diffMax: state.diffMax,
-        calcMin: state.calcMin,
-        calcMax: state.calcMax,
-      ),
-    );
+    await _prefRepo.save(name: name.trim(), filter: buildPreferenceFilter(state));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
@@ -141,31 +99,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     if (state == null) return;
     final presets = await _prefRepo.getList();
     if (!context.mounted) return;
-    if (presets.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('暂无保存的学习偏好'), behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    final selected = await showDialog<int>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('选择学习偏好'),
-        children: presets.map((p) => SimpleDialogOption(
-          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (ctx.mounted) Navigator.of(ctx).pop(p.id);
-          }),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-              if (p.summary.isNotEmpty)
-                Text(p.summary, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-        )).toList(),
-      ),
-    );
+    final selected = await showLoadPreferenceDialog(context, presets);
     if (selected == null) return;
     final editData = await _prefRepo.getEdit(selected);
     if (!context.mounted) return;

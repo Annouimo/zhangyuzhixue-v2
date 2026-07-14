@@ -3,16 +3,14 @@ import 'package:go_router/go_router.dart';
 import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
-import '../../../data/daos/progress_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../data/helpers/pdf_helper.dart';
 import '../../../domain/exam_repository.dart';
-import '../../../domain/question_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
-import '../../../widgets/md_latex_body.dart';
 import '../../data/debug/audit_logger.dart';
+import 'widgets/exam_question_card.dart';
 
 /// 预览（他人的组卷）
 class ExamQuicklookOtherPage extends StatefulWidget {
@@ -83,27 +81,9 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
           _actionChip(Icons.bookmark_border, '${p.collectCount}', _collected, () => _toggleCollect()),
         ]),
         const SizedBox(height: 16),
-        ...p.questions.map((q) => Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Card(
-            child: InkWell(
-              onTap: () async {
-                final repo = QuestionRepository(
-                  QuestionDao(DatabaseProvider().assetsDb),
-                  ProgressDao(DatabaseProvider().appDb),
-                );
-                final attempts = await repo.getAttempts(q.questionId);
-                final mode = attempts.isEmpty ? 'first' : 'review';
-                final attemptId = attempts.isNotEmpty ? attempts.last.id.toString() : null;
-                final page = SolveRouteHelper.pageName('choice');
-                if (!context.mounted) return;
-                context.push('/$page?id=${q.questionId}'
-                    '${mode != 'first' ? '&mode=$mode' : ''}'
-                    '${attemptId != null ? '&attemptId=$attemptId' : ''}');
-              },
-              child: Padding(padding: const EdgeInsets.all(12), child: MdLatexBody(q.title, fontSize: 14)),
-            ),
-          ),
+        ...p.questions.map((q) => ExamQuestionCard(
+          questionId: q.questionId,
+          title: q.title,
         )),
       ],
     );

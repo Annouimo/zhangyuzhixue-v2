@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
+import '../data/database/database_provider.dart';
 
 
 /// 题目详情
@@ -73,6 +76,26 @@ class SolveRouteHelper {
     if (latestIsInProgress) return '$page?mode=resume&attempt_id=$latestAttemptId';
     if (attemptCount == 1) return '$page?mode=review&attempt_id=$latestAttemptId';
     return '$page?mode=review&attempt_id=$latestAttemptId';
+  }
+
+  /// 从题目入口页跳转到解题页，自动查询存档决定 mode/attemptId
+  static Future<void> navigateTo(
+    BuildContext context,
+    int questionId,
+    String questionType,
+  ) async {
+    final repo = QuestionRepository(
+      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider().appDb),
+    );
+    final attempts = await repo.getAttempts(questionId);
+    final mode = attempts.isEmpty ? 'first' : 'review';
+    final attemptId = attempts.isNotEmpty ? attempts.last.id.toString() : null;
+    final page = pageName(questionType);
+    if (!context.mounted) return;
+    context.push('/$page?id=$questionId'
+        '${mode != 'first' ? '&mode=$mode' : ''}'
+        '${attemptId != null ? '&attemptId=$attemptId' : ''}');
   }
 }
 
