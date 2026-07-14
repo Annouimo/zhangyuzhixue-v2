@@ -4,6 +4,8 @@ import '../../widgets/sync_progress_dialog.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
+import '../../data/daos/progress_dao.dart';
+import '../../data/database/database_provider.dart';
 import '../../constants/app_version.dart';
 import '../../data/debug/audit_logger.dart';
 
@@ -37,9 +39,16 @@ class _AboutPageState extends State<AboutPage> {
     if (_syncing) return;
     setState(() => _syncing = true);
 
-    final ok = await showSyncProgress(context, (onProgress) async {
-      await SyncManager().forcePull(onProgress: onProgress);
-    });
+    final ok = await showSyncProgress(
+      context,
+      (onProgress) async {
+        await SyncManager().forcePull(onProgress: onProgress);
+      },
+      dataVerifier: () async {
+        final dao = ProgressDao(DatabaseProvider().appDb);
+        return dao.hasAnySubmission();
+      },
+    );
 
     if (ok && mounted) {
       final now = DateTime.now();

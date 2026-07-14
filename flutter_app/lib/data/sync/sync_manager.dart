@@ -163,6 +163,12 @@ class SyncManager {
     void Function(double progress)? onProgress,
   }) async {
     _ensureInitialized();
+    // 先推送本地积压，再拉取服务器数据（与 onLogin 行为一致）
+    try {
+      await pushNow();
+    } catch (_) {
+      // 推送失败不阻塞强制拉取
+    }
     final info = await _api!.fetchUserPullInfo();
     await _updateManager!.downloadAndReplace(
       type: 'user',
