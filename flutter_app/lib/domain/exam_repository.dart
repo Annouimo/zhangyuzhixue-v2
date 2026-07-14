@@ -518,39 +518,64 @@ class _ExamGenerator {
     var fillPool = pool.where((q) => q.questionType == 'fill').toList();
     var solutionPool = pool.where((q) => q.questionType == 'solution').toList();
 
-    // 3. 检查池子
+    // 2b. 锁定手动选题（selectedIds 固定不动）
+    final lockedChoice = <dynamic>[], lockedFill = <dynamic>[], lockedSolution = <dynamic>[];
+    if (filters.selectedIds.isNotEmpty) {
+      final lockedRows = await _questionDao.getByIds(filters.selectedIds);
+      final lockedIds = lockedRows.map((r) => r.id).toSet();
+      for (final r in lockedRows) {
+        if (r.questionType == 'choice') { lockedChoice.add(r); }
+        else if (r.questionType == 'fill') { lockedFill.add(r); }
+        else if (r.questionType == 'solution') { lockedSolution.add(r); }
+      }
+      choicePool.removeWhere((q) => lockedIds.contains(q.id));
+      fillPool.removeWhere((q) => lockedIds.contains(q.id));
+      solutionPool.removeWhere((q) => lockedIds.contains(q.id));
+    }
+    final actualChoiceNeeded = (filters.choiceCount - lockedChoice.length).clamp(0, filters.choiceCount);
+    final actualFillNeeded = (filters.fillCount - lockedFill.length).clamp(0, filters.fillCount);
+    final actualSolutionNeeded = (filters.solutionCount - lockedSolution.length).clamp(0, filters.solutionCount);
+
+    // 3. 检查池子（扣除已锁定题后的余量）
     void checkPool(List list, int needed, String type) {
       if (!allowShortfall && needed > list.length) {
         throw InsufficientPoolException(type: type, needed: needed, available: list.length);
       }
     }
-    checkPool(choicePool, filters.choiceCount, 'choice');
-    checkPool(fillPool, filters.fillCount, 'fill');
-    checkPool(solutionPool, filters.solutionCount, 'solution');
+    checkPool(choicePool, actualChoiceNeeded, 'choice');
+    checkPool(fillPool, actualFillNeeded, 'fill');
+    checkPool(solutionPool, actualSolutionNeeded, 'solution');
 
-    // 4. 贪心选择（按难度差排序）
+    // 4. 贪心选择（按难度差排序，排除 selectedIds）
     List pick(List pool, int needed) {
       pool.sort((a, b) => (((a as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()
           .compareTo((((b as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()));
       return pool.take(needed).toList();
     }
 
-    final selectedChoice = pick(choicePool, filters.choiceCount);
-    final selectedFill = pick(fillPool, filters.fillCount);
-    final selectedSolution = pick(solutionPool, filters.solutionCount);
+    final pickedChoice = pick(choicePool, actualChoiceNeeded);
+    final pickedFill = pick(fillPool, actualFillNeeded);
+    final pickedSolution = pick(solutionPool, actualSolutionNeeded);
+    final selectedChoice = [...lockedChoice, ...pickedChoice];
+    final selectedFill = [...lockedFill, ...pickedFill];
+    final selectedSolution = [...lockedSolution, ...pickedSolution];
     var selected = [...selectedChoice, ...selectedFill, ...selectedSolution];
 
-    // 5. 3 轮交换优化：遍历各题型，找能改善整体均值的最优交换
+    // 5. 3 轮交换优化：遍历各题型，找能改善整体均值的最优交换（跳过 locked 题）
     final target = filters.targetDifficulty;
     const maxSwapRounds = 3;
+    final lockedChoiceIds = lockedChoice.map((q) => (q as dynamic).id as int).toSet();
+    final lockedFillIds = lockedFill.map((q) => (q as dynamic).id as int).toSet();
+    final lockedSolutionIds = lockedSolution.map((q) => (q as dynamic).id as int).toSet();
 
     for (var round = 0; round < maxSwapRounds; round++) {
       for (final entry in [
-        {'type': 'choice', 'pool': choicePool, 'selected': selectedChoice},
-        {'type': 'fill', 'pool': fillPool, 'selected': selectedFill},
-        {'type': 'solution', 'pool': solutionPool, 'selected': selectedSolution},
+        {'type': 'choice', 'pool': choicePool, 'selected': selectedChoice, 'lockedIds': lockedChoiceIds},
+        {'type': 'fill', 'pool': fillPool, 'selected': selectedFill, 'lockedIds': lockedFillIds},
+        {'type': 'solution', 'pool': solutionPool, 'selected': selectedSolution, 'lockedIds': lockedSolutionIds},
       ]) {
         final sel = entry['selected'] as List;
+        final lockedIds = entry['lockedIds'] as Set<int>;
         final cand = (entry['pool'] as List).where((c) => !sel.contains(c)).toList();
         if (sel.isEmpty || cand.isEmpty) continue;
 
@@ -561,6 +586,7 @@ class _ExamGenerator {
         dynamic bestCand;
 
         for (var si = 0; si < sel.length; si++) {
+          if (lockedIds.contains((sel[si] as dynamic).id)) continue; // 跳过 locked 题
           final s = sel[si];
           for (final c in cand) {
             final delta = (((c as dynamic).difficulty ?? 0.0) - ((s as dynamic).difficulty ?? 0.0)) / selected.length;
@@ -581,7 +607,7 @@ class _ExamGenerator {
       }
     }
 
-    // 5. 持久化
+    // 6. 持久化
     final paperId = await _examDao.savePaper(title: filters.name.isNotEmpty ? filters.name : '智能组卷');
     await _examDao.savePaperQuestions(paperId, selected.map((q) => (q as dynamic).id as int).toList());
     return paperId;

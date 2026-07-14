@@ -151,8 +151,18 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
     setState(() => _saving = true);
     try {
-      await _repo.confirm(SearchFilters(name: _nameController.text, choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 0, years: [], regions: [], conceptTags: [], knowledgeCards: [], selectedIds: _selectedIds.toList()));
+      final filters = SearchFilters(
+        name: _nameController.text,
+        choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
+        targetDifficulty: 0,
+        years: _years.toList(), regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+        selectedIds: _selectedIds.toList(),
+      );
+      await _repo.confirm(filters);
       // 扣分
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();

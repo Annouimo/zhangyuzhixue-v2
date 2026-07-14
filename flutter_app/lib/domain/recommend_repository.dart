@@ -72,20 +72,13 @@ class RecommendRepository {
       diffMax: f.diffMax,
       calcMin: f.calcMin,
       calcMax: f.calcMax,
+      conceptTagNames: f.conceptTags.isNotEmpty ? f.conceptTags : null,
+      knowledgeCardNames: f.knowledgeCards.isNotEmpty ? f.knowledgeCards : null,
+      examTypes: f.types.isNotEmpty ? f.types : null,
+      questionTypes: f.questionTypes.isNotEmpty ? f.questionTypes : null,
       limit: 50,
     );
-    var results = candidates.cast<dynamic>().toList();
-    if (f.conceptTags.isNotEmpty) {
-      final tagged = <dynamic>[];
-      for (final q in results) {
-        final tags = await _questionDao.getTagsByQuestion(q.id);
-        if (tags.any((t) => f.conceptTags.contains(t.name))) {
-          tagged.add(q);
-        }
-      }
-      results = tagged;
-    }
-    return results.take(20).map((q) => PresetQuestion(
+    return candidates.take(20).map((q) => PresetQuestion(
       id: q.id,
       title: '${q.year} ${q.region} ${q.examType}',
       questionType: q.questionType,

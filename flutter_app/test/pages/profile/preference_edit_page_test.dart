@@ -15,8 +15,8 @@ class _MockPreferenceRepository implements PreferenceRepository {
   Future<int> getCount() async => 0;
 
   @override
-  Future<PreferenceFilter> getEdit(int id) async =>
-      const PreferenceFilter(years: [], regions: [], conceptTags: []);
+  Future<PreferenceEditData> getEdit(int id) async =>
+      const PreferenceEditData(name: '', filter: PreferenceFilter(years: [], regions: [], conceptTags: []));
 
   @override
   Future<void> save({

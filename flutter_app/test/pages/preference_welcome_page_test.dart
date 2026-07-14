@@ -63,9 +63,9 @@ void main() {
       final list = await repo.getList();
       expect(list.length, 1);
       final loaded = await repo.getEdit(list.first.id);
-      expect(loaded.types, ['choice']);
-      expect(loaded.diffMin, 3);
-      expect(loaded.diffMax, 7);
+      expect(loaded.filter.types, ['choice']);
+      expect(loaded.filter.diffMin, 3);
+      expect(loaded.filter.diffMax, 7);
     });
   });
 

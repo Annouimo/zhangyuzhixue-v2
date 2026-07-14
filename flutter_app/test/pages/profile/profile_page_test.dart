@@ -36,7 +36,7 @@ class _MockUserRepo implements UserRepository {
 class _MockPrefRepo implements PreferenceRepository {
   @override Future<List<PreferenceSummary>> getList() async => [];
   @override Future<int> getCount() async => 0;
-  @override Future<PreferenceFilter> getEdit(int id) async => throw UnimplementedError();
+  @override Future<PreferenceEditData> getEdit(int id) async => throw UnimplementedError();
   @override Future<void> save({required String name, required PreferenceFilter filter}) async {}
   @override Future<void> delete(int id) async {}
 }

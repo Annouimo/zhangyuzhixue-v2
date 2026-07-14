@@ -75,6 +75,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
+      _updatePoolStats();
     } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
