@@ -163,7 +163,7 @@ class _RecommendationEngine {
         if (wrongIds.contains(q.id)) continue;
         choiceFill.add(RecommendedQuestion(
           id: q.id,
-          title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
+          title: q.stem,
           questionType: q.questionType,
           difficulty: q.difficulty ?? 0.0,
           recommendReason: '薄弱概念：${weakTag.name}',
@@ -201,7 +201,7 @@ class _RecommendationEngine {
             : '解答题推荐练习';
         solution.add(RecommendedQuestion(
           id: q.id,
-          title: q.stem.length > 80 ? '${q.stem.substring(0, 80)}...' : q.stem,
+          title: q.stem,
           questionType: q.questionType,
           difficulty: q.difficulty ?? 0.0,
           recommendReason: reason,
