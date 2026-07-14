@@ -273,7 +273,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildSegmentDesc(List<_DifficultySegment> segments, double lower, double upper) {
-    int segIndex(double v) => segments.lastIndexWhere((s) => v <= s.max);
+    int segIndex(double v) => segments.indexWhere((s) => v <= s.max);
     final minIdx = segIndex(lower).clamp(0, segments.length - 1);
     final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
     final same = minIdx == maxIdx;
