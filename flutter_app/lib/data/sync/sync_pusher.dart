@@ -64,12 +64,14 @@ class SyncPusher {
           final sid = result.serverIds[entry.entityId];
           await _dao.markSuccess(entry.id, serverId: sid);
           // 写回 server_id 到实体表
-          if (sid != null && entry.entityType == 'submission') {
+          if (sid != null) {
             try {
               final db_ = DatabaseProvider();
-              await (db_.appDb.update(db_.appDb.submissionDetails)
-                ..where((t) => t.id.equals(entry.entityId)))
-                .write(db.SubmissionDetailsCompanion(serverId: Value(sid)));
+              if (entry.entityType == 'submission') {
+                await (db_.appDb.update(db_.appDb.submissionDetails)
+                  ..where((t) => t.id.equals(entry.entityId)))
+                  .write(db.SubmissionDetailsCompanion(serverId: Value(sid)));
+              }
             } catch (_) {}
           }
           if (sid != null) {

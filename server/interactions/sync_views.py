@@ -90,10 +90,11 @@ CREATE TABLE IF NOT EXISTS user_login_log (
 
 CREATE TABLE IF NOT EXISTS points_transaction (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    amount INTEGER NOT NULL,
+    amount REAL NOT NULL,
     transaction_type TEXT NOT NULL,
     source TEXT NOT NULL,
     source_object_id INTEGER,
+    client_id INTEGER,
     description TEXT,
     created_at TEXT NOT NULL
 );
@@ -274,11 +275,11 @@ def _dump_points(conn, student):
     for pt in PointsTransaction.objects.filter(student=student):
         conn.execute(
             'INSERT INTO points_transaction '
-            '(id, amount, transaction_type, source, source_object_id, description, created_at) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?)',
+            '(id, amount, transaction_type, source, source_object_id, client_id, description, created_at) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 pt.pk, pt.amount, pt.transaction_type, pt.source,
-                pt.source_object_id, pt.description or '',
+                pt.source_object_id, pt.client_id, pt.description or '',
                 _fmt_dt(pt.created_at),
             ],
         )

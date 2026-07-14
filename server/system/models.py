@@ -118,6 +118,7 @@ class PointsTransaction(models.Model):
                                         choices=TRANSACTION_TYPE_CHOICES)
     source = models.CharField('来源', max_length=32, choices=SOURCE_CHOICES)
     source_object_id = models.IntegerField('关联业务ID', null=True, blank=True)
+    client_id = models.IntegerField('客户端ID', null=True, blank=True, db_index=True)
     description = models.CharField('描述', max_length=255, blank=True, default='')
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
 

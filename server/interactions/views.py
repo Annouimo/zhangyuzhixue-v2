@@ -243,16 +243,33 @@ class SyncPushView(APIView):
         return pref
 
     def _handle_points_transaction(self, data, student, server_ids, detail_cache):
-        """处理积分流水同步"""
+        """处理积分流水同步（含 client_id 幂等保护）"""
         from system.models import PointsTransaction
         from django.utils import timezone
+        import datetime
 
-        return PointsTransaction.objects.create(
+        created_at_str = data.get('created_at')
+        if created_at_str:
+            try:
+                created_at = datetime.datetime.fromisoformat(created_at_str)
+                if timezone.is_naive(created_at):
+                    created_at = timezone.make_aware(created_at)
+            except (ValueError, TypeError):
+                created_at = timezone.now()
+        else:
+            created_at = timezone.now()
+
+        local_id = data.get('_local_id')
+        pt, _ = PointsTransaction.objects.update_or_create(
             student=student,
-            amount=data.get('amount', 0),
-            transaction_type=data.get('transaction_type', 'EARN'),
-            source=data.get('source', ''),
-            source_object_id=data.get('source_object_id'),
-            description=data.get('description', ''),
-            created_at=timezone.now(),
+            client_id=local_id,
+            defaults={
+                'amount': data.get('amount', 0),
+                'transaction_type': data.get('transaction_type', 'EARN'),
+                'source': data.get('source', ''),
+                'source_object_id': data.get('source_object_id'),
+                'description': data.get('description', ''),
+                'created_at': created_at,
+            },
         )
+        return pt
