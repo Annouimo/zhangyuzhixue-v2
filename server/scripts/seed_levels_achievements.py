@@ -53,8 +53,8 @@ achievements = [
     ('ACC_50', '初露锋芒', '累计正确率≥50%（需至少10题）', 'ACCURACY', '🏆 精确度', 12, 'ACCURACY_RATE', 50, '🎯'),
     ('ACC_70', '稳扎稳打', '累计正确率≥70%（需至少10题）', 'ACCURACY', '🏆 精确度', 13, 'ACCURACY_RATE', 70, '🎯'),
     ('ACC_90', '接近完美', '累计正确率≥90%（需至少10题）', 'ACCURACY', '🏆 精确度', 14, 'ACCURACY_RATE', 90, '🎯'),
-    ('STREAK_CORRECT_5', '势如破竹', '连续答对5题', 'ACCURACY', '🏆 精确度', 15, 'CONSECUTIVE_CORRECT', 5, '⚡'),
-    ('STREAK_CORRECT_10', '十连斩', '连续答对10题', 'ACCURACY', '🏆 精确度', 16, 'CONSECUTIVE_CORRECT', 10, '💥'),
+    ('STREAK_CORRECT_5', '势如破竹', '连续对5题', 'ACCURACY', '🏆 精确度', 15, 'CONSECUTIVE_CORRECT', 5, '⚡'),
+    ('STREAK_CORRECT_10', '十连斩', '连续对10题', 'ACCURACY', '🏆 精确度', 16, 'CONSECUTIVE_CORRECT', 10, '💥'),
 
     # 📝 组卷 — PAPER
     ('PAPER_1', '出题人', '创建第 1 张组卷', 'PAPER', '📝 组卷', 17, 'PAPER_COUNT', 1, '📝'),
