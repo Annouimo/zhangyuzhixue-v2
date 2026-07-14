@@ -25,9 +25,9 @@ class _MainShellState extends State<MainShell> {
 
   List<Widget> get _pages => [
     IndexPage(key: ValueKey('index_$_pageKey')),
-    RecommendPage(key: ValueKey('recommend_$_pageKey')),
+    RecommendPage(key: _recommendKey),
     const ExamHomePage(),
-    ProfilePage(key: ValueKey('profile_$_pageKey')),
+    ProfilePage(key: _profileKey),
   ];
 
   @override

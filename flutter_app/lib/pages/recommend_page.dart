@@ -27,7 +27,7 @@ class RecommendPageState extends State<RecommendPage> {
   List<RecommendedQuestion>? _questions;
   bool _preferSmart = true;
   List<RecommendPreset> _presets = [];
-  int _selectedPresetIndex = 0;
+  int _selectedPresetIndex = -1;
 
   /// 供 MainShell 切 Tab 时调用：刷新偏好预设列表
   void refresh() {
@@ -110,29 +110,13 @@ class RecommendPageState extends State<RecommendPage> {
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
           ),
-        if (!_preferSmart && _presets.length > 1)
+        if (!_preferSmart)
           _buildPresetSelector(),
-        if (!_preferSmart && _presets.length == 1)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
-            child: Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('选择学习偏好', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 6),
-                    Text(_presets[0].name, style: const TextStyle(fontSize: 14)),
-                  ],
-                ),
-              ),
-            ),
-          ),
         Expanded(
           child: _questions == null || _questions!.isEmpty
-              ? const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂无推荐，先去组卷或做几道题吧')
+              ? (!_preferSmart && _selectedPresetIndex == -1
+                  ? const EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择学习偏好')
+                  : const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂无推荐，先去组卷或做几道题吧'))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
@@ -165,12 +149,14 @@ class RecommendPageState extends State<RecommendPage> {
           _PillButton(
             selected: _preferSmart,
             label: '智能推荐',
+            icon: Icons.auto_awesome,
             onPressed: _switchToSmart,
           ),
           const SizedBox(width: 8),
           _PillButton(
             selected: !_preferSmart,
             label: '偏好推荐',
+            icon: Icons.list,
             onPressed: _presets.isNotEmpty ? () => _switchToPreset(_selectedPresetIndex) : null,
           ),
         ],
@@ -194,15 +180,19 @@ class RecommendPageState extends State<RecommendPage> {
               ),
               const SizedBox(height: 6),
               DropdownButton<int>(
-                value: _selectedPresetIndex,
+                value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
                 isExpanded: true,
                 underline: const SizedBox(),
-                items: List.generate(_presets.length, (i) => DropdownMenuItem(
-                  value: i,
-                  child: Text(_presets[i].name, style: const TextStyle(fontSize: 14)),
-                )),
+                hint: const Text('请选择...', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                items: [
+                  const DropdownMenuItem(value: -1, child: Text('请选择...', style: TextStyle(fontSize: 14, color: AppColors.textSecondary))),
+                  ...List.generate(_presets.length, (i) => DropdownMenuItem(
+                    value: i,
+                    child: Text(_presets[i].name, style: const TextStyle(fontSize: 14)),
+                  )),
+                ],
                 onChanged: (value) {
-                  if (value != null) _switchToPreset(value);
+                  if (value != null && value >= 0) _switchToPreset(value);
                 },
               ),
             ],
@@ -216,11 +206,13 @@ class RecommendPageState extends State<RecommendPage> {
 class _PillButton extends StatelessWidget {
   final bool selected;
   final String label;
+  final IconData? icon;
   final VoidCallback? onPressed;
 
   const _PillButton({
     required this.selected,
     required this.label,
+    this.icon,
     this.onPressed,
   });
 
@@ -237,13 +229,22 @@ class _PillButton extends StatelessWidget {
             color: selected ? AppColors.primary : AppColors.border,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: selected ? Colors.white : AppColors.textSecondary,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 16, color: selected ? Colors.white : AppColors.textSecondary),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: selected ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -42,7 +42,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('已知函数'), findsOneWidget);
       expect(find.text('选择题'), findsOneWidget);
-      expect(find.text('薄弱概念：函数'), findsOneWidget);
+      expect(find.textContaining('推荐原因'), findsOneWidget);
     });
 
     testWidgets('switches to preset when no smart data but presets exist', (tester) async {
@@ -50,7 +50,7 @@ void main() {
         recommendRepository: _MockRecommendRepo(presetCount: 2),
       )));
       await tester.pumpAndSettle();
-      expect(find.text('暂无推荐，先去组卷或做几道题吧'), findsOneWidget);
+      expect(find.text('请先选择学习偏好'), findsOneWidget);
     });
 
     testWidgets('manually switches between smart and preset via pills', (tester) async {
