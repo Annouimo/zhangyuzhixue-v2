@@ -2,7 +2,6 @@
 import hashlib
 import hmac
 import json
-import re
 import time
 
 from django.conf import settings
@@ -138,12 +137,11 @@ def _build_sections(qs):
             elif isinstance(raw, list):
                 opts = raw
 
-        # 图片 — 归一化反斜杠（兼容旧数据）
-        imgs_raw = q.images if isinstance(q.images, list) else []
-        imgs = [img.replace('\\', '/') for img in imgs_raw]
+        # 图片
+        imgs = q.images if isinstance(q.images, list) else []
 
         sections[-1]['questions'].append({
-            'stem': re.sub(r'<img[^>]*>', '', q.stem or ''),
+            'stem': q.stem,
             'options': opts,
             'images': imgs,
         })
