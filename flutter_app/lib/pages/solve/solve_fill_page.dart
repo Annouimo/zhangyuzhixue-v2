@@ -43,6 +43,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   bool _revealed = false;
   bool _feedbackGiven = false;
   bool _feedbackCorrect = false;
+  bool _isReviewMode = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -105,6 +106,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _attempts = attempts;
         _currentAttempt = latest;
         _revealed = latest?.isCompleted ?? false;
+        _isReviewMode = latest?.isCompleted ?? false;
         _loading = false;
       });
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId});
@@ -206,6 +208,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     setState(() {
       _currentAttempt = attempt;
       _revealed = attempt.isCompleted;
+      _isReviewMode = attempt.isCompleted;
     });
   }
 
@@ -218,6 +221,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _attempts = attempts;
         _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
         _revealed = false;
+        _isReviewMode = false;
       });
     } catch (e) {
       AuditLogger.instance.error('SolveFillPage._createNewAttempt', e);
@@ -325,7 +329,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           padding: const EdgeInsets.all(16),
           child: SolveRevealWidget(
             cooldownSeconds: _coolDownSec,
-            isRevisit: _revealed,
+            isRevisit: _isReviewMode,
             answerValue: _detail?.answer,
             explanation: _detail?.explanation,
             onReveal: _onReveal,
@@ -442,7 +446,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           ),
         ),
         // 回顾横幅
-        if (_revealed) ...[
+        if (_isReviewMode) ...[
           Container(
             width: double.infinity,
             margin: const EdgeInsets.only(bottom: 12),
