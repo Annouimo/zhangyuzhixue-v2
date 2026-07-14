@@ -195,7 +195,9 @@ class QuestionDao {
   }
 
   Future<List<db.AchievementDefRow>> getAllAchievementDefs() async {
-    final rows = await _db.select(_db.achievementDefs).get();
+    final rows = await (_db.select(_db.achievementDefs)
+      ..orderBy([(t) => OrderingTerm(expression: t.displayOrder)]))
+      .get();
     AuditLogger.instance.dao('QuestionDao.getAllAchievementDefs', rows.length, {});
     return rows;
   }

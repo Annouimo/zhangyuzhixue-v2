@@ -15,7 +15,9 @@ class AchievementDao {
   }
 
   Future<List<db.StudentAchievementRow>> getAllProgress() {
-    final q = _db.select(_db.studentAchievements).get();
+    final q = (_db.select(_db.studentAchievements)
+      ..orderBy([(t) => OrderingTerm(expression: t.achievementCode)]))
+      .get();
     return q.then((rows) {
       AuditLogger.instance.dao('AchievementDao.getAllProgress', rows.length, {});
       return rows;

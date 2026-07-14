@@ -36,7 +36,7 @@ class _AchievementPageState extends State<AchievementPage> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final summary = await _repo.getSummary();
+      final summary = await _repo.getSummary();   // 实时推算，不再依赖缓存表
       final cats = await _repo.getCategories();
       if (!mounted) return;
       setState(() { _summary = summary; _categories = cats; _loading = false; });
@@ -57,7 +57,6 @@ class _AchievementPageState extends State<AchievementPage> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
       children: [
-        // 成就概览
         _buildSummary(),
         const SizedBox(height: 16),
         ...cats.map((cat) => _buildCategory(cat)),
@@ -167,7 +166,10 @@ class _AchievementPageState extends State<AchievementPage> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Text('${a.progress}/${a.threshold}',
+                        Text(
+                          a.isAccuracyRate
+                            ? '${a.progress}% / ${a.threshold}%'
+                            : '${a.progress}/${a.threshold}',
                           style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                       ],
                     ),
