@@ -199,43 +199,61 @@ class FilterPanelState extends State<FilterPanel> {
     ));
   }
 
-  // ── 摘要行 ──
-  String get _summaryText {
-    final parts = <String>[];
+  // ── 摘要 chips ──
+  List<Widget> get _summaryChips {
+    final chips = <Widget>[];
+    void addChip(String text) {
+      chips.add(Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(text, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+      ));
+    }
     if (_selectedYears.isNotEmpty && _selectedYears.length < widget.yearOptions.length) {
-      parts.add(_selectedYears.join(' '));
+      addChip(_selectedYears.join(' '));
     }
     if (_selectedRegions.isNotEmpty && _selectedRegions.length < widget.regionOptions.length) {
-      parts.add(_selectedRegions.join('/'));
+      addChip(_selectedRegions.join('/'));
     }
     if (_selectedTypes.isNotEmpty && _selectedTypes.length < widget.typeOptions.length) {
-      parts.add(_selectedTypes.map((t) => QuestionTypeLabels.of(t)).join('/'));
+      addChip(_selectedTypes.map((t) => QuestionTypeLabels.of(t)).join('/'));
     }
     if (_selectedExamTypes.isNotEmpty && _selectedExamTypes.length < widget.examTypeOptions.length) {
-      parts.add(_selectedExamTypes.join('/'));
+      addChip(_selectedExamTypes.join('/'));
     }
     final tagCount = _selectedConceptTagNames.length;
     final kcCount = _selectedKnowledgeCardTitles.length;
     if (tagCount > 0 && tagCount < widget.conceptTagOptions.length) {
-      parts.add('概念标签 $tagCount');
+      addChip('概念标签 $tagCount');
     }
     if (kcCount > 0 && kcCount < widget.knowledgeCardOptions.length) {
-      parts.add('知识卡片 $kcCount');
+      addChip('知识卡片 $kcCount');
     }
     if ((_diffMin > 0 || _diffMax < 10) || (_calcMin > 0 || _calcMax < 10)) {
       final d = _diffMin > 0 || _diffMax < 10 ? '难度 ${_diffMin.toStringAsFixed(0)}-${_diffMax.toStringAsFixed(0)}' : null;
       final c = _calcMin > 0 || _calcMax < 10 ? '计算量 ${_calcMin.toStringAsFixed(0)}-${_calcMax.toStringAsFixed(0)}' : null;
-      parts.add([d, c].nonNulls.join(' '));
+      addChip([d, c].nonNulls.join(' '));
     }
-    return parts.join(' · ');
+    if (chips.isEmpty) {
+      addChip('全部');
+    }
+    return chips;
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        side: const BorderSide(color: AppColors.border),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -255,36 +273,18 @@ class FilterPanelState extends State<FilterPanel> {
             ),
           ],
         ),
-        // 摘要行
-        if (_summaryText.isNotEmpty)
+        // 摘要 chips
+        if (_summaryChips.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text(_summaryText, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-          ),
-        // 保存/读取预设
-        if (widget.onSavePreference != null || widget.onLoadPreference != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                if (widget.onSavePreference != null)
-                  TextButton.icon(
-                    icon: const Icon(Icons.save_outlined, size: 16),
-                    label: const Text('保存为学习偏好', style: TextStyle(fontSize: 12)),
-                    onPressed: widget.onSavePreference,
-                  ),
-                if (widget.onLoadPreference != null)
-                  TextButton.icon(
-                    icon: const Icon(Icons.folder_open_outlined, size: 16),
-                    label: const Text('读取学习偏好', style: TextStyle(fontSize: 12)),
-                    onPressed: widget.onLoadPreference,
-                  ),
-              ],
+            child: Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: _summaryChips,
             ),
           ),
-        _buildSection('按来源筛选', _sourceExpanded, () {
-          setState(() => _sourceExpanded = !_sourceExpanded);
-        }, [
+        // 按来源筛选（header 内嵌保存/读取偏好）
+        _buildSourceSection([
           _buildChipGroup('年份', widget.yearOptions, _selectedYears),
           const SizedBox(height: 8),
           _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
@@ -352,45 +352,98 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
-  /// 简化 section 构建（直接包裹子 widget，非列表）
-  Widget _section(String title, bool expanded, VoidCallback onToggle, Widget child) {
+  /// 来源 section（header 内嵌保存/读取偏好）
+  Widget _buildSourceSection(List<Widget> children) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
-          onTap: onToggle,
-          child: Row(
-            children: [
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
-              const Spacer(),
-              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
-            ],
+        _sectionHeader('按来源筛选', _sourceExpanded, () {
+          setState(() => _sourceExpanded = !_sourceExpanded);
+        }, trailing: widget.onSavePreference != null || widget.onLoadPreference != null
+            ? Row(mainAxisSize: MainAxisSize.min, children: [
+                if (widget.onSavePreference != null)
+                  GestureDetector(
+                    onTap: widget.onSavePreference,
+                    child: const Text('保存偏好', style: TextStyle(fontSize: 11, color: AppColors.primary)),
+                  ),
+                if (widget.onSavePreference != null && widget.onLoadPreference != null)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Text('|', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  ),
+                if (widget.onLoadPreference != null)
+                  GestureDetector(
+                    onTap: widget.onLoadPreference,
+                    child: const Text('读取偏好', style: TextStyle(fontSize: 11, color: AppColors.primary)),
+                  ),
+              ])
+            : null),
+        if (_sourceExpanded) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
           ),
-        ),
-        const Divider(height: 1),
-        if (expanded) ...[const SizedBox(height: 6), child],
-        const SizedBox(height: 4),
+          const SizedBox(height: 4),
+        ],
       ],
     );
   }
 
-  Widget _buildSection(String title, bool expanded, VoidCallback onToggle, List<Widget> children) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: onToggle,
+  /// 通用 section header 行（灰底）
+  Widget _sectionHeader(String title, bool expanded, VoidCallback onToggle, {Widget? trailing}) {
+    return Container(
+      color: AppColors.background,
+      child: InkWell(
+        onTap: onToggle,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
               Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
               const Spacer(),
+              if (trailing != null) trailing,
+              const SizedBox(width: 4),
               Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
             ],
           ),
         ),
-        const Divider(height: 1),
-        if (expanded) ...[const SizedBox(height: 6), ...children],
-        const SizedBox(height: 4),
+      ),
+    );
+  }
+
+  /// 折叠 section（子节点为列表）
+  Widget _buildSection(String title, bool expanded, VoidCallback onToggle, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionHeader(title, expanded, onToggle),
+        if (expanded) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+          ),
+          const SizedBox(height: 4),
+        ],
+      ],
+    );
+  }
+
+  /// 折叠 section（子节点为单个 widget）
+  Widget _section(String title, bool expanded, VoidCallback onToggle, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionHeader(title, expanded, onToggle),
+        if (expanded) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: child,
+          ),
+          const SizedBox(height: 4),
+        ],
       ],
     );
   }
@@ -413,7 +466,9 @@ class FilterPanelState extends State<FilterPanel> {
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
             selectedColor: AppColors.primaryLight,
             checkmarkColor: AppColors.primary,
-            side: BorderSide.none,
+            side: selected.contains(o)
+                ? BorderSide.none
+                : const BorderSide(color: AppColors.border),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           )).toList(),
         ),
@@ -439,7 +494,9 @@ class FilterPanelState extends State<FilterPanel> {
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
             selectedColor: AppColors.primaryLight,
             checkmarkColor: AppColors.primary,
-            side: BorderSide.none,
+            side: selected.contains(o)
+                ? BorderSide.none
+                : const BorderSide(color: AppColors.border),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           )).toList(),
         ),

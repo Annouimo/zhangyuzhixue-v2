@@ -252,44 +252,58 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                           _updatePoolStats();
                         },
                       ),
-                    const Divider(height: 1),
-                    if (_poolStats != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Row(
+                    // 题型配比 Card
+                    Card(
+                      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+                        side: const BorderSide(color: AppColors.border),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _statChip('选择', _poolStats!.availableChoice),
-                            const SizedBox(width: 8),
-                            _statChip('填空', _poolStats!.availableFill),
-                            const SizedBox(width: 8),
-                            _statChip('解答', _poolStats!.availableSolution),
+                            const Text('题型配比', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 12),
+                            _countStepper('选择题', _choiceCount, (v) => _choiceCount = v, availableCount: _poolStats?.availableChoice ?? 0),
+                            _countStepper('填空题', _fillCount, (v) => _fillCount = v, availableCount: _poolStats?.availableFill ?? 0),
+                            _countStepper('解答题', _solutionCount, (v) => _solutionCount = v, availableCount: _poolStats?.availableSolution ?? 0),
+                            if (_poolStats != null) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  _statChip('选择', _poolStats!.availableChoice),
+                                  const SizedBox(width: 8),
+                                  _statChip('填空', _poolStats!.availableFill),
+                                  const SizedBox(width: 8),
+                                  _statChip('解答', _poolStats!.availableSolution),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Divider(height: 1),
+                              const SizedBox(height: 8),
+                            ],
+                            const Text('难度调优（可选）', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 4),
+                            Text('设置目标平均难度，系统自动挑选最接近的题目组合',
+                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            const SizedBox(height: 8),
+                            DifficultySlider(
+                              label: '目标难度', min: 0, max: 10,
+                              lower: _targetDifficulty, upper: _targetDifficulty,
+                              onChanged: (v) => setState(() => _targetDifficulty = v.start),
+                            ),
+                            if (_poolStats != null) ...[
+                              const SizedBox(height: 4),
+                              Text('当前筛选池：${_poolStats!.poolDiffMin.toStringAsFixed(2)} — ${_poolStats!.poolDiffMax.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                              Text('高考全卷参考：最小 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(2)} · 平均 ${_poolStats!.gaokaoDiffAvg.toStringAsFixed(2)} · 最大 ${_poolStats!.gaokaoDiffMax.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                            ],
                           ],
                         ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('题型配比', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                          const SizedBox(height: 8),
-                          _countStepper('选择题', _choiceCount, (v) => _choiceCount = v, availableCount: _poolStats?.availableChoice ?? 0),
-                          _countStepper('填空题', _fillCount, (v) => _fillCount = v, availableCount: _poolStats?.availableFill ?? 0),
-                          _countStepper('解答题', _solutionCount, (v) => _solutionCount = v, availableCount: _poolStats?.availableSolution ?? 0),
-                          const SizedBox(height: 16),
-                          DifficultySlider(
-                            label: '目标难度', min: 0, max: 10,
-                            lower: _targetDifficulty, upper: _targetDifficulty,
-                            onChanged: (v) => setState(() => _targetDifficulty = v.start),
-                          ),
-                          if (_poolStats != null) ...[
-                            const SizedBox(height: 8),
-                            Text('当前筛选池：${_poolStats!.poolDiffMin.toStringAsFixed(2)} — ${_poolStats!.poolDiffMax.toStringAsFixed(2)}',
-                                style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                            Text('高考全卷参考：最小 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(2)} · 平均 ${_poolStats!.gaokaoDiffAvg.toStringAsFixed(2)} · 最大 ${_poolStats!.gaokaoDiffMax.toStringAsFixed(2)}',
-                                style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                          ],
-                        ],
                       ),
                     ),
                   ],

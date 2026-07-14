@@ -154,7 +154,9 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
               onSelected: (_) => _toggleCard(card.title),
               selectedColor: AppColors.primaryLight,
               checkmarkColor: AppColors.primary,
-              side: BorderSide.none,
+              side: widget.selectedTitles.contains(card.title)
+                  ? BorderSide.none
+                  : const BorderSide(color: AppColors.border),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             )).toList(),
             ),
