@@ -65,10 +65,11 @@ class UpdateManager {
   }
 
   Future<UpdateSummary> _checkOne(String type) async {
-    final response = await _client.get('api/$type/version/');
-    final data = response.data is Map ? response.data as Map : (response.data as Map?)?['data'] as Map? ?? {};
+    final response = await _client.get('api/v1/sync/$type/version/');
+    final responseData = response.data as Map? ?? {};
+    final data = responseData['data'] as Map? ?? responseData;
 
-    final serverVersion = (data['data_version'] ?? data['version'] ?? 0) as int;
+    final serverVersion = (data['data_version'] ?? 0) as int;
     final forceUpdate = (data['force_update'] ?? false) as bool;
     final downloadUrl = data['download_url'] as String?;
     final checksum = data['checksum'] as String?;
