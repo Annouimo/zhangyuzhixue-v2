@@ -4,6 +4,7 @@ import 'recommend_page.dart';
 import 'exam/exam_home_page.dart';
 import 'profile/profile_page.dart';
 import '../data/database/database_provider.dart';
+import '../data/daos/sync_queue_dao.dart';
 
 /// Tab 页枚举
 enum MainTab { home, recommend, exam, profile }
@@ -19,6 +20,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _pageKey = 0;
+  int _syncPendingCount = 0;
 
   final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
@@ -34,6 +36,14 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
+    _refreshSyncPending();
+  }
+
+  Future<void> _refreshSyncPending() async {
+    try {
+      final count = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+      if (mounted) setState(() => _syncPendingCount = count);
+    } catch (_) {}
   }
 
   @override
@@ -60,28 +70,45 @@ class _MainShellState extends State<MainShell> {
           setState(() => _currentIndex = index);
           if (index == 0) setState(() => _pageKey++);
           if (index == 1) _recommendKey.currentState?.refresh();
-          if (index == 3) _profileKey.currentState?.reload();
+          if (index == 3) {
+            _profileKey.currentState?.reload();
+            _refreshSyncPending();
+          }
         },
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: '首页',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.auto_awesome_outlined),
             activeIcon: Icon(Icons.auto_awesome),
             label: '推荐',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.description_outlined),
             activeIcon: Icon(Icons.description),
             label: '组卷',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            icon: _syncPendingCount > 0
+                ? Badge(
+                    isLabelVisible: true,
+                    label: Text('$_syncPendingCount',
+                        style: const TextStyle(fontSize: 9)),
+                    child: const Icon(Icons.person_outline),
+                  )
+                : const Icon(Icons.person_outline),
+            activeIcon: _syncPendingCount > 0
+                ? Badge(
+                    isLabelVisible: true,
+                    label: Text('$_syncPendingCount',
+                        style: const TextStyle(fontSize: 9)),
+                    child: const Icon(Icons.person),
+                  )
+                : const Icon(Icons.person),
             label: '我的',
           ),
         ],

@@ -20,6 +20,8 @@ import '../domain/user_repository.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/daos/sync_queue_dao.dart';
+import '../data/network/connectivity_monitor.dart';
 import '../data/database/app_database.dart' as app_db;
 import '../widgets/shared/format_utils.dart';
 
@@ -44,6 +46,7 @@ class _IndexPageState extends State<IndexPage> {
   double _todayEarned = 0;
   int _todayTotal = 0;
   int _todayCorrect = 0;
+  int _syncPendingCount = 0;
 
   static const List<String> _welcomeMessages = [
     '每一次练习，都在为高考蓄力 💪',
@@ -101,6 +104,12 @@ class _IndexPageState extends State<IndexPage> {
       final todayEarned = await _repo.todayPoints();
       final stats = await _repo.getTodaySubmissionStats();
 
+      // 查询同步队列状态
+      int syncPending = 0;
+      try {
+        syncPending = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+      } catch (_) {}
+
       // 任务奖励检测（每日仅发放一次）
       final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
       for (var i = 0; i < tasks.length; i++) {
@@ -144,6 +153,7 @@ class _IndexPageState extends State<IndexPage> {
         _todayEarned = todayEarned;
         _todayTotal = stats.total;
         _todayCorrect = stats.correct;
+        _syncPendingCount = syncPending;
         _loading = false;
       });
       AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn, 'level': _currentLevel});
@@ -232,6 +242,9 @@ class _IndexPageState extends State<IndexPage> {
                   const SizedBox(height: 12),
                   // 签到/任务卡片
                   _buildCheckinCard(),
+                  const SizedBox(height: 8),
+                  // 同步状态行
+                  _buildSyncStatus(),
                 ],
               ),
             ),
@@ -464,6 +477,68 @@ class _IndexPageState extends State<IndexPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSyncStatus() {
+    final online = ConnectivityMonitor().isOnline;
+    IconData icon;
+    String text;
+    VoidCallback? onTap;
+
+    if (!online) {
+      icon = Icons.cloud_off;
+      text = '当前离线，数据将在联网后同步';
+    } else if (_syncPendingCount > 0) {
+      icon = Icons.sync_problem;
+      text = '$_syncPendingCount 条数据待同步';
+      onTap = () => context.push(AppRoutes.syncQueue);
+    } else {
+      icon = Icons.cloud_done;
+      text = '全部已同步';
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: !online
+              ? Colors.orange.withValues(alpha: 0.08)
+              : _syncPendingCount > 0
+                  ? AppColors.warning.withValues(alpha: 0.08)
+                  : AppColors.success.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16,
+              color: !online
+                  ? Colors.orange
+                  : _syncPendingCount > 0
+                      ? AppColors.warning
+                      : AppColors.success,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(text,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: !online
+                      ? Colors.orange.shade700
+                      : _syncPendingCount > 0
+                          ? AppColors.warning
+                          : AppColors.success,
+                ),
+              ),
+            ),
+            if (onTap != null)
+              const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

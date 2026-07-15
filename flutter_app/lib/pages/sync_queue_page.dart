@@ -83,7 +83,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
     appBar: AppBar(
       title: const Text('同步状态'),
       actions: [
-        if (_items != null && _items!.any((i) => i.status == 'failed'))
+        if (_items != null && _items!.any((i) => i.status == 'pending' || i.status == 'failed'))
           IconButton(
             icon: _retrying
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
@@ -121,7 +121,13 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
         return ListTile(
           leading: Icon(item.icon, size: 24, color: AppColors.primary),
           title: Text(item.entityTypeName, style: const TextStyle(fontSize: 15)),
-          subtitle: Text(item.timeAgo, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          subtitle: item.errorMessage != null
+              ? Text(item.errorMessage!,
+                  style: const TextStyle(fontSize: 11, color: AppColors.error),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis)
+              : Text(item.timeAgo,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             Text(_statusLabel(item.status),
               style: TextStyle(fontSize: 13, color: _statusColor(item.status))),
