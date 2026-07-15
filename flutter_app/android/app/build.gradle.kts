@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -8,11 +11,17 @@ plugins {
 // 密钥文件：android/app/zhangyuzhixue-release.keystore
 // 密码见 android/key.properties（已 .gitignore，勿提交）
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = java.util.Properties().apply {
+val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
-        load(keystorePropertiesFile.inputStream())
+        load(FileInputStream(keystorePropertiesFile))
     }
 }
+
+// 从 key.properties 中读取签名信息
+val storeFileProp = keystoreProperties.getProperty("storeFile") ?: ""
+val storePasswordProp = keystoreProperties.getProperty("storePassword") ?: ""
+val keyAliasProp = keystoreProperties.getProperty("keyAlias") ?: ""
+val keyPasswordProp = keystoreProperties.getProperty("keyPassword") ?: ""
 
 android {
     namespace = "com.zhangyuzhixue.student"
@@ -36,12 +45,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String?
-            keyPassword = keystoreProperties["keyPassword"] as String?
-            storeFile = keystoreProperties["storeFile"]?.let {
-                rootProject.file(it)
-            }
-            storePassword = keystoreProperties["storePassword"] as String?
+            keyAlias = keyAliasProp
+            keyPassword = keyPasswordProp
+            storeFile = if (storeFileProp.isNotEmpty()) rootProject.file(storeFileProp) else null
+            storePassword = storePasswordProp
         }
     }
 
@@ -50,10 +57,6 @@ android {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
 }
