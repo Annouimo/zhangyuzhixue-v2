@@ -53,6 +53,12 @@ class SyncManager {
       entityId: localId,
       payload: payload,
     );
+    // 入队后自动尝试推送（pushNow 自带 30 秒冷却，不会过度推送）
+    try {
+      await pushNow();
+    } catch (_) {
+      // 推送失败静默处理，队列项目保持 pending，下次推送机会再试
+    }
   }
 
   /// App 启动时推送积压并发起版本检查
