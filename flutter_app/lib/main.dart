@@ -111,7 +111,7 @@ void _processUpdates(List<UpdateSummary> updates) {
 }
 
 void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
-  final label = summary.type == 'qbank' ? '题库' : '讲义';
+  final label = summary.type == 'qbank' ? '题库' : '课程';
 
   showDialog(
     context: context,
@@ -178,7 +178,7 @@ void _startUpdate(BuildContext context, UpdateSummary summary, String label) {
 }
 
 void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
-  final label = summary.type == 'qbank' ? '题库' : '讲义';
+  final label = summary.type == 'qbank' ? '题库' : '课程';
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
