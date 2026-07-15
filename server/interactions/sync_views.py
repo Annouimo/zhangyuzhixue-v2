@@ -67,6 +67,10 @@ def _err(code, detail, http_status=400):
 
 # ── Schema ────────────────────────────────────────────────────
 
+# 服务端生成 user.db 使用的表结构版本。与客户端 AppDatabase.schemaVersion 对应，
+# 当 USER_DB_SCHEMA 的建表语句发生变化时需要递增。
+USER_DB_SCHEMA_VERSION = 1
+
 USER_DB_SCHEMA = """
 CREATE TABLE IF NOT EXISTS user_profile (
     id INTEGER PRIMARY KEY,

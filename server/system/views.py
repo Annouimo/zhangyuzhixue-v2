@@ -63,7 +63,7 @@ class UserVersionCheckView(APIView):
                 'data': None,
             }, status=403)
 
-        from interactions.sync_views import pull_user_db
+        from interactions.sync_views import pull_user_db, USER_DB_SCHEMA_VERSION
         # 复用 pull 接口获取下载信息
         response = pull_user_db(request)
         if response.status_code != 200:
@@ -74,8 +74,10 @@ class UserVersionCheckView(APIView):
         return Response({
             'code': 0, 'message': 'ok',
             'data': {
+                'schema_version': USER_DB_SCHEMA_VERSION,
                 'data_version': student.data_version,
                 'force_update': False,
+                'message': '你在其他设备上产生了新的学习记录，是否更新？',
                 'download_url': pull_data.get('download_url', ''),
                 'checksum': pull_data.get('checksum', ''),
                 'size_bytes': pull_data.get('size_bytes', 0),
