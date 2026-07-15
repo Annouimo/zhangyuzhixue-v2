@@ -24,13 +24,17 @@ def fix(conn):
 
         # C: strip trailing \n\n--- (possibly followed by $ or $$)
         if '\n\n---' in stem:
-            stem = re.sub(r'\n\n---[\$]*\s*$', '', stem)
-            changed = True
+            new_stem = re.sub(r'\n\n---[\$]*\s*$', '', stem)
+            if new_stem != stem:
+                stem = new_stem
+                changed = True
 
         # D: strip trailing \n\n| (only at end, not inside tables)
         if stem.rstrip().endswith('|') and '\n\n|' in stem:
-            stem = re.sub(r'\n\n\|\s*$', '', stem)
-            changed = True
+            new_stem = re.sub(r'\n\n\|\s*$', '', stem)
+            if new_stem != stem:
+                stem = new_stem
+                changed = True
 
         # B: strip leading (1)/(2)/(3)/(Ⅰ)/(Ⅱ)/(Ⅲ) prefix
         s = stem.strip()
