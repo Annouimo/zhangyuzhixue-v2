@@ -84,6 +84,19 @@ class SyncManager {
     void Function(double progress)? onProgress,
   }) async {
     _ensureInitialized();
+    if (type == 'user') {
+      // 用户数据更新：运行时调 fetchUserPullInfo 获取下载信息
+      final info = await _api!.fetchUserPullInfo();
+      await _updateManager!.downloadAndReplace(
+        type: type,
+        url: info.downloadUrl,
+        expectedChecksum: info.checksum,
+        newVersion: info.version,
+        onProgress: onProgress,
+      );
+      _pendingUpdates.removeWhere((s) => s.type == type);
+      return;
+    }
     final pending = _pendingUpdates.where((s) => s.type == type).toList();
     if (pending.isEmpty) {
       throw StateError('No pending update for type: $type');
