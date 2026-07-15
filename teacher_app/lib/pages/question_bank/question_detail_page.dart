@@ -35,7 +35,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     final q = widget.detail.question;
     return Scaffold(
       appBar: AppBar(
-        title: Text('${QuestionTypeLabels.of(q.questionType)}详情'),
+        title: Text(q.number.isNotEmpty ? '第${q.number}题' : '题目详情'),
         actions: [
           IconButton(
             icon: Icon(
@@ -50,12 +50,32 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
+          // 概念标签（最先展示，让教师快速了解知识点范围）
+          if (widget.detail.tags.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Wrap(
+                spacing: 6, runSpacing: 4,
+                children: widget.detail.tags.map((t) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(t.name,
+                    style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                  ),
+                )).toList(),
+              ),
+            ),
+          ],
+
           // 完整题干
           _section('题干'),
           MdLatexBody(q.stem, fontSize: 15),
           const SizedBox(height: 16),
 
-          // 配图（images 字段为 JSON 字符串，存储图片路径数组）
+          // 配图
           if (q.images != null && q.images!.isNotEmpty) ...[
             _section('配图'),
             ..._parseImagePaths(q.images!).map((path) =>
@@ -76,50 +96,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           ],
 
           // 小题 + 答案 + 解析
+          // 每步对应的知识卡片通过 _kcMap 查表挂载
           ...widget.detail.subQuestions.map((sq) {
             final subMethods = widget.detail.methods
                 .where((m) => m.subQuestionId == sq.id)
                 .toList();
             return _buildSubQuestion(sq, subMethods);
           }),
-
-          // 概念标签
-          if (widget.detail.tags.isNotEmpty) ...[
-            _section('概念标签'),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Wrap(
-                spacing: 6, runSpacing: 4,
-                children: widget.detail.tags.map((t) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(t.name,
-                    style: const TextStyle(fontSize: 12, color: AppColors.primary),
-                  ),
-                )).toList(),
-              ),
-            ),
-          ],
-
-          // 知识卡片
-          if (widget.detail.knowledgeCards.isNotEmpty) ...[
-            _section('知识卡片'),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Wrap(
-                spacing: 6, runSpacing: 4,
-                children: widget.detail.knowledgeCards.map((kc) => ActionChip(
-                  label: Text('${kc.category} · ${kc.title}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  onPressed: () => _showKnowledgeCard(kc),
-                )).toList(),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -147,9 +130,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           children: [
             _metaItem('题型', QuestionTypeLabels.of(q.questionType)),
             if (q.difficulty != null)
-              _metaItem('难度', q.difficulty!.toStringAsFixed(1)),
+              _metaItem('难度', q.difficulty != null ? '${q.difficulty!.toStringAsFixed(1)} / 10' : ''),
             if (q.calculation != null)
-              _metaItem('计算量', q.calculation!.toStringAsFixed(1)),
+              _metaItem('计算量', q.calculation != null ? '${q.calculation!.toStringAsFixed(1)} / 10' : ''),
             if (q.defaultScore != null)
               _metaItem('分值', '${q.defaultScore!.toInt()}分'),
             _metaItem('年份', '${q.year}'),
@@ -159,6 +142,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               _metaItem('考试', q.examType),
             if (q.number.isNotEmpty)
               _metaItem('题号', '第${q.number}题'),
+            _metaItem('题目ID', '${widget.detail.question.id}'),
           ],
         ),
       ),
@@ -191,7 +175,32 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  /// 解析 images JSON 为路径列表
+  /// 解析步骤的 cardTitles JSON，渲染关联的知识卡片
+  Widget _buildStepKnowledgeCards(String cardTitlesJson, Map<String, db.KnowledgeCardRow> kcMap) {
+    List<String> titles;
+    try {
+      titles = (const JsonDecoder().convert(cardTitlesJson) as List)
+          .map((e) => e.toString()).toList();
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+    final matched = titles.map((t) => kcMap[t]).where((kc) => kc != null).cast<db.KnowledgeCardRow>().toList();
+    if (matched.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Wrap(
+        spacing: 4, runSpacing: 2,
+        children: matched.map((kc) => ActionChip(
+          visualDensity: VisualDensity.compact,
+          label: Text('${kc.category}·${kc.title}',
+            style: const TextStyle(fontSize: 11),
+          ),
+          onPressed: () => _showKnowledgeCard(kc),
+        )).toList(),
+      ),
+    );
+  }
+
   List<String> _parseImagePaths(String imagesJson) {
     try {
       final decoded = const JsonDecoder().convert(imagesJson);
@@ -236,7 +245,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 width: 24, height: 24,
                 decoration: BoxDecoration(
                   color: isCorrect ? AppColors.success : AppColors.background,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: Text(e.key,
@@ -275,7 +284,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.statusInProgressBg,
+              color: AppColors.statusCompletedBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: MdLatexBody(sq.answer!, fontSize: 14),
@@ -299,6 +308,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         .where((s) => s.methodId == method.id)
         .toList();
     if (methodSteps.isEmpty) return const SizedBox.shrink();
+
+    // 知识卡片标题→对象查表
+    final kcMap = {for (final kc in widget.detail.knowledgeCards) kc.title: kc};
 
     final methodName = method.methodName ?? '唯一解法';
     return Column(
@@ -350,6 +362,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         padding: const EdgeInsets.only(top: 2),
                         child: MdLatexBody(step.content, fontSize: 13),
                       ),
+                    // 步骤关联的知识卡片
+                    if (step.cardTitles != null && step.cardTitles!.isNotEmpty)
+                      _buildStepKnowledgeCards(step.cardTitles!, kcMap),
                   ],
                 ),
               ),
