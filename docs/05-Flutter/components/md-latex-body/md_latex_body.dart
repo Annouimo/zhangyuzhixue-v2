@@ -6,9 +6,7 @@
 /// ## 使用方式
 ///
 /// ```dart
-/// MdLatexBody(
-///   data: '勾股定理：$a^2 + b^2 = c^2$',
-/// )
+/// MdLatexBody('勾股定理：$a^2 + b^2 = c^2$')
 /// ```
 library;
 
@@ -22,52 +20,36 @@ import 'package:markdown/markdown.dart' as md;
 // ══════════════════════════════════════════════════════════
 
 /// 渲染含 LaTeX 数学公式的 Markdown 文本。
-///
-/// [data] — Markdown 字符串，支持 `$...$` 行内公式和 `$$...$$` 块级公式。
-/// [styleSheet] — 可选，覆盖 Markdown 默认样式。
-/// [selectable] — 是否可选中文本，默认 false。
 class MdLatexBody extends StatelessWidget {
   final String data;
-  final MarkdownStyleSheet? styleSheet;
-  final bool selectable;
+  final double fontSize;
 
-  const MdLatexBody({
-    super.key,
-    required this.data,
-    this.styleSheet,
-    this.selectable = false,
-  });
+  const MdLatexBody(this.data, {super.key, this.fontSize = 14});
 
   @override
   Widget build(BuildContext context) {
+    if (data.isEmpty) return const SizedBox.shrink();
     return MarkdownBody(
       data: data,
-      selectable: selectable,
-      blockSyntaxes: [_BlockMathSyntax()],
-      inlineSyntaxes: [_InlineLatexSyntax()],
-      builders: {
+      selectable: true,
+      blockSyntaxes: const [_BlockMathSyntax()],
+      inlineSyntaxes: const [_InlineLatexSyntax()],
+      builders: const {
         'latex_inline': _InlineLatexBuilder(),
         'math_block': _BlockMathBuilder(),
       },
-      styleSheet: styleSheet ?? _defaultStyle(context),
+      styleSheet: _defaultStyle(context),
     );
   }
 
   static MarkdownStyleSheet _defaultStyle(BuildContext context) {
-    final theme = Theme.of(context);
     return MarkdownStyleSheet(
-      h1: theme.textTheme.headlineSmall,
-      h2: theme.textTheme.titleLarge,
-      p: theme.textTheme.bodyMedium,
-      code: TextStyle(
-        backgroundColor: Colors.grey.shade200,
-        fontFamily: 'monospace',
-        fontSize: 13,
-      ),
-      codeblockDecoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(4),
-      ),
+      p: TextStyle(fontSize: fontSize, color: Colors.black87, height: 1.6),
+      h1: TextStyle(fontSize: fontSize + 6, fontWeight: FontWeight.bold, height: 1.4),
+      h2: TextStyle(fontSize: fontSize + 4, fontWeight: FontWeight.bold, height: 1.4),
+      h3: TextStyle(fontSize: fontSize + 2, fontWeight: FontWeight.w600, height: 1.4),
+      strong: const TextStyle(fontWeight: FontWeight.bold),
+      code: TextStyle(fontSize: fontSize - 1, backgroundColor: Colors.grey[100], fontFamily: 'monospace'),
     );
   }
 }
@@ -77,7 +59,7 @@ class MdLatexBody extends StatelessWidget {
 // ══════════════════════════════════════════════════════════
 
 class _InlineLatexSyntax extends md.InlineSyntax {
-  _InlineLatexSyntax() : super(r'\$([^$]+?)\$');
+  const _InlineLatexSyntax() : super(r'\$([^$]+?)\$');
 
   @override
   bool onMatch(md.InlineParser parser, Match match) {
@@ -87,10 +69,12 @@ class _InlineLatexSyntax extends md.InlineSyntax {
 }
 
 class _InlineLatexBuilder extends MarkdownElementBuilder {
+  const _InlineLatexBuilder();
+
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    return Math.tex(
-      element.textContent,
+    return _SafeMath(
+      tex: element.textContent,
       mathStyle: MathStyle.text,
       textStyle: TextStyle(
         fontSize: preferredStyle?.fontSize ?? 14,
@@ -105,7 +89,7 @@ class _InlineLatexBuilder extends MarkdownElementBuilder {
 // ══════════════════════════════════════════════════════════
 
 class _BlockMathSyntax extends md.BlockSyntax {
-  _BlockMathSyntax();
+  const _BlockMathSyntax();
 
   @override
   RegExp get pattern => RegExp(r'^\$\$');
@@ -116,15 +100,11 @@ class _BlockMathSyntax extends md.BlockSyntax {
   @override
   md.Node parse(md.BlockParser parser) {
     final line = parser.current.content;
-
-    // 单行: $$a^2 + b^2 = c^2$$
     final single = RegExp(r'^\$\$(.*)\$\$$').firstMatch(line);
     if (single != null) {
       parser.advance();
       return md.Element.text('math_block', single[1]!.trim());
     }
-
-    // 多行: $$\n...\n$$
     final buf = StringBuffer();
     parser.advance();
     while (!parser.isDone) {
@@ -141,17 +121,51 @@ class _BlockMathSyntax extends md.BlockSyntax {
 }
 
 class _BlockMathBuilder extends MarkdownElementBuilder {
+  const _BlockMathBuilder();
+
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    return _SafeMath(
+      tex: element.textContent,
+      mathStyle: MathStyle.display,
+      textStyle: TextStyle(fontSize: (preferredStyle?.fontSize ?? 14) * 1.2),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// 安全的 Math.tex 包裹器（onErrorFallback 替代全局 FlutterError.onError）
+// ══════════════════════════════════════════════════════════
+
+class _SafeMath extends StatelessWidget {
+  final String tex;
+  final MathStyle mathStyle;
+  final TextStyle? textStyle;
+
+  const _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    final m = Math.tex(
+      tex,
+      mathStyle: mathStyle,
+      textStyle: textStyle,
+      onErrorFallback: (e) => SelectableText(tex, style: textStyle),
+    );
+    if (mathStyle == MathStyle.text) {
+      final br = m.texBreak();
+      if (br.parts.length <= 1) return m;
+      return Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: br.parts,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Center(
-        child: Math.tex(
-          element.textContent,
-          mathStyle: MathStyle.display,
-          textStyle: TextStyle(
-            fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
-          ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: m,
         ),
       ),
     );

@@ -166,39 +166,23 @@ class _BlockMathBuilder extends MarkdownElementBuilder {
   }
 }
 
-// ─── 安全的 Math.tex 包裹器 ───
+// ─── 安全的 Math.tex 包裹器（onErrorFallback 替代全局 FlutterError.onError） ───
 
-class _SafeMath extends StatefulWidget {
+class _SafeMath extends StatelessWidget {
   final String tex;
   final MathStyle mathStyle;
   final TextStyle? textStyle;
   const _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
 
   @override
-  State<_SafeMath> createState() => _SafeMathState();
-}
-
-class _SafeMathState extends State<_SafeMath> {
-  bool _errored = false;
-
-  @override
   Widget build(BuildContext context) {
-    if (_errored) {
-      return SelectableText(widget.tex, style: widget.textStyle);
-    }
-    final oldHandler = FlutterError.onError;
-    FlutterError.onError = (details) {
-      final msg = details.exceptionAsString();
-      if (msg.contains('CrNode') || msg.contains('TemporaryNode')) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _errored = true);
-        });
-        return;
-      }
-      oldHandler?.call(details);
-    };
-    final m = Math.tex(widget.tex, mathStyle: widget.mathStyle, textStyle: widget.textStyle);
-    if (widget.mathStyle == MathStyle.text) {
+    final m = Math.tex(
+      tex,
+      mathStyle: mathStyle,
+      textStyle: textStyle,
+      onErrorFallback: (e) => SelectableText(tex, style: textStyle),
+    );
+    if (mathStyle == MathStyle.text) {
       final br = m.texBreak();
       if (br.parts.length <= 1) return m;
       return Wrap(
