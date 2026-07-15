@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../database/assets_database.dart' as db;
 
-/// 题目数据访问层
+/// 题目数据访问层（教师端，无 AuditLogger）
 class QuestionDao {
   final db.AssetsDatabase _db;
   const QuestionDao(this._db);
@@ -189,19 +189,5 @@ class QuestionDao {
   Future<db.MetaRow?> getMeta() async {
     final row = await _db.select(_db.meta).getSingleOrNull();
     return row;
-  }
-
-  Future<List<db.AchievementDefRow>> getAllAchievementDefs() async {
-    final rows = await (_db.select(_db.achievementDefs)
-      ..orderBy([(t) => OrderingTerm(expression: t.displayOrder)]))
-      .get();
-    return rows;
-  }
-
-  Future<List<db.LevelConfigRow>> getAllLevelConfigs() async {
-    final q = _db.select(_db.levelConfigs)
-      ..orderBy([(t) => OrderingTerm(expression: t.minXp)]);
-    final rows = await q.get();
-    return rows;
   }
 }

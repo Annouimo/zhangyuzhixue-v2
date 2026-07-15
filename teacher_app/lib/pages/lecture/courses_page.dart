@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
-import '../../data/daos/lecture_dao.dart';
-import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
@@ -27,8 +25,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.lectureRepository ??
-        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
+    _repo = widget.lectureRepository ?? LectureRepository.fromProvider();
     _load();
   }
 

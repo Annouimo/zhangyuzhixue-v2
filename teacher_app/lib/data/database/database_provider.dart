@@ -1,12 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'assets_database.dart';
 import 'courses_database.dart';
 
-/// 双库生命周期管理（仅 assets + courses，无 appDb）
+/// 双库生命周期管理（教师端：assetsDb + coursesDb，无 userDb/积分）
 class DatabaseProvider {
   DatabaseProvider._internal();
   static DatabaseProvider? _instance;
@@ -24,26 +24,21 @@ class DatabaseProvider {
     final dir = await getApplicationDocumentsDirectory();
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'courses.db');
-    await _openAll(dir);
-    _initialized = true;
-  }
-
-  /// 首次启动时从 bundle 复制默认数据库到文档目录
-  Future<void> _ensureDefaultDb(Directory dir, String name) async {
-    final file = File('${dir.path}/$name');
-    if (!await file.exists()) {
-      final data = await rootBundle.load('assets/db/$name');
-      await file.writeAsBytes(data.buffer.asUint8List());
-    }
-  }
-
-  Future<void> _openAll(Directory dir) async {
     _assetsDb = AssetsDatabase(LazyDatabase(() async {
       return NativeDatabase(File('${dir.path}/assets.db'));
     }));
     _coursesDb = CoursesDatabase(LazyDatabase(() async {
       return NativeDatabase(File('${dir.path}/courses.db'));
     }));
+    _initialized = true;
+  }
+
+  Future<void> _ensureDefaultDb(Directory dir, String name) async {
+    final file = File('${dir.path}/$name');
+    if (!await file.exists()) {
+      final data = await rootBundle.load('assets/db/$name');
+      await file.writeAsBytes(data.buffer.asUint8List());
+    }
   }
 
   AssetsDatabase get assetsDb {
@@ -58,18 +53,21 @@ class DatabaseProvider {
 
   Future<void> replaceAssetsDb(String newPath) async {
     await _assetsDb?.close();
-    final dir = await getApplicationDocumentsDirectory();
-    final target = File('${dir.path}/assets.db');
+    final target = File('${await _dbDirPath()}/assets.db');
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
   }
 
   Future<void> replaceCoursesDb(String newPath) async {
     await _coursesDb?.close();
-    final dir = await getApplicationDocumentsDirectory();
-    final target = File('${dir.path}/courses.db');
+    final target = File('${await _dbDirPath()}/courses.db');
     await File(newPath).copy(target.path);
     _coursesDb = CoursesDatabase(NativeDatabase(target));
+  }
+
+  Future<String> _dbDirPath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return dir.path;
   }
 
   void _ensureInitialized() {

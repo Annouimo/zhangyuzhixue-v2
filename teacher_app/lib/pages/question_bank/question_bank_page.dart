@@ -4,13 +4,15 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/database/database_provider.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
-import '../../widgets/question_card.dart';
+import '../../widgets/shared/question_card.dart';
 import '../../widgets/filter_panel.dart';
 import 'preview_page.dart';
 
-/// 题库浏览 — 教师端选题页
+/// 题库浏览选题页
 class QuestionBankPage extends StatefulWidget {
   final QuestionRepository? questionRepository;
   const QuestionBankPage({super.key, this.questionRepository});
@@ -27,25 +29,25 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   List<SearchQuestion>? _questions;
   bool _loadingQ = false;
   final _selectedIds = <int>{};
-  bool _saving = false;
+  final _nameController = TextEditingController(text: '选题');
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   Timer? _debouncedSearch;
   PoolStats? _poolStats;
 
-  /// 排序方式
-  SortMode _sortMode = SortMode.newestFirst;
-
   @override
   void initState() {
     super.initState();
-    _repo = widget.questionRepository ?? QuestionRepository.fromProvider();
+    final db = DatabaseProvider();
+    _repo = widget.questionRepository ??
+        QuestionRepository(QuestionDao(db.assetsDb));
     _loadFilterOptions();
   }
 
   @override
   void dispose() {
+    _nameController.dispose();
     _debouncedSearch?.cancel();
     super.dispose();
   }
@@ -55,20 +57,18 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
-    } catch (e) {
-      if (mounted) setState(() { _loadingOpts = false; });
-    }
+    } catch (e) { if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
         knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isEmpty ? const [] : _selectedExamTypes.toList(),
-        questionTypes: _selectedTypes.isEmpty ? const [] : _selectedTypes.toList(),
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
       final stats = await _repo.getPoolStats(filters);
       if (mounted) setState(() => _poolStats = stats);
@@ -78,67 +78,57 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   Future<void> _search() async {
     setState(() => _loadingQ = true);
     try {
-      final filters = SearchFilters(name: '', choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+      final filters = SearchFilters(name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isEmpty ? const [] : _selectedExamTypes.toList(),
-        questionTypes: _selectedTypes.isEmpty ? const [] : _selectedTypes.toList(),
+        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
+        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
-      final qs = await _repo.getFilteredQuestions(filters, sort: _sortMode);
+      final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
       _updatePoolStats();
-    } catch (e) {
-      if (mounted) setState(() => _loadingQ = false);
-    }
+    } catch (e) { if (mounted) setState(() => _loadingQ = false); }
   }
 
-  /// 保存选中题目为 JSON 并复制到剪贴板
+  /// 生成 JSON 并复制到剪贴板
   Future<void> _save() async {
     if (_selectedIds.isEmpty) return;
 
-    setState(() => _saving = true);
-    try {
-      final now = DateTime.now().toUtc().toIso8601String();
-      final jsonObj = {
-        'version': 1,
-        'questionIds': _selectedIds.toList()..sort(),
-        'selectedAt': now,
-        'totalCount': _selectedIds.length,
-      };
-      final jsonStr = const JsonEncoder.withIndent('  ').convert(jsonObj);
+    final json = jsonEncode({
+      'version': 1,
+      'questionIds': _selectedIds.toList()..sort(),
+      'selectedAt': DateTime.now().toIso8601String(),
+      'totalCount': _selectedIds.length,
+    });
 
-      await Clipboard.setData(ClipboardData(text: jsonStr));
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('已复制 ${_selectedIds.length} 道题到剪贴板'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _saving = false);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败: $e'), behavior: SnackBarBehavior.floating),
-        );
-      }
-      setState(() => _saving = false);
-    }
+    await Clipboard.setData(ClipboardData(text: json));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('已复制 ${_selectedIds.length} 道题到剪贴板'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
-  void _openPreview() {
+  void _preview() {
     if (_selectedIds.isEmpty) return;
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => PreviewPage(
-        questionIds: _selectedIds.toList(),
-        questionRepository: _repo,
-        onRemove: (removedId) {
-          setState(() => _selectedIds.remove(removedId));
-        },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _buildPreviewPage(),
       ),
-    ));
+    );
+  }
+
+  Widget _buildPreviewPage() {
+    return QuestionPreviewPage(
+      questionIds: _selectedIds.toList()..sort(),
+      repo: _repo,
+      onRemove: (id) {
+        setState(() => _selectedIds.remove(id));
+      },
+    );
   }
 
   @override
@@ -163,7 +153,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
                     children: [
                       if (_selectedIds.isNotEmpty)
                         TextButton(
-                          onPressed: _openPreview,
+                          onPressed: _preview,
                           child: const Text('预览'),
                         ),
                       const SizedBox(width: 8),
@@ -171,11 +161,8 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
                         width: 140,
                         height: 40,
                         child: ElevatedButton(
-                          onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
-                          child: _saving
-                              ? const SizedBox(width: 20, height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                              : Text('导出 (${_selectedIds.length})'),
+                          onPressed: (_selectedIds.isEmpty) ? null : _save,
+                          child: Text('复制选题 (${_selectedIds.length})'),
                         ),
                       ),
                     ],
@@ -189,32 +176,15 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   );
 
   Widget _buildScrollContent() {
-    final sortRow = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-      child: Row(
-        children: [
-          const Text('排序：', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(width: 8),
-          DropdownButton<SortMode>(
-            value: _sortMode,
-            underline: const SizedBox.shrink(),
-            isDense: true,
-            style: const TextStyle(fontSize: 13, color: AppColors.primary),
-            items: const [
-              DropdownMenuItem(value: SortMode.newestFirst, child: Text('最新优先')),
-              DropdownMenuItem(value: SortMode.oldestFirst, child: Text('最早优先')),
-              DropdownMenuItem(value: SortMode.difficultyDesc, child: Text('难度从高')),
-              DropdownMenuItem(value: SortMode.difficultyAsc, child: Text('难度从低')),
-              DropdownMenuItem(value: SortMode.byType, child: Text('按题型')),
-              DropdownMenuItem(value: SortMode.byNumber, child: Text('按题号')),
-            ],
-            onChanged: (v) {
-              if (v == null) return;
-              setState(() => _sortMode = v);
-              _search();
-            },
-          ),
-        ],
+    final nameField = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: TextField(
+        controller: _nameController,
+        decoration: const InputDecoration(
+          labelText: '搜索题目',
+          hintText: '输入关键词搜索',
+          border: OutlineInputBorder(),
+        ),
       ),
     );
 
@@ -243,9 +213,9 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       return const Center(child: LoadingIndicator(message: '搜索中…'));
     }
 
-    // 组装：filterPanel + 排序 + 池统计 在顶部，下方根据状态切换
+    // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
     final headerChildren = <Widget>[
-      sortRow,
+      nameField,
       ?filterPanel,
       if (_poolStats != null)
         Card(

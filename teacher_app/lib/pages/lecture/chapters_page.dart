@@ -24,7 +24,6 @@ class LectureChaptersPage extends StatefulWidget {
 }
 
 class _LectureChaptersPageState extends State<LectureChaptersPage> {
-  late final LectureRepository _repo;
   ChapterList? _chapterList;
   bool _loading = true;
   String? _error;
@@ -32,7 +31,6 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.repo;
     _load();
   }
 
@@ -42,7 +40,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       _error = null;
     });
     try {
-      final cl = await _repo.getChapters(widget.courseId);
+      final cl = await widget.repo.getChapters(widget.courseId);
       if (!mounted) return;
       setState(() {
         _chapterList = cl;
@@ -61,7 +59,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_chapterList?.courseName ?? widget.courseName),
+        title: Text(widget.courseName),
       ),
       body: _buildBody(),
     );
@@ -93,7 +91,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
                 builder: (_) => LectureContentPage(
                   chapterId: chapter.id,
                   chapterTitle: chapter.title,
-                  repo: _repo,
+                  repo: widget.repo,
                 ),
               ),
             ),

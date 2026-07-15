@@ -28,54 +28,17 @@ class UpdateSummary {
   });
 }
 
-/// 偏好 key
-abstract final class PrefKeys {
-  static const qbankVersion = 'app_qbank_version';
-  static const coursesVersion = 'app_courses_version';
-}
-
-/// 版本检查响应
-class _VersionStatus {
-  final int schemaVersion;
-  final int dataVersion;
-  final bool forceUpdate;
-  final String? message;
-  final String? downloadUrl;
-  final String? checksum;
-  final int? sizeBytes;
-
-  const _VersionStatus({
-    required this.schemaVersion,
-    required this.dataVersion,
-    required this.forceUpdate,
-    this.message,
-    this.downloadUrl,
-    this.checksum,
-    this.sizeBytes,
-  });
-
-  factory _VersionStatus.fromJson(Map<String, dynamic> json) => _VersionStatus(
-        schemaVersion: json['schema_version'] as int,
-        dataVersion: json['data_version'] as int,
-        forceUpdate: json['force_update'] as bool? ?? false,
-        message: json['message'] as String?,
-        downloadUrl: json['download_url'] as String?,
-        checksum: json['checksum'] as String?,
-        sizeBytes: json['size_bytes'] as int?,
-      );
-}
-
 /// 更新管理器：版本检查 + .db.gz 下载/校验/替换
-///
-/// 仅支持 qbank 和 courses 两种数据类型。
+/// 与学生端区别：serverUrl 从构造参数传入，不读 AppPrefs；直接调 Dio 而非 SyncApi
 class UpdateManager {
-  final String serverUrl;
+  final String _serverUrl;
   final DatabaseProvider _dbProvider;
   final Dio _client;
   final Dio _downloadClient;
 
-  UpdateManager(this.serverUrl, this._dbProvider)
+  UpdateManager(this._serverUrl, this._dbProvider)
       : _client = Dio(BaseOptions(
+          baseUrl: _normalizeBaseUrl(_serverUrl),
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 30),
         )),
@@ -83,6 +46,14 @@ class UpdateManager {
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 120),
         ));
+
+  static String _normalizeBaseUrl(String url) {
+    if (url.endsWith('/')) return url;
+    return '$url/';
+  }
+
+  /// 服务器基础 URL
+  String get serverUrl => _serverUrl;
 
   /// 检查 qbank 和 courses 版本
   Future<List<UpdateSummary>> checkAll() async {
@@ -94,30 +65,44 @@ class UpdateManager {
   }
 
   Future<UpdateSummary> _checkOne(String type) async {
-    final prefs = await SharedPreferences.getInstance();
-    final localVersion = prefs.getInt(
-      type == 'qbank' ? PrefKeys.qbankVersion : PrefKeys.coursesVersion,
-    ) ?? 0;
+    final response = await _client.get('api/$type/version/');
+    final data = response.data is Map ? response.data as Map : (response.data as Map?)?['data'] as Map? ?? {};
 
-    final response = await _client.get('$serverUrl/sync/$type/version/');
-    final status = _VersionStatus.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    final serverVersion = (data['data_version'] ?? data['version'] ?? 0) as int;
+    final forceUpdate = (data['force_update'] ?? false) as bool;
+    final downloadUrl = data['download_url'] as String?;
+    final checksum = data['checksum'] as String?;
+    final sizeBytes = data['size_bytes'] as int?;
+    final message = data['message'] as String?;
+
+    final localVersion = await _getLocalVersion(type);
 
     return UpdateSummary(
       type: type,
       localVersion: localVersion,
-      serverVersion: status.dataVersion,
+      serverVersion: serverVersion,
       forceUpdate: shouldForceUpdate(
         localVersion: localVersion,
-        serverVersion: status.dataVersion,
-        serverForceUpdate: status.forceUpdate,
+        serverVersion: serverVersion,
+        serverForceUpdate: forceUpdate,
       ),
-      downloadUrl: status.downloadUrl,
-      checksum: status.checksum,
-      sizeBytes: status.sizeBytes,
-      message: status.message,
+      downloadUrl: downloadUrl,
+      checksum: checksum,
+      sizeBytes: sizeBytes,
+      message: message,
     );
+  }
+
+  Future<int> _getLocalVersion(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = type == 'qbank' ? 'qbank_version' : 'courses_version';
+    return prefs.getInt(key) ?? 0;
+  }
+
+  Future<void> _setLocalVersion(String type, int version) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = type == 'qbank' ? 'qbank_version' : 'courses_version';
+    await prefs.setInt(key, version);
   }
 
   /// 下载 .db.gz → 解压 → checksum 校验 → 替换
@@ -154,10 +139,7 @@ class UpdateManager {
       await _dbProvider.replaceCoursesDb(targetPath);
     }
 
-    // 更新本地版本号
-    final prefs = await SharedPreferences.getInstance();
-    final key = type == 'qbank' ? PrefKeys.qbankVersion : PrefKeys.coursesVersion;
-    await prefs.setInt(key, newVersion);
+    await _setLocalVersion(type, newVersion);
 
     await File(gzPath).delete();
     await File(targetPath).delete();

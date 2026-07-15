@@ -1,10 +1,29 @@
 import '../data/daos/question_dao.dart';
-import '../data/database/database_provider.dart';
-import '../data/database/assets_database.dart' as db;
+import '../data/database/assets_database.dart' as assets_db;
 
-// ═══════════════════════════════════════════════
-// 数据模型
-// ═══════════════════════════════════════════════
+/// 排序模式
+enum SortMode {
+  /// 最新优先
+  newestFirst,
+
+  /// 最早优先
+  oldestFirst,
+
+  /// 按题型分组
+  byType,
+
+  /// 难度升序
+  difficultyAsc,
+
+  /// 难度降序
+  difficultyDesc,
+
+  /// 年份降序（最新在前）
+  yearDesc,
+
+  /// 年份升序
+  yearAsc,
+}
 
 /// 树状概念标签节点
 class ConceptTagNode {
@@ -61,36 +80,51 @@ class SearchFilters {
   final int choiceCount;
   final int fillCount;
   final int solutionCount;
-  final int targetDifficulty;
+  final double targetDifficulty;
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
   final List<String> knowledgeCards;
-  final List<String> examTypes;
-  final List<String> questionTypes;
-  final double diffMin;
-  final double diffMax;
-  final double calcMin;
-  final double calcMax;
-  final List<int>? selectedIds;
+  final double? diffMin;
+  final double? diffMax;
+  final double? calcMin;
+  final double? calcMax;
+  final List<int> selectedIds;
+  final List<String>? examTypes;
+  final List<String>? questionTypes;
 
   const SearchFilters({
-    this.name = '',
-    this.choiceCount = 0,
-    this.fillCount = 0,
-    this.solutionCount = 0,
-    this.targetDifficulty = 0,
-    this.years = const [],
-    this.regions = const [],
-    this.conceptTags = const [],
-    this.knowledgeCards = const [],
-    this.examTypes = const [],
-    this.questionTypes = const [],
-    this.diffMin = 0,
-    this.diffMax = 10,
-    this.calcMin = 0,
-    this.calcMax = 10,
-    this.selectedIds,
+    required this.name,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.targetDifficulty,
+    required this.years,
+    required this.regions,
+    required this.conceptTags,
+    required this.knowledgeCards,
+    this.diffMin, this.diffMax, this.calcMin, this.calcMax,
+    this.selectedIds = const [],
+    this.examTypes,
+    this.questionTypes,
+  });
+}
+
+/// 筛选池统计
+class PoolStats {
+  final int availableChoice;
+  final int availableFill;
+  final int availableSolution;
+  final double poolDiffMin;
+  final double poolDiffMax;
+  final double gaokaoDiffMin;
+  final double gaokaoDiffAvg;
+  final double gaokaoDiffMax;
+
+  const PoolStats({
+    required this.availableChoice, required this.availableFill, required this.availableSolution,
+    required this.poolDiffMin, required this.poolDiffMax,
+    required this.gaokaoDiffMin, required this.gaokaoDiffAvg, required this.gaokaoDiffMax,
   });
 }
 
@@ -102,150 +136,123 @@ class SearchQuestion {
   final String meta;
   final double difficulty;
   final double calculation;
-  const SearchQuestion({
-    required this.id, required this.title, required this.questionType,
-    required this.meta, required this.difficulty, required this.calculation,
+  const SearchQuestion({required this.id, required this.title, required this.questionType, required this.meta, required this.difficulty, required this.calculation});
+}
+
+/// 题目详情（含子题/选项/步骤/标签）
+class QuestionDetail {
+  final assets_db.QuestionRow question;
+  final assets_db.ChoiceExtRow? choiceExt;
+  final List<assets_db.SubQuestionRow> subQuestions;
+  final List<assets_db.SolutionMethodRow> methods;
+  final List<assets_db.SolutionStepRow> steps;
+  final List<assets_db.ConceptTagRow> tags;
+
+  const QuestionDetail({
+    required this.question,
+    this.choiceExt,
+    this.subQuestions = const [],
+    this.methods = const [],
+    this.steps = const [],
+    this.tags = const [],
   });
 }
 
-/// 池统计
-class PoolStats {
-  final int availableChoice;
-  final int availableFill;
-  final int availableSolution;
-  const PoolStats({
-    required this.availableChoice,
-    required this.availableFill,
-    required this.availableSolution,
-  });
-}
-
-/// 排序方式
-enum SortMode {
-  newestFirst,    // 年份倒序（最新优先）
-  oldestFirst,    // 年份正序
-  difficultyDesc, // 难度从高到低
-  difficultyAsc,  // 难度从低到高
-  byType,         // 按题型分组
-  byNumber,       // 按题号
-}
-
-// ═══════════════════════════════════════════════
-// Repository
-// ═══════════════════════════════════════════════
-
-/// 题库 Repository — 纯查询，不含写入
+/// 题库 Repository — 只读接口，无写方法
 class QuestionRepository {
   final QuestionDao _questionDao;
 
-  QuestionRepository(this._questionDao);
+  const QuestionRepository(this._questionDao);
 
-  factory QuestionRepository.fromProvider() {
-    return QuestionRepository(QuestionDao(DatabaseProvider().assetsDb));
-  }
-
-  /// 获取筛选面板选项
+  /// 获取筛选选项
   Future<FilterOptions> getFilterOptions() async {
-    final years = (await _questionDao.getDistinctYears())
-        .map((y) => y.toString())
-        .toList();
+    final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
     final regions = await _questionDao.getDistinctRegions();
+    final tags = await _questionDao.getAllConceptTags();
+    final kcs = await _questionDao.getAllKnowledgeCards();
     final examTypes = await _questionDao.getDistinctExamTypes();
-
-    final allTags = await _questionDao.getAllConceptTags();
-    final tagTree = _buildTagTree(allTags);
-    final conceptTags = allTags.map((t) => t.name).toList();
-
-    final allKcs = await _questionDao.getAllKnowledgeCards();
-    final knowledgeCardGroups = _buildKnowledgeCardGroups(allKcs);
-    final knowledgeCardTitles = allKcs.map((k) => k.title).toList();
-
     return FilterOptions(
       years: years,
       regions: regions,
-      conceptTags: conceptTags,
+      conceptTags: tags.map((t) => t.name).toList(),
+      conceptTagTree: buildTagTree(tags),
+      knowledgeCards: kcs.map((k) => k.title).toList(),
+      knowledgeCardGroups: buildKnowledgeCardGroups(kcs),
       examTypes: examTypes,
-      conceptTagTree: tagTree,
-      knowledgeCards: knowledgeCardTitles,
-      knowledgeCardGroups: knowledgeCardGroups,
+      questionTypes: const ['choice', 'fill', 'solution'],
     );
   }
 
-  /// 按筛选条件搜索题目
+  /// 获取筛选后的题目列表，支持排序
   Future<List<SearchQuestion>> getFilteredQuestions(
     SearchFilters filters, {
     SortMode sort = SortMode.newestFirst,
   }) async {
     final rows = await _questionDao.search(
-      years: filters.years.isNotEmpty
-          ? filters.years.map((y) => int.tryParse(y)).whereType<int>().toList()
-          : null,
-      regions: filters.regions.isNotEmpty ? filters.regions.toList() : null,
-      diffMin: filters.diffMin > 0 ? filters.diffMin : null,
-      diffMax: filters.diffMax < 10 ? filters.diffMax : null,
-      calcMin: filters.calcMin > 0 ? filters.calcMin : null,
-      calcMax: filters.calcMax < 10 ? filters.calcMax : null,
-      examTypes: filters.examTypes.isNotEmpty
-          ? filters.examTypes.toList()
-          : null,
-      questionTypes: filters.questionTypes.isNotEmpty
-          ? filters.questionTypes.toList()
-          : null,
-      conceptTagNames: filters.conceptTags.isNotEmpty
-          ? filters.conceptTags.toList()
-          : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty
-          ? filters.knowledgeCards.toList()
-          : null,
+      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      diffMin: filters.diffMin,
+      diffMax: filters.diffMax,
+      calcMin: filters.calcMin,
+      calcMax: filters.calcMax,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
+      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
     );
 
-    // 内存排序
-    var result = rows.map((r) => SearchQuestion(
+    // 排序
+    List<assets_db.QuestionRow> sorted;
+    switch (sort) {
+      case SortMode.newestFirst:
+        sorted = List.of(rows)..sort((a, b) => b.year.compareTo(a.year));
+      case SortMode.oldestFirst:
+        sorted = List.of(rows)..sort((a, b) => a.year.compareTo(b.year));
+      case SortMode.byType:
+        sorted = List.of(rows)..sort((a, b) => a.questionType.compareTo(b.questionType));
+      case SortMode.difficultyAsc:
+        sorted = List.of(rows)..sort((a, b) => (a.difficulty ?? 0).compareTo(b.difficulty ?? 0));
+      case SortMode.difficultyDesc:
+        sorted = List.of(rows)..sort((a, b) => (b.difficulty ?? 0).compareTo(a.difficulty ?? 0));
+      case SortMode.yearDesc:
+        sorted = List.of(rows)..sort((a, b) => b.year.compareTo(a.year));
+      case SortMode.yearAsc:
+        sorted = List.of(rows)..sort((a, b) => a.year.compareTo(b.year));
+    }
+
+    return sorted.map((r) => SearchQuestion(
       id: r.id,
-      title: r.stem,
+      title: r.stem.length > 80 ? '${r.stem.substring(0, 80)}...' : r.stem,
       questionType: r.questionType,
-      meta: _buildMeta(r),
+      meta: '${r.year} ${r.examType} ${r.region}',
       difficulty: r.difficulty ?? 0,
       calculation: r.calculation ?? 0,
     )).toList();
-
-    switch (sort) {
-      case SortMode.newestFirst:
-        result.sort((a, b) => b.id.compareTo(a.id));
-        break;
-      case SortMode.oldestFirst:
-        result.sort((a, b) => a.id.compareTo(b.id));
-        break;
-      case SortMode.difficultyDesc:
-        result.sort((a, b) => b.difficulty.compareTo(a.difficulty));
-        break;
-      case SortMode.difficultyAsc:
-        result.sort((a, b) => a.difficulty.compareTo(b.difficulty));
-        break;
-      case SortMode.byType:
-        result.sort((a, b) => a.questionType.compareTo(b.questionType));
-        break;
-      case SortMode.byNumber:
-        // 近似按题号排
-        break;
-    }
-    return result;
   }
 
-  /// 获取题目详情（含子题、选项、解法步骤、标签等）
-  Future<QuestionDetail?> getQuestionDetail(int questionId) async {
+  /// 获取筛选池统计
+  Future<PoolStats> getPoolStats(SearchFilters filters) async {
+    final engine = _ExamFilterEngine(_questionDao);
+    return engine.compute(filters);
+  }
+
+  /// 获取题目详情（含子题/选项/步骤/标签）
+  Future<QuestionDetail> getQuestionDetail(int questionId) async {
     final question = await _questionDao.getById(questionId);
-    if (question == null) return null;
+    if (question == null) throw Exception('Question not found: $questionId');
 
     final choiceExt = await _questionDao.getChoiceExt(questionId);
     final subQuestions = await _questionDao.getSubQuestions(questionId);
-    final tags = await _questionDao.getTagsByQuestion(questionId);
 
-    // 批量查子题解法
-    final subIds = subQuestions.map((s) => s.id).toList();
+    // 批量查询所有子题的解法
+    final subIds = subQuestions.map((sq) => sq.id).toList();
     final methods = await _questionDao.getMethodsBySubQuestionIds(subIds);
+
+    // 批量查询所有方法的步骤
     final methodIds = methods.map((m) => m.id).toList();
     final steps = await _questionDao.getStepsByMethodIds(methodIds);
+
+    final tags = await _questionDao.getTagsByQuestion(questionId);
 
     return QuestionDetail(
       question: question,
@@ -257,100 +264,73 @@ class QuestionRepository {
     );
   }
 
-  Future<PoolStats> getPoolStats(SearchFilters filters) async {
-    final qs = await _questionDao.search(
-      years: filters.years.isNotEmpty
-          ? filters.years.map((y) => int.tryParse(y)).whereType<int>().toList()
-          : null,
-      regions: filters.regions.isNotEmpty ? filters.regions.toList() : null,
-      diffMin: filters.diffMin > 0 ? filters.diffMin : null,
-      diffMax: filters.diffMax < 10 ? filters.diffMax : null,
-      calcMin: filters.calcMin > 0 ? filters.calcMin : null,
-      calcMax: filters.calcMax < 10 ? filters.calcMax : null,
-      examTypes: filters.examTypes.isNotEmpty
-          ? filters.examTypes.toList()
-          : null,
-      questionTypes: filters.questionTypes.isNotEmpty
-          ? filters.questionTypes.toList()
-          : null,
-      conceptTagNames: filters.conceptTags.isNotEmpty
-          ? filters.conceptTags.toList()
-          : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty
-          ? filters.knowledgeCards.toList()
-          : null,
-    );
-    final choice = qs.where((q) => q.questionType == 'choice').length;
-    final fill = qs.where((q) => q.questionType == 'fill').length;
-    final solution = qs.where((q) => q.questionType == 'solution').length;
-    return PoolStats(availableChoice: choice, availableFill: fill, availableSolution: solution);
+  /// 获取筛选总数
+  Future<int> getTotalCount(SearchFilters filters) async {
+    final questions = await getFilteredQuestions(filters);
+    return questions.length;
   }
 
-  // ── 构建帮助 ──
-
-  String _buildMeta(db.QuestionRow q) {
-    final parts = <String>[];
-    parts.add('${q.year}');
-    if (q.region.isNotEmpty) parts.add(q.region);
-    if (q.examType.isNotEmpty) parts.add(q.examType);
-    if (q.number.isNotEmpty) parts.add('第${q.number}题');
-    return parts.join(' · ');
-  }
-
-  List<ConceptTagNode> _buildTagTree(List<db.ConceptTagRow> tags) {
-    // 递归构建子树
-    ConceptTagNode _buildSub(db.ConceptTagRow tag) {
-      final children = <ConceptTagNode>[];
-      for (final t in tags) {
-        if (t.parentId == tag.id) {
-          children.add(_buildSub(t));
-        }
-      }
+  static List<ConceptTagNode> buildTagTree(List<assets_db.ConceptTagRow> tags) {
+    final byParent = <int?, List<assets_db.ConceptTagRow>>{};
+    for (final t in tags) {
+      byParent.putIfAbsent(t.parentId, () => []).add(t);
+    }
+    ConceptTagNode buildNode(assets_db.ConceptTagRow row) {
       return ConceptTagNode(
-        id: tag.id, name: tag.name, parentId: tag.parentId,
-        children: children,
+        id: row.id, name: row.name, parentId: row.parentId,
+        children: (byParent[row.id] ?? []).map(buildNode).toList(),
       );
     }
-    // 找根节点
-    final roots = <ConceptTagNode>[];
-    for (final t in tags) {
-      if (t.parentId == null) {
-        roots.add(_buildSub(t));
-      }
-    }
-    return roots;
+    return (byParent[null] ?? []).map(buildNode).toList();
   }
 
-  List<KnowledgeCardGroup> _buildKnowledgeCardGroups(List<db.KnowledgeCardRow> cards) {
-    final groups = <String, List<KnowledgeCardItem>>{};
+  static List<KnowledgeCardGroup> buildKnowledgeCardGroups(List<assets_db.KnowledgeCardRow> cards) {
+    final byCategory = <String, List<KnowledgeCardItem>>{};
     for (final c in cards) {
-      groups.putIfAbsent(c.category, () => []);
-      groups[c.category]!.add(KnowledgeCardItem(id: c.id, title: c.title));
+      byCategory.putIfAbsent(c.category, () => []).add(KnowledgeCardItem(id: c.id, title: c.title));
     }
-    return groups.entries.map((e) =>
-      KnowledgeCardGroup(category: e.key, cards: e.value)
-    ).toList();
+    return byCategory.entries.map((e) => KnowledgeCardGroup(
+      category: e.key, cards: e.value,
+    )).toList();
   }
 }
 
-// ═══════════════════════════════════════════════
-// 题目详情模型
-// ═══════════════════════════════════════════════
+// ── 筛选池统计引擎 ──
 
-class QuestionDetail {
-  final db.QuestionRow question;
-  final db.ChoiceExtRow? choiceExt;
-  final List<db.SubQuestionRow> subQuestions;
-  final List<db.SolutionMethodRow> methods;
-  final List<db.SolutionStepRow> steps;
-  final List<db.ConceptTagRow> tags;
+class _ExamFilterEngine {
+  final QuestionDao _dao;
+  const _ExamFilterEngine(this._dao);
 
-  const QuestionDetail({
-    required this.question,
-    this.choiceExt,
-    required this.subQuestions,
-    required this.methods,
-    required this.steps,
-    required this.tags,
-  });
+  Future<PoolStats> compute(SearchFilters filters) async {
+    final pool = await _dao.search(
+      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      diffMin: filters.diffMin,
+      diffMax: filters.diffMax,
+      calcMin: filters.calcMin,
+      calcMax: filters.calcMax,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
+      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+    );
+
+    final choicePool = pool.where((q) => q.questionType == 'choice').toList();
+    final fillPool = pool.where((q) => q.questionType == 'fill').toList();
+    final solutionPool = pool.where((q) => q.questionType == 'solution').toList();
+
+    final allDiff = pool.map((q) => q.difficulty ?? 0).toList();
+    final gaokaoAll = pool.where((q) => q.examType == '高考').map((q) => q.difficulty ?? 0).toList();
+
+    return PoolStats(
+      availableChoice: choicePool.length,
+      availableFill: fillPool.length,
+      availableSolution: solutionPool.length,
+      poolDiffMin: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a < b ? a : b),
+      poolDiffMax: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a > b ? a : b),
+      gaokaoDiffMin: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a < b ? a : b),
+      gaokaoDiffAvg: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a + b) / gaokaoAll.length,
+      gaokaoDiffMax: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a > b ? a : b),
+    );
+  }
 }

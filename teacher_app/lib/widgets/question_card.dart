@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import 'md_latex_body.dart';
 
-/// 题目卡片 — 教师端简化版
+/// 题目卡片 — 老师端题库列表使用
 ///
-/// 保留 selectable/selected/trailing 选择模式；去掉状态标签和推荐原因。
+/// 两种交互模式：
+/// - 导航模式（默认）：点击跳转到详情页，尾部显示 chevron_right
+/// - 选择模式（selectable=true）：点击切换选中态，尾部显示 checkbox/radio
 class QuestionCard extends StatelessWidget {
   final int questionId;
   final String title;
@@ -72,7 +74,7 @@ class QuestionCard extends StatelessWidget {
               const SizedBox(height: 8),
               // 第二行：题干
               MdLatexBody(title, fontSize: 14),
-              // 第三行（可选）：副信息
+              // 第三行（可选）：副信息（在难度和题型同一行时有 subtitle）
               if (subtitle != null && difficulty != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),

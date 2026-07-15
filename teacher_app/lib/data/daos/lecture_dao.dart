@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../database/courses_database.dart' as db;
 
-/// 讲义数据访问层（lectures 库）
+/// 讲义数据访问层（教师端，无 AuditLogger）
 class LectureDao {
   final db.CoursesDatabase _db;
   const LectureDao(this._db);

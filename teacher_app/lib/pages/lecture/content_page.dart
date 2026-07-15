@@ -11,14 +11,12 @@ class LectureContentPage extends StatefulWidget {
   final int chapterId;
   final String chapterTitle;
   final LectureRepository repo;
-  final int initialPage;
 
   const LectureContentPage({
     super.key,
     required this.chapterId,
     required this.chapterTitle,
     required this.repo,
-    this.initialPage = 1,
   });
 
   @override
@@ -26,8 +24,6 @@ class LectureContentPage extends StatefulWidget {
 }
 
 class _LectureContentPageState extends State<LectureContentPage> {
-  late final LectureRepository _repo;
-  LectureContent? _content;
   LectureContentParsed? _parsed;
   int _pageIndex = 0;
   final Set<int> _revealedSet = {};
@@ -37,8 +33,6 @@ class _LectureContentPageState extends State<LectureContentPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.repo;
-    _pageIndex = widget.initialPage > 1 ? widget.initialPage - 1 : 0; // 1-based → 0-based
     _load();
   }
 
@@ -48,11 +42,10 @@ class _LectureContentPageState extends State<LectureContentPage> {
       _error = null;
     });
     try {
-      final content = await _repo.getContent(widget.chapterId);
-      final parsed = _repo.parseContent(content);
+      final content = await widget.repo.getContent(widget.chapterId);
+      final parsed = widget.repo.parseContent(content);
       if (!mounted) return;
       setState(() {
-        _content = content;
         _parsed = parsed;
         // clamp pageIndex after knowing actual page count
         if (_pageIndex >= parsed.pages.length) {
@@ -112,14 +105,12 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_content?.title ?? widget.chapterTitle),
-        ),
-        body: Column(
-          children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.chapterTitle),
+      ),
+      body: Column(
+        children: [
           Expanded(child: _buildBody()),
           if (_parsed != null && _parsed!.pages.isNotEmpty)
             LecturePagerWidget(
@@ -132,7 +123,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
             ),
         ],
       ),
-    ));
+    );
   }
 
   Widget _buildBody() {
@@ -161,7 +152,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
             // blocks[1..N] 逐步展开
             for (int i = 1; i < blocks.length; i++)
               _buildRevealBlock(i, blocks[i]),
-            // 知识卡片 ActionChip 列表
+            // 知识标签
             if (cardRefs.isNotEmpty) ...[
               const SizedBox(height: 20),
               const Divider(height: 1),
@@ -191,7 +182,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
     return ActionChip(
       avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
       label: Text(ref.title, style: const TextStyle(fontSize: 13)),
-      onPressed: () => _showKnowledgeCard(ref),
+      onPressed: () => _showKnowledgeCard(context, ref.title, ref.content),
       backgroundColor: AppColors.primaryLight,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -201,52 +192,26 @@ class _LectureContentPageState extends State<LectureContentPage> {
     );
   }
 
-  void _showKnowledgeCard(KnownCardRef ref) {
+  void _showKnowledgeCard(BuildContext context, String title, String content) {
     showDialog(
       context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.lightbulb_outline,
-                      color: AppColors.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      ref.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                child: MdLatexBody(ref.content, fontSize: 14),
-              ),
-              const SizedBox(height: 16),
-            ],
+        content: SingleChildScrollView(
+          child: MdLatexBody(content, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('关闭'),
           ),
-        ),
+        ],
       ),
     );
   }
