@@ -75,11 +75,6 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () { Navigator.of(ctx).pop(); _startUpdate(label, info); },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary, foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
                     child: const Text('立即更新', style: TextStyle(fontSize: 15)),
                   ),
                 ),

@@ -63,7 +63,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
           _card([
             _listTile(Icons.dns, '服务器地址', _serverUrl, onTap: _editServerUrl),
@@ -84,14 +84,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _card(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
+    return Card(
+      margin: EdgeInsets.zero,
       child: Column(children: children),
     );
   }

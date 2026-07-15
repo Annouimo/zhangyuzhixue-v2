@@ -5,6 +5,7 @@ import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
+import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/app_toast.dart';
 
 /// 选题预览页 — 展示已选题目详情，支持移除
@@ -91,7 +92,9 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
     if (_loading) return const LoadingIndicator(message: '加载题目详情…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _loadDetails);
     if (_questionIds.isEmpty) {
-      return const Center(child: Text('暂无题目'));
+      return const Center(child: EmptyPlaceholder(
+        icon: Icons.inbox, message: '暂无题目',
+      ));
     }
     return ListView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
@@ -141,14 +144,8 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
     );
   }
 
-  String _typeLabel(String type) {
-    switch (type) {
-      case 'choice': return '选择题';
-      case 'fill': return '填空题';
-      case 'solution': return '解答题';
-      default: return type;
-    }
-  }
+  String _typeLabel(String type) =>
+      QuestionTypeLabels.of(type);
 
   Widget _tag(String label) {
     return Container(
