@@ -31,29 +31,15 @@
 
     <div id="error-msg" class="error-banner"></div>
 
-    <!-- 步骤 1: 选来源 -->
+    <!-- 步骤 1: 粘贴选题 JSON -->
     <div class="card">
-      <div class="card-title">① 选择题目来源</div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button id="tab-paper" class="btn btn-sm" style="flex:1;" onclick="switchSource('paper')">📋 从组卷选择</button>
-        <button id="tab-json" class="btn btn-sm btn-outline" style="flex:1;" onclick="switchSource('json')">📝 粘贴选题 JSON</button>
-      </div>
-
-      <!-- 组卷模式 -->
-      <div id="source-paper">
-        <div id="paper-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载组卷列表...</div>
-        <div id="paper-list"></div>
-      </div>
-
-      <!-- JSON 模式 -->
-      <div id="source-json" style="display:none;">
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">
-          从教师 Flutter App 中选题并导出 JSON，粘贴到下方输入框中：
-        </p>
-        <textarea id="json-input" rows="4" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;resize:vertical;box-sizing:border-box;" placeholder='{"version":1,"questionIds":[101,205,378],"selectedAt":"2026-07-15T10:30:00","totalCount":3}'></textarea>
-        <div id="json-preview" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
-        <button id="json-parse-btn" class="btn btn-sm" style="margin-top:8px;" onclick="parseJsonInput()">解析并预览</button>
-      </div>
+      <div class="card-title">① 粘贴选题</div>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">
+        从教师 Flutter App 中选题并导出 JSON，粘贴到下方输入框中：
+      </p>
+      <textarea id="json-input" rows="4" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:monospace;resize:vertical;box-sizing:border-box;" placeholder='{"version":1,"questionIds":[101,205,378],"selectedAt":"2026-07-15T10:30:00","totalCount":3}'></textarea>
+      <div id="json-preview" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
+      <button id="json-parse-btn" class="btn btn-sm" style="margin-top:8px;" onclick="parseJsonInput()">解析</button>
     </div>
 
     <!-- 步骤 2: 填写信息 -->
@@ -61,7 +47,7 @@
       <div class="card-title">② 作业信息</div>
       <div class="input-group">
         <label for="title">标题</label>
-        <input type="text" id="title" placeholder="默认使用组卷名称或自动生成">
+        <input type="text" id="title" placeholder="作业标题（可选）">
       </div>
       <div class="input-group">
         <label for="deadline">截止日期</label>
@@ -88,28 +74,7 @@
   <script>
     initPage();
 
-    let selectedPaperId = null;
     let parsedQuestionIds = null;
-    let sourceMode = 'paper'; // 'paper' | 'json'
-
-    function switchSource(mode) {
-      sourceMode = mode;
-      document.getElementById('source-paper').style.display = mode === 'paper' ? 'block' : 'none';
-      document.getElementById('source-json').style.display = mode === 'json' ? 'block' : 'none';
-      document.getElementById('tab-paper').className = mode === 'paper' ? 'btn btn-sm' : 'btn btn-sm btn-outline';
-      document.getElementById('tab-json').className = mode === 'json' ? 'btn btn-sm' : 'btn btn-sm btn-outline';
-    }
-
-    window.selectPaper = function(el) {
-      document.querySelectorAll('.paper-card').forEach(c => c.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedPaperId = parseInt(el.dataset.paperId);
-      // 自动填充标题
-      const titleInput = document.getElementById('title');
-      if (!titleInput.value.trim()) {
-        titleInput.value = el.querySelector('.name').textContent;
-      }
-    };
 
     window.parseJsonInput = function() {
       const raw = document.getElementById('json-input').value.trim();
@@ -123,18 +88,20 @@
           return;
         }
         parsedQuestionIds = data.questionIds;
-        preview.innerHTML = `<span style="color:var(--success);">✅ 解析成功，共 ${data.questionIds.length} 题</span>
-          <span style="margin-left:12px;font-size:12px;color:var(--text-muted);">选中时间: ${data.selectedAt || '未知'}</span>`;
+        preview.innerHTML = '<span style="color:var(--success);">✅ 解析成功，共 ' + data.questionIds.length + ' 题</span>'
+          + (data.selectedAt ? '<span style="margin-left:12px;font-size:12px;color:var(--text-muted);">选中时间: ' + data.selectedAt.slice(0,10) + '</span>' : '');
         // 自动填充标题
         const titleInput = document.getElementById('title');
         if (!titleInput.value.trim()) {
-          titleInput.value = `作业（${data.questionIds.length}题）`;
+          titleInput.value = '作业（' + data.questionIds.length + '题）';
         }
         btn.textContent = '已解析 ✓';
         btn.disabled = true;
       } catch (e) {
         preview.innerHTML = '<span style="color:var(--error);">JSON 解析失败：' + esc(e.message) + '</span>';
         parsedQuestionIds = null;
+        btn.disabled = false;
+        btn.textContent = '解析';
       }
     };
 
@@ -146,36 +113,13 @@
 
     window.handlePublish = async function() {
       hideError();
+      if (!parsedQuestionIds || parsedQuestionIds.length === 0) {
+        showError('请先粘贴并解析选题 JSON'); return;
+      }
       const deadline = document.getElementById('deadline').value;
       if (!deadline) { showError('请选择截止日期'); return; }
-
-      let body;
-
-      if (sourceMode === 'json') {
-        if (!parsedQuestionIds || parsedQuestionIds.length === 0) {
-          showError('请先粘贴并解析选题 JSON'); return;
-        }
-        body = {
-          question_ids: parsedQuestionIds,
-          title: document.getElementById('title').value.trim(),
-          deadline: deadline,
-          description: document.getElementById('description').value.trim(),
-          class_ids: [],
-        };
-      } else {
-        if (!selectedPaperId) { showError('请选择一个组卷'); return; }
-        body = {
-          paper_id: selectedPaperId,
-          title: document.getElementById('title').value.trim(),
-          deadline: deadline,
-          description: document.getElementById('description').value.trim(),
-          class_ids: [],
-        };
-      }
-
-      const checkedBoxes = document.querySelectorAll('#class-list input[type=\"checkbox\"]:checked');
+      const checkedBoxes = document.querySelectorAll('#class-list input[type="checkbox"]:checked');
       if (checkedBoxes.length === 0) { showError('请至少选择一个班级'); return; }
-      body.class_ids = Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.classId));
 
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.textContent = '发布中...';
@@ -183,7 +127,13 @@
       try {
         await apiCall('/teacher/assignments/', {
           method: 'POST',
-          body: JSON.stringify(body),
+          body: JSON.stringify({
+            question_ids: parsedQuestionIds,
+            title: document.getElementById('title').value.trim(),
+            deadline: deadline,
+            description: document.getElementById('description').value.trim(),
+            class_ids: Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.classId)),
+          }),
         });
         window.location.href = '/teacher/';
       } catch (e) {
@@ -192,52 +142,29 @@
       }
     };
 
-    // 加载数据
+    // 加载班级
     (async function init() {
       try {
-        const [papers, classes] = await Promise.all([
-          apiCall('/teacher/papers/'),
-          apiCall('/teacher/classes/'),
-        ]);
-        hideLoading('paper-loading');
+        const classes = await apiCall('/teacher/classes/');
         hideLoading('class-loading');
-
-        // 渲染组卷
-        const paperContainer = document.getElementById('paper-list');
-        if (papers.length === 0) {
-          paperContainer.innerHTML = '<div class=\"text-center\" style=\"padding:16px;color:var(--text-muted);font-size:14px;\">暂无组卷</div>';
-        } else {
-          paperContainer.innerHTML = papers.map(p => `
-            <div class=\"paper-card\" data-paper-id=\"${p.id}\" onclick=\"selectPaper(this)\">
-              <div class=\"radio\"></div>
-              <div class=\"info\">
-                <div class=\"name\">${esc(p.title)}</div>
-                <div class=\"desc\">${p.questionCount} 题 · ${fmtDate(p.createdAt)}</div>
-              </div>
-            </div>`).join('');
-        }
-
-        // 渲染班级
         const items = classes.items || [];
         const classContainer = document.getElementById('class-list');
         if (items.length === 0) {
-          classContainer.innerHTML = '<div class=\"text-center\" style=\"padding:16px;color:var(--text-muted);font-size:14px;\">暂无班级数据</div>';
+          classContainer.innerHTML = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
         } else {
           classContainer.innerHTML = items.map(c => `
-            <label class=\"class-checkbox-row\" onclick=\"toggleClass(this)\">
-              <input type=\"checkbox\" value=\"${esc(c.name)}\" data-class-id=\"${c.id}\">
-              <span class=\"class-name\">${esc(c.name)}</span>
-              <span class=\"class-count\">${c.studentCount ?? 0} 人</span>
+            <label class="class-checkbox-row" onclick="toggleClass(this)">
+              <input type="checkbox" value="${esc(c.name)}" data-class-id="${c.id}">
+              <span class="class-name">${esc(c.name)}</span>
+              <span class="class-count">${c.studentCount ?? 0} 人</span>
             </label>`).join('');
-          // 默认全选
-          document.querySelectorAll('#class-list input[type=\"checkbox\"]').forEach(cb => {
+          document.querySelectorAll('#class-list input[type="checkbox"]').forEach(cb => {
             cb.checked = true;
             cb.closest('.class-checkbox-row').classList.add('checked');
           });
         }
       } catch (e) {
-        showError('加载数据失败: ' + e.message);
-        hideLoading('paper-loading');
+        showError('加载班级数据失败: ' + e.message);
         hideLoading('class-loading');
       }
     })();
