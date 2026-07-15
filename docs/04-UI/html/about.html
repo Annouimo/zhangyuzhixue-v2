@@ -9,25 +9,26 @@
     /* 关于页专用 */
     .about-header {
       text-align: center;
-      padding: 40px 16px 24px;
+      padding: 32px 16px 20px;
     }
     .about-header .icon {
-      width: 72px;
-      height: 72px;
+      width: 64px;
+      height: 64px;
       border-radius: 20px;
       background: var(--primary-light);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 12px;
+      font-size: 32px;
+      margin: 0 auto 10px;
     }
     .about-header h1 {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
+      margin: 0 0 2px;
     }
     .about-header .version {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-secondary);
     }
 
@@ -35,45 +36,165 @@
       padding: 0 16px 32px;
     }
 
-    /* 同步区域 */
-    .sync-section {
-      margin: 16px 0;
-      padding: 16px;
+    /* 卡片容器 */
+    .section-card {
+      margin-bottom: 12px;
       background: var(--card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* 版本条目 */
+    .version-item {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      padding: 14px 16px;
+      gap: 12px;
     }
-    .sync-section .sync-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+    .version-item .vi-icon {
+      width: 24px;
+      text-align: center;
+      font-size: 20px;
     }
-    .sync-section .sync-label {
+    .version-item .vi-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .version-item .vi-label {
       font-size: 15px;
       font-weight: 600;
     }
-    .sync-section .sync-time {
+    .version-item .vi-status {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .version-item .vi-status.ok {
+      color: var(--success);
+    }
+    .version-item .vi-status.warn {
+      color: var(--warning);
+    }
+    .version-item .vi-status.loading {
+      color: var(--text-muted);
+    }
+
+    .update-btn {
+      padding: 6px 14px;
+      border: 1.5px solid var(--warning);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warning);
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .update-btn:hover {
+      background: var(--warning);
+      color: #fff;
+    }
+    .update-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .update-btn:disabled:hover {
+      background: transparent;
+      color: var(--warning);
+    }
+    .update-btn.spinner {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 同步条目 */
+    .sync-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+    }
+    .sync-item .si-icon {
+      font-size: 20px;
+      width: 24px;
+      text-align: center;
+    }
+    .sync-item .si-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .sync-item .si-label {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .sync-item .si-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .sync-btn {
+      padding: 8px 16px;
+      border: 1.5px solid var(--primary);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .sync-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .sync-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* 列表条目（法律信息） */
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .list-item .left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .list-item .left .title {
+      font-size: 15px;
+    }
+    .list-item .right {
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    /* 页脚 */
+    .footer {
+      text-align: center;
+      padding: 16px 0;
       font-size: 12px;
       color: var(--text-muted);
     }
-    .sync-btn {
-      padding: 8px 20px;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      background: var(--primary);
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .sync-btn:hover { opacity: 0.85; }
-    .sync-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* 弹窗 */
+    /* 弹窗（复用） */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -107,7 +228,6 @@
       margin-bottom: 20px;
     }
 
-    /* 进度条 */
     .progress-track {
       width: 100%;
       height: 6px;
@@ -128,96 +248,157 @@
       color: var(--text-muted);
     }
 
-    /* 完成状态 */
     .status-check { color: var(--success); font-size: 40px; margin-bottom: 12px; }
     .status-error { color: var(--error); font-size: 40px; margin-bottom: 12px; }
     .modal-btn {
-      margin-top: 16px;
-      padding: 10px 28px;
+      margin: 12px 6px 0;
+      padding: 10px 24px;
       border: none;
       border-radius: var(--radius-sm);
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
+      cursor: pointer;
+    }
+    .modal-btn.primary {
       color: #fff;
       background: var(--primary);
-      cursor: pointer;
+    }
+    .modal-btn.outline {
+      color: var(--primary);
+      background: transparent;
+      border: 1.5px solid var(--primary);
     }
   </style>
 </head>
 <body>
 
-<!-- Flutter 注意：📄🔒🔄 等图标在 Flutter 中已替换为 Material Icon（ListTile leading） -->
+<!-- Flutter 注意：图标已替换为 Material Icons（Icons.storage / Icons.article / Icons.sync / Icons.description_outlined / Icons.privacy_tip_outlined） -->
 
 <div class="page">
 
-  <!-- 关于页头 -->
+  <!-- 品牌标识 -->
   <div class="about-header">
     <div class="icon">🏫</div>
     <h1>章鱼智学</h1>
     <div class="version" data-db="about.appVersion">版本 2.0.0</div>
   </div>
 
-  <!-- 用户协议 -->
-  <a href="#" class="list-item">
-    <div class="left">
-      <div class="title">📄 用户协议</div>
+  <!-- 卡片①：数据版本 -->
+  <div class="section-card">
+    <div class="version-item">
+      <div class="vi-icon">📦</div>
+      <div class="vi-body">
+        <div class="vi-label">题库</div>
+        <div class="vi-status ok">v3（最新）</div>
+      </div>
+      <!-- 无更新时不显示按钮 -->
     </div>
-    <div class="right">›</div>
-  </a>
-
-  <!-- 隐私政策 -->
-  <a href="#" class="list-item" style="margin-bottom:0;">
-    <div class="left">
-      <div class="title">🔒 隐私政策</div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0 0 0 48px;">
+    <div class="version-item">
+      <div class="vi-icon">📄</div>
+      <div class="vi-body">
+        <div class="vi-label">课程</div>
+        <div class="vi-status warn">v2 → v4 可用</div>
+      </div>
+      <button class="update-btn" onclick="startUpdate('课程')">更新</button>
     </div>
-    <div class="right">›</div>
-  </a>
+  </div>
 
-  <!-- 分割 -->
-  <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
-
-  <!-- 数据同步 -->
-  <div class="sync-section">
-    <div class="sync-info">
-      <span class="sync-label">🔄 数据同步</span>
-      <span class="sync-time" id="sync-time">上次同步：从未同步</span>
+  <!-- 卡片②：用户数据同步 -->
+  <div class="section-card">
+    <div class="sync-item">
+      <div class="si-icon">🔄</div>
+      <div class="si-body">
+        <div class="si-label">用户数据</div>
+        <div class="si-time" id="sync-time">上次同步：从未同步</div>
+      </div>
+      <button class="sync-btn" id="sync-btn" onclick="startSync()">
+        <span>⬇</span>
+        <span>立即同步</span>
+      </button>
     </div>
-    <button class="sync-btn" id="sync-btn" onclick="startSync()">同步</button>
+  </div>
+
+  <!-- 卡片③：法律信息 -->
+  <div class="section-card">
+    <a href="#" class="list-item">
+      <div class="left">
+        <span style="font-size:20px;">📄</span>
+        <span class="title">用户协议</span>
+      </div>
+      <div class="right">›</div>
+    </a>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0;">
+    <a href="#" class="list-item" style="margin-bottom:0;">
+      <div class="left">
+        <span style="font-size:20px;">🔒</span>
+        <span class="title">隐私政策</span>
+      </div>
+      <div class="right">›</div>
+    </a>
   </div>
 
   <!-- 页脚 -->
-  <div style="text-align:center;padding:24px 0 16px;">
-    <span style="font-size:12px;color:var(--text-muted);">© 2025 章鱼智学 · 北京</span>
-  </div>
+  <div class="footer">© 2026 章鱼智学 · 北京</div>
 
 </div>
 
-<!-- 进度弹窗 -->
+<!-- 更新进度弹窗 -->
+<div class="modal-overlay" id="update-modal">
+  <div class="modal-card" id="update-modal-inner">
+    <div id="u-state-progress">
+      <div class="modal-icon">⬇️</div>
+      <div class="modal-title" id="u-title">更新数据</div>
+      <div class="modal-desc" id="u-desc">正在下载课程新版本…</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="u-progress-fill"></div>
+      </div>
+      <div class="progress-text" id="u-progress-text">0%</div>
+    </div>
+    <div id="u-state-done" style="display:none;">
+      <div class="status-check">✅</div>
+      <div class="modal-title">更新完成</div>
+      <div class="modal-desc">数据已更新到最新版本</div>
+      <button class="modal-btn primary" onclick="closeUpdateModal()">知道了</button>
+    </div>
+    <div id="u-state-fail" style="display:none;">
+      <div class="status-error">❌</div>
+      <div class="modal-title">更新失败</div>
+      <div class="modal-desc" id="u-fail-desc">网络异常，请稍后重试</div>
+      <div>
+        <button class="modal-btn outline" onclick="retryUpdate()">重试</button>
+        <button class="modal-btn primary" onclick="closeUpdateModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 同步进度弹窗 -->
 <div class="modal-overlay" id="sync-modal">
-  <div class="modal-card" id="modal-inner">
-    <!-- 进度状态（默认显示） -->
-    <div id="state-progress">
+  <div class="modal-card" id="sync-modal-inner">
+    <div id="s-state-progress">
       <div class="modal-icon">⬇️</div>
       <div class="modal-title">同步数据</div>
-      <div class="modal-desc">正在从服务器恢复学习记录…</div>
+      <div class="modal-desc">正在上传本地数据并下载最新记录…</div>
       <div class="progress-track">
-        <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-fill" id="s-progress-fill"></div>
       </div>
-      <div class="progress-text" id="progress-text">0%</div>
+      <div class="progress-text" id="s-progress-text">0%</div>
     </div>
-    <!-- 完成状态（隐藏） -->
-    <div id="state-done" style="display:none;">
+    <div id="s-state-done" style="display:none;">
       <div class="status-check">✅</div>
       <div class="modal-title">同步完成</div>
       <div class="modal-desc">学习记录已恢复</div>
-      <button class="modal-btn" onclick="closeModal()">知道了</button>
+      <button class="modal-btn primary" onclick="closeSyncModal()">知道了</button>
     </div>
-    <!-- 失败状态（隐藏） -->
-    <div id="state-fail" style="display:none;">
+    <div id="s-state-fail" style="display:none;">
       <div class="status-error">❌</div>
       <div class="modal-title">同步失败</div>
-      <div class="modal-desc" id="fail-desc">网络异常，请稍后重试</div>
-      <button class="modal-btn" onclick="closeModal()">关闭</button>
+      <div class="modal-desc" id="s-fail-desc">网络异常，请稍后重试</div>
+      <div>
+        <button class="modal-btn outline" onclick="retrySync()">重试</button>
+        <button class="modal-btn primary" onclick="closeSyncModal()">关闭</button>
+      </div>
     </div>
   </div>
 </div>
@@ -225,55 +406,83 @@
 <script>
 function $(id) { return document.getElementById(id); }
 
-function showState(id) {
-  ['state-progress', 'state-done', 'state-fail'].forEach(function(s) {
-    $(s).style.display = s === id ? 'block' : 'none';
+function showState(prefix, id) {
+  [prefix+'state-progress', prefix+'state-done', prefix+'state-fail'].forEach(function(s) {
+    $(s).style.display = s === prefix+id ? 'block' : 'none';
   });
 }
 
-function openModal() {
-  $('sync-modal').classList.add('open');
+// ── 更新弹窗 ──
+var _updateLabel = '';
+
+function openUpdateModal() { $('update-modal').classList.add('open'); }
+function closeUpdateModal() { $('update-modal').classList.remove('open'); }
+
+function startUpdate(label) {
+  _updateLabel = label;
+  $('u-desc').textContent = '正在下载' + label + '新版本…';
+  showState('u-', 'progress');
+  $('u-progress-fill').style.width = '0%';
+  $('u-progress-text').textContent = '0%';
+  openUpdateModal();
+
+  var p = 0;
+  var iv = setInterval(function() {
+    p += Math.random() * 25 + 5;
+    if (p > 100) p = 100;
+    $('u-progress-fill').style.width = p + '%';
+    $('u-progress-text').textContent = Math.round(p) + '%';
+    if (p >= 100) {
+      clearInterval(iv);
+      setTimeout(function() {
+        showState('u-', 'done');
+      }, 400);
+    }
+  }, 300);
 }
 
-function closeModal() {
-  $('sync-modal').classList.remove('open');
+function retryUpdate() {
+  startUpdate(_updateLabel);
 }
+
+// ── 同步弹窗 ──
+function openSyncModal() { $('sync-modal').classList.add('open'); }
+function closeSyncModal() { $('sync-modal').classList.remove('open'); }
 
 function startSync() {
   var btn = $('sync-btn');
   btn.disabled = true;
-  btn.textContent = '同步中…';
 
-  showState('state-progress');
-  $('progress-fill').style.width = '0%';
-  $('progress-text').textContent = '0%';
-  openModal();
+  showState('s-', 'progress');
+  $('s-progress-fill').style.width = '0%';
+  $('s-progress-text').textContent = '0%';
+  openSyncModal();
 
-  // 模拟进度
-  var progress = 0;
-  var interval = setInterval(function() {
-    progress += Math.random() * 25 + 5;
-    if (progress > 100) progress = 100;
-    $('progress-fill').style.width = progress + '%';
-    $('progress-text').textContent = Math.round(progress) + '%';
-
-    if (progress >= 100) {
-      clearInterval(interval);
+  var p = 0;
+  var iv = setInterval(function() {
+    p += Math.random() * 25 + 5;
+    if (p > 100) p = 100;
+    $('s-progress-fill').style.width = p + '%';
+    $('s-progress-text').textContent = Math.round(p) + '%';
+    if (p >= 100) {
+      clearInterval(iv);
       setTimeout(function() {
-        // 随机成功/失败演示
         var ok = Math.random() > 0.3;
         if (ok) {
-          showState('state-done');
+          showState('s-', 'done');
           $('sync-time').textContent = '上次同步：刚刚';
         } else {
-          showState('state-fail');
-          $('fail-desc').textContent = '网络异常，请稍后重试';
+          showState('s-', 'fail');
+          $('s-fail-desc').textContent = '网络异常，请稍后重试';
         }
         btn.disabled = false;
-        btn.textContent = '同步';
-      }, 500);
+      }, 400);
     }
-  }, 400);
+  }, 300);
+}
+
+function retrySync() {
+  startSync();
 }
 </script>
 
