@@ -57,10 +57,17 @@ class UpdateManager {
 
   /// 检查 qbank 和 courses 版本
   Future<List<UpdateSummary>> checkAll() async {
-    final results = await Future.wait([
-      _checkOne('qbank'),
-      _checkOne('courses'),
-    ]);
+    final results = <UpdateSummary>[];
+    for (final type in ['qbank', 'courses']) {
+      try {
+        results.add(await _checkOne(type));
+      } catch (e) {
+        // 单个类型检查失败不影响另一个类型
+        results.add(UpdateSummary(
+          type: type, localVersion: 0, serverVersion: 0, forceUpdate: false,
+        ));
+      }
+    }
     return results;
   }
 

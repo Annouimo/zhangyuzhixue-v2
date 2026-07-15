@@ -77,10 +77,6 @@ class FilterOptions {
 /// 筛选条件
 class SearchFilters {
   final String name;
-  final int choiceCount;
-  final int fillCount;
-  final int solutionCount;
-  final double targetDifficulty;
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
@@ -89,22 +85,16 @@ class SearchFilters {
   final double? diffMax;
   final double? calcMin;
   final double? calcMax;
-  final List<int> selectedIds;
   final List<String>? examTypes;
   final List<String>? questionTypes;
 
   const SearchFilters({
     required this.name,
-    required this.choiceCount,
-    required this.fillCount,
-    required this.solutionCount,
-    required this.targetDifficulty,
-    required this.years,
-    required this.regions,
-    required this.conceptTags,
-    required this.knowledgeCards,
+    this.years = const [],
+    this.regions = const [],
+    this.conceptTags = const [],
+    this.knowledgeCards = const [],
     this.diffMin, this.diffMax, this.calcMin, this.calcMax,
-    this.selectedIds = const [],
     this.examTypes,
     this.questionTypes,
   });

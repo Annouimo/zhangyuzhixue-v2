@@ -11,6 +11,7 @@ import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/question_card.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../widgets/filter_panel.dart';
+import '../../data/debug/audit_logger.dart';
 import 'preview_page.dart';
 
 /// 题库浏览选题页
@@ -58,13 +59,16 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
-    } catch (e) { if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) {
+      AuditLogger.instance.error('QuestionBankPage._loadFilterOptions', e);
+      if (mounted) setState(() { _loadingOpts = false; });
+    }
   }
 
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+        name: _nameController.text,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
         knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
@@ -79,7 +83,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   Future<void> _search() async {
     setState(() => _loadingQ = true);
     try {
-      final filters = SearchFilters(name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
+      final filters = SearchFilters(name: _nameController.text,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
         examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
@@ -89,7 +93,10 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
       _updatePoolStats();
-    } catch (e) { if (mounted) setState(() => _loadingQ = false); }
+    } catch (e) {
+      AuditLogger.instance.error('QuestionBankPage._search', e);
+      if (mounted) setState(() => _loadingQ = false);
+    }
   }
 
   /// 生成 JSON 并复制到剪贴板
@@ -223,13 +230,22 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _statChip('选择', _poolStats!.availableChoice),
-                const SizedBox(width: 8),
-                _statChip('填空', _poolStats!.availableFill),
-                const SizedBox(width: 8),
-                _statChip('解答', _poolStats!.availableSolution),
+                Row(children: [
+                  _statChip('选择', _poolStats!.availableChoice),
+                  const SizedBox(width: 8),
+                  _statChip('填空', _poolStats!.availableFill),
+                  const SizedBox(width: 8),
+                  _statChip('解答', _poolStats!.availableSolution),
+                ]),
+                const SizedBox(height: 4),
+                Text(
+                  '难度范围 ${_poolStats!.poolDiffMin.toStringAsFixed(1)}~${_poolStats!.poolDiffMax.toStringAsFixed(1)} · '
+                  '高考难度 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(1)}~${_poolStats!.gaokaoDiffAvg.toStringAsFixed(1)}~${_poolStats!.gaokaoDiffMax.toStringAsFixed(1)}',
+                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                ),
               ],
             ),
           ),
