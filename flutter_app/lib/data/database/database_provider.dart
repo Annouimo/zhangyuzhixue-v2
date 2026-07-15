@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:archive/archive.dart';
 import '../database/assets_database.dart';
 import '../database/courses_database.dart';
 import '../database/app_database.dart';
@@ -23,6 +24,7 @@ class DatabaseProvider {
   CoursesDatabase? _coursesDb;
   bool _initialized = false;
   String? _dbDirPath;
+  String? _imagesDirPath;
   int _dbVersion = 0;
   final ValueNotifier<int> _dbVersionNotifier = ValueNotifier<int>(0);
 
@@ -40,6 +42,7 @@ class DatabaseProvider {
     _dbDirPath = dir.path;
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'courses.db');
+    _imagesDirPath = '${dir.path}/images';
     await _ensureUserDbSchema(dir);
     await _openAll(dir);
     _initialized = true;
@@ -227,6 +230,27 @@ class DatabaseProvider {
   void _ensureInitialized() {
     if (!_initialized) {
       throw StateError('DatabaseProvider not initialized. Call init() first.');
+    }
+  }
+
+  /// 配图目录路径
+  String get imagesDir {
+    _ensureInitialized();
+    return _imagesDirPath!;
+  }
+
+  /// 替换配图：解压 tar.gz 到 images 目录
+  Future<void> replaceImages(String tarPath) async {
+    final bytes = await File(tarPath).readAsBytes();
+    final archive = TarDecoder().decodeBytes(GZipDecoder().decodeBytes(bytes));
+    final dir = Directory(_imagesDirPath!);
+    if (await dir.exists()) await dir.delete(recursive: true);
+    await dir.create(recursive: true);
+    for (final entry in archive) {
+      if (entry.isFile) {
+        await File('${dir.path}/${entry.name}')
+            .writeAsBytes(entry.content as List<int>);
+      }
     }
   }
 }

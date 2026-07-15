@@ -129,6 +129,15 @@ class UpdateManager {
     if (type == 'qbank') {
       await _dbProvider.replaceAssetsDb(targetPath);
       await AppPrefs().setQbankVersion(newVersion);
+      // 下载并替换配图
+      try {
+        final imgUrl = url.replaceAll(RegExp(r'qbank_v\d+\.db\.gz$'), 'images_v${newVersion}.tar.gz');
+        final imgGzPath = '${tempDir.path}/images_temp.tar.gz';
+        if (await File(imgGzPath).exists()) await File(imgGzPath).delete();
+        await _downloadClient.download(imgUrl, imgGzPath);
+        await _dbProvider.replaceImages(imgGzPath);
+        await File(imgGzPath).delete();
+      } catch (_) {}
     } else if (type == 'courses') {
       await _dbProvider.replaceCoursesDb(targetPath);
       await AppPrefs().setCoursesVersion(newVersion);

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../../app_theme.dart';
+import '../../data/database/database_provider.dart';
 
-/// 题库配图组件 — 使用 AssetImage 加载，符合图片路由规范
-///
-/// 配图路径规范：`QuestionDetail.images` 存储相对路径如 `一模/2024/海淀/q17.webp`
-/// 解析规则：拼接 `assets/questions/images/` 前缀后通过 AssetImage 加载
-/// 三态覆盖：正常显示 → 加载失败显示占位图标
+/// 题库配图组件 — 从 documents/images/ 加载（Image.file）或回退到 asset bundle
 class QuestionImage extends StatelessWidget {
   final String relativePath;
   final double? width;
@@ -20,23 +18,38 @@ class QuestionImage extends StatelessWidget {
     this.fit = BoxFit.contain,
   });
 
-  static const String _assetBase = 'assets/questions/images';
-
-  String get _assetPath => '$_assetBase/$relativePath';
+  String get _assetPath => 'assets/questions/images/$relativePath';
 
   @override
   Widget build(BuildContext context) {
+    final imagesDir = DatabaseProvider().imagesDir;
+    final filePath = '$imagesDir/$relativePath';
+    final file = File(filePath);
+
+    Widget image;
+    if (file.existsSync()) {
+      image = Image.file(
+        file,
+        width: width,
+        height: maxHeight,
+        fit: fit,
+        errorBuilder: (_, _, _) => _buildPlaceholder(),
+      );
+    } else {
+      image = Image.asset(
+        _assetPath,
+        width: width,
+        height: maxHeight,
+        fit: fit,
+        errorBuilder: (_, _, _) => _buildPlaceholder(),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.asset(
-          _assetPath,
-          width: width,
-          height: maxHeight,
-          fit: fit,
-          errorBuilder: (_, _, _) => _buildPlaceholder(),
-        ),
+        child: image,
       ),
     );
   }

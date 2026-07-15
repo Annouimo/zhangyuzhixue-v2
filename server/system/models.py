@@ -151,6 +151,11 @@ class DbVersion(models.Model):
     created_at = models.DateTimeField('创建时间', default=timezone.now)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 配图包（版本号与 data_version 一致）
+    image_download_url = models.CharField('配图下载路径', max_length=500, blank=True, default='')
+    image_checksum = models.CharField('配图SHA256校验和', max_length=128, blank=True, default='')
+    image_size_bytes = models.IntegerField('配图包大小', default=0)
+
     class Meta:
         verbose_name = '数据库版本'
         verbose_name_plural = '数据库版本'

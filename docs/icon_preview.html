@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>章鱼智学 · 图标草稿预览</title>
+<style>
+  body { font-family: -apple-system, 'Microsoft YaHei', sans-serif; background: #f5f7fa; margin: 0; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+  h1 { color: #1a1a2e; font-size: 24px; margin-bottom: 8px; }
+  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-start; }
+  .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+  .card-label { font-size: 13px; color: #6b7280; margin-bottom: 12px; }
+  .icon-wrap { display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; }
+  .icon-wrap img { border-radius: 8px; }
+  .mock-phone { width: 120px; height: 240px; background: #1a1a2e; border-radius: 20px; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .mock-phone .status-bar { width: 100%; height: 20px; display: flex; justify-content: center; }
+  .mock-phone .app-icon { width: 60px; height: 60px; border-radius: 14px; margin-top: 20px; }
+  .mock-phone .app-name { color: white; font-size: 11px; text-align: center; }
+  .mock-phone .dock { margin-top: auto; display: flex; gap: 16px; }
+  .mock-phone .dock .dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+</style>
+</head>
+<body>
+  <h1>🐙 章鱼智学 · 图标草稿</h1>
+  <p class="subtitle">定稿后重新运行 scripts/generate_app_icon.py 即可一键替换全部平台</p>
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">1024×1024（原图）</div>
+      <img src="app_icon_preview.png" width="256" style="border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1);">
+    </div>
+    <div class="card">
+      <div class="card-label">Android 桌面模拟</div>
+      <div class="mock-phone">
+        <div class="status-bar"><span style="color:#999;font-size:8px;">9:41</span></div>
+        <img src="app_icon_preview.png" class="app-icon">
+        <div class="app-name">章鱼智学</div>
+        <div class="dock"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Windows 任务栏</div>
+      <img src="app_icon_preview.png" width="32" style="border-radius: 4px;">
+      <div style="margin-top: 8px;font-size:12px;color:#6b7280;">32×32</div>
+    </div>
+    <div class="card">
+      <div class="card-label">macOS Dock</div>
+      <img src="app_icon_preview.png" width="64" style="border-radius: 10px;">
+      <div style="margin-top: 8px;font-size:12px;color:#6b7280;">64×64</div>
+    </div>
+  </div>
+  <div style="margin-top: 24px;padding: 16px;background: #eef1ff;border-radius: 12px;font-size:13px;color:#4a6cf7;">
+    ⚡ 草稿阶段 · 后续替换方法：修改 scripts/generate_app_icon.py 中的设计，运行即覆盖全部平台
+  </div>
+</body>
+</html>
