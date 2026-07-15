@@ -4,16 +4,24 @@ import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../widgets/md_latex_body.dart';
 import '../../widgets/shared/question_image.dart';
+import '../../widgets/shared/loading_indicator.dart';
+import '../../widgets/shared/error_placeholder.dart';
+import '../../data/debug/audit_logger.dart';
 import '../../data/database/assets_database.dart' as db;
 
 /// 题目详情页（只读模式，无答题交互）
+///
+/// 接收 questionId + repo，内部异步加载，先显示 LoadingIndicator
+/// 避免 Navigator.push 过渡动画因首帧 build 过重而掉帧。
 class QuestionDetailPage extends StatefulWidget {
-  final QuestionDetail detail;
+  final int questionId;
+  final QuestionRepository repo;
   final bool initiallySelected;
 
   const QuestionDetailPage({
     super.key,
-    required this.detail,
+    required this.questionId,
+    required this.repo,
     this.initiallySelected = false,
   });
 
@@ -22,17 +30,52 @@ class QuestionDetailPage extends StatefulWidget {
 }
 
 class _QuestionDetailPageState extends State<QuestionDetailPage> {
+  QuestionDetail? _detail;
+  bool _loading = true;
+  String? _error;
   late bool _selected;
 
   @override
   void initState() {
     super.initState();
     _selected = widget.initiallySelected;
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final detail = await widget.repo.getQuestionDetail(widget.questionId);
+      if (!mounted) return;
+      setState(() { _detail = detail; _loading = false; });
+      AuditLogger.instance.page('QuestionDetailPage', {
+        'questionId': widget.questionId, 'choiceExt': detail.choiceExt != null,
+        'subQuestions': detail.subQuestions.length, 'methods': detail.methods.length,
+        'steps': detail.steps.length, 'tags': detail.tags.length,
+      });
+    } catch (e) {
+      AuditLogger.instance.error('QuestionDetailPage._load', e);
+      if (!mounted) return;
+      setState(() { _error = e.toString(); _loading = false; });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final q = widget.detail.question;
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('题目详情')),
+        body: const LoadingIndicator(message: '加载题目详情…'),
+      );
+    }
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('题目详情')),
+        body: ErrorPlaceholder(message: _error!, onRetry: _load),
+      );
+    }
+
+    final q = _detail!.question;
     return Scaffold(
       appBar: AppBar(
         title: Text(q.number.isNotEmpty
@@ -53,12 +96,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
           // 概念标签
-          if (widget.detail.tags.isNotEmpty) ...[
+          if (_detail!.tags.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Wrap(
                 spacing: 6, runSpacing: 4,
-                children: widget.detail.tags.map((t) => Container(
+                children: _detail!.tags.map((t) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
@@ -91,20 +134,18 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           const SizedBox(height: 16),
 
           // 选择题选项
-          if (widget.detail.choiceExt != null) ...[
+          if (_detail!.choiceExt != null) ...[
             _section('选项'),
-            _buildOptions(widget.detail.choiceExt!),
+            _buildOptions(_detail!.choiceExt!),
             const SizedBox(height: 16),
           ],
 
           // 小题 + 答案 + 解析
-          // 选择题: 选项已包含正确标识，子题区不重复显示答案
-          // 选填/解答: 显示答案
-          ...widget.detail.subQuestions.map((sq) {
-            final subMethods = widget.detail.methods
+          ..._detail!.subQuestions.map((sq) {
+            final subMethods = _detail!.methods
                 .where((m) => m.subQuestionId == sq.id)
                 .toList();
-            final isChoice = widget.detail.choiceExt != null;
+            final isChoice = _detail!.choiceExt != null;
             return _buildSubQuestion(sq, subMethods, hideAnswer: isChoice);
           }),
         ],
@@ -146,8 +187,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               _metaItem('考试', q.examType),
             if (q.number.isNotEmpty)
               _metaItem('题号', '第${q.number}题'),
-            // 题目ID用小字
-            Text('ID: ${widget.detail.question.id}',
+            Text('ID: ${_detail!.question.id}',
               style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
             ),
           ],
@@ -183,7 +223,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  /// 解析步骤的 cardTitles JSON，渲染关联的知识卡片
   Widget _buildStepKnowledgeCards(String cardTitlesJson, Map<String, db.KnowledgeCardRow> kcMap) {
     List<String> titles;
     try {
@@ -217,7 +256,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  /// 带左边框的容器
   Widget _accentContainer(String title, Color accentColor, Widget child) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -265,8 +303,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     } catch (_) {
       return Text(options, style: const TextStyle(fontSize: 13));
     }
-    final answer = widget.detail.subQuestions.isNotEmpty
-        ? widget.detail.subQuestions.first.answer ?? ''
+    final answer = _detail!.subQuestions.isNotEmpty
+        ? _detail!.subQuestions.first.answer ?? ''
         : '';
 
     return Column(
@@ -322,35 +360,31 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           MdLatexBody(sq.stem!, fontSize: 14),
           const SizedBox(height: 8),
         ],
-        // 答案（选择题不重复显示，选项已包含）
         if (!hideAnswer && sq.answer != null && sq.answer!.isNotEmpty) ...[
           _section('答案'),
           _accentContainer('答案', AppColors.success, MdLatexBody(sq.answer!, fontSize: 14)),
         ],
-        // 解析
         if (sq.explanation != null && sq.explanation!.isNotEmpty) ...[
           _section('解析'),
           _accentContainer('解析', AppColors.primary, MdLatexBody(sq.explanation!, fontSize: 14)),
         ],
-        // 解法步骤
         ...methods.map((m) => _buildMethod(m)),
       ],
     );
   }
 
   Widget _buildMethod(db.SolutionMethodRow method) {
-    final methodSteps = widget.detail.steps
+    final methodSteps = _detail!.steps
         .where((s) => s.methodId == method.id)
         .toList();
     if (methodSteps.isEmpty) return const SizedBox.shrink();
 
-    final kcMap = {for (final kc in widget.detail.knowledgeCards) kc.title: kc};
-    final hasMultipleMethods = widget.detail.methods.length > 1;
+    final kcMap = {for (final kc in _detail!.knowledgeCards) kc.title: kc};
+    final hasMultipleMethods = _detail!.methods.length > 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 仅在有多个解法时显示方法名
         if (hasMultipleMethods)
           Padding(
             padding: const EdgeInsets.only(top: 4, bottom: 4),

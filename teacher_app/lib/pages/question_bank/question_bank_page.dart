@@ -125,19 +125,15 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
     );
   }
 
-  Future<void> _openDetail(int questionId) async {
-    try {
-      final detail = await _repo.getQuestionDetail(questionId);
-      if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => QuestionDetailPage(detail: detail),
+  void _openDetail(int questionId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => QuestionDetailPage(
+          questionId: questionId,
+          repo: _repo,
         ),
-      );
-    } catch (e) {
-      AuditLogger.instance.error('QuestionBankPage._openDetail', e);
-      if (mounted) AppToast.error(context, '加载题目详情失败');
-    }
+      ),
+    );
   }
 
   Widget _buildPreviewPage() {
