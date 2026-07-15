@@ -175,9 +175,27 @@ class _AboutPageState extends State<AboutPage> {
           ListTile(
             leading: const Icon(Icons.sync, color: AppColors.primary),
             title: const Text('用户数据', style: TextStyle(fontSize: 15)),
-            subtitle: Text(
-              _lastSyncTime,
-              style: const TextStyle(fontSize: 12),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _lastSyncTime,
+                  style: const TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '从云端恢复数据到本机 ← 方向：云端 → 本机',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+                const Text(
+                  '日常做题记录已在后台自动同步，平时无需手动操作。',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+                const Text(
+                  '需要登录新设备或发现数据不完整时，再点「立即同步」。',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
             ),
             trailing: OutlinedButton.icon(
               onPressed: _syncing ? null : _onSync,
