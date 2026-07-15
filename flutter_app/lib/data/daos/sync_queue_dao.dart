@@ -48,7 +48,8 @@ class SyncQueueDao {
     ));
   }
 
-  Future<void> markFailed(int id) async {
+  /// 标记失败，附带错误信息
+  Future<void> markFailed(int id, {String? errorMessage}) async {
     final existing = await (_db.select(_db.syncQueue)
       ..where((t) => t.id.equals(id))).getSingleOrNull();
     if (existing == null) return;
@@ -56,6 +57,7 @@ class SyncQueueDao {
     await q.write(db.SyncQueueCompanion(
       status: const Value('failed'),
       retryCount: Value(existing.retryCount + 1),
+      errorMessage: Value(errorMessage),
     ));
   }
 
@@ -102,6 +104,13 @@ class SyncQueueDao {
     final rows = await _db.select(_db.syncQueue).get();
     AuditLogger.instance.dao('SyncQueueDao.isEmpty', rows.length, {});
     return rows.isEmpty;
+  }
+
+  Future<int> getPendingCount() async {
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.isIn(['pending', 'inProgress', 'failed']))).get();
+    AuditLogger.instance.dao('SyncQueueDao.getPendingCount', rows.length, {});
+    return rows.length;
   }
 
   Future<bool> hasFailed() async {

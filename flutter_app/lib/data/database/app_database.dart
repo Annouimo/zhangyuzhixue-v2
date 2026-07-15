@@ -222,6 +222,7 @@ class SyncQueue extends Table {
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get createdAt => text()();
   TextColumn? get updatedAt => text().nullable()();
+  TextColumn? get errorMessage => text().nullable()();
 }
 
 // ═══════════════════════════════════════════════
@@ -249,7 +250,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -269,6 +270,9 @@ class AppDatabase extends _$AppDatabase {
           'CREATE UNIQUE INDEX IF NOT EXISTS idx_submission_detail_unique '
           'ON submission_detail(question_id, attempt_number)'
         );
+      }
+      if (from <= 4 && to >= 5) {
+        await m.addColumn(syncQueue, syncQueue.errorMessage);
       }
     },
   );

@@ -10,6 +10,7 @@ class SyncQueueItem {
   final String createdAt;
   final String timeAgo;
   final int retryCount;
+  final String? errorMessage;
 
   const SyncQueueItem({
     required this.entityType,
@@ -19,6 +20,7 @@ class SyncQueueItem {
     required this.createdAt,
     required this.timeAgo,
     required this.retryCount,
+    this.errorMessage,
   });
 }
 
@@ -28,7 +30,7 @@ class SyncRepository {
   const SyncRepository(this._dao);
 
   Future<List<SyncQueueItem>> getQueue() async {
-    final rows = await _dao.getPending(limit: 100);
+    final rows = await _dao.getPending(limit: 500);
     return rows.map((r) {
       final createdAt = r.createdAt;
       final ago = _timeAgo(createdAt);
@@ -40,6 +42,7 @@ class SyncRepository {
         createdAt: createdAt,
         timeAgo: ago,
         retryCount: r.retryCount,
+        errorMessage: r.errorMessage,
       );
     }).toList();
   }

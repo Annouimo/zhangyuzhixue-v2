@@ -92,7 +92,7 @@ class SyncPusher {
           if (e is ApiException) {
             await _dao.markPermanentFailure(entry.id);
           } else {
-            await _dao.markFailed(entry.id);
+            await _dao.markFailed(entry.id, errorMessage: e.toString());
           }
           fail++;
         }

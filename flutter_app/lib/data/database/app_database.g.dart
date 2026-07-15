@@ -6368,6 +6368,17 @@ class $SyncQueueTable extends SyncQueue
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
+    'errorMessage',
+  );
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+    'error_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -6380,6 +6391,7 @@ class $SyncQueueTable extends SyncQueue
     retryCount,
     createdAt,
     updatedAt,
+    errorMessage,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6463,6 +6475,15 @@ class $SyncQueueTable extends SyncQueue
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('error_message')) {
+      context.handle(
+        _errorMessageMeta,
+        errorMessage.isAcceptableOrUnknown(
+          data['error_message']!,
+          _errorMessageMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6512,6 +6533,10 @@ class $SyncQueueTable extends SyncQueue
         DriftSqlType.string,
         data['${effectivePrefix}updated_at'],
       ),
+      errorMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_message'],
+      ),
     );
   }
 
@@ -6532,6 +6557,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
   final int retryCount;
   final String createdAt;
   final String? updatedAt;
+  final String? errorMessage;
   const SyncQueueRow({
     required this.id,
     required this.entityType,
@@ -6543,6 +6569,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     required this.retryCount,
     required this.createdAt,
     this.updatedAt,
+    this.errorMessage,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -6560,6 +6587,9 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     map['created_at'] = Variable<String>(createdAt);
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<String>(updatedAt);
+    }
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
     }
     return map;
   }
@@ -6580,6 +6610,9 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
     );
   }
 
@@ -6599,6 +6632,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       retryCount: serializer.fromJson<int>(json['retryCount']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
     );
   }
   @override
@@ -6615,6 +6649,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
       'retryCount': serializer.toJson<int>(retryCount),
       'createdAt': serializer.toJson<String>(createdAt),
       'updatedAt': serializer.toJson<String?>(updatedAt),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
     };
   }
 
@@ -6629,6 +6664,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     int? retryCount,
     String? createdAt,
     Value<String?> updatedAt = const Value.absent(),
+    Value<String?> errorMessage = const Value.absent(),
   }) => SyncQueueRow(
     id: id ?? this.id,
     entityType: entityType ?? this.entityType,
@@ -6640,6 +6676,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     retryCount: retryCount ?? this.retryCount,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+    errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
   );
   SyncQueueRow copyWithCompanion(SyncQueueCompanion data) {
     return SyncQueueRow(
@@ -6659,6 +6696,9 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           : this.retryCount,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      errorMessage: data.errorMessage.present
+          ? data.errorMessage.value
+          : this.errorMessage,
     );
   }
 
@@ -6674,7 +6714,8 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           ..write('status: $status, ')
           ..write('retryCount: $retryCount, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('errorMessage: $errorMessage')
           ..write(')'))
         .toString();
   }
@@ -6691,6 +6732,7 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
     retryCount,
     createdAt,
     updatedAt,
+    errorMessage,
   );
   @override
   bool operator ==(Object other) =>
@@ -6705,7 +6747,8 @@ class SyncQueueRow extends DataClass implements Insertable<SyncQueueRow> {
           other.status == this.status &&
           other.retryCount == this.retryCount &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.errorMessage == this.errorMessage);
 }
 
 class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
@@ -6719,6 +6762,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
   final Value<int> retryCount;
   final Value<String> createdAt;
   final Value<String?> updatedAt;
+  final Value<String?> errorMessage;
   const SyncQueueCompanion({
     this.id = const Value.absent(),
     this.entityType = const Value.absent(),
@@ -6730,6 +6774,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     this.retryCount = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.errorMessage = const Value.absent(),
   });
   SyncQueueCompanion.insert({
     this.id = const Value.absent(),
@@ -6742,6 +6787,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     this.retryCount = const Value.absent(),
     required String createdAt,
     this.updatedAt = const Value.absent(),
+    this.errorMessage = const Value.absent(),
   }) : entityType = Value(entityType),
        operationType = Value(operationType),
        entityId = Value(entityId),
@@ -6758,6 +6804,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     Expression<int>? retryCount,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
+    Expression<String>? errorMessage,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -6770,6 +6817,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
       if (retryCount != null) 'retry_count': retryCount,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (errorMessage != null) 'error_message': errorMessage,
     });
   }
 
@@ -6784,6 +6832,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     Value<int>? retryCount,
     Value<String>? createdAt,
     Value<String?>? updatedAt,
+    Value<String?>? errorMessage,
   }) {
     return SyncQueueCompanion(
       id: id ?? this.id,
@@ -6796,6 +6845,7 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
       retryCount: retryCount ?? this.retryCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
@@ -6832,6 +6882,9 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<String>(updatedAt.value);
     }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
     return map;
   }
 
@@ -6847,7 +6900,8 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueRow> {
           ..write('status: $status, ')
           ..write('retryCount: $retryCount, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('errorMessage: $errorMessage')
           ..write(')'))
         .toString();
   }
@@ -10216,6 +10270,7 @@ typedef $$SyncQueueTableCreateCompanionBuilder =
       Value<int> retryCount,
       required String createdAt,
       Value<String?> updatedAt,
+      Value<String?> errorMessage,
     });
 typedef $$SyncQueueTableUpdateCompanionBuilder =
     SyncQueueCompanion Function({
@@ -10229,6 +10284,7 @@ typedef $$SyncQueueTableUpdateCompanionBuilder =
       Value<int> retryCount,
       Value<String> createdAt,
       Value<String?> updatedAt,
+      Value<String?> errorMessage,
     });
 
 class $$SyncQueueTableFilterComposer
@@ -10287,6 +10343,11 @@ class $$SyncQueueTableFilterComposer
 
   ColumnFilters<String> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10349,6 +10410,11 @@ class $$SyncQueueTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SyncQueueTableAnnotationComposer
@@ -10395,6 +10461,11 @@ class $$SyncQueueTableAnnotationComposer
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => column,
+  );
 }
 
 class $$SyncQueueTableTableManager
@@ -10438,6 +10509,7 @@ class $$SyncQueueTableTableManager
                 Value<int> retryCount = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
+                Value<String?> errorMessage = const Value.absent(),
               }) => SyncQueueCompanion(
                 id: id,
                 entityType: entityType,
@@ -10449,6 +10521,7 @@ class $$SyncQueueTableTableManager
                 retryCount: retryCount,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                errorMessage: errorMessage,
               ),
           createCompanionCallback:
               ({
@@ -10462,6 +10535,7 @@ class $$SyncQueueTableTableManager
                 Value<int> retryCount = const Value.absent(),
                 required String createdAt,
                 Value<String?> updatedAt = const Value.absent(),
+                Value<String?> errorMessage = const Value.absent(),
               }) => SyncQueueCompanion.insert(
                 id: id,
                 entityType: entityType,
@@ -10473,6 +10547,7 @@ class $$SyncQueueTableTableManager
                 retryCount: retryCount,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                errorMessage: errorMessage,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
