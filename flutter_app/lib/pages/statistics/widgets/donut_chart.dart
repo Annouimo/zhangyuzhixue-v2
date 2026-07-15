@@ -9,7 +9,7 @@ class DonutChart extends StatelessWidget {
 
   const DonutChart({super.key, required this.data});
 
-  static const _colors = [AppColors.primary, AppColors.success, Color(0xFFF59E0B)];
+  static const _colors = [AppColors.primary, AppColors.success, AppColors.warning];
   static const _labels = ['选择题', '填空题', '解答题'];
 
   @override

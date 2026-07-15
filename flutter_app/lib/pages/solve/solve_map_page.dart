@@ -359,7 +359,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           Color statusColor;
           if (allMethodsFullyDone && sq.solutions.isNotEmpty) {
             statusLabel = '完全掌握';
-            statusColor = const Color(0xFFf5a623); // 金色
+            statusColor = AppColors.warning; // 金色
           } else if (anyMethodFullyDone) {
             statusLabel = '已完成';
             statusColor = AppColors.success;

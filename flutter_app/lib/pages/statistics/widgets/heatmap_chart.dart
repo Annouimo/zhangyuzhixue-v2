@@ -299,6 +299,11 @@ class HeatmapChart extends StatelessWidget {
   }
 
   Color _color(int level) {
-    return switch (level) { 1 => const Color(0xFFD6E4FF), 2 => const Color(0xFF84A9FF), 3 => const Color(0xFF3366FF), _ => Colors.grey[100]! };
+    return switch (level) {
+      1 => AppColors.heatmapLevel1,
+      2 => AppColors.heatmapLevel2,
+      3 => AppColors.heatmapLevel3,
+      _ => Colors.grey[100]!,
+    };
   }
 }

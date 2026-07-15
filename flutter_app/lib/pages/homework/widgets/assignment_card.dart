@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
+import '../../../widgets/shared/status_style.dart';
 
 /// 作业卡片 — 从 homework_list_page 提取的共享组件
 ///
@@ -146,12 +147,5 @@ class AssignmentCard extends StatelessWidget {
 
 /// 状态标签样式
 ({String label, Color color, Color bg}) _statusStyle(String status) {
-  switch (status) {
-    case 'completed':
-      return (label: '已完成', color: AppColors.success, bg: const Color(0xFFECFDF5));
-    case 'in_progress':
-      return (label: '进行中', color: AppColors.warning, bg: const Color(0xFFFFFBEB));
-    default:
-      return (label: '未做', color: AppColors.textSecondary, bg: const Color(0xFFF3F4F6));
-  }
+  return statusStyle(status);
 }

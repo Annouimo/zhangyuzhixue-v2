@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../md_latex_body.dart';
+import 'status_style.dart';
 
 /// 题目卡片 — 跨页面共享组件
 ///
@@ -103,8 +104,14 @@ class QuestionCard extends StatelessWidget {
               // 第四行（可选）：推荐原因
               if (reason != null && reason!.isNotEmpty) ...[
                 const SizedBox(height: 4),
-                Text('💡 推荐原因：$reason',
-                  style: const TextStyle(fontSize: 12, color: AppColors.warning),
+                Row(
+                  children: [
+                    const Icon(Icons.lightbulb_outline, size: 14, color: AppColors.warning),
+                    const SizedBox(width: 4),
+                    Text('推荐原因：$reason',
+                      style: const TextStyle(fontSize: 12, color: AppColors.warning),
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -125,8 +132,8 @@ class QuestionCard extends StatelessWidget {
   Widget _buildDiffTag() {
     return _Tag(
       DifficultySegments.diffNameFor(difficulty!),
-      bg: Colors.orange[50]!,
-      fg: Colors.orange[700]!,
+      bg: AppColors.tagDifficultyBg,
+      fg: AppColors.tagDifficultyFg,
     );
   }
 
@@ -182,12 +189,5 @@ class _Tag extends StatelessWidget {
 
 /// 状态标签样式
 ({String label, Color color, Color bg}) _statusStyle(String status) {
-  switch (status) {
-    case 'completed':
-      return (label: '已完成', color: AppColors.success, bg: const Color(0xFFECFDF5));
-    case 'in_progress':
-      return (label: '进行中', color: AppColors.warning, bg: const Color(0xFFFFFBEB));
-    default:
-      return (label: '未做', color: AppColors.textSecondary, bg: const Color(0xFFF3F4F6));
-  }
+  return statusStyle(status);
 }

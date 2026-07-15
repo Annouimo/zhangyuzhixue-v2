@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import '../../app_theme.dart';
+import '../../widgets/shared/status_style.dart';
 import '../../data/daos/assignment_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -220,16 +221,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
 /// 题型中文映射
 String _typeLabel(String type) => QuestionTypeLabels.of(type);
 
-/// 状态标签
+/// 状态标签样式
 ({String label, Color color, Color bg}) _statusStyle(String status) {
-  switch (status) {
-    case 'completed':
-      return (label: '已完成', color: AppColors.success, bg: const Color(0xFFECFDF5));
-    case 'in_progress':
-      return (label: '进行中', color: AppColors.warning, bg: const Color(0xFFFFFBEB));
-    default:
-      return (label: '未做', color: AppColors.textSecondary, bg: const Color(0xFFF3F4F6));
-  }
+  return statusStyle(status);
 }
 
 /// 题目行

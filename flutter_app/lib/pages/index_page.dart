@@ -434,12 +434,16 @@ class _IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildTaskItem(bool done, String label, String points, {bool inProgress = false}) {
+    final icon = done
+        ? const Icon(Icons.check_circle, size: 18, color: AppColors.success)
+        : (inProgress
+            ? const Icon(Icons.hourglass_empty, size: 18, color: AppColors.warning)
+            : const Icon(Icons.circle_outlined, size: 18, color: AppColors.textSecondary));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Text(done ? '✅' : (inProgress ? '⏳' : '⬜'),
-            style: const TextStyle(fontSize: 14)),
+          icon,
           const SizedBox(width: 8),
           Expanded(
             child: Text(
