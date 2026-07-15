@@ -150,8 +150,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
       onSelected: (value) {
         if (value is SolveAttempt) {
           _switchAttempt(value);
-        } else if (value is String && value == 'new') {
-          _createNewAttempt();
         }
       },
       offset: const Offset(0, 28),
@@ -177,13 +175,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
             ],
           ),
         )),
-        const PopupMenuDivider(),
-        PopupMenuItem<Object>(
-          value: 'new',
-          child: const Text('重新作答',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
-        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -335,23 +326,38 @@ class _SolveFillPageState extends State<SolveFillPage> {
         appBar: AppBar(title: const Text('解题模式')),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: SolveRevealWidget(
-            cooldownSeconds: _coolDownSec,
-            isRevisit: _isReviewMode,
-            answerValue: _detail?.answer,
-            explanation: _detail?.explanation,
-            onReveal: _onReveal,
-            feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
-            feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
-            onNext: widget.nextQuestionId != null
-                ? () {
-                    SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
-                  }
-                : null,
-            onRate: () async {
-              await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
-            },
-            child: _buildContent(),
+          child: Column(
+            children: [
+              SolveRevealWidget(
+                cooldownSeconds: _coolDownSec,
+                isRevisit: _isReviewMode,
+                answerValue: _detail?.answer,
+                explanation: _detail?.explanation,
+                onReveal: _onReveal,
+                feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
+                feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
+                onNext: widget.nextQuestionId != null
+                    ? () {
+                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
+                      }
+                    : null,
+                onRate: () async {
+                  await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
+                },
+                child: _buildContent(),
+              ),
+              if (_attempts.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _createNewAttempt,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('重新作答'),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),

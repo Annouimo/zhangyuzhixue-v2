@@ -187,23 +187,38 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         appBar: AppBar(title: const Text('解题模式')),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: SolveFlowWidget(
-            cooldownSeconds: _coolDownSec,
-            isRevisit: _submitted,
-            isCorrect: _isCorrect,
-            correctAnswer: _detail?.answer,
-            explanation: _detail?.explanation,
-            onSubmit: _submit,
-            onNext: widget.nextQuestionId != null
-                ? () {
-                    SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
-                  }
-                : null,
-            onRate: () async {
-              await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
-              _load();
-            },
-            child: _buildContent(),
+          child: Column(
+            children: [
+              SolveFlowWidget(
+                cooldownSeconds: _coolDownSec,
+                isRevisit: _submitted,
+                isCorrect: _isCorrect,
+                correctAnswer: _detail?.answer,
+                explanation: _detail?.explanation,
+                onSubmit: _submit,
+                onNext: widget.nextQuestionId != null
+                    ? () {
+                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
+                      }
+                    : null,
+                onRate: () async {
+                  await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
+                  _load();
+                },
+                child: _buildContent(),
+              ),
+              if (_attempts.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _createNewAttempt,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('重新作答'),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -232,11 +247,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     }
 
     return PopupMenuButton<Object>(
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value is SolveAttempt) {
-          _switchAttempt(value);
-        } else if (value is String && value == 'new') {
-          _createNewAttempt();
+          await _switchAttempt(value);
         }
       },
       offset: const Offset(0, 28),
@@ -262,13 +275,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             ],
           ),
         )),
-        const PopupMenuDivider(),
-        PopupMenuItem<Object>(
-          value: 'new',
-          child: const Text('重新作答',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
-        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -290,11 +296,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   /// 切换作答次数
-  void _switchAttempt(SolveAttempt attempt) {
+  Future<void> _switchAttempt(SolveAttempt attempt) async {
     setState(() {
       _currentAttempt = attempt;
     });
-    _restoreAttemptState(attempt);
+    await _restoreAttemptState(attempt);
   }
 
   /// 创建新作答

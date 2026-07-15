@@ -32,7 +32,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
   Set<String> _completedSteps = {};
   bool _loading = true;
   String? _error;
-  bool _isFresh = false;
   bool _reviewMode = false;
 
   // 存档选择器
@@ -63,7 +62,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
     );
     try {
       final s = await repo.getSolveState(widget.questionId);
-      final attempts = await repo.getAttempts(widget.questionId);
+      var attempts = await repo.getAttempts(widget.questionId);
 
       // 加载题目元信息
       QuestionDetail? detail;
@@ -71,8 +70,12 @@ class _SolveMapPageState extends State<SolveMapPage> {
         detail = await qRepo.getDetail(widget.questionId);
       } catch (_) {}
 
-      // 判断是否首次 (/fresh)
-      final fresh = attempts.isEmpty;
+      // 首次访问自动创建存档
+      if (attempts.isEmpty && widget.mode != 'review') {
+        await repo.createAttempt(widget.questionId);
+        attempts = await repo.getAttempts(widget.questionId);
+      }
+
       // 判断回顾模式: mode=review 或 attempts.last.completed 且不是最新
       final lastStarted = attempts.isNotEmpty ? attempts.last : null;
       final review = widget.mode == 'review' ||
@@ -97,12 +100,17 @@ class _SolveMapPageState extends State<SolveMapPage> {
           widget.questionId, currentAttemptNumber,
         );
         if (prevState != null) {
-          doneSteps = prevState.subQRecords
-              .expand((sq) => sq.methods.asMap().entries
-                  .expand((mEntry) => mEntry.value.steps
-                      .where((s) => s.feedbackGiven)
-                      .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
-              .toSet();
+          try {
+            doneSteps = prevState.subQRecords
+                .expand((sq) => sq.methods.asMap().entries
+                    .expand((mEntry) => mEntry.value.steps
+                        .where((s) => s.feedbackGiven)
+                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
+                .toSet();
+          } catch (e1) {
+            AuditLogger.instance.error('SolveMapPage._load.doneSteps', e1);
+            rethrow;
+          }
         }
       }
 
@@ -110,7 +118,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
       setState(() {
         _state = s;
         _completedSteps = doneSteps;
-        _isFresh = fresh;
         _reviewMode = review;
         _attempts = attempts;
         _currentAttemptNumber = currentAttemptNumber;
@@ -121,7 +128,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
       AuditLogger.instance.page('SolveMapPage', {
         'subQCount': _state?.subQuestions.length,
         'completedSteps': _completedSteps.length,
-        'isFresh': _isFresh,
         'reviewMode': _reviewMode,
       });
     } catch (e) {
@@ -149,6 +155,12 @@ class _SolveMapPageState extends State<SolveMapPage> {
     }
   }
 
+  String _formatCardLabels(List<String> cards) {
+    if (cards.isEmpty) return '';
+    if (cards.length == 1) return cards.first;
+    return '${cards.first} 等 ${cards.length} 个';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,48 +173,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
                 ]))
-              : _isFresh
-                  ? _buildFreshView()
-                  : _buildMapView(),
+              : _buildMapView(),
     );
   }
 
-  Widget _buildFreshView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('\u{1F4DD}', style: TextStyle(fontSize: 48)),
-            const SizedBox(height: 16),
-            const Text('准备开始答题',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            const SizedBox(height: 12),
-            Text('本题为解答题，共 ${_state?.subQuestions.length ?? 0} 小问，支持多种解法。\n点击下方按钮开始你的首次作答。',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5)),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () async {
-                // 创建新存档
-                final repo = progress.ProgressRepository(
-                  ProgressDao(DatabaseProvider().appDb),
-                  QuestionDao(DatabaseProvider().assetsDb),
-                );
-                await repo.createAttempt(widget.questionId);
-                if (!context.mounted) return;
-                await context.push(_buildStepRoute(0, 0, 0));
-                _load();
-              },
-              icon: const Text('\u25B6'),
-              label: const Text('开始答题'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildAttemptSelector() {
     if (_attempts.isEmpty) return const SizedBox.shrink();
@@ -212,52 +186,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
         : '第 ${_attempts.length + 1} 次作答';
 
     if (_attempts.length <= 1) {
-      return PopupMenuButton<String>(
-        onSelected: (value) async {
-          if (value == 'new') {
-            final repo = progress.ProgressRepository(
-              ProgressDao(DatabaseProvider().appDb),
-              QuestionDao(DatabaseProvider().assetsDb),
-            );
-            await repo.createAttempt(widget.questionId);
-            final attempts = await repo.getAttempts(widget.questionId);
-            if (!mounted) return;
-            setState(() {
-              _attempts = attempts;
-              if (attempts.isNotEmpty) {
-                _currentAttemptNumber = attempts.last.attemptNumber;
-                _currentSubmissionDetailId = attempts.last.id;
-              }
-              _completedSteps = {};
-              _reviewMode = false;
-            });
-          }
-        },
-        offset: const Offset(0, 28),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        itemBuilder: (context) => [
-          const PopupMenuItem<String>(
-            value: 'new',
-            child: Text('重新作答',
-              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-          ),
-        ],
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(label,
-                style: const TextStyle(fontSize: 11, color: AppColors.primary),
-              ),
-              const Icon(Icons.expand_more, size: 14, color: AppColors.primary),
-            ],
-          ),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(label,
+          style: const TextStyle(fontSize: 11, color: AppColors.primary),
         ),
       );
     }
@@ -289,23 +225,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
             _completedSteps = doneSteps;
             _reviewMode = value.status == 'completed';
           });
-        } else if (value is String && value == 'new') {
-          final repo = progress.ProgressRepository(
-            ProgressDao(DatabaseProvider().appDb),
-            QuestionDao(DatabaseProvider().assetsDb),
-          );
-          await repo.createAttempt(widget.questionId);
-          final attempts = await repo.getAttempts(widget.questionId);
-          if (!mounted) return;
-          setState(() {
-            _attempts = attempts;
-            if (attempts.isNotEmpty) {
-              _currentAttemptNumber = attempts.last.attemptNumber;
-              _currentSubmissionDetailId = attempts.last.id;
-            }
-            _completedSteps = {};
-            _reviewMode = false;
-          });
         }
       },
       offset: const Offset(0, 28),
@@ -331,13 +250,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
             ],
           ),
         )),
-        const PopupMenuDivider(),
-        PopupMenuItem<Object>(
-          value: 'new',
-          child: const Text('重新作答',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
-        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -535,8 +447,19 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                     ? const Text('\u{1F512}', style: TextStyle(fontSize: 11))
                                     : Text('${st.stepNumber}', style: const TextStyle(fontSize: 11, color: AppColors.primary))))),
                               const SizedBox(width: 10),
-                              Expanded(child: Text(st.title.isNotEmpty ? st.title : '第 ${st.stepNumber} 步',
-                                style: TextStyle(fontSize: 13, color: isStepDone ? AppColors.success : (stepLocked ? AppColors.textSecondary : AppColors.textPrimary)))),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('第 ${st.stepNumber} 步',
+                                      style: TextStyle(fontSize: 13, color: isStepDone ? AppColors.success : (stepLocked ? AppColors.textSecondary : AppColors.textPrimary))),
+                                    if (!stepLocked && st.cardTitles.isNotEmpty)
+                                      Text(_formatCardLabels(st.cardTitles),
+                                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                                  ],
+                                ),
+                              ),
                               if (!stepLocked) const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textSecondary),
                             ]),
                           ),
@@ -556,11 +479,25 @@ class _SolveMapPageState extends State<SolveMapPage> {
             label: const Text('返回'))),
           const SizedBox(width: 12),
           Expanded(child: OutlinedButton.icon(
+            onPressed: _onRetry,
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('重新作答'))),
+          const SizedBox(width: 12),
+          Expanded(child: OutlinedButton.icon(
             onPressed: () => context.push('${AppRoutes.solveRate}?id=${widget.questionId}'),
-            icon: const Text('\u2B50'),
+            icon: const Icon(Icons.star, size: 16),
             label: const Text('评分'))),
         ]),
       ],
     );
+  }
+
+  Future<void> _onRetry() async {
+    final repo = progress.ProgressRepository(
+      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider().assetsDb),
+    );
+    await repo.createAttempt(widget.questionId);
+    _load();
   }
 }
