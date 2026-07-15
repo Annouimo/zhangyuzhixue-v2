@@ -151,9 +151,8 @@
     renderDropdown(att.id);
 
     var fresh = isFreshAttempt(att);
-    document.getElementById('map-tree').style.display = fresh ? 'none' : 'block';
-    document.getElementById('map-fresh-view').style.display = fresh ? 'block' : 'none';
-    if (!fresh) renderTree(att);
+    document.getElementById('map-tree').style.display = 'block';
+    renderTree(att);
   }
 
   function renderDropdown(activeId) {
@@ -209,15 +208,6 @@
       });
       container.appendChild(section);
     });
-  }
-
-  function startFirstStep() {
-    var att = DEMO_ATTEMPTS.find(function(a){return a.id===_currentAttemptId;}); if (!att) return;
-    att.started = true;
-    att.subQuestions[0].statusLabel = '进行中...';
-    att.subQuestions[0].methods[0].steps[0].state = 'in-progress';
-    renderMap();
-    goStep(1, att.subQuestions[0].methods[0].name||'', 1);
   }
 
   function switchAttempt(id) {
