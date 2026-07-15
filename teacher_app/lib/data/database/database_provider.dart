@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io';
 import 'assets_database.dart';
 import 'courses_database.dart';
@@ -21,8 +22,19 @@ class DatabaseProvider {
   Future<void> init() async {
     if (_initialized) return;
     final dir = await getApplicationDocumentsDirectory();
+    await _ensureDefaultDb(dir, 'assets.db');
+    await _ensureDefaultDb(dir, 'courses.db');
     await _openAll(dir);
     _initialized = true;
+  }
+
+  /// 首次启动时从 bundle 复制默认数据库到文档目录
+  Future<void> _ensureDefaultDb(Directory dir, String name) async {
+    final file = File('${dir.path}/$name');
+    if (!await file.exists()) {
+      final data = await rootBundle.load('assets/db/$name');
+      await file.writeAsBytes(data.buffer.asUint8List());
+    }
   }
 
   Future<void> _openAll(Directory dir) async {
