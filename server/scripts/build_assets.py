@@ -8,8 +8,6 @@
 import os
 import sys
 import shutil
-import tarfile
-import hashlib
 
 # Django 环境
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -98,32 +96,6 @@ def main():
             label = 'teacher' if 'teacher' in flutter_assets else 'student'
             print(f'  {label}: {total_count} 张配图')
         print(f'✅ 配图同步完成')
-
-    # ── 生成配图压缩包 ──
-    print()
-    print('生成配图压缩包...')
-    from django.conf import settings
-    img_gz_path = os.path.join(
-        settings.MEDIA_ROOT, 'db', f'images_v{version_info["data_version"]}.tar.gz')
-    os.makedirs(os.path.dirname(img_gz_path), exist_ok=True)
-    with tarfile.open(img_gz_path, 'w:gz') as tar:
-        for fname in os.listdir(image_src):
-            if fname.endswith('.webp'):
-                tar.add(os.path.join(image_src, fname), arcname=fname)
-    with open(img_gz_path, 'rb') as f:
-        img_checksum = hashlib.sha256(f.read()).hexdigest()
-    img_size = os.path.getsize(img_gz_path)
-    print(f'  📦 images_v{version_info["data_version"]}.tar.gz')
-    print(f'  🔑 SHA-256: {img_checksum}')
-    print(f'  📏 {img_size:,} bytes')
-
-    if not test_mode:
-        ver = DbVersion.objects.get(db_type='qbank')
-        ver.image_download_url = f'/media/db/images_v{version_info["data_version"]}.tar.gz'
-        ver.image_checksum = img_checksum
-        ver.image_size_bytes = img_size
-        ver.save(update_fields=['image_download_url', 'image_checksum', 'image_size_bytes'])
-        print(f'  💾 DbVersion image 字段已更新 (v{version_info["data_version"]})')
 
 
 if __name__ == '__main__':

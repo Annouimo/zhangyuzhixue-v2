@@ -44,11 +44,6 @@ class VersionCheckView(APIView):
                 ) if version.download_url else '',
                 'checksum': version.checksum,
                 'size_bytes': version.size_bytes,
-                'image_download_url': request.build_absolute_uri(
-                    version.image_download_url
-                ) if version.image_download_url else '',
-                'image_checksum': version.image_checksum,
-                'image_size_bytes': version.image_size_bytes,
             },
         })
 

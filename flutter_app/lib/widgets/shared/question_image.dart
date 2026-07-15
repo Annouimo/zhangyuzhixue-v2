@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import '../../app_theme.dart';
-import '../../data/database/database_provider.dart';
 
-/// 题库配图组件 — 从 documents/images/ 加载（Image.file）或回退到 asset bundle
+/// 题库配图组件 — 使用 AssetImage 加载，符合图片路由规范
 class QuestionImage extends StatelessWidget {
   final String relativePath;
   final double? width;
@@ -18,40 +16,26 @@ class QuestionImage extends StatelessWidget {
     this.fit = BoxFit.contain,
   });
 
-  String get _assetPath => 'assets/questions/images/$relativePath';
+  static const String _assetBase = 'assets/questions/images';
+
+  String get _assetPath => '$_assetBase/$relativePath';
 
   @override
   Widget build(BuildContext context) {
-    final imagesDir = DatabaseProvider().imagesDir;
-    final filePath = '$imagesDir/$relativePath';
-    final file = File(filePath);
     final effectiveWidth = width ?? double.infinity;
     final effectiveMaxHeight = maxHeight ?? MediaQuery.of(context).size.height * 0.4;
-
-    Widget image;
-    if (file.existsSync()) {
-      image = Image.file(
-        file,
-        width: effectiveWidth,
-        height: effectiveMaxHeight,
-        fit: fit,
-        errorBuilder: (_, _, _) => _buildPlaceholder(),
-      );
-    } else {
-      image = Image.asset(
-        _assetPath,
-        width: effectiveWidth,
-        height: effectiveMaxHeight,
-        fit: fit,
-        errorBuilder: (_, _, _) => _buildPlaceholder(),
-      );
-    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: image,
+        child: Image.asset(
+          _assetPath,
+          width: effectiveWidth,
+          height: effectiveMaxHeight,
+          fit: fit,
+          errorBuilder: (_, _, _) => _buildPlaceholder(),
+        ),
       ),
     );
   }
