@@ -65,38 +65,39 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
-          _card([
-            _listTile(Icons.dns, '服务器地址', _serverUrl, onTap: _editServerUrl),
-          ]),
+          _sectionHeader('服务器'),
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.dns, color: AppColors.primary),
+              title: const Text('服务器地址', style: TextStyle(fontSize: 15)),
+              subtitle: Text(_serverUrl, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              trailing: const Icon(Icons.edit, size: 16, color: AppColors.textMuted),
+              onTap: _editServerUrl,
+            ),
+          ),
           const SizedBox(height: 16),
-          _card([
-            _infoTile(Icons.storage, '题库版本', 'v$_qbankVersion'),
-            _infoTile(Icons.article, '讲义版本', 'v$_coursesVersion'),
-          ]),
-          const SizedBox(height: 16),
-          _card([
-            _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
-            _infoTile(Icons.code, '版本', appVersion),
-          ]),
+          _sectionHeader('版本信息'),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(children: [
+              _infoTile(Icons.storage, '题库版本', _qbankVersion > 0 ? 'v$_qbankVersion' : '—'),
+              _infoTile(Icons.article, '讲义版本', _coursesVersion > 0 ? 'v$_coursesVersion' : '—'),
+              _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
+              _infoTile(Icons.code, '版本', appVersion),
+            ]),
+          ),
         ],
       ),
     );
   }
 
-  Widget _card(List<Widget> children) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Column(children: children),
-    );
-  }
-
-  Widget _listTile(IconData icon, String title, String subtitle, {VoidCallback? onTap}) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: const TextStyle(fontSize: 15)),
-      subtitle: Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-      trailing: const Icon(Icons.edit, size: 16, color: AppColors.textMuted),
-      onTap: onTap,
+  Widget _sectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 0, 4),
+      child: Text(title,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+      ),
     );
   }
 
@@ -105,6 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: Icon(icon, color: AppColors.textSecondary),
       title: Text(title, style: const TextStyle(fontSize: 15)),
       trailing: Text(value, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+      dense: true,
     );
   }
 }

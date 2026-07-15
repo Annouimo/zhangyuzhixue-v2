@@ -41,13 +41,14 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
   Future<void> _loadDetails() async {
     setState(() { _loading = true; _error = null; });
     try {
+      final futures = _questionIds.map((id) => widget.repo.getQuestionDetail(id));
+      final results = await Future.wait(futures);
       final details = <int, QuestionDetail>{};
-      for (final id in _questionIds) {
-        final d = await widget.repo.getQuestionDetail(id);
-        details[id] = d;
+      for (var i = 0; i < _questionIds.length; i++) {
+        details[_questionIds[i]] = results[i];
       }
       if (!mounted) return;
-      setState(() { _details.addAll(details); _loading = false; });
+      setState(() { _details..clear()..addAll(details); _loading = false; });
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
@@ -98,9 +99,8 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
     }
     return ListView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
-      children: _questionIds.map((id) {
-        final detail = _details[id];
-        if (detail == null) return const SizedBox.shrink();
+      children: _questionIds.where((id) => _details.containsKey(id)).map((id) {
+        final detail = _details[id]!;
         final q = detail.question;
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -113,7 +113,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: Text(
-                      '${q.number.isNotEmpty ? '第${q.number}题 ' : ''}${q.examType} ${q.region} ${q.year}',
+                      '${q.number.isNotEmpty ? '第${q.number}题 ' : ''}${q.examType} ${q.region} ${q.year}'.trim(),
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                     )),
                     IconButton(
@@ -124,7 +124,8 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(q.stem.length > 150 ? '${q.stem.substring(0, 150)}...' : q.stem,
+                Text(q.stem.isEmpty ? '(无题干)' : q.stem,
+                  maxLines: 3, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 13),
                 ),
                 const SizedBox(height: 4),
@@ -152,7 +153,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(label, style: const TextStyle(
         fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500,
