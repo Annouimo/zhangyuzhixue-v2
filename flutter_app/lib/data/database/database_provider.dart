@@ -6,7 +6,6 @@ import 'dart:io';
 import '../debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:archive/archive.dart';
-import 'dart:convert' show utf8;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/assets_database.dart';
 import '../database/courses_database.dart';

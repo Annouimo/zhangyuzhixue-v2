@@ -4,7 +4,6 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:archive/archive.dart';
-import 'dart:convert' show utf8;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'assets_database.dart';
 import 'courses_database.dart';
