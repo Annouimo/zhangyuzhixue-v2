@@ -26,9 +26,6 @@ dependencies:
   # Crypto for checksum verification
   crypto: ^3.0.0
 
-  # Archive (tar.gz extraction)
-  archive: ^3.6.1
-
   # Storage
   shared_preferences: ^2.3.0
   path_provider: ^2.1.0
