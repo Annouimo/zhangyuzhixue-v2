@@ -33,19 +33,11 @@
       📋 回顾模式 · 只读浏览，不可修改
     </div>
 
-    <div id="map-fresh-view" style="display:none;">
-      <div class="fresh-welcome">
-        <div class="fresh-icon">📝</div>
-        <div class="fresh-title">准备开始答题</div>
-        <div class="fresh-desc">本题为解答题，共 2 小问，支持多种解法。<br>点击下方按钮开始你的首次作答。</div>
-        <button class="btn btn-primary" onclick="startFirstStep()" style="margin-top:12px;">开始答题 ▶</button>
-      </div>
-    </div>
-
     <div id="map-tree"></div>
 
     <div class="map-footer">
       <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+      <button class="btn btn-outline" onclick="goRetry()">🔄 重新作答</button>
       <button class="btn btn-outline" onclick="goRate()">⭐ 评分</button>
     </div>
   </div>
@@ -178,11 +170,6 @@
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    var div = document.createElement('div'); div.className='attempt-divider'; dd.appendChild(div);
-    var n = document.createElement('div'); n.className='attempt-option';
-    var nl = document.createElement('span'); nl.textContent='重新作答'; n.appendChild(nl);
-    var ns = document.createElement('span'); ns.className='opt-status'; ns.textContent='新存档'; n.appendChild(ns);
-    n.onclick = function() { createNewAttempt(); }; dd.appendChild(n);
   }
 
   function renderTree(att) {
@@ -212,7 +199,7 @@
           var dot = document.createElement('span'); dot.className='step-dot '+s.state;
           if (s.state==='done') dot.textContent='✓'; else if (s.state==='in-progress') dot.textContent=s.order; else if (s.state==='locked') dot.textContent='🔒'; else dot.textContent=s.order;
           sn.appendChild(dot);
-          var sti = document.createElement('span'); sti.className='step-title'; sti.textContent=s.title||'第 '+s.order+' 步'; sn.appendChild(sti);
+          var sti = document.createElement('span'); sti.className='step-title'; sti.textContent='第 '+s.order+' 步'; sn.appendChild(sti);
           var arr = document.createElement('span'); arr.className='step-arrow'; arr.textContent='→'; sn.appendChild(arr);
           if (s.state!=='locked') { sn.onclick=function(){goStep(sq.index,m.name,s.order);return false;}; }
           else { sn.style.cursor='default'; sn.onclick=function(){return false;}; }
@@ -265,6 +252,8 @@
   }
 
   function goRate() { parent.goFile('solve-rate.html'); }
+
+  function goRetry() { createNewAttempt(); }
 
   document.addEventListener('DOMContentLoaded', function() { initFromUrl(); renderMap(); });
   </script>

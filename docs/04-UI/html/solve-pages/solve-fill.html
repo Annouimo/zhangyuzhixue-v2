@@ -158,11 +158,6 @@
       opt.onclick = function() { switchAttempt(a.id); };
       dd.appendChild(opt);
     });
-    var div = document.createElement('div'); div.className='attempt-divider'; dd.appendChild(div);
-    var n = document.createElement('div'); n.className='attempt-option';
-    var nl = document.createElement('span'); nl.textContent='重新作答'; n.appendChild(nl);
-    var ns = document.createElement('span'); ns.className='opt-status'; ns.textContent='新存档'; n.appendChild(ns);
-    n.onclick = function() { createNewAttempt(); }; dd.appendChild(n);
   }
 
   function switchAttempt(id) {
