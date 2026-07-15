@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../app_theme.dart';
-import '../database/database_provider.dart';
+import '../../data/database/database_provider.dart';
 
 /// 题库配图组件 — 从 documents/images/ 加载（Image.file）或回退到 asset bundle
 class QuestionImage extends StatelessWidget {
