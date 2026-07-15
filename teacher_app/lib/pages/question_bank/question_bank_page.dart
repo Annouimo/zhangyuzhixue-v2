@@ -7,7 +7,7 @@ import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/question_card.dart';
-import 'widgets/filter_panel.dart';
+import '../../widgets/filter_panel.dart';
 import 'preview_page.dart';
 
 /// 题库浏览 — 教师端选题页
