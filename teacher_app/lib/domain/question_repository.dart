@@ -129,6 +129,19 @@ class SearchQuestion {
   const SearchQuestion({required this.id, required this.title, required this.questionType, required this.meta, required this.difficulty, required this.calculation});
 }
 
+/// 安全截断 stem：避免截断点在 $...$ 公式内部导致未闭合 $
+String _safeStemCut(String stem, int maxLen) {
+  assert(maxLen > 0);
+  if (stem.length <= maxLen) return stem;
+  int cut = maxLen;
+  int dollarCount = RegExp(r'\$').allMatches(stem.substring(0, cut)).length;
+  if (dollarCount.isOdd) {
+    int lastDollar = stem.lastIndexOf(r'$', cut - 1);
+    if (lastDollar > 0) cut = lastDollar;
+  }
+  return '${stem.substring(0, cut)}...';
+}
+
 /// 题目详情（含子题/选项/步骤/标签）
 class QuestionDetail {
   final assets_db.QuestionRow question;
@@ -214,7 +227,7 @@ class QuestionRepository {
 
     return sorted.map((r) => SearchQuestion(
       id: r.id,
-      title: r.stem.length > 80 ? '${r.stem.substring(0, 80)}...' : r.stem,
+      title: r.stem.length > 80 ? _safeStemCut(r.stem, 80) : r.stem,
       questionType: r.questionType,
       meta: '${r.year} ${r.examType} ${r.region}',
       difficulty: r.difficulty ?? 0,

@@ -225,6 +225,22 @@ class FilterPreset {
   const FilterPreset({required this.id, required this.name});
 }
 
+/// 安全截断 stem：避免截断点在 $...$ 公式内部导致未闭合 $
+String _safeStemCut(String stem, int maxLen) {
+  assert(maxLen > 0);
+  if (stem.length <= maxLen) return stem;
+  int cut = maxLen;
+  int dollarCount = RegExp(r'\$').allMatches(stem.substring(0, cut)).length;
+  if (dollarCount.isOdd) {
+    // 截断点在 $...$ 内部，回退到上一个已闭合的 $（即最后一个 $ 之前）
+    int lastDollar = stem.lastIndexOf(r'$', cut - 1);
+    if (lastDollar > 0) {
+      cut = lastDollar; // 去掉未匹配的 $
+    }
+  }
+  return '${stem.substring(0, cut)}...';
+}
+
 /// 搜索到的题目
 class SearchQuestion {
   final int id;
@@ -476,7 +492,7 @@ class ExamRepository {
     );
     return (await q).map((r) => SearchQuestion(
       id: r.id,
-      title: r.stem.length > 80 ? '${r.stem.substring(0, 80)}...' : r.stem,
+      title: r.stem.length > 80 ? _safeStemCut(r.stem, 80) : r.stem,
       questionType: r.questionType,
       meta: '${r.year} ${r.examType} ${r.region}',
       difficulty: r.difficulty ?? 0,
