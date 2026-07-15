@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../debug/audit_logger.dart';
 /// 全局 SharedPreferences key 定义
@@ -8,7 +7,6 @@ import '../debug/audit_logger.dart';
 abstract final class PrefKeys {
   static const accessToken = 'app_auth_token';
   static const refreshToken = 'app_refresh_token';
-  static const userCache = 'app_user_cache';
   static const qbankVersion = 'app_qbank_version';
   static const coursesVersion = 'app_courses_version';
   static const accessibleCourses = 'app_accessible_courses';
@@ -63,22 +61,6 @@ class AppPrefs {
     return v;
   }
   Future<bool> setRefreshToken(String val) => p.setString(PrefKeys.refreshToken, val);
-
-  // ── 用户缓存 ──
-
-  Map<String, dynamic>? get userCache {
-    final raw = p.getString(PrefKeys.userCache);
-    AuditLogger.instance.prefs('userCache', raw);
-    if (raw == null) return null;
-    try {
-      return Map<String, dynamic>.from(jsonDecode(raw) as Map);
-    } catch (e) {
-      AuditLogger.instance.error('AppPrefs.userCache', e);
-      return null;
-    }
-  }
-
-  Future<bool> setUserCacheStr(String val) => p.setString(PrefKeys.userCache, val);
 
   // ── 数据库版本 ──
 

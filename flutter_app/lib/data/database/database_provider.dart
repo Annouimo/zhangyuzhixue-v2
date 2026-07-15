@@ -8,6 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../database/assets_database.dart';
 import '../database/courses_database.dart';
 import '../database/app_database.dart';
+import '../daos/system_config_dao.dart';
 
 /// 三库生命周期管理
 class DatabaseProvider {
@@ -126,6 +127,8 @@ class DatabaseProvider {
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
     _bumpVersion();
+    // 替换后清理 SystemConfigDao 的内存缓存，下次读取从新 DB 加载
+    SystemConfigDao(this).clearCache();
   }
 
   Future<void> replaceCoursesDb(String newPath) async {
@@ -135,6 +138,8 @@ class DatabaseProvider {
     await File(newPath).copy(target.path);
     _coursesDb = CoursesDatabase(NativeDatabase(target));
     _bumpVersion();
+    // 替换后清理 SystemConfigDao 的内存缓存，下次读取从新 DB 加载
+    SystemConfigDao(this).clearCache();
   }
 
   /// 替换 user.db（与 replaceAssetsDb / replaceLecturesDb 同构）

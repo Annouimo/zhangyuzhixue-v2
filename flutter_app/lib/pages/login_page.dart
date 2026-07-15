@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../app_theme.dart';
@@ -68,10 +67,6 @@ class _LoginPageState extends State<LoginPage> {
       // 保存 token
       await AppPrefs().setAccessToken(result.accessToken);
       await AppPrefs().setRefreshToken(result.refreshToken);
-
-      // 保存用户缓存
-      final userJson = jsonEncode(result.user);
-      await AppPrefs().setUserCacheStr(userJson);
 
       if (!mounted) return;
 
