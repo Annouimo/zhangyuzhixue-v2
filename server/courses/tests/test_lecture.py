@@ -47,13 +47,12 @@ def sample_documents(db, sample_course):
 class TestLectureCourses:
     """课程列表 API 测试"""
 
-    def test_teacher_sees_all_courses(self, auth_client, sample_course):
-        """教师可见全部课程"""
+    def test_teacher_sees_no_courses_anymore(self, auth_client, sample_course):
+        """教师不再通过学生端 API 看讲义，返回空列表"""
         resp = auth_client.get(reverse('lecture-courses'))
         assert resp.status_code == 200
         assert resp.data['code'] == 0
-        assert len(resp.data['data']) >= 1
-        assert resp.data['data'][0]['name'] == '高三数学'
+        assert len(resp.data['data']) == 0
 
 
 class TestLectureChapters:

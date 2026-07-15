@@ -17,14 +17,10 @@ def _ok(data=None, message='ok'):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lecture_courses_list(request):
-    """课程列表 — 教师见全部，学生见自己班级的"""
+    """课程列表 — 学生见自己班级的"""
     user = request.user
 
-    if hasattr(user, 'teacher'):
-        # 教师：全部课程
-        courses = Course.objects.all()
-    elif hasattr(user, 'student') and user.student.class_group_id:
-        # 学生：班级绑定课程
+    if hasattr(user, 'student') and user.student.class_group_id:
         class_courses = ClassCourse.objects.filter(
             class_group_id=user.student.class_group_id
         ).select_related('course')
