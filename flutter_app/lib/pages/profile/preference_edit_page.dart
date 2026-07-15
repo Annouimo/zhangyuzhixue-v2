@@ -135,6 +135,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
           calcMin: state.calcMin,
           calcMax: state.calcMax,
         ),
+        existingId: widget.editId,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

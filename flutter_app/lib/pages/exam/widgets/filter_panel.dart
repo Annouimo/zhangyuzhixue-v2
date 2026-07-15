@@ -167,6 +167,8 @@ class FilterPanelState extends State<FilterPanel> {
       if (diffMax != null) _diffMax = diffMax;
       if (calcMin != null) _calcMin = calcMin;
       if (calcMax != null) _calcMax = calcMax;
+      // 阻止 _selectAllInitial 覆盖已加载值
+      _initialized = true;
     });
     _emit();
   }

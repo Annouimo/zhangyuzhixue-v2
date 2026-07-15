@@ -120,24 +120,50 @@ class PreferenceRepository {
     );
   }
 
-  /// 保存偏好并加入同步队列。返回插入记录的本地 ID。
+  /// 保存偏好并加入同步队列。
+  ///
+  /// 如果 [existingId] 不为 null，则更新已有记录（编辑路径）；
+  /// 否则新建记录（新建路径）。返回操作后的本地 ID。
   Future<int> save({
     required String name,
     required PreferenceFilter filter,
+    int? existingId,
   }) async {
-    final id = await _dao.save(
-      name: name,
-      years: _jsonEncode(filter.years),
-      regions: _jsonEncode(filter.regions),
-      conceptTags: _jsonEncode(filter.conceptTags),
-      types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
-      knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
-      questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
-      diffMin: filter.diffMin,
-      diffMax: filter.diffMax,
-      calcMin: filter.calcMin,
-      calcMax: filter.calcMax,
-    );
+    final int id;
+
+    if (existingId != null) {
+      // 编辑路径：更新已有记录
+      await _dao.update(
+        id: existingId,
+        name: name,
+        years: _jsonEncode(filter.years),
+        regions: _jsonEncode(filter.regions),
+        conceptTags: _jsonEncode(filter.conceptTags),
+        types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
+        knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
+        questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
+        diffMin: filter.diffMin,
+        diffMax: filter.diffMax,
+        calcMin: filter.calcMin,
+        calcMax: filter.calcMax,
+      );
+      id = existingId;
+    } else {
+      // 新建路径：插入新记录
+      id = await _dao.save(
+        name: name,
+        years: _jsonEncode(filter.years),
+        regions: _jsonEncode(filter.regions),
+        conceptTags: _jsonEncode(filter.conceptTags),
+        types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
+        knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
+        questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
+        diffMin: filter.diffMin,
+        diffMax: filter.diffMax,
+        calcMin: filter.calcMin,
+        calcMax: filter.calcMax,
+      );
+    }
     // 入同步队列
     try {
       await SyncManager().enqueue(
@@ -172,8 +198,10 @@ class PreferenceRepository {
 
   List<String> _parseJsonList(String raw) {
     if (raw.isEmpty) return [];
-    return raw.replaceAll('[', '').replaceAll(']', '').replaceAll('"', '').split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    final parsed = jsonDecode(raw);
+    if (parsed is! List) return [];
+    return parsed.cast<String>();
   }
 
-  String _jsonEncode(List<String> items) => '[${items.map((s) => '"$s"').join(',')}]';
+  String _jsonEncode(List<String> items) => jsonEncode(items);
 }

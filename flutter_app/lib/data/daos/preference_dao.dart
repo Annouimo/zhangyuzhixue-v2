@@ -62,4 +62,35 @@ class PreferenceDao {
     AuditLogger.instance.dao('PreferenceDao.count', rows.length, {});
     return rows.length;
   }
+
+  /// 更新已有偏好（编辑路径使用）
+  Future<void> update({
+    required int id,
+    required String name,
+    required String years,
+    required String regions,
+    required String conceptTags,
+    String? types,
+    String? knowledgeCards,
+    String? questionTypes,
+    double? diffMin,
+    double? diffMax,
+    double? calcMin,
+    double? calcMax,
+  }) async {
+    final q = _db.update(_db.preferenceFilters)..where((t) => t.id.equals(id));
+    await q.write(db.PreferenceFiltersCompanion(
+      name: Value(name),
+      years: Value(years),
+      regions: Value(regions),
+      conceptTags: Value(conceptTags),
+      types: Value(types),
+      knowledgeCards: Value(knowledgeCards),
+      questionTypes: Value(questionTypes),
+      diffMin: Value(diffMin),
+      diffMax: Value(diffMax),
+      calcMin: Value(calcMin),
+      calcMax: Value(calcMax),
+    ));
+  }
 }

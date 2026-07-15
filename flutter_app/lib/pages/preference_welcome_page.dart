@@ -15,7 +15,7 @@ import 'router.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../data/debug/audit_logger.dart';
 
-/// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳首页
+/// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳主框架
 class PreferenceWelcomePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final QuestionDao? questionDao;
@@ -106,8 +106,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         canPop: true,
         onPopInvokedWithResult: (didPop, _) {
           if (didPop) return;
-          // 遮罩点击或跳过 → 跳推荐页
-          context.go(AppRoutes.recommend);
+          // 遮罩点击 → 跳主框架
+          context.go(AppRoutes.mainShell);
         },
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -134,7 +134,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 children: [
                   Icon(Icons.thumb_up_alt, size: 20, color: Colors.white),
                   SizedBox(width: 6),
-                  Text('👌 开始设置学习偏好'),
+                  Text('开始设置学习偏好'),
                 ],
               ),
             ),
@@ -142,7 +142,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                context.go(AppRoutes.recommend);
+                context.go(AppRoutes.mainShell);
               },
               child: const Text('跳过', style: TextStyle(color: AppColors.textSecondary)),
             ),
@@ -152,10 +152,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     );
   }
 
-  @override
-  void dispose() { _nameCtrl.dispose(); super.dispose(); }
-
-  Future<void> _save() async {
+  Future<void> _saveAndGoHome() async {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('请输入偏好名称'), behavior: SnackBarBehavior.floating),
@@ -185,8 +182,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           calcMax: _calcMax,
         ),
       );
-      if (!mounted) return;
-      context.go(AppRoutes.recommend);
     } catch (e) {
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
@@ -194,8 +189,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         const SnackBar(content: Text('保存失败，请重试'), behavior: SnackBarBehavior.floating),
       );
       setState(() => _saving = false);
+      return;
     }
+    if (!mounted) return;
+    context.go(AppRoutes.mainShell);
   }
+
+  @override
+  void dispose() { _nameCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +252,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _saving ? null : _save,
+                    onPressed: _saving ? null : _saveAndGoHome,
                     child: _saving
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Row(
