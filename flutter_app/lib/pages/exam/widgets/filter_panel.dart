@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../domain/exam_repository.dart' as repo;
-import 'difficulty_slider.dart';
-import 'concept_tag_tree.dart';
-import 'knowledge_card_group.dart';
+import '../../../widgets/shared/difficulty_slider.dart';
+import '../../../widgets/shared/concept_tag_tree.dart';
+import '../../../widgets/shared/knowledge_card_group.dart';
 
 /// 筛选状态（替代 10 个 positional 参数）
 class FilterState {
@@ -113,6 +113,12 @@ class FilterPanelState extends State<FilterPanel> {
 
   bool _initialized = false;
 
+  bool get _allEmpty =>
+      _selectedYears.isEmpty && _selectedRegions.isEmpty &&
+      _selectedTypes.isEmpty && _selectedExamTypes.isEmpty &&
+      _selectedConceptTagNames.isEmpty && _selectedKnowledgeCardTitles.isEmpty &&
+      _selectedConceptTags.isEmpty && _selectedKnowledgeCards.isEmpty;
+
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
   Set<String> get selectedConceptTags => _selectedConceptTags;
@@ -183,6 +189,20 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedTypes.clear();
       _selectedConceptTagNames.clear();
       _selectedKnowledgeCardTitles.clear();
+      _diffMin = 0; _diffMax = 10;
+      _calcMin = 0; _calcMax = 10;
+    });
+    _emit();
+  }
+
+  void selectAll() {
+    setState(() {
+      _selectedYears.addAll(widget.yearOptions);
+      _selectedRegions.addAll(widget.regionOptions);
+      _selectedTypes.addAll(widget.typeOptions);
+      _selectedExamTypes.addAll(widget.examTypeOptions);
+      _selectedConceptTagNames.addAll(widget.conceptTagOptions);
+      _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
       _diffMin = 0; _diffMax = 10;
       _calcMin = 0; _calcMax = 10;
     });
@@ -282,13 +302,13 @@ class FilterPanelState extends State<FilterPanel> {
             const Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             const Spacer(),
             TextButton(
-              onPressed: clearAll,
+              onPressed: _allEmpty ? selectAll : clearAll,
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('取消全选', style: TextStyle(fontSize: 12)),
+              child: Text(_allEmpty ? '全选' : '取消全选', style: const TextStyle(fontSize: 12)),
             ),
           ],
         ),

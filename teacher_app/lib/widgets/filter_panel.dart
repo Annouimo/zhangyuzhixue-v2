@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../domain/question_repository.dart' as repo;
-import 'difficulty_slider.dart';
-import 'concept_tag_tree.dart';
-import 'knowledge_card_group.dart';
+import 'shared/difficulty_slider.dart';
+import 'shared/concept_tag_tree.dart';
+import 'shared/knowledge_card_group.dart';
 
 /// 筛选状态（替代 10 个 positional 参数）
 class FilterState {

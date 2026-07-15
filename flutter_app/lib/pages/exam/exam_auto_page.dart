@@ -12,7 +12,7 @@ import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
-import 'widgets/difficulty_slider.dart';
+import '../../../widgets/shared/difficulty_slider.dart';
 import '../../../data/debug/audit_logger.dart';
 import '../../../data/sync/sync_manager.dart';
 import '../../../data/sync/sync_types.dart';

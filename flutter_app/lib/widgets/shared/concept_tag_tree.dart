@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../domain/exam_repository.dart';
+import '../../app_theme.dart';
+import '../../domain/exam_repository.dart';
 
 /// 树状概念标签选择组件
 ///

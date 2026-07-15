@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import '../../app_theme.dart';
 
 /// 难度/计算量 5 段滑块
 ///
