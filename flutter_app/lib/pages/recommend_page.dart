@@ -21,7 +21,7 @@ class RecommendPage extends StatefulWidget {
 }
 
 class RecommendPageState extends State<RecommendPage> {
-  late final RecommendRepository _repo;
+  late RecommendRepository _repo;
   bool _loading = true;
   String? _error;
   List<RecommendedQuestion>? _questions;
@@ -36,8 +36,16 @@ class RecommendPageState extends State<RecommendPage> {
     _switchToPreset(idx);
   }
 
+  /// 每次操作时新鲜创建 Repository，确保拿到 DatabaseProvider 最新连接引用
+  void _initRepo() {
+    _repo = widget.recommendRepository ?? RecommendRepository(
+      QuestionDao(DatabaseProvider().assetsDb), ProgressDao(DatabaseProvider().appDb),
+    );
+  }
+
   /// 供 MainShell 切 Tab 时调用：刷新偏好预设列表
   void refresh() {
+    _initRepo();
     _repo.getPresets().then((p) {
       if (mounted) setState(() => _presets = p);
     });
@@ -46,14 +54,11 @@ class RecommendPageState extends State<RecommendPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
-    _repo = widget.recommendRepository ?? RecommendRepository(
-      QuestionDao(db.assetsDb), ProgressDao(db.appDb),
-    );
     _load();
   }
 
   Future<void> _load() async {
+    _initRepo();
     setState(() { _loading = true; _error = null; });
     try {
       final presets = await _repo.getPresets();
@@ -76,6 +81,7 @@ class RecommendPageState extends State<RecommendPage> {
   }
 
   Future<void> _switchToSmart() async {
+    _initRepo();
     setState(() { _loading = true; _preferSmart = true; });
     try {
       final qs = await _repo.getSmartList();
@@ -86,6 +92,7 @@ class RecommendPageState extends State<RecommendPage> {
 
   Future<void> _switchToPreset(int index) async {
     if (index < 0 || index >= _presets.length) return;
+    _initRepo();
     setState(() { _loading = true; _preferSmart = false; _selectedPresetIndex = index; });
     try {
       final presetId = _presets[index].id;

@@ -21,6 +21,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/daos/sync_queue_dao.dart';
 import '../../widgets/shared/format_utils.dart';
 import '../router.dart';
 
@@ -42,10 +43,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  late final UserRepository _repo;
-  late final PreferenceRepository _prefRepo;
-  late final StatisticsRepository _statsRepo;
-  late final AchievementRepository _achieveRepo;
+  late UserRepository _repo;
+  late PreferenceRepository _prefRepo;
+  late StatisticsRepository _statsRepo;
+  late AchievementRepository _achieveRepo;
   UserInfo? _info;
   bool _loading = true;
   bool _uploading = false;
@@ -58,6 +59,7 @@ class ProfilePageState extends State<ProfilePage> {
   double? _earnedPoints;
   double? _availablePoints;
   int? _currentLevel;
+  String? _syncSubtitle;
 
   /// 供 MainShell 切 Tab 时调用，触发数据刷新
   void reload() => _load();
@@ -65,23 +67,27 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
+    _load();
+  }
+
+  /// 每次 _load 时新鲜创建 Repository，确保拿到 DatabaseProvider 的最新连接引用
+  void _initRepos() {
     _repo = widget.userRepository ?? UserRepository(
-      UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
+      UserDao(DatabaseProvider().appDb), UserApi(ApiClient()), QuestionDao(DatabaseProvider().assetsDb),
     );
-    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(db.appDb));
+    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
     _statsRepo = widget.statisticsRepository ?? StatisticsRepository(
-      StatisticsDao(db.appDb),
-      questionDao: QuestionDao(db.assetsDb),
+      StatisticsDao(DatabaseProvider().appDb),
+      questionDao: QuestionDao(DatabaseProvider().assetsDb),
     );
     _achieveRepo = widget.achievementRepository ?? AchievementRepository(
-      AchievementDao(db.appDb), QuestionDao(db.assetsDb), ExamDao(db.appDb),
+      AchievementDao(DatabaseProvider().appDb), QuestionDao(DatabaseProvider().assetsDb), ExamDao(DatabaseProvider().appDb),
     );
-    _load();
   }
 
   Future<void> _load() async {
     setState(() => _loading = true);
+    _initRepos();
     try {
       final results = await Future.wait([
         _repo.getUserInfo(),
@@ -93,6 +99,19 @@ class ProfilePageState extends State<ProfilePage> {
       ]);
       if (!mounted) return;
       final info = results[0] as UserInfo;
+      final ps = results[5] as ({double earned, double bonus, double spent, double available});
+      _earnedPoints = ps.earned;
+      _availablePoints = ps.available;
+
+      // 查询同步队列状态
+      String? syncSubtitle;
+      try {
+        final dao = SyncQueueDao(DatabaseProvider().appDb);
+        final pending = await dao.getPendingCount();
+        syncSubtitle = pending > 0 ? '$pending 条待同步' : null;
+      } catch (_) {}
+
+      if (!mounted) return;
       setState(() {
         _info = info;
         _preferenceCount = results[1] as int;
@@ -101,9 +120,7 @@ class ProfilePageState extends State<ProfilePage> {
         _statsAccuracy = overview.accuracyPercent;
         _answerHistoryCount = results[3] as int;
         _achievementUnlocked = results[4] as int;
-        final ps = results[5] as ({double earned, double bonus, double spent, double available});
-        _earnedPoints = ps.earned;
-        _availablePoints = ps.available;
+        _syncSubtitle = syncSubtitle;
         _loading = false;
       });
       // 等级（在 setState 外 await）
@@ -183,11 +200,20 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logout() async {
+    // 查询待同步条目数
+    int pendingCount = 0;
+    try {
+      pendingCount = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+    } catch (_) {}
+
+    final msg = pendingCount > 0
+        ? '确定要退出当前账号吗？\n有 $pendingCount 条数据尚未同步，退出后将丢失。建议先同步再退出。'
+        : '确定要退出当前账号吗？';
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('退出登录'),
-        content: const Text('确定要退出当前账号吗？\n未同步的数据将会丢失。'),
+        content: Text(msg),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
           TextButton(
@@ -334,7 +360,7 @@ class ProfilePageState extends State<ProfilePage> {
         (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [
-        (Icons.sync, '同步状态', null, () => context.push(AppRoutes.syncQueue)),
+        (Icons.sync, '同步状态', _buildSyncSubtitle(), () => context.push(AppRoutes.syncQueue)),
         (Icons.info_outline, '关于', null, () async {
           await context.push(AppRoutes.profileAbout);
           reload();
@@ -369,4 +395,6 @@ class ProfilePageState extends State<ProfilePage> {
       }).toList(),
     );
   }
+
+  String? _buildSyncSubtitle() => _syncSubtitle;
 }
