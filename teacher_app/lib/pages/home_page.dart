@@ -99,6 +99,8 @@ class _HomePageState extends State<HomePage> {
           onProgress: onProgress,
         );
       },
+      title: '更新数据',
+      message: '正在下载$label新版本…',
     );
     if (!mounted) return;
     setState(() => _currentIndex = 0);

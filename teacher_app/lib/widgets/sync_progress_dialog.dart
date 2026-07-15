@@ -4,12 +4,13 @@ import '../app_theme.dart';
 
 /// 同步进度弹窗
 ///
-/// 三段状态：进度中 → 完成（有数据/无数据） → 失败
+/// 支持 title/message 参数区分不同场景（数据库更新等）。
+///
 /// 用法：
 /// ```dart
 /// final ok = await showSyncProgress(context, (onProgress) async {
-///   await SyncManager().forcePull(onProgress: onProgress);
-/// });
+///   await manager.downloadAndReplace(…);
+/// }, title: '更新数据', message: '正在下载新版本…');
 /// ```
 ///
 /// [dataVerifier] 可选：成功后检查是否有可恢复的数据，返回 false 时显示"未发现"提示。
@@ -17,6 +18,8 @@ Future<bool> showSyncProgress(
   BuildContext context,
   Future<void> Function(void Function(double) onProgress) task, {
   Future<bool> Function()? dataVerifier,
+  String title = '同步数据',
+  String message = '正在同步…',
 }) async {
   final completer = Completer<bool>();
 
@@ -27,6 +30,8 @@ Future<bool> showSyncProgress(
       task: task,
       completer: completer,
       dataVerifier: dataVerifier,
+      dialogTitle: title,
+      dialogMessage: message,
     ),
   );
 
@@ -37,11 +42,15 @@ class _SyncProgressDialog extends StatefulWidget {
   final Future<void> Function(void Function(double) onProgress) task;
   final Completer<bool> completer;
   final Future<bool> Function()? dataVerifier;
+  final String dialogTitle;
+  final String dialogMessage;
 
   const _SyncProgressDialog({
     required this.task,
     required this.completer,
     this.dataVerifier,
+    this.dialogTitle = '同步数据',
+    this.dialogMessage = '正在同步…',
   });
 
   @override
@@ -114,14 +123,14 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
       children: [
         const Icon(Icons.file_download, size: 40, color: AppColors.primary),
         const SizedBox(height: 12),
-        const Text(
-          '同步数据',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+        Text(
+          widget.dialogTitle,
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          '正在从服务器恢复学习记录…',
-          style: TextStyle(fontSize: 13, color: Colors.black54),
+        Text(
+          widget.dialogMessage,
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
         ),
         const SizedBox(height: 20),
         ClipRRect(
@@ -222,16 +231,40 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            OutlinedButton(
+              onPressed: () {
+                setState(() {
+                  _status = 'progress';
+                  _progress = 0;
+                  _errorMessage = '';
+                });
+                _runTask();
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('重试'),
             ),
-          ),
-          child: const Text('关闭'),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('关闭'),
+            ),
+          ],
         ),
       ],
     );
