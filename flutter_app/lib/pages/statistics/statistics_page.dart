@@ -38,10 +38,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
     _repo = widget.statisticsRepository ?? StatisticsRepository(
-      StatisticsDao(db.appDb),
-      questionDao: QuestionDao(db.assetsDb),
+      StatisticsDao(DatabaseProvider()),
+      questionDao: QuestionDao(DatabaseProvider()),
     );
     _loadAll();
   }

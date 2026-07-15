@@ -56,10 +56,9 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
-    _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(db.appDb));
-    _qDao = widget.questionDao ?? QuestionDao(db.assetsDb);
-    _userRepo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), _qDao);
+    _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
+    _qDao = widget.questionDao ?? QuestionDao(DatabaseProvider());
+    _userRepo = widget.userRepository ?? UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), _qDao);
     _loadOpts();
     _loadBonus();
     // 页面构建完成后弹出欢迎 Dialog

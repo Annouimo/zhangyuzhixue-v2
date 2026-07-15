@@ -85,7 +85,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
   }
 
   Future<void> _showKnowledgeCard(BuildContext context, String tag) async {
-    final dao = QuestionDao(DatabaseProvider().assetsDb);
+    final dao = QuestionDao(DatabaseProvider());
     final card = await dao.getKnowledgeCardByTitle(tag);
     if (!context.mounted) return;
     final feedback = await KnowledgeCardDialog.show(
@@ -95,7 +95,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
     );
     // 如果用户选择了反馈，保存到数据库
     if (feedback != null && context.mounted) {
-      final pDao = ProgressDao(DatabaseProvider().appDb);
+      final pDao = ProgressDao(DatabaseProvider());
       final submissionDetailId = widget.submissionDetailId ?? 0;
       final questionId = widget.questionId ?? 0;
       if (submissionDetailId > 0 && questionId > 0) {

@@ -81,8 +81,8 @@ class SolveRouteHelper {
     String questionType,
   ) async {
     final repo = QuestionRepository(
-      QuestionDao(DatabaseProvider().assetsDb),
-      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     final attempts = await repo.getAttempts(questionId);
     String mode;

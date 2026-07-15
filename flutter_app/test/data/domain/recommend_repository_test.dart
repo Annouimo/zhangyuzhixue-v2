@@ -8,6 +8,7 @@ import 'package:flutter_app/data/daos/progress_dao.dart';
 import 'package:flutter_app/data/daos/preference_dao.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/domain/recommend_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late adb.AssetsDatabase aDb;
@@ -19,10 +20,12 @@ void main() {
   setUp(() {
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     uDb = udb.AppDatabase(NativeDatabase.memory());
-    qDao = QuestionDao(aDb);
-    pDao = ProgressDao(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    qDao = QuestionDao(DatabaseProvider());
+    pDao = ProgressDao(DatabaseProvider());
     // 用 withPrefRepo 构造器注入 mock PreferenceRepository，避免依赖 DatabaseProvider
-    final prefRepo = PreferenceRepository(PreferenceDao(uDb));
+    final prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider()));
     repo = RecommendRepository.withPrefRepo(qDao, pDao, prefRepo);
   });
 

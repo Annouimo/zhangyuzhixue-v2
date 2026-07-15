@@ -41,9 +41,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
   late final ExamRepository _repo;
   final _filterKey = GlobalKey<FilterPanelState>();
   late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
-      PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+      PreferenceRepository(PreferenceDao(DatabaseProvider()));
   late final UserRepository _userRepo = widget.userRepository ??
-      UserRepository(UserDao(DatabaseProvider().appDb), UserApi(ApiClient()), QuestionDao(DatabaseProvider().assetsDb));
+      UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()));
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
   List<SearchQuestion>? _questions;
@@ -60,8 +60,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
-    _repo = widget.examRepository ?? ExamRepository(QuestionDao(db.assetsDb), ExamDao(db.appDb));
+    _repo = widget.examRepository ?? ExamRepository(QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()));
     _loadFilterOptions();
   }
 

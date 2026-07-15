@@ -5,6 +5,7 @@ import 'package:flutter_app/data/database/app_database.dart' as db;
 import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/domain/sync_repository.dart';
 import 'package:flutter_app/pages/sync_queue_page.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 import '../test_setup.dart';
 
 void main() {
@@ -15,7 +16,8 @@ void main() {
 
   setUp(() {
     database = db.AppDatabase(NativeDatabase.memory());
-    dao = SyncQueueDao(database);
+    DatabaseProvider().setAppDbForTesting(database);
+    dao = SyncQueueDao(DatabaseProvider());
     repo = SyncRepository(dao);
   });
 

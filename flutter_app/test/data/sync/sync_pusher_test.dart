@@ -7,6 +7,7 @@ import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/sync/sync_pusher.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 /// Mock adapter that returns controllable server_ids responses
 class MockPushAdapter implements HttpClientAdapter {
@@ -47,7 +48,8 @@ void main() {
 
   setUp(() {
     database = db.AppDatabase(NativeDatabase.memory());
-    dao = SyncQueueDao(database);
+    DatabaseProvider().setAppDbForTesting(database);
+    dao = SyncQueueDao(DatabaseProvider());
 
     adapter = MockPushAdapter();
     final client = ApiClient();

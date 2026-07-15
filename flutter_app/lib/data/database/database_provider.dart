@@ -203,6 +203,27 @@ class DatabaseProvider {
     _dbDirPath = null;
   }
 
+  /// ⚠️ 仅限测试使用！在测试中用内存数据库替换 appDb 实例。
+  @visibleForTesting
+  void setAppDbForTesting(AppDatabase db) {
+    _appDb = db;
+    _initialized = true;
+  }
+
+  /// ⚠️ 仅限测试使用！在测试中用内存数据库替换 assetsDb 实例。
+  @visibleForTesting
+  void setAssetsDbForTesting(AssetsDatabase db) {
+    _assetsDb = db;
+    _initialized = true;
+  }
+
+  /// ⚠️ 仅限测试使用！在测试中用内存数据库替换 coursesDb 实例。
+  @visibleForTesting
+  void setCoursesDbForTesting(CoursesDatabase db) {
+    _coursesDb = db;
+    _initialized = true;
+  }
+
   void _ensureInitialized() {
     if (!_initialized) {
       throw StateError('DatabaseProvider not initialized. Call init() first.');

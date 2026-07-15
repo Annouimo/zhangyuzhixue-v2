@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 答题进度数据访问层（user 库）
 class ProgressDao {
-  final db.AppDatabase _db;
-  const ProgressDao(this._db);
+  final DatabaseProvider _provider;
+  ProgressDao(this._provider);
+  db.AppDatabase get _db => _provider.appDb;
 
   Future<int> createSubmission({
     required int studentId,

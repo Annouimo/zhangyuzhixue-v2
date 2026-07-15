@@ -67,9 +67,8 @@ class _IndexPageState extends State<IndexPage> {
   void initState() {
     super.initState();
     _welcomeText = _welcomeMessages[Random().nextInt(_welcomeMessages.length)];
-    final db = DatabaseProvider();
     _repo = widget.userRepository ?? UserRepository(
-      UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
+      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
     );
     _load();
   }
@@ -85,7 +84,7 @@ class _IndexPageState extends State<IndexPage> {
         await prefs.setBool('checked_in_today', false);
         await prefs.setString('last_checkin_date', today);
         final now = DateTime.now().toIso8601String();
-        await AchievementDao(DatabaseProvider().appDb).insertLoginLog(
+        await AchievementDao(DatabaseProvider()).insertLoginLog(
           loginDate: today,
           createdAt: now,
         );
@@ -95,7 +94,7 @@ class _IndexPageState extends State<IndexPage> {
       final pending = AppPrefs().pendingHomeworkCount;
 
       // 通过 AchievementDao 从登录日志推算连续签到天数
-      final dao = AchievementDao(DatabaseProvider().appDb);
+      final dao = AchievementDao(DatabaseProvider());
       final streak = await dao.getLoginStreak();
 
       // 等级进度
@@ -107,7 +106,7 @@ class _IndexPageState extends State<IndexPage> {
       // 查询同步队列状态
       int syncPending = 0;
       try {
-        syncPending = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+        syncPending = await SyncQueueDao(DatabaseProvider()).getPendingCount();
       } catch (_) {}
 
       // 任务奖励检测（每日仅发放一次）
@@ -182,7 +181,7 @@ class _IndexPageState extends State<IndexPage> {
       // 写入本地登录日志，供下次启动推算连续天数
       final now = DateTime.now();
       final loginDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      await AchievementDao(DatabaseProvider().appDb).insertLoginLog(
+      await AchievementDao(DatabaseProvider()).insertLoginLog(
         loginDate: loginDate,
         createdAt: now.toIso8601String(),
       );

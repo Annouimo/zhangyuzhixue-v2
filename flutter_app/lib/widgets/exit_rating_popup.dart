@@ -77,7 +77,7 @@ Future<bool> submitExitRating({
     final now = DateTime.now().toIso8601String();
     final provider = dbProvider ?? DatabaseProvider();
     final cfg = config ??
-        ExitRatingConfig(SystemConfigDao(provider.assetsDb));
+        ExitRatingConfig(SystemConfigDao(provider));
     final pts = await cfg.rewardPoints;
     final newId = await provider.appDb.into(provider.appDb.pointsTransactions).insert(
       app_db.PointsTransactionsCompanion(
@@ -121,7 +121,7 @@ Future<bool> showExitRatingIfNeeded(
   ExitRatingConfig? config,
 }) async {
   final cfg = config ??
-      ExitRatingConfig(SystemConfigDao(DatabaseProvider().assetsDb));
+      ExitRatingConfig(SystemConfigDao(DatabaseProvider()));
 
   if (!await shouldShowExitRating(pageUrl, entryTime, cfg)) return false;
 

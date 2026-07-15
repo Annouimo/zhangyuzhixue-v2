@@ -6,6 +6,7 @@ import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/data/daos/progress_dao.dart';
 import 'package:flutter_app/domain/question_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 adb.QuestionsCompanion qCompanion({
   int id = 1, int year = 2024, String examType = '一模', String region = '海淀',
@@ -27,8 +28,10 @@ void main() {
   setUp(() {
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     uDb = udb.AppDatabase(NativeDatabase.memory());
-    qDao = QuestionDao(aDb);
-    pDao = ProgressDao(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    qDao = QuestionDao(DatabaseProvider());
+    pDao = ProgressDao(DatabaseProvider());
     repo = QuestionRepository(qDao, pDao);
   });
 

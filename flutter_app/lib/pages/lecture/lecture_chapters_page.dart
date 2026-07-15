@@ -34,7 +34,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   void initState() {
     super.initState();
     _repo = widget.lectureRepository ??
-        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
+        LectureRepository(LectureDao(DatabaseProvider()));
     _load();
   }
 

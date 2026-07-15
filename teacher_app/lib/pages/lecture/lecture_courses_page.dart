@@ -29,7 +29,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   void initState() {
     super.initState();
     _repo = widget.lectureRepository ??
-        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
+        LectureRepository(LectureDao(DatabaseProvider()));
     _load();
   }
 

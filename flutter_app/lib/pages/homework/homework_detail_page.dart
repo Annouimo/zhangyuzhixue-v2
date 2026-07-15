@@ -39,16 +39,15 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
     _repo = widget.assignmentRepository ??
         AssignmentRepository(
-          AssignmentDao(db.coursesDb),
-          ProgressDao(db.appDb),
-          QuestionDao(db.assetsDb),
+          AssignmentDao(DatabaseProvider()),
+          ProgressDao(DatabaseProvider()),
+          QuestionDao(DatabaseProvider()),
         );
     _qRepo = QuestionRepository(
-      QuestionDao(db.assetsDb),
-      ProgressDao(db.appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     _load();
   }

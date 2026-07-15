@@ -64,7 +64,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   Future<void> _loadCooldown() async {
     try {
-      final dao = SystemConfigDao(DatabaseProvider().assetsDb);
+      final dao = SystemConfigDao(DatabaseProvider());
       final sec = await dao.getInt('solve_cooldown_step', 5);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
@@ -75,12 +75,12 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   Future<void> _load() async {
     _repo = progress.ProgressRepository(
-      ProgressDao(DatabaseProvider().appDb),
-      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider()),
+      QuestionDao(DatabaseProvider()),
     );
     final qRepo = QuestionRepository(
-      QuestionDao(DatabaseProvider().assetsDb),
-      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     try {
       final s = await _repo.getSolveState(widget.questionId);
@@ -95,7 +95,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
       if (widget.attemptId != null) {
         // 从路由参数解析 attempt
-        final dao = ProgressDao(DatabaseProvider().appDb);
+        final dao = ProgressDao(DatabaseProvider());
         final attempts = await dao.getAttempts(widget.questionId);
         final match = attempts.where((a) => a.id == widget.attemptId).toList();
         if (match.isNotEmpty) {

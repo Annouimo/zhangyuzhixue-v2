@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 成就数据访问层（user 库）
 class AchievementDao {
-  final db.AppDatabase _db;
-  const AchievementDao(this._db);
+  final DatabaseProvider _provider;
+  AchievementDao(this._provider);
+  db.AppDatabase get _db => _provider.appDb;
 
   Future<int> getUnlockedCount() async {
     final result = await _db.customSelect(

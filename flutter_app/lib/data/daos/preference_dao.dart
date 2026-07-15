@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 筛选预设数据访问层（user 库）
 class PreferenceDao {
-  final db.AppDatabase _db;
-  const PreferenceDao(this._db);
+  final DatabaseProvider _provider;
+  PreferenceDao(this._provider);
+  db.AppDatabase get _db => _provider.appDb;
 
   Future<List<db.PreferenceFilterRow>> listAll() async {
     final q = _db.select(_db.preferenceFilters)

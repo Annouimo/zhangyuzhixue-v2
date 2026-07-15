@@ -9,6 +9,7 @@ import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/user_api.dart';
 import 'package:flutter_app/domain/user_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 class _MockAdapter implements HttpClientAdapter {
   final handlers = <String, Function(RequestOptions)>{};
@@ -35,8 +36,10 @@ void main() {
   setUp(() {
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
-    dao = UserDao(uDb);
-    qDao = QuestionDao(aDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    dao = UserDao(DatabaseProvider());
+    qDao = QuestionDao(DatabaseProvider());
     client = ApiClient();
     client.init(baseUrl: 'https://test/');
     adapter = _MockAdapter();

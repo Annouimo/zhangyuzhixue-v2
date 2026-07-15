@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/assets_database.dart' as db;
 import 'package:flutter_app/data/daos/question_dao.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late db.AssetsDatabase database;
@@ -10,7 +11,8 @@ void main() {
 
   setUp(() {
     database = db.AssetsDatabase(NativeDatabase.memory());
-    dao = QuestionDao(database);
+    DatabaseProvider().setAssetsDbForTesting(database);
+    dao = QuestionDao(DatabaseProvider());
   });
 
   tearDown(() => database.close());

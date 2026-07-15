@@ -73,15 +73,15 @@ class ProfilePageState extends State<ProfilePage> {
   /// 每次 _load 时新鲜创建 Repository，确保拿到 DatabaseProvider 的最新连接引用
   void _initRepos() {
     _repo = widget.userRepository ?? UserRepository(
-      UserDao(DatabaseProvider().appDb), UserApi(ApiClient()), QuestionDao(DatabaseProvider().assetsDb),
+      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
     );
-    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _statsRepo = widget.statisticsRepository ?? StatisticsRepository(
-      StatisticsDao(DatabaseProvider().appDb),
-      questionDao: QuestionDao(DatabaseProvider().assetsDb),
+      StatisticsDao(DatabaseProvider()),
+      questionDao: QuestionDao(DatabaseProvider()),
     );
     _achieveRepo = widget.achievementRepository ?? AchievementRepository(
-      AchievementDao(DatabaseProvider().appDb), QuestionDao(DatabaseProvider().assetsDb), ExamDao(DatabaseProvider().appDb),
+      AchievementDao(DatabaseProvider()), QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()),
     );
   }
 
@@ -106,7 +106,7 @@ class ProfilePageState extends State<ProfilePage> {
       // 查询同步队列状态
       String? syncSubtitle;
       try {
-        final dao = SyncQueueDao(DatabaseProvider().appDb);
+        final dao = SyncQueueDao(DatabaseProvider());
         final pending = await dao.getPendingCount();
         syncSubtitle = pending > 0 ? '$pending 条待同步' : null;
       } catch (_) {}
@@ -203,7 +203,7 @@ class ProfilePageState extends State<ProfilePage> {
     // 查询待同步条目数
     int pendingCount = 0;
     try {
-      pendingCount = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+      pendingCount = await SyncQueueDao(DatabaseProvider()).getPendingCount();
     } catch (_) {}
 
     final msg = pendingCount > 0

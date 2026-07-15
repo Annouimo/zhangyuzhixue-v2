@@ -39,7 +39,7 @@ class RecommendPageState extends State<RecommendPage> {
   /// 每次操作时新鲜创建 Repository，确保拿到 DatabaseProvider 最新连接引用
   void _initRepo() {
     _repo = widget.recommendRepository ?? RecommendRepository(
-      QuestionDao(DatabaseProvider().assetsDb), ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()), ProgressDao(DatabaseProvider()),
     );
   }
 

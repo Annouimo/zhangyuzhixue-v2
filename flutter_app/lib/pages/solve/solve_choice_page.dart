@@ -56,8 +56,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     super.initState();
     _entryTime = DateTime.now();
     _repo = widget.questionRepository ?? QuestionRepository(
-      QuestionDao(DatabaseProvider().assetsDb),
-      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     _load();
     _loadCooldown();
@@ -65,7 +65,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   Future<void> _loadCooldown() async {
     try {
-      final dao = SystemConfigDao(DatabaseProvider().assetsDb);
+      final dao = SystemConfigDao(DatabaseProvider());
       final sec = await dao.getInt('solve_cooldown_choice', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
@@ -77,7 +77,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   /// 根据存档恢复选择状态
   Future<void> _restoreAttemptState(SolveAttempt attempt) async {
     if (attempt.isCompleted) {
-      final dao = ProgressDao(DatabaseProvider().appDb);
+      final dao = ProgressDao(DatabaseProvider());
       final rows = await dao.getAttempts(widget.questionId);
       final match = rows.where((r) => r.attemptNumber == attempt.attemptNumber).toList();
       if (match.isNotEmpty && mounted) {

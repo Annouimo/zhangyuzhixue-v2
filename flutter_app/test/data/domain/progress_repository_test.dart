@@ -5,6 +5,7 @@ import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/daos/progress_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/domain/progress_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late udb.AppDatabase uDb;
@@ -16,8 +17,10 @@ void main() {
   setUp(() {
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
-    pDao = ProgressDao(uDb);
-    qDao = QuestionDao(aDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    pDao = ProgressDao(DatabaseProvider());
+    qDao = QuestionDao(DatabaseProvider());
     repo = ProgressRepository(pDao, qDao);
   });
 

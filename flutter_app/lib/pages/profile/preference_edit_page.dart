@@ -39,7 +39,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   void initState() {
     super.initState();
     _repo = widget.preferenceRepository ??
-        PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+        PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _loadOptions().then((_) {
       if (widget.editId != null) {
         _loadExisting();
@@ -51,7 +51,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
 
   Future<void> _loadOptions() async {
     try {
-      final qDao = QuestionDao(DatabaseProvider().assetsDb);
+      final qDao = QuestionDao(DatabaseProvider());
       final years = (await qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await qDao.getDistinctRegions();
       final allTags = await qDao.getAllConceptTags();

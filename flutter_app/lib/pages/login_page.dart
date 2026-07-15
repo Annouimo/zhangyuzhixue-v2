@@ -138,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<bool> _checkPreferences() async {
     try {
       _prefRepo ??= widget.preferenceRepository ?? PreferenceRepository(
-        PreferenceDao(DatabaseProvider().appDb),
+        PreferenceDao(DatabaseProvider()),
       );
       final count = await _prefRepo!.getCount();
       return count > 0;

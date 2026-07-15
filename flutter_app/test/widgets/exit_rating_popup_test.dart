@@ -6,11 +6,13 @@ import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/system_config_dao.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
+import 'package:flutter_app/data/database/database_provider.dart';
 import '../test_setup.dart';
 
 /// 创建一个带默认 system_config 行数据的 mock AssetsDatabase
 adb.AssetsDatabase _makeAssetsDb() {
   final db = adb.AssetsDatabase(NativeDatabase.memory());
+  DatabaseProvider().setAssetsDbForTesting(db);
   // 写入默认配置
   db.into(db.systemConfigs).insert(adb.SystemConfigsCompanion.insert(
     key: 'exit_rating_probability',
@@ -37,7 +39,7 @@ void main() {
     await SharedPreferences.getInstance();
     await AppPrefs().init();
     aDb = _makeAssetsDb();
-    config = ExitRatingConfig(SystemConfigDao(aDb));
+    config = ExitRatingConfig(SystemConfigDao(DatabaseProvider()));
   });
 
   tearDown(() => aDb.close());

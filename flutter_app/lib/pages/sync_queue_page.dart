@@ -25,7 +25,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.syncRepository ?? SyncRepository(SyncQueueDao(DatabaseProvider().appDb));
+    _repo = widget.syncRepository ?? SyncRepository(SyncQueueDao(DatabaseProvider()));
     _load();
   }
 

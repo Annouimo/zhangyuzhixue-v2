@@ -60,8 +60,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
     super.initState();
     _entryTime = DateTime.now();
     _repo = widget.questionRepository ?? QuestionRepository(
-      QuestionDao(DatabaseProvider().assetsDb),
-      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     _load();
     _loadCooldown();
@@ -69,7 +69,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   Future<void> _loadCooldown() async {
     try {
-      final dao = SystemConfigDao(DatabaseProvider().assetsDb);
+      final dao = SystemConfigDao(DatabaseProvider());
       final sec = await dao.getInt('solve_cooldown_fill', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);

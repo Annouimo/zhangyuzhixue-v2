@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/daos/statistics_dao.dart';
 import 'package:flutter_app/domain/statistics_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late udb.AppDatabase uDb;
@@ -11,7 +12,8 @@ void main() {
 
   setUp(() {
     uDb = udb.AppDatabase(NativeDatabase.memory());
-    dao = StatisticsDao(uDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    dao = StatisticsDao(DatabaseProvider());
     repo = StatisticsRepository(dao);
   });
 

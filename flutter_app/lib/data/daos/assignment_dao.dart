@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 import '../database/courses_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 作业数据访问层（lectures 库）
 class AssignmentDao {
-  final db.CoursesDatabase _db;
-  const AssignmentDao(this._db);
+  final DatabaseProvider _provider;
+  AssignmentDao(this._provider);
+  db.CoursesDatabase get _db => _provider.coursesDb;
 
   Future<List<db.AssignmentRow>> listAll() async {
     final rows = await _db.select(_db.assignments).get();

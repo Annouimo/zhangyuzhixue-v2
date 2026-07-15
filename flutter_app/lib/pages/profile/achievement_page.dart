@@ -28,8 +28,7 @@ class _AchievementPageState extends State<AchievementPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
-    _repo = widget.achievementRepository ?? AchievementRepository(AchievementDao(db.appDb), QuestionDao(db.assetsDb), ExamDao(db.appDb));
+    _repo = widget.achievementRepository ?? AchievementRepository(AchievementDao(DatabaseProvider()), QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()));
     _load();
   }
 

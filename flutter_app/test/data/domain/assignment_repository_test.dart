@@ -8,6 +8,7 @@ import 'package:flutter_app/data/daos/assignment_dao.dart';
 import 'package:flutter_app/data/daos/progress_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/domain/assignment_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 /// 快速插入一条题目到 assets.db（返回 question_id）
 Future<int> _insertQuestion(adb.AssetsDatabase db, {
@@ -51,12 +52,15 @@ void main() {
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
+      DatabaseProvider().setCoursesDbForTesting(lDb);
+      DatabaseProvider().setAssetsDbForTesting(aDb);
+      DatabaseProvider().setAppDbForTesting(uDb);
 
       await _insertQuestion(aDb);
       await _insertAssignment(lDb);
 
       final repo = AssignmentRepository(
-        AssignmentDao(lDb), ProgressDao(uDb), QuestionDao(aDb),
+        AssignmentDao(DatabaseProvider()), ProgressDao(DatabaseProvider()), QuestionDao(DatabaseProvider()),
       );
       final list = await repo.getPending();
       expect(list.length, 1);
@@ -72,17 +76,20 @@ void main() {
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
+      DatabaseProvider().setCoursesDbForTesting(lDb);
+      DatabaseProvider().setAssetsDbForTesting(aDb);
+      DatabaseProvider().setAppDbForTesting(uDb);
 
       await _insertQuestion(aDb, id: 1, number: '7', questionType: 'choice');
       await _insertQuestion(aDb, id: 2, number: '8', questionType: 'fill');
       await _insertAssignment(lDb, questionIds: [1, 2]);
 
       // Create an attempt for question 1
-      final pDao = ProgressDao(uDb);
+      final pDao = ProgressDao(DatabaseProvider());
       await pDao.createAttempt(questionId: 1);
 
       final repo = AssignmentRepository(
-        AssignmentDao(lDb), pDao, QuestionDao(aDb),
+        AssignmentDao(DatabaseProvider()), pDao, QuestionDao(DatabaseProvider()),
       );
       final list = await repo.getPending();
       expect(list.length, 1);
@@ -97,12 +104,15 @@ void main() {
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
+      DatabaseProvider().setCoursesDbForTesting(lDb);
+      DatabaseProvider().setAssetsDbForTesting(aDb);
+      DatabaseProvider().setAppDbForTesting(uDb);
 
       await _insertQuestion(aDb, id: 10, number: '7', questionType: 'choice');
       await _insertQuestion(aDb, id: 11, number: '8', questionType: 'fill');
       await _insertAssignment(lDb, questionIds: [10, 11]);
 
-      final pDao = ProgressDao(uDb);
+      final pDao = ProgressDao(DatabaseProvider());
       // Complete question 10
       final aid = await pDao.createAttempt(questionId: 10);
       final q = uDb.update(uDb.submissionDetails)..where((t) => t.id.equals(aid));
@@ -111,7 +121,7 @@ void main() {
       ));
 
       final repo = AssignmentRepository(
-        AssignmentDao(lDb), pDao, QuestionDao(aDb),
+        AssignmentDao(DatabaseProvider()), pDao, QuestionDao(DatabaseProvider()),
       );
       final detail = await repo.getQuestions(1);
       expect(detail.totalCount, 2);
@@ -131,9 +141,12 @@ void main() {
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
+      DatabaseProvider().setCoursesDbForTesting(lDb);
+      DatabaseProvider().setAssetsDbForTesting(aDb);
+      DatabaseProvider().setAppDbForTesting(uDb);
 
       final repo = AssignmentRepository(
-        AssignmentDao(lDb), ProgressDao(uDb), QuestionDao(aDb),
+        AssignmentDao(DatabaseProvider()), ProgressDao(DatabaseProvider()), QuestionDao(DatabaseProvider()),
       );
       expect(() => repo.getQuestions(999), throwsA(isA<Exception>()));
 
@@ -144,9 +157,12 @@ void main() {
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());
+      DatabaseProvider().setCoursesDbForTesting(lDb);
+      DatabaseProvider().setAssetsDbForTesting(aDb);
+      DatabaseProvider().setAppDbForTesting(uDb);
 
       final repo = AssignmentRepository(
-        AssignmentDao(lDb), ProgressDao(uDb), QuestionDao(aDb),
+        AssignmentDao(DatabaseProvider()), ProgressDao(DatabaseProvider()), QuestionDao(DatabaseProvider()),
       );
       expect(await repo.pendingCount(), 0);
 

@@ -1,4 +1,5 @@
 import '../database/assets_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 系统配置 DAO（assets.db → system_config 表）
@@ -6,10 +7,11 @@ import '../debug/audit_logger.dart';
 /// 提供带缓存 + fallback 默认值的键值查询。
 /// 缓存实例生命周期与 AssetsDatabase 一致，DatabaseProvider 重置时自动失效。
 class SystemConfigDao {
-  final db.AssetsDatabase _db;
+  final DatabaseProvider _provider;
   final Map<String, String> _cache = {};
 
-  SystemConfigDao(this._db);
+  SystemConfigDao(this._provider);
+  db.AssetsDatabase get _db => _provider.assetsDb;
 
   /// 获取字符串值，不存在时返回 fallback
   Future<String> get(String key, String fallback) async {

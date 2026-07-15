@@ -3,6 +3,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/app_database.dart' as db;
 import 'package:flutter_app/data/daos/achievement_dao.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late db.AppDatabase database;
@@ -10,7 +11,8 @@ void main() {
 
   setUp(() {
     database = db.AppDatabase(NativeDatabase.memory());
-    dao = AchievementDao(database);
+    DatabaseProvider().setAppDbForTesting(database);
+    dao = AchievementDao(DatabaseProvider());
   });
 
   tearDown(() => database.close());

@@ -41,7 +41,7 @@ class _MainShellState extends State<MainShell> {
 
   Future<void> _refreshSyncPending() async {
     try {
-      final count = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+      final count = await SyncQueueDao(DatabaseProvider()).getPendingCount();
       if (mounted) setState(() => _syncPendingCount = count);
     } catch (_) {}
   }

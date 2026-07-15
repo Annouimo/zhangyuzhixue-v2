@@ -29,7 +29,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   void initState() {
     super.initState();
     _repo = widget.preferenceRepository ??
-        PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+        PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _load();
   }
 

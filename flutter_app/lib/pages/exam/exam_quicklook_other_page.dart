@@ -32,9 +32,8 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
     _repo = widget.examRepository ?? ExamRepository(
-      QuestionDao(db.assetsDb), ExamDao(db.appDb),
+      QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()),
     );
     _load();
   }

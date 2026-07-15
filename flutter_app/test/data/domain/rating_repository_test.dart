@@ -5,6 +5,7 @@ import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/daos/rating_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/domain/rating_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late db.AppDatabase database;
@@ -15,8 +16,10 @@ void main() {
   setUp(() {
     database = db.AppDatabase(NativeDatabase.memory());
     assetsDatabase = adb.AssetsDatabase(NativeDatabase.memory());
-    dao = RatingDao(database);
-    repo = RatingRepository(dao, QuestionDao(assetsDatabase));
+    DatabaseProvider().setAppDbForTesting(database);
+    DatabaseProvider().setAssetsDbForTesting(assetsDatabase);
+    dao = RatingDao(DatabaseProvider());
+    repo = RatingRepository(dao, QuestionDao(DatabaseProvider()));
   });
 
   tearDown(() {

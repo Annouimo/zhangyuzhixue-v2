@@ -59,7 +59,7 @@ void main() async {
 
   final syncApi = SyncApi(ApiClient());
   SyncManager().init(
-    SyncQueueDao(DatabaseProvider().appDb),
+    SyncQueueDao(DatabaseProvider()),
     syncApi,
     DatabaseProvider(),
   );
@@ -71,7 +71,7 @@ void main() async {
 
   // 检查是否有未同步的积压数据
   try {
-    final pendingCount = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+    final pendingCount = await SyncQueueDao(DatabaseProvider()).getPendingCount();
     if (pendingCount > 0 && updates.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showPendingSyncBanner(pendingCount);

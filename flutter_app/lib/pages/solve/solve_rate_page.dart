@@ -41,8 +41,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
   void initState() {
     super.initState();
     _ratingRepo = widget.ratingRepository ?? RatingRepository(
-      RatingDao(DatabaseProvider().appDb),
-      QuestionDao(DatabaseProvider().assetsDb),
+      RatingDao(DatabaseProvider()),
+      QuestionDao(DatabaseProvider()),
     );
     _loadRating();
   }
@@ -51,7 +51,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
     try {
       // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
       try {
-        final cfg = SystemConfigDao(DatabaseProvider().assetsDb);
+        final cfg = SystemConfigDao(DatabaseProvider());
         _rewardPoints = await cfg.getDouble('question_rating_reward', 0.3);
       } catch (_) {} 
 

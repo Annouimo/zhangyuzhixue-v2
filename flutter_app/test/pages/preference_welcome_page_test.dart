@@ -31,8 +31,10 @@ void main() {
 
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
-    dao = PreferenceDao(uDb);
-    qDao = QuestionDao(aDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    dao = PreferenceDao(DatabaseProvider());
+    qDao = QuestionDao(DatabaseProvider());
     repo = PreferenceRepository(dao);
   });
 

@@ -53,12 +53,12 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   Future<void> _load() async {
     final repo = progress.ProgressRepository(
-      ProgressDao(DatabaseProvider().appDb),
-      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider()),
+      QuestionDao(DatabaseProvider()),
     );
     final qRepo = QuestionRepository(
-      QuestionDao(DatabaseProvider().assetsDb),
-      ProgressDao(DatabaseProvider().appDb),
+      QuestionDao(DatabaseProvider()),
+      ProgressDao(DatabaseProvider()),
     );
     try {
       final s = await repo.getSolveState(widget.questionId);
@@ -203,8 +203,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
         if (value is progress.AttemptSummary) {
           // 切换到其他存档
           final repo = progress.ProgressRepository(
-            ProgressDao(DatabaseProvider().appDb),
-            QuestionDao(DatabaseProvider().assetsDb),
+            ProgressDao(DatabaseProvider()),
+            QuestionDao(DatabaseProvider()),
           );
           final prevState = await repo.getAttemptState(
             widget.questionId, value.attemptNumber,
@@ -494,8 +494,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   Future<void> _onRetry() async {
     final repo = progress.ProgressRepository(
-      ProgressDao(DatabaseProvider().appDb),
-      QuestionDao(DatabaseProvider().assetsDb),
+      ProgressDao(DatabaseProvider()),
+      QuestionDao(DatabaseProvider()),
     );
     await repo.createAttempt(widget.questionId);
     _load();

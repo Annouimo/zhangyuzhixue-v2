@@ -33,8 +33,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   void initState() {
     super.initState();
     _percentile = AppPrefs().levelPercentile;
-    final db = DatabaseProvider();
-    _repo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb));
+    _repo = widget.userRepository ?? UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()));
     _load();
   }
 

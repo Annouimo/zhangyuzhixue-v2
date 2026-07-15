@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
+import '../database/database_provider.dart';
 import '../debug/audit_logger.dart';
 
 /// 统计数据访问层（user 库）
 class StatisticsDao {
-  final db.AppDatabase _db;
-  const StatisticsDao(this._db);
+  final DatabaseProvider _provider;
+  StatisticsDao(this._provider);
+  db.AppDatabase get _db => _provider.appDb;
 
   Future<int> getTotalQuestions() async {
     final rows = await (_db.select(_db.submissionDetails)

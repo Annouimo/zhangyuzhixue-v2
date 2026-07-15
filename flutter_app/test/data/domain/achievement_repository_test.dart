@@ -7,6 +7,7 @@ import 'package:flutter_app/data/daos/achievement_dao.dart';
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/data/daos/exam_dao.dart';
 import 'package:flutter_app/domain/achievement_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late udb.AppDatabase uDb;
@@ -19,9 +20,11 @@ void main() {
   setUp(() {
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
-    dao = AchievementDao(uDb);
-    qDao = QuestionDao(aDb);
-    eDao = ExamDao(uDb);
+    DatabaseProvider().setAppDbForTesting(uDb);
+    DatabaseProvider().setAssetsDbForTesting(aDb);
+    dao = AchievementDao(DatabaseProvider());
+    qDao = QuestionDao(DatabaseProvider());
+    eDao = ExamDao(DatabaseProvider());
     repo = AchievementRepository(dao, qDao, eDao);
   });
 

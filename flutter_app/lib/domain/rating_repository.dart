@@ -90,7 +90,7 @@ class RatingRepository {
     }
     // 赠送积分
     try {
-      final cfg = SystemConfigDao(DatabaseProvider().assetsDb);
+      final cfg = SystemConfigDao(DatabaseProvider());
       final pts = await cfg.getDouble('question_rating_reward', 0.3);
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();

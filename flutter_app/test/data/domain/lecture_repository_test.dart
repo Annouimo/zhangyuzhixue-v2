@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_app/data/database/courses_database.dart' as ldb;
 import 'package:flutter_app/data/daos/lecture_dao.dart';
 import 'package:flutter_app/domain/lecture_repository.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 
 void main() {
   late ldb.CoursesDatabase db;
@@ -11,7 +12,8 @@ void main() {
 
   setUp(() {
     db = ldb.CoursesDatabase(NativeDatabase.memory());
-    dao = LectureDao(db);
+    DatabaseProvider().setCoursesDbForTesting(db);
+    dao = LectureDao(DatabaseProvider());
     repo = LectureRepository(dao);
   });
 

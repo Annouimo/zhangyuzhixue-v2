@@ -17,7 +17,8 @@ void main() {
 
   setUp(() async {
     database = db.AppDatabase(NativeDatabase.memory());
-    dao = SyncQueueDao(database);
+    DatabaseProvider().setAppDbForTesting(database);
+    dao = SyncQueueDao(DatabaseProvider());
     manager = SyncManager();
     await manager.init(dao, SyncApi(ApiClient()), DatabaseProvider());
   });

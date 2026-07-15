@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
+import '../database/database_provider.dart';
 import '../database/assets_database.dart' as db;
 import '../debug/audit_logger.dart';
 
 /// 题目数据访问层
 class QuestionDao {
-  final db.AssetsDatabase _db;
-  const QuestionDao(this._db);
+  final DatabaseProvider _provider;
+  QuestionDao(this._provider);
+  db.AssetsDatabase get _db => _provider.assetsDb;
 
   Future<db.QuestionRow?> getById(int id) async {
     final q = _db.select(_db.questions)..where((t) => t.id.equals(id));

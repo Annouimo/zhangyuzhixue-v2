@@ -35,9 +35,9 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
     super.initState();
     _repo = widget.assignmentRepository ??
         AssignmentRepository(
-          AssignmentDao(DatabaseProvider().coursesDb),
-          ProgressDao(DatabaseProvider().appDb),
-          QuestionDao(DatabaseProvider().assetsDb),
+          AssignmentDao(DatabaseProvider()),
+          ProgressDao(DatabaseProvider()),
+          QuestionDao(DatabaseProvider()),
         );
     _load();
   }

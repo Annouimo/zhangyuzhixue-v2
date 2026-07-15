@@ -32,9 +32,8 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
     _repo = widget.userRepository ?? UserRepository(
-      UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb),
+      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
     );
     _load();
   }

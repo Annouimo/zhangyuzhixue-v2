@@ -43,7 +43,7 @@ class RecommendRepository {
   final PreferenceRepository _prefRepo;
 
   RecommendRepository(this._questionDao, this._progressDao)
-    : _prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider().appDb));
+    : _prefRepo = PreferenceRepository(PreferenceDao(DatabaseProvider()));
 
   RecommendRepository.withPrefRepo(
     this._questionDao,

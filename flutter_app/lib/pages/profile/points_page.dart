@@ -30,8 +30,7 @@ class _PointsPageState extends State<PointsPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
-    _repo = widget.userRepository ?? UserRepository(UserDao(db.appDb), UserApi(ApiClient()), QuestionDao(db.assetsDb));
+    _repo = widget.userRepository ?? UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()));
     _load();
   }
 

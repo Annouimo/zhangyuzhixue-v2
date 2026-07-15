@@ -42,9 +42,8 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   @override
   void initState() {
     super.initState();
-    final db = DatabaseProvider();
     _repo = widget.questionRepository ??
-        QuestionRepository(QuestionDao(db.assetsDb));
+        QuestionRepository(QuestionDao(DatabaseProvider()));
     _loadFilterOptions();
   }
 
