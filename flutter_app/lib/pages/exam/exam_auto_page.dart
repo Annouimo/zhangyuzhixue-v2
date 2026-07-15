@@ -220,9 +220,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
             children: [
               Expanded(
                 child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
                       child: TextField(
                         controller: _nameController,
                         decoration: const InputDecoration(
@@ -235,6 +236,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                     if (_filterOpts != null)
                       FilterPanel(
                         key: _filterKey,
+                        horizontalMargin: 0,
                         yearOptions: _filterOpts!.years,
                         regionOptions: _filterOpts!.regions,
                         typeOptions: _filterOpts!.questionTypes,
@@ -256,7 +258,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                     // 池统计
                     if (_poolStats != null)
                       Card(
-                        margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        margin: const EdgeInsets.fromLTRB(0, 4, 0, 0),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -277,7 +279,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                       ),
                     // 题型配比 Card
                     Card(
-                      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      margin: const EdgeInsets.fromLTRB(0, 8, 0, 0),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
