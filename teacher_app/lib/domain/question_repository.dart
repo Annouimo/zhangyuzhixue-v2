@@ -193,15 +193,15 @@ class QuestionRepository {
   }) async {
     final rows = await _questionDao.search(
       years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
-      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      regions: filters.regions.toList(),
       diffMin: filters.diffMin,
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
-      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
-      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
-      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags.toList() : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards.toList() : null,
+      examTypes: filters.examTypes,
+      questionTypes: filters.questionTypes,
     );
 
     // 排序
@@ -309,15 +309,15 @@ class _ExamFilterEngine {
   Future<PoolStats> compute(SearchFilters filters) async {
     final pool = await _dao.search(
       years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
-      regions: filters.regions.isNotEmpty ? filters.regions : null,
+      regions: filters.regions.toList(),
       diffMin: filters.diffMin,
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
       conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
       knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
-      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
-      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+      examTypes: filters.examTypes,
+      questionTypes: filters.questionTypes,
     );
 
     final choicePool = pool.where((q) => q.questionType == 'choice').toList();

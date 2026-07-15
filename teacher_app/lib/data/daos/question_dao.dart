@@ -38,20 +38,21 @@ class QuestionDao {
     List<String>? examTypes, List<String>? questionTypes,
   }) async {
     final q = _db.select(_db.questions);
-    if (years != null && years.isNotEmpty) q.where((t) => t.year.isIn(years));
-    if (regions != null && regions.isNotEmpty) q.where((t) => t.region.isIn(regions));
+    if (years != null) q.where((t) => t.year.isIn(years.isEmpty ? const [-1] : years));
+    if (regions != null) q.where((t) => t.region.isIn(regions.isEmpty ? const [''] : regions));
     if (diffMin != null) q.where((t) => t.difficulty.isBiggerOrEqual(Variable(diffMin)));
     if (diffMax != null) q.where((t) => t.difficulty.isSmallerOrEqual(Variable(diffMax)));
     if (calcMin != null) q.where((t) => t.calculation.isBiggerOrEqual(Variable(calcMin)));
     if (calcMax != null) q.where((t) => t.calculation.isSmallerOrEqual(Variable(calcMax)));
     if (questionType != null) q.where((t) => t.questionType.equals(questionType));
-    if (questionTypes != null && questionTypes.isNotEmpty) q.where((t) => t.questionType.isIn(questionTypes));
-    if (examTypes != null && examTypes.isNotEmpty) q.where((t) => t.examType.isIn(examTypes));
+    if (questionTypes != null) q.where((t) => t.questionType.isIn(questionTypes.isEmpty ? const [''] : questionTypes));
+    if (examTypes != null) q.where((t) => t.examType.isIn(examTypes.isEmpty ? const [''] : examTypes));
     if (limit != null) q.limit(limit);
     var rows = await q.get();
 
     // 内存过滤：概念标签
-    if (conceptTagNames != null && conceptTagNames.isNotEmpty) {
+    if (conceptTagNames != null) {
+      if (conceptTagNames.isEmpty) return [];
       final tagRows = _db.select(_db.conceptTags)
         ..where((t) => t.name.isIn(conceptTagNames));
       final tagIds = (await tagRows.get()).map((t) => t.id).toSet();
@@ -66,7 +67,8 @@ class QuestionDao {
     }
 
     // 内存过滤：知识卡片
-    if (knowledgeCardNames != null && knowledgeCardNames.isNotEmpty) {
+    if (knowledgeCardNames != null) {
+      if (knowledgeCardNames.isEmpty) return [];
       final kcRows = _db.select(_db.knowledgeCards)
         ..where((t) => t.title.isIn(knowledgeCardNames));
       final kcIds = (await kcRows.get()).map((k) => k.id).toSet();
