@@ -103,6 +103,23 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               ),
             ),
           ],
+
+          // 知识卡片
+          if (widget.detail.knowledgeCards.isNotEmpty) ...[
+            _section('知识卡片'),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Wrap(
+                spacing: 6, runSpacing: 4,
+                children: widget.detail.knowledgeCards.map((kc) => ActionChip(
+                  label: Text('${kc.category} · ${kc.title}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  onPressed: () => _showKnowledgeCard(kc),
+                )).toList(),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -157,6 +174,20 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         Text(value,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
       ],
+    );
+  }
+  void _showKnowledgeCard(db.KnowledgeCardRow kc) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('${kc.category} · ${kc.title}'),
+        content: SingleChildScrollView(
+          child: MdLatexBody(kc.content, fontSize: 14),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('关闭')),
+        ],
+      ),
     );
   }
 

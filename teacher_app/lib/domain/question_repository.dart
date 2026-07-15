@@ -137,6 +137,7 @@ class QuestionDetail {
   final List<assets_db.SolutionMethodRow> methods;
   final List<assets_db.SolutionStepRow> steps;
   final List<assets_db.ConceptTagRow> tags;
+  final List<assets_db.KnowledgeCardRow> knowledgeCards;
 
   const QuestionDetail({
     required this.question,
@@ -145,6 +146,7 @@ class QuestionDetail {
     this.methods = const [],
     this.steps = const [],
     this.tags = const [],
+    this.knowledgeCards = const [],
   });
 }
 
@@ -243,6 +245,7 @@ class QuestionRepository {
     final steps = await _questionDao.getStepsByMethodIds(methodIds);
 
     final tags = await _questionDao.getTagsByQuestion(questionId);
+    final knowledgeCards = await _questionDao.getKnowledgeCardsByQuestion(questionId);
 
     return QuestionDetail(
       question: question,
@@ -251,6 +254,7 @@ class QuestionRepository {
       methods: methods,
       steps: steps,
       tags: tags,
+      knowledgeCards: knowledgeCards,
     );
   }
 

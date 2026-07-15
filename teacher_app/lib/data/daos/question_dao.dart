@@ -197,6 +197,17 @@ class QuestionDao {
     return rows;
   }
 
+  Future<List<db.KnowledgeCardRow>> getKnowledgeCardsByQuestion(int questionId) async {
+    final links = await (_db.select(_db.questionKnowledgeCards)
+      ..where((t) => t.questionId.equals(questionId))).get();
+    if (links.isEmpty) return [];
+    final kcIds = links.map((e) => e.knowledgeCardId).toList();
+    final q = _db.select(_db.knowledgeCards)..where((t) => t.id.isIn(kcIds));
+    final rows = await q.get();
+    AuditLogger.instance.dao('QuestionDao.getKnowledgeCardsByQuestion', rows.length, {'questionId': questionId});
+    return rows;
+  }
+
   Future<List<db.KnowledgeCardRow>> getAllKnowledgeCards() async {
     final rows = await _db.select(_db.knowledgeCards).get();
     AuditLogger.instance.dao('QuestionDao.getAllKnowledgeCards', rows.length, {});
