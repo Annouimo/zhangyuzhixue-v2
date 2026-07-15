@@ -78,7 +78,10 @@ class _LoginPageState extends State<LoginPage> {
       // 同步用户数据（展示进度弹窗）
       final syncOk = await showSyncProgress(context, (onProgress) async {
         await SyncManager().onLogin(onProgress: onProgress);
-      });
+      },
+        title: '恢复数据',
+        message: '正在从服务器恢复你的学习记录…',
+      );
       if (!mounted) return;
 
       // 缓存 accessible_course_ids（登录即获取，供离线过滤用）
@@ -94,7 +97,23 @@ class _LoginPageState extends State<LoginPage> {
 
       // 同步失败时页面内显示提示（登录流程已走完，token 已保存）
       if (!syncOk) {
-        _showError('数据同步失败，可稍后在「我的」页面手动同步');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('数据同步失败，部分数据可能未恢复'),
+            backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: '去同步',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                context.go(AppRoutes.syncQueue);
+              },
+            ),
+          ),
+        );
       }
 
       // 检查是否有学习偏好

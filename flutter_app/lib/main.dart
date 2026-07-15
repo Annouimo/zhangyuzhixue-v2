@@ -69,6 +69,16 @@ void main() async {
   // 启动后推送积压 + 版本检查（不阻塞首帧）
   final updates = await SyncManager().onAppStart();
 
+  // 检查是否有未同步的积压数据
+  try {
+    final pendingCount = await SyncQueueDao(DatabaseProvider().appDb).getPendingCount();
+    if (pendingCount > 0 && updates.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showPendingSyncBanner(pendingCount);
+      });
+    }
+  } catch (_) {}
+
   if (updates.isEmpty) return;
 
   // 首帧渲染后再弹出更新 UI
@@ -162,6 +172,8 @@ void _startUpdate(BuildContext context, UpdateSummary summary, String label) {
     (onProgress) async {
       await SyncManager().runUpdate(summary.type, onProgress: onProgress);
     },
+    title: '更新数据',
+    message: '正在下载$label新版本…',
   );
 }
 
@@ -178,6 +190,26 @@ void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
         onPressed: () {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           _showForcedUpdateDialog(context, summary);
+        },
+      ),
+    ),
+  );
+}
+
+/// 启动后提示有未同步数据
+void _showPendingSyncBanner(int count) {
+  final ctx = routerNavigatorKey.currentContext;
+  if (ctx == null) return;
+  ScaffoldMessenger.of(ctx).showSnackBar(
+    SnackBar(
+      content: Text('有 $count 条数据等待同步'),
+      duration: const Duration(seconds: 5),
+      behavior: SnackBarBehavior.floating,
+      action: SnackBarAction(
+        label: '查看',
+        onPressed: () {
+          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
+          GoRouter.of(ctx).go('/sync/queue');
         },
       ),
     ),

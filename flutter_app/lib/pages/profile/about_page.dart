@@ -48,6 +48,8 @@ class _AboutPageState extends State<AboutPage> {
         final dao = ProgressDao(DatabaseProvider().appDb);
         return dao.hasAnySubmission();
       },
+      title: '同步数据',
+      message: '正在上传本地数据并下载最新记录…',
     );
 
     if (ok && mounted) {
@@ -57,8 +59,6 @@ class _AboutPageState extends State<AboutPage> {
       await AppPrefs().setLastSyncTime(label);
       if (mounted) {
         setState(() => _lastSyncTime = '上次同步：$label');
-        // 同步完成后返回"我的"页面并刷新
-        Navigator.of(context).pop();
       }
     }
     if (mounted) setState(() => _syncing = false);
@@ -108,15 +108,25 @@ class _AboutPageState extends State<AboutPage> {
             _lastSyncTime,
             style: const TextStyle(fontSize: 12),
           ),
-          trailing: TextButton(
+          trailing: OutlinedButton.icon(
             onPressed: _syncing ? null : _onSync,
-            child: _syncing
+            icon: _syncing
                 ? const SizedBox(
-                    width: 18,
-                    height: 18,
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('同步'),
+                : const Icon(Icons.sync, size: 16),
+            label: Text(_syncing ? '同步中' : '立即同步'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              textStyle: const TextStyle(fontSize: 13),
+              side: const BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 24),
