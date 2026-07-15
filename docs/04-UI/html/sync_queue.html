@@ -14,8 +14,8 @@
   </div>
 
   <div class="page" style="padding-top:8px;">
-    <!-- 全部重试按钮（有失败时显示） -->
-    <button class="btn btn-primary btn-block" data-db-show="sync.hasFailed" data-db-action="sync.retryAll()" onclick="void(0)" style="margin-bottom:12px;">
+    <!-- 全部重试按钮（有失败或待同步时显示） -->
+    <button class="btn btn-primary btn-block" data-db-show="sync.hasPendingOrFailed" onclick="void(0)" style="margin-bottom:12px;">
       🔄 全部重试
     </button>
 
@@ -27,7 +27,8 @@
             <span data-db="sync.getQueue[].icon">📝</span>
             <span data-db="sync.getQueue[].entityTypeName">提交答案</span>
           </div>
-          <div class="subtitle" data-db="sync.getQueue[].timeAgo">2 分钟前</div>
+          <div class="subtitle" data-db="sync.getQueue[].timeAgo" data-db-show="!sync.getQueue[].errorMessage">2 分钟前</div>
+          <div class="subtitle" style="color:var(--error);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" data-db="sync.getQueue[].errorMessage" data-db-show="sync.getQueue[].errorMessage">网络请求超时，请检查网络</div>
         </div>
         <div class="right">
           <span data-db-show="sync.getQueue[].status" data-db-show-value="pending" style="color:var(--text-muted);font-size:12px;">⏳ 等待中</span>

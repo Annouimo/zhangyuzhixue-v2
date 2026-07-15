@@ -32,11 +32,11 @@
       <div class="right">→</div>
     </a>
 
-    <!-- 讲义入口 -->
+    <!-- 课程入口（原"讲义"→"课程"） -->
     <a href="lecture_courses.html" class="list-item" style="margin-bottom:12px;">
       <div class="left">
-        <div class="title">📖 讲义</div>
-        <div class="subtitle">浏览课程与讲义内容</div>
+        <div class="title">📖 课程</div>
+        <div class="subtitle">浏览课程内容</div>
       </div>
       <div class="right">→</div>
     </a>
@@ -96,6 +96,19 @@
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);">
         <span data-db="tasks.levelProgress">🏅 Lv.5 → 升级还需 7.8</span>
         <span data-db="tasks.todayEarned" style="color:var(--primary);font-weight:600;">今日学习积分 +3.5</span>
+      </div>
+    </div>
+
+    <!-- 同步状态行 -->
+    <div class="list-item" style="margin-top:8px;padding:10px 12px;border-radius:8px;cursor:pointer;" data-db-action="goToSyncQueue()" onclick="void(0)">
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <span style="font-size:16px;" data-db-show="!connectivity.online">☁️</span>
+        <span style="font-size:16px;" data-db-show="connectivity.online && sync.pendingCount > 0">🔄</span>
+        <span style="font-size:16px;" data-db-show="connectivity.online && sync.pendingCount <= 0">✅</span>
+        <span style="font-size:12px;" data-db-show="!connectivity.online">当前离线，数据将在联网后同步</span>
+        <span style="font-size:12px;" data-db-show="connectivity.online && sync.pendingCount > 0" data-db="sync.pendingCountText">2 条数据待同步</span>
+        <span style="font-size:12px;color:var(--success);" data-db-show="connectivity.online && sync.pendingCount <= 0">全部已同步</span>
+        <span style="margin-left:auto;color:var(--text-muted);">→</span>
       </div>
     </div>
   </div>

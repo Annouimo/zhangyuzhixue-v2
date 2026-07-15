@@ -31,6 +31,12 @@
         </button>
       </form>
 
+      <!-- 同步失败提示（登录后弹出） -->
+      <div class="snackbar" id="sync-fail-snack" style="display:none;margin-top:12px;padding:12px 16px;background:var(--warning);border-radius:var(--radius-sm);font-size:13px;color:#fff;display:flex;align-items:center;justify-content:space-between;">
+        <span>数据同步失败，部分数据可能未恢复</span>
+        <a href="sync_queue.html" style="color:#fff;font-weight:600;text-decoration:underline;white-space:nowrap;margin-left:12px;">去同步 →</a>
+      </div>
+
       <div class="auth-links">
         还没有账号？<a href="register.html">使用邀请码注册</a>
       </div>
