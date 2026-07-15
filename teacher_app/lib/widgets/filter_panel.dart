@@ -109,7 +109,7 @@ class FilterPanelState extends State<FilterPanel> {
   double _calcMin = 0, _calcMax = 10;
   repo.SortMode _sort = repo.SortMode.newestFirst;
 
-  bool _sourceExpanded = true;
+  bool _sourceExpanded = false;
   bool _conceptExpanded = false;
   bool _knowledgeExpanded = false;
   bool _diffExpanded = false;
@@ -278,40 +278,40 @@ class FilterPanelState extends State<FilterPanel> {
   };
 
   Widget _buildSortRow() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 4),
-            child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-          ),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: _sortOptions.entries.map((entry) {
-              final mode = entry.key;
-              final label = entry.value;
-              final isSelected = _sort == mode;
-              return ChoiceChip(
-                label: Text(label, style: const TextStyle(fontSize: 12)),
-                selected: isSelected,
-                onSelected: (_) {
-                  setState(() => _sort = mode);
-                  _emit();
-                },
-                selectedColor: AppColors.primaryLight,
-                backgroundColor: Colors.white,
-                side: isSelected
-                    ? BorderSide.none
-                    : const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.only(bottom: 4),
+          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+        ),
+        Wrap(
+          spacing: 6, runSpacing: 4,
+          children: _sortOptions.entries.map((entry) {
+            final mode = entry.key;
+            final label = entry.value;
+            final isSelected = _sort == mode;
+            return GestureDetector(
+              onTap: () { setState(() => _sort = mode); _emit(); },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryLight : Colors.white,
+                  borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+                  border: isSelected
+                      ? Border.all(color: Colors.transparent)
+                      : Border.all(color: AppColors.border),
+                ),
+                child: Text(label,
+                  style: TextStyle(fontSize: 12, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -345,8 +345,6 @@ class FilterPanelState extends State<FilterPanel> {
                 ),
               ],
             ),
-            // 排序选择器
-            _buildSortRow(),
             // 摘要 chips
             if (_summaryChips.isNotEmpty)
               Padding(
@@ -459,6 +457,9 @@ class FilterPanelState extends State<FilterPanel> {
               _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
               const SizedBox(height: 4),
             ]),
+            const SizedBox(height: 4),
+            // 排序方式
+            _buildSortRow(),
           ],
         ),
       ),
