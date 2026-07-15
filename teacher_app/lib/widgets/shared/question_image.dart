@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../app_theme.dart';
 import '../../data/database/database_provider.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 题库配图组件 — 从 documents/images/ 加载（Image.file）或回退到 asset bundle
 class QuestionImage extends StatelessWidget {
@@ -22,26 +23,45 @@ class QuestionImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final audit = AuditLogger.instance;
     final imagesDir = DatabaseProvider().imagesDir;
     final filePath = '$imagesDir/$relativePath';
     final file = File(filePath);
+    final fileExists = file.existsSync();
+    final effectiveWidth = width ?? double.infinity;
+    final effectiveMaxHeight = maxHeight ?? MediaQuery.of(context).size.height * 0.4;
+
+    audit.page('QuestionImage', {
+      'relativePath': relativePath,
+      'imagesDir': imagesDir,
+      'filePath': filePath,
+      'assetPath': _assetPath,
+      'fileExists': fileExists ? 'true' : 'false',
+      'effectiveMaxHeight': effectiveMaxHeight.toStringAsFixed(0),
+    });
 
     Widget image;
-    if (file.existsSync()) {
+    if (fileExists) {
       image = Image.file(
         file,
-        width: width,
-        height: maxHeight,
+        width: effectiveWidth,
+        height: effectiveMaxHeight,
         fit: fit,
-        errorBuilder: (_, _, _) => _buildPlaceholder(),
+        errorBuilder: (_, error, _) {
+          audit.error('QuestionImage.file', error);
+          return _buildPlaceholder();
+        },
       );
     } else {
       image = Image.asset(
         _assetPath,
-        width: width,
-        height: maxHeight,
+        width: effectiveWidth,
+        height: effectiveMaxHeight,
         fit: fit,
-        errorBuilder: (_, _, _) => _buildPlaceholder(),
+        errorBuilder: (_, error, _) {
+          audit.error('QuestionImage.asset', '$error ($_assetPath)');
+          return _buildPlaceholder();
+        },
       );
     }
 

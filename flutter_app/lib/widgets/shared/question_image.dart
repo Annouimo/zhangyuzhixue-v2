@@ -25,21 +25,23 @@ class QuestionImage extends StatelessWidget {
     final imagesDir = DatabaseProvider().imagesDir;
     final filePath = '$imagesDir/$relativePath';
     final file = File(filePath);
+    final effectiveWidth = width ?? double.infinity;
+    final effectiveMaxHeight = maxHeight ?? MediaQuery.of(context).size.height * 0.4;
 
     Widget image;
     if (file.existsSync()) {
       image = Image.file(
         file,
-        width: width,
-        height: maxHeight,
+        width: effectiveWidth,
+        height: effectiveMaxHeight,
         fit: fit,
         errorBuilder: (_, _, _) => _buildPlaceholder(),
       );
     } else {
       image = Image.asset(
         _assetPath,
-        width: width,
-        height: maxHeight,
+        width: effectiveWidth,
+        height: effectiveMaxHeight,
         fit: fit,
         errorBuilder: (_, _, _) => _buildPlaceholder(),
       );
