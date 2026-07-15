@@ -36,7 +36,7 @@ class DatabaseProvider {
 
   Future<void> init() async {
     if (_initialized) return;
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     _dbDirPath = dir.path;
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'courses.db');
@@ -47,7 +47,7 @@ class DatabaseProvider {
 
   /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
   ///
-  /// 用指定目录路径初始化三库，跳过 getApplicationDocumentsDirectory()
+  /// 用指定目录路径初始化三库，跳过 getApplicationSupportDirectory()
   /// 和 rootBundle 的默认资源复制。测试中请传入临时目录。
   ///
   /// 误传 /sdcard/ 等无权限路径会导致 App 崩溃。
@@ -122,6 +122,7 @@ class DatabaseProvider {
   Future<void> replaceAssetsDb(String newPath) async {
     await _assetsDb?.close();
     final target = File('${_dbDirPath!}/assets.db');
+    if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
     _bumpVersion();
@@ -130,6 +131,7 @@ class DatabaseProvider {
   Future<void> replaceCoursesDb(String newPath) async {
     await _coursesDb?.close();
     final target = File('${_dbDirPath!}/courses.db');
+    if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _coursesDb = CoursesDatabase(NativeDatabase(target));
     _bumpVersion();
@@ -139,6 +141,7 @@ class DatabaseProvider {
   Future<void> replaceUserDb(String newPath) async {
     await _appDb?.close();
     final target = File('${_dbDirPath!}/user.db');
+    if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _appDb = AppDatabase(NativeDatabase(target));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
@@ -184,7 +187,7 @@ class DatabaseProvider {
 
   /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
   ///
-  /// 用指定目录路径初始化三库，跳过 getApplicationDocumentsDirectory()
+  /// 用指定目录路径初始化三库，跳过 getApplicationSupportDirectory()
   /// 和 rootBundle 的默认资源复制。测试中请传入临时目录。
   ///
   /// 误传 /sdcard/ 等无权限路径会导致 App 崩溃。
