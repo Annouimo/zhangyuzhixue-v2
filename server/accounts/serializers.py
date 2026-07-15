@@ -38,11 +38,6 @@ class LoginSerializer(serializers.Serializer):
     """登录请求校验"""
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(max_length=128)
-    app_type = serializers.ChoiceField(
-        choices=['student', 'teacher'],
-        required=False,
-        default='student',
-    )
 
 
 class UserSerializer(serializers.ModelSerializer):

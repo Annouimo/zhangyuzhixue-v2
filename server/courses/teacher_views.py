@@ -26,7 +26,6 @@ from courses.teacher_serializers import (
     PatchAssignmentSerializer,
 )
 from interactions.models import (
-    CustomPaper,
     StepFeedback,
     StudentSubmission,
     SubmissionDetail,
@@ -161,27 +160,6 @@ def _calc_streak_days(student):
             break
 
     return streak
-
-
-# ── 组卷 ──────────────────────────────────────────────────────
-
-
-@extend_schema(
-    responses={200: OpenApiResponse(description='组卷列表')},
-)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsTeacher])
-def paper_list(request):
-    """组卷列表"""
-    papers = CustomPaper.objects.annotate(
-        q_count=Count('paper_questions'),
-    ).order_by('-created_at')
-    data = [{
-        'id': p.id, 'title': p.title,
-        'questionCount': p.q_count,
-        'createdAt': p.created_at,
-    } for p in papers]
-    return _ok(data=data)
 
 
 # ── 班级 ──────────────────────────────────────────────────────
@@ -478,45 +456,22 @@ def _list_assignments():
 
 
 def _create_assignment(data):
-    """从组卷(paper_id)或直接选题(question_ids)创建作业并发布到班级"""
-    # 创建作业
-    title = data.get('title', '').strip()
-    description = data.get('description', '')
-
-    if 'question_ids' in data:
-        # 直接选题路径（教师 Flutter App JSON 导入）
-        qids = data['question_ids']
-        if not title:
-            title = f'作业（{len(qids)}题）'
-        assignment = Assignment.objects.create(
-            title=title,
-            description=description,
-            course_id=data.get('course_id'),
-        )
-        questions = BaseQuestion.objects.filter(pk__in=qids)
-        q_map = {q.id: i for i, q in enumerate(questions)}
-        selected = [qid for qid in qids if qid in q_map]
-        for sort_order, qid in enumerate(selected):
+    """从教师端 JSON 选题创建作业并发布到班级"""
+    qids = data['question_ids']
+    title = data.get('title', '').strip() or f'作业（{len(qids)}题）'
+    assignment = Assignment.objects.create(
+        title=title,
+        description=data.get('description', ''),
+        course_id=data.get('course_id'),
+    )
+    questions = BaseQuestion.objects.filter(pk__in=qids)
+    q_map = {q.id: i for i, q in enumerate(questions)}
+    for sort_order, qid in enumerate(qids):
+        if qid in q_map:
             AssignmentQuestion.objects.create(
                 assignment=assignment,
                 question_id=qid,
                 sort_order=sort_order,
-            )
-    else:
-        # 组卷路径
-        paper = get_object_or_404(CustomPaper, pk=data['paper_id'])
-        if not title:
-            title = paper.title
-        assignment = Assignment.objects.create(
-            title=title,
-            description=description,
-            course_id=data.get('course_id'),
-        )
-        for pq in paper.paper_questions.select_related('question').order_by('sort_order'):
-            AssignmentQuestion.objects.create(
-                assignment=assignment,
-                question=pq.question,
-                sort_order=pq.sort_order,
             )
 
     # 发布到班级

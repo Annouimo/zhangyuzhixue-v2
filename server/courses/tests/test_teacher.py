@@ -15,8 +15,6 @@ from courses.models import (
     Course,
 )
 from interactions.models import (
-    CustomPaper,
-    CustomPaperQuestion,
     StudentSubmission,
     SubmissionDetail,
 )
@@ -72,40 +70,7 @@ def sample_question(db):
     return q
 
 
-@pytest.fixture
-def sample_paper(teacher_user, sample_question, db):
-    paper = CustomPaper.objects.create(
-        student=Student.objects.create(
-            user=User.objects.create_user('paper_owner', password='test123'),
-        ),
-        title='导数基础练习',
-    )
-    CustomPaperQuestion.objects.create(
-        paper=paper, question=sample_question, sort_order=0,
-    )
-    return paper
-
-
-# ── Papers ────────────────────────────────────────────────────
-
-
-class TestPaperList:
-    def test_empty(self, auth_client):
-        resp = auth_client.get('/api/v1/teacher/papers/')
-        assert resp.status_code == 200
-        assert resp.data['code'] == 0
-        assert resp.data['data'] == []
-
-    def test_with_data(self, auth_client, sample_paper):
-        resp = auth_client.get('/api/v1/teacher/papers/')
-        assert resp.status_code == 200
-        data = resp.data['data']
-        assert len(data) == 1
-        assert data[0]['title'] == '导数基础练习'
-        assert data[0]['questionCount'] == 1
-
-
-# ── Classes ───────────────────────────────────────────────────
+# ── 班级 ──
 
 
 class TestClassList:
@@ -261,7 +226,7 @@ class TestAssignmentList:
         assert d['totalAssignments'] == 0
         assert d['items'] == []
 
-    def test_with_data(self, auth_client, sample_class_group, sample_paper, sample_question):
+    def test_with_data(self, auth_client, sample_class_group, sample_question):
         # create an assignment
         course = Course.objects.create(name='数学')
         cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
@@ -300,12 +265,12 @@ class TestAssignmentList:
 
 
 class TestAssignmentCreate:
-    def test_normal(self, auth_client, sample_class_group, sample_paper):
+    def test_normal(self, auth_client, sample_class_group, sample_question):
         # Create a ClassCourse for the class group
         course = Course.objects.create(name='数学')
         ClassCourse.objects.create(class_group=sample_class_group, course=course)
         resp = auth_client.post('/api/v1/teacher/assignments/', {
-            'paper_id': sample_paper.id,
+            'question_ids': [sample_question.id],
             'title': '新作业',
             'deadline': '2026-07-20',
             'description': '请认真完成',
@@ -313,7 +278,6 @@ class TestAssignmentCreate:
         }, format='json')
         assert resp.status_code == 200
         assert resp.data['data']['id'] is not None
-        # verify assignment created
         assert Assignment.objects.count() == 1
         a = Assignment.objects.first()
         assert a.title == '新作业'
@@ -323,23 +287,23 @@ class TestAssignmentCreate:
 
     def test_missing_params(self, auth_client):
         resp = auth_client.post('/api/v1/teacher/assignments/', {
-            'paper_id': 1,
+            'deadline': '2026-07-20',
         }, format='json')
         assert resp.status_code == 400
         assert resp.data['code'] != 0
 
-    def test_nonexistent_paper(self, auth_client):
+    def test_empty_qids(self, auth_client):
         resp = auth_client.post('/api/v1/teacher/assignments/', {
-            'paper_id': 99999,
+            'question_ids': [],
             'deadline': '2026-07-20',
             'class_ids': [1],
         }, format='json')
-        assert resp.status_code == 404
+        assert resp.status_code == 400
 
 
 class TestAssignmentDetail:
     def test_normal(self, auth_client, sample_class_group, sample_students,
-                    sample_paper, sample_question):
+                    sample_question):
         # create assignment
         course = Course.objects.create(name='数学')
         cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
@@ -385,7 +349,7 @@ class TestAssignmentGroupedDetail:
     """分组详情（按班级分组）"""
 
     def test_single_class(self, auth_client, sample_class_group, sample_students,
-                          sample_paper, sample_question):
+                          sample_question):
         """单班级作业返回 grouped 结构"""
         course = Course.objects.create(name='数学')
         cc = ClassCourse.objects.create(class_group=sample_class_group, course=course)
@@ -409,7 +373,7 @@ class TestAssignmentGroupedDetail:
         assert 'students' in d['classes'][0]
 
     def test_multi_class(self, auth_client, sample_class_group, sample_students,
-                         sample_paper, sample_question, db):
+                         sample_question, db):
         """多班级作业返回多个分组"""
         from courses.models import Course, ClassCourse, Assignment, AssignmentQuestion, ClassCourseAssignment
 
@@ -553,7 +517,7 @@ class TestAssignmentPatch:
 
 class TestAuthGuard:
     def test_unauthenticated_returns_401(self, api_client):
-        resp = api_client.get('/api/v1/teacher/papers/')
+        resp = api_client.get('/api/v1/teacher/classes/')
         assert resp.status_code == 401
 
     def test_student_cannot_access(self, api_client, db):
@@ -561,7 +525,7 @@ class TestAuthGuard:
         Student.objects.create(user=user)
         refresh = RefreshToken.for_user(user)
         api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
-        resp = api_client.get('/api/v1/teacher/papers/')
+        resp = api_client.get('/api/v1/teacher/classes/')
         assert resp.status_code == 403
 
 
