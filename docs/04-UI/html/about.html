@@ -302,25 +302,19 @@
       </div>
       <button class="update-btn" onclick="startUpdate('课程')">更新</button>
     </div>
-  </div>
-
-  <!-- 卡片②：用户数据同步 -->
-  <div class="section-card">
-    <div class="sync-item">
-      <div class="si-icon">🔄</div>
-      <div class="si-body">
-        <div class="si-label">用户数据</div>
-        <div class="si-time" id="sync-time">上次同步：从未同步</div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0 0 0 48px;">
+    <div class="version-item" id="user-version-row">
+      <div class="vi-icon">🔄</div>
+      <div class="vi-body">
+        <div class="vi-label">用户数据</div>
+        <div class="vi-status" id="user-version-status">v0（最新）</div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.5;">
-          <div>从云端恢复数据到本机 ← 方向：云端 → 本机</div>
-          <div>日常做题记录已在后台自动同步，平时无需手动操作。</div>
-          <div>需要登录新设备或发现数据不完整时，再点「立即同步」。</div>
+          <div>从云端恢复数据到本机</div>
+          <div>日常记录已自动同步</div>
         </div>
       </div>
-      <button class="sync-btn" id="sync-btn" onclick="startSync()">
-        <span>⬇</span>
-        <span>立即同步</span>
-      </button>
+      <button class="update-btn" id="user-update-btn" style="display:none;" onclick="startUserUpdate()">更新</button>
+      <span class="vi-status ok" id="user-check-icon" style="font-size:20px;">✅</span>
     </div>
   </div>
 

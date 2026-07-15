@@ -4,12 +4,10 @@ import '../../widgets/sync_progress_dialog.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
-import '../../data/daos/progress_dao.dart';
-import '../../data/database/database_provider.dart';
 import '../../constants/app_version.dart';
 import '../../data/debug/audit_logger.dart';
 
-/// 关于页 — 数据版本 + 用户数据同步 + 法律信息
+/// 关于页 — 数据版本（题库/课程/用户数据）+ 法律信息
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
 
@@ -19,15 +17,17 @@ class AboutPage extends StatefulWidget {
 
 class _AboutPageState extends State<AboutPage> {
   String _lastSyncTime = '从未同步';
-  bool _syncing = false;
 
   int _localQbank = 0;
   int _localCourses = 0;
+  int _localUser = 0;
   int _serverQbank = 0;
   int _serverCourses = 0;
+  int _serverUser = 0;
   bool _versionLoaded = false;
   bool _updatingQbank = false;
   bool _updatingCourses = false;
+  bool _updatingUser = false;
 
   @override
   void initState() {
@@ -39,6 +39,7 @@ class _AboutPageState extends State<AboutPage> {
     final prefs = AppPrefs();
     _localQbank = prefs.qbankVersion;
     _localCourses = prefs.coursesVersion;
+    _localUser = prefs.userVersion;
 
     final ts = prefs.lastSyncTime;
     if (ts != null && mounted) {
@@ -54,6 +55,7 @@ class _AboutPageState extends State<AboutPage> {
         for (final r in results) {
           if (r.type == 'qbank') _serverQbank = r.serverVersion;
           if (r.type == 'courses') _serverCourses = r.serverVersion;
+          if (r.type == 'user') _serverUser = r.serverVersion;
         }
         setState(() => _versionLoaded = true);
       }
@@ -66,9 +68,10 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _onUpdate(String type) async {
-    final label = type == 'qbank' ? '题库' : '课程';
+    final label = type == 'qbank' ? '题库' : (type == 'courses' ? '课程' : '学习记录');
     if (type == 'qbank') setState(() => _updatingQbank = true);
     if (type == 'courses') setState(() => _updatingCourses = true);
+    if (type == 'user') setState(() => _updatingUser = true);
 
     await showSyncProgress(
       context,
@@ -80,7 +83,6 @@ class _AboutPageState extends State<AboutPage> {
     );
 
     if (!mounted) return;
-    // 刷新本地版本号
     final prefs = AppPrefs();
     setState(() {
       if (type == 'qbank') {
@@ -91,36 +93,11 @@ class _AboutPageState extends State<AboutPage> {
         _localCourses = prefs.coursesVersion;
         _updatingCourses = false;
       }
-    });
-  }
-
-  Future<void> _onSync() async {
-    if (_syncing) return;
-    setState(() => _syncing = true);
-
-    final ok = await showSyncProgress(
-      context,
-      (onProgress) async {
-        await SyncManager().forcePull(onProgress: onProgress);
-      },
-      dataVerifier: () async {
-        final dao = ProgressDao(DatabaseProvider().appDb);
-        return dao.hasAnySubmission();
-      },
-      title: '同步数据',
-      message: '正在上传本地数据并下载最新记录…',
-    );
-
-    if (ok && mounted) {
-      final now = DateTime.now();
-      final label =
-          '${now.month}/${now.day} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
-      await AppPrefs().setLastSyncTime(label);
-      if (mounted) {
-        setState(() => _lastSyncTime = '上次同步：$label');
+      if (type == 'user') {
+        _localUser = prefs.userVersion;
+        _updatingUser = false;
       }
-    }
-    if (mounted) setState(() => _syncing = false);
+    });
   }
 
   @override
@@ -167,57 +144,8 @@ class _AboutPageState extends State<AboutPage> {
             updating: _updatingCourses,
             onUpdate: () => _onUpdate('courses'),
           ),
-        ]),
-        const SizedBox(height: 12),
-
-        // ── 用户数据同步 ──
-        _buildSectionCard([
-          ListTile(
-            leading: const Icon(Icons.sync, color: AppColors.primary),
-            title: const Text('用户数据', style: TextStyle(fontSize: 15)),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _lastSyncTime,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '从云端恢复数据到本机 ← 方向：云端 → 本机',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                ),
-                const Text(
-                  '日常做题记录已在后台自动同步，平时无需手动操作。',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                ),
-                const Text(
-                  '需要登录新设备或发现数据不完整时，再点「立即同步」。',
-                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-            trailing: OutlinedButton.icon(
-              onPressed: _syncing ? null : _onSync,
-              icon: _syncing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.sync, size: 16),
-              label: Text(_syncing ? '同步中' : '立即同步'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                textStyle: const TextStyle(fontSize: 13),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
+          const Divider(height: 1, indent: 48),
+          _buildUserTile(),
         ]),
         const SizedBox(height: 12),
 
@@ -304,6 +232,63 @@ class _AboutPageState extends State<AboutPage> {
               ),
             )
           : null,
+    );
+  }
+
+  Widget _buildUserTile() {
+    final hasUpdate = _serverUser > _localUser;
+    return ListTile(
+      leading: const Icon(Icons.sync, color: AppColors.primary),
+      title: const Text('用户数据', style: TextStyle(fontSize: 15)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _lastSyncTime,
+            style: const TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '从云端恢复数据到本机',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
+          Text(
+            '日常记录已自动同步',
+            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+          ),
+          Text(
+            !_versionLoaded
+                ? ''
+                : hasUpdate
+                    ? '检测到服务器有新数据，建议更新'
+                    : '',
+            style: TextStyle(fontSize: 11, color: hasUpdate ? AppColors.warning : Colors.transparent),
+          ),
+        ],
+      ),
+      trailing: !_versionLoaded
+          ? null
+          : hasUpdate
+              ? OutlinedButton(
+                  onPressed: _updatingUser ? null : () => _onUpdate('user'),
+                  child: _updatingUser
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('更新'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.warning,
+                    side: const BorderSide(color: AppColors.warning),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    textStyle: const TextStyle(fontSize: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                )
+              : const Icon(Icons.check_circle, size: 20, color: AppColors.success),
     );
   }
 }
