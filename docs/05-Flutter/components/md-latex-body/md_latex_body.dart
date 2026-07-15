@@ -146,15 +146,24 @@ class _SafeMath extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // flutter_math_fork's Math.build crashes on effectiveTextStyle.color!
+    // when color is null (e.g. inside Markdown table header cells).
+    final safeStyle = textStyle?.color != null
+        ? textStyle
+        : (textStyle?.copyWith(color: AppColors.textPrimary) ??
+            TextStyle(color: AppColors.textPrimary));
     final m = Math.tex(
       tex,
       mathStyle: mathStyle,
-      textStyle: textStyle,
+      textStyle: safeStyle,
       onErrorFallback: (e) => SelectableText(tex, style: textStyle),
     );
     if (mathStyle == MathStyle.text) {
-      final br = m.texBreak();
-      if (br.parts.length <= 1) return m;
+      dynamic br;
+      try {
+        br = m.texBreak();
+      } catch (_) {}
+      if (br == null || br.parts.length <= 1) return m;
       return Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: br.parts,
