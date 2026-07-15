@@ -76,7 +76,6 @@ class FilterOptions {
 
 /// 筛选条件
 class SearchFilters {
-  final String name;
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
@@ -89,7 +88,6 @@ class SearchFilters {
   final List<String>? questionTypes;
 
   const SearchFilters({
-    required this.name,
     this.years = const [],
     this.regions = const [],
     this.conceptTags = const [],

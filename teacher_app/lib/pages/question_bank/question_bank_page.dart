@@ -32,7 +32,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   List<SearchQuestion>? _questions;
   bool _loadingQ = false;
   final _selectedIds = <int>{};
-  final _nameController = TextEditingController(text: '选题');
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
@@ -49,7 +48,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _debouncedSearch?.cancel();
     super.dispose();
   }
@@ -68,7 +66,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: _nameController.text,
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
         knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
@@ -83,7 +80,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   Future<void> _search() async {
     setState(() => _loadingQ = true);
     try {
-      final filters = SearchFilters(name: _nameController.text,
+      final filters = SearchFilters(
         years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
         diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
         examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
@@ -130,6 +127,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         builder: (_) => QuestionDetailPage(
           questionId: questionId,
           repo: _repo,
+          initiallySelected: _selectedIds.contains(questionId),
         ),
       ),
     );
@@ -190,18 +188,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   );
 
   Widget _buildScrollContent() {
-    final nameField = Padding(
-      padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-      child: TextField(
-        controller: _nameController,
-        decoration: const InputDecoration(
-          labelText: '搜索题目',
-          hintText: '输入关键词搜索',
-          border: OutlineInputBorder(),
-        ),
-      ),
-    );
-
     final filterPanel = _filterOpts != null
         ? FilterPanel(
             key: _filterKey,
@@ -230,7 +216,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
 
     // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
     final headerChildren = <Widget>[
-      nameField,
       ?filterPanel,
       if (_poolStats != null)
         Card(
