@@ -20,25 +20,39 @@ from qbank.models import BaseQuestion
 # ── 1. 扫描配图文件 ──
 FLUTTER_ASSETS = r'D:\Hermes\zhangyuzhixue_app_v2\flutter_app\assets\questions\images'
 
-image_map = {}  # (exam_type, year, region, number) → [relative_paths]
-for root, dirs, files in os.walk(FLUTTER_ASSETS):
-    for f in files:
-        if not f.endswith('.webp'):
-            continue
-        rel = os.path.relpath(os.path.join(root, f), FLUTTER_ASSETS).replace('\\', '/')
-        parts = rel.split('/')
-        fname = parts[-1]
-        qnum = fname.replace('q', '').replace('.webp', '')
-        qnum_base = qnum.split('-')[0].lstrip('0') or '0'
-        
-        et = parts[0]
-        year = int(parts[1])
-        region = parts[2] if et != '高考' else '北京'
-        
-        key = (et, year, region, qnum_base)
-        # The canonical path uses the actual file name (q18-1.webp, q18-2.webp)
-        # but the base number is qnum_base for matching
-        image_map.setdefault(key, []).append(rel)
+image_map = {}  # (exam_type, year, region, number) → [file_paths]
+for f in os.listdir(FLUTTER_ASSETS):
+    if not f.endswith('.webp'):
+        continue
+    # Flat name: mock1_2023_haidian_q16.webp or gaokao_2020_q04.webp
+    base = f.replace('.webp', '')
+    for et in ('mock1', 'mock2', 'gaokao'):
+        if base.startswith(et + '_'):
+            rest = base[len(et)+1:]  # "2023_haidian_q16" or "2020_q04"
+            if et == 'gaokao':
+                # gaokao_2020_q04.webp → year=2020, region=北京, num=04
+                year_str, qpart = rest.split('_', 1)
+                region = '北京'
+            else:
+                # mock1_2023_haidian_q16.webp → year=2023, region=haidian, num=16
+                parts = rest.split('_')
+                year_str = parts[0]
+                region = parts[1]
+                qpart = '_'.join(parts[2:])  # q16 or q18-1
+            year = int(year_str)
+            qnum = qpart.replace('q', '')
+            qnum_base = qnum.split('-')[0].lstrip('0') or '0'
+            key = (et, year, region, qnum_base)
+            image_map.setdefault(key, []).append(f)
+            break
+
+# Map flat filename exam_type back to DB exam_type (Chinese values)
+ET_MAP = {'mock1': '一模', 'mock2': '二模', 'gaokao': '高考'}
+image_map_db = {}
+for (et, year, region, num), paths in image_map.items():
+    db_et = ET_MAP.get(et, et)
+    image_map_db[(db_et, year, region, num)] = paths
+image_map = image_map_db
 
 print(f'配图文件索引: {len(image_map)} 组, {sum(len(v) for v in image_map.values())} 文件')
 
