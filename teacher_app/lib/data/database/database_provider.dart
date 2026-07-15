@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:archive/archive.dart';
 import 'assets_database.dart';
 import 'courses_database.dart';
 
@@ -78,39 +79,14 @@ class DatabaseProvider {
   /// 替换配图：解压 tar.gz 到 images 目录
   Future<void> replaceImages(String tarPath) async {
     final bytes = await File(tarPath).readAsBytes();
-    // gzip decompress
-    final raw = gzip.decode(bytes);
+    final archive = TarDecoder().decodeBytes(GZipDecoder().decodeBytes(bytes));
     final dir = Directory(_imagesDirPath!);
     if (await dir.exists()) await dir.delete(recursive: true);
     await dir.create(recursive: true);
-
-    int pos = 0;
-    while (pos + 512 <= raw.length) {
-      // Check for end-of-archive (512 zero bytes)
-      final header = raw.sublist(pos, pos + 512);
-      if (header.every((b) => b == 0)) break;
-
-      // Parse filename (bytes 0-99, null-terminated)
-      final nameEnd = header.indexOf(0);
-      final name = nameEnd > 0
-          ? String.fromCharCodes(header.sublist(0, nameEnd))
-          : '';
-      if (name.isEmpty) { pos += 512; continue; }
-
-      // Parse size (bytes 124-135, octal string)
-      final sizeStr = String.fromCharCodes(
-          header.sublist(124, 136).takeWhile((b) => b != 0 && b != 32));
-      final size = int.tryParse(sizeStr, radix: 8) ?? 0;
-
-      pos += 512; // skip header
-      if (size > 0) {
-        // Skip leading '/' in name (tar stores './' or relative paths)
-        final cleanName = name.startsWith('./') ? name.substring(2) : name;
-        await File('${dir.path}/$cleanName').writeAsBytes(
-            raw.sublist(pos, pos + size));
-        pos += size;
-        // Pad to 512-byte boundary
-        if (size % 512 != 0) pos += 512 - (size % 512);
+    for (final entry in archive) {
+      if (entry.isFile) {
+        await File('${dir.path}/${entry.name}')
+            .writeAsBytes(entry.content as List<int>);
       }
     }
   }
