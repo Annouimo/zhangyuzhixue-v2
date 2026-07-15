@@ -281,7 +281,6 @@ class FilterPanelState extends State<FilterPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(height: 1),
         const SizedBox(height: 8),
         const Padding(
           padding: EdgeInsets.only(bottom: 4),

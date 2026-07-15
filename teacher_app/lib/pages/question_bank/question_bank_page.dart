@@ -35,6 +35,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
+  SortMode _sort = SortMode.newestFirst;
   Timer? _debouncedSearch;
   PoolStats? _poolStats;
 
@@ -86,7 +87,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
         questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
       );
-      final qs = await _repo.getFilteredQuestions(filters);
+      final qs = await _repo.getFilteredQuestions(filters, sort: _sort);
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
       _updatePoolStats();
@@ -204,6 +205,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
             _years = state.years; _regions = state.regions; _conceptTags = state.conceptTags;
             _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
+            _sort = state.sort;
             _debouncedSearch?.cancel();
             _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); _updatePoolStats(); });
             },
