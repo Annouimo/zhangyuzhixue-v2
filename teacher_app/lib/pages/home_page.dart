@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
 import '../data/update_manager.dart';
 import '../data/database/database_provider.dart';
+import '../widgets/sync_progress_dialog.dart';
 import 'question_bank/question_bank_page.dart';
 import 'lecture/courses_page.dart';
 import 'settings/settings_page.dart';
@@ -36,15 +37,11 @@ class _HomePageState extends State<HomePage> {
       final baseUrl =
           prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
       final manager = UpdateManager(baseUrl, DatabaseProvider());
-
       final summaries = await manager.checkAll();
-
       if (!mounted) return;
-
       for (final s in summaries) {
         if (s.serverVersion > s.localVersion) {
-          final label = s.type == 'qbank' ? '题库' : '讲义';
-          _showUpdateDialog(label, s);
+          _showUpdateDialog(s.type == 'qbank' ? '题库' : '讲义', s);
           break;
         }
       }
@@ -55,122 +52,72 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.system_update, color: AppColors.primary, size: 22),
-            const SizedBox(width: 8),
-            Text('$label 有更新'),
-          ],
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: SizedBox(
+            width: 280,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.system_update, size: 40, color: AppColors.primary),
+                const SizedBox(height: 12),
+                const Text('数据更新', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('$label 有新版本（v${info.serverVersion}）', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () { Navigator.of(ctx).pop(); _startUpdate(label, info); },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary, foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('立即更新', style: TextStyle(fontSize: 15)),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        content: Text('新版本 v${info.serverVersion} 可用，是否下载更新？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('稍后'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _doUpdate(label, info);
-            },
-            child: const Text('更新'),
-          ),
-        ],
       ),
     );
   }
 
-  Future<void> _doUpdate(String label, UpdateSummary info) async {
-    // 进度弹窗
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 24, height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            const SizedBox(width: 16),
-            Text('正在下载 $label…'),
-          ],
-        ),
-      ),
+  Future<void> _startUpdate(String label, UpdateSummary info) async {
+    await showSyncProgress(
+      context,
+      (onProgress) async {
+        final prefs = await SharedPreferences.getInstance();
+        final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+        final manager = UpdateManager(baseUrl, DatabaseProvider());
+        await manager.downloadAndReplace(
+          type: info.type, url: info.downloadUrl ?? '',
+          expectedChecksum: info.checksum ?? '', newVersion: info.serverVersion,
+          onProgress: onProgress,
+        );
+      },
     );
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final baseUrl =
-          prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
-      final manager = UpdateManager(baseUrl, DatabaseProvider());
-
-      await manager.downloadAndReplace(
-        type: info.type,
-        url: info.downloadUrl ?? '',
-        expectedChecksum: info.checksum ?? '',
-        newVersion: info.serverVersion,
-      );
-
-      if (!mounted) return;
-      Navigator.of(context).pop(); // 关闭进度弹窗
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('更新完成'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      setState(() => _currentIndex = 0);
-    } catch (e) {
-      if (!mounted) return;
-      // 关闭进度弹窗
-      Navigator.of(context).pop();
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('更新失败'),
-          content: Text('$label 更新失败：$e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('确定'),
-            ),
-          ],
-        ),
-      );
-    }
+    if (!mounted) return;
+    setState(() => _currentIndex = 0);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
+        type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book),
-            label: '题库',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: '讲义',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '设置',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: '题库'),
+          BottomNavigationBarItem(icon: Icon(Icons.article), label: '讲义'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '设置'),
         ],
       ),
     );
