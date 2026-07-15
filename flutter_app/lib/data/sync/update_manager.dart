@@ -52,26 +52,41 @@ class UpdateManager {
   }
 
   Future<UpdateSummary> _checkOne(String type) async {
-    final status = await _syncApi.checkVersion(type);
-    final localVersion = type == 'qbank'
-        ? AppPrefs().qbankVersion
-        : type == 'courses'
-            ? AppPrefs().coursesVersion
-            : AppPrefs().userVersion;
-    return UpdateSummary(
-      type: type,
-      localVersion: localVersion,
-      serverVersion: status.dataVersion,
-      forceUpdate: shouldForceUpdate(
+    try {
+      final status = await _syncApi.checkVersion(type);
+      final localVersion = type == 'qbank'
+          ? AppPrefs().qbankVersion
+          : type == 'courses'
+              ? AppPrefs().coursesVersion
+              : AppPrefs().userVersion;
+      return UpdateSummary(
+        type: type,
         localVersion: localVersion,
         serverVersion: status.dataVersion,
-        serverForceUpdate: status.forceUpdate,
-      ),
-      downloadUrl: status.downloadUrl,
-      checksum: status.checksum,
-      sizeBytes: status.sizeBytes,
-      message: status.message,
-    );
+        forceUpdate: shouldForceUpdate(
+          localVersion: localVersion,
+          serverVersion: status.dataVersion,
+          serverForceUpdate: status.forceUpdate,
+        ),
+        downloadUrl: status.downloadUrl,
+        checksum: status.checksum,
+        sizeBytes: status.sizeBytes,
+        message: status.message,
+      );
+    } catch (e) {
+      AuditLogger.instance.error('UpdateManager._checkOne($type)', e);
+      final localVersion = type == 'qbank'
+          ? AppPrefs().qbankVersion
+          : type == 'courses'
+              ? AppPrefs().coursesVersion
+              : AppPrefs().userVersion;
+      return UpdateSummary(
+        type: type,
+        localVersion: localVersion,
+        serverVersion: localVersion, // 失败时视为无更新，不阻塞其他类型
+        forceUpdate: false,
+      );
+    }
   }
 
   /// 下载 .db.gz → 解压 → checksum 校验 → 替换
