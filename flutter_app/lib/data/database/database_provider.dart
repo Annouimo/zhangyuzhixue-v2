@@ -81,11 +81,8 @@ class DatabaseProvider {
   }
 
   Future<void> _ensureDefaultDb(Directory dir, String name) async {
-    final file = File('${dir.path}/$name');
-    if (!await file.exists()) {
-      final data = await rootBundle.load('assets/db/$name');
-      await file.writeAsBytes(data.buffer.asUint8List());
-    }
+    final data = await rootBundle.load('assets/db/$name');
+    await File('${dir.path}/$name').writeAsBytes(data.buffer.asUint8List());
   }
 
   /// 检测 user.db 表结构是否匹配当前 schemaVersion。

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:archive/archive.dart';
 import 'assets_database.dart';
 import 'courses_database.dart';
+import '../debug/audit_logger.dart';
 
 /// 双库生命周期管理（教师端：assetsDb + coursesDb，无 userDb/积分）
 class DatabaseProvider {
@@ -37,11 +38,8 @@ class DatabaseProvider {
   }
 
   Future<void> _ensureDefaultDb(Directory dir, String name) async {
-    final file = File('${dir.path}/$name');
-    if (!await file.exists()) {
-      final data = await rootBundle.load('assets/db/$name');
-      await file.writeAsBytes(data.buffer.asUint8List());
-    }
+    final data = await rootBundle.load('assets/db/$name');
+    await File('${dir.path}/$name').writeAsBytes(data.buffer.asUint8List());
   }
 
   AssetsDatabase get assetsDb {
@@ -73,6 +71,7 @@ class DatabaseProvider {
   /// 配图目录路径
   String get imagesDir {
     _ensureInitialized();
+    try { AuditLogger.instance.page('DatabaseProvider', {'imagesDir': _imagesDirPath!}); } catch (_) {}
     return _imagesDirPath!;
   }
 
