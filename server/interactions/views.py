@@ -22,6 +22,7 @@ from interactions.models import (
     SubmissionDetail,
 )
 from interactions.serializers import SyncPushSerializer
+from django.db.models import F as DbF
 
 ENTITY_ORDER = [
     'submission',
@@ -69,6 +70,7 @@ class SyncPushView(APIView):
 
         try:
             result = self._process_batch(batch, student)
+            self._increment_user_version(student)
         except Exception as e:
             return _err(50000, str(e),
                         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -100,6 +102,13 @@ class SyncPushView(APIView):
             server_ids[local_id] = obj.pk
 
         return server_ids
+
+    def _increment_user_version(self, student):
+        """批量推送成功后递增用户 data_version"""
+        from accounts.models import Student
+        Student.objects.filter(pk=student.pk).update(
+            data_version=DbF('data_version') + 1
+        )
 
     # ── 各 entity_type 处理器 ─────────────────────────────────
 

@@ -493,7 +493,7 @@ def pull_user_db(request):
             'download_url': download_url,
             'checksum': checksum,
             'size_bytes': size,
-            'data_version': 1,
+            'data_version': student.data_version,
         })
 
     finally:
