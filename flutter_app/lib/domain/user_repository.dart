@@ -122,6 +122,15 @@ class UserRepository {
     }
     // fallback: 从 API 获取
     final remote = await _api.getInfo();
+    // 回写本地缓存，下次直接走 local path
+    await _dao.saveProfile(
+      id: remote['id'] as int,
+      name: remote['username'] as String,
+      realName: remote['real_name'] as String?,
+      studentId: remote['student_id'] as String?,
+      avatar: remote['avatar'] as String?,
+      gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
+    );
     return UserInfo(
       id: remote['id'] as int,
       name: remote['username'] as String,
