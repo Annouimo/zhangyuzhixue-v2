@@ -48,7 +48,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
           // 完整题干
           _section('题干'),
@@ -94,7 +94,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(t.name,
                     style: const TextStyle(fontSize: 12, color: AppColors.primary),
@@ -110,7 +110,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   Widget _section(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 6),
       child: Text(title,
         style: const TextStyle(
           fontSize: 13, fontWeight: FontWeight.w600,
@@ -121,30 +121,29 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _metaInfo(db.QuestionRow q) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      ),
-      child: Wrap(
-        spacing: 16, runSpacing: 6,
-        children: [
-          _metaItem('题型', QuestionTypeLabels.of(q.questionType)),
-          if (q.difficulty != null)
-            _metaItem('难度', q.difficulty!.toStringAsFixed(2)),
-          if (q.calculation != null)
-            _metaItem('计算量', q.calculation!.toStringAsFixed(1)),
-          if (q.defaultScore != null)
-            _metaItem('分值', '${q.defaultScore!.toInt()}分'),
-          _metaItem('年份', '${q.year}'),
-          if (q.region.isNotEmpty)
-            _metaItem('地区', q.region),
-          if (q.examType.isNotEmpty)
-            _metaItem('考试', q.examType),
-          if (q.number.isNotEmpty)
-            _metaItem('题号', '第${q.number}题'),
-        ],
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Wrap(
+          spacing: 16, runSpacing: 6,
+          children: [
+            _metaItem('题型', QuestionTypeLabels.of(q.questionType)),
+            if (q.difficulty != null)
+              _metaItem('难度', q.difficulty!.toStringAsFixed(1)),
+            if (q.calculation != null)
+              _metaItem('计算量', q.calculation!.toStringAsFixed(1)),
+            if (q.defaultScore != null)
+              _metaItem('分值', '${q.defaultScore!.toInt()}分'),
+            _metaItem('年份', '${q.year}'),
+            if (q.region.isNotEmpty)
+              _metaItem('地区', q.region),
+            if (q.examType.isNotEmpty)
+              _metaItem('考试', q.examType),
+            if (q.number.isNotEmpty)
+              _metaItem('题号', '第${q.number}题'),
+          ],
+        ),
       ),
     );
   }
@@ -165,7 +164,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   List<String> _parseImagePaths(String imagesJson) {
     try {
       final decoded = const JsonDecoder().convert(imagesJson);
-      return (decoded as List).map((e) => e.toString()).toList();
+      return (decoded as List)
+          .map((e) => e.toString().replaceAll('\\', '/'))
+          .toList();
     } catch (_) {
       return [];
     }
@@ -193,7 +194,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: isCorrect ? AppColors.statusCompletedBg : Colors.white,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             border: Border.all(
               color: isCorrect ? AppColors.success : AppColors.border,
             ),
@@ -292,7 +293,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 20, height: 20,
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: const BoxDecoration(
                   color: AppColors.primaryLight,
                   shape: BoxShape.circle,
