@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
-import '../../domain/question_repository.dart' as repo;
-import 'difficulty_slider.dart';
-import 'concept_tag_tree.dart';
-import 'knowledge_card_group.dart';
+import '../../../app_theme.dart';
+import '../../../domain/question_repository.dart' as repo;
+import '../../../widgets/difficulty_slider.dart';
+import '../../../widgets/concept_tag_tree.dart';
+import '../../../widgets/knowledge_card_group.dart';
 
-/// 筛选状态（替代 10+ 个 positional 参数，含排序）
+/// 筛选状态（替代 10 个 positional 参数）
 class FilterState {
   final Set<String> years;
   final Set<String> regions;
@@ -17,7 +17,6 @@ class FilterState {
   final double diffMax;
   final double calcMin;
   final double calcMax;
-  final repo.SortMode sort;
 
   const FilterState({
     this.years = const {},
@@ -30,11 +29,10 @@ class FilterState {
     this.diffMax = 10,
     this.calcMin = 0,
     this.calcMax = 10,
-    this.sort = repo.SortMode.newestFirst,
   });
 }
 
-/// 筛选面板（教师端题库用，含排序）
+/// 筛选面板（教师端题库浏览页专用）
 typedef FilterChangedCallback = void Function(FilterState state);
 
 final _difficultySegments = [
@@ -70,8 +68,6 @@ class FilterPanel extends StatefulWidget {
   final List<String> knowledgeCardOptions; // 展平的知识卡片标题
   final List<repo.KnowledgeCardGroup> knowledgeCardGroups;
   final FilterChangedCallback? onChanged;
-  final VoidCallback? onSavePreference;
-  final VoidCallback? onLoadPreference;
 
   const FilterPanel({
     super.key,
@@ -84,8 +80,6 @@ class FilterPanel extends StatefulWidget {
     this.knowledgeCardOptions = const [],
     this.knowledgeCardGroups = const [],
     this.onChanged,
-    this.onSavePreference,
-    this.onLoadPreference,
   });
 
   @override
@@ -103,7 +97,6 @@ class FilterPanelState extends State<FilterPanel> {
   final _selectedKnowledgeCardTitles = <String>{};
   double _diffMin = 0, _diffMax = 10;
   double _calcMin = 0, _calcMax = 10;
-  repo.SortMode _sort = repo.SortMode.newestFirst;
 
   bool _sourceExpanded = true;
   bool _conceptExpanded = false;
@@ -148,7 +141,6 @@ class FilterPanelState extends State<FilterPanel> {
     Set<String>? examTypes, Set<String>? knowledgeCards,
     Set<String>? types,
     double? diffMin, double? diffMax, double? calcMin, double? calcMax,
-    repo.SortMode? sort,
   }) {
     setState(() {
       if (years != null) { _selectedYears.clear(); _selectedYears.addAll(years); }
@@ -167,7 +159,6 @@ class FilterPanelState extends State<FilterPanel> {
       if (diffMax != null) _diffMax = diffMax;
       if (calcMin != null) _calcMin = calcMin;
       if (calcMax != null) _calcMax = calcMax;
-      if (sort != null) _sort = sort;
     });
     _emit();
   }
@@ -184,7 +175,6 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedKnowledgeCardTitles.clear();
       _diffMin = 0; _diffMax = 10;
       _calcMin = 0; _calcMax = 10;
-      _sort = repo.SortMode.newestFirst;
     });
     _emit();
   }
@@ -215,18 +205,8 @@ class FilterPanelState extends State<FilterPanel> {
       diffMax: _diffMax,
       calcMin: _calcMin,
       calcMax: _calcMax,
-      sort: _sort,
     ));
   }
-
-  // ── 排序选项 ──
-  static const _sortOptions = [
-    (value: repo.SortMode.newestFirst, label: '最新优先'),
-    (value: repo.SortMode.oldestFirst, label: '最早优先'),
-    (value: repo.SortMode.difficultyDesc, label: '难度↓'),
-    (value: repo.SortMode.difficultyAsc, label: '难度↑'),
-    (value: repo.SortMode.byType, label: '按题型'),
-  ];
 
   // ── 摘要 chips ──
   List<Widget> get _summaryChips {
@@ -302,44 +282,6 @@ class FilterPanelState extends State<FilterPanel> {
             ),
           ],
         ),
-        // 排序行
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: [
-              const Text('排序：', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-              const SizedBox(width: 4),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: _sortOptions.map((opt) {
-                      final selected = _sort == opt.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: ChoiceChip(
-                          label: Text(opt.label, style: const TextStyle(fontSize: 12)),
-                          selected: selected,
-                          onSelected: (_) {
-                            setState(() => _sort = opt.value);
-                            _emit();
-                          },
-                          selectedColor: AppColors.primaryLight,
-                          checkmarkColor: AppColors.primary,
-                          side: selected
-                              ? BorderSide.none
-                              : const BorderSide(color: AppColors.border),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         // 摘要 chips
         if (_summaryChips.isNotEmpty)
           Padding(
@@ -348,43 +290,6 @@ class FilterPanelState extends State<FilterPanel> {
               spacing: 4,
               runSpacing: 4,
               children: _summaryChips,
-            ),
-          ),
-        // 保存/读取偏好
-        if (widget.onSavePreference != null || widget.onLoadPreference != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              children: [
-                if (widget.onSavePreference != null)
-                  GestureDetector(
-                    onTap: widget.onSavePreference,
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.save_outlined, size: 14, color: AppColors.primary),
-                      const SizedBox(width: 4),
-                      const Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                    ]),
-                  ),
-                if (widget.onSavePreference != null && widget.onLoadPreference != null)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('|', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                  ),
-                if (widget.onLoadPreference != null)
-                  GestureDetector(
-                    onTap: widget.onLoadPreference,
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.folder_open_outlined, size: 14, color: AppColors.primary),
-                      const SizedBox(width: 4),
-                      const Text('读取学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                    ]),
-                  ),
-              ],
             ),
           ),
         // 按来源筛选
@@ -470,7 +375,7 @@ class FilterPanelState extends State<FilterPanel> {
             children: [
               Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
               const Spacer(),
-              if (trailing != null) trailing,
+              ?trailing,
               const SizedBox(width: 4),
               Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
             ],
@@ -572,40 +477,25 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
+  /// 难度/计算量段位说明
   Widget _buildSegmentDesc(List<_DifficultySegment> segments, double lower, double upper) {
-    int segIndex(double v) => segments.indexWhere((s) => v <= s.max);
-    final minIdx = segIndex(lower).clamp(0, segments.length - 1);
-    final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
-    final same = minIdx == maxIdx;
-    if (same) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 2, bottom: 4),
-        child: Text.rich(TextSpan(children: [
-          TextSpan(text: segments[minIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
-          TextSpan(text: ' ${segments[minIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-        ])),
-      );
-    }
     return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 4),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text.rich(TextSpan(children: [
-          const WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-          TextSpan(text: segments[minIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
-          TextSpan(text: ' ${segments[minIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-        ])),
-        Text.rich(TextSpan(children: [
-          const WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-          TextSpan(text: segments[maxIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
-          TextSpan(text: ' ${segments[maxIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-        ])),
-      ]),
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 2,
+        children: segments
+            .where((s) => (lower < s.max && upper >= s.max - (segments.first.max - 0)) || (lower < s.max && upper >= s.max))
+            .map((s) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text('${s.label}: ${s.sample}',
+                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            )).toList(),
+      ),
     );
   }
 }

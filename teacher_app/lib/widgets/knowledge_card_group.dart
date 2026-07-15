@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 
 /// 分类知识卡片选择组件

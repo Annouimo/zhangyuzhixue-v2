@@ -34,24 +34,25 @@ class _HomePageState extends State<HomePage> {
       final prefs = await SharedPreferences.getInstance();
       final baseUrl =
           prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
-      final manager = TeacherUpdateManager(DatabaseProvider(), baseUrl);
+      final manager = UpdateManager(baseUrl, DatabaseProvider());
 
-      final qbank = await manager.checkVersion('qbank');
-      final courses = await manager.checkVersion('courses');
+      final summaries = await manager.checkAll();
 
       if (!mounted) return;
 
-      if (qbank.hasUpdate) {
-        _showUpdateBanner('题库', qbank);
-      } else if (courses.hasUpdate) {
-        _showUpdateBanner('讲义', courses);
+      for (final s in summaries) {
+        if (s.serverVersion > s.localVersion) {
+          final label = s.type == 'qbank' ? '题库' : '讲义';
+          _showUpdateBanner(label, s);
+          break; // 一次只显示一条
+        }
       }
     } catch (_) {
-      // 静默失败，不影响启动
+      // 静默失败
     }
   }
 
-  void _showUpdateBanner(String label, UpdateInfo info) {
+  void _showUpdateBanner(String label, UpdateSummary info) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$label 有新版本 v${info.serverVersion}'),
@@ -64,17 +65,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _doUpdate(String label, UpdateInfo info) async {
+  Future<void> _doUpdate(String label, UpdateSummary info) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final baseUrl =
           prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
-      final manager = TeacherUpdateManager(DatabaseProvider(), baseUrl);
+      final manager = UpdateManager(baseUrl, DatabaseProvider());
 
       await manager.downloadAndReplace(
         type: info.type,
-        url: info.downloadUrl,
-        expectedChecksum: info.checksum,
+        url: info.downloadUrl ?? '',
+        expectedChecksum: info.checksum ?? '',
         newVersion: info.serverVersion,
       );
 
@@ -82,7 +83,6 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('更新完成，即将刷新')),
       );
-      // 刷新界面：切到首页 Tab 并触发重建
       setState(() => _currentIndex = 0);
     } catch (e) {
       if (!mounted) return;

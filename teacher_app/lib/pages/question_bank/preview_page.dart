@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
-import '../../widgets/question_card.dart';
 import '../../widgets/shared/loading_indicator.dart';
+import '../../widgets/shared/error_placeholder.dart';
+import '../../widgets/question_card.dart';
 
-/// 已选题预览页
+/// 已选题预览页 — 教师端简化版
 class PreviewPage extends StatefulWidget {
   final List<int> questionIds;
-  final QuestionRepository repo;
-  final void Function(int id)? onRemove;
+  final QuestionRepository questionRepository;
+
+  /// 从列表中移除题目的回调
+  final void Function(int questionId)? onRemove;
 
   const PreviewPage({
     super.key,
     required this.questionIds,
-    required this.repo,
+    required this.questionRepository,
     this.onRemove,
   });
 
@@ -22,69 +25,76 @@ class PreviewPage extends StatefulWidget {
 }
 
 class _PreviewPageState extends State<PreviewPage> {
-  List<SearchQuestion>? _questions;
+  final _questions = <int, QuestionDetail?>{};
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadAll();
   }
 
-  Future<void> _load() async {
-    final questions = <SearchQuestion>[];
-    for (final id in widget.questionIds) {
-      final detail = await widget.repo.getQuestionDetail(id);
-      if (detail != null) {
-        final meta = [
-          '${detail.question.year}',
-          if (detail.question.region.isNotEmpty) detail.question.region,
-        ].join(' · ');
-        questions.add(SearchQuestion(
-          id: id,
-          title: detail.question.stem,
-          questionType: detail.question.questionType,
-          meta: meta,
-          difficulty: detail.question.difficulty ?? 0,
-          calculation: detail.question.calculation ?? 0,
-        ));
+  Future<void> _loadAll() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      // 逐个加载题目详情
+      for (final id in widget.questionIds) {
+        if (!mounted) return;
+        final detail = await widget.questionRepository.getQuestionDetail(id);
+        if (!mounted) return;
+        _questions[id] = detail;
+        setState(() {});
       }
+      setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _error = e.toString(); _loading = false; });
     }
-    if (!mounted) return;
-    setState(() { _questions = questions; _loading = false; });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('已选 ${widget.questionIds.length} 题'),
+        title: Text('已选题 (${widget.questionIds.length})'),
       ),
-      body: _loading
-          ? const LoadingIndicator()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _questions!.length,
-              itemBuilder: (ctx, i) {
-                final q = _questions![i];
-                return QuestionCard(
-                  questionId: q.id,
-                  title: q.title,
-                  questionType: q.questionType,
-                  subtitle: q.meta,
-                  difficulty: q.difficulty,
-                  trailing: IconButton(
-                    icon: const Icon(Icons.remove_circle_outline,
-                      color: AppColors.error, size: 22),
-                    onPressed: () {
-                      widget.onRemove?.call(q.id);
-                      setState(() => _questions!.removeAt(i));
-                      if (_questions!.isEmpty) Navigator.of(context).pop();
-                    },
-                  ),
-                );
-              },
-            ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const LoadingIndicator(message: '加载题目…');
+    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _loadAll);
+
+    if (_questions.isEmpty) {
+      return const Center(child: Text('暂无已选题目'));
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      children: widget.questionIds.map((id) {
+        final detail = _questions[id];
+        final title = detail?.question.stem ?? '加载中…';
+        final qType = detail?.question.questionType ?? 'choice';
+        return QuestionCard(
+          questionId: id,
+          title: title,
+          questionType: qType,
+          subtitle: detail != null ? '${detail.question.year} · ${detail.question.region}' : null,
+          difficulty: detail?.question.difficulty,
+          trailing: IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: AppColors.error, size: 20),
+            tooltip: '移除',
+            onPressed: () {
+              setState(() {
+                _questions.remove(id);
+                widget.onRemove?.call(id);
+              });
+            },
+          ),
+        );
+      }).toList(),
     );
   }
 }

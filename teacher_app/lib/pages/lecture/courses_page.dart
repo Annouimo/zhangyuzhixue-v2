@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../data/daos/lecture_dao.dart';
+import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import 'chapters_page.dart';
 
-/// 讲义课程列表页（Tab 1 首页）
+/// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
-  const LectureCoursesPage({super.key});
+  final LectureRepository? lectureRepository;
+
+  const LectureCoursesPage({super.key, this.lectureRepository});
 
   @override
   State<LectureCoursesPage> createState() => _LectureCoursesPageState();
@@ -23,19 +27,29 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   @override
   void initState() {
     super.initState();
-    _repo = LectureRepository.fromProvider();
+    _repo = widget.lectureRepository ??
+        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
     _load();
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final courses = await _repo.getCourses();
       if (!mounted) return;
-      setState(() { _courses = courses; _loading = false; });
+      setState(() {
+        _courses = courses;
+        _loading = false;
+      });
     } catch (e) {
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
@@ -53,7 +67,9 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_courses == null || _courses!.isEmpty) {
-      return const EmptyPlaceholder(icon: Icons.menu_book, message: '暂无讲义');
+      return const EmptyPlaceholder(icon: Icons.menu_book,
+        message: '暂无讲义',
+      );
     }
     return RefreshIndicator(
       onRefresh: _load,
@@ -63,50 +79,90 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final course = _courses![index];
-          return Card(
-            child: InkWell(
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          return _CourseCard(
+            name: course.name,
+            chapterCount: course.chapterCount,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
                 builder: (_) => LectureChaptersPage(
                   courseId: course.id,
                   courseName: course.name,
                   repo: _repo,
                 ),
-              )),
-              borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48, height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.menu_book_rounded, color: AppColors.primary),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(course.name,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Text('共 ${course.chapterCount} 讲',
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  ],
-                ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// 课程卡片
+class _CourseCard extends StatelessWidget {
+  final String name;
+  final int chapterCount;
+  final VoidCallback onTap;
+
+  const _CourseCard({
+    required this.name,
+    required this.chapterCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.menu_book_rounded,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '共 $chapterCount 讲',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

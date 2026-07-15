@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 
 /// 翻页/展开栏组件
+///
+/// 智能决定 ◀/▶ 行为：
+/// - ◀：有已展开块则收回，无则翻上一页
+/// - ▶：有未展开块则展开，无则翻下一页
 class LecturePagerWidget extends StatelessWidget {
   final int currentPage;
   final int totalPages;
@@ -28,7 +32,9 @@ class LecturePagerWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+        border: Border(
+          top: BorderSide(color: Colors.grey[200]!),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -46,7 +52,10 @@ class LecturePagerWidget extends StatelessWidget {
                 child: Text(
                   '第 $currentPage / $totalPages 页 · 展开 $revealedCount / $totalBlocks',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -68,7 +77,8 @@ class LecturePagerWidget extends StatelessWidget {
     required VoidCallback? onTap,
   }) {
     return SizedBox(
-      width: 44, height: 44,
+      width: 44,
+      height: 44,
       child: Material(
         color: enabled ? AppColors.primary : Colors.grey[200],
         borderRadius: BorderRadius.circular(8),
@@ -76,7 +86,8 @@ class LecturePagerWidget extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Center(
-            child: Icon(icon,
+            child: Icon(
+              icon,
               color: enabled ? Colors.white : Colors.grey[400],
               size: 24,
             ),

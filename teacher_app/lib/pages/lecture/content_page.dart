@@ -11,12 +11,14 @@ class LectureContentPage extends StatefulWidget {
   final int chapterId;
   final String chapterTitle;
   final LectureRepository repo;
+  final int initialPage;
 
   const LectureContentPage({
     super.key,
     required this.chapterId,
     required this.chapterTitle,
     required this.repo,
+    this.initialPage = 1,
   });
 
   @override
@@ -24,6 +26,7 @@ class LectureContentPage extends StatefulWidget {
 }
 
 class _LectureContentPageState extends State<LectureContentPage> {
+  late final LectureRepository _repo;
   LectureContent? _content;
   LectureContentParsed? _parsed;
   int _pageIndex = 0;
@@ -34,27 +37,57 @@ class _LectureContentPageState extends State<LectureContentPage> {
   @override
   void initState() {
     super.initState();
+    _repo = widget.repo;
+    _pageIndex = widget.initialPage > 1 ? widget.initialPage - 1 : 0; // 1-based → 0-based
     _load();
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final content = await widget.repo.getContent(widget.chapterId);
-      final parsed = widget.repo.parseContent(content);
+      final content = await _repo.getContent(widget.chapterId);
+      final parsed = _repo.parseContent(content);
       if (!mounted) return;
-      setState(() { _content = content; _parsed = parsed; _loading = false; });
+      setState(() {
+        _content = content;
+        _parsed = parsed;
+        // clamp pageIndex after knowing actual page count
+        if (_pageIndex >= parsed.pages.length) {
+          _pageIndex = parsed.pages.length - 1;
+        }
+        _loading = false;
+      });
     } catch (e) {
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
-  void _prev() {
-    if (_revealedSet.isNotEmpty) {
-      // 先收回最后展开的块
-      final last = _revealedSet.reduce((a, b) => a > b ? a : b);
-      setState(() => _revealedSet.remove(last));
+  LecturePage? get _currentPage {
+    if (_parsed == null || _pageIndex >= _parsed!.pages.length) return null;
+    return _parsed!.pages[_pageIndex];
+  }
+
+  int get _totalBlocks => _currentPage?.blocks.length ?? 0;
+  int get _revealedCount => _revealedSet.length;
+  /// 展示用展开数：含始终可见的 blocks[0]
+  int get _displayRevealedCount => _revealedCount + 1;
+
+  bool get _hasUnrevealed => _displayRevealedCount < _totalBlocks;
+  bool get _hasRevealed => _revealedSet.isNotEmpty;
+
+  void _onPrev() {
+    if (_hasRevealed) {
+      setState(() {
+        final maxKey = _revealedSet.reduce((a, b) => a > b ? a : b);
+        _revealedSet.remove(maxKey);
+      });
     } else if (_pageIndex > 0) {
       setState(() {
         _pageIndex--;
@@ -63,22 +96,115 @@ class _LectureContentPageState extends State<LectureContentPage> {
     }
   }
 
-  void _next() {
-    final page = _parsed!.pages[_pageIndex];
-    final firstUnrevealed = page.blocks.length - _revealedSet.length;
-    if (firstUnrevealed > 0) {
-      // 展开下一个未展开的块
-      final nextIdx = page.blocks.length - firstUnrevealed;
-      setState(() => _revealedSet.add(nextIdx));
-    } else if (_pageIndex < _parsed!.totalPages - 1) {
-      setState(() { _pageIndex++; _revealedSet.clear(); });
+  void _onNext() {
+    if (_hasUnrevealed) {
+      setState(() {
+        final next = _revealedCount + 1; // blocks[0] visible, blocks[1..N] revealed
+        _revealedSet.add(next);
+      });
+    } else if (_pageIndex < (_parsed?.totalPages ?? 1) - 1) {
+      setState(() {
+        _pageIndex++;
+        _revealedSet.clear();
+      });
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_content?.title ?? widget.chapterTitle),
+        ),
+        body: Column(
+          children: [
+          Expanded(child: _buildBody()),
+          if (_parsed != null && _parsed!.pages.isNotEmpty)
+            LecturePagerWidget(
+              currentPage: _pageIndex + 1,
+              totalPages: _parsed!.totalPages,
+              revealedCount: _displayRevealedCount,
+              totalBlocks: _totalBlocks,
+              onPrev: _onPrev,
+              onNext: _onNext,
+            ),
+        ],
+      ),
+    ));
+  }
+
+  Widget _buildBody() {
+    if (_loading) return const LoadingIndicator(message: '加载讲义…');
+    if (_error != null) {
+      return ErrorPlaceholder(message: _error!, onRetry: _load);
+    }
+    final page = _currentPage;
+    if (page == null || page.blocks.isEmpty) {
+      return const Center(child: Text('讲义内容为空'));
+    }
+
+    final blocks = page.blocks;
+    final cardRefs = page.cardRefs;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: AppSizes.maxContentWidth,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // blocks[0] 始终可见
+            MdLatexBody(blocks[0], fontSize: 15),
+            // blocks[1..N] 逐步展开
+            for (int i = 1; i < blocks.length; i++)
+              _buildRevealBlock(i, blocks[i]),
+            // 知识卡片 ActionChip 列表
+            if (cardRefs.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              const Text(
+                '相关知识',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: cardRefs.map((ref) => _buildKnowledgeChip(ref)).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildKnowledgeChip(KnownCardRef ref) {
+    return ActionChip(
+      avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
+      label: Text(ref.title, style: const TextStyle(fontSize: 13)),
+      onPressed: () => _showKnowledgeCard(ref),
+      backgroundColor: AppColors.primaryLight,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+    );
   }
 
   void _showKnowledgeCard(KnownCardRef ref) {
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
+      builder: (_) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         ),
@@ -90,16 +216,22 @@ class _LectureContentPageState extends State<LectureContentPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20),
+                  const Icon(Icons.lightbulb_outline,
+                      color: AppColors.primary, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(ref.title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    child: Text(
+                      ref.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => Navigator.of(ctx).pop(),
+                    onPressed: () => Navigator.of(context).pop(),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -108,8 +240,10 @@ class _LectureContentPageState extends State<LectureContentPage> {
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 12),
-              MdLatexBody(ref.content),
-              const SizedBox(height: 8),
+              SingleChildScrollView(
+                child: MdLatexBody(ref.content, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -117,100 +251,18 @@ class _LectureContentPageState extends State<LectureContentPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_content?.title ?? widget.chapterTitle, style: const TextStyle(fontSize: 15)),
+  Widget _buildRevealBlock(int index, String content) {
+    final visible = _revealedSet.contains(index);
+    return AnimatedCrossFade(
+      firstChild: const SizedBox.shrink(),
+      secondChild: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: MdLatexBody(content, fontSize: 15),
       ),
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载讲义…');
-    if (_error != null) {
-      return ErrorPlaceholder(message: _error!, onRetry: _load);
-    }
-    if (_parsed == null) return const SizedBox.shrink();
-
-    final page = _parsed!.pages[_pageIndex];
-    final totalRevealed = _parsed!.pages
-        .take(_pageIndex)
-        .fold(0, (sum, p) => sum + p.blocks.length) + _revealedSet.length;
-    final totalBlocks = _parsed!.pages.fold(0, (sum, p) => sum + p.blocks.length);
-
-    return Column(
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
-            children: [
-              ...List.generate(page.blocks.length, (i) {
-                final isRevealed = _revealedSet.contains(i);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!isRevealed)
-                        InkWell(
-                          onTap: () => setState(() => _revealedSet.add(i)),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.touch_app, size: 16, color: AppColors.primary),
-                                const SizedBox(width: 8),
-                                const Text('点击展开',
-                                  style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (isRevealed) MdLatexBody(page.blocks[i]),
-                    ],
-                  ),
-                );
-              }),
-              // 知识卡片引用
-              if (page.cardRefs.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(top: 8, bottom: 4),
-                  child: Text('📖 关联知识卡片',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                  ),
-                ),
-                Wrap(
-                  spacing: 6, runSpacing: 6,
-                  children: page.cardRefs.map((ref) => ActionChip(
-                    avatar: const Icon(Icons.lightbulb_outline, size: 14, color: AppColors.primary),
-                    label: Text(ref.title, style: const TextStyle(fontSize: 12)),
-                    onPressed: () => _showKnowledgeCard(ref),
-                    side: BorderSide.none,
-                    backgroundColor: const Color(0xFFFFF8E1),
-                  )).toList(),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ],
-          ),
-        ),
-        LecturePagerWidget(
-          currentPage: _pageIndex + 1,
-          totalPages: _parsed!.totalPages,
-          revealedCount: totalRevealed,
-          totalBlocks: totalBlocks,
-          onPrev: _prev,
-          onNext: _next,
-        ),
-      ],
+      crossFadeState: visible
+          ? CrossFadeState.showSecond
+          : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 200),
     );
   }
 }

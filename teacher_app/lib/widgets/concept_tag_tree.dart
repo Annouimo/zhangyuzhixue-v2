@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 
 /// 树状概念标签选择组件

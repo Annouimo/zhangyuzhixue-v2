@@ -1,19 +1,32 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart';
+import '../../app_theme.dart';
 import 'md_latex_body.dart';
 
 /// 题目卡片 — 教师端简化版
 ///
-/// 比学生端更简洁：只显示题干摘要 + 题型标签 + 难度，点击进入详情页。
-/// 没有 selectable 模式、没有状态标签、没有推荐原因。
+/// 保留 selectable/selected/trailing 选择模式；去掉状态标签和推荐原因。
 class QuestionCard extends StatelessWidget {
   final int questionId;
   final String title;
   final String questionType;
+
+  /// 副信息行文本（如日期、来源），显示在题型/难度标签之后
   final String? subtitle;
+
+  /// 难度值（0~10），提供时显示难度标签
   final double? difficulty;
-  final Widget? trailing;
+
+  /// 选择模式：true 时尾部显示 checkbox 替代默认的 chevron
+  final bool selectable;
+
+  /// 选择模式下的选中态
+  final bool selected;
+
+  /// 点击回调，为 null 时卡片不可点击
   final VoidCallback? onTap;
+
+  /// 完全自定义尾部组件，覆盖默认的 chevron/checkbox
+  final Widget? trailing;
 
   const QuestionCard({
     super.key,
@@ -22,8 +35,10 @@ class QuestionCard extends StatelessWidget {
     required this.questionType,
     this.subtitle,
     this.difficulty,
-    this.trailing,
+    this.selectable = false,
+    this.selected = false,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -37,6 +52,7 @@ class QuestionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 第一行：标签行 + 尾部
               Row(
                 children: [
                   _buildTypeTag(),
@@ -45,17 +61,18 @@ class QuestionCard extends StatelessWidget {
                     _buildDiffTag(),
                   ],
                   if (subtitle != null && difficulty == null) ...[
+                    // 无难度标签时，subtitle 前加分隔点
                     const SizedBox(width: 6),
-                    Text(subtitle!,
-                      style: const TextStyle(height: 1.2, fontSize: 11, color: AppColors.textSecondary),
-                    ),
+                    Text(subtitle!, style: const TextStyle(height: 1.2, fontSize: 11, color: AppColors.textSecondary)),
                   ],
                   const Spacer(),
-                  trailing ?? const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+                  _buildTrailing(context),
                 ],
               ),
               const SizedBox(height: 8),
+              // 第二行：题干
               MdLatexBody(title, fontSize: 14),
+              // 第三行（可选）：副信息
               if (subtitle != null && difficulty != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -85,12 +102,28 @@ class QuestionCard extends StatelessWidget {
       fg: Colors.orange[700]!,
     );
   }
+
+  Widget _buildTrailing(BuildContext context) {
+    if (trailing != null) return trailing!;
+    if (selectable) {
+      return Icon(
+        selected ? Icons.check_circle : Icons.radio_button_unchecked,
+        color: selected ? AppColors.primary : AppColors.textSecondary,
+        size: 24,
+      );
+    }
+    return const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary);
+  }
 }
 
+// ─── 辅助组件 ─────────────────────────────────────────
+
+/// 圆角标签
 class _Tag extends StatelessWidget {
   final String text;
   final Color bg;
   final Color fg;
+
   const _Tag(this.text, {required this.bg, required this.fg});
 
   @override

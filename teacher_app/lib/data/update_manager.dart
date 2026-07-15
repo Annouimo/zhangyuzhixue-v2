@@ -5,67 +5,143 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'database/database_provider.dart';
 
-/// 教师端更新管理器 — 仅检查 qbank 和 courses 版本
-class TeacherUpdateManager {
+/// 版本检查结果
+class UpdateSummary {
+  final String type;
+  final int localVersion;
+  final int serverVersion;
+  final bool forceUpdate;
+  final String? downloadUrl;
+  final String? checksum;
+  final int? sizeBytes;
+  final String? message;
+
+  const UpdateSummary({
+    required this.type,
+    required this.localVersion,
+    required this.serverVersion,
+    required this.forceUpdate,
+    this.downloadUrl,
+    this.checksum,
+    this.sizeBytes,
+    this.message,
+  });
+}
+
+/// 偏好 key
+abstract final class PrefKeys {
+  static const qbankVersion = 'app_qbank_version';
+  static const coursesVersion = 'app_courses_version';
+}
+
+/// 版本检查响应
+class _VersionStatus {
+  final int schemaVersion;
+  final int dataVersion;
+  final bool forceUpdate;
+  final String? message;
+  final String? downloadUrl;
+  final String? checksum;
+  final int? sizeBytes;
+
+  const _VersionStatus({
+    required this.schemaVersion,
+    required this.dataVersion,
+    required this.forceUpdate,
+    this.message,
+    this.downloadUrl,
+    this.checksum,
+    this.sizeBytes,
+  });
+
+  factory _VersionStatus.fromJson(Map<String, dynamic> json) => _VersionStatus(
+        schemaVersion: json['schema_version'] as int,
+        dataVersion: json['data_version'] as int,
+        forceUpdate: json['force_update'] as bool? ?? false,
+        message: json['message'] as String?,
+        downloadUrl: json['download_url'] as String?,
+        checksum: json['checksum'] as String?,
+        sizeBytes: json['size_bytes'] as int?,
+      );
+}
+
+/// 更新管理器：版本检查 + .db.gz 下载/校验/替换
+///
+/// 仅支持 qbank 和 courses 两种数据类型。
+class UpdateManager {
+  final String serverUrl;
   final DatabaseProvider _dbProvider;
   final Dio _client;
-  final String _baseUrl;
+  final Dio _downloadClient;
 
-  TeacherUpdateManager(this._dbProvider, this._baseUrl)
+  UpdateManager(this.serverUrl, this._dbProvider)
       : _client = Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 30),
+        )),
+        _downloadClient = Dio(BaseOptions(
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 120),
         ));
 
-  /// 检查单个数据库版本
-  Future<UpdateInfo> checkVersion(String type) async {
-    try {
-      final res = await _client.get('$_baseUrl/api/v1/sync/$type/version/');
-      final data = res.data['data'] as Map<String, dynamic>;
-      final prefs = await SharedPreferences.getInstance();
-      final localKey = '${type}_version';
-      final localVersion = prefs.getInt(localKey) ?? 0;
-      return UpdateInfo(
-        type: type,
-        localVersion: localVersion,
-        serverVersion: data['data_version'] as int,
-        hasUpdate: (data['data_version'] as int) > localVersion,
-        downloadUrl: data['download_url'] as String? ?? '',
-        checksum: data['checksum'] as String? ?? '',
-      );
-    } catch (e) {
-      return UpdateInfo(
-        type: type,
-        localVersion: 0,
-        serverVersion: 0,
-        hasUpdate: false,
-        downloadUrl: '',
-        checksum: '',
-      );
-    }
+  /// 检查 qbank 和 courses 版本
+  Future<List<UpdateSummary>> checkAll() async {
+    final results = await Future.wait([
+      _checkOne('qbank'),
+      _checkOne('courses'),
+    ]);
+    return results;
   }
 
-  /// 下载并替换数据库
+  Future<UpdateSummary> _checkOne(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final localVersion = prefs.getInt(
+      type == 'qbank' ? PrefKeys.qbankVersion : PrefKeys.coursesVersion,
+    ) ?? 0;
+
+    final response = await _client.get('$serverUrl/sync/$type/version/');
+    final status = _VersionStatus.fromJson(
+      response.data['data'] as Map<String, dynamic>,
+    );
+
+    return UpdateSummary(
+      type: type,
+      localVersion: localVersion,
+      serverVersion: status.dataVersion,
+      forceUpdate: shouldForceUpdate(
+        localVersion: localVersion,
+        serverVersion: status.dataVersion,
+        serverForceUpdate: status.forceUpdate,
+      ),
+      downloadUrl: status.downloadUrl,
+      checksum: status.checksum,
+      sizeBytes: status.sizeBytes,
+      message: status.message,
+    );
+  }
+
+  /// 下载 .db.gz → 解压 → checksum 校验 → 替换
   Future<void> downloadAndReplace({
     required String type,
     required String url,
     required String expectedChecksum,
-    required int newVersion,
+    int newVersion = 0,
     void Function(double progress)? onProgress,
   }) async {
     final tempDir = await getTemporaryDirectory();
     final gzPath = '${tempDir.path}/${type}_temp.db.gz';
 
-    await _client.download(url, gzPath,
+    await _downloadClient.download(url, gzPath,
         onReceiveProgress: (received, total) {
       if (total > 0 && onProgress != null) onProgress(received / total);
     });
 
     final gzBytes = await File(gzPath).readAsBytes();
     final digest = sha256.convert(gzBytes);
+
     if (digest.toString() != expectedChecksum) {
       await File(gzPath).delete();
-      throw Exception('Checksum mismatch for $type');
+      throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
     }
 
     final decompressed = gzip.decode(gzBytes);
@@ -78,28 +154,27 @@ class TeacherUpdateManager {
       await _dbProvider.replaceCoursesDb(targetPath);
     }
 
+    // 更新本地版本号
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('${type}_version', newVersion);
+    final key = type == 'qbank' ? PrefKeys.qbankVersion : PrefKeys.coursesVersion;
+    await prefs.setInt(key, newVersion);
 
     await File(gzPath).delete();
     await File(targetPath).delete();
   }
-}
 
-class UpdateInfo {
-  final String type;
-  final int localVersion;
-  final int serverVersion;
-  final bool hasUpdate;
-  final String downloadUrl;
-  final String checksum;
+  static bool shouldForceUpdate({
+    required int localVersion,
+    required int serverVersion,
+    required bool serverForceUpdate,
+  }) {
+    return serverForceUpdate || (serverVersion - localVersion >= 3);
+  }
 
-  const UpdateInfo({
-    required this.type,
-    required this.localVersion,
-    required this.serverVersion,
-    required this.hasUpdate,
-    required this.downloadUrl,
-    required this.checksum,
-  });
+  static bool shouldShowBanner({
+    required int localVersion,
+    required int serverVersion,
+  }) {
+    return serverVersion > localVersion;
+  }
 }
