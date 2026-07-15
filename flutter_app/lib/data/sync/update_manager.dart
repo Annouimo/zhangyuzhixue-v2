@@ -127,7 +127,7 @@ class UpdateManager {
     await File(targetPath).writeAsBytes(decompressed);
 
     if (type == 'qbank') {
-      await _dbProvider.replaceAssetsDb(targetPath);
+      await _dbProvider.replaceAssetsDb(targetPath, newVersion: newVersion);
       await AppPrefs().setQbankVersion(newVersion);
       // 下载并替换配图
       try {
@@ -139,7 +139,7 @@ class UpdateManager {
         await File(imgGzPath).delete();
       } catch (_) {}
     } else if (type == 'courses') {
-      await _dbProvider.replaceCoursesDb(targetPath);
+      await _dbProvider.replaceCoursesDb(targetPath, newVersion: newVersion);
       await AppPrefs().setCoursesVersion(newVersion);
     } else if (type == 'user') {
       await _dbProvider.replaceUserDb(targetPath);

@@ -4,6 +4,8 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:archive/archive.dart';
+import 'dart:convert' show utf8;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'assets_database.dart';
 import 'courses_database.dart';
 import '../debug/audit_logger.dart';
@@ -38,8 +40,26 @@ class DatabaseProvider {
   }
 
   Future<void> _ensureDefaultDb(Directory dir, String name) async {
-    final data = await rootBundle.load('assets/db/$name');
-    await File('${dir.path}/$name').writeAsBytes(data.buffer.asUint8List());
+    final file = File('${dir.path}/$name');
+    // 读取 bundle 版本标记文件
+    final verFile = name == 'assets.db' ? '.qbank_version' : '.courses_version';
+    int bundleVersion = 0;
+    try {
+      final verStr = await rootBundle.loadString('assets/db/$verFile');
+      bundleVersion = int.tryParse(verStr.trim()) ?? 0;
+    } catch (_) {}
+
+    // 读取缓存版本
+    final prefs = await SharedPreferences.getInstance();
+    final cacheKey = 'cached_${name}_version';
+    final cachedVersion = prefs.getInt(cacheKey) ?? 0;
+
+    // bundle 版本 > 缓存版本时才覆盖（in-app 更新后缓存版本更高，跳过）
+    if (!await file.exists() || bundleVersion > cachedVersion) {
+      final data = await rootBundle.load('assets/db/$name');
+      await file.writeAsBytes(data.buffer.asUint8List());
+      await prefs.setInt(cacheKey, bundleVersion);
+    }
   }
 
   AssetsDatabase get assetsDb {
@@ -52,20 +72,28 @@ class DatabaseProvider {
     return _coursesDb!;
   }
 
-  Future<void> replaceAssetsDb(String newPath) async {
+  Future<void> replaceAssetsDb(String newPath, {int newVersion = 0}) async {
     await _assetsDb?.close();
     final target = File('${await _dbDirPath()}/assets.db');
     if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
+    if (newVersion > 0) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('cached_assets.db_version', newVersion);
+    }
   }
 
-  Future<void> replaceCoursesDb(String newPath) async {
+  Future<void> replaceCoursesDb(String newPath, {int newVersion = 0}) async {
     await _coursesDb?.close();
     final target = File('${await _dbDirPath()}/courses.db');
     if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _coursesDb = CoursesDatabase(NativeDatabase(target));
+    if (newVersion > 0) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('cached_courses.db_version', newVersion);
+    }
   }
 
   /// 配图目录路径

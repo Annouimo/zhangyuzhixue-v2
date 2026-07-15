@@ -149,7 +149,7 @@ class UpdateManager {
     await File(targetPath).writeAsBytes(decompressed);
 
     if (type == 'qbank') {
-      await _dbProvider.replaceAssetsDb(targetPath);
+      await _dbProvider.replaceAssetsDb(targetPath, newVersion: newVersion);
       await _setLocalVersion(type, newVersion);
       // 下载并替换配图
       try {
