@@ -35,7 +35,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     final q = widget.detail.question;
     return Scaffold(
       appBar: AppBar(
-        title: Text(q.number.isNotEmpty ? '第${q.number}题' : '题目详情'),
+        title: Text(q.number.isNotEmpty
+            ? '第${q.number}题（${QuestionTypeLabels.of(q.questionType)}）'
+            : '题目详情'),
         actions: [
           IconButton(
             icon: Icon(
@@ -50,7 +52,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       body: ListView(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
-          // 概念标签（最先展示，让教师快速了解知识点范围）
+          // 概念标签
           if (widget.detail.tags.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -60,7 +62,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(t.name,
                     style: const TextStyle(fontSize: 12, color: AppColors.primary),
@@ -96,12 +98,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           ],
 
           // 小题 + 答案 + 解析
-          // 每步对应的知识卡片通过 _kcMap 查表挂载
+          // 选择题: 选项已包含正确标识，子题区不重复显示答案
+          // 选填/解答: 显示答案
           ...widget.detail.subQuestions.map((sq) {
             final subMethods = widget.detail.methods
                 .where((m) => m.subQuestionId == sq.id)
                 .toList();
-            return _buildSubQuestion(sq, subMethods);
+            final isChoice = widget.detail.choiceExt != null;
+            return _buildSubQuestion(sq, subMethods, hideAnswer: isChoice);
           }),
         ],
       ),
@@ -130,9 +134,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           children: [
             _metaItem('题型', QuestionTypeLabels.of(q.questionType)),
             if (q.difficulty != null)
-              _metaItem('难度', q.difficulty != null ? '${q.difficulty!.toStringAsFixed(1)} / 10' : ''),
+              _metaItem('难度', '${q.difficulty!.toStringAsFixed(1)} / 10'),
             if (q.calculation != null)
-              _metaItem('计算量', q.calculation != null ? '${q.calculation!.toStringAsFixed(1)} / 10' : ''),
+              _metaItem('计算量', '${q.calculation!.toStringAsFixed(1)} / 10'),
             if (q.defaultScore != null)
               _metaItem('分值', '${q.defaultScore!.toInt()}分'),
             _metaItem('年份', '${q.year}'),
@@ -142,7 +146,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               _metaItem('考试', q.examType),
             if (q.number.isNotEmpty)
               _metaItem('题号', '第${q.number}题'),
-            _metaItem('题目ID', '${widget.detail.question.id}'),
+            // 题目ID用小字
+            Text('ID: ${widget.detail.question.id}',
+              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+            ),
           ],
         ),
       ),
@@ -160,6 +167,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       ],
     );
   }
+
   void _showKnowledgeCard(db.KnowledgeCardRow kc) {
     showDialog(
       context: context,
@@ -190,13 +198,50 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       padding: const EdgeInsets.only(top: 6),
       child: Wrap(
         spacing: 4, runSpacing: 2,
-        children: matched.map((kc) => ActionChip(
-          visualDensity: VisualDensity.compact,
-          label: Text('${kc.category}·${kc.title}',
-            style: const TextStyle(fontSize: 11),
+        children: matched.map((kc) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
           ),
-          onPressed: () => _showKnowledgeCard(kc),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: () => _showKnowledgeCard(kc),
+            child: Text('${kc.category}·${kc.title}',
+              style: const TextStyle(fontSize: 11, color: AppColors.warning),
+            ),
+          ),
         )).toList(),
+      ),
+    );
+  }
+
+  /// 带左边框的容器
+  Widget _accentContainer(String title, Color accentColor, Widget child) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 3, height: 18,
+              margin: const EdgeInsets.only(top: 2, right: 10),
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(child: child),
+          ],
+        ),
       ),
     );
   }
@@ -214,14 +259,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   Widget _buildOptions(db.ChoiceExtRow choiceExt) {
     final options = choiceExt.options;
-    // options 是 JSON 字符串 {"A":"...","B":"...","C":"...","D":"..."}
     Map<String, dynamic> parsed;
     try {
       parsed = const JsonDecoder().cast<String, dynamic>().convert(options);
     } catch (_) {
       return Text(options, style: const TextStyle(fontSize: 13));
     }
-    // 取答案（来自第一个子题的 answer）
     final answer = widget.detail.subQuestions.isNotEmpty
         ? widget.detail.subQuestions.first.answer ?? ''
         : '';
@@ -233,10 +276,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           margin: const EdgeInsets.only(bottom: 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isCorrect ? AppColors.statusCompletedBg : Colors.white,
+            color: isCorrect ? Colors.white : Colors.white,
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             border: Border.all(
               color: isCorrect ? AppColors.success : AppColors.border,
+              width: isCorrect ? 1.5 : 0.5,
             ),
           ),
           child: Row(
@@ -245,7 +289,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 width: 24, height: 24,
                 decoration: BoxDecoration(
                   color: isCorrect ? AppColors.success : AppColors.background,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Center(
                   child: Text(e.key,
@@ -269,7 +313,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  Widget _buildSubQuestion(db.SubQuestionRow sq, List<db.SolutionMethodRow> methods) {
+  Widget _buildSubQuestion(db.SubQuestionRow sq, List<db.SolutionMethodRow> methods, {bool hideAnswer = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -278,24 +322,15 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           MdLatexBody(sq.stem!, fontSize: 14),
           const SizedBox(height: 8),
         ],
-        // 答案
-        if (sq.answer != null && sq.answer!.isNotEmpty) ...[
+        // 答案（选择题不重复显示，选项已包含）
+        if (!hideAnswer && sq.answer != null && sq.answer!.isNotEmpty) ...[
           _section('答案'),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.statusCompletedBg,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: MdLatexBody(sq.answer!, fontSize: 14),
-          ),
-          const SizedBox(height: 8),
+          _accentContainer('答案', AppColors.success, MdLatexBody(sq.answer!, fontSize: 14)),
         ],
         // 解析
         if (sq.explanation != null && sq.explanation!.isNotEmpty) ...[
           _section('解析'),
-          MdLatexBody(sq.explanation!, fontSize: 14),
-          const SizedBox(height: 8),
+          _accentContainer('解析', AppColors.primary, MdLatexBody(sq.explanation!, fontSize: 14)),
         ],
         // 解法步骤
         ...methods.map((m) => _buildMethod(m)),
@@ -309,27 +344,28 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         .toList();
     if (methodSteps.isEmpty) return const SizedBox.shrink();
 
-    // 知识卡片标题→对象查表
     final kcMap = {for (final kc in widget.detail.knowledgeCards) kc.title: kc};
+    final hasMultipleMethods = widget.detail.methods.length > 1;
 
-    final methodName = method.methodName ?? '唯一解法';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 4),
-          child: Row(
-            children: [
-              const Icon(Icons.auto_awesome, size: 14, color: AppColors.warning),
-              const SizedBox(width: 4),
-              Text(methodName,
-                style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary,
+        // 仅在有多个解法时显示方法名
+        if (hasMultipleMethods)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.auto_awesome, size: 14, color: AppColors.warning),
+                const SizedBox(width: 4),
+                Text(method.methodName ?? '解法${method.id}',
+                  style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ...methodSteps.map((step) => Padding(
           padding: const EdgeInsets.only(left: 12, bottom: 6),
           child: Row(
@@ -362,7 +398,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                         padding: const EdgeInsets.only(top: 2),
                         child: MdLatexBody(step.content, fontSize: 13),
                       ),
-                    // 步骤关联的知识卡片
                     if (step.cardTitles != null && step.cardTitles!.isNotEmpty)
                       _buildStepKnowledgeCards(step.cardTitles!, kcMap),
                   ],
