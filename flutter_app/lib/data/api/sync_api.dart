@@ -87,4 +87,10 @@ class SyncApi {
     final res = await _client.dio.get('/sync/user/pull/');
     return UserPullInfo.fromJson(res.data['data'] as Map<String, dynamic>);
   }
+
+  /// 检查用户数据版本
+  Future<VersionStatus> checkUserVersion() async {
+    final res = await _client.dio.get('/sync/user/version/');
+    return VersionStatus.fromJson(res.data['data'] as Map<String, dynamic>);
+  }
 }

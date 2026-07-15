@@ -19,6 +19,7 @@ abstract final class PrefKeys {
   static const pendingHomeworkCount = 'app_pending_homework_count';
   static const pendingAssignments = 'app_pending_assignments';  // JSON 缓存
   static const levelPercentile = 'app_level_percentile';
+  static const userVersion = 'app_user_version';
 }
 
 /// SharedPreferences 封装层
@@ -141,6 +142,16 @@ class AppPrefs {
   }
   Future<bool> setLastSyncTime(String label) =>
       p.setString(PrefKeys.lastSyncTime, label);
+
+  // ── 用户数据版本 ──
+
+  int get userVersion {
+    final v = p.getInt(PrefKeys.userVersion) ?? 0;
+    AuditLogger.instance.prefs(PrefKeys.userVersion, v);
+    return v;
+  }
+  Future<bool> setUserVersion(int v) =>
+      p.setInt(PrefKeys.userVersion, v);
 
   // ── 更新弹窗冷却 ──
 

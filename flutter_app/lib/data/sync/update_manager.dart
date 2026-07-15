@@ -41,11 +41,12 @@ class UpdateManager {
           receiveTimeout: const Duration(seconds: 120),
         ));
 
-  /// 检查 qbank 和 courses 版本
+  /// 检查 qbank、courses 和 user 版本
   Future<List<UpdateSummary>> checkAll() async {
     final results = await Future.wait([
       _checkOne('qbank'),
       _checkOne('courses'),
+      _checkOne('user'),
     ]);
     return results;
   }
@@ -54,7 +55,9 @@ class UpdateManager {
     final status = await _syncApi.checkVersion(type);
     final localVersion = type == 'qbank'
         ? AppPrefs().qbankVersion
-        : AppPrefs().coursesVersion;
+        : type == 'courses'
+            ? AppPrefs().coursesVersion
+            : AppPrefs().userVersion;
     return UpdateSummary(
       type: type,
       localVersion: localVersion,
@@ -116,7 +119,7 @@ class UpdateManager {
       await AppPrefs().setCoursesVersion(newVersion);
     } else if (type == 'user') {
       await _dbProvider.replaceUserDb(targetPath);
-      // user 不缓存版本号，登录即拉
+      await AppPrefs().setUserVersion(newVersion);
     }
 
     await File(gzPath).delete();
