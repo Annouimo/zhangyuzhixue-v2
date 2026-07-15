@@ -70,17 +70,17 @@
 
 </div>
 
-<!-- Windows 下载确认弹窗 -->
+<!-- iOS 弹窗 -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-card">
     <button class="modal-close" id="modal-close">&times;</button>
-    <div class="modal-icon">⚠️</div>
-    <div class="modal-title">学习记录提醒</div>
+    <div class="modal-icon">🚧</div>
+    <div class="modal-title">iOS 版尚未就绪</div>
     <p class="modal-body">
-      为保障学习记录完整，<br>
-      请勿在多台设备上同时使用同一账号。
+      我们正在准备 iOS 版本，<br>
+      请先用 Android 或 Windows 版体验。
     </p>
-    <button class="btn btn-confirm" id="modal-confirm">我知道了，继续下载</button>
+    <button class="btn btn-confirm" id="modal-confirm">知道了</button>
   </div>
 </div>
 
@@ -127,8 +127,8 @@
     group.appendChild(wrap)
   }
 
-  // Windows 下载弹窗逻辑
-  var winBtn = document.getElementById('win-download')
+  // iOS 弹窗逻辑
+  var iosBtn = document.querySelector('[data-platform="ios"]')
   var modal = document.getElementById('modal-overlay')
   var confirmBtn = document.getElementById('modal-confirm')
   var closeBtn = document.getElementById('modal-close')
@@ -142,16 +142,8 @@
     modal.classList.remove('open')
   }
 
-  function confirmAndGo() {
-    var href = winBtn.getAttribute('href')
-    hideModal()
-    if (href && href !== '#') {
-      window.location.href = href
-    }
-  }
-
-  winBtn.addEventListener('click', showModal)
-  confirmBtn.addEventListener('click', confirmAndGo)
+  iosBtn.addEventListener('click', showModal)
+  confirmBtn.addEventListener('click', hideModal)
   closeBtn.addEventListener('click', hideModal)
   modal.addEventListener('click', function(e) {
     if (e.target === modal) hideModal()
