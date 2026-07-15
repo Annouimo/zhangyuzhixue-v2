@@ -9,7 +9,7 @@ import '../../data/database/database_provider.dart';
 import '../../constants/app_version.dart';
 import '../../data/debug/audit_logger.dart';
 
-/// 关于页
+/// 关于页 — 数据版本 + 用户数据同步 + 法律信息
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
 
@@ -21,18 +21,77 @@ class _AboutPageState extends State<AboutPage> {
   String _lastSyncTime = '从未同步';
   bool _syncing = false;
 
+  int _localQbank = 0;
+  int _localCourses = 0;
+  int _serverQbank = 0;
+  int _serverCourses = 0;
+  bool _versionLoaded = false;
+  bool _updatingQbank = false;
+  bool _updatingCourses = false;
+
   @override
   void initState() {
     super.initState();
-    _loadLastSyncTime();
+    _load();
   }
 
-  Future<void> _loadLastSyncTime() async {
-    final ts = AppPrefs().lastSyncTime;
+  Future<void> _load() async {
+    final prefs = AppPrefs();
+    _localQbank = prefs.qbankVersion;
+    _localCourses = prefs.coursesVersion;
+
+    final ts = prefs.lastSyncTime;
     if (ts != null && mounted) {
       setState(() => _lastSyncTime = '上次同步：$ts');
     }
+
+    // 后台检查服务器版本
+    try {
+      final mgr = SyncManager().updateManager;
+      if (mgr != null) {
+        final results = await mgr.checkAll();
+        if (!mounted) return;
+        for (final r in results) {
+          if (r.type == 'qbank') _serverQbank = r.serverVersion;
+          if (r.type == 'courses') _serverCourses = r.serverVersion;
+        }
+        setState(() => _versionLoaded = true);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _versionLoaded = true);
+    }
+
+    if (mounted) setState(() {});
     AuditLogger.instance.page('AboutPage', {'version': appVersion});
+  }
+
+  Future<void> _onUpdate(String type) async {
+    final label = type == 'qbank' ? '题库' : '课程';
+    if (type == 'qbank') setState(() => _updatingQbank = true);
+    if (type == 'courses') setState(() => _updatingCourses = true);
+
+    await showSyncProgress(
+      context,
+      (onProgress) async {
+        await SyncManager().runUpdate(type, onProgress: onProgress);
+      },
+      title: '更新数据',
+      message: '正在下载$label新版本…',
+    );
+
+    if (!mounted) return;
+    // 刷新本地版本号
+    final prefs = AppPrefs();
+    setState(() {
+      if (type == 'qbank') {
+        _localQbank = prefs.qbankVersion;
+        _updatingQbank = false;
+      }
+      if (type == 'courses') {
+        _localCourses = prefs.coursesVersion;
+        _updatingCourses = false;
+      }
+    });
   }
 
   Future<void> _onSync() async {
@@ -70,71 +129,163 @@ class _AboutPageState extends State<AboutPage> {
     body: Padding(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
       child: Column(children: [
-        const SizedBox(height: 40),
+        const SizedBox(height: 32),
+        // ── 品牌标识 ──
         const CircleAvatar(
-          radius: 36,
+          radius: 32,
           backgroundColor: AppColors.primaryLight,
-          child: Icon(Icons.school, size: 36, color: AppColors.primary),
+          child: Icon(Icons.school, size: 32, color: AppColors.primary),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         const Text(
           '章鱼智学',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           '版本 $appVersion',
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
-        const SizedBox(height: 32),
-        ListTile(
-          leading: const Icon(Icons.description_outlined),
-          title: const Text('用户协议'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => AppToast.show(context, icon: Icons.description, message: '用户协议页面即将上线'),
-        ),
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(Icons.privacy_tip_outlined),
-          title: const Text('隐私政策'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => AppToast.show(context, icon: Icons.description, message: '隐私政策页面即将上线'),
-        ),
-        const Divider(height: 1),
-        ListTile(
-          leading: const Icon(Icons.sync),
-          title: const Text('数据同步'),
-          subtitle: Text(
-            _lastSyncTime,
-            style: const TextStyle(fontSize: 12),
+        const SizedBox(height: 28),
+
+        // ── 数据版本卡片 ──
+        _buildSectionCard([
+          _buildVersionTile(
+            icon: Icons.storage,
+            label: '题库',
+            local: _localQbank,
+            server: _serverQbank,
+            updating: _updatingQbank,
+            onUpdate: () => _onUpdate('qbank'),
           ),
-          trailing: OutlinedButton.icon(
-            onPressed: _syncing ? null : _onSync,
-            icon: _syncing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.sync, size: 16),
-            label: Text(_syncing ? '同步中' : '立即同步'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              textStyle: const TextStyle(fontSize: 13),
-              side: const BorderSide(color: AppColors.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+          const Divider(height: 1, indent: 48),
+          _buildVersionTile(
+            icon: Icons.article,
+            label: '课程',
+            local: _localCourses,
+            server: _serverCourses,
+            updating: _updatingCourses,
+            onUpdate: () => _onUpdate('courses'),
+          ),
+        ]),
+        const SizedBox(height: 12),
+
+        // ── 用户数据同步 ──
+        _buildSectionCard([
+          ListTile(
+            leading: const Icon(Icons.sync, color: AppColors.primary),
+            title: const Text('用户数据', style: TextStyle(fontSize: 15)),
+            subtitle: Text(
+              _lastSyncTime,
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: OutlinedButton.icon(
+              onPressed: _syncing ? null : _onSync,
+              icon: _syncing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.sync, size: 16),
+              label: Text(_syncing ? '同步中' : '立即同步'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                textStyle: const TextStyle(fontSize: 13),
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
+        ]),
+        const SizedBox(height: 12),
+
+        // ── 法律信息 ──
+        _buildSectionCard([
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('用户协议', style: TextStyle(fontSize: 15)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => AppToast.show(context, icon: Icons.description, message: '用户协议页面即将上线'),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('隐私政策', style: TextStyle(fontSize: 15)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => AppToast.show(context, icon: Icons.description, message: '隐私政策页面即将上线'),
+          ),
+        ]),
+
+        const Spacer(),
         Text(
           '© ${DateTime.now().year} 章鱼智学 · 北京',
           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
+        const SizedBox(height: 8),
       ]),
     ),
   );
+
+  Widget _buildSectionCard(List<Widget> children) {
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildVersionTile({
+    required IconData icon,
+    required String label,
+    required int local,
+    required int server,
+    required bool updating,
+    required VoidCallback onUpdate,
+  }) {
+    final hasUpdate = server > local;
+    final statusText = !_versionLoaded
+        ? 'v$local'
+        : hasUpdate
+            ? 'v$local → v$server 可用'
+            : 'v$local (最新)';
+    final statusColor = !_versionLoaded
+        ? AppColors.textSecondary
+        : hasUpdate
+            ? AppColors.warning
+            : AppColors.success;
+
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(label, style: const TextStyle(fontSize: 15)),
+      subtitle: Text(
+        statusText,
+        style: TextStyle(fontSize: 12, color: statusColor),
+      ),
+      trailing: hasUpdate
+          ? OutlinedButton(
+              onPressed: updating ? null : onUpdate,
+              child: updating
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('更新'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.warning,
+                side: const BorderSide(color: AppColors.warning),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                textStyle: const TextStyle(fontSize: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            )
+          : null,
+    );
+  }
 }
