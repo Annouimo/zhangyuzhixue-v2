@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../data/daos/lecture_dao.dart';
+import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
-import 'content_page.dart';
+import 'lecture_content_page.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 章节目录页
 class LectureChaptersPage extends StatefulWidget {
   final int courseId;
-  final String courseName;
-  final LectureRepository repo;
+  final LectureRepository? lectureRepository;
 
   const LectureChaptersPage({
     super.key,
     required this.courseId,
-    required this.courseName,
-    required this.repo,
+    this.lectureRepository,
   });
 
   @override
@@ -24,6 +25,7 @@ class LectureChaptersPage extends StatefulWidget {
 }
 
 class _LectureChaptersPageState extends State<LectureChaptersPage> {
+  late final LectureRepository _repo;
   ChapterList? _chapterList;
   bool _loading = true;
   String? _error;
@@ -31,6 +33,8 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   @override
   void initState() {
     super.initState();
+    _repo = widget.lectureRepository ??
+        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
     _load();
   }
 
@@ -40,13 +44,15 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       _error = null;
     });
     try {
-      final cl = await widget.repo.getChapters(widget.courseId);
+      final cl = await _repo.getChapters(widget.courseId);
       if (!mounted) return;
       setState(() {
         _chapterList = cl;
         _loading = false;
       });
+      AuditLogger.instance.page('LectureChaptersPage', {'chapterCount': _chapterList?.items.length});
     } catch (e) {
+      AuditLogger.instance.error('LectureChaptersPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();
@@ -59,7 +65,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.courseName),
+        title: Text(_chapterList?.courseName ?? '章节列表'),
       ),
       body: _buildBody(),
     );
@@ -91,7 +97,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
                 builder: (_) => LectureContentPage(
                   chapterId: chapter.id,
                   chapterTitle: chapter.title,
-                  repo: widget.repo,
+                  repo: _repo,
                 ),
               ),
             ),

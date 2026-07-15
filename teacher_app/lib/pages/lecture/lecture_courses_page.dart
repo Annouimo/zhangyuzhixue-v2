@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../data/daos/lecture_dao.dart';
+import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
-import 'chapters_page.dart';
+import 'lecture_chapters_page.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
@@ -25,7 +28,8 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.lectureRepository ?? LectureRepository.fromProvider();
+    _repo = widget.lectureRepository ??
+        LectureRepository(LectureDao(DatabaseProvider().coursesDb));
     _load();
   }
 
@@ -41,7 +45,9 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _courses = courses;
         _loading = false;
       });
+      AuditLogger.instance.page('LectureCoursesPage', {'courseCount': _courses?.length});
     } catch (e) {
+      AuditLogger.instance.error('LectureCoursesPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();
@@ -83,8 +89,6 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
               MaterialPageRoute(
                 builder: (_) => LectureChaptersPage(
                   courseId: course.id,
-                  courseName: course.name,
-                  repo: _repo,
                 ),
               ),
             ),

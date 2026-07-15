@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart';
 import '../database/courses_database.dart' as db;
+import '../debug/audit_logger.dart';
 
-/// 讲义数据访问层（教师端，无 AuditLogger）
+/// 讲义数据访问层
 class LectureDao {
   final db.CoursesDatabase _db;
   const LectureDao(this._db);
@@ -10,6 +11,7 @@ class LectureDao {
 
   Future<List<db.CourseRow>> getAllCourses() async {
     final rows = await _db.select(_db.courses).get();
+    AuditLogger.instance.dao('LectureDao.getAllCourses', rows.length, {});
     return rows;
   }
 
@@ -17,6 +19,7 @@ class LectureDao {
     final q = _db.select(_db.courses)
       ..where((t) => t.id.equals(id));
     final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('LectureDao.getCourseById', result != null ? 1 : 0, {'id': id});
     return result;
   }
 
@@ -27,6 +30,7 @@ class LectureDao {
       ..where((t) => t.courseId.equals(courseId));
     q.orderBy([(t) => OrderingTerm(expression: t.index)]);
     final rows = await q.get();
+    AuditLogger.instance.dao('LectureDao.getChapters', rows.length, {'courseId': courseId});
     return rows;
   }
 
@@ -34,6 +38,7 @@ class LectureDao {
     final q = _db.select(_db.chapters)
       ..where((t) => t.id.equals(id));
     final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('LectureDao.getChapterById', result != null ? 1 : 0, {'id': id});
     return result;
   }
 
@@ -43,6 +48,7 @@ class LectureDao {
     final q = _db.select(_db.lectureContents)
       ..where((t) => t.chapterId.equals(chapterId));
     final result = await q.getSingleOrNull();
+    AuditLogger.instance.dao('LectureDao.getContent', result != null ? 1 : 0, {'chapterId': chapterId});
     return result;
   }
 
@@ -50,11 +56,13 @@ class LectureDao {
 
   Future<int> courseCount() async {
     final rows = await _db.select(_db.courses).get();
+    AuditLogger.instance.dao('LectureDao.courseCount', rows.length, {});
     return rows.length;
   }
 
   Future<int> chapterCount(int courseId) async {
     final rows = await getChapters(courseId);
+    AuditLogger.instance.dao('LectureDao.chapterCount', rows.length, {'courseId': courseId});
     return rows.length;
   }
 }

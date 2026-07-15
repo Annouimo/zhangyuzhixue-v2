@@ -13,6 +13,15 @@ abstract final class AppColors {
   static const warning = Color(0xFFF59E0B);
   static const error = Color(0xFFEF4444);
   static const border = Color(0xFFE5E7EB);
+
+  // 状态标签背景色
+  static const statusCompletedBg = Color(0xFFECFDF5);
+  static const statusInProgressBg = Color(0xFFFFFBEB);
+  static const statusPendingBg = Color(0xFFF3F4F6);
+
+  // 难度标签色
+  static const tagDifficultyBg = Color(0xFFFFF7ED);
+  static const tagDifficultyFg = Color(0xFFC2410C);
 }
 
 /// 间距与圆角常量

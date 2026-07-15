@@ -117,6 +117,13 @@ class UpdateManager {
     final tempDir = await getTemporaryDirectory();
     final gzPath = '${tempDir.path}/${type}_temp.db.gz';
 
+    // 清理上次残留的临时文件
+    final gzFile = File(gzPath);
+    if (await gzFile.exists()) await gzFile.delete();
+    final dbPath = '${tempDir.path}/${type}_temp.db';
+    final dbFile = File(dbPath);
+    if (await dbFile.exists()) await dbFile.delete();
+
     await _downloadClient.download(url, gzPath,
         onReceiveProgress: (received, total) {
       if (total > 0 && onProgress != null) onProgress(received / total);

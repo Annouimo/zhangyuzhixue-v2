@@ -223,7 +223,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           margin: const EdgeInsets.only(bottom: 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isCorrect ? const Color(0xFFECFDF5) : Colors.white,
+            color: isCorrect ? AppColors.statusCompletedBg : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isCorrect ? AppColors.success : AppColors.border,
@@ -274,7 +274,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFBEB),
+              color: AppColors.statusInProgressBg,
               borderRadius: BorderRadius.circular(8),
             ),
             child: MdLatexBody(sq.answer!, fontSize: 14),

@@ -21,7 +21,7 @@ class DatabaseProvider {
 
   Future<void> init() async {
     if (_initialized) return;
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'courses.db');
     _assetsDb = AssetsDatabase(LazyDatabase(() async {
@@ -54,6 +54,7 @@ class DatabaseProvider {
   Future<void> replaceAssetsDb(String newPath) async {
     await _assetsDb?.close();
     final target = File('${await _dbDirPath()}/assets.db');
+    if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _assetsDb = AssetsDatabase(NativeDatabase(target));
   }
@@ -61,12 +62,13 @@ class DatabaseProvider {
   Future<void> replaceCoursesDb(String newPath) async {
     await _coursesDb?.close();
     final target = File('${await _dbDirPath()}/courses.db');
+    if (await target.exists()) await target.delete();
     await File(newPath).copy(target.path);
     _coursesDb = CoursesDatabase(NativeDatabase(target));
   }
 
   Future<String> _dbDirPath() async {
-    final dir = await getApplicationDocumentsDirectory();
+    final dir = await getApplicationSupportDirectory();
     return dir.path;
   }
 

@@ -4,7 +4,8 @@ import '../../domain/lecture_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/md_latex_body.dart';
-import 'pager_widget.dart';
+import 'lecture_pager_widget.dart';
+import '../../data/debug/audit_logger.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {
@@ -53,7 +54,12 @@ class _LectureContentPageState extends State<LectureContentPage> {
         }
         _loading = false;
       });
+      AuditLogger.instance.page('LectureContentPage', {
+        'chapterId': widget.chapterId,
+        'pageCount': parsed.pages.length,
+      });
     } catch (e) {
+      AuditLogger.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

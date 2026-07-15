@@ -1,5 +1,4 @@
 import '../data/daos/lecture_dao.dart';
-import '../data/database/database_provider.dart';
 
 /// 一讲的讲义内容
 class LectureContent {
@@ -59,12 +58,7 @@ class ChapterList {
 class LectureRepository {
   final LectureDao _dao;
   final Map<int, LectureContentParsed> _parseCache = {};
-
   LectureRepository(this._dao);
-
-  factory LectureRepository.fromProvider() {
-    return LectureRepository(LectureDao(DatabaseProvider().coursesDb));
-  }
 
   Future<List<Course>> getCourses() async {
     final rows = await _dao.getAllCourses();

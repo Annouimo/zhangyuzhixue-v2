@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
-import 'md_latex_body.dart';
+import '../md_latex_body.dart';
+import 'status_style.dart';
 
-/// 题目卡片 — 老师端题库列表使用
+/// 题目卡片 — 跨页面共享组件
+///
+/// 在以下 6 个页面复用：
+/// - 推荐页（智能/偏好）
+/// - 组卷预览页（自己的/他人的）
+/// - 做题历史页
+/// - 自主选题页
 ///
 /// 两种交互模式：
-/// - 导航模式（默认）：点击跳转到详情页，尾部显示 chevron_right
+/// - 导航模式（默认）：点击跳转到解题页，尾部显示 chevron_right
 /// - 选择模式（selectable=true）：点击切换选中态，尾部显示 checkbox/radio
 class QuestionCard extends StatelessWidget {
   final int questionId;
@@ -17,6 +24,12 @@ class QuestionCard extends StatelessWidget {
 
   /// 难度值（0~10），提供时显示难度标签
   final double? difficulty;
+
+  /// 做题状态：'pending' / 'in_progress' / 'completed'
+  final String? status;
+
+  /// 推荐原因（推荐页专用）
+  final String? reason;
 
   /// 选择模式：true 时尾部显示 checkbox 替代默认的 chevron
   final bool selectable;
@@ -37,6 +50,8 @@ class QuestionCard extends StatelessWidget {
     required this.questionType,
     this.subtitle,
     this.difficulty,
+    this.status,
+    this.reason,
     this.selectable = false,
     this.selected = false,
     this.onTap,
@@ -68,6 +83,10 @@ class QuestionCard extends StatelessWidget {
                     Text(subtitle!, style: const TextStyle(height: 1.2, fontSize: 11, color: AppColors.textSecondary)),
                   ],
                   const Spacer(),
+                  if (status != null) ...[
+                    _buildStatusTag(),
+                    const SizedBox(width: 4),
+                  ],
                   _buildTrailing(context),
                 ],
               ),
@@ -82,6 +101,19 @@ class QuestionCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                   ),
                 ),
+              // 第四行（可选）：推荐原因
+              if (reason != null && reason!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.lightbulb_outline, size: 14, color: AppColors.warning),
+                    const SizedBox(width: 4),
+                    Text('推荐原因：$reason',
+                      style: const TextStyle(fontSize: 12, color: AppColors.warning),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -100,8 +132,23 @@ class QuestionCard extends StatelessWidget {
   Widget _buildDiffTag() {
     return _Tag(
       DifficultySegments.diffNameFor(difficulty!),
-      bg: Colors.orange[50]!,
-      fg: Colors.orange[700]!,
+      bg: AppColors.tagDifficultyBg,
+      fg: AppColors.tagDifficultyFg,
+    );
+  }
+
+  Widget _buildStatusTag() {
+    final style = _statusStyle(status!);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: style.bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        style.label,
+        style: TextStyle(fontSize: 11, color: style.color, fontWeight: FontWeight.w500),
+      ),
     );
   }
 
@@ -138,4 +185,9 @@ class _Tag extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 状态标签样式
+({String label, Color color, Color bg}) _statusStyle(String status) {
+  return statusStyle(status);
 }

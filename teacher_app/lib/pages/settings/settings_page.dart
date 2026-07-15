@@ -11,7 +11,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _serverUrl = 'https://123.57.85.160';
+  String _serverUrl = 'https://zhangyuzhixue.top';
   int _qbankVersion = 0;
   int _coursesVersion = 0;
 
