@@ -3,6 +3,7 @@ import '../../../app_theme.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/shared/point_summary_card.dart';
+import '../../../widgets/shared/format_utils.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
@@ -84,7 +85,7 @@ class _PointsPageState extends State<PointsPage> {
     final list = _records ?? [];
     if (list.isEmpty) {
       return [const Center(child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: EdgeInsets.all(AppSizes.baseSpacing * 2),
         child: Text('暂无流水记录', style: TextStyle(color: AppColors.textSecondary)),
       ))];
     }
@@ -119,16 +120,16 @@ class _PointsPageState extends State<PointsPage> {
             Expanded(flex: 2, child: Text(r.time.length >= 10 ? r.time.substring(5, 10) : r.time,
               style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
             Expanded(flex: 2, child: Text(r.type, style: const TextStyle(fontSize: 13))),
-            SizedBox(width: 48, child: Text('${isPositive ? '+' : ''}${r.change.toStringAsFixed(1)}',
+            SizedBox(width: 48, child: Text('${isPositive ? '+' : ''}${formatAmount(r.change)}',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
                 color: isPositive ? AppColors.success : AppColors.error))),
-            SizedBox(width: 48, child: Text(r.earned.toStringAsFixed(1),
+            SizedBox(width: 48, child: Text(formatAmount(r.earned),
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text(r.bonus.toStringAsFixed(1),
+            SizedBox(width: 48, child: Text(formatAmount(r.bonus),
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text(r.spent.toStringAsFixed(1),
+            SizedBox(width: 48, child: Text(formatAmount(r.spent),
               style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text(r.available.toStringAsFixed(1),
+            SizedBox(width: 48, child: Text(formatAmount(r.available),
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
           ],
         ),

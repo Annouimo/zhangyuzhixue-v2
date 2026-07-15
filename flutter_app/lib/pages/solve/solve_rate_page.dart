@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/app_toast.dart';
+import '../../widgets/shared/format_utils.dart';
 import '../../app_theme.dart';
 import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -176,7 +177,7 @@ class _StarRating extends StatelessWidget {
                 color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text('算法: ${algorithmScore!.toStringAsFixed(1)}',
+              child: Text('算法: ${formatAmount(algorithmScore!)}',
                 style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
               ),
             ),

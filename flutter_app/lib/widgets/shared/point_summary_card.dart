@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app_theme.dart';
+import '../../../widgets/shared/format_utils.dart';
 
 /// 积分概览卡片 — 4 列数值展示
 ///
@@ -42,7 +43,7 @@ class PointSummaryCard extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(value.toStringAsFixed(1),
+          Text(formatAmount(value),
             style: TextStyle(fontSize: valueFontSize, fontWeight: FontWeight.w700, color: color)),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),

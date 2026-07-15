@@ -21,6 +21,7 @@ import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import '../data/debug/audit_logger.dart';
 import '../data/database/app_database.dart' as app_db;
+import '../widgets/shared/format_utils.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
@@ -424,7 +425,7 @@ class _IndexPageState extends State<IndexPage> {
             children: [
               Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              Text('今日学习积分 +${_todayEarned.toStringAsFixed(1)}',
+              Text('今日学习积分 +${formatAmount(_todayEarned)}',
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
             ],
           ),

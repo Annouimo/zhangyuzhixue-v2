@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../app_theme.dart';
 import '../../../widgets/shared/error_placeholder.dart';
+import '../../../widgets/shared/format_utils.dart';
 import '../../../data/daos/statistics_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
@@ -60,7 +61,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         _accuracySummary = dr.isNotEmpty
             ? '${(dr.fold<int>(0, (s, r) => s + r.correct) / dr.fold<int>(0, (s, r) => s + r.count) * 100).toStringAsFixed(0)}%'
             : null;
-        _pointsSummary = pt.isNotEmpty ? pt.last.value.toStringAsFixed(1) : null;
+        _pointsSummary = pt.isNotEmpty ? formatAmount(pt.last.value) : null;
         _loading = false;
       });
       AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});

@@ -21,6 +21,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../widgets/shared/format_utils.dart';
 import '../router.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -318,7 +319,7 @@ class ProfilePageState extends State<ProfilePage> {
         ? '已解锁 $_achievementUnlocked 个'
         : null;
     final pointsSubtitle = (_earnedPoints != null && _availablePoints != null)
-        ? '学习积分 ${_earnedPoints!.toStringAsFixed(1)} · 可用 ${_availablePoints!.toStringAsFixed(1)}'
+        ? '学习积分 ${formatAmount(_earnedPoints!)} · 可用 ${formatAmount(_availablePoints!)}'
         : null;
     final sections = [
       ('学习', [
@@ -329,7 +330,7 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('成长', [
         (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
-        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${_availablePoints!.toStringAsFixed(1)}' : null, () => context.push(AppRoutes.profileLevel)),
+        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${formatAmount(_availablePoints!)}' : null, () => context.push(AppRoutes.profileLevel)),
         (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
       ]),
       ('系统', [

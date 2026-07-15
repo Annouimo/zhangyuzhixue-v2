@@ -19,43 +19,41 @@ class ExamHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('组卷')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSizes.baseSpacing),
         children: [
           // 新组卷
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('新组卷',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.push(AppRoutes.examAuto),
-                    icon: const Icon(Icons.smart_toy),
-                    label: Text('智能组卷 · 消耗 $_autoPaperCost 积分'),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSizes.baseSpacing),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('新组卷',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.push(AppRoutes.examPick),
-                    icon: const Icon(Icons.touch_app),
-                    label: Text('自主选题 · 消耗 $_pickPaperCost 积分'),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push(AppRoutes.examAuto),
+                      icon: const Icon(Icons.smart_toy),
+                      label: Text('智能组卷 · 消耗 $_autoPaperCost 积分'),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push(AppRoutes.examPick),
+                      icon: const Icon(Icons.touch_app),
+                      label: Text('自主选题 · 消耗 $_pickPaperCost 积分'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSizes.baseSpacing),
           // 我的组卷
           _EntryItem(
             icon: Icons.assignment,
