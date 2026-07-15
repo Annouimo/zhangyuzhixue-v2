@@ -55,6 +55,9 @@ class _MainShellState extends State<MainShell> {
   void _onDbVersionChanged() {
     if (!mounted) return;
     setState(() => _pageKey++);
+    // 刷新其他 Tab（ValueKey 只重建了 IndexPage，GlobalKey 保活的需手动通知）
+    _recommendKey.currentState?.refresh();
+    _profileKey.currentState?.reload();
   }
 
   @override

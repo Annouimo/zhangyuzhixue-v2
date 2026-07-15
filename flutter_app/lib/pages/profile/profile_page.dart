@@ -259,7 +259,10 @@ class ProfilePageState extends State<ProfilePage> {
     return Card(
       margin: EdgeInsets.zero,
       child: InkWell(
-        onTap: () => context.push(AppRoutes.profileEdit),
+        onTap: () async {
+          await context.push(AppRoutes.profileEdit);
+          if (mounted) _load();
+        },
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
           padding: const EdgeInsets.all(20),

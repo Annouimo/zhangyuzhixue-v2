@@ -86,7 +86,10 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       appBar: AppBar(title: const Text('学习偏好管理')),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.preferenceEdit),
+        onPressed: () async {
+          await context.push(AppRoutes.preferenceEdit);
+          _load();
+        },
         icon: const Icon(Icons.add),
         label: const Text('新建偏好'),
       ),
@@ -156,7 +159,10 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                   Row(
                     children: [
                       OutlinedButton(
-                        onPressed: () => context.push('${AppRoutes.preferenceEdit}?id=${p.id}'),
+                        onPressed: () async {
+                          await context.push('${AppRoutes.preferenceEdit}?id=${p.id}');
+                          _load();
+                        },
                         style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
                         ),
