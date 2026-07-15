@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.zhangyuzhixue" "\0"
-            VALUE "FileDescription", "teacher_app" "\0"
+            VALUE "CompanyName", "章鱼智学" "\0"
+            VALUE "FileDescription", "章鱼智学 · 教师端" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "teacher_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.zhangyuzhixue. All rights reserved." "\0"
-            VALUE "OriginalFilename", "teacher_app.exe" "\0"
-            VALUE "ProductName", "teacher_app" "\0"
+            VALUE "InternalName", "章鱼智学教师端" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 章鱼智学. All rights reserved." "\0"
+            VALUE "OriginalFilename", "ZhangyuzhixueTeacher.exe" "\0"
+            VALUE "ProductName", "章鱼智学 · 教师端" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
