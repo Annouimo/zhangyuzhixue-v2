@@ -5,6 +5,7 @@ import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
+import '../../widgets/shared/app_toast.dart';
 
 /// 选题预览页 — 展示已选题目详情，支持移除
 class QuestionPreviewPage extends StatefulWidget {
@@ -77,9 +78,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
                 'totalCount': _questionIds.length,
               });
               Clipboard.setData(ClipboardData(text: json));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('已复制到剪贴板'), behavior: SnackBarBehavior.floating),
-              );
+              AppToast.show(context, message: '已复制到剪贴板');
             },
           ),
         ],

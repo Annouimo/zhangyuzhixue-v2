@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../widgets/md_latex_body.dart';
+import '../../widgets/shared/question_image.dart';
 import '../../data/database/assets_database.dart' as db;
 
 /// 题目详情页（只读模式，无答题交互）
@@ -56,7 +57,10 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
           // 配图（images 字段为 JSON 字符串，存储图片路径数组）
           if (q.images != null && q.images!.isNotEmpty) ...[
-            _buildImages(q.images!),
+            _section('配图'),
+            ..._parseImagePaths(q.images!).map((path) =>
+              QuestionImage(relativePath: path),
+            ),
             const SizedBox(height: 16),
           ],
 
@@ -157,49 +161,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 
-  /// 解析 images JSON 并显示配图
-  Widget _buildImages(String imagesJson) {
-    List<String> paths;
+  /// 解析 images JSON 为路径列表
+  List<String> _parseImagePaths(String imagesJson) {
     try {
       final decoded = const JsonDecoder().convert(imagesJson);
-      paths = (decoded as List).map((e) => e.toString()).toList();
+      return (decoded as List).map((e) => e.toString()).toList();
     } catch (_) {
-      return const SizedBox.shrink();
+      return [];
     }
-    if (paths.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _section('配图'),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-          child: Column(
-            children: paths.map((path) {
-              final assetPath = 'assets/questions/images/$path';
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Image.asset(
-                  assetPath,
-                  fit: BoxFit.contain,
-                  width: double.infinity,
-                  errorBuilder: (_, _, _) => Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: AppColors.background,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text('图片加载失败',
-                        style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildOptions(db.ChoiceExtRow choiceExt) {

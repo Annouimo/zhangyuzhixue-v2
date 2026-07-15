@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../app_theme.dart';
+import '../../constants/app_version.dart';
 
 /// 设置页（Tab 2）
 class SettingsPage extends StatefulWidget {
@@ -75,7 +76,7 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 16),
           _card([
             _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
-            _infoTile(Icons.code, '版本', '1.0.0'),
+            _infoTile(Icons.code, '版本', appVersion),
           ]),
         ],
       ),

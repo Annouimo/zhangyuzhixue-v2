@@ -9,6 +9,7 @@ import '../../data/database/database_provider.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/question_card.dart';
+import '../../widgets/shared/app_toast.dart';
 import '../../widgets/filter_panel.dart';
 import 'preview_page.dart';
 
@@ -104,12 +105,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
 
     await Clipboard.setData(ClipboardData(text: json));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已复制 ${_selectedIds.length} 道题到剪贴板'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppToast.show(context, message: '已复制 ${_selectedIds.length} 道题到剪贴板');
   }
 
   void _preview() {
