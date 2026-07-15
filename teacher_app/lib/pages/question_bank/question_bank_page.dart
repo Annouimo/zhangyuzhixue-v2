@@ -12,6 +12,7 @@ import '../../widgets/shared/question_card.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../widgets/filter_panel.dart';
 import '../../data/debug/audit_logger.dart';
+import 'question_detail_page.dart';
 import 'preview_page.dart';
 
 /// 题库浏览选题页
@@ -122,6 +123,21 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         builder: (_) => _buildPreviewPage(),
       ),
     );
+  }
+
+  Future<void> _openDetail(int questionId) async {
+    try {
+      final detail = await _repo.getQuestionDetail(questionId);
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => QuestionDetailPage(detail: detail),
+        ),
+      );
+    } catch (e) {
+      AuditLogger.instance.error('QuestionBankPage._openDetail', e);
+      if (mounted) AppToast.error(context, '加载题目详情失败');
+    }
   }
 
   Widget _buildPreviewPage() {
@@ -289,11 +305,18 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
           questionType: q.questionType,
           subtitle: q.meta,
           difficulty: q.difficulty,
-          selectable: true,
-          selected: sel,
-          onTap: () => setState(() {
-            if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); }
-          }),
+          selectable: false,
+          trailing: GestureDetector(
+            onTap: () => setState(() {
+              if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); }
+            }),
+            child: Icon(
+              sel ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: sel ? AppColors.primary : AppColors.textSecondary,
+              size: 24,
+            ),
+          ),
+          onTap: () => _openDetail(q.id),
         );
       },
     );
