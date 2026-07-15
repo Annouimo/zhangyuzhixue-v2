@@ -298,40 +298,27 @@ class QuestionRepository {
   }
 
   List<ConceptTagNode> _buildTagTree(List<db.ConceptTagRow> tags) {
-    final map = <int, ConceptTagNode>{};
-    final roots = <ConceptTagNode>[];
-    for (final t in tags) {
-      map[t.id] = ConceptTagNode(id: t.id, name: t.name, parentId: t.parentId);
-    }
-    for (final t in tags) {
-      if (t.parentId != null && map.containsKey(t.parentId)) {
-        final parent = map[t.parentId]!;
-        parent.children;
+    // 递归构建子树
+    ConceptTagNode _buildSub(db.ConceptTagRow tag) {
+      final children = <ConceptTagNode>[];
+      for (final t in tags) {
+        if (t.parentId == tag.id) {
+          children.add(_buildSub(t));
+        }
       }
+      return ConceptTagNode(
+        id: tag.id, name: tag.name, parentId: tag.parentId,
+        children: children,
+      );
     }
     // 找根节点
+    final roots = <ConceptTagNode>[];
     for (final t in tags) {
       if (t.parentId == null) {
-        roots.add(_buildSubTree(t, map));
+        roots.add(_buildSub(t));
       }
     }
     return roots;
-  }
-
-  ConceptTagNode _buildSubTree(db.ConceptTagRow tag, Map<int, ConceptTagNode> nodeMap) {
-    final node = nodeMap[tag.id]!;
-    final children = <ConceptTagNode>[];
-    for (final t in nodeMap.values) {
-      if (t.parentId == tag.id) {
-        children.add(t);
-      }
-    }
-    return ConceptTagNode(
-      id: node.id,
-      name: node.name,
-      parentId: node.parentId,
-      children: children,
-    );
   }
 
   List<KnowledgeCardGroup> _buildKnowledgeCardGroups(List<db.KnowledgeCardRow> cards) {
