@@ -19,12 +19,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  bool _hasUpdate = false;
 
-  final _pages = const [
-    QuestionBankPage(),
-    LectureCoursesPage(),
-    SettingsPage(),
-  ];
+  final GlobalKey<SettingsPageState> _settingsKey = GlobalKey();
 
   @override
   void initState() {
@@ -40,11 +37,17 @@ class _HomePageState extends State<HomePage> {
       final manager = UpdateManager(baseUrl, DatabaseProvider());
       final summaries = await manager.checkAll();
       if (!mounted) return;
+
+      var anyUpdate = false;
       for (final s in summaries) {
         if (s.serverVersion > s.localVersion) {
-          _showUpdateDialog(s.type == 'qbank' ? '题库' : '讲义', s);
+          anyUpdate = true;
+          _showUpdateDialog(s.type == 'qbank' ? '题库' : '课程', s);
           break;
         }
+      }
+      if (!anyUpdate && mounted) {
+        setState(() => _hasUpdate = false);
       }
     } catch (e) {
       AuditLogger.instance.error('HomePage._checkUpdates', e);
@@ -52,6 +55,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showUpdateDialog(String label, UpdateSummary info) {
+    setState(() => _hasUpdate = true);
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -103,21 +107,42 @@ class _HomePageState extends State<HomePage> {
       message: '正在下载$label新版本…',
     );
     if (!mounted) return;
-    setState(() => _currentIndex = 0);
+    setState(() {
+      _currentIndex = 0;
+      _hasUpdate = false;
+    });
+    // 刷新设置页版本号
+    _settingsKey.currentState?.refreshVersions();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: IndexedStack(index: _currentIndex, children: [
+        const QuestionBankPage(),
+        const LectureCoursesPage(),
+        SettingsPage(key: _settingsKey),
+      ]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: (i) {
+          setState(() => _currentIndex = i);
+          if (i == 2) _settingsKey.currentState?.refreshVersions();
+        },
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: '题库'),
-          BottomNavigationBarItem(icon: Icon(Icons.article), label: '讲义'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: '设置'),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: '题库'),
+          const BottomNavigationBarItem(icon: Icon(Icons.article), label: '课程'),
+          BottomNavigationBarItem(
+            icon: _hasUpdate
+                ? const Badge(
+                    isLabelVisible: true,
+                    label: Text('!', style: TextStyle(fontSize: 9)),
+                    child: Icon(Icons.settings),
+                  )
+                : const Icon(Icons.settings),
+            label: '设置',
+          ),
         ],
       ),
     );
