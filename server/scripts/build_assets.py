@@ -70,25 +70,32 @@ def main():
     image_src = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         '..', 'static', 'questions', 'images')
-    flutter_assets = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        '..', 'flutter_app', 'assets', 'questions', 'images')
+    targets = []
+    for rel in ['..', 'flutter_app', 'assets', 'questions', 'images'], \
+               ['..', 'teacher_app', 'assets', 'questions', 'images']:
+        target = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            *rel)
+        targets.append(target)
 
     if not os.path.isdir(image_src):
         print(f'  ⚠ 配图源目录不存在: {image_src}')
     else:
-        os.makedirs(flutter_assets, exist_ok=True)
-        total_count = 0
-        # Flatten: copy .webp files with unique names (replace / with _)
-        for root, dirs, files in os.walk(image_src):
-            for f in files:
-                if not f.lower().endswith('.webp'):
-                    continue
-                rel = os.path.relpath(os.path.join(root, f), image_src)
-                flat_name = rel.replace('\\', '/').replace('/', '_')
-                shutil.copy2(os.path.join(root, f), os.path.join(flutter_assets, flat_name))
-                total_count += 1
-        print(f'✅ 配图同步完成（共 {total_count} 张）')
+        for flutter_assets in targets:
+            os.makedirs(flutter_assets, exist_ok=True)
+            total_count = 0
+            # Flatten: copy .webp files with unique names (replace / with _)
+            for root, dirs, files in os.walk(image_src):
+                for f in files:
+                    if not f.lower().endswith('.webp'):
+                        continue
+                    rel = os.path.relpath(os.path.join(root, f), image_src)
+                    flat_name = rel.replace('\\', '/').replace('/', '_')
+                    shutil.copy2(os.path.join(root, f), os.path.join(flutter_assets, flat_name))
+                    total_count += 1
+            label = 'teacher' if 'teacher' in flutter_assets else 'student'
+            print(f'  {label}: {total_count} 张配图')
+        print(f'✅ 配图同步完成')
 
 
 if __name__ == '__main__':
