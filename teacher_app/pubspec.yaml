@@ -1,7 +1,7 @@
 name: teacher_app
 description: "章鱼智学 v2 - 教师端（题库浏览 + 讲义阅读 + 选题导出）"
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0-alpha.1+1
 
 environment:
   sdk: ^3.12.2
@@ -42,6 +42,14 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.20.0
   build_runner: ^2.4.0
+  msix: ^3.18.0
+
+msix_config:
+  display_name: 章鱼智学 · 教师端
+  publisher_display_name: 章鱼智学
+  identity_name: com.zhangyuzhixue.teacher
+  logo_path: windows/runner/resources/app_icon.ico
+  install_certificate: true
 
 flutter:
   uses-material-design: true
