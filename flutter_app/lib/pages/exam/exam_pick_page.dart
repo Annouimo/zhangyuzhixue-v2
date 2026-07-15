@@ -270,7 +270,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   Widget _buildScrollContent() {
     final nameField = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
       child: TextField(
         controller: _nameController,
         decoration: const InputDecoration(
@@ -284,6 +284,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     final filterPanel = _filterOpts != null
         ? FilterPanel(
             key: _filterKey,
+            horizontalMargin: 0,
             yearOptions: _filterOpts!.years,
             regionOptions: _filterOpts!.regions,
             typeOptions: _filterOpts!.questionTypes,
@@ -314,7 +315,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       if (filterPanel != null) filterPanel,
       if (_poolStats != null)
         Card(
-          margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+          margin: const EdgeInsets.fromLTRB(0, 4, 0, 0),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -337,7 +338,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
     if (_questions == null) {
       return ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
           const SizedBox(height: 80),
@@ -347,7 +348,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     }
     if (_questions!.isEmpty) {
       return ListView(
-        padding: EdgeInsets.zero,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
           const SizedBox(height: 80),
@@ -357,7 +358,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     }
     // 有搜索结果
     return ListView.builder(
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       itemCount: _questions!.length + headerChildren.length,
       itemBuilder: (context, index) {
         if (index < headerChildren.length) {

@@ -23,7 +23,7 @@ abstract final class AppColors {
   // 热力图色板
   static const heatmapLevel1 = Color(0xFFDBEAFE);
   static const heatmapLevel2 = Color(0xFF60A5FA);
-  static const heatmapLevel3 = Color(0xFF3366FF);
+  static const heatmapLevel3 = Color(0xFF4A6CF7);
 
   // 难度标签色
   static const tagDifficultyBg = Color(0xFFFFF7ED);

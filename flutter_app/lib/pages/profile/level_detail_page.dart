@@ -90,8 +90,6 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   );
 
   Widget _buildBadge() {
-    final currentConfig = _levels.where((r) => r.level == _level).firstOrNull;
-    final badgeIcon = currentConfig?.iconEmoji ?? '🏅';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
       decoration: BoxDecoration(
@@ -101,8 +99,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(badgeIcon,
-            style: const TextStyle(fontSize: 28)),
+          Icon(Icons.emoji_events, color: Colors.white, size: 28),
           const SizedBox(width: 6),
           Text('Lv.$_level',
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),

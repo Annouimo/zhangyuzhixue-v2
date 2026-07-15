@@ -71,6 +71,9 @@ class FilterPanel extends StatefulWidget {
   final VoidCallback? onSavePreference;
   final VoidCallback? onLoadPreference;
 
+  /// 水平外边距（默认 16），父级统一管控布局时传入 0
+  final double horizontalMargin;
+
   const FilterPanel({
     super.key,
     required this.yearOptions,
@@ -84,6 +87,7 @@ class FilterPanel extends StatefulWidget {
     this.onChanged,
     this.onSavePreference,
     this.onLoadPreference,
+    this.horizontalMargin = 16,
   });
 
   @override
@@ -259,7 +263,7 @@ class FilterPanelState extends State<FilterPanel> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
