@@ -26,7 +26,7 @@ class MdLatexBody extends StatelessWidget {
 
     return MarkdownBody(
       data: data,
-      selectable: true,
+      selectable: false,
       blockSyntaxes: [_BlockMathSyntax()],
       inlineSyntaxes: [_InlineLatexSyntax()],
       builders: {
