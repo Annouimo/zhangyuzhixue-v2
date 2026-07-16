@@ -9,10 +9,13 @@ class _MockAnswerRepo implements ExamRepository {
   _MockAnswerRepo({this.answers = const []});
 
   @override Future<List<AnswerItem>> getQuickAnswers(int id) async => answers;
+  @override Future<ExamPreview> getPreview(int id) async => const ExamPreview(
+    name: '练习卷', authorInfo: '', choiceCount: 1, fillCount: 0,
+    solutionCount: 0, totalCount: 1, questions: [],
+  );
   @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
   @override Future<List<ExploreExamSummary>> getExploreList() async => throw UnimplementedError();
   @override Future<List<FavoriteExamSummary>> getFavorites() async => throw UnimplementedError();
-  @override Future<ExamPreview> getPreview(int id) async => throw UnimplementedError();
   @override Future<ExamPreviewOther> getPreviewOther(int id) async => throw UnimplementedError();
   @override Future<FilterOptions> getFilterOptions() async => throw UnimplementedError();
   @override Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters f) async => throw UnimplementedError();
@@ -24,7 +27,7 @@ class _MockAnswerRepo implements ExamRepository {
   @override Future<void> togglePublic(int id) async {}
   @override Future<void> deleteExam(int id) async {}
   @override Future<void> removeFavorite(int id) async {}
-  @override Future<void> downloadPdf(int id) async {}
+  @override Future<void> downloadPdf(int id, {BuildContext? context}) async {}
   @override Future<List<FilterPreset>> getFilterPresets() async => [];
 }
 

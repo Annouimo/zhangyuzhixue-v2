@@ -58,25 +58,25 @@
     </div>
 
     <!-- 答案列表 -->
-    <p class="text-secondary" style="font-size:13px;margin:8px 0 4px;">点击题目可进入解题模式</p>
+    <!-- 说明：解答题多小问会展开为多行，每行显示 (1)(2)(3) 子题答案 -->
     <div data-db-loop="exam.quickAnswer">
-      <a href="solve-pages/solve-choice.html?mode=review&amp;attempt_id=1" class="answer-row" style="text-decoration:none;color:inherit;">
+      <div class="answer-row">
         <div class="q-num">1</div>
         <div class="q-info">
           <div data-db="exam.quickAnswer[].title">2025 东城一模 第 1 题</div>
           <div class="text-secondary" style="font-size:12px;" data-db="exam.quickAnswer[].questionType">选择题</div>
         </div>
         <div class="q-answer" data-db="exam.quickAnswer[].answer">A</div>
-      </a>
+      </div>
 
-      <a href="solve-pages/solve-choice.html?mode=review&amp;attempt_id=1" class="answer-row" style="text-decoration:none;color:inherit;">
+      <div class="answer-row">
         <div class="q-num">2</div>
         <div class="q-info">
           <div data-db="exam.quickAnswer[].title">2025 东城一模 第 2 题</div>
-          <div class="text-secondary" style="font-size:12px;" data-db="exam.quickAnswer[].questionType">选择题</div>
+          <div class="text-secondary" style="font-size:12px;" data-db="exam.quickAnswer[].questionType">解答题</div>
         </div>
-        <div class="q-answer" data-db="exam.quickAnswer[].answer">B</div>
-      </a>
+        <div class="q-answer" data-db="exam.quickAnswer[].answer">(1) $a=8$ (2) $\sin C=\frac{\sqrt{3}}{2}$</div>
+      </div>
     </div>
 
     <a href="paper_quicklook.html" class="btn btn-outline btn-block mt-4">← 返回试卷预览</a>

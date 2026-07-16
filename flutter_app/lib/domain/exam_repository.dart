@@ -407,15 +407,39 @@ class ExamRepository {
   // ── 快对答案 ──
   Future<List<AnswerItem>> getQuickAnswers(int examId) async {
     final questions = await _examDao.getQuestions(examId);
+    if (questions.isEmpty) return [];
+    final qIds = questions.map((q) => q.questionId).toList();
+    final qRows = await _questionDao.getByIds(qIds);
+    final qMap = <int, assets_db.QuestionRow>{};
+    for (final r in qRows) {
+      qMap[r.id] = r;
+    }
     final result = <AnswerItem>[];
+    String typeLabel(String type) {
+      const labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'};
+      return labels[type] ?? type;
+    }
     for (final q in questions) {
+      final baseQ = qMap[q.questionId];
+      if (baseQ == null) continue;
       final subs = await _questionDao.getSubQuestions(q.questionId);
-      final answer = subs.isNotEmpty ? subs.first.answer : null;
-      result.add(AnswerItem(
-        title: '#${q.sortOrder}',
-        questionType: '',
-        answer: answer ?? '',
-      ));
+      final baseTitle = '${baseQ.number} ${baseQ.examType} ${baseQ.region}';
+      final label = typeLabel(baseQ.questionType);
+      if (baseQ.questionType == 'solution' && subs.length > 1) {
+        for (var i = 0; i < subs.length; i++) {
+          result.add(AnswerItem(
+            title: '$baseTitle (${i + 1})',
+            questionType: label,
+            answer: subs[i].answer ?? '',
+          ));
+        }
+      } else {
+        result.add(AnswerItem(
+          title: baseTitle,
+          questionType: label,
+          answer: subs.isNotEmpty ? (subs.first.answer ?? '') : '',
+        ));
+      }
     }
     return result;
   }
