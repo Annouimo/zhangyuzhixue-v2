@@ -246,6 +246,18 @@ class FilterPanelState extends State<FilterPanel> {
     ));
   }
 
+  /// 空维度提示 — 有选项但用户未选任何项时，列出维度名
+  List<String> get _emptyHints {
+    final h = <String>[];
+    if (widget.yearOptions.isNotEmpty && _selectedYears.isEmpty) h.add('年份未选');
+    if (widget.regionOptions.isNotEmpty && _selectedRegions.isEmpty) h.add('地区未选');
+    if (widget.examTypeOptions.isNotEmpty && _selectedExamTypes.isEmpty) h.add('考试类型未选');
+    if (widget.typeOptions.isNotEmpty && _selectedTypes.isEmpty) h.add('题型未选');
+    if (widget.conceptTagOptions.isNotEmpty && _selectedConceptTagNames.isEmpty) h.add('概念标签未选');
+    if (widget.knowledgeCardOptions.isNotEmpty && _selectedKnowledgeCardTitles.isEmpty) h.add('知识卡片未选');
+    return h;
+  }
+
   // ── 摘要 chips ──
   List<Widget> get _summaryChips {
     final chips = <Widget>[];
@@ -370,6 +382,19 @@ class FilterPanelState extends State<FilterPanel> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Wrap(spacing: 4, runSpacing: 4, children: _summaryChips),
+              ),
+            if (_emptyHints.isNotEmpty && !_allEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(spacing: 4, runSpacing: 4, children: _emptyHints.map((h) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                  ),
+                  child: Text(h, style: const TextStyle(fontSize: 10, color: AppColors.warning)),
+                )).toList()),
               ),
             if (widget.onSavePreference != null || widget.onLoadPreference != null)
               Container(
