@@ -115,7 +115,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     }
     if (_preferences.isEmpty) {
       return const EmptyPlaceholder(icon: Icons.assignment,
-        message: '暂无学习偏好，快去创建一个吧',
+        message: '还没有设置学习偏好，点击右上角 + 新建',
       );
     }
     return RefreshIndicator(
@@ -188,3 +188,4 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     );
   }
 }
+

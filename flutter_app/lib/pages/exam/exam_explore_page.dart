@@ -67,7 +67,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.search, message: '暂无公开组卷');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.search, message: '还没有人公开分享试卷，去首页试试快速练习吧');
     return Column(
       children: [
         // 排序栏
@@ -137,3 +137,4 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
     );
   }
 }
+

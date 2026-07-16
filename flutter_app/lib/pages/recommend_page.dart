@@ -129,8 +129,8 @@ class RecommendPageState extends State<RecommendPage> {
         Expanded(
           child: _questions == null || _questions!.isEmpty
               ? (!_preferSmart && _selectedPresetIndex == -1
-                  ? const EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择学习偏好')
-                  : const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂无推荐，先去组卷或做几道题吧'))
+                  ? const EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择一个学习偏好开始推荐')
+                  : const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂时没有智能推荐 🧠 去首页试试快速练习吧'))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
@@ -264,3 +264,4 @@ class _PillButton extends StatelessWidget {
     );
   }
 }
+

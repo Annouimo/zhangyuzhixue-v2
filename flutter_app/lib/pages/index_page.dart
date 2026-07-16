@@ -24,6 +24,7 @@ import '../data/daos/sync_queue_dao.dart';
 import '../data/network/connectivity_monitor.dart';
 import '../data/database/app_database.dart' as app_db;
 import '../widgets/shared/format_utils.dart';
+import '../domain/question_repository.dart';
 
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
@@ -47,6 +48,7 @@ class _IndexPageState extends State<IndexPage> {
   int _todayTotal = 0;
   int _todayCorrect = 0;
   int _syncPendingCount = 0;
+  bool _showWelcomeHint = false;
 
   static const List<String> _welcomeMessages = [
     '每一次练习，都在为高考蓄力 💪',
@@ -109,6 +111,12 @@ class _IndexPageState extends State<IndexPage> {
         syncPending = await SyncQueueDao(DatabaseProvider()).getPendingCount();
       } catch (_) {}
 
+        // 新手提示：前 3 次打开显示引导卡片
+        final hintCount = prefs.getInt('welcome_hint_count') ?? 0;
+        if (hintCount < 3) {
+          await prefs.setInt('welcome_hint_count', hintCount + 1);
+          _showWelcomeHint = true;
+        }
       // 任务奖励检测（每日仅发放一次）
       final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
       for (var i = 0; i < tasks.length; i++) {
@@ -542,4 +550,93 @@ class _IndexPageState extends State<IndexPage> {
     );
   }
 
+
+  /// 快速练习 — 随机做一道题
+  Widget _buildQuickStart() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ElevatedButton.icon(
+        onPressed: _startQuickPractice,
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('🚀 快速练习 — 随机做一道题'),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _startQuickPractice() async {
+    try {
+      final dao = QuestionDao(DatabaseProvider());
+      var q = await dao.getRandomByType(preferredType: 'choice');
+      q ??= await dao.getRandomByType(preferredType: 'fill');
+      q ??= await dao.getRandomByType();
+      if (q == null || !mounted) {
+        AppToast.show(context, icon: Icons.info, message: '题库暂无数据');
+        return;
+      }
+      await SolveRouteHelper.navigateTo(context, q.id, q.questionType);
+    } catch (e) {
+      AuditLogger.instance.error('IndexPage._startQuickPractice', e);
+      if (!mounted) return;
+      AppToast.show(context, icon: Icons.warning, message: '加载失败，请稍后重试');
+    }
+  }
+
+  /// 新手提示引导卡片
+  Widget _buildWelcomeHint() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 12, bottom: 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.primary),
+              const SizedBox(width: 6),
+              const Text('欢迎来到章鱼智学 🐙',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => setState(() => _showWelcomeHint = false),
+                child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _hintItem(Icons.play_arrow, '🚀 快速练习 — 直接随机做一道题'),
+          const SizedBox(height: 6),
+          _hintItem(Icons.menu_book, '📖 讲义 — 浏览课程知识点'),
+          const SizedBox(height: 6),
+          _hintItem(Icons.auto_awesome, '🧠 推荐 — 智能推送适合你的题目'),
+          const SizedBox(height: 6),
+          _hintItem(Icons.description, '📝 组卷 — 自己组卷或使用他人试卷'),
+        ],
+      ),
+    );
+  }
+
+  Widget _hintItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(text, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+        ),
+      ],
+    );
+  }
 }

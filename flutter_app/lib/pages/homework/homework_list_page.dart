@@ -105,7 +105,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
     }
     if (_assignments == null || _assignments!.isEmpty) {
       return const EmptyPlaceholder(icon: Icons.assignment,
-        message: '暂无待办作业',
+        message: '暂无待办作业 🤔 可以先刷刷题或看看讲义',
       );
     }
     return RefreshIndicator(
@@ -130,4 +130,5 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
     );
   }
 }
+
 

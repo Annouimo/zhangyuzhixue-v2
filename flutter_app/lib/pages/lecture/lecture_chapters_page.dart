@@ -78,7 +78,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
     }
     if (_chapterList == null || _chapterList!.items.isEmpty) {
       return const EmptyPlaceholder(icon: Icons.article,
-        message: '暂无章节',
+        message: '暂无章节内容',
       );
     }
     return RefreshIndicator(
@@ -164,3 +164,4 @@ class _ChapterCard extends StatelessWidget {
     );
   }
 }
+

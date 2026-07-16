@@ -82,7 +82,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载组卷…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.assignment, message: '暂无组卷');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.assignment, message: '还没有创建过试卷，去首页试试快速练习吧');
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -113,3 +113,4 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     );
   }
 }
+

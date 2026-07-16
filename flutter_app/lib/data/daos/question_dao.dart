@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:drift/drift.dart';
 import '../database/assets_database.dart' as db;
 import '../database/database_provider.dart';
@@ -117,6 +118,14 @@ class QuestionDao {
     return rows.length;
   }
 
+  /// 随机取一道指定类型的题目（内测快速开始用）
+  Future<db.QuestionRow?> getRandomByType({String? preferredType}) async {
+    final q = _db.select(_db.questions);
+    if (preferredType != null) q.where((t) => t.questionType.equals(preferredType));
+    final rows = await q.get();
+    if (rows.isEmpty) return null;
+    return rows[Random().nextInt(rows.length)];
+  }
   Future<db.ChoiceExtRow?> getChoiceExt(int questionId) async {
     final q = _db.select(_db.choiceExt)
       ..where((t) => t.questionId.equals(questionId));
@@ -234,3 +243,4 @@ class QuestionDao {
     return rows;
   }
 }
+

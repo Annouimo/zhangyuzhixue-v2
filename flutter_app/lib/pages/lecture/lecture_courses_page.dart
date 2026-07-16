@@ -71,7 +71,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
     }
     if (_courses == null || _courses!.isEmpty) {
       return const EmptyPlaceholder(icon: Icons.menu_book,
-        message: '暂无讲义',
+        message: '暂无讲义内容，后续会上线更多课程 📖',
       );
     }
     return RefreshIndicator(
@@ -164,3 +164,4 @@ class _CourseCard extends StatelessWidget {
     );
   }
 }
+

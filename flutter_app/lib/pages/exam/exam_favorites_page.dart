@@ -66,7 +66,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载收藏…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.star, message: '暂无收藏');
+    if (_list == null || _list!.isEmpty) return const EmptyPlaceholder(icon: Icons.star, message: '你还没有收藏任何试卷，发现好试卷可以收藏哦');
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
@@ -97,3 +97,4 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
     );
   }
 }
+
