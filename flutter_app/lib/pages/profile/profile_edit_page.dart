@@ -87,6 +87,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       final url = await _repo.uploadAvatar(picked.path);
       if (!mounted) return;
       setState(() { _avatarUrl = url; _uploading = false; });
+      // 上传成功后写回本地 user.db，保证离开再回来也能显示新头像
+      if (_info != null) {
+        await _repo.saveProfile(UserInfo(
+          id: _info!.id, name: _info!.name,
+          realName: _info!.realName,
+          avatar: url,
+          gaokaoYear: _gaokaoYear,
+          phone: _info!.phone,
+        ));
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),

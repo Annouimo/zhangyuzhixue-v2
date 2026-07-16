@@ -159,6 +159,16 @@ class ProfilePageState extends State<ProfilePage> {
             : null;
         _uploading = false;
       });
+      // 上传成功后写回本地 user.db
+      if (_info != null) {
+        await _repo.saveProfile(UserInfo(
+          id: _info!.id, name: _info!.name,
+          realName: _info!.realName,
+          avatar: avatarUrl,
+          gaokaoYear: _info!.gaokaoYear,
+          phone: _info!.phone,
+        ));
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
@@ -361,10 +371,7 @@ class ProfilePageState extends State<ProfilePage> {
       ]),
       ('系统', [
         (Icons.sync, '同步状态', _buildSyncSubtitle(), () => context.push(AppRoutes.syncQueue)),
-        (Icons.info_outline, '关于', null, () async {
-          await context.push(AppRoutes.profileAbout);
-          reload();
-        }),
+        (Icons.info_outline, '关于', null, () => context.push(AppRoutes.profileAbout)),
         (Icons.logout, '退出登录', null, _logout),
       ]),
     ];

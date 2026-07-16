@@ -20,7 +20,8 @@ class UserApi {
       'avatar': await MultipartFile.fromFile(localPath),
     });
     final res = await _client.dio.post('/user/avatar/', data: formData);
-    return (res.data['data'] as Map<String, dynamic>)['url'] as String;
+    final avatarUrl = (res.data['data'] as Map<String, dynamic>)['avatar'] as String?;
+    return avatarUrl ?? (throw Exception('头像上传成功但未返回URL'));
   }
 
   /// 签到
