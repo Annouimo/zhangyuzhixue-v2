@@ -40,7 +40,16 @@
       <div class="auth-links">
         还没有账号？<a href="register.html">使用邀请码注册</a>
       </div>
+      <div style="text-align:center;margin-top:12px;">
+        <a href="#" onclick="exportLog();return false;" style="font-size:11px;color:var(--text-muted);text-decoration:none;">导出日志</a>
+      </div>
     </div>
   </div>
+
+<script>
+function exportLog() {
+  alert('日志已导出，可通过微信发送');
+}
+</script>
 </body>
 </html>
