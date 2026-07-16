@@ -88,7 +88,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       OperationLog.instance.action('rate', 'submitted qid=${widget.questionId}');
       if (!mounted) return;
       AppToast.show(context,
-        icon: Icons.check_circle, message: '评分已提交',
+        icon: Icons.check_circle, message: '评分已提交！+$_rewardPoints 赠送积分',
         backgroundColor: AppColors.success,
       );
     } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
