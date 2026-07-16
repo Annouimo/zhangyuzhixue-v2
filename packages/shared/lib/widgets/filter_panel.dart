@@ -214,7 +214,9 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedTypes.addAll(widget.typeOptions);
       _selectedExamTypes.addAll(widget.examTypeOptions);
       _selectedConceptTagNames.addAll(widget.conceptTagOptions);
+      _selectedConceptTags.addAll(widget.conceptTagOptions);
       _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
+      _selectedKnowledgeCards.addAll(widget.knowledgeCardOptions);
       _diffMin = 0; _diffMax = 10;
       _calcMin = 0; _calcMax = 10;
       _sort = SortMode.newestFirst;
@@ -460,9 +462,14 @@ class FilterPanelState extends State<FilterPanel> {
                 nodes: widget.conceptTagTree,
                 selectedNames: _selectedConceptTagNames,
                 onChanged: (names) {
-                  setState(() => _selectedConceptTagNames
-                    ..clear()
-                    ..addAll(names));
+                  setState(() {
+                    _selectedConceptTagNames
+                      ..clear()
+                      ..addAll(names);
+                    _selectedConceptTags
+                      ..clear()
+                      ..addAll(names);
+                  });
                   _emit();
                 },
               )),
@@ -475,9 +482,14 @@ class FilterPanelState extends State<FilterPanel> {
                 groups: widget.knowledgeCardGroups,
                 selectedTitles: _selectedKnowledgeCardTitles,
                 onChanged: (titles) {
-                  setState(() => _selectedKnowledgeCardTitles
-                    ..clear()
-                    ..addAll(titles));
+                  setState(() {
+                    _selectedKnowledgeCardTitles
+                      ..clear()
+                      ..addAll(titles);
+                    _selectedKnowledgeCards
+                      ..clear()
+                      ..addAll(titles);
+                  });
                   _emit();
                 },
               )),
