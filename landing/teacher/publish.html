@@ -70,6 +70,12 @@
     <!-- 步骤 3: 选班级 -->
     <div class="card">
       <div class="card-title">③ 选择发布班级</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
+        <label>
+          <input type="checkbox" id="select-all-classes" onchange="toggleAllClasses(this)" checked style="accent-color:var(--primary);">
+          全选
+        </label>
+      </div>
       <div id="class-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载班级列表...</div>
       <div id="class-list"></div>
     </div>
@@ -96,8 +102,14 @@
           return;
         }
         parsedQuestionIds = data.questionIds;
-        preview.innerHTML = '<span style="color:var(--success);">✅ 解析成功，共 ' + data.questionIds.length + ' 题</span>'
-          + (data.selectedAt ? '<span style="margin-left:12px;font-size:12px;color:var(--text-muted);">选中时间: ' + data.selectedAt.slice(0,10) + '</span>' : '');
+        // 显示题号预览（前 10 个 + "等 N 题"）
+        var previewIds = data.questionIds.slice(0, 10);
+        var previewText = '✅ 解析成功，共 ' + data.questionIds.length + ' 题';
+        if (data.selectedAt) previewText += ' · 选中时间: ' + data.selectedAt.slice(0, 10);
+        previewText += '<br><span style="font-size:12px;color:var(--text-muted);">题号: ' + previewIds.join(', ');
+        if (data.questionIds.length > 10) previewText += ', … 等 ' + (data.questionIds.length - 10) + ' 题';
+        previewText += '</span>';
+        preview.innerHTML = previewText;
         // 自动填充标题
         const titleInput = document.getElementById('title');
         if (!titleInput.value.trim()) {
@@ -122,6 +134,14 @@
     window.selectCourse = function(el, id) {
       document.querySelectorAll('#course-list .paper-card').forEach(function(p) { p.classList.remove('selected'); });
       el.classList.add('selected');
+    };
+
+    window.toggleAllClasses = function(master) {
+      document.querySelectorAll('#class-list .class-checkbox-row').forEach(function(row) {
+        var cb = row.querySelector('input[type="checkbox"]');
+        cb.checked = master.checked;
+        row.classList.toggle('checked', master.checked);
+      });
     };
 
     window.handlePublish = async function() {
@@ -162,6 +182,11 @@
 
     // 加载课程
     (async function loadCourses() {
+      // 设置截止日期默认值（7 天后）
+      var defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 7);
+      document.getElementById('deadline').value = defaultDate.toISOString().slice(0, 10);
+
       try {
         const courses = await apiCall('/lectures/courses/');
         hideLoading('course-loading');

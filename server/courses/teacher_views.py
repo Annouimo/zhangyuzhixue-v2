@@ -382,6 +382,7 @@ def student_detail(request, id):
         question_type_breakdown.append({
             'type': type_map.get(qt, qt),
             'count': t,
+            'correctCount': row['correct'],
             'accuracy': round(row['correct'] / t * 100, 1) if t else 0,
         })
 
