@@ -1,7 +1,9 @@
 """生成 app_version.dart + 同步 Inno Setup .iss 版本号
-从每个 app 的 pubspec.yaml 读取真实版本号。"""
+从 pubspec.yaml 读取真实版本号，只维护 shared 包中的单源版本文件。"""
+
 import re, sys
 from pathlib import Path
+
 
 def read_version(app_dir: Path) -> str | None:
     pubspec = app_dir / 'pubspec.yaml'
@@ -15,14 +17,22 @@ def read_version(app_dir: Path) -> str | None:
         return None
     return m.group(1)
 
-def generate_app_version(app_dir: Path, version: str) -> bool:
-    out_dir = app_dir / 'lib' / 'constants'
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / 'app_version.dart'
-    out_file.write_text(f"""/// App 版本号（自动生成 — 不要手动修改）
+
+def update_shared_app_version(root: Path, version: str) -> bool:
+    """更新 shared 包中的 app_version.dart（单源版本文件）"""
+    f = root / 'packages' / 'shared' / 'lib' / 'constants' / 'app_version.dart'
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(f"""/// App 版本号 — 从 pubspec.yaml 自动生成
 ///
-/// 来源: {app_dir.name}/pubspec.yaml 中的 version 字段
-/// 生成命令: python scripts/generate_version.py
+/// 由 scripts/generate_version.py 自动覆盖。
+/// 不要手动编辑。
+class AppVersion {{
+  AppVersion._();
+  static const String version = '{version}';
+  static const String buildEnv = 'release';
+}}
+
+/// App 版本号字符串（自动生成）
 const appVersion = '{version}';
 
 /// API 基础 URL（支持环境切换）
@@ -32,8 +42,9 @@ const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zha
 const appServerOrigin =
     String.fromEnvironment('SERVER_ORIGIN', defaultValue: 'https://zhangyuzhixue.top');
 """)
-    print(f'✅ {out_file} 已生成，version={version}')
+    print(f'✅ {f} 已生成，version={version}')
     return True
+
 
 def update_iss_file(iss_path: Path, version: str) -> bool:
     if not iss_path.exists():
@@ -54,62 +65,29 @@ def update_iss_file(iss_path: Path, version: str) -> bool:
     print(f'✅ {iss_path} 已同步 version={version}')
     return True
 
-def update_shared_app_version(root: Path, version: str) -> bool:
-    """更新 shared 包中的 app_version.dart（共享源）"""
-    f = root / 'packages' / 'shared' / 'lib' / 'constants' / 'app_version.dart'
-    if not f.exists():
-        print(f'❌ 未找到: {f}', file=sys.stderr)
-        return False
-    text = f.read_text(encoding='utf-8')
-    text, n1 = re.subn(
-        r"(static const String version = ').*?(')",
-        rf'\g<1>{version}\g<2>',
-        text,
-    )
-    text, n2 = re.subn(
-        r"(const appVersion = ').*?(')",
-        rf'\g<1>{version}\g<2>',
-        text,
-    )
-    if n1 == 0 or n2 == 0:
-        print(f'❌ 在 shared app_version.dart 中未找到版本号定义', file=sys.stderr)
-        return False
-    f.write_text(text, encoding='utf-8')
-    print(f'✅ {f} 已同步 version={version}')
-    return True
 
-# ── 映射表：app 名 → (pubspec 子目录, .iss 文件路径) ──
+# ── 映射表：app 名 → .iss 文件路径 ──
 ISSUES_DIR = Path(__file__).resolve().parent.parent / 'docs' / '07-工作流'
 APP_ISS_MAP = {
-    'flutter_app':  ISSUES_DIR / 'build_script_student.iss',
-    'teacher_app':  ISSUES_DIR / 'build_script_teacher.iss',
+    'flutter_app': ISSUES_DIR / 'build_script_student.iss',
+    'teacher_app': ISSUES_DIR / 'build_script_teacher.iss',
 }
 
 if __name__ == '__main__':
     root = Path(__file__).resolve().parent.parent
     ok = True
 
-    for name in ('flutter_app', 'teacher_app'):
-        app_dir = root / name
-        version = read_version(app_dir)
-        if version is None:
-            ok = False
-            continue
-
-        if not generate_app_version(app_dir, version):
-            ok = False
-            continue
-
-        iss = APP_ISS_MAP.get(name)
-        if iss and not update_iss_file(iss, version):
-            ok = False
-
-    # 以 flutter_app 版本为基准同步 shared 包
+    # 以 flutter_app 版本为基准更新 shared 包
     version = read_version(root / 'flutter_app')
-    if version:
+    if version is None:
+        ok = False
+    else:
         if not update_shared_app_version(root, version):
             ok = False
-    else:
-        ok = False
+        # 同步 .iss 文件（Windows Installer）
+        for name in ('flutter_app', 'teacher_app'):
+            iss = APP_ISS_MAP.get(name)
+            if iss and not update_iss_file(iss, version):
+                ok = False
 
     sys.exit(0 if ok else 1)
