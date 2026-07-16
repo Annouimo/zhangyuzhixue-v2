@@ -57,7 +57,10 @@ class AchievementRepository {
   final AchievementDao _dao;
   final QuestionDao _questionDao;
   final ExamDao _examDao;
-  const AchievementRepository(this._dao, this._questionDao, this._examDao);
+  AchievementRepository(this._dao, this._questionDao, this._examDao);
+
+  /// 上次调用 getCategories 时新解锁的成就列表
+  List<AchievementItem>? lastNewUnlocks;
 
   Future<AchievementSummary> getSummary() async {
     final cats = await getCategories();
@@ -77,6 +80,7 @@ class AchievementRepository {
   }
 
   Future<List<AchievementCategory>> getCategories() async {
+    lastNewUnlocks = [];
     final defs = await _questionDao.getAllAchievementDefs();
     final progressList = await _dao.getAllProgress();
     final progressMap = {for (final p in progressList) p.achievementCode: p};
@@ -98,6 +102,7 @@ class AchievementRepository {
           isUnlocked: 1,
           unlockedAt: DateTime.now().toIso8601String().substring(0, 10),
         );
+        lastNewUnlocks?.add(item);
       }
     }
     return grouped.entries.map((e) => AchievementCategory(label: e.key, list: e.value)).toList();

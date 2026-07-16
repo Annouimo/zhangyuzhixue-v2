@@ -19,6 +19,7 @@ abstract final class PrefKeys {
   static const levelPercentile = 'app_level_percentile';
   static const userVersion = 'app_user_version';
   static const lastKnownLevel = 'app_last_known_level';
+  static const lastKnownUnlockCount = 'app_last_known_unlock_count';
 }
 
 /// SharedPreferences 封装层
@@ -141,6 +142,12 @@ class AppPrefs {
   int get lastKnownLevel => p.getInt(PrefKeys.lastKnownLevel) ?? 0;
   Future<bool> setLastKnownLevel(int v) =>
       p.setInt(PrefKeys.lastKnownLevel, v);
+
+  // ── 成就缓存 ──
+
+  int get lastKnownUnlockCount => p.getInt(PrefKeys.lastKnownUnlockCount) ?? 0;
+  Future<bool> setLastKnownUnlockCount(int v) =>
+      p.setInt(PrefKeys.lastKnownUnlockCount, v);
 
   // ── 更新弹窗冷却 ──
 

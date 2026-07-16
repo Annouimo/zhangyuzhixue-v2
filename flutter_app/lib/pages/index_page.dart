@@ -10,8 +10,11 @@ import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/error_placeholder.dart';
 import '../widgets/shared/app_toast.dart';
 import '../widgets/level_up_dialog.dart';
+import '../widgets/achievement_unlock_dialog.dart';
+import '../domain/achievement_repository.dart';
 import '../data/database/database_provider.dart';
 import '../data/daos/achievement_dao.dart';
+import '../data/daos/exam_dao.dart';
 import '../data/api/api_client.dart';
 import '../data/api/user_api.dart';
 import '../data/daos/user_dao.dart';
@@ -196,6 +199,37 @@ class IndexPageState extends State<IndexPage> {
       } else if (_currentLevel > 0 && AppPrefs().lastKnownLevel == 0) {
         // 首次加载，初始化缓存
         await AppPrefs().setLastKnownLevel(_currentLevel);
+      }
+
+      // 成就检测：如果有新解锁的成就，弹出通知
+      final prevCount = AppPrefs().lastKnownUnlockCount;
+      if (prevCount > 0) {
+        try {
+          final achieveRepo = AchievementRepository(
+            AchievementDao(DatabaseProvider()),
+            QuestionDao(DatabaseProvider()),
+            ExamDao(DatabaseProvider()),
+          );
+          await achieveRepo.getCategories();
+          final newUnlocks = achieveRepo.lastNewUnlocks;
+          if (newUnlocks != null && newUnlocks.isNotEmpty && mounted) {
+            await AppPrefs().setLastKnownUnlockCount(
+              prevCount + newUnlocks.length,
+            );
+            showAchievementUnlockDialog(context, achievement: newUnlocks.last);
+          }
+        } catch (_) {}
+      } else {
+        // 首次加载：初始化缓存（不弹窗）
+        try {
+          final achieveRepo = AchievementRepository(
+            AchievementDao(DatabaseProvider()),
+            QuestionDao(DatabaseProvider()),
+            ExamDao(DatabaseProvider()),
+          );
+          final summary = await achieveRepo.getSummary();
+          await AppPrefs().setLastKnownUnlockCount(summary.unlockedCount);
+        } catch (_) {}
       }
     } catch (e) {
       OperationLog.instance.error('IndexPage._load', e); 
