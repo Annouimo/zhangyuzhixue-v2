@@ -240,6 +240,12 @@ class _SolveFillPageState extends State<SolveFillPage> {
   /// 用户自评后保存记录
   Future<void> _submitFeedback(bool correct) async {
     if (!_revealed || _feedbackGiven) return;
+    // 乐观锁定：立即阻断后续点击，用户瞬时看到反馈
+    if (!mounted) return;
+    setState(() {
+      _feedbackGiven = true;
+      _feedbackCorrect = correct;
+    });
     if (_detail?.answer != null && _currentAttempt != null) {
       try {
         await _repo.saveAttempt(
@@ -249,11 +255,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
         );
       } catch (_) {}
     }
-    if (!mounted) return;
-    setState(() {
-      _feedbackGiven = true;
-      _feedbackCorrect = correct;
-    });
   }
 
   Widget _buildFeedbackButtons() {
