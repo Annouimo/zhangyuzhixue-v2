@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// 运行日志（飞行记录器）— release 构建下正常工作
 ///
 /// 记录关键操作流水：页面加载、API 请求、用户操作、异常。
 /// 内存中滚动保留最近 200 条，同时写入文件。
-/// 用户可通过关于页「导出日志」把文件发给你。
+/// 用户可通过关于页「导出日志」调用系统分享面板发送文件。
 class OperationLog {
   OperationLog._();
   static final OperationLog instance = OperationLog._();
@@ -92,18 +93,26 @@ class OperationLog {
     return '${dir.path}${Platform.pathSeparator}operation_log.ndjson';
   }
 
-  /// 导出到桌面（Windows）或 Downloads（其他平台）
-  Future<String?> exportToShare() async {
-    if (!_ready) return null;
+  /// 调用系统分享面板导出日志文件
+  ///
+  /// 返回 true 表示文件存在并尝试打开了分享面板，false 表示无日志或失败。
+  /// 使用系统分享面板而非剪贴板，避免第三方剪贴板软件截断长日志。
+  Future<bool> exportToShare() async {
+    if (!_ready) return false;
     await _sink?.flush();
 
-    final src = File(await logFilePath);
-    if (!await src.exists()) return null;
+    final file = File(await logFilePath);
+    if (!await file.exists()) return false;
 
-    final dir = await getApplicationDocumentsDirectory();
-    final dest = File('${dir.path}${Platform.pathSeparator}operation_log_export.ndjson');
-    await src.copy(dest.path);
-    return dest.path;
+    try {
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'operation_log.ndjson',
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// 关闭

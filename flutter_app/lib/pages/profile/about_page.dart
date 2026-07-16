@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
@@ -319,14 +317,12 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _exportLog() async {
-    final file = File(await OperationLog.instance.logFilePath);
-    if (!await file.exists()) {
-      AppToast.show(context, icon: Icons.info, message: '暂无日志数据');
-      return;
-    }
-    final content = await file.readAsString();
-    await Clipboard.setData(ClipboardData(text: content));
+    final success = await OperationLog.instance.exportToShare();
     if (!mounted) return;
-    AppToast.show(context, icon: Icons.check_circle, message: '日志已复制到剪贴板，请粘贴到微信或问卷');
+    if (success) {
+      AppToast.show(context, icon: Icons.check_circle, message: '已打开分享面板');
+    } else {
+      AppToast.show(context, icon: Icons.info, message: '暂无日志数据');
+    }
   }
 }

@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/constants/app_version.dart';
@@ -275,14 +273,17 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _exportLog() async {
-    final file = File(await OperationLog.instance.logFilePath);
-    if (!await file.exists()) return;
-    final content = await file.readAsString();
-    await Clipboard.setData(ClipboardData(text: content));
+    final success = await OperationLog.instance.exportToShare();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('日志已复制到剪贴板，请粘贴到微信或问卷'), behavior: SnackBarBehavior.floating),
-    );
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已打开分享面板'), behavior: SnackBarBehavior.floating),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('暂无日志数据'), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 }
 
