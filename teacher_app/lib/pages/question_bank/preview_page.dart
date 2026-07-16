@@ -7,6 +7,7 @@ import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/app_toast.dart';
+import '../../widgets/shared/question_card.dart';
 
 /// 选题预览页 — 展示已选题目详情，支持移除
 class QuestionPreviewPage extends StatefulWidget {
@@ -97,62 +98,19 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
       children: _questionIds.where((id) => _details.containsKey(id)).map((id) {
         final detail = _details[id]!;
         final q = detail.question;
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: Text(
-                      '${q.number.isNotEmpty ? '第${q.number}题 ' : ''}${q.examType} ${q.region} ${q.year}'.trim(),
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                    )),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: AppColors.error, size: 20),
-                      tooltip: '移除此题',
-                      onPressed: () => _remove(id),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(q.stem.isEmpty ? '(无题干)' : q.stem,
-                  maxLines: 3, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _tag(_typeLabel(q.questionType)),
-                    const SizedBox(width: 6),
-                    if (q.difficulty != null)
-                      _tag('难度 ${q.difficulty!.toStringAsFixed(1)}'),
-                  ],
-                ),
-              ],
-            ),
+        return QuestionCard(
+          questionId: q.id,
+          title: q.stem,
+          questionType: q.questionType,
+          subtitle: '${q.number.isNotEmpty ? '第${q.number}题 ' : ''}${q.examType} ${q.region} ${q.year}'.trim(),
+          difficulty: q.difficulty,
+          trailing: IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: AppColors.error, size: 20),
+            tooltip: '移除此题',
+            onPressed: () => _remove(id),
           ),
         );
       }).toList(),
-    );
-  }
-
-  String _typeLabel(String type) =>
-      QuestionTypeLabels.of(type);
-
-  Widget _tag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(label, style: const TextStyle(
-        fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500,
-      )),
     );
   }
 }
