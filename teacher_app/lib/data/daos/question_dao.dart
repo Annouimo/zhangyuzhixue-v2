@@ -136,6 +136,17 @@ class QuestionDao {
     return result;
   }
 
+  /// 批量查询选择题选项（替代 N 次 getChoiceExt）
+  Future<Map<int, db.ChoiceExtRow?>> getChoiceExtByQuestionIds(List<int> questionIds) async {
+    if (questionIds.isEmpty) return {};
+    final rows = await (_db.select(_db.choiceExt)
+      ..where((t) => t.questionId.isIn(questionIds))).get();
+    final map = <int, db.ChoiceExtRow?>{for (final id in questionIds) id: null};
+    for (final r in rows) { map[r.questionId] = r; }
+    AuditLogger.instance.dao('QuestionDao.getChoiceExtByQuestionIds', rows.length, {'ids': questionIds.length});
+    return map;
+  }
+
   Future<List<db.SubQuestionRow>> getSubQuestions(int questionId) async {
     final q = _db.select(_db.subQuestions)
       ..where((t) => t.questionId.equals(questionId));
@@ -143,6 +154,19 @@ class QuestionDao {
     final rows = await q.get();
     AuditLogger.instance.dao('QuestionDao.getSubQuestions', rows.length, {'questionId': questionId});
     return rows;
+  }
+
+  /// 批量查询子题
+  Future<Map<int, List<db.SubQuestionRow>>> getSubQuestionsByQuestionIds(List<int> questionIds) async {
+    if (questionIds.isEmpty) return {};
+    final rows = await (_db.select(_db.subQuestions)
+      ..where((t) => t.questionId.isIn(questionIds))
+      ..orderBy([(t) => OrderingTerm(expression: t.sortOrder)])).get();
+    final map = <int, List<db.SubQuestionRow>>{};
+    for (final r in rows) { map.putIfAbsent(r.questionId, () => []).add(r); }
+    for (final id in questionIds) { map.putIfAbsent(id, () => []); }
+    AuditLogger.instance.dao('QuestionDao.getSubQuestionsByQuestionIds', rows.length, {'ids': questionIds.length});
+    return map;
   }
 
   Future<List<db.SolutionMethodRow>> getMethods(int subQuestionId) async {
@@ -203,6 +227,25 @@ class QuestionDao {
     return rows;
   }
 
+  /// 批量查询题目标签
+  Future<Map<int, List<db.ConceptTagRow>>> getTagsByQuestionIds(List<int> questionIds) async {
+    if (questionIds.isEmpty) return {};
+    final allLinks = await (_db.select(_db.questionConceptTags)
+      ..where((t) => t.questionId.isIn(questionIds))).get();
+    final tagIds = allLinks.map((l) => l.conceptTagId).toSet();
+    final allTags = tagIds.isEmpty ? <db.ConceptTagRow>[] : await (_db.select(_db.conceptTags)
+      ..where((t) => t.id.isIn(tagIds))).get();
+    final tagMap = {for (final t in allTags) t.id: t};
+    final result = <int, List<db.ConceptTagRow>>{};
+    for (final id in questionIds) { result[id] = []; }
+    for (final l in allLinks) {
+      final tag = tagMap[l.conceptTagId];
+      if (tag != null) result[l.questionId]!.add(tag);
+    }
+    AuditLogger.instance.dao('QuestionDao.getTagsByQuestionIds', allLinks.length, {'ids': questionIds.length});
+    return result;
+  }
+
   Future<List<db.ConceptTagRow>> getAllConceptTags() async {
     final rows = await _db.select(_db.conceptTags).get();
     AuditLogger.instance.dao('QuestionDao.getAllConceptTags', rows.length, {});
@@ -218,6 +261,25 @@ class QuestionDao {
     final rows = await q.get();
     AuditLogger.instance.dao('QuestionDao.getKnowledgeCardsByQuestion', rows.length, {'questionId': questionId});
     return rows;
+  }
+
+  /// 批量查询题目知识卡片
+  Future<Map<int, List<db.KnowledgeCardRow>>> getKnowledgeCardsByQuestionIds(List<int> questionIds) async {
+    if (questionIds.isEmpty) return {};
+    final allLinks = await (_db.select(_db.questionKnowledgeCards)
+      ..where((t) => t.questionId.isIn(questionIds))).get();
+    final kcIds = allLinks.map((l) => l.knowledgeCardId).toSet();
+    final allKcs = kcIds.isEmpty ? <db.KnowledgeCardRow>[] : await (_db.select(_db.knowledgeCards)
+      ..where((t) => t.id.isIn(kcIds))).get();
+    final kcMap = {for (final k in allKcs) k.id: k};
+    final result = <int, List<db.KnowledgeCardRow>>{};
+    for (final id in questionIds) { result[id] = []; }
+    for (final l in allLinks) {
+      final kc = kcMap[l.knowledgeCardId];
+      if (kc != null) result[l.questionId]!.add(kc);
+    }
+    AuditLogger.instance.dao('QuestionDao.getKnowledgeCardsByQuestionIds', allLinks.length, {'ids': questionIds.length});
+    return result;
   }
 
   Future<List<db.KnowledgeCardRow>> getAllKnowledgeCards() async {

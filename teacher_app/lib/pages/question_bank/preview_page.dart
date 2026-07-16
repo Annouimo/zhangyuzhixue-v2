@@ -41,12 +41,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
   Future<void> _loadDetails() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final futures = _questionIds.map((id) => widget.repo.getQuestionDetail(id));
-      final results = await Future.wait(futures);
-      final details = <int, QuestionDetail>{};
-      for (var i = 0; i < _questionIds.length; i++) {
-        details[_questionIds[i]] = results[i];
-      }
+      final details = await widget.repo.getQuestionDetailsBatch(_questionIds);
       if (!mounted) return;
       setState(() { _details..clear()..addAll(details); _loading = false; });
     } catch (e) {

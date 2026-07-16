@@ -269,6 +269,49 @@ class QuestionRepository {
     );
   }
 
+  /// 批量获取题目详情（替代 N 次 getQuestionDetail — 从 7N 降为 4 次查询）
+  Future<Map<int, QuestionDetail>> getQuestionDetailsBatch(List<int> questionIds) async {
+    if (questionIds.isEmpty) return {};
+    final questions = await _questionDao.getByIds(questionIds);
+    final choiceExtMap = await _questionDao.getChoiceExtByQuestionIds(questionIds);
+    final subQMap = await _questionDao.getSubQuestionsByQuestionIds(questionIds);
+    final allSubIds = subQMap.values.expand((l) => l).map((sq) => sq.id).toList();
+    final methods = await _questionDao.getMethodsBySubQuestionIds(allSubIds);
+    final allMethodIds = methods.map((m) => m.id).toList();
+    final steps = await _questionDao.getStepsByMethodIds(allMethodIds);
+    final tagsMap = await _questionDao.getTagsByQuestionIds(questionIds);
+    final kcMap = await _questionDao.getKnowledgeCardsByQuestionIds(questionIds);
+    // 按 questionId 分组方法+步骤
+    final methodsByQ = <int, List<assets_db.SolutionMethodRow>>{};
+    final stepsByQ = <int, List<assets_db.SolutionStepRow>>{};
+    for (final qid in questionIds) { methodsByQ[qid] = []; stepsByQ[qid] = []; }
+    for (final sqId in allSubIds) {
+      // 找 subQuestion → questionId 映射
+      for (final entry in subQMap.entries) {
+        if (entry.value.any((sq) => sq.id == sqId)) {
+          methodsByQ[entry.key]!.addAll(methods.where((m) => m.subQuestionId == sqId));
+          break;
+        }
+      }
+    }
+    for (final m in methods) {
+      stepsByQ[m.subQuestionId] = steps.where((s) => s.methodId == m.id).toList();
+    }
+    // 组装
+    final result = <int, QuestionDetail>{};
+    for (final q in questions) {
+      result[q.id] = QuestionDetail(
+        question: q, choiceExt: choiceExtMap[q.id],
+        subQuestions: subQMap[q.id] ?? [],
+        methods: methodsByQ[q.id] ?? [],
+        steps: stepsByQ[q.id] ?? [],
+        tags: tagsMap[q.id] ?? [],
+        knowledgeCards: kcMap[q.id] ?? [],
+      );
+    }
+    return result;
+  }
+
   static List<ConceptTagNode> buildTagTree(List<assets_db.ConceptTagRow> tags) {
     final byParent = <int?, List<assets_db.ConceptTagRow>>{};
     for (final t in tags) {
