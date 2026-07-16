@@ -64,19 +64,6 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
     }
   }
 
-  Future<void> _updatePoolStats() async {
-    try {
-      final filters = SearchFilters(
-        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
-        knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
-      );
-      final stats = await _repo.getPoolStats(filters);
-      if (mounted) setState(() => _poolStats = stats);
-    } catch (_) {}
-  }
 
   Future<void> _search() async {
     setState(() => _loadingQ = true);
@@ -89,8 +76,21 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       );
       final qs = await _repo.getFilteredQuestions(filters, sort: _sort);
       if (!mounted) return;
-      setState(() { _questions = qs; _loadingQ = false; });
-      _updatePoolStats();
+      // 从搜索结果直接派生池统计，避免重复 Dao.search()
+      final choice = qs.where((q) => q.questionType == 'choice').length;
+      final fill = qs.where((q) => q.questionType == 'fill').length;
+      final solution = qs.where((q) => q.questionType == 'solution').length;
+      final diffs = qs.map((q) => q.difficulty).where((d) => d > 0).toList()..sort();
+      final poolDiffMin = diffs.isNotEmpty ? diffs.first : 0.0;
+      final poolDiffMax = diffs.isNotEmpty ? diffs.last : 0.0;
+      setState(() {
+        _questions = qs; _loadingQ = false;
+        _poolStats = PoolStats(
+          availableChoice: choice, availableFill: fill, availableSolution: solution,
+          poolDiffMin: poolDiffMin, poolDiffMax: poolDiffMax,
+          gaokaoDiffMin: poolDiffMin, gaokaoDiffAvg: poolDiffMin, gaokaoDiffMax: poolDiffMax,
+        );
+      });
     } catch (e) {
       AuditLogger.instance.error('QuestionBankPage._search', e);
       if (mounted) setState(() => _loadingQ = false);
@@ -207,7 +207,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
             _sort = state.sort;
             _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); _updatePoolStats(); });
+            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); });
             },
           )
         : null;

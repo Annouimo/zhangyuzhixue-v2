@@ -269,12 +269,6 @@ class QuestionRepository {
     );
   }
 
-  /// 获取筛选总数
-  Future<int> getTotalCount(SearchFilters filters) async {
-    final questions = await getFilteredQuestions(filters);
-    return questions.length;
-  }
-
   static List<ConceptTagNode> buildTagTree(List<assets_db.ConceptTagRow> tags) {
     final byParent = <int?, List<assets_db.ConceptTagRow>>{};
     for (final t in tags) {

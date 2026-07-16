@@ -92,32 +92,40 @@ class QuestionDao {
   }
 
   Future<List<int>> getDistinctYears() async {
-    final all = await _db.select(_db.questions).get();
-    final years = all.map((q) => q.year).toSet().toList();
-    years.sort();
+    final rows = await _db.customSelect(
+      'SELECT DISTINCT year FROM questions ORDER BY year',
+    ).get();
+    final years = rows.map((r) => r.read<int>('year')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctYears', years.length, {});
     return years;
   }
 
   Future<List<String>> getDistinctRegions() async {
-    final all = await _db.select(_db.questions).get();
-    final regions = all.map((q) => q.region).toSet().toList();
+    final rows = await _db.customSelect(
+      'SELECT DISTINCT region FROM questions ORDER BY region',
+    ).get();
+    final regions = rows.map((r) => r.read<String>('region')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctRegions', regions.length, {});
     return regions;
   }
 
   Future<List<String>> getDistinctExamTypes() async {
-    final all = await _db.select(_db.questions).get();
-    final types = all.map((q) => q.examType).toSet().toList()..sort();
+    final rows = await _db.customSelect(
+      'SELECT DISTINCT exam_type FROM questions ORDER BY exam_type',
+    ).get();
+    final types = rows.map((r) => r.read<String>('exam_type')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctExamTypes', types.length, {});
     return types;
   }
 
   Future<int> countByType(String type) async {
-    final rows = await (_db.select(_db.questions)
-      ..where((t) => t.questionType.equals(type))).get();
-    AuditLogger.instance.dao('QuestionDao.countByType', rows.length, {'type': type});
-    return rows.length;
+    final q = _db.selectOnly(_db.questions)
+      ..addColumns([_db.questions.id.count()])
+      ..where(_db.questions.questionType.equals(type));
+    final row = await q.getSingle();
+    final result = row.read(_db.questions.id.count()) ?? 0;
+    AuditLogger.instance.dao('QuestionDao.countByType', result, {'type': type});
+    return result;
   }
 
   Future<db.ChoiceExtRow?> getChoiceExt(int questionId) async {
