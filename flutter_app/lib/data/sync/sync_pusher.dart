@@ -6,7 +6,7 @@ import '../network/connectivity_monitor.dart';
 import 'package:drift/drift.dart';
 import '../database/database_provider.dart';
 import '../database/app_database.dart' as db;
-import 'package:flutter_app/data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 /// 推送结果汇总
 class PushSummary {
   final int successCount;

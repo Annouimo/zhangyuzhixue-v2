@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/md_latex_body.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/md_latex_body.dart';
 
 /// 知识卡片弹层
 class KnowledgeCardDialog extends StatelessWidget {

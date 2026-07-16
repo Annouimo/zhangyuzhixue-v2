@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../widgets/shared/question_card.dart';
+import 'package:shared/widgets/question_card.dart';
 
 /// 推荐卡片 — 委托给全局共享的 QuestionCard
 ///

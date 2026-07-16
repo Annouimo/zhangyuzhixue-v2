@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../widgets/shared/format_utils.dart';
 
 /// 积分概览卡片 — 4 列数值展示

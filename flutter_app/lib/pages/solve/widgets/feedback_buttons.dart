@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 反馈按钮类型
 enum FeedbackType { fullCorrect, partialCorrect, wrong }

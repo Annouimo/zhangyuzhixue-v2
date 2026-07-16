@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/shared/error_placeholder.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/error_placeholder.dart';
 import '../../../widgets/shared/format_utils.dart';
 import '../../../data/daos/statistics_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/statistics_repository.dart';
-import '../../../widgets/shared/loading_indicator.dart';
+import 'package:shared/widgets/loading_indicator.dart';
 import 'widgets/time_range_picker.dart';
 import 'widgets/heatmap_chart.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/donut_chart.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 学习统计页
 class StatisticsPage extends StatefulWidget {

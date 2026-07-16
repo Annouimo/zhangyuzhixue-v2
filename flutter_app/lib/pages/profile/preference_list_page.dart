@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
-import '../../widgets/shared/empty_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
 import '../../widgets/shared/async_load_widget.dart';
 import '../router.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 学习偏好列表页（匹配 preference_list.html）
 class PreferenceListPage extends StatefulWidget {

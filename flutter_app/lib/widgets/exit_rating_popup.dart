@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';

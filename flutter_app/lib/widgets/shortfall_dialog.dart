@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart';
-import 'shared/app_toast.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/app_toast.dart';
 
 /// 池子不足弹窗 — 匹配 HTML 原型 shortfall-popup
 ///

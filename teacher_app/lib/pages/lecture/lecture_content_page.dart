@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../domain/lecture_repository.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
-import '../../widgets/md_latex_body.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/md_latex_body.dart';
 import 'lecture_pager_widget.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {

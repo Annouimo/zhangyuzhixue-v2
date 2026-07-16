@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'loading_indicator.dart';
-import 'error_placeholder.dart';
-import 'empty_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
 
 /// 泛型异步加载组件 — 统一处理 loading / error / empty / RefreshIndicator
 ///

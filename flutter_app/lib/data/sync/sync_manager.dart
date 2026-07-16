@@ -5,7 +5,7 @@ import 'sync_types.dart';
 import 'sync_pusher.dart';
 import 'update_manager.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_app/data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import '../prefs/app_prefs.dart';

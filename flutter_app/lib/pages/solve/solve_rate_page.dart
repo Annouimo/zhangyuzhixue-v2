@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/app_toast.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../../widgets/shared/format_utils.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/rating_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 评分页（3维×10星）
 class SolveRatePage extends StatefulWidget {

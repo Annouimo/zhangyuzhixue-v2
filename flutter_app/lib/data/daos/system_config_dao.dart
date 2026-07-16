@@ -1,6 +1,6 @@
 import '../database/assets_database.dart' as db;
 import '../database/database_provider.dart';
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 系统配置 DAO（assets.db → system_config 表）
 ///

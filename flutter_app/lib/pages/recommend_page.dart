@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/recommend_repository.dart';
 import '../../domain/question_repository.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/empty_placeholder.dart';
-import '../../widgets/shared/error_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
+import 'package:shared/widgets/error_placeholder.dart';
 import 'widgets/recommend_card.dart';
-import '../data/debug/audit_logger.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 推荐页（双模式：智能推荐 / 偏好推荐）
 class RecommendPage extends StatefulWidget {

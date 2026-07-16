@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../app_theme.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
-import '../../widgets/shared/question_card.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/question_card.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import '../router.dart';
 
 class QuestionHistoryPage extends StatefulWidget {

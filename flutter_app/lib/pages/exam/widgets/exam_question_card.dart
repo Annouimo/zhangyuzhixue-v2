@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../domain/question_repository.dart';
-import '../../../widgets/shared/question_card.dart';
+import 'package:shared/widgets/question_card.dart';
 
 /// 预览页题目卡片 — 委托给全局共享的 QuestionCard
 ///

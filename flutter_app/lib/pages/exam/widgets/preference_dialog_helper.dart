@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../domain/preference_repository.dart';
-import 'filter_panel.dart';
+import 'package:shared/widgets/filter_panel.dart';
 
 /// 保存筛选条件为学习偏好的弹窗
 Future<String?> showSavePreferenceDialog(BuildContext context) async {

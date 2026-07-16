@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../database/database_provider.dart';
 import '../database/courses_database.dart' as db;
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 讲义数据访问层
 class LectureDao {

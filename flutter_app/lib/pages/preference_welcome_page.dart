@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/system_config_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/preference_repository.dart';
 import '../domain/exam_repository.dart';
-import 'exam/widgets/filter_panel.dart';
+import 'package:shared/widgets/filter_panel.dart';
 import 'router.dart';
-import '../widgets/shared/loading_indicator.dart';
-import '../data/debug/audit_logger.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳主框架
 class PreferenceWelcomePage extends StatefulWidget {

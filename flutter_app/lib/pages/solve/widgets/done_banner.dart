@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 完成横幅 — 选填共用
 /// 🎉 已完成 + [下一题 →] [⭐ 评分]

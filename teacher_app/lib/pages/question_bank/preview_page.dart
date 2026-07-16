@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../domain/question_repository.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
-import '../../widgets/shared/empty_placeholder.dart';
-import '../../widgets/shared/app_toast.dart';
-import '../../widgets/shared/question_card.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
+import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/widgets/question_card.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 选题预览页 — 展示已选题目详情，支持移除
 class QuestionPreviewPage extends StatefulWidget {

@@ -4,7 +4,7 @@ import '../data/api/user_api.dart';
 import '../data/daos/question_dao.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/database/app_database.dart' as db;
-import '../data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 用户信息
 class UserInfo {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
-import '../../app_theme.dart';
-import '../../data/debug/audit_logger.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 智能组卷积分消耗
 const int _autoPaperCost = 10;

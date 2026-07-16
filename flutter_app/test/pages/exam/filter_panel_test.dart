@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/pages/exam/widgets/filter_panel.dart';
+import 'package:shared/widgets/filter_panel.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import '../../test_setup.dart';
 

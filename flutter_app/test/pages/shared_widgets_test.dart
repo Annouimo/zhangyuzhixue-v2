@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/widgets/shared/loading_indicator.dart';
-import 'package:flutter_app/widgets/shared/error_placeholder.dart';
-import 'package:flutter_app/widgets/shared/empty_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
 import '../test_setup.dart';
 
 void main() {

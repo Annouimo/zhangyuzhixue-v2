@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/shared/status_style.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/status_style.dart';
 
 /// 作业卡片 — 从 homework_list_page 提取的共享组件
 ///

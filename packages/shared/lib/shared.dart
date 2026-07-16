@@ -1,0 +1,32 @@
+/// 章鱼智学 v2 - 共享组件库
+///
+/// 学生端 (flutter_app) 和 教师端 (teacher_app) 共用。
+/// 两端通过 pubspec.yaml 的 `shared: path: ../packages/shared` 引用。
+
+// ── 主题 ──
+export 'theme/app_theme.dart';
+
+// ── 域名模型 ──
+export 'domain/models.dart';
+
+// ── 调试工具 ──
+export 'debug/audit_logger.dart';
+export 'debug/operation_log.dart';
+
+// ── 常量 ──
+export 'constants/app_version.dart';
+
+// ── 通用 Widget ──
+export 'widgets/md_latex_body.dart';
+export 'widgets/question_card.dart';
+export 'widgets/question_image.dart';
+export 'widgets/app_toast.dart';
+export 'widgets/empty_placeholder.dart';
+export 'widgets/error_placeholder.dart';
+export 'widgets/loading_indicator.dart';
+export 'widgets/status_style.dart';
+export 'widgets/sync_progress_dialog.dart';
+export 'widgets/difficulty_slider.dart';
+export 'widgets/concept_tag_tree.dart';
+export 'widgets/knowledge_card_group.dart';
+export 'widgets/filter_panel.dart';

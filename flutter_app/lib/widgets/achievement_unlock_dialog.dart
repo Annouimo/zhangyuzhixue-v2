@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../domain/achievement_repository.dart';
 
 /// 成就解锁弹窗 — 匹配 HTML 原型 achievement-popup

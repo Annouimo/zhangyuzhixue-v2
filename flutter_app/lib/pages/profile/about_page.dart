@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../app_theme.dart';
-import '../../widgets/sync_progress_dialog.dart';
-import '../../widgets/shared/app_toast.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/sync_progress_dialog.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
-import '../../constants/app_version.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/constants/app_version.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 关于页 — 数据版本（题库/课程/用户数据）+ 法律信息
 class AboutPage extends StatefulWidget {

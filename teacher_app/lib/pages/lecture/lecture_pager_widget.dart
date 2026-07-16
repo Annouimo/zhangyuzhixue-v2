@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 翻页/展开栏组件
 ///

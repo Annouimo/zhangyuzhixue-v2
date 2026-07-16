@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../../constants/app_version.dart';
-import '../debug/audit_logger.dart';
-import '../debug/operation_log.dart';
+import 'package:shared/constants/app_version.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// API 异常
 class ApiException implements Exception {

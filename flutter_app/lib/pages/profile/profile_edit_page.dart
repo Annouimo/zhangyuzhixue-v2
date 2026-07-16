@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../data/api/api_client.dart';
 import '../../../data/api/user_api.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
-import '../../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 编辑资料页 — 匹配 HTML 原型 profile_edit.html
 class ProfileEditPage extends StatefulWidget {

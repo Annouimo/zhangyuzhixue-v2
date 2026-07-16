@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../data/api/user_api.dart';
@@ -12,10 +12,10 @@ import '../domain/auth_repository.dart';
 import '../domain/preference_repository.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/database/database_provider.dart';
-import '../widgets/sync_progress_dialog.dart';
+import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'router.dart';
-import '../data/debug/audit_logger.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {

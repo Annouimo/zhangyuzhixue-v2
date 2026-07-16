@@ -3,7 +3,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../database/assets_database.dart';
 import '../database/courses_database.dart';

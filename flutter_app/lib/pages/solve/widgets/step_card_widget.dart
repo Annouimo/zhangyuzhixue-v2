@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../domain/progress_repository.dart' as progress;
-import '../../../widgets/md_latex_body.dart';
+import 'package:shared/widgets/md_latex_body.dart';
 import '../../../data/daos/progress_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';

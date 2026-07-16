@@ -1,6 +1,6 @@
 import 'dart:convert';
 import '../data/daos/preference_dao.dart';
-import '../data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 

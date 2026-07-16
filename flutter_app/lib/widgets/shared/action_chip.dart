@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 统一操作 Chip — 替代各地零散的 _actionChip 私有方法
 ///

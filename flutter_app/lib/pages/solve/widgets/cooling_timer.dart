@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 冷却倒计时组件 — 纯展示，由外层通过 GlobalKey 控制
 class CoolingTimer extends StatefulWidget {

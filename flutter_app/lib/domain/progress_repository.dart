@@ -4,7 +4,7 @@ import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/app_database.dart' as db;
 import '../data/database/database_provider.dart';
-import '../data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 

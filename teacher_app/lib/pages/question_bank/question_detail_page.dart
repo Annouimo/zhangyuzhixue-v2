@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../domain/question_repository.dart';
-import '../../widgets/md_latex_body.dart';
-import '../../widgets/shared/question_image.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/widgets/md_latex_body.dart';
+import 'package:shared/widgets/question_image.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import '../../data/database/assets_database.dart' as db;
 
 /// 题目详情页（只读模式，无答题交互）

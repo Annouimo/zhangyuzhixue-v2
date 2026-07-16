@@ -1,10 +1,11 @@
-
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
+import 'package:shared/domain/models.dart';
+export 'package:shared/domain/models.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
 import '../data/database/assets_database.dart' as assets_db;
-import '../data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 import '../data/helpers/pdf_helper.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -134,54 +135,6 @@ class AnswerItem {
   const AnswerItem({required this.title, required this.questionType, required this.answer});
 }
 
-/// 树状概念标签节点
-class ConceptTagNode {
-  final int id;
-  final String name;
-  final int? parentId;
-  final List<ConceptTagNode> children;
-  const ConceptTagNode({
-    required this.id, required this.name, this.parentId,
-    this.children = const [],
-  });
-}
-
-/// 知识卡片项
-class KnowledgeCardItem {
-  final int id;
-  final String title;
-  const KnowledgeCardItem({required this.id, required this.title});
-}
-
-/// 分类知识卡片组
-class KnowledgeCardGroup {
-  final String category;
-  final List<KnowledgeCardItem> cards;
-  const KnowledgeCardGroup({required this.category, required this.cards});
-}
-
-/// 筛选选项
-class FilterOptions {
-  final List<String> years;
-  final List<String> regions;
-  final List<String> conceptTags;
-  final List<String> knowledgeCards;
-  final List<String> examTypes;
-  final List<String> questionTypes;
-  final List<ConceptTagNode> conceptTagTree;
-  final List<KnowledgeCardGroup> knowledgeCardGroups;
-
-  const FilterOptions({
-    required this.years,
-    required this.regions,
-    required this.conceptTags,
-    this.knowledgeCards = const [],
-    this.examTypes = const [],
-    this.questionTypes = const ['choice', 'fill', 'solution'],
-    this.conceptTagTree = const [],
-    this.knowledgeCardGroups = const [],
-  });
-}
 
 /// 筛选条件
 class SearchFilters {

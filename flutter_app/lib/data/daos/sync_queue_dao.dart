@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
 import '../database/database_provider.dart';
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 同步队列数据访问层（user 库）
 class SyncQueueDao {

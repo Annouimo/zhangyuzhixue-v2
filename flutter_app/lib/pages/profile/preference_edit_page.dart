@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
 import '../../domain/exam_repository.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../exam/widgets/filter_panel.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/filter_panel.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 学习偏好编辑页（新建/编辑）
 class PreferenceEditPage extends StatefulWidget {

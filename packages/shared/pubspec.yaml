@@ -1,0 +1,22 @@
+name: shared
+description: "章鱼智学 v2 - 共享组件库（学生端 / 教师端共用）"
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_math_fork: ^0.7.3
+  flutter_markdown_plus: ^1.0.7
+  markdown: ^7.2.0
+  path_provider: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

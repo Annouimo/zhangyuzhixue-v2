@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 /// 全局 SharedPreferences key 定义
 ///
 /// 命名规范：所有全局 key 以 `app_` 开头。

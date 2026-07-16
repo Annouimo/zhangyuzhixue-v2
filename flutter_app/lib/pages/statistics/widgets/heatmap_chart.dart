@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../../domain/statistics_repository.dart';
 
 /// 做题热力图 — 自适应粒度（条形图/7行周历/周贡献图/月格）

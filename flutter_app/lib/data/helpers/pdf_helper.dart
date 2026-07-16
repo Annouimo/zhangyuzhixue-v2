@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/pdf_guide_dialog.dart';
-import '../../constants/app_version.dart';
+import 'package:shared/constants/app_version.dart';
 import '../../data/api/api_client.dart';
 import '../../data/database/database_provider.dart';
 

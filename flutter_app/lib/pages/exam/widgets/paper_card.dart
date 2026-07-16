@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 
 /// 组卷卡片（列表页复用：我的组卷/发现/收藏）
 ///

@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../../app_theme.dart';
+import 'package:shared/domain/models.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/empty_placeholder.dart';
-import '../../widgets/shared/question_card.dart';
-import '../../widgets/shared/app_toast.dart';
-import '../../widgets/filter_panel.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
+import 'package:shared/widgets/question_card.dart';
+import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/widgets/filter_panel.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import 'question_detail_page.dart';
 import 'preview_page.dart';
 
@@ -208,7 +209,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
             _years = state.years; _regions = state.regions; _conceptTags = state.conceptTags;
             _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
-            _sort = state.sort;
+            _sort = state.sort ?? SortMode.newestFirst;
             _debouncedSearch?.cancel();
             _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); });
             },

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
-import '../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/exam_repository.dart';
-import '../../../widgets/shared/empty_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
 import '../../../widgets/shared/action_chip.dart';
 import '../../../widgets/shared/async_load_widget.dart';
 import '../../../data/helpers/pdf_helper.dart';
 import 'widgets/paper_card.dart';
-import '../../data/debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 
 /// 发现组卷 — 匹配 HTML 原型 paper_explore.html

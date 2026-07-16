@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../app_theme.dart';
-import '../../../widgets/md_latex_body.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/md_latex_body.dart';
 import 'cooling_timer.dart';
 import 'done_banner.dart';
 

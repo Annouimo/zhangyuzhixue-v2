@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/helpers/pdf_helper.dart';
 
 /// PDF 引导弹窗

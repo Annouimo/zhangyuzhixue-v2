@@ -34,7 +34,7 @@ import 'profile/preference_list_page.dart';
 import 'profile/preference_edit_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 路由路径常量
 abstract final class AppRoutes {

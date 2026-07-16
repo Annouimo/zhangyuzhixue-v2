@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/update_manager.dart';
 import '../data/database/database_provider.dart';
-import '../widgets/sync_progress_dialog.dart';
-import '../data/debug/audit_logger.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/widgets/sync_progress_dialog.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import 'question_bank/question_bank_page.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'settings/settings_page.dart';

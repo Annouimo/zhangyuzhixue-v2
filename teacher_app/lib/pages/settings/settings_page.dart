@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../app_theme.dart';
-import '../../constants/app_version.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/constants/app_version.dart';
 import '../../data/update_manager.dart';
 import '../../data/database/database_provider.dart';
-import '../../widgets/sync_progress_dialog.dart';
-import '../../data/debug/operation_log.dart';
+import 'package:shared/widgets/sync_progress_dialog.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 设置页（Tab 2）
 class SettingsPage extends StatefulWidget {

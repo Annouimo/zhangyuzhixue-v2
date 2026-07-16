@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../domain/auth_repository.dart';
-import '../data/debug/audit_logger.dart';
-import '../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 注册页
 class RegisterPage extends StatefulWidget {

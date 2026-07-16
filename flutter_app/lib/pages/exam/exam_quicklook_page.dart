@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
-import '../../app_theme.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
 import '../../widgets/exit_rating_popup.dart';
 import 'widgets/exam_question_card.dart';
 import '../../data/daos/exam_dao.dart';
@@ -11,8 +11,8 @@ import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 预览（自己的组卷）
 class ExamQuicklookPage extends StatefulWidget {

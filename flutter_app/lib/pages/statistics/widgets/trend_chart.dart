@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../../domain/statistics_repository.dart';
 
 /// 折线图（正确率趋势 / 积分累计趋势）

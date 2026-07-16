@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/widgets/shared/question_card.dart';
+import 'package:shared/widgets/question_card.dart';
 import '../../test_setup.dart';
 
 void main() {

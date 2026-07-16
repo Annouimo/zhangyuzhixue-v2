@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/widgets/shared/difficulty_slider.dart';
+import 'package:shared/widgets/difficulty_slider.dart';
 import '../../test_setup.dart';
 
 void main() {

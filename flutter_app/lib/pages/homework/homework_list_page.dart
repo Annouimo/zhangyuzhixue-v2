@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
-import '../../app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/assignment_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/assignment_repository.dart';
 import '../../data/prefs/app_prefs.dart';
-import '../../widgets/shared/loading_indicator.dart';
-import '../../widgets/shared/error_placeholder.dart';
-import '../../widgets/shared/empty_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/empty_placeholder.dart';
 import 'widgets/assignment_card.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 /// 作业列表页（作业 Tab 首页）
 class HomeworkListPage extends StatefulWidget {

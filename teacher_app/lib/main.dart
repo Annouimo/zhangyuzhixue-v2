@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import 'data/database/database_provider.dart';
-import 'data/debug/audit_logger.dart';
-import 'data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import 'pages/home_page.dart';
 
 void main() async {

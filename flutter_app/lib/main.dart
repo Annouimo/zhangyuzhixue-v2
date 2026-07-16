@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter_app/app_theme.dart';
+import 'package:shared/theme/app_theme.dart';
 import 'package:flutter_app/data/api/api_client.dart';
 import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
@@ -10,12 +10,12 @@ import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
-import 'package:flutter_app/widgets/sync_progress_dialog.dart';
-import 'package:flutter_app/widgets/shared/app_toast.dart';
-import 'package:flutter_app/constants/app_version.dart';
+import 'package:shared/widgets/sync_progress_dialog.dart';
+import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
-import 'data/debug/audit_logger.dart';
-import 'data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

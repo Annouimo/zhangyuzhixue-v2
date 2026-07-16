@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:drift/drift.dart';
 import '../database/assets_database.dart' as db;
 import '../database/database_provider.dart';
-import '../debug/audit_logger.dart';
+import 'package:shared/debug/audit_logger.dart';
 
 /// 题目数据访问层
 class QuestionDao {

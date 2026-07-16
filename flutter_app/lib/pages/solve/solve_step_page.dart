@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/shared/loading_indicator.dart';
+import 'package:shared/widgets/loading_indicator.dart';
 import '../../widgets/exit_rating_popup.dart';
-import '../../widgets/md_latex_body.dart';
-import '../../app_theme.dart';
+import 'package:shared/widgets/md_latex_body.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
@@ -12,8 +12,8 @@ import '../../domain/progress_repository.dart' as progress;
 import '../../domain/question_repository.dart';
 import 'widgets/step_card_widget.dart';
 import 'widgets/feedback_buttons.dart';
-import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 
 String _feedbackToStatus(FeedbackType type) {
   switch (type) {
