@@ -28,28 +28,28 @@
       <div class="value-card">
         <div class="value-name">🔥 高效率</div>
         <div class="value-desc">
-          <span class="val-against">反对沉湎于贪心算法幻觉和资源错位配置陷阱</span>
+          <span class="val-against">沉湎于贪心算法幻觉和资源错位配置陷阱</span>
           <span class="val-for">建立总体高效率的学习布局体系</span>
         </div>
       </div>
       <div class="value-card">
         <div class="value-name">📚 高水平</div>
         <div class="value-desc">
-          <span class="val-against">反对以就题论题为代表的只见树木不见森林和单一非本质思路</span>
+          <span class="val-against">以就题论题为代表的只见树木不见森林和单一非本质思路</span>
           <span class="val-for">建立高水平学科知识体系</span>
         </div>
       </div>
       <div class="value-card">
         <div class="value-name">⚡ 高科技</div>
         <div class="value-desc">
-          <span class="val-against">反对以大量记笔记和总结错题本为代表的原始人学习法</span>
+          <span class="val-against">以大量记笔记和总结错题本为代表的原始人学习法</span>
           <span class="val-for">建立高科技智能化学习平台</span>
         </div>
       </div>
       <div class="value-card">
         <div class="value-name">🎯 高针对</div>
         <div class="value-desc">
-          <span class="val-against">反对一刀切吃大锅饭</span>
+          <span class="val-against">一刀切吃大锅饭</span>
           <span class="val-for">坚持具体问题具体分析，建立个性化高针对性学习素材算法和服务体系</span>
         </div>
       </div>
@@ -61,21 +61,21 @@
       <div class="value-card">
         <div class="value-name">💡 思路新</div>
         <div class="value-desc">
-          <span class="val-against">反对以老套路备考新高考</span>
+          <span class="val-against">以老套路备考新高考</span>
           <span class="val-for">坚持与时俱进，建立以新高考命题趋势为导向的学习思路体系</span>
         </div>
       </div>
       <div class="value-card">
         <div class="value-name">🔧 方法新</div>
         <div class="value-desc">
-          <span class="val-against">反对试图用古板方法解决创新问题</span>
+          <span class="val-against">试图用古板方法解决创新问题</span>
           <span class="val-for">坚持实事求是，弥补传统课内体系缺陷，学习解决创新问题的新方法</span>
         </div>
       </div>
       <div class="value-card">
         <div class="value-name">🚀 状态新</div>
         <div class="value-desc">
-          <span class="val-against">反对报团取暖幻觉和单打独斗局限</span>
+          <span class="val-against">报团取暖幻觉和单打独斗局限</span>
           <span class="val-for">扩大学习队伍规模开发统计分析模型，以量变求质变，充分发挥数据科学与人工智能前沿技术作用</span>
         </div>
       </div>
@@ -88,7 +88,7 @@
     <span class="contact-text">扫码添加微信 · 备注「章鱼智学」</span>
   </div>
 
-  <!-- 下载链接行 -->
+  <!-- 下载 -->
   <div class="download-row" id="download-row">
     <a href="https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha1/student-alpha1.apk" class="dl-link" data-platform="android">📱 Android</a>
     <span class="dl-sep">·</span>
@@ -133,17 +133,11 @@
   if (/iphone|ipad|ipod/.test(ua)) platform = 'ios'
   else if (/windows/.test(ua)) platform = 'windows'
 
-  // 高亮当前平台
   var links = document.querySelectorAll('.dl-link[data-platform]')
-  var activeLink = null
   links.forEach(function(l) {
-    if (l.dataset.platform === platform) {
-      l.classList.add('dl-active')
-      activeLink = l
-    }
+    if (l.dataset.platform === platform) l.classList.add('dl-active')
   })
 
-  // iOS 弹窗
   var iosBtn = document.querySelector('[data-platform="ios"]')
   var modal = document.getElementById('modal-overlay')
   var confirmBtn = document.getElementById('modal-confirm')
