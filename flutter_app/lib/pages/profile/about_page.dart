@@ -217,22 +217,25 @@ class _AboutPageState extends State<AboutPage> {
         style: TextStyle(fontSize: 12, color: statusColor),
       ),
       trailing: hasUpdate
-          ? OutlinedButton(
-              onPressed: updating ? null : onUpdate,
-              child: updating
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('更新'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warning,
-                side: const BorderSide(color: AppColors.warning),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                textStyle: const TextStyle(fontSize: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          ? ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 80),
+              child: OutlinedButton(
+                onPressed: updating ? null : onUpdate,
+                child: updating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('更新'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.warning,
+                  side: const BorderSide(color: AppColors.warning),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  textStyle: const TextStyle(fontSize: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             )

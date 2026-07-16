@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'dart:async';
 import 'dart:convert';
+import '../router.dart';
 import '../../../app_theme.dart';
 import '../../../data/daos/exam_dao.dart';
 import '../../../data/daos/question_dao.dart';
@@ -50,7 +52,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   List<SearchQuestion>? _questions;
   bool _loadingQ = false;
   final _selectedIds = <int>{};
-  final _nameController = TextEditingController(text: '智能练习卷');
+  final _nameController = TextEditingController(text: '自主选题卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
@@ -93,7 +95,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       );
       final stats = await _repo.getPoolStats(filters);
       if (mounted) setState(() => _poolStats = stats);
-    } catch (_) {}
+    } catch (e) { AuditLogger.instance.error('ExamPickPage._updatePoolStats', e); }
   }
 
   /// 保存当前筛选条件为学习偏好
@@ -148,6 +150,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
+      _selectedIds.retainAll(qs.map((q) => q.id).toList());
       _updatePoolStats();
     } catch (e) { AuditLogger.instance.error('ExamPickPage._search', e); OperationLog.instance.error('ExamPickPage._search', e); if (mounted) setState(() => _loadingQ = false); }
   }
@@ -170,10 +173,25 @@ class _ExamPickPageState extends State<ExamPickPage> {
     }
 
     setState(() => _saving = true);
+    // 先扣分，后组卷——遇失败回滚积分流水
+    int? pointId;
     try {
+      final now = DateTime.now().toIso8601String();
+      final db = DatabaseProvider();
+      // 1. 扣分
+      pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
+        app_db.PointsTransactionsCompanion(
+          amount: const Value(-_kPickPaperCost * 1.0),
+          source: const Value('PAPER_PURCHASE'),
+          transactionType: const Value('SPEND'),
+          createdAt: Value(now),
+          description: const Value('自主选题'),
+        ),
+      );
+      // 2. 组卷
       final filters = SearchFilters(
         name: _nameController.text,
-        choiceCount: _selectedIds.length, fillCount: 0, solutionCount: 0,
+        choiceCount: 0, fillCount: 0, solutionCount: 0,
         targetDifficulty: 0,
         years: _years.toList(), regions: _regions.toList(),
         conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
@@ -184,19 +202,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       );
       final paperId = await _repo.confirm(filters);
       OperationLog.instance.action('exam_pick', 'saved paperId=$paperId');
-      // 扣分
-      final now = DateTime.now().toIso8601String();
-      final db = DatabaseProvider();
-      final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
-        app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kPickPaperCost * 1.0),
-          source: const Value('PAPER_PURCHASE'),
-          transactionType: const Value('SPEND'),
-          createdAt: Value(now),
-          description: const Value('自主选题'),
-        ),
-      );
-      // 入同步队列
+      // 3. 入同步队列（积分流水）
       try {
         await SyncManager().enqueue(
           entityType: SyncEntityType.pointsTransaction,
@@ -211,13 +217,32 @@ class _ExamPickPageState extends State<ExamPickPage> {
           }),
         );
       } catch (_) {}
+      // 4. 成功
       if (!mounted) return;
+      _selectedIds.clear();
+      _nameController.clear();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('组卷成功！'), behavior: SnackBarBehavior.floating));
+          SnackBar(
+            content: const Text('组卷成功！'),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: '查看',
+              onPressed: () => context.push('${AppRoutes.examQuicklook}?id=$paperId'),
+            ),
+          ),
+        );
       }
       setState(() => _saving = false);
     } catch (e) {
+      // 回滚积分流水（如果扣了分但组卷失败）
+      if (pointId != null) {
+        try {
+          final pid = pointId;
+          await (DatabaseProvider().appDb.delete(DatabaseProvider().appDb.pointsTransactions)
+            ..where((t) => t.id.equals(pid))).go();
+        } catch (_) {}
+      }
       AuditLogger.instance.error('ExamPickPage._save', e);
       OperationLog.instance.error('ExamPickPage._save', e);
       if (mounted && context.mounted) {
@@ -302,7 +327,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
             _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); _updatePoolStats(); });
+            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); });
             },
           )
         : null;

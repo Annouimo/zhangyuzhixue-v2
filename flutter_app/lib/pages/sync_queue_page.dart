@@ -130,14 +130,17 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
                   overflow: TextOverflow.ellipsis)
               : Text(item.timeAgo,
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(_statusLabel(item.status),
-              style: TextStyle(fontSize: 13, color: _statusColor(item.status))),
-            if (isFailed) ...[
-              const SizedBox(width: 4),
-              Text('(${item.retryCount})', style: const TextStyle(fontSize: 11, color: AppColors.error)),
-            ],
-          ]),
+          trailing: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 100),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(_statusLabel(item.status),
+                style: TextStyle(fontSize: 13, color: _statusColor(item.status))),
+              if (isFailed) ...[
+                const SizedBox(width: 4),
+                Text('(${item.retryCount})', style: const TextStyle(fontSize: 11, color: AppColors.error)),
+              ],
+            ]),
+          ),
         );
       },
     );
