@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../../constants/app_version.dart';
 import '../debug/audit_logger.dart';
+import '../debug/operation_log.dart';
 
 /// API 异常
 class ApiException implements Exception {
@@ -70,6 +71,7 @@ class ApiClient {
       _AuthInterceptor(),
       _RefreshInterceptor(),
       _ErrorInterceptor(),
+      _NetworkLogInterceptor(),
     ]);
     _initialized = true;
   }
@@ -167,6 +169,9 @@ class _ErrorInterceptor extends Interceptor {
         response.statusCode ?? 200,
         ApiException(code: body['code'] as int, message: body['message'] as String? ?? '', httpStatus: response.statusCode),
       );
+      OperationLog.instance.api(response.requestOptions.method,
+          response.requestOptions.path, response.statusCode ?? 200,
+          '业务错误: code=${body['code']}');
       handler.reject(DioException(
         requestOptions: response.requestOptions,
         response: response,
@@ -183,7 +188,23 @@ class _ErrorInterceptor extends Interceptor {
         response.statusCode ?? 200,
         body is Map ? {'code': body['code'], 'success': true} : null,
       );
+      OperationLog.instance.api(response.requestOptions.method,
+          response.requestOptions.path, response.statusCode ?? 200);
       handler.next(response);
     }
+  }
+}
+
+/// 记录网络层异常的日志拦截器
+class _NetworkLogInterceptor extends Interceptor {
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    OperationLog.instance.api(
+      err.requestOptions.method,
+      err.requestOptions.path,
+      err.response?.statusCode ?? 0,
+      '${err.type.name} ${err.message?.toString().substring(0, (err.message?.toString().length ?? 0).clamp(0, 100))}',
+    );
+    handler.next(err);
   }
 }

@@ -6,6 +6,7 @@ import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
 import '../../constants/app_version.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 关于页 — 数据版本（题库/课程/用户数据）+ 法律信息
 class AboutPage extends StatefulWidget {
@@ -124,6 +125,10 @@ class _AboutPageState extends State<AboutPage> {
           style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 28),
+
+        // ── 导出日志按钮 ──
+        _buildExportLogButton(),
+        const SizedBox(height: 12),
 
         // ── 数据版本卡片 ──
         _buildSectionCard([
@@ -290,5 +295,33 @@ class _AboutPageState extends State<AboutPage> {
                 )
               : const Icon(Icons.check_circle, size: 20, color: AppColors.success),
     );
+  }
+
+  /// ── 导出日志按钮 ──
+  Widget _buildExportLogButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _exportLog,
+        icon: const Icon(Icons.bug_report_outlined, size: 16),
+        label: const Text('导出运行日志'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textSecondary,
+          side: BorderSide(color: AppColors.border),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportLog() async {
+    final path = await OperationLog.instance.exportToShare();
+    if (!mounted) return;
+    if (path != null) {
+      AppToast.show(context, icon: Icons.check_circle, message: '日志已导出，可通过微信发送');
+    } else {
+      AppToast.show(context, icon: Icons.warning, message: '暂无日志数据');
+    }
   }
 }

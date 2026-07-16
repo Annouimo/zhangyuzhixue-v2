@@ -14,6 +14,7 @@ import 'package:flutter_app/widgets/sync_progress_dialog.dart';
 import 'package:flutter_app/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
 import 'data/debug/audit_logger.dart';
+import 'data/debug/operation_log.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,15 +22,18 @@ void main() async {
   // 全局运行时错误捕获
   FlutterError.onError = (details) {
     AuditLogger.instance.error('FlutterError', details.exception, details.stack);
+    OperationLog.instance.error('FlutterError', details.exception, details.stack);
     FlutterError.presentError(details);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
     AuditLogger.instance.error('PlatformDispatcher', error, stack);
+    OperationLog.instance.error('PlatformDispatcher', error, stack);
     return true;
   };
 
   await AppPrefs().init();
   await AuditLogger.instance.init();
+  await OperationLog.instance.init();
   ApiClient().init(baseUrl: appBaseUrl);
 
   // 注册 token 提供器：所有 API 请求自动携带 Authorization header
