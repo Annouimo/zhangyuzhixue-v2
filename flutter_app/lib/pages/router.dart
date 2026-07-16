@@ -34,6 +34,7 @@ import 'profile/preference_list_page.dart';
 import 'profile/preference_edit_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
+import '../data/debug/operation_log.dart';
 
 /// 路由路径常量
 abstract final class AppRoutes {
@@ -84,6 +85,7 @@ final GlobalKey<NavigatorState> routerNavigatorKey = GlobalKey<NavigatorState>()
 final GoRouter appRouter = GoRouter(
   navigatorKey: routerNavigatorKey,
   initialLocation: getInitialRoute(),
+  observers: [_RouteLogger()],
   routes: [
     GoRoute(path: AppRoutes.login, name: 'login', builder: (_, _) => const LoginPage()),
     GoRoute(path: AppRoutes.register, name: 'register', builder: (_, _) => const RegisterPage()),
@@ -162,4 +164,15 @@ final GoRouter appRouter = GoRouter(
 String getInitialRoute() {
   final token = AppPrefs().accessToken;
   return (token != null && token.isNotEmpty) ? AppRoutes.mainShell : AppRoutes.login;
+}
+
+/// 路由切换日志
+class _RouteLogger extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    OperationLog.instance.navigation(
+      route.settings.name ?? route.settings.toString(),
+      'push',
+    );
+  }
 }
