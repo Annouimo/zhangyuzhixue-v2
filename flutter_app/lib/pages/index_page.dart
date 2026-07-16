@@ -169,7 +169,8 @@ class _IndexPageState extends State<IndexPage> {
           }
         } catch (_) {}
       });
-    } catch (e) { OperationLog.instance.error('index_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('IndexPage._load', e); 
       AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
       setState(() { _error = '加载失败'; _loading = false; });
@@ -217,11 +218,13 @@ class _IndexPageState extends State<IndexPage> {
         _streakDays = streak;
         _checkedIn = true;
       });
+      OperationLog.instance.action('checkin', 'ok +$points pts, streak=$streak');
       AppToast.show(context,
         icon: Icons.local_fire_department, message: '$msg · +$points 积分',
         backgroundColor: AppColors.success,
       );
-    } catch (e) { OperationLog.instance.error('index_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('IndexPage._doCheckin', e); 
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
       AppToast.show(context,
