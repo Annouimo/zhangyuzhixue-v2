@@ -796,6 +796,8 @@ def _assignment_detail_by_assignment(ccas):
                     'accuracy': acc,
                     'duration': duration,
                     'completedAt': last.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'correctCount': correct,
+                    'totalCount': total,
                 })
             else:
                 student_items.append({
@@ -805,6 +807,8 @@ def _assignment_detail_by_assignment(ccas):
                     'accuracy': None,
                     'duration': None,
                     'completedAt': None,
+                    'correctCount': 0,
+                    'totalCount': 0,
                 })
 
         ts = _count_class_students(cg_id)
@@ -893,6 +897,8 @@ def about_info(request):
 
     return _ok(data={
         'appVersion': app_version,
+        'build': '20260710',
+        'dataVersion': 3,
         'announcements': ann_list,
         'changelog': changelog,
     })

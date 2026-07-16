@@ -165,39 +165,29 @@ PDF 页面通过 `@font-face` 加载两份自托管字体，确保跨平台一�
 
 #### 字体方案
 
-| 字体 | 用途 | 方案 | 预估大小 |
-|------|------|------|---------|
-| **Noto Serif CJK SC** | 全部中文字符 | 按实际用字子集化，自托管 WOFF2 | ~200-350KB |
-| **Latin Modern Roman** | 英文/数字文本 | 自托管 WOFF2 | ~50KB |
+| 字体 | 用途 | 方案 | 大小 |
+|------|------|------|------|
+| **Noto Serif CJK SC** | 全部中文字符 | 完整 OTF，自托管（Django static/） | Regular ~5MB, Bold ~5MB |
+| **KaTeX 数学字体** | 数学公式 | 自托管 WOFF2（Django static/katex/fonts/） | ~200KB 合计 |
 
-**字体文件位置**：`static/fonts/NotoSerifCJKsc-subset.woff2`、`static/fonts/LatinModernRoman.woff2`
+#### 字体文件位置
 
-#### 子集化方案
+`static/fonts/NotoSerifCJKsc-Regular.otf`、`static/fonts/NotoSerifCJKsc-Bold.otf`
 
-Noto Serif CJK SC 完整版含 3 万+ 汉字（~5MB WOFF2），生产环境每次构建时自动子集化：
-
-1. `build_assets.py` 遍历全部题目所有文本字段（stem、选项、步骤内容、卡片内容等）
-2. 提取全部不重复 CJK 字符
-3. 调用 `fonttools` 的 `pyftsubset` 生成子集 WOFF2
-4. 输出到 Django `static/fonts/`
-
-典型测试卷（20 题）仅 182 个不同汉字，子集约 60KB；全量题库（798 题）预估 1500-2500 个不同汉字，子集约 200-350KB。
+> **注：** 当前使用完整 OTF 文件。如需进一步优化，后续可用 `fonttools pyftsubset` 按题库用字子集化为 WOFF2（预估 ~200-350KB），并补充 Latin Modern Roman 作为英文字体。当前 OTF 方案在 3Mbps 带宽下首次加载约 2-3 秒，浏览器缓存后不再重复下载。
 
 #### CSS `@font-face`
 
 ```css
 @font-face {
-  font-family: 'Latin Modern Roman';
-  src: url('/static/fonts/LatinModernRoman.woff2') format('woff2');
+  font-family: 'Noto Serif CJK SC';
+  src: url('/static/fonts/NotoSerifCJKsc-Regular.otf') format('opentype');
   font-weight: 400;
-  font-style: normal;
 }
 @font-face {
   font-family: 'Noto Serif CJK SC';
-  src: url('/static/fonts/NotoSerifCJKsc-subset.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  unicode-range: U+4E00-9FFF, U+3000-303F;
+  src: url('/static/fonts/NotoSerifCJKsc-Bold.otf') format('opentype');
+  font-weight: 700;
 }
 ```
 
@@ -205,8 +195,7 @@ Noto Serif CJK SC 完整版含 3 万+ 汉字（~5MB WOFF2），生产环境每�
 
 ```css
 body {
-  font-family: 'Latin Modern Roman', 'Noto Serif CJK SC',
-               'SimSun', 'STSong', serif;
+  font-family: 'Noto Serif CJK SC', 'SimSun', 'STSong', serif;
 }
 ```
 
@@ -316,10 +305,10 @@ static Future<void> downloadPdf(int paperId) {
 | 项 | 设定 |
 |------|--------|
 | 纸张 | A4，CSS `@page { size: A4; margin: 2.54cm 3.17cm; }` |
-| 字体 | Noto Serif CJK SC（中文字符）+ Latin Modern Roman（英文字符），自托管 WOFF2 |
+| 字体 | Noto Serif CJK SC（完整 OTF，自托管） |
 | 分页规则 | 选择/填空连续，解答题每题独立起页 |
 | 图片 | 靠右浮动，max-width 180px |
-| 填空线 | CSS `.fill-blank { border-bottom: 1pt solid #333; }` |
+| 填空线 | CSS `.fill-blank { border-bottom: 1pt solid #333; }`（备用方案，当前填空题用 KaTeX `\\underline{}` 渲染） |
 | 分值 | 不显示 |
 | 姓名区 | 不在标题区展示，个人信息移至页脚 |
 | 页码 | CSS `@page @bottom-center` 自动生成，格式 `— N —` |
@@ -327,7 +316,7 @@ static Future<void> downloadPdf(int paperId) {
 | 页脚个人信息 | `@page @bottom-right`：昵称+学号，服务端渲染注入 |
 | 页眉页脚 | 学生在打印对话框中取消勾选即可 |
 | 行距 | `line-height: 1.6` |
-| 段落 | 两端对齐，首行缩进 2em |
+| 段落 | 两端对齐 `text-align: justify`，首行缩进 2em（首段不缩进，`:first-of-type`） |
 | 大题标题 | 黑体 12pt，左对齐，不带下划线 |
 
 ---
@@ -340,7 +329,7 @@ static Future<void> downloadPdf(int paperId) {
 | HTML 渲染位置 | 服务端 Django | Flutter 不做任何渲染，只传 paper_id |
 | 授权方式 | HMAC 签名 URL，5 分钟有效期 | 不暴露用户 token，无需额外登录 |
 | 配图存储 | Django static/ 目录 | 构建脚本同步，Flutter assets 和服务端共用同一份 |
-| 字体 | Noto Serif CJK SC 子集 + Latin Modern，自托管 | 跨平台一致的 LaTeX 级排版质量，总下载量约 250-400KB |
+| 字体 | Noto Serif CJK SC 完整 OTF，自托管 | Noto Serif CJK SC 完整版约 5MB，首次加载约 2-3s，缓存后免重复下载 |
 | 用户引导 | 弹窗 + 不再提示 | 低频操作，引导一次后自动跳过 |
 | 入口按钮 | 全部试卷预览页 + 列表页 | 覆盖自己的组卷、公开试卷、收藏、作业、推荐 |
 | 公开试卷下载 | 允许 | 公开试卷可被任意登录学生下载 PDF |

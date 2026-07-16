@@ -117,7 +117,7 @@
                     <div class="score">
                       ${isPending
                         ? '<span class="status-tag pending">未交</span>'
-                        : '<div class="value ' + accuracyClass(s.accuracy) + '">' + (s.accuracy ?? 0) + '%</div>'
+                        : `<div class="value ${accuracyClass(s.accuracy)}">${(s.accuracy ?? 0) + '%'}</div><div class="detail">${s.correctCount ?? 0}/${s.totalCount ?? 0}</div>`
                       }
                     </div>
                   </a>`;

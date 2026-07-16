@@ -39,6 +39,8 @@
         </p>
         <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--text-secondary);">
           <span>版本：<strong id="about-version">—</strong></span>
+          <span>构建：<strong id="about-build">—</strong></span>
+          <span>数据版本：<strong id="about-data-version">—</strong></span>
         </div>
       </div>
 
@@ -83,6 +85,8 @@
       try {
         const data = await apiCall('/teacher/about/');
         document.getElementById('about-version').textContent = data.appVersion || '—';
+        document.getElementById('about-build').textContent = data.build || '—';
+        document.getElementById('about-data-version').textContent = data.dataVersion ?? '—';
 
         // 公告
         const annContainer = document.getElementById('about-announcements');

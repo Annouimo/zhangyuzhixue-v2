@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import time
+from collections import defaultdict
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
@@ -14,7 +15,7 @@ from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
 from courses.models import Assignment, AssignmentQuestion
-from qbank.models import ChoiceExt
+from qbank.models import ChoiceExt, SubQuestion
 
 
 def _ok(data=None, message='ok'):
@@ -103,27 +104,42 @@ def pdf_request_token(request):
 # ── PDF View（GET /pdf/view）───────────────────────────────────
 
 
+NUM_CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+
+
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
     type_labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'}
-    seen_types = set()
 
-    # 批量查询 ChoiceExt（N+1 -> 1）
+    # 批量查询 ChoiceExt + SubQuestion（N+1 -> 1）
     qs_list = list(qs)
     q_ids = [pq.question_id for pq in qs_list]
+
     ce_map = {}
     for ce in ChoiceExt.objects.filter(question_id__in=q_ids):
         ce_map[ce.question_id] = ce
 
+    sq_map = defaultdict(list)
+    for sq in SubQuestion.objects.filter(
+        question_id__in=q_ids
+    ).order_by('sort_order'):
+        sq_map[sq.question_id].append(sq)
+
+    seen_types = []
     for pq in qs_list:
         q = pq.question
         qt = q.question_type
+
         if qt not in seen_types:
-            seen_types.add(qt)
+            seen_types.append(qt)
+            idx = len(seen_types) - 1
+            num_prefix = NUM_CN[idx] if idx < len(NUM_CN) else str(idx + 1)
             sections.append({
                 'type': qt,
                 'label': type_labels.get(qt, qt),
+                'numbered_label': '{0}、{1}'.format(
+                    num_prefix, type_labels.get(qt, qt)),
                 'questions': [],
             })
 
@@ -131,17 +147,37 @@ def _build_sections(qs):
         opts = []
         ce = ce_map.get(q.pk)
         if ce:
-            raw = json.loads(ce.options) if isinstance(ce.options, str) else ce.options
+            try:
+                raw = json.loads(ce.options) if isinstance(
+                    ce.options, str) else ce.options
+            except (json.JSONDecodeError, TypeError):
+                raw = None
             if isinstance(raw, dict):
-                opts = ['<strong>({0})</strong> {1}'.format(k, v) for k, v in raw.items()]
+                opts = ['<strong>({0})</strong> {1}'.format(k, v)
+                        for k, v in raw.items()]
             elif isinstance(raw, list):
                 opts = raw
 
         # 图片
         imgs = q.images if isinstance(q.images, list) else []
 
+        # 子题（仅解答题需要拼接）
+        full_stem = q.stem or ''
+        if qt == 'solution':
+            sqs = sq_map.get(q.pk, [])
+            # 如果 stem 末尾已包含子题编号（如 "\\n(1)..."），跳过
+            stem_already_has_sub = '\n(1)' in full_stem or full_stem.rstrip().endswith('(1)')
+            if not stem_already_has_sub:
+                sub_parts = [sq.stem for sq in sqs if sq.stem]
+                if sub_parts:
+                    full_stem += '\n' + '\n'.join(
+                        '({0}) {1}'.format(i + 1, sp)
+                        for i, sp in enumerate(sub_parts)
+                    )
+
         sections[-1]['questions'].append({
-            'stem': q.stem,
+            'number': q.number,
+            'stem': full_stem,
             'options': opts,
             'images': imgs,
         })

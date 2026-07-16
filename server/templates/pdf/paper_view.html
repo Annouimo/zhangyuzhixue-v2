@@ -44,14 +44,22 @@ body {
   font-family: 'Noto Serif CJK SC', 'SimHei', 'Microsoft YaHei', sans-serif;
   font-size: 12pt; font-weight: 700; margin: 1em 0 0.5em 0;
 }
-.section-fill { page-break-before: always; }
-.section-solution { page-break-before: always; }
+/* ===== 分页规则 ===== */
+/* 非首个 section 的填空题/解答题另起页 */
+.section ~ .section-fill { page-break-before: always; }
+.section ~ .section-solution { page-break-before: always; }
+/* 解答题每题独立起页 */
 .section-solution .question { page-break-before: always; }
 .section-solution .question:first-of-type { page-break-before: avoid; }
+/* 单题不跨页 */
 .question { display: flex; gap: 0.3em; align-items: baseline; page-break-inside: avoid; margin: 0.3em 0 0.5em; }
+/* 浮动图片清除 */
+.question-body::after { content: ''; display: table; clear: both; }
 .qnum { flex-shrink: 0; width: 1.5em; font-weight: 600; }
 .question-body { flex: 1; }
-.question-body p { margin: 0; }
+.question-body p { margin: 0; text-indent: 2em; }
+.question-body p:first-of-type { text-indent: 0; }
+.fill-blank { display: inline-block; min-width: 6em; border-bottom: 1pt solid #333; margin: 0 0.2em; }
 .choice { margin: 0.15em 0; font-size: 10.5pt; }
 .figure { float: right; margin: 0.5em 0 0.5em 1em; }
 .figure img { max-width: 180px; height: auto; }
@@ -70,10 +78,10 @@ body {
 
 {% for section in sections %}
 <div class="section section-{{ section.type }}">
-  <h2 class="section-title">{{ section.label }}</h2>
+  <h2 class="section-title">{{ section.numbered_label }}</h2>
   {% for question in section.questions %}
   <div class="question">
-    <span class="qnum">{{ forloop.counter }}.</span>
+    <span class="qnum">{% if question.number %}{{ question.number }}{% else %}{{ forloop.counter }}{% endif %}.</span>
     <div class="question-body">
       <p>{{ question.stem|safe }}</p>
       {% for opt in question.options %}

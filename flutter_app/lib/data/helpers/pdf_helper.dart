@@ -155,6 +155,14 @@ class PdfHelper {
       }
     } catch (e) {
       if (kDebugMode) debugPrint('[PdfHelper] 打开 PDF 失败: $e');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('无法打开 PDF，请检查网络后重试'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }
