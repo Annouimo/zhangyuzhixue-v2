@@ -2,6 +2,7 @@
 from datetime import timedelta
 
 from django.db.models import Count, Q
+from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -266,11 +267,10 @@ def student_detail(request, id):
 
     # 正确率趋势（近30天）
     thirty_days_ago = timezone.now() - timedelta(days=30)
-    table = SubmissionDetail._meta.db_table
     trend_raw = (
         SubmissionDetail.objects
         .filter(submission__student=s, created_at__gte=thirty_days_ago)
-        .extra(select={'date': f"date({table}.created_at)"})
+        .annotate(date=TruncDate('created_at'))
         .values('date')
         .annotate(
             total=Count('id'),

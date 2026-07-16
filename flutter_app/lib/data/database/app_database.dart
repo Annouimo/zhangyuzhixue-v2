@@ -251,6 +251,9 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 5;
+  // ⚠️ 与 server/interactions/sync_views.py 的 USER_DB_SCHEMA 双轨演进。
+  // 服务端 USER_DB_SCHEMA 建表 + _dump_* 写入列必须与此 schema 对齐。
+  // 修改任一端时必须同步修改另一端。
 
   @override
   MigrationStrategy get migration => MigrationStrategy(

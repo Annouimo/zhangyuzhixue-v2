@@ -69,6 +69,10 @@ def _err(code, detail, http_status=400):
 
 # 服务端生成 user.db 使用的表结构版本。与客户端 AppDatabase.schemaVersion 对应，
 # 当 USER_DB_SCHEMA 的建表语句发生变化时需要递增。
+# ⚠️ 两套 schema 独立演进，需要手动同步：
+#   - 服务端: USER_DB_SCHEMA (此文件) + _dump_* 函数
+#   - 客户端: AppDatabase (app_database.dart) schemaVersion + MigrationStrategy
+# 修改任一端时必须同时修改另一端。
 USER_DB_SCHEMA_VERSION = 1
 
 USER_DB_SCHEMA = """
@@ -82,7 +86,6 @@ CREATE TABLE IF NOT EXISTS user_profile (
     gaokao_year TEXT,
     class_group_id INTEGER,
     phone TEXT,
-    accessible_course_ids TEXT,
     updated_at TEXT
 );
 
@@ -236,20 +239,11 @@ def _fmt_dt(dt):
 
 def _dump_user_profile(conn, student):
     user = student.user
-    # 查询该学生班级可访问的 course_id 列表
-    from courses.models import ClassCourseAssignment
-    cids = list(ClassCourseAssignment.objects.filter(
-        class_course__class_group_id=student.class_group_id,
-        is_active=True,
-    ).values_list(
-        'class_course__course_id', flat=True,
-    ).distinct().order_by('class_course__course_id'))
-    course_ids_str = ','.join(str(c) for c in cids) if cids else None
     conn.execute(
         'INSERT OR REPLACE INTO user_profile '
         '(id, name, real_name, student_id, avatar, school, '
-        'gaokao_year, class_group_id, phone, accessible_course_ids, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'gaokao_year, class_group_id, phone, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
             user.pk,
             user.username,
@@ -260,7 +254,6 @@ def _dump_user_profile(conn, student):
             str(student.gaokao_year) if student.gaokao_year else None,
             student.class_group_id,
             student.phone or None,
-            course_ids_str,
             _fmt_dt(student.updated_at),
         ],
     )
