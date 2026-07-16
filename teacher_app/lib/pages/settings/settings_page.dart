@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../app_theme.dart';
 import '../../constants/app_version.dart';
@@ -171,7 +173,7 @@ class SettingsPageState extends State<SettingsPage> {
             _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
             _infoTile(Icons.code, '版本', appVersion),
           ]),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
           _buildExportLogButton(),
         ],
       ),
@@ -273,13 +275,14 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _exportLog() async {
-    final path = await OperationLog.instance.exportToShare();
+    final file = File(await OperationLog.instance.logFilePath);
+    if (!await file.exists()) return;
+    final content = await file.readAsString();
+    await Clipboard.setData(ClipboardData(text: content));
     if (!mounted) return;
-    if (path != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('日志已导出，可通过微信发送'), behavior: SnackBarBehavior.floating),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('日志已复制到剪贴板，请粘贴到微信或问卷'), behavior: SnackBarBehavior.floating),
+    );
   }
 }
 

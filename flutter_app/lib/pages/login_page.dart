@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../app_theme.dart';
 import '../data/api/auth_api.dart';
@@ -300,13 +302,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _exportLog() async {
-    final path = await OperationLog.instance.exportToShare();
+    final file = File(await OperationLog.instance.logFilePath);
+    if (!await file.exists()) return;
+    final content = await file.readAsString();
+    await Clipboard.setData(ClipboardData(text: content));
     if (!mounted) return;
-    if (path != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('日志已导出，可通过微信发送'), behavior: SnackBarBehavior.floating),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('日志已复制到剪贴板，请粘贴到微信或问卷'), behavior: SnackBarBehavior.floating),
+    );
   }
 }
 

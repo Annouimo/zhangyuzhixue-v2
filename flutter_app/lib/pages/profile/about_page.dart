@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../app_theme.dart';
 import '../../widgets/sync_progress_dialog.dart';
 import '../../widgets/shared/app_toast.dart';
@@ -126,10 +128,6 @@ class _AboutPageState extends State<AboutPage> {
         ),
         const SizedBox(height: 28),
 
-        // ── 导出日志按钮 ──
-        _buildExportLogButton(),
-        const SizedBox(height: 12),
-
         // ── 数据版本卡片 ──
         _buildSectionCard([
           _buildVersionTile(
@@ -176,6 +174,8 @@ class _AboutPageState extends State<AboutPage> {
           '© ${DateTime.now().year} 章鱼智学 · 北京',
           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
+        const SizedBox(height: 16),
+        _buildExportLogButton(),
         const SizedBox(height: 8),
       ]),
     ),
@@ -316,12 +316,14 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _exportLog() async {
-    final path = await OperationLog.instance.exportToShare();
-    if (!mounted) return;
-    if (path != null) {
-      AppToast.show(context, icon: Icons.check_circle, message: '日志已导出，可通过微信发送');
-    } else {
-      AppToast.show(context, icon: Icons.warning, message: '暂无日志数据');
+    final file = File(await OperationLog.instance.logFilePath);
+    if (!await file.exists()) {
+      AppToast.show(context, icon: Icons.info, message: '暂无日志数据');
+      return;
     }
+    final content = await file.readAsString();
+    await Clipboard.setData(ClipboardData(text: content));
+    if (!mounted) return;
+    AppToast.show(context, icon: Icons.check_circle, message: '日志已复制到剪贴板，请粘贴到微信或问卷');
   }
 }
