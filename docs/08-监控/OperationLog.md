@@ -77,16 +77,15 @@
 
 用户点击「导出运行日志」按钮后：
 
-1. `OperationLog.exportToShare()` 将日志文件复制到应用文档目录下的 `operation_log_export.ndjson`
-2. 弹出 Toast 提示「日志已导出，可通过微信发送」
-3. 用户通过微信文件传输功能把文件发给你
+1. 读日志文件内容
+2. 复制到系统剪贴板
+3. 弹出 Toast 提示「日志已复制到剪贴板，请粘贴到微信或问卷」
+4. 用户打开微信 / 问卷，粘贴后发送
 
-**日志文件位置**（用户可以自行找到）：
-
-| 平台 | 路径 |
-|------|------|
-| Windows | `%APPDATA%/com.zhangyuzhixue.student/operation_log.ndjson` |
-| Android | `/data/data/com.zhangyuzhixue.student/app_flutter/operation_log.ndjson` |
+**为什么用剪贴板而不是文件分享**：
+- 用户操作路径最短：点按钮 → 去微信 → 粘贴 → 发送
+- 无需额外依赖（`share_plus`）
+- 日志约 60KB，剪贴板没有限制问题
 
 ---
 
