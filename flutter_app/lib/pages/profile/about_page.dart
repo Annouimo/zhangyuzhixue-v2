@@ -106,7 +106,7 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('关于')),
-    body: Padding(
+    body: SingleChildScrollView(
       padding: const EdgeInsets.all(AppSizes.baseSpacing),
       child: Column(children: [
         const SizedBox(height: 32),
@@ -169,7 +169,6 @@ class _AboutPageState extends State<AboutPage> {
           ),
         ]),
 
-        const Spacer(),
         Text(
           '© ${DateTime.now().year} 章鱼智学 · 北京',
           style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
