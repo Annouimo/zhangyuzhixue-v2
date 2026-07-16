@@ -54,8 +54,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        final shown = await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
-        if (shown && context.mounted) context.pop();
+        await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(

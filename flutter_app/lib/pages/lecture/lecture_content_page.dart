@@ -124,8 +124,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        final shown = await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
-        if (shown && context.mounted) context.pop();
+        await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(

@@ -321,8 +321,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
-        final shown = await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
-        if (shown && context.mounted) context.pop();
+        await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),

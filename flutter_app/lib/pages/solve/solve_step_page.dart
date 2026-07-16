@@ -222,8 +222,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
-        final shown = await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
-        if (shown && context.mounted) context.pop();
+        await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
       appBar: AppBar(title: const Text('步骤详情')),
