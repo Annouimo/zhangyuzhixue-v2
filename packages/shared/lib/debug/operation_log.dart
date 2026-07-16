@@ -113,9 +113,13 @@ class OperationLog {
     final src = File(await logFilePath);
     if (!await src.exists()) return ExportResult.fileNotFound;
 
-    // 1. 复制到公共目录（Desktop/Downloads），确保文件可被其他应用访问
+    // 1. 复制到公共目录（Desktop/Downloads），文件名带时间戳避免覆盖
     final exportDir = await _exportDirectory();
-    final dest = File('${exportDir.path}${Platform.pathSeparator}operation_log_export.ndjson');
+    final ts = DateTime.now();
+    final timestamp =
+        '${ts.year}${ts.month.toString().padLeft(2, '0')}${ts.day.toString().padLeft(2, '0')}'
+        '_${ts.hour.toString().padLeft(2, '0')}${ts.minute.toString().padLeft(2, '0')}${ts.second.toString().padLeft(2, '0')}';
+    final dest = File('${exportDir.path}${Platform.pathSeparator}operation_log_$timestamp.ndjson');
     await src.copy(dest.path);
 
     // 2. 尝试系统分享面板（移动端完美工作）
