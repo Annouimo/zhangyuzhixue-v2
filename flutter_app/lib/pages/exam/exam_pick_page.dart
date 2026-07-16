@@ -13,6 +13,7 @@ import '../../../data/daos/preference_dao.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/empty_placeholder.dart';
 import '../../../widgets/shared/question_card.dart';
+import '../../../widgets/shortfall_dialog.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
 import '../../data/debug/audit_logger.dart';
@@ -246,9 +247,12 @@ class _ExamPickPageState extends State<ExamPickPage> {
       AuditLogger.instance.error('ExamPickPage._save', e);
       OperationLog.instance.error('ExamPickPage._save', e);
       if (mounted && context.mounted) {
-        final msg = e is InsufficientPoolException ? e.message : '$e';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating));
+        if (e is InsufficientPoolException) {
+          await showShortfallDialog(context, type: e.type, needed: e.needed, available: e.available);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating));
+        }
       }
       setState(() => _saving = false);
     }

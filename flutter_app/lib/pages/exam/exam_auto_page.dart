@@ -13,6 +13,7 @@ import '../../../widgets/shared/loading_indicator.dart';
 import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
 import '../../../widgets/shared/difficulty_slider.dart';
+import '../../../widgets/shortfall_dialog.dart';
 import '../../../data/debug/audit_logger.dart';
 import '../../../data/debug/operation_log.dart';
 import '../../../data/sync/sync_manager.dart';
@@ -205,10 +206,13 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       AuditLogger.instance.error('ExamAutoPage._confirm', e);
       OperationLog.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
-        final msg = e is InsufficientPoolException ? e.message : '$e';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
-        );
+        if (e is InsufficientPoolException) {
+          await showShortfallDialog(context, type: e.type, needed: e.needed, available: e.available);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
+          );
+        }
       }
     } finally { if (mounted) setState(() => _generating = false); }
   }
