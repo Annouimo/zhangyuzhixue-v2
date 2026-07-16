@@ -4,6 +4,7 @@ import 'package:shared/theme/app_theme.dart';
 /// 统一 Toast（包装 SnackBar，风格对齐 HTML 原型顶部 Toast）
 ///
 /// 用法：AppToast.show(context, icon: Icons.local_fire_department, message: '签到成功');
+/// 替代各地零散的 ScaffoldMessenger.showSnackBar(...)
 class AppToast {
   static void show(
     BuildContext context, {

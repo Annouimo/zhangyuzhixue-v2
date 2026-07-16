@@ -1,87 +1,136 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
-/// 审计日志 — 跨端调试追踪
+/// 运行时审计日志 — 仅在 --dart-define=AUDIT_MODE=true 时生效
 ///
-/// 写入到应用支持目录下的 audit.log。
-/// 每行一条 JSON，包含时间戳、类别、信息。
+/// 用法:
+///   flutter run --dart-define=AUDIT_MODE=true
+///
+/// Release 构建中 tree-shaking 消除所有调用，零影响。
+const _auditEnabled = bool.fromEnvironment('AUDIT_MODE', defaultValue: false);
+
+/// 审计日志文件路径
+/// Windows: %TEMP%/zhangyuzhixue_audit.ndjson
+/// macOS/Linux: $TMPDIR/zhangyuzhixue_audit.ndjson
+String get _auditLogPath {
+  final tmp = Platform.environment['TEMP'] ??
+      Platform.environment['TMPDIR'] ??
+      '/tmp';
+  return '$tmp${Platform.pathSeparator}zhangyuzhixue_audit.ndjson';
+}
+
+/// 运行时审计日志器。
+///
+/// 每条日志是一条 NDJSON 行（JSON 对象，以 \n 分隔）。
+/// Python 审计引擎逐行读取，json.loads 解析后做断言。
 class AuditLogger {
-  AuditLogger._internal();
-  static AuditLogger? _instance;
-  static AuditLogger get instance {
-    _instance ??= AuditLogger._internal();
-    return _instance!;
-  }
+  AuditLogger._();
+  static final AuditLogger instance = AuditLogger._();
 
-  File? _logFile;
+  int _seq = 0;
   IOSink? _sink;
+  bool get enabled => _auditEnabled;
 
-  /// 初始化。可传入 Directory（学生端用法），也可不传自动获取（教师端用法）。
-  Future<void> init([Directory? dir]) async {
-    dir ??= await getApplicationSupportDirectory();
-    final f = File('${dir.path}/audit.log');
-    _logFile = f;
-    _sink = f.openWrite(mode: FileMode.append);
+  /// 初始化审计日志文件（追加模式）
+  Future<void> init() async {
+    if (!_auditEnabled) return;
+    final file = File(_auditLogPath);
+    // 每次启动覆盖旧文件
+    _sink = file.openWrite(mode: FileMode.writeOnly);
+    _write('_meta', '_session', 'startedAt', DateTime.now().toIso8601String());
   }
 
-  void _write(String category, Object? info, {Map<String, dynamic>? extra}) {
+  void _write(String category, String source, String key, Object? value) {
+    if (_sink == null) return;
+    _seq++;
     final entry = {
+      'seq': _seq,
       'ts': DateTime.now().toIso8601String(),
       'cat': category,
-      'info': info?.toString(),
-      if (extra != null) ...extra,
+      'src': source,
+      'key': key,
+      'val': value?.toString() ?? '',
+      'vt': value == null ? 'null' : _typeTag(value.runtimeType),
     };
-    _sink?.writeln(jsonEncode(entry));
+    _sink!.writeln(jsonEncode(entry));
   }
 
-  void dao(String daoName, int count, Map<String, dynamic>? extra) {
-    _write('dao', '$daoName → $count 条', extra: extra);
+  /// 页面层：页面数据加载完成后调用
+  void page(String pageName, Map<String, Object?> fields) {
+    if (!_auditEnabled) return;
+    for (final e in fields.entries) {
+      _write('page', pageName, e.key, e.value);
+    }
   }
 
+  /// DAO/Repository 层：每次查询后调用
+  void dao(String method, int rowCount, [Map<String, Object?>? params]) {
+    if (!_auditEnabled) return;
+    _write('dao', method, 'rowCount', rowCount);
+    if (params != null && params.isNotEmpty) {
+      _write('dao', method, 'params', jsonEncode(params));
+    }
+  }
+
+  /// SharedPreferences 层：每次 getter 读取后调用
   void prefs(String key, Object? value) {
-    _write('prefs', '$key = $value');
+    if (!_auditEnabled) return;
+    _write('prefs', 'AppPrefs', key, value);
   }
 
-  void api(String endpoint, int statusCode, {Map<String, dynamic>? extra}) {
-    _write('api', '$endpoint → $statusCode', extra: extra);
+  /// 同步引擎层：同步操作后调用
+  void sync(String op, Map<String, Object?> data) {
+    if (!_auditEnabled) return;
+    _write('sync', op, 'data', jsonEncode(data));
   }
 
-  void apiRequest(String method, String path, [dynamic data]) {
-    _write('api_request', '$method $path',
-        extra: data is Map ? Map<String, dynamic>.from(data as Map) : null);
+  /// API 响应层：网络请求后调用
+  void api(String endpoint, int statusCode, Map<String, Object?>? summary) {
+    if (!_auditEnabled) return;
+    _write('api', endpoint, 'statusCode', statusCode);
+    if (summary != null && summary.isNotEmpty) {
+      _write('api', endpoint, 'summary', jsonEncode(summary));
+    }
   }
 
-  void apiResponse(String method, String path, int statusCode, [dynamic data]) {
-    _write('api_response', '$method $path → $statusCode',
-        extra: data is Map ? Map<String, dynamic>.from(data as Map) : null);
+  /// API 请求：每次发起网络请求前调用
+  void apiRequest(String method, String path, Object? body) {
+    if (!_auditEnabled) return;
+    _write('api', path, 'request', '$method ${body != null ? jsonEncode(body).substring(0, (jsonEncode(body).length).clamp(0, 200)) : ''}');
   }
 
-  void page(String route, [Map<String, dynamic>? extra]) {
-    _write('page', route, extra: extra);
+  /// 运行时错误：try/catch 捕获的异常
+  void error(String source, Object error, [StackTrace? stack]) {
+    if (!_auditEnabled) return;
+    _write('error', source, 'message', error.toString());
+    if (stack != null) {
+      // 只取前 3 行避免日志膨胀
+      final lines = stack.toString().split('\n');
+      _write('error', source, 'stack', lines.take(3).join('\n'));
+    }
   }
 
-  void error(String category, Object? message, [Object? details]) {
-    _write('error', message, extra: {
-      'category': category,
-      if (details != null) 'details': details.toString(),
-    });
+  /// API 响应错误快捷方法
+  void apiResponse(String endpoint, int statusCode, Object? error) {
+    if (!_auditEnabled) return;
+    _write('api', endpoint, 'statusCode', statusCode);
+    if (error != null) {
+      _write('api', endpoint, 'error', error.toString());
+    }
   }
 
-  void info(String category, String message, {Map<String, dynamic>? extra}) {
-    _write(category, message, extra: extra);
-  }
-
-  void sync(String action, String detail) {
-    _write('sync', '$action: $detail');
-  }
-
-  void custom(String category, String message, {Map<String, dynamic>? extra}) {
-    _write(category, message, extra: extra);
-  }
-
-  void close() {
-    _sink?.close();
+  /// 关闭日志文件
+  Future<void> close() async {
+    await _sink?.flush();
+    await _sink?.close();
     _sink = null;
+  }
+
+  static String _typeTag(Type t) {
+    if (t == int) return 'int';
+    if (t == double) return 'double';
+    if (t == String) return 'str';
+    if (t == bool) return 'bool';
+    return t.toString();
   }
 }

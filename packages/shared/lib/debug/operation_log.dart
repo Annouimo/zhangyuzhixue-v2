@@ -4,105 +4,116 @@ import 'package:path_provider/path_provider.dart';
 
 /// 运行日志（飞行记录器）— release 构建下正常工作
 ///
-/// 写入到应用支持目录下的 operation.log，用于诊断用户环境问题。
-/// 每行一条 JSON，按时间戳排序（追加写入）。
-/// 最多保留 5000 条，超出时清理最早的一半。
+/// 记录关键操作流水：页面加载、API 请求、用户操作、异常。
+/// 内存中滚动保留最近 200 条，同时写入文件。
+/// 用户可通过关于页「导出日志」把文件发给你。
 class OperationLog {
-  OperationLog._internal();
-  static OperationLog? _instance;
-  static OperationLog get instance {
-    _instance ??= OperationLog._internal();
-    return _instance!;
-  }
+  OperationLog._();
+  static final OperationLog instance = OperationLog._();
 
-  File? _logFile;
-  List<Map<String, dynamic>> _buffer = [];
+  static const int _maxEntries = 200;
+  final List<Map<String, dynamic>> _buffer = [];
+  int _seq = 0;
+  IOSink? _sink;
   bool _ready = false;
 
-  static const int _maxEntries = 5000;
-
-  String? get logFilePath => _logFile?.path;
-
+  /// 初始化（main.dart 启动时调用）
   Future<void> init() async {
-    if (_ready) return;
-    final dir = await getApplicationSupportDirectory();
-    _logFile = File('${dir.path}/operation.log');
-    await _load();
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}${Platform.pathSeparator}operation_log.ndjson');
+    // 保留上次的日志（追加模式），但先读进来裁剪行数
+    if (await file.exists()) {
+      final lines = await file.readAsLines();
+      if (lines.length > _maxEntries) {
+        await file.writeAsString('${lines.sublist(lines.length - _maxEntries).join('\n')}\n');
+      }
+    }
+    _sink = file.openWrite(mode: FileMode.append);
     _ready = true;
+    _write('_sys', 'init', 'started');
   }
 
-  Future<void> _load() async {
-    if (!await _logFile!.exists()) return;
-    try {
-      final lines = await _logFile!.readAsLines();
-      _buffer = lines
-          .map((line) {
-            try {
-              return jsonDecode(line) as Map<String, dynamic>;
-            } catch (_) {
-              return null;
-            }
-          })
-          .whereType<Map<String, dynamic>>()
-          .toList();
-    } catch (_) {}
-  }
-
-  Future<void> log(String category, String action,
-      {Map<String, dynamic>? detail}) async {
-    final entry = {
-      'ts': DateTime.now().toIso8601String(),
+  void _write(String category, String source, String detail) {
+    if (!_ready || _sink == null) return;
+    _seq++;
+    final entry = <String, dynamic>{
+      't': DateTime.now().toIso8601String(),
+      'seq': _seq,
       'cat': category,
-      'action': action,
-      if (detail != null) 'detail': detail,
+      'src': source,
+      'd': detail,
     };
     _buffer.add(entry);
-
     if (_buffer.length > _maxEntries) {
-      _buffer = _buffer.sublist(_buffer.length ~/ 2);
+      _buffer.removeAt(0);
     }
+    _sink!.writeln(jsonEncode(entry));
+  }
 
-    if (_ready) {
-      try {
-        await _logFile!.writeAsString(
-          _buffer.map((e) => jsonEncode(e)).join('\n') + '\n',
-        );
-      } catch (_) {}
+  // ── 公开记录方法 ──
+
+  /// 页面加载
+  void page(String pageName, String detail) =>
+      _write('page', pageName, detail);
+
+  /// API 请求
+  void api(String method, String path, int statusCode, [String? extra]) {
+    final detail = '$statusCode${extra != null ? ' $extra' : ''}';
+    _write('api', '$method $path', detail);
+  }
+
+  /// 用户操作（签到/做题/评分/组卷等）
+  void action(String action, String detail) =>
+      _write('action', action, detail);
+
+  /// 导航
+  void navigation(String route, String detail) =>
+      _write('nav', route, detail);
+
+  /// 异常（catch 块调用）
+  void error(String source, Object error, [StackTrace? stack]) {
+    var detail = error.toString();
+    if (stack != null) {
+      final lines = stack.toString().split('\n');
+      detail += ' | ${lines.take(2).join(' | ')}';
     }
+    _write('error', source, detail);
   }
 
-  Future<void> error(String category, Object message, [Object? details]) async {
-    await log('error', message.toString(), detail: {
-      'category': category,
-      if (details != null) 'details': details.toString(),
-    });
+  /// 同步操作
+  void sync(String op, String detail) =>
+      _write('sync', op, detail);
+
+  // ── 导出 ──
+
+  /// 日志文件路径
+  Future<String> get logFilePath async {
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}${Platform.pathSeparator}operation_log.ndjson';
   }
 
-  Future<void> action(String actionName, [String? detail]) async {
-    await log('action', actionName,
-        detail: detail != null ? {'detail': detail} : null);
+  /// 导出到桌面（Windows）或 Downloads（其他平台）
+  Future<String?> exportToShare() async {
+    if (!_ready) return null;
+    await _sink?.flush();
+
+    final src = File(await logFilePath);
+    if (!await src.exists()) return null;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final dest = File('${dir.path}${Platform.pathSeparator}operation_log_export.ndjson');
+    await src.copy(dest.path);
+    return dest.path;
   }
 
-  Future<void> api(String method, String url, int statusCode) async {
-    await log('api', '$method $url', detail: {'statusCode': statusCode});
+  /// 关闭
+  Future<void> close() async {
+    await _sink?.flush();
+    await _sink?.close();
+    _sink = null;
+    _ready = false;
   }
 
-  Future<void> navigation(String route, [String? action]) async {
-    await log('navigation', route,
-        detail: action != null ? {'action': action} : null);
-  }
-
-  List<Map<String, dynamic>> get recent => List.unmodifiable(
-      _buffer.length > 100 ? _buffer.sublist(_buffer.length - 100) : _buffer);
-
-  List<Map<String, dynamic>> query({
-    String? category,
-    int limit = 50,
-  }) {
-    var result = _buffer.reversed;
-    if (category != null) {
-      result = result.where((e) => e['cat'] == category);
-    }
-    return result.take(limit).toList();
-  }
+  /// 获取当前缓冲（调试用）
+  List<Map<String, dynamic>> get buffer => List.unmodifiable(_buffer);
 }

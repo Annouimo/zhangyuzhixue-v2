@@ -61,15 +61,6 @@ class QuestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        side: BorderSide(
-          color: selected ? AppColors.primary : Colors.transparent,
-          width: selected ? 1.5 : 0,
-        ),
-      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -87,6 +78,7 @@ class QuestionCard extends StatelessWidget {
                     _buildDiffTag(),
                   ],
                   if (subtitle != null && difficulty == null) ...[
+                    // 无难度标签时，subtitle 前加分隔点
                     const SizedBox(width: 6),
                     Text(subtitle!, style: const TextStyle(height: 1.2, fontSize: 11, color: AppColors.textSecondary)),
                   ],
@@ -101,7 +93,7 @@ class QuestionCard extends StatelessWidget {
               const SizedBox(height: 8),
               // 第二行：题干
               MdLatexBody(title, fontSize: 14),
-              // 第三行（可选）：副信息
+              // 第三行（可选）：副信息（在难度和题型同一行时有 subtitle）
               if (subtitle != null && difficulty != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -175,6 +167,7 @@ class QuestionCard extends StatelessWidget {
 
 // ─── 辅助组件 ─────────────────────────────────────────
 
+/// 圆角标签
 class _Tag extends StatelessWidget {
   final String text;
   final Color bg;
@@ -194,6 +187,7 @@ class _Tag extends StatelessWidget {
   }
 }
 
+/// 状态标签样式
 ({String label, Color color, Color bg}) _statusStyle(String status) {
   return statusStyle(status);
 }
