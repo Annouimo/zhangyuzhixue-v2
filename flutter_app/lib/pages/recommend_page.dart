@@ -44,12 +44,29 @@ class RecommendPageState extends State<RecommendPage> {
     );
   }
 
-  /// 供 MainShell 切 Tab 时调用：刷新偏好预设列表
+  /// 供 MainShell 切 Tab 时调用：静默刷新全部数据（不显示 loading 指示器）
   void refresh() {
     _initRepo();
-    _repo.getPresets().then((p) {
-      if (mounted) setState(() => _presets = p);
-    });
+    _loadSilent();
+  }
+
+  /// 静默加载（不设 _loading = true，避免切 Tab 时闪 loading 指示器）
+  Future<void> _loadSilent() async {
+    _initRepo();
+    try {
+      final presets = await _repo.getPresets();
+      final smart = await _repo.getSmartList();
+      if (!mounted) return;
+      setState(() {
+        _presets = presets;
+        if (!_preferSmart) return; // 偏好模式下不覆盖题目列表
+        _questions = smart;
+        if (smart.isEmpty && presets.isNotEmpty) { _preferSmart = false; }
+        else { _preferSmart = true; }
+      });
+    } catch (_) {
+      // 静默失败不影响已有数据
+    }
   }
 
   @override

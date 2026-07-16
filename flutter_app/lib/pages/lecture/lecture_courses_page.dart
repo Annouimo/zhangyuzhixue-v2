@@ -75,9 +75,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         message: '暂无讲义内容，后续会上线更多课程 📖',
       );
     }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
+    return ListView.separated(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _courses!.length,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -91,8 +89,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
 

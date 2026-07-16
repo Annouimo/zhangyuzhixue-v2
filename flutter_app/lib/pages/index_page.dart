@@ -33,10 +33,10 @@ class IndexPage extends StatefulWidget {
   const IndexPage({super.key, this.userRepository});
 
   @override
-  State<IndexPage> createState() => _IndexPageState();
+  State<IndexPage> createState() => IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage> {
+class IndexPageState extends State<IndexPage> {
   late final UserRepository _repo;
   bool _loading = true;
   int _pendingCount = 0;
@@ -65,6 +65,9 @@ class _IndexPageState extends State<IndexPage> {
   ];
 
   late final String _welcomeText;
+
+  /// 供 MainShell 切 Tab 时调用：刷新首页数据
+  void reload() => _load();
 
   @override
   void initState() {

@@ -4,8 +4,8 @@ import '../../app_theme.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/preference_repository.dart';
-import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
+import '../../widgets/shared/async_load_widget.dart';
 import '../router.dart';
 import '../../data/debug/audit_logger.dart';
 import '../../../data/debug/operation_log.dart';
@@ -22,33 +22,13 @@ class PreferenceListPage extends StatefulWidget {
 
 class _PreferenceListPageState extends State<PreferenceListPage> {
   late final PreferenceRepository _repo;
-  bool _loading = true;
-  List<PreferenceSummary> _preferences = [];
-  String? _error;
+  final GlobalKey<AsyncLoadWidgetState<List<PreferenceSummary>>> _loadKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _repo = widget.preferenceRepository ??
         PreferenceRepository(PreferenceDao(DatabaseProvider()));
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
-    try {
-      final list = await _repo.getList();
-      if (!mounted) return;
-      setState(() {
-        _preferences = list;
-        _loading = false;
-      });
-      AuditLogger.instance.page('PreferenceListPage', {'presetCount': _preferences.length});
-    } catch (e) { OperationLog.instance.error('preference_list_page_load', e); 
-      AuditLogger.instance.error('PreferenceListPage._load', e);
-      if (!mounted) return;
-      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
-    }
   }
 
   Future<void> _delete(int id, int index) async {
@@ -68,16 +48,22 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       ),
     );
     if (confirmed != true) return;
+    // 乐观删除
+    _loadKey.currentState?.optimisticUpdate((list) {
+      list.removeAt(index);
+      return list;
+    });
     try {
       await _repo.delete(id);
-      if (!mounted) return;
-      setState(() => _preferences.removeAt(index));
-    } catch (e) { OperationLog.instance.error('preference_list_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('preference_list_page_load', e);
       AuditLogger.instance.error('PreferenceListPage._delete', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('删除失败: $e')),
       );
+      // 失败后刷新列表，恢复实际数据
+      _loadKey.currentState?.refresh();
     }
   }
 
@@ -85,109 +71,92 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('学习偏好管理')),
-      body: _buildBody(),
+      body: AsyncLoadWidget<List<PreferenceSummary>>(
+        key: _loadKey,
+        onLoad: () => _repo.getList(),
+        emptyWidget: const EmptyPlaceholder(
+          icon: Icons.assignment,
+          message: '还没有设置学习偏好，点击右上角 + 新建',
+        ),
+        builder: (ctx, list) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AuditLogger.instance.page('PreferenceListPage', {'presetCount': list.length});
+          });
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              final p = list[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.assignment, size: 18, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        p.summary,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          OutlinedButton(
+                            onPressed: () async {
+                              await context.push('${AppRoutes.preferenceEdit}?id=${p.id}');
+                              _loadKey.currentState?.refresh();
+                            },
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            child: const Text('编辑'),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () => _delete(p.id, index),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            child: const Text('删除'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           await context.push(AppRoutes.preferenceEdit);
-          _load();
+          _loadKey.currentState?.refresh();
         },
         icon: const Icon(Icons.add),
         label: const Text('新建偏好'),
       ),
     );
   }
-
-  Widget _buildBody() {
-    if (_loading) return const LoadingIndicator();
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('加载失败', style: TextStyle(color: AppColors.error)),
-              const SizedBox(height: 8),
-              ElevatedButton(onPressed: _load, child: const Text('重试')),
-            ],
-          ),
-        ),
-      );
-    }
-    if (_preferences.isEmpty) {
-      return const EmptyPlaceholder(icon: Icons.assignment,
-        message: '还没有设置学习偏好，点击右上角 + 新建',
-      );
-    }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-        itemCount: _preferences.length,
-        itemBuilder: (context, index) {
-          final p = _preferences[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.assignment, size: 18, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          p.name,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    p.summary,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      OutlinedButton(
-                        onPressed: () async {
-                          await context.push('${AppRoutes.preferenceEdit}?id=${p.id}');
-                          _load();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: const Text('编辑'),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton(
-                        onPressed: () => _delete(p.id, index),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: const Text('删除'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 }
-
-

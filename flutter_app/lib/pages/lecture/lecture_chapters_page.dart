@@ -82,9 +82,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
         message: '暂无章节内容',
       );
     }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
+    return ListView.separated(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _chapterList!.items.length,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -98,8 +96,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
 

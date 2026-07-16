@@ -76,9 +76,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         message: '暂无讲义',
       );
     }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
+    return ListView.separated(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _courses!.length,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
@@ -96,8 +94,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
 

@@ -20,14 +20,14 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
-  int _pageKey = 0;
   int _syncPendingCount = 0;
 
+  final GlobalKey<IndexPageState> _indexKey = GlobalKey();
   final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
 
   List<Widget> get _pages => [
-    IndexPage(key: ValueKey('index_$_pageKey')),
+    IndexPage(key: _indexKey),
     RecommendPage(key: _recommendKey),
     const ExamHomePage(),
     ProfilePage(key: _profileKey),
@@ -57,8 +57,8 @@ class _MainShellState extends State<MainShell> {
 
   void _onDbVersionChanged() {
     if (!mounted) return;
-    setState(() => _pageKey++);
-    // 刷新其他 Tab（ValueKey 只重建了 IndexPage，GlobalKey 保活的需手动通知）
+    // 刷新所有 Tab 页
+    _indexKey.currentState?.reload();
     _recommendKey.currentState?.refresh();
     _profileKey.currentState?.reload();
   }
@@ -74,7 +74,7 @@ class _MainShellState extends State<MainShell> {
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() => _currentIndex = index);
-          if (index == 0) setState(() => _pageKey++);
+          if (index == 0) _indexKey.currentState?.reload();
           if (index == 1) _recommendKey.currentState?.refresh();
           if (index == 3) {
             _profileKey.currentState?.reload();
