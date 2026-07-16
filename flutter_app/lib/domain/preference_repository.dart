@@ -77,18 +77,36 @@ class PreferenceRepository {
     )).toList();
   }
 
-  /// 构建偏好摘要文本，格式：'2025 海淀/东城 · 导数 · 难度 2-8'
+  /// 构建偏好摘要文本，格式：'2022~2025 · 海淀/西城等 4 区 · 5个概念标签 · 难度 2-8'
   String _buildSummary(String years, String regions, String conceptTags, double? diffMin, double? diffMax) {
     final parts = <String>[];
-    final yearStr = _parseJsonList(years).join(' ');
-    final regionStr = _parseJsonList(regions).join('/');
+    final yearList = _parseJsonList(years);
+    final regionList = _parseJsonList(regions);
+    final tagList = _parseJsonList(conceptTags);
+
+    // 年份：>3 个时缩为范围 "2022~2025"
+    String yearStr;
+    if (yearList.length > 3) {
+      final nums = yearList.map((y) => int.tryParse(y)).whereType<int>().toList()..sort();
+      yearStr = '${nums.first}~${nums.last}';
+    } else {
+      yearStr = yearList.join(' ');
+    }
+    // 地区：>3 个时缩为 "海淀/西城等 N 区"
+    String regionStr;
+    if (regionList.length > 3) {
+      regionStr = '${regionList.take(2).join('/')}等 ${regionList.length} 区';
+    } else {
+      regionStr = regionList.join('/');
+    }
+
     final combined = [yearStr, regionStr].where((s) => s.isNotEmpty).join(' ');
     if (combined.isNotEmpty) parts.add(combined);
 
-    final tags = _parseJsonList(conceptTags);
-    if (tags.isNotEmpty) parts.add(tags.join('、'));
+    // 概念标签：>0 时显示数量
+    if (tagList.isNotEmpty) parts.add('${tagList.length}个概念标签');
 
-    // 只在至少有一个边界非 null 时显示难度范围
+    // 难度范围
     if (diffMin != null || diffMax != null) {
       final min = diffMin?.toStringAsFixed(0) ?? '?';
       final max = diffMax?.toStringAsFixed(0) ?? '?';

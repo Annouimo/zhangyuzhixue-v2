@@ -112,6 +112,8 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                       const SizedBox(height: 6),
                       Text(
                         p.summary,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
