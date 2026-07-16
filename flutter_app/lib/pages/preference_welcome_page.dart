@@ -207,6 +207,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
               children: [
                 // Hero 卡片
                 Card(
+                  margin: EdgeInsets.zero,
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: Column(
@@ -232,6 +233,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 ),
                 const SizedBox(height: 20),
                 FilterPanel(
+                  horizontalMargin: 0,
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
                   typeOptions: const ['choice', 'fill', 'solution'],

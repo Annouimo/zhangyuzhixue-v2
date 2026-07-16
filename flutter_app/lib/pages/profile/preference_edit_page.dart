@@ -189,6 +189,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                   ),
                   const SizedBox(height: 24),
                   FilterPanel(
+                    horizontalMargin: 0,
                     key: _filterKey,
                     yearOptions: _yearOpts ?? [],
                     regionOptions: _regionOpts ?? [],
