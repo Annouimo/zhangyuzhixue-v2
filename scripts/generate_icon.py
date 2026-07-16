@@ -77,15 +77,33 @@ def process():
         print(f'  → Android mipmap ×{len(ANDROID_SIZES)} 完成')
 
     for app in apps:
-        _save(ROOT / app / WINDOWS_ICO, square, 256,
-              f'{app}: app_icon.ico')
-        # ICO 需要多帧
         ico_path = ROOT / app / WINDOWS_ICO
         ico_path.parent.mkdir(parents=True, exist_ok=True)
-        frames = [square.resize((s, s), Image.LANCZOS) for s in ICO_SIZES]
-        frames[0].save(ico_path, format='ICO', sizes=[(s, s) for s in ICO_SIZES],
-                       append_images=frames[1:])
-        print(f'✅ {app}: app_icon.ico (multi-res ICO)')
+        # Pillow 的 ICO 多帧保存不可靠，手动构造多分辨率 ICO
+        import struct, io
+        ico_sizes = ICO_SIZES  # [16, 32, 48, 256]
+        frames_data = []
+        for s in ico_sizes:
+            buf = io.BytesIO()
+            square.resize((s, s), Image.LANCZOS).save(buf, format='PNG')
+            frames_data.append(buf.getvalue())
+        # ICO header: reserved(2) + type(2) + count(2)
+        header = struct.pack('<HHH', 0, 1, len(frames_data))
+        # Directory entries + image data
+        offset = 6 + 16 * len(frames_data)  # header + all dir entries
+        dir_entries = b''
+        image_data = b''
+        for i, s in enumerate(ico_sizes):
+            data = frames_data[i]
+            # Windows ICO directory entry: w(1) h(1) colors(1) reserved(1) planes(2) bpp(2) size(4) offset(4)
+            w = 0 if s >= 256 else s  # 0 means 256 for w/h in ICO spec
+            h = 0 if s >= 256 else s
+            entry = struct.pack('<BBBBHHII', w, h, 0, 0, 1, 32, len(data), offset)
+            dir_entries += entry
+            image_data += data
+            offset += len(data)
+        ico_path.write_bytes(header + dir_entries + image_data)
+        print(f'✅ {app}: app_icon.ico ({len(frames_data)} frames)')
 
     for app in apps:
         ios_dir = ROOT / app / IOS_DIR
