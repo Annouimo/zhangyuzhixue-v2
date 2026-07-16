@@ -389,9 +389,9 @@ class FilterPanelState extends State<FilterPanel> {
                 child: Wrap(spacing: 4, runSpacing: 4, children: _emptyHints.map((h) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.15),
+                    color: AppColors.warning.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
                   ),
                   child: Text(h, style: const TextStyle(fontSize: 10, color: AppColors.warning)),
                 )).toList()),
