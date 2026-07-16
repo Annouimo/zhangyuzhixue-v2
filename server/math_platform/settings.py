@@ -125,6 +125,9 @@ def enable_wal(sender, connection, **kwargs):
         cursor.execute('PRAGMA journal_mode=WAL;')
         cursor.execute('PRAGMA synchronous=NORMAL;')
         cursor.execute('PRAGMA busy_timeout=20000;')
+        # 默认 wal_autocheckpoint=1000（每~4MB自动 checkpoint），防止 WAL 膨胀
+        # 显式设置以确保行为一致
+        cursor.execute('PRAGMA wal_autocheckpoint=1000;')
 
 
 connection_created.connect(enable_wal)
