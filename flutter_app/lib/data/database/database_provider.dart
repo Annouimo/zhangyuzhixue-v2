@@ -95,6 +95,14 @@ class DatabaseProvider {
     try {
       db = AppDatabase(NativeDatabase(file));
       await db.customStatement('SELECT 1');
+      // 补齐 sync_queue 缺失列（服务端生成的旧版 user.db 可能缺少）
+      try {
+        await db.customStatement(
+          'ALTER TABLE sync_queue ADD COLUMN error_message TEXT',
+        );
+      } catch (_) {
+        // 列已存在则忽略
+      }
       await db.close();
     } catch (e) {
       AuditLogger.instance.error('DatabaseProvider._checkSchema', e);
@@ -151,6 +159,7 @@ class DatabaseProvider {
     _appDb = AppDatabase(NativeDatabase(target));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
     await _ensurePreferenceSchema();
+    await _ensureSyncQueueColumns();
     _bumpVersion();
   }
 
@@ -179,6 +188,18 @@ class DatabaseProvider {
     }
   }
 
+  /// 同步 queue 表是否缺失（服务端生成的旧版 user.db 可能缺少）
+  Future<void> _ensureSyncQueueColumns() async {
+    if (_appDb == null) return;
+    try {
+      await _appDb!.customStatement(
+        'ALTER TABLE sync_queue ADD COLUMN error_message TEXT',
+      );
+    } catch (_) {
+      // 列已存在则忽略
+    }
+  }
+
   Future<void> clearUserDb() async {
     await _appDb?.close();
     final file = File('${_dbDirPath!}/user.db');
@@ -187,6 +208,7 @@ class DatabaseProvider {
     }
     _appDb = AppDatabase(NativeDatabase(file));
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+    await _ensureSyncQueueColumns();
     _bumpVersion();
   }
 

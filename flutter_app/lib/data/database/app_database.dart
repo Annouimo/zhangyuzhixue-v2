@@ -46,6 +46,7 @@ class PointsTransactions extends Table {
   TextColumn get transactionType => text()();
   TextColumn get source => text()();
   IntColumn? get sourceObjectId => integer().nullable()();
+  IntColumn? get clientId => integer().nullable()();
   TextColumn? get description => text().nullable()();
   TextColumn get createdAt => text()();
 }

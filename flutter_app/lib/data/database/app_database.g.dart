@@ -915,6 +915,17 @@ class $PointsTransactionsTable extends PointsTransactions
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _clientIdMeta = const VerificationMeta(
+    'clientId',
+  );
+  @override
+  late final GeneratedColumn<int> clientId = GeneratedColumn<int>(
+    'client_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _descriptionMeta = const VerificationMeta(
     'description',
   );
@@ -944,6 +955,7 @@ class $PointsTransactionsTable extends PointsTransactions
     transactionType,
     source,
     sourceObjectId,
+    clientId,
     description,
     createdAt,
   ];
@@ -998,6 +1010,12 @@ class $PointsTransactionsTable extends PointsTransactions
         ),
       );
     }
+    if (data.containsKey('client_id')) {
+      context.handle(
+        _clientIdMeta,
+        clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta),
+      );
+    }
     if (data.containsKey('description')) {
       context.handle(
         _descriptionMeta,
@@ -1044,6 +1062,10 @@ class $PointsTransactionsTable extends PointsTransactions
         DriftSqlType.int,
         data['${effectivePrefix}source_object_id'],
       ),
+      clientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}client_id'],
+      ),
       description: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}description'],
@@ -1068,6 +1090,7 @@ class PointsTransactionRow extends DataClass
   final String transactionType;
   final String source;
   final int? sourceObjectId;
+  final int? clientId;
   final String? description;
   final String createdAt;
   const PointsTransactionRow({
@@ -1076,6 +1099,7 @@ class PointsTransactionRow extends DataClass
     required this.transactionType,
     required this.source,
     this.sourceObjectId,
+    this.clientId,
     this.description,
     required this.createdAt,
   });
@@ -1088,6 +1112,9 @@ class PointsTransactionRow extends DataClass
     map['source'] = Variable<String>(source);
     if (!nullToAbsent || sourceObjectId != null) {
       map['source_object_id'] = Variable<int>(sourceObjectId);
+    }
+    if (!nullToAbsent || clientId != null) {
+      map['client_id'] = Variable<int>(clientId);
     }
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
@@ -1105,6 +1132,9 @@ class PointsTransactionRow extends DataClass
       sourceObjectId: sourceObjectId == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceObjectId),
+      clientId: clientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientId),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
@@ -1123,6 +1153,7 @@ class PointsTransactionRow extends DataClass
       transactionType: serializer.fromJson<String>(json['transactionType']),
       source: serializer.fromJson<String>(json['source']),
       sourceObjectId: serializer.fromJson<int?>(json['sourceObjectId']),
+      clientId: serializer.fromJson<int?>(json['clientId']),
       description: serializer.fromJson<String?>(json['description']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
     );
@@ -1136,6 +1167,7 @@ class PointsTransactionRow extends DataClass
       'transactionType': serializer.toJson<String>(transactionType),
       'source': serializer.toJson<String>(source),
       'sourceObjectId': serializer.toJson<int?>(sourceObjectId),
+      'clientId': serializer.toJson<int?>(clientId),
       'description': serializer.toJson<String?>(description),
       'createdAt': serializer.toJson<String>(createdAt),
     };
@@ -1147,6 +1179,7 @@ class PointsTransactionRow extends DataClass
     String? transactionType,
     String? source,
     Value<int?> sourceObjectId = const Value.absent(),
+    Value<int?> clientId = const Value.absent(),
     Value<String?> description = const Value.absent(),
     String? createdAt,
   }) => PointsTransactionRow(
@@ -1157,6 +1190,7 @@ class PointsTransactionRow extends DataClass
     sourceObjectId: sourceObjectId.present
         ? sourceObjectId.value
         : this.sourceObjectId,
+    clientId: clientId.present ? clientId.value : this.clientId,
     description: description.present ? description.value : this.description,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -1171,6 +1205,7 @@ class PointsTransactionRow extends DataClass
       sourceObjectId: data.sourceObjectId.present
           ? data.sourceObjectId.value
           : this.sourceObjectId,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
       description: data.description.present
           ? data.description.value
           : this.description,
@@ -1186,6 +1221,7 @@ class PointsTransactionRow extends DataClass
           ..write('transactionType: $transactionType, ')
           ..write('source: $source, ')
           ..write('sourceObjectId: $sourceObjectId, ')
+          ..write('clientId: $clientId, ')
           ..write('description: $description, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1199,6 +1235,7 @@ class PointsTransactionRow extends DataClass
     transactionType,
     source,
     sourceObjectId,
+    clientId,
     description,
     createdAt,
   );
@@ -1211,6 +1248,7 @@ class PointsTransactionRow extends DataClass
           other.transactionType == this.transactionType &&
           other.source == this.source &&
           other.sourceObjectId == this.sourceObjectId &&
+          other.clientId == this.clientId &&
           other.description == this.description &&
           other.createdAt == this.createdAt);
 }
@@ -1222,6 +1260,7 @@ class PointsTransactionsCompanion
   final Value<String> transactionType;
   final Value<String> source;
   final Value<int?> sourceObjectId;
+  final Value<int?> clientId;
   final Value<String?> description;
   final Value<String> createdAt;
   const PointsTransactionsCompanion({
@@ -1230,6 +1269,7 @@ class PointsTransactionsCompanion
     this.transactionType = const Value.absent(),
     this.source = const Value.absent(),
     this.sourceObjectId = const Value.absent(),
+    this.clientId = const Value.absent(),
     this.description = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -1239,6 +1279,7 @@ class PointsTransactionsCompanion
     required String transactionType,
     required String source,
     this.sourceObjectId = const Value.absent(),
+    this.clientId = const Value.absent(),
     this.description = const Value.absent(),
     required String createdAt,
   }) : amount = Value(amount),
@@ -1251,6 +1292,7 @@ class PointsTransactionsCompanion
     Expression<String>? transactionType,
     Expression<String>? source,
     Expression<int>? sourceObjectId,
+    Expression<int>? clientId,
     Expression<String>? description,
     Expression<String>? createdAt,
   }) {
@@ -1260,6 +1302,7 @@ class PointsTransactionsCompanion
       if (transactionType != null) 'transaction_type': transactionType,
       if (source != null) 'source': source,
       if (sourceObjectId != null) 'source_object_id': sourceObjectId,
+      if (clientId != null) 'client_id': clientId,
       if (description != null) 'description': description,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -1271,6 +1314,7 @@ class PointsTransactionsCompanion
     Value<String>? transactionType,
     Value<String>? source,
     Value<int?>? sourceObjectId,
+    Value<int?>? clientId,
     Value<String?>? description,
     Value<String>? createdAt,
   }) {
@@ -1280,6 +1324,7 @@ class PointsTransactionsCompanion
       transactionType: transactionType ?? this.transactionType,
       source: source ?? this.source,
       sourceObjectId: sourceObjectId ?? this.sourceObjectId,
+      clientId: clientId ?? this.clientId,
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -1303,6 +1348,9 @@ class PointsTransactionsCompanion
     if (sourceObjectId.present) {
       map['source_object_id'] = Variable<int>(sourceObjectId.value);
     }
+    if (clientId.present) {
+      map['client_id'] = Variable<int>(clientId.value);
+    }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
@@ -1320,6 +1368,7 @@ class PointsTransactionsCompanion
           ..write('transactionType: $transactionType, ')
           ..write('source: $source, ')
           ..write('sourceObjectId: $sourceObjectId, ')
+          ..write('clientId: $clientId, ')
           ..write('description: $description, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -7411,6 +7460,7 @@ typedef $$PointsTransactionsTableCreateCompanionBuilder =
       required String transactionType,
       required String source,
       Value<int?> sourceObjectId,
+      Value<int?> clientId,
       Value<String?> description,
       required String createdAt,
     });
@@ -7421,6 +7471,7 @@ typedef $$PointsTransactionsTableUpdateCompanionBuilder =
       Value<String> transactionType,
       Value<String> source,
       Value<int?> sourceObjectId,
+      Value<int?> clientId,
       Value<String?> description,
       Value<String> createdAt,
     });
@@ -7456,6 +7507,11 @@ class $$PointsTransactionsTableFilterComposer
 
   ColumnFilters<int> get sourceObjectId => $composableBuilder(
     column: $table.sourceObjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get clientId => $composableBuilder(
+    column: $table.clientId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7504,6 +7560,11 @@ class $$PointsTransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get clientId => $composableBuilder(
+    column: $table.clientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get description => $composableBuilder(
     column: $table.description,
     builder: (column) => ColumnOrderings(column),
@@ -7542,6 +7603,9 @@ class $$PointsTransactionsTableAnnotationComposer
     column: $table.sourceObjectId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get clientId =>
+      $composableBuilder(column: $table.clientId, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
     column: $table.description,
@@ -7597,6 +7661,7 @@ class $$PointsTransactionsTableTableManager
                 Value<String> transactionType = const Value.absent(),
                 Value<String> source = const Value.absent(),
                 Value<int?> sourceObjectId = const Value.absent(),
+                Value<int?> clientId = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
               }) => PointsTransactionsCompanion(
@@ -7605,6 +7670,7 @@ class $$PointsTransactionsTableTableManager
                 transactionType: transactionType,
                 source: source,
                 sourceObjectId: sourceObjectId,
+                clientId: clientId,
                 description: description,
                 createdAt: createdAt,
               ),
@@ -7615,6 +7681,7 @@ class $$PointsTransactionsTableTableManager
                 required String transactionType,
                 required String source,
                 Value<int?> sourceObjectId = const Value.absent(),
+                Value<int?> clientId = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 required String createdAt,
               }) => PointsTransactionsCompanion.insert(
@@ -7623,6 +7690,7 @@ class $$PointsTransactionsTableTableManager
                 transactionType: transactionType,
                 source: source,
                 sourceObjectId: sourceObjectId,
+                clientId: clientId,
                 description: description,
                 createdAt: createdAt,
               ),
