@@ -3,13 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../app_theme.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/daos/question_dao.dart';
-import '../data/daos/user_dao.dart';
-import '../data/api/api_client.dart';
-import '../data/api/user_api.dart';
+import '../data/daos/system_config_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/preference_repository.dart';
 import '../domain/exam_repository.dart';
-import '../domain/user_repository.dart';
 import 'exam/widgets/filter_panel.dart';
 import 'router.dart';
 import '../widgets/shared/loading_indicator.dart';
@@ -20,8 +17,7 @@ import '../data/debug/operation_log.dart';
 class PreferenceWelcomePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final QuestionDao? questionDao;
-  final UserRepository? userRepository;
-  const PreferenceWelcomePage({super.key, this.preferenceRepository, this.questionDao, this.userRepository});
+  const PreferenceWelcomePage({super.key, this.preferenceRepository, this.questionDao});
 
   @override State<PreferenceWelcomePage> createState() => _PreferenceWelcomePageState();
 }
@@ -29,7 +25,6 @@ class PreferenceWelcomePage extends StatefulWidget {
 class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   late final PreferenceRepository _repo;
   late final QuestionDao _qDao;
-  late final UserRepository _userRepo;
   bool _saving = false;
   final _nameCtrl = TextEditingController(text: '我的偏好');
 
@@ -59,7 +54,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     super.initState();
     _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _qDao = widget.questionDao ?? QuestionDao(DatabaseProvider());
-    _userRepo = widget.userRepository ?? UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), _qDao);
     _loadOpts();
     _loadBonus();
     // 页面构建完成后弹出欢迎 Dialog
@@ -88,7 +82,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   Future<void> _loadBonus() async {
     try {
-      final pts = await _userRepo.bonusPoints();
+      final cfg = SystemConfigDao(DatabaseProvider());
+      final pts = await cfg.getDouble('signup_bonus_amount', 10);
       if (!mounted) return;
       setState(() { _bonusPoints = pts; _bonusLoaded = true; });
     } catch (e) {
