@@ -2,7 +2,7 @@
 ///
 /// 来源: pubspec.yaml 中的 version 字段
 /// 生成命令: python scripts/generate_version.py
-const appVersion = '1.0.0-alpha.1+1';
+const appVersion = '1.0.0-alpha.1+2';
 
 /// API 基础 URL（支持环境切换）
 const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.top/api/v1');
