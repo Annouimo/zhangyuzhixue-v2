@@ -4,12 +4,12 @@
 /// 不要手动编辑。
 class AppVersion {
   AppVersion._();
-  static const String version = '1.0.0-alpha.1+2';
+  static const String version = '1.0.0-alpha.2+1';
   static const String buildEnv = 'release';
 }
 
 /// App 版本号字符串（自动生成）
-const appVersion = '1.0.0-alpha.1+2';
+const appVersion = '1.0.0-alpha.2+1';
 
 /// API 基础 URL（支持环境切换）
 const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.top/api/v1');
