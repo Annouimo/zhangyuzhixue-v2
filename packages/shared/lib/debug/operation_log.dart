@@ -113,7 +113,18 @@ class OperationLog {
     final src = File(await logFilePath);
     if (!await src.exists()) return ExportResult.fileNotFound;
 
-    // 1. 复制到公共目录（Desktop/Downloads），文件名带时间戳避免覆盖
+    // 1. 优先系统分享（Android/iOS 走 content:// URI，无需写公共目录）
+    try {
+      await Share.shareXFiles(
+        [XFile(src.path)],
+        subject: 'operation_log.ndjson',
+      );
+      return ExportResult.success;
+    } catch (e) {
+      AuditLogger.instance.error('OperationLog.exportToShare share failed', e);
+    }
+
+    // 2. 分享失败（常见于 Windows）→ 复制到 Downloads + 打开文件夹
     final exportDir = await _exportDirectory();
     final ts = DateTime.now();
     final timestamp =
@@ -121,20 +132,8 @@ class OperationLog {
         '_${ts.hour.toString().padLeft(2, '0')}${ts.minute.toString().padLeft(2, '0')}${ts.second.toString().padLeft(2, '0')}';
     final dest = File('${exportDir.path}${Platform.pathSeparator}operation_log_$timestamp.ndjson');
     await src.copy(dest.path);
-
-    // 2. 尝试系统分享面板（移动端完美工作）
-    try {
-      await Share.shareXFiles(
-        [XFile(dest.path)],
-        subject: 'operation_log.ndjson',
-      );
-      return ExportResult.success;
-    } catch (e) {
-      // 3. 分享失败（常见于 Windows），文件已导出到 Downloads
-      AuditLogger.instance.error('OperationLog.exportToShare', e);
-      _revealInExplorer(dest.path);
-      return ExportResult.savedToFolder;
-    }
+    _revealInExplorer(dest.path);
+    return ExportResult.savedToFolder;
   }
 
   /// 获取导出目标目录：桌面端→Downloads，移动端→Documents
