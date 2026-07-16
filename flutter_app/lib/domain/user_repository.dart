@@ -1,8 +1,10 @@
+import 'dart:async';
 import '../data/daos/user_dao.dart';
 import '../data/api/user_api.dart';
 import '../data/daos/question_dao.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/database/app_database.dart' as db;
+import '../data/debug/audit_logger.dart';
 
 /// 用户信息
 class UserInfo {
@@ -106,9 +108,12 @@ class UserRepository {
   final QuestionDao _questionDao;
 
   UserRepository(this._dao, this._api, this._questionDao);
+
   Future<UserInfo> getUserInfo() async {
     final local = await _dao.getProfile();
     if (local != null) {
+      // 有本地缓存：立即返回，后台调 API 刷新
+      unawaited(_refreshProfileFromApi());
       return UserInfo(
         id: local.id,
         name: local.name,
@@ -120,9 +125,8 @@ class UserRepository {
         phone: local.phone,
       );
     }
-    // fallback: 从 API 获取
+    // 无本地缓存：从 API 获取并回写
     final remote = await _api.getInfo();
-    // 回写本地缓存，下次直接走 local path
     await _dao.saveProfile(
       id: remote['id'] as int,
       name: remote['username'] as String,
@@ -139,6 +143,30 @@ class UserRepository {
       avatar: remote['avatar'] as String?,
       gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
     );
+  }
+
+  /// 后台刷新用户信息（API 覆盖本地缓存，静默失败）
+  Future<void> _refreshProfileFromApi() async {
+    try {
+      final remote = await _api.getInfo();
+      // 读当前本地缓存，保住 API 不返回的字段（school、phone、classGroupId）
+      final local = await _dao.getProfile();
+      await _dao.saveProfile(
+        id: remote['id'] as int,
+        name: remote['username'] as String,
+        realName: remote['real_name'] as String?,
+        studentId: remote['student_id'] as String?,
+        avatar: remote['avatar'] as String?,
+        school: local?.school,
+        gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
+        phone: local?.phone,
+        classGroupId: local?.classGroupId,
+      );
+      AuditLogger.instance.sync('refreshProfile',
+          {'id': remote['id'], 'name': remote['username']});
+    } catch (e) {
+      AuditLogger.instance.error('UserRepository._refreshProfileFromApi', e);
+    }
   }
 
   Future<void> saveProfile(UserInfo data) async {
@@ -370,12 +398,15 @@ class UserRepository {
     return (level: lv, progress: '$progress/$range');
   }
 
+  /// 从本地缓存读取等级百分位（秒开，不调 API）
+  int getCachedLevelPercentile() => AppPrefs().levelPercentile;
+
+  /// 从 API 刷新等级百分位，失败时回退缓存
   Future<int> levelPercentile() async {
     try {
       final data = await _api.getLevelPercentile();
       final raw = data['level_percentile'];
       final result = (raw is num) ? raw.toInt() : 0;
-      // 缓存到 AppPrefs，供离线使用
       if (result > 0) AppPrefs().setLevelPercentile(result);
       return result;
     } catch (_) {
