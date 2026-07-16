@@ -241,6 +241,60 @@ body.has-header { padding-top: var(--header-height); }
 }
 .error-banner.show { display: block; }
 
+/* ── 单选卡片（课程/组卷选择） ── */
+.paper-card {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.paper-card:hover { border-color: var(--primary); }
+.paper-card.selected { border-color: var(--primary); background: var(--primary-light); }
+.paper-card .radio {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-right: 12px;
+}
+.paper-card.selected .radio { border-color: var(--primary); }
+.paper-card.selected .radio::after {
+  content: ''; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--primary);
+}
+.paper-card .info { flex: 1; }
+.paper-card .name { font-size: 14px; font-weight: 500; }
+.paper-card .desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.paper-card .count { font-size: 13px; color: var(--text-secondary); flex-shrink: 0; margin-left: 8px; }
+
+/* ── 搜索框 ── */
+.search-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── 用户名 ── */
+.username { color: var(--text); font-weight: 500; }
+
+/* ── 正确率详情小字（correct/total） ── */
+.detail { font-size: 12px; color: var(--text-muted); }
+
+/* ── 知识标签 ── */
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  margin: 2px 4px 2px 0;
+}
+
 /* ── 工具 ── */
 .mt-1 { margin-top: 8px; }
 .mt-2 { margin-top: 16px; }
