@@ -38,6 +38,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
+  bool _submitting = false;
   bool _obscurePassword = true;
 
   late final AuthRepository _authRepo;
@@ -58,7 +59,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
+    if (_submitting) return;
+    setState(() => _submitting = true);
     setState(() => _loading = true);
 
     try {
@@ -132,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _submitting = false; });
       AuditLogger.instance.page('LoginPage', {'loading': _loading});
     }
   }

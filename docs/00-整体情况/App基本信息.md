@@ -13,7 +13,7 @@
 | **项目名** | `flutter_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - Flutter 学生端` | pubspec.yaml 描述字段 |
-| **版本** | `1.0.0-alpha.1+1` | 见下方版本号说明 |
+| **版本** | `1.0.0-alpha.2+1` | 见下方版本号说明 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.student` | Google Play / 各应用商店区分应用的唯一 ID。**发布后不可更改**，否则视为新应用 |
 | **Android - 显示名称** | `章鱼智学` | `AndroidManifest.xml` 中 `android:label`，桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.student` | App Store 区分应用唯一 ID，与 Android applicationId 对应但独立维护 |
@@ -25,7 +25,7 @@
 
 ### 版本号详解
 
-`1.0.0-alpha.1+1` 拆解：
+`1.0.0-alpha.2+1` 拆解：
 
 ```
  1 . 0 . 0 -alpha . 1 + 1
@@ -90,7 +90,7 @@
 | **项目名** | `teacher_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学 · 教师端` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - 教师端（题库浏览 + 讲义阅读 + 选题导出）` | pubspec.yaml 描述字段 |
-| **版本** | `1.0.0-alpha.1+1` | 与学生端同步发布 |
+| **版本** | `1.0.0-alpha.2+1` | 与学生端同步发布 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.teacher` | 与学生端不同 |
 | **Android - 显示名称** | `章鱼智学 · 教师端` | 桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.teacher` | 与学生端不同 |

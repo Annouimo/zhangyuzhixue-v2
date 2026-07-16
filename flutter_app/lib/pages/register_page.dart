@@ -29,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String _gaokaoYear = '2026';
 
   bool _loading = false;
+  bool _submitting = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
@@ -53,7 +54,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-
+    if (_submitting) return;
+    setState(() => _submitting = true);
     setState(() => _loading = true);
 
     try {
@@ -84,7 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() { _loading = false; _submitting = false; });
       AuditLogger.instance.page('RegisterPage', {'saving': _loading});
     }
   }

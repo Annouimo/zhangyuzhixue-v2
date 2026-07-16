@@ -46,6 +46,7 @@ class IndexPageState extends State<IndexPage> {
   int _pendingCount = 0;
   int _streakDays = 0;
   bool _checkedIn = false;
+  bool _submitting = false;
   String? _error;
   String _levelProgress = '';
   int _currentLevel = 1;
@@ -240,10 +241,11 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _doCheckin() async {
-    if (_checkedIn) {
-      AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
+    if (_checkedIn || _submitting) {
+      if (_checkedIn) AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
       return;
     }
+    setState(() => _submitting = true);
     try {
       final result = await _repo.checkin();
       final streak = result['streak_days'] as int? ?? 0;
@@ -278,6 +280,7 @@ class IndexPageState extends State<IndexPage> {
       setState(() {
         _streakDays = streak;
         _checkedIn = true;
+        _submitting = false;
       });
       OperationLog.instance.action('checkin', 'ok +$points pts, streak=$streak');
       AppToast.show(context,
@@ -300,6 +303,7 @@ class IndexPageState extends State<IndexPage> {
         } catch (_) {}
       }
     } catch (e) {
+      _submitting = false;
       OperationLog.instance.error('IndexPage._doCheckin', e); 
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;

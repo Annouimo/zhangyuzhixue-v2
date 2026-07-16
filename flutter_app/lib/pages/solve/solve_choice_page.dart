@@ -40,6 +40,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   String? _selected;
   bool _submitted = false;
   bool _isCorrect = false;
+  bool _submitting = false;
   bool _loading = true;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
@@ -132,7 +133,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Future<void> _submit() async {
-    if (_selected == null) return;
+    if (_selected == null || _submitting) return;
+    setState(() => _submitting = true);
     try {
       await _repo.saveAttempt(
         widget.questionId,
@@ -144,8 +146,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       setState(() {
         _submitted = true;
         _isCorrect = _selected == _detail?.answer;
+        _submitting = false;
       });
     } catch (e) {
+      setState(() => _submitting = false);
       AuditLogger.instance.error('SolveChoicePage._submit', e);
     }
   }
