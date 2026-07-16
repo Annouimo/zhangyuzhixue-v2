@@ -190,6 +190,59 @@ class DatabaseProvider {
     _bumpVersion();
   }
 
+  /// 替换前备份当前 user.db，附带用户标识以支持后续身份校验。
+  /// [userIdentity] 当前用户的唯一标识（如 refresh token 的 hash）。
+  Future<void> backupUserDb(String userIdentity) async {
+    final dir = _dbDirPath;
+    if (dir == null) return;
+    final src = File('$dir/user.db');
+    if (!await src.exists()) return;
+    await src.copy('$dir/user.db.bak');
+    await File('$dir/user.bak.id').writeAsString(userIdentity);
+  }
+
+  /// 从备份恢复 user.db。先校验用户身份是否匹配，不匹配则删除备份不清除数据。
+  /// 返回 true=已恢复，false=未恢复（身份不匹配或无备份）。
+  Future<bool> restoreUserDb(String userIdentity) async {
+    final dir = _dbDirPath;
+    if (dir == null) return false;
+    final bak = File('$dir/user.db.bak');
+    if (!await bak.exists()) return false;
+
+    // 校验用户身份
+    final idFile = File('$dir/user.bak.id');
+    if (await idFile.exists()) {
+      final savedId = (await idFile.readAsString()).trim();
+      if (savedId != userIdentity) {
+        // 不同用户 → 删备份，不清数据（保留空 user.db）
+        await bak.delete();
+        await idFile.delete();
+        return false;
+      }
+    }
+
+    // 同用户 → 恢复
+    await _appDb?.close();
+    final target = File('$dir/user.db');
+    if (await target.exists()) await target.delete();
+    await bak.copy(target.path);
+    _appDb = AppDatabase(NativeDatabase(target));
+    await _appDb!.customStatement('PRAGMA journal_mode=WAL');
+    await _ensurePreferenceSchema();
+    _bumpVersion();
+    return true;
+  }
+
+  /// 删除 user.db 的备份和元数据文件。
+  Future<void> deleteUserDbBackup() async {
+    final dir = _dbDirPath;
+    if (dir == null) return;
+    for (final name in ['user.db.bak', 'user.bak.id']) {
+      final f = File('$dir/$name');
+      if (await f.exists()) await f.delete();
+    }
+  }
+
   /// ⚠️ 仅限测试使用！绝对不要在业务代码中调用。
   ///
   /// 用指定目录路径初始化三库，跳过 getApplicationSupportDirectory()

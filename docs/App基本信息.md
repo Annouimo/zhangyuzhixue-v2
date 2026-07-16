@@ -19,6 +19,7 @@
 | **iOS - Bundle ID** | `com.zhangyuzhixue.student` | App Store 区分应用唯一 ID，与 Android applicationId 对应但独立维护 |
 | **iOS - 显示名称** | `章鱼智学` | `Info.plist` 中 `CFBundleDisplayName`，桌面图标下方文字 |
 | **iOS - 内部名称** | `章鱼智学` | `Info.plist` 中 `CFBundleName`，系统内部使用 |
+| **Windows - 窗口标题** | `章鱼智学` | `windows/runner/main.cpp` 中 `window.Create()` 的参数。任务栏和窗口标题栏显示的名称 |
 | **Windows - 安装包名** | `章鱼智学-alpha1.exe` | 发布物文件名 |
 | **Windows - 显示名称** | — | 暂未配置 MSIX |
 
@@ -97,6 +98,7 @@
 | **iOS - 内部名称** | `章鱼智学 · 教师端` | `CFBundleName` |
 | **Windows - MSIX 显示名** | `章鱼智学 · 教师端` | 开始菜单/任务栏显示 |
 | **Windows - MSIX 标识** | `com.zhangyuzhixue.teacher` | 安装标识，不可更改 |
+| **Windows - 窗口标题** | `章鱼智学 · 教师端` | `windows/runner/main.cpp` 中 `window.Create()` 的参数 |
 
 > 教师端版本号格式与学生端完全一致，同步发布，版本号始终保持相同。
 

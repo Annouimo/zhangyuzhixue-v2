@@ -6,6 +6,9 @@ import 'sync_pusher.dart';
 import 'update_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_app/data/debug/audit_logger.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import '../prefs/app_prefs.dart';
 /// 同步引擎总入口（单例）
 class SyncManager {
   static final SyncManager _instance = SyncManager._();
@@ -93,13 +96,24 @@ class SyncManager {
     if (type == 'user') {
       // 用户数据更新：运行时调 fetchUserPullInfo 获取下载信息
       final info = await _api!.fetchUserPullInfo();
-      await _updateManager!.downloadAndReplace(
-        type: type,
-        url: info.downloadUrl,
-        expectedChecksum: info.checksum,
-        newVersion: info.version,
-        onProgress: onProgress,
-      );
+      await _dbProvider!.backupUserDb(_currentUserIdentity);
+      try {
+        await _updateManager!.downloadAndReplace(
+          type: type,
+          url: info.downloadUrl,
+          expectedChecksum: info.checksum,
+          newVersion: info.version,
+          onProgress: onProgress,
+        );
+        await _dbProvider!.deleteUserDbBackup();
+      } catch (e) {
+        final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
+        if (!restored) {
+          await _dbProvider!.clearUserDb();
+          await AppPrefs().setUserVersion(0);
+        }
+        rethrow;
+      }
       _pendingUpdates.removeWhere((s) => s.type == type);
       return;
     }
@@ -134,20 +148,45 @@ class SyncManager {
     await _queueDao!.clearAll();
   }
 
-  /// 登录后调用：推送积压 → 拉取并替换 user.db
+  /// 登录时使用的用户身份标识（refresh token 的 hash，稳定可跨 session 校验）
+  String get _currentUserIdentity {
+    final token = AppPrefs().refreshToken ?? '';
+    return sha256.convert(utf8.encode(token)).toString();
+  }
+
+  /// 登录后调用：推送积压 → 备份当前 user.db → 拉取并替换 → 成功后清理备份
   Future<void> onLogin({
     void Function(double progress)? onProgress,
   }) async {
     try {
       final summary = await pushNow();
       final info = await _api!.fetchUserPullInfo();
-      await _updateManager!.downloadAndReplace(
-        type: 'user',
-        url: info.downloadUrl,
-        expectedChecksum: info.checksum,
-        newVersion: info.version,
-        onProgress: onProgress,
-      );
+
+      // 备份当前 user.db（替换前，用于下载失败时回滚）
+      await _dbProvider!.backupUserDb(_currentUserIdentity);
+
+      try {
+        await _updateManager!.downloadAndReplace(
+          type: 'user',
+          url: info.downloadUrl,
+          expectedChecksum: info.checksum,
+          newVersion: info.version,
+          onProgress: onProgress,
+        );
+        // 下载成功 → 删备份
+        await _dbProvider!.deleteUserDbBackup();
+        await AppPrefs().setLastSyncTime(DateTime.now().toIso8601String());
+      } catch (e) {
+        // 下载失败 → 尝试恢复备份
+        final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
+        if (!restored) {
+          // 身份不匹配或无备份 → 清空 user.db 防止残留旧数据
+          await _dbProvider!.clearUserDb();
+          await AppPrefs().setUserVersion(0);
+        }
+        rethrow;
+      }
+
       AuditLogger.instance.sync('syncAll', {
         'pushSuccess': summary?.successCount ?? 0,
         'pushFail': summary?.failCount ?? 0,
@@ -170,7 +209,6 @@ class SyncManager {
     }
     try {
       await clearQueue();
-      await _dbProvider!.clearUserDb();
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onLogout_clear', e);
       // 未初始化则跳过
@@ -182,20 +220,32 @@ class SyncManager {
     void Function(double progress)? onProgress,
   }) async {
     _ensureInitialized();
-    // 先推送本地积压，再拉取服务器数据（与 onLogin 行为一致）
     try {
       await pushNow();
     } catch (_) {
       // 推送失败不阻塞强制拉取
     }
     final info = await _api!.fetchUserPullInfo();
-    await _updateManager!.downloadAndReplace(
-      type: 'user',
-      url: info.downloadUrl,
-      expectedChecksum: info.checksum,
-      newVersion: info.version,
-      onProgress: onProgress,
-    );
+
+    await _dbProvider!.backupUserDb(_currentUserIdentity);
+
+    try {
+      await _updateManager!.downloadAndReplace(
+        type: 'user',
+        url: info.downloadUrl,
+        expectedChecksum: info.checksum,
+        newVersion: info.version,
+        onProgress: onProgress,
+      );
+      await _dbProvider!.deleteUserDbBackup();
+    } catch (e) {
+      final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
+      if (!restored) {
+        await _dbProvider!.clearUserDb();
+        await AppPrefs().setUserVersion(0);
+      }
+      rethrow;
+    }
   }
 
   void _ensureInitialized() {
