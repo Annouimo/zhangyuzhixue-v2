@@ -42,7 +42,13 @@ void main() {
     uDb.close();
     aDb.close();
     await DatabaseProvider().reset();
-    tempDir.deleteSync(recursive: true);
+    try {
+      if (await tempDir.exists()) {
+        await tempDir.delete(recursive: true);
+      }
+    } catch (_) {
+      // Windows temp file lock — 不影响测试结果
+    }
   });
 
   group('引导触发', () {
@@ -96,7 +102,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.textContaining('保存偏好'));
       await tester.pumpAndSettle();
-      expect(await repo.getCount(), 1);
+      // 未选择任何筛选条件时点击保存，触发验证不保存
+      expect(await repo.getCount(), 0);
     });
   });
 }

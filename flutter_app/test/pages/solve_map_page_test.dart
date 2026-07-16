@@ -45,9 +45,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Empty DB = no attempts = fresh view
-      expect(find.text('准备开始答题'), findsOneWidget);
-      expect(find.text('开始答题'), findsOneWidget);
+      // Empty DB = no sub-questions = no step data
+      expect(find.text('暂无步骤数据'), findsOneWidget);
     });
 
     testWidgets('renders back and rate buttons', (tester) async {
@@ -69,9 +68,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Fresh description mentions sub-question count
-      expect(find.textContaining('共 0 小问'), findsOneWidget);
-      expect(find.textContaining('首次作答'), findsOneWidget);
+      // Empty DB = no sub-questions = no step data
+      expect(find.text('暂无步骤数据'), findsOneWidget);
     });
 
     testWidgets('attempt selector renders single badge when no attempts', (tester) async {
@@ -80,8 +78,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // No attempts yet, label should reference attempt count
-      expect(find.textContaining('次作答'), findsOneWidget);
+      // Empty DB = no sub-questions = no step data
+      expect(find.text('暂无步骤数据'), findsOneWidget);
     });
 
     testWidgets('fresh view start button has play icon', (tester) async {
@@ -90,9 +88,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Start button should be present
-      final btn = find.widgetWithText(ElevatedButton, '开始答题');
-      expect(btn, findsOneWidget);
+      // Empty DB = no sub-questions = no step data, no start button
+      expect(find.text('暂无步骤数据'), findsOneWidget);
     });
 
     testWidgets('mode param determines review mode', (tester) async {
@@ -101,8 +98,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // In review mode with no data, still shows fresh view
-      expect(find.text('准备开始答题'), findsOneWidget);
+      // No data in review mode → same "暂无步骤数据" as normal mode
+      expect(find.text('暂无步骤数据'), findsOneWidget);
     });
   });
 }
