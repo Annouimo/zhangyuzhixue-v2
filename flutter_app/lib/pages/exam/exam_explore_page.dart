@@ -49,13 +49,44 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   }
 
   Future<void> _toggleLike(int examId) async {
+    // 乐观更新
+    if (_list != null) {
+      setState(() {
+        final idx = _list!.indexWhere((e) => e.id == examId);
+        if (idx >= 0) {
+          final old = _list![idx];
+          _list![idx] = ExploreExamSummary(
+            id: old.id, name: old.name, authorInfo: old.authorInfo,
+            summary: old.summary,
+            likeCount: old.isLiked ? old.likeCount - 1 : old.likeCount + 1,
+            collectCount: old.collectCount, createdAt: old.createdAt,
+            isLiked: !old.isLiked, isCollected: old.isCollected,
+          );
+        }
+      });
+    }
     await _repo.toggleLike(examId);
-    _load();
   }
 
   Future<void> _toggleCollect(int examId) async {
+    // 乐观更新
+    if (_list != null) {
+      setState(() {
+        final idx = _list!.indexWhere((e) => e.id == examId);
+        if (idx >= 0) {
+          final old = _list![idx];
+          _list![idx] = ExploreExamSummary(
+            id: old.id, name: old.name, authorInfo: old.authorInfo,
+            summary: old.summary,
+            likeCount: old.likeCount,
+            collectCount: old.isCollected ? old.collectCount - 1 : old.collectCount + 1,
+            createdAt: old.createdAt,
+            isLiked: old.isLiked, isCollected: !old.isCollected,
+          );
+        }
+      });
+    }
     await _repo.toggleCollect(examId);
-    _load();
   }
 
   @override

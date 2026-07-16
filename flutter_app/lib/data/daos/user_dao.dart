@@ -57,13 +57,35 @@ class UserDao {
     return result;
   }
 
+  /// 单 SQL 查询积分汇总（4 个聚合并行），替代全量加载+Dart 循环
+  Future<({double earned, double bonus, double spent, double available})> getPointsSummaryAggregated() async {
+    Future<double> sumWhere(List<String> sources) async {
+      final q = _db.selectOnly(_db.pointsTransactions)
+        ..addColumns([_db.pointsTransactions.amount.sum()])
+        ..where(_db.pointsTransactions.source.isIn(sources));
+      final row = await q.getSingle();
+      return row.read(_db.pointsTransactions.amount.sum()) ?? 0.0;
+    }
+    final results = await Future.wait([
+      sumWhere(['PRACTICE_REWARD']),
+      sumWhere(['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST']),
+      sumWhere(['PAPER_PURCHASE']),
+    ]);
+    final earned = results[0];
+    final bonus = results[1];
+    final spent = results[2].abs();
+    AuditLogger.instance.dao('UserDao.getPointsSummaryAggregated', 3, {});
+    return (earned: earned, bonus: bonus, spent: spent, available: earned + bonus - spent);
+  }
+
   Future<double> getEarnedPoints() async {
-    final rows = await (_db.select(_db.pointsTransactions)
-      ..where((t) => t.source.equals('PRACTICE_REWARD'))).get();
-    AuditLogger.instance.dao('UserDao.getEarnedPoints', rows.length, {});
-    var total = 0.0;
-    for (final r in rows) { total += r.amount; }
-    return total;
+    final q = _db.selectOnly(_db.pointsTransactions)
+      ..addColumns([_db.pointsTransactions.amount.sum()])
+      ..where(_db.pointsTransactions.source.equals('PRACTICE_REWARD'));
+    final row = await q.getSingle();
+    final result = row.read(_db.pointsTransactions.amount.sum()) ?? 0.0;
+    AuditLogger.instance.dao('UserDao.getEarnedPoints', 1, {});
+    return result;
   }
 
   Future<List<db.PointsTransactionRow>> getTransactionsBySource(
@@ -98,10 +120,13 @@ class UserDao {
   }
 
   Future<int> getTotalSubmissions() async {
-    final rows = await (_db.select(_db.submissionDetails)
-      ..where((t) => t.isCorrect.isNotNull())).get();
-    AuditLogger.instance.dao('UserDao.getTotalSubmissions', rows.length, {});
-    return rows.length;
+    final q = _db.selectOnly(_db.submissionDetails)
+      ..addColumns([_db.submissionDetails.id.count()])
+      ..where(_db.submissionDetails.isCorrect.isNotNull());
+    final row = await q.getSingle();
+    final result = row.read(_db.submissionDetails.id.count()) ?? 0;
+    AuditLogger.instance.dao('UserDao.getTotalSubmissions', result, {});
+    return result;
   }
 
   /// 获取最近做题记录（倒序，取 [limit] 条）

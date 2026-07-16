@@ -95,68 +95,36 @@ class _IndexPageState extends State<IndexPage> {
       final checkedIn = prefs.getBool('checked_in_today') ?? false;
       final pending = AppPrefs().pendingHomeworkCount;
 
+      // 新手提示：前 3 次打开显示引导卡片
+      final hintCount = prefs.getInt('welcome_hint_count') ?? 0;
+      if (hintCount < 3) {
+        await prefs.setInt('welcome_hint_count', hintCount + 1);
+        _showWelcomeHint = true;
+      }
+
       // 通过 AchievementDao 从登录日志推算连续签到天数
       final dao = AchievementDao(DatabaseProvider());
       final streak = await dao.getLoginStreak();
 
-      // 等级进度
-      final lvProgress = await _repo.levelProgress();
-      final lv = await _repo.currentLevel();
-      final todayEarned = await _repo.todayPoints();
-      final stats = await _repo.getTodaySubmissionStats();
-
-      // 查询同步队列状态
-      int syncPending = 0;
-      try {
-        syncPending = await SyncQueueDao(DatabaseProvider()).getPendingCount();
-      } catch (_) {}
-
-        // 新手提示：前 3 次打开显示引导卡片
-        final hintCount = prefs.getInt('welcome_hint_count') ?? 0;
-        if (hintCount < 3) {
-          await prefs.setInt('welcome_hint_count', hintCount + 1);
-          _showWelcomeHint = true;
-        }
-      // 任务奖励检测（每日仅发放一次）
-      final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
-      for (var i = 0; i < tasks.length; i++) {
-        if (tasks[i].done && prefs.getString('task_reward_${i}_date') != today) {
-          await prefs.setString('task_reward_${i}_date', today);
-          final now = DateTime.now().toIso8601String();
-          final newId = await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
-            app_db.PointsTransactionsCompanion(
-              amount: Value(tasks[i].reward),
-              source: const Value('TASK_REWARD'),
-              transactionType: const Value('EARN'),
-              createdAt: Value(now),
-              description: Value('完成任务: ${tasks[i].label}'),
-            ),
-          );
-          // 入同步队列
-          try {
-            await SyncManager().enqueue(
-              entityType: SyncEntityType.pointsTransaction,
-              operation: SyncOperationType.upsert,
-              localId: newId,
-              payload: jsonEncode({
-                'amount': tasks[i].reward,
-                'source': 'TASK_REWARD',
-                'transaction_type': 'EARN',
-                'description': '完成任务: ${tasks[i].label}',
-                'created_at': now,
-              }),
-            );
-          } catch (_) {}
-        }
-      }
+      // 并行加载 4 项独立数据（Future.wait 替代串行 await）
+      final results = await Future.wait([
+        _repo.getLevelAndProgress(),
+        _repo.todayPoints(),
+        _repo.getTodaySubmissionStats(),
+        SyncQueueDao(DatabaseProvider()).getPendingCount().catchError((_) => 0),
+      ]);
+      final lvData = results[0] as ({int level, String progress});
+      final todayEarned = results[1] as double;
+      final stats = results[2] as ({int total, int correct});
+      final syncPending = results[3] as int;
 
       if (!mounted) return;
       setState(() {
         _pendingCount = pending;
         _streakDays = streak;
         _checkedIn = checkedIn;
-        _levelProgress = lvProgress;
-        _currentLevel = lv;
+        _levelProgress = lvData.progress;
+        _currentLevel = lvData.level;
         _todayEarned = todayEarned;
         _todayTotal = stats.total;
         _todayCorrect = stats.correct;
@@ -164,6 +132,42 @@ class _IndexPageState extends State<IndexPage> {
         _loading = false;
       });
       AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn, 'level': _currentLevel});
+
+      // 任务奖励检测（UI 已显示后再异步执行，不阻塞首屏）
+      Future.microtask(() async {
+        try {
+          final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
+          for (var i = 0; i < tasks.length; i++) {
+            if (tasks[i].done && prefs.getString('task_reward_${i}_date') != today) {
+              await prefs.setString('task_reward_${i}_date', today);
+              final now = DateTime.now().toIso8601String();
+              final newId = await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+                app_db.PointsTransactionsCompanion(
+                  amount: Value(tasks[i].reward),
+                  source: const Value('TASK_REWARD'),
+                  transactionType: const Value('EARN'),
+                  createdAt: Value(now),
+                  description: Value('完成任务: ${tasks[i].label}'),
+                ),
+              );
+              try {
+                await SyncManager().enqueue(
+                  entityType: SyncEntityType.pointsTransaction,
+                  operation: SyncOperationType.upsert,
+                  localId: newId,
+                  payload: jsonEncode({
+                    'amount': tasks[i].reward,
+                    'source': 'TASK_REWARD',
+                    'transaction_type': 'EARN',
+                    'description': '完成任务: ${tasks[i].label}',
+                    'created_at': now,
+                  }),
+                );
+              } catch (_) {}
+            }
+          }
+        } catch (_) {}
+      });
     } catch (e) {
       AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
@@ -240,7 +244,11 @@ class _IndexPageState extends State<IndexPage> {
                 children: [
                   // 欢迎语卡片
                   _buildWelcomeCard(),
+                  // 新手提示卡片（前 3 次）
+                  if (_showWelcomeHint) _buildWelcomeHint(),
                   const SizedBox(height: 12),
+                  // 快速练习
+                  _buildQuickStart(),
                   // 待办作业
                   _buildPendingHomework(),
                   const SizedBox(height: 8),

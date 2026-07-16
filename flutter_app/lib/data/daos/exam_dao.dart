@@ -33,6 +33,15 @@ class ExamDao {
     return result;
   }
 
+  /// 批量查询试卷（替代 N+1 循环）
+  Future<List<db.CustomPaperRow>> getByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final q = _db.select(_db.customPapers)..where((t) => t.id.isIn(ids));
+    final rows = await q.get();
+    AuditLogger.instance.dao('ExamDao.getByIds', rows.length, {'idsCount': ids.length});
+    return rows;
+  }
+
   Future<int> savePaper({
     required String title,
     String? description,
@@ -154,6 +163,29 @@ class ExamDao {
     final rows = await (_db.select(_db.paperLikes)
       ..where((t) => t.paperId.equals(paperId))).get();
     return rows.length;
+  }
+
+  /// 批量查询试卷点赞/收藏状态+计数（替代 4N 查询为 2 次）
+  Future<Map<int, ({bool liked, int likeCount, bool collected, int collectCount})>> getExploreStatuses(List<int> paperIds) async {
+    if (paperIds.isEmpty) return {};
+    final idSet = paperIds.toSet();
+    final likes = await (_db.select(_db.paperLikes)
+      ..where((t) => t.paperId.isIn(idSet))).get();
+    final collects = await (_db.select(_db.paperCollects)
+      ..where((t) => t.paperId.isIn(idSet))).get();
+    final result = <int, ({bool liked, int likeCount, bool collected, int collectCount})>{};
+    for (final pid in paperIds) {
+      final pidLikes = likes.where((l) => l.paperId == pid).toList();
+      final pidCollects = collects.where((c) => c.paperId == pid).toList();
+      result[pid] = (
+        liked: pidLikes.isNotEmpty,
+        likeCount: pidLikes.length,
+        collected: pidCollects.isNotEmpty,
+        collectCount: pidCollects.length,
+      );
+    }
+    AuditLogger.instance.dao('ExamDao.getExploreStatuses', result.length, {'paperIds': paperIds.length});
+    return result;
   }
 
   /// 获取试卷收藏总数

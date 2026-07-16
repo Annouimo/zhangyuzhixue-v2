@@ -48,13 +48,28 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
   }
 
   Future<void> _toggleLike(int examId) async {
+    // 乐观更新
+    if (_list != null) {
+      setState(() {
+        final idx = _list!.indexWhere((e) => e.id == examId);
+        if (idx >= 0) {
+          final old = _list![idx];
+          _list![idx] = FavoriteExamSummary(
+            id: old.id, name: old.name, authorInfo: old.authorInfo,
+            summary: old.summary, isLiked: !old.isLiked,
+          );
+        }
+      });
+    }
     await _repo.toggleLike(examId);
-    _load();
   }
 
   Future<void> _removeCollect(int examId) async {
+    // 乐观删除：直接从列表移除
+    if (_list != null) {
+      setState(() => _list!.removeWhere((e) => e.id == examId));
+    }
     await _repo.toggleCollect(examId);
-    _load();
   }
 
   @override

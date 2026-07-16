@@ -273,21 +273,19 @@ class ExamRepository {
   // ── 发现组卷 ──
   Future<List<ExploreExamSummary>> getExploreList() async {
     final rows = await _examDao.listPublic();
-    final futures = rows.map((r) async {
-      final like = await _examDao.getLike(r.id);
-      final collect = await _examDao.getCollect(r.id);
-      final likeCount = await _examDao.getLikeCount(r.id);
-      final collectCount = await _examDao.getCollectCount(r.id);
+    final ids = rows.map((r) => r.id).toList();
+    final statuses = await _examDao.getExploreStatuses(ids);
+    return rows.map((r) {
+      final s = statuses[r.id] ?? (liked: false, likeCount: 0, collected: false, collectCount: 0);
       return ExploreExamSummary(
         id: r.id, name: r.title, authorInfo: '',
         summary: r.description ?? '',
-        likeCount: likeCount,
-        collectCount: collectCount,
+        likeCount: s.likeCount,
+        collectCount: s.collectCount,
         createdAt: r.createdAt,
-        isLiked: like != null, isCollected: collect != null,
+        isLiked: s.liked, isCollected: s.collected,
       );
-    });
-    return Future.wait(futures);
+    }).toList();
   }
 
   Future<void> toggleLike(int paperId) async {
@@ -324,18 +322,12 @@ class ExamRepository {
   Future<List<FavoriteExamSummary>> getFavorites() async {
     final collectedIds = await _examDao.getCollectedPaperIds();
     if (collectedIds.isEmpty) return [];
-    final result = <FavoriteExamSummary>[];
-    for (final pid in collectedIds) {
-      final paper = await _examDao.getById(pid);
-      if (paper == null) continue;
-      result.add(FavoriteExamSummary(
-        id: paper.id,
-        name: paper.title,
-        summary: paper.description ?? '',
-        authorInfo: '',
-      ));
-    }
-    return result;
+    final papers = await _examDao.getByIds(collectedIds);
+    return papers.map((p) => FavoriteExamSummary(
+      id: p.id, name: p.title,
+      summary: p.description ?? '',
+      authorInfo: '',
+    )).toList();
   }
 
   Future<void> removeFavorite(int examId) async {

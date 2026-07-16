@@ -276,32 +276,40 @@ def _dump_login_logs(conn, student):
 
 
 def _dump_points(conn, student):
-    for pt in PointsTransaction.objects.filter(student=student):
-        conn.execute(
-            'INSERT INTO points_transaction '
-            '(id, amount, transaction_type, source, source_object_id, client_id, description, created_at) '
+    pts = PointsTransaction.objects.filter(student=student)
+    rows = []
+    for pt in pts:
+        rows.append([
+            pt.pk, pt.amount, pt.transaction_type, pt.source,
+            pt.source_object_id, pt.client_id, pt.description or '',
+            _fmt_dt(pt.created_at),
+        ])
+    if rows:
+        conn.executemany(
+            'INSERT INTO points_transaction (id, amount, transaction_type, '
+            'source, source_object_id, client_id, description, created_at) '
             'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [
-                pt.pk, pt.amount, pt.transaction_type, pt.source,
-                pt.source_object_id, pt.client_id, pt.description or '',
-                _fmt_dt(pt.created_at),
-            ],
+            rows,
         )
 
 
 def _dump_achievements(conn, student):
-    for sa in StudentAchievement.objects.filter(
+    achievements = StudentAchievement.objects.filter(
         student=student
-    ).select_related('achievement'):
-        conn.execute(
+    ).select_related('achievement')
+    rows = []
+    for sa in achievements:
+        rows.append([
+            sa.pk, sa.achievement.code, sa.progress,
+            1 if sa.is_unlocked else 0,
+            _fmt_dt(sa.unlocked_at), _fmt_dt(sa.updated_at),
+        ])
+    if rows:
+        conn.executemany(
             'INSERT INTO student_achievement '
             '(id, achievement_code, progress, is_unlocked, unlocked_at, updated_at) '
             'VALUES (?, ?, ?, ?, ?, ?)',
-            [
-                sa.pk, sa.achievement.code, sa.progress,
-                1 if sa.is_unlocked else 0,
-                _fmt_dt(sa.unlocked_at), _fmt_dt(sa.updated_at),
-            ],
+            rows,
         )
 
 
@@ -368,15 +376,19 @@ def _dump_submissions(conn, student):
 
 
 def _dump_ratings(conn, student):
-    for r in QuestionRating.objects.filter(student=student):
-        conn.execute(
+    ratings = QuestionRating.objects.filter(student=student)
+    rows = []
+    for r in ratings:
+        rows.append([r.pk, r.pk, r.question_id, r.difficulty_score,
+                     r.calculation_score, r.elegance_score, _fmt_dt(r.created_at)])
+    if rows:
+        conn.executemany(
             'INSERT INTO question_rating '
             '(id, server_id, question_id, '
             'difficulty_score, calculation_score, '
             'elegance_score, created_at) '
             'VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [r.pk, r.pk, r.question_id, r.difficulty_score,
-             r.calculation_score, r.elegance_score, _fmt_dt(r.created_at)],
+            rows,
         )
 
 
@@ -406,18 +418,26 @@ def _dump_custom_papers(conn, student):
 
 
 def _dump_likes(conn, student):
-    for like in PaperLike.objects.filter(student=student):
-        conn.execute(
+    likes = PaperLike.objects.filter(student=student)
+    rows = []
+    for like in likes:
+        rows.append([like.paper_id, _fmt_dt(like.created_at)])
+    if rows:
+        conn.executemany(
             'INSERT OR IGNORE INTO paper_like (paper_id, created_at) VALUES (?, ?)',
-            [like.paper_id, _fmt_dt(like.created_at)],
+            rows,
         )
 
 
 def _dump_collects(conn, student):
-    for collect in PaperCollect.objects.filter(student=student):
-        conn.execute(
+    collects = PaperCollect.objects.filter(student=student)
+    rows = []
+    for collect in collects:
+        rows.append([collect.paper_id, _fmt_dt(collect.created_at)])
+    if rows:
+        conn.executemany(
             'INSERT OR IGNORE INTO paper_collect (paper_id, created_at) VALUES (?, ?)',
-            [collect.paper_id, _fmt_dt(collect.created_at)],
+            rows,
         )
 
 

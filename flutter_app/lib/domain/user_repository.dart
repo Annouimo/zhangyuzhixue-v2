@@ -236,9 +236,9 @@ class UserRepository {
   }
 
   /// 一次性获取所有积分汇总（earned + bonus + spent + available）
-  /// 只查询一次数据库，避免 N+1 查询
+  /// 使用 Drift 原生聚合，1 次 DB 查询替代全量加载+Dart 循环
   Future<({double earned, double bonus, double spent, double available})> getPointsSummary() =>
-      _computePointsSummary();
+      _dao.getPointsSummaryAggregated();
 
   Future<double> earnedPoints() async => (await _dao.getEarnedPoints()).toDouble();
 
@@ -338,40 +338,36 @@ class UserRepository {
 
   /// 当前等级编号（推算）
   Future<int> currentLevel() async {
+    final lv = await getLevelAndProgress();
+    return lv.level;
+  }
+
+  Future<String> levelProgress() async {
+    final lv = await getLevelAndProgress();
+    return lv.progress;
+  }
+
+  /// 一次性获取等级+进度（共享一次 earnedPoints + getAllLevelConfigs 查询）
+  Future<({int level, String progress})> getLevelAndProgress() async {
     final totalPoints = await earnedPoints();
     final configs = await _questionDao.getAllLevelConfigs();
-    if (configs.isEmpty) return 1;
+    if (configs.isEmpty) return (level: 1, progress: '0/0');
+    final totalXp = totalPoints.toInt();
+    int? currentMin, nextMin;
     int lv = 1;
     for (var i = 0; i < configs.length; i++) {
-      if (configs[i].minXp <= totalPoints.toInt()) {
+      if (configs[i].minXp <= totalXp) {
+        currentMin = configs[i].minXp;
+        nextMin = i + 1 < configs.length ? configs[i + 1].minXp : configs[i].minXp;
         lv = configs[i].level;
       } else {
         break;
       }
     }
-    return lv;
-  }
-
-  Future<String> levelProgress() async {
-    final totalPoints = await earnedPoints();
-    final configs = await _questionDao.getAllLevelConfigs();
-    if (configs.isEmpty) return '0/0';
-    final totalXp = totalPoints.toInt();
-    // 找当前等级
-    int? currentMin;
-    int? nextMin;
-    for (var i = 0; i < configs.length; i++) {
-      if (configs[i].minXp <= totalXp) {
-        currentMin = configs[i].minXp;
-        nextMin = i + 1 < configs.length ? configs[i + 1].minXp : configs[i].minXp;
-      } else {
-        break;
-      }
-    }
-    if (currentMin == null || nextMin == null) return '0/0';
+    if (currentMin == null || nextMin == null) return (level: 1, progress: '0/0');
     final range = nextMin - currentMin;
     final progress = totalXp - currentMin;
-    return '$progress/$range';
+    return (level: lv, progress: '$progress/$range');
   }
 
   Future<int> levelPercentile() async {
