@@ -21,7 +21,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../data/debug/operation_log.dart';
 import '../../data/daos/sync_queue_dao.dart';
 import '../../widgets/shared/format_utils.dart';
 import '../router.dart';

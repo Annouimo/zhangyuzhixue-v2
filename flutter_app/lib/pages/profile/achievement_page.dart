@@ -8,7 +8,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 成就页 — 匹配 HTML 原型 achievement.html
 class AchievementPage extends StatefulWidget {

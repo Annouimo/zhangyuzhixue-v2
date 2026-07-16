@@ -11,7 +11,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 积分流水页 — 匹配 HTML 原型 points.html
 class PointsPage extends StatefulWidget {

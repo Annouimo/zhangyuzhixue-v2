@@ -11,7 +11,7 @@ import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 import '../router.dart';
 
 class QuestionHistoryPage extends StatefulWidget {

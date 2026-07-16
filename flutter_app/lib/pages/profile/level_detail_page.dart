@@ -10,7 +10,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 import '../../../data/prefs/app_prefs.dart';
 
 /// 等级详情页 — 匹配 HTML 原型 level_detail.html

@@ -12,7 +12,7 @@ import 'widgets/heatmap_chart.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/donut_chart.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 学习统计页
 class StatisticsPage extends StatefulWidget {

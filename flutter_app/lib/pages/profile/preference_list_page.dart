@@ -8,7 +8,7 @@ import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../router.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 学习偏好列表页（匹配 preference_list.html）
 class PreferenceListPage extends StatefulWidget {
