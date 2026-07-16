@@ -317,12 +317,14 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _exportLog() async {
-    final success = await OperationLog.instance.exportToShare();
-    if (!mounted) return;
-    if (success) {
-      AppToast.show(context, icon: Icons.check_circle, message: '已打开分享面板');
-    } else {
-      AppToast.show(context, icon: Icons.info, message: '暂无日志数据');
+    switch (await OperationLog.instance.exportToShare()) {
+      case ExportResult.success:
+        AppToast.show(context, icon: Icons.check_circle, message: '已打开分享面板');
+      case ExportResult.fileNotFound:
+        AppToast.show(context, icon: Icons.info, message: '暂无日志数据');
+      case ExportResult.notReady:
+      case ExportResult.savedToFolder:
+        AppToast.show(context, icon: Icons.folder_open, message: '日志已导出到 Downloads 文件夹');
     }
   }
 }

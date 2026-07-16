@@ -307,17 +307,16 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _exportLog() async {
-    final success = await OperationLog.instance.exportToShare();
+    final msg = switch (await OperationLog.instance.exportToShare()) {
+      ExportResult.success        => '已打开分享面板',
+      ExportResult.fileNotFound   => '暂无日志数据',
+      ExportResult.notReady       => '日志已导出到 Downloads 文件夹',
+      ExportResult.savedToFolder  => '日志已导出到 Downloads 文件夹',
+    };
     if (!mounted) return;
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已打开分享面板'), behavior: SnackBarBehavior.floating),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('暂无日志数据'), behavior: SnackBarBehavior.floating),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+    );
   }
 }
 
