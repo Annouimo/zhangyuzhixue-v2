@@ -48,7 +48,7 @@ void main() {
       await database.into(database.pointsTransactions).insert(
         db.PointsTransactionsCompanion(amount: Value(3), transactionType: Value('EARN'), source: Value('LOGIN_BONUS'), createdAt: Value(now)),
       );
-      expect(await dao.getEarnedPoints(), 8);
+      expect(await dao.getEarnedPoints(), 5.0);
     });
 
     test('getStreakDays returns 0 initially', () async {

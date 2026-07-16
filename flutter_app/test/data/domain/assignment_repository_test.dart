@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/database/courses_database.dart' as ldb;
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/database/app_database.dart' as udb;
@@ -154,6 +156,8 @@ void main() {
     });
 
     test('pendingCount returns 0 initially', () async {
+      SharedPreferences.setMockInitialValues({});
+      await AppPrefs().init();
       final lDb = ldb.CoursesDatabase(NativeDatabase.memory());
       final aDb = adb.AssetsDatabase(NativeDatabase.memory());
       final uDb = udb.AppDatabase(NativeDatabase.memory());

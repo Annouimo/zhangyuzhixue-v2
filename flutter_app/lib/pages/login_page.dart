@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
@@ -155,6 +156,10 @@ class _LoginPageState extends State<LoginPage> {
     final msg = e.toString();
     if (msg.contains('40001')) return '用户名或密码错误';
     if (msg.contains('401')) return '用户名或密码错误';
+    // 网络连接错误（DNS 失败、无网络等）
+    if (e is DioException && e.type == DioExceptionType.connectionError) {
+      return '网络连接失败，请检查网络';
+    }
     return '登录失败，请稍后重试';
   }
 

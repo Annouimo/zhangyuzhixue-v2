@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
@@ -93,6 +94,10 @@ class _RegisterPageState extends State<RegisterPage> {
     if (msg.contains('40101')) return '邀请码无效或已使用';
     if (msg.contains('username')) return '用户名已存在';
     if (msg.contains('invitation_code')) return '邀请码无效或已使用';
+    // 网络连接错误（DNS 失败、无网络等）
+    if (e is DioException && e.type == DioExceptionType.connectionError) {
+      return '网络连接失败，请检查网络';
+    }
     return '注册失败，请稍后重试';
   }
 

@@ -87,7 +87,25 @@ void main() async {
     }
   } catch (_) {}
 
-  if (updates.isEmpty) return;
+  // 版本检查失败时（updates 为空 + lastCheckError 不为 null）显示连接提示
+  if (updates.isEmpty) {
+    final checkError = SyncManager().lastCheckError;
+    if (checkError != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = routerNavigatorKey.currentContext;
+        if (ctx == null) return;
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: const Text('无法连接服务器，请检查网络'),
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      });
+    }
+    return;
+  }
 
   // 首帧渲染后再弹出更新 UI
   WidgetsBinding.instance.addPostFrameCallback((_) {

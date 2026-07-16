@@ -26,6 +26,9 @@ class SyncManager {
   /// 最近一次版本检查中需要用户操作的更新项
   List<UpdateSummary> _pendingUpdates = [];
 
+  /// 上次版本检查是否因网络/连接错误失败。若不为 null 则包含错误原因。
+  String? lastCheckError;
+
   Future<void> init(SyncQueueDao queueDao, SyncApi api, DatabaseProvider dbProvider) async {
     if (_initialized) return;
     _queueDao = queueDao;
@@ -79,9 +82,11 @@ class SyncManager {
           serverVersion: s.serverVersion,
         )
       ).toList();
+      lastCheckError = null;
       return List.unmodifiable(_pendingUpdates);
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onAppStart', e);
+      lastCheckError = '版本检查失败: $e';
       _pendingUpdates = [];
       return [];
     }

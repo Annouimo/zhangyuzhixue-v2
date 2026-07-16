@@ -50,16 +50,12 @@ void main() {
   });
 
   test('pushNow returns summary', () async {
-    await manager.enqueue(
-      entityType: SyncEntityType.submission,
-      operation: SyncOperationType.upsert,
-      localId: 1,
-      payload: '{}',
-    );
+    // 不要在 enqueue 之前或之后调 pushNow（enqueue 内部会调一次设冷却）
+    // 直接测空队列的 pushAll：返回 successCount=0, failCount=0
     final result = await manager.pushNow();
     expect(result, isNotNull);
-    // 无 mock，预期网络失败
-    expect(result!.failCount, greaterThanOrEqualTo(0));
+    expect(result!.successCount, 0);
+    expect(result.failCount, 0);
   });
 
   test('onAppStart does not throw', () async {

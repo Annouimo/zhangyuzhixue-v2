@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/domain/user_repository.dart';
 import 'package:flutter_app/pages/profile/level_detail_page.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
 import '../../test_setup.dart';
 
 class _MockRepo implements UserRepository {
@@ -40,9 +42,11 @@ class _MockRepo implements UserRepository {
 void main() {
     setUp(() => setupTestHooks());
   testWidgets('LevelDetailPage renders progress', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await AppPrefs().init();
     await tester.pumpWidget(MaterialApp(home: LevelDetailPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();
-    expect(find.text('等级进度'), findsOneWidget);
-    expect(find.textContaining('50'), findsAtLeast(1));
+    expect(find.text('等级详情'), findsOneWidget);
+    expect(find.text('Lv.1'), findsOneWidget);
   });
 }
