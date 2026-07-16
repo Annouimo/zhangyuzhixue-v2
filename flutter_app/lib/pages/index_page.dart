@@ -9,6 +9,7 @@ import '../app_theme.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/error_placeholder.dart';
 import '../widgets/shared/app_toast.dart';
+import '../widgets/level_up_dialog.dart';
 import '../data/database/database_provider.dart';
 import '../data/daos/achievement_dao.dart';
 import '../data/api/api_client.dart';
@@ -176,6 +177,26 @@ class IndexPageState extends State<IndexPage> {
           }
         } catch (_) {}
       });
+
+      // 等级检测：如果等级提升，弹出升级弹窗
+      if (_currentLevel > AppPrefs().lastKnownLevel) {
+        final oldLevel = AppPrefs().lastKnownLevel;
+        final prefs = AppPrefs();
+        await prefs.setLastKnownLevel(_currentLevel);
+        try {
+          final pctl = await _repo.levelPercentile();
+          if (mounted) {
+            showLevelUpDialog(context, oldLevel: oldLevel, newLevel: _currentLevel, percentile: pctl);
+          }
+        } catch (_) {
+          if (mounted) {
+            showLevelUpDialog(context, oldLevel: oldLevel, newLevel: _currentLevel, percentile: 0);
+          }
+        }
+      } else if (_currentLevel > 0 && AppPrefs().lastKnownLevel == 0) {
+        // 首次加载，初始化缓存
+        await AppPrefs().setLastKnownLevel(_currentLevel);
+      }
     } catch (e) {
       OperationLog.instance.error('IndexPage._load', e); 
       AuditLogger.instance.error('IndexPage._load', e);
@@ -229,6 +250,21 @@ class IndexPageState extends State<IndexPage> {
         icon: Icons.local_fire_department, message: '签到成功！连续第 $streak 天 · +$points 学习积分',
         backgroundColor: AppColors.success,
       );
+
+      // 签到后重新检测等级（积分可能触发升级）
+      final oldLevel = AppPrefs().lastKnownLevel;
+      if (oldLevel > 0) {
+        try {
+          final newLevel = await _repo.currentLevel();
+          if (newLevel > oldLevel && mounted) {
+            await AppPrefs().setLastKnownLevel(newLevel);
+            final pctl = await _repo.levelPercentile();
+            if (mounted) {
+              showLevelUpDialog(context, oldLevel: oldLevel, newLevel: newLevel, percentile: pctl);
+            }
+          }
+        } catch (_) {}
+      }
     } catch (e) {
       OperationLog.instance.error('IndexPage._doCheckin', e); 
       AuditLogger.instance.error('IndexPage._doCheckin', e);

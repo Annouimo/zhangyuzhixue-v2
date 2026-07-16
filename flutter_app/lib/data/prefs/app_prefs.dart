@@ -18,6 +18,7 @@ abstract final class PrefKeys {
   static const pendingAssignments = 'app_pending_assignments';  // JSON 缓存
   static const levelPercentile = 'app_level_percentile';
   static const userVersion = 'app_user_version';
+  static const lastKnownLevel = 'app_last_known_level';
 }
 
 /// SharedPreferences 封装层
@@ -134,6 +135,12 @@ class AppPrefs {
   }
   Future<bool> setUserVersion(int v) =>
       p.setInt(PrefKeys.userVersion, v);
+
+  // ── 等级缓存 ──
+
+  int get lastKnownLevel => p.getInt(PrefKeys.lastKnownLevel) ?? 0;
+  Future<bool> setLastKnownLevel(int v) =>
+      p.setInt(PrefKeys.lastKnownLevel, v);
 
   // ── 更新弹窗冷却 ──
 
