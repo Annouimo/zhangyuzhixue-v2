@@ -91,7 +91,7 @@ class QuestionDao {
 
   Future<List<int>> getDistinctYears() async {
     final rows = await _db.customSelect(
-      'SELECT DISTINCT year FROM questions ORDER BY year',
+      'SELECT DISTINCT year FROM question ORDER BY year',
     ).get();
     final years = rows.map((r) => r.read<int>('year')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctYears', years.length, {});
@@ -100,7 +100,7 @@ class QuestionDao {
 
   Future<List<String>> getDistinctRegions() async {
     final rows = await _db.customSelect(
-      'SELECT DISTINCT region FROM questions ORDER BY region',
+      'SELECT DISTINCT region FROM question ORDER BY region',
     ).get();
     final regions = rows.map((r) => r.read<String>('region')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctRegions', regions.length, {});
@@ -109,7 +109,7 @@ class QuestionDao {
 
   Future<List<String>> getDistinctExamTypes() async {
     final rows = await _db.customSelect(
-      'SELECT DISTINCT exam_type FROM questions ORDER BY exam_type',
+      'SELECT DISTINCT exam_type FROM question ORDER BY exam_type',
     ).get();
     final types = rows.map((r) => r.read<String>('exam_type')).toList();
     AuditLogger.instance.dao('QuestionDao.getDistinctExamTypes', types.length, {});
