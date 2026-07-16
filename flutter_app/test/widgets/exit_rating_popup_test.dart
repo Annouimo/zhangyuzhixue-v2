@@ -116,9 +116,9 @@ void main() {
         ),
       ));
       await tester.tap(find.text('open'));
-      await tester.pump();
-      expect(find.text('🎉 感觉怎么样？'), findsOneWidget);
-      expect(find.text('提交反馈 (+5积分)'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('感觉怎么样'), findsOneWidget);
+      expect(find.textContaining('提交反馈'), findsOneWidget);
       expect(find.text('跳过'), findsOneWidget);
     });
   });

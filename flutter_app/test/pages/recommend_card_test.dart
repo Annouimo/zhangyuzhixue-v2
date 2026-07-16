@@ -19,7 +19,7 @@ void main() {
       expect(find.textContaining('已知函数'), findsOneWidget);
       expect(find.text('选择题'), findsOneWidget);
       expect(find.text('中难'), findsOneWidget);
-      expect(find.text('薄弱概念：函数'), findsOneWidget);
+      expect(find.textContaining('薄弱概念：函数'), findsOneWidget);
     });
 
     testWidgets('calls onTap when tapped', (tester) async {

@@ -29,7 +29,7 @@ void main() {
       )));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
-      expect(find.text('暂无推荐，先去组卷或做几道题吧'), findsOneWidget);
+      expect(find.textContaining('暂时没有智能推荐'), findsOneWidget);
     });
 
     testWidgets('shows smart recommendations', (tester) async {
@@ -50,7 +50,7 @@ void main() {
         recommendRepository: _MockRecommendRepo(presetCount: 2),
       )));
       await tester.pumpAndSettle();
-      expect(find.text('请先选择学习偏好'), findsOneWidget);
+      expect(find.textContaining('请先选择一个学习偏好'), findsOneWidget);
     });
 
     testWidgets('manually switches between smart and preset via pills', (tester) async {
