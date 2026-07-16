@@ -5,6 +5,7 @@ import '../data/update_manager.dart';
 import '../data/database/database_provider.dart';
 import '../widgets/sync_progress_dialog.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 import 'question_bank/question_bank_page.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'settings/settings_page.dart';
@@ -51,6 +52,7 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       AuditLogger.instance.error('HomePage._checkUpdates', e);
+      OperationLog.instance.error('HomePage._checkUpdates', e);
     }
   }
 

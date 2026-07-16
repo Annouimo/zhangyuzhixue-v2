@@ -14,6 +14,7 @@ import 'exam/widgets/filter_panel.dart';
 import 'router.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 
 /// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳主框架
 class PreferenceWelcomePage extends StatefulWidget {
@@ -90,7 +91,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final pts = await _userRepo.bonusPoints();
       if (!mounted) return;
       setState(() { _bonusPoints = pts; _bonusLoaded = true; });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_welcome_page_load', e); 
       AuditLogger.instance.error('PreferenceWelcomePage._loadBonus', e);
       if (!mounted) return;
       setState(() => _bonusLoaded = true);
@@ -182,7 +183,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           calcMax: _calcMax,
         ),
       );
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_welcome_page_load', e); 
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -270,3 +271,4 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     );
   }
 }
+

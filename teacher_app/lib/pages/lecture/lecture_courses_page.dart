@@ -8,6 +8,7 @@ import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import 'lecture_chapters_page.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
@@ -48,6 +49,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
       AuditLogger.instance.page('LectureCoursesPage', {'courseCount': _courses?.length});
     } catch (e) {
       AuditLogger.instance.error('LectureCoursesPage._load', e);
+      OperationLog.instance.error('LectureCoursesPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

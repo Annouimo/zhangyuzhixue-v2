@@ -20,6 +20,7 @@ import '../domain/user_repository.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 import '../data/daos/sync_queue_dao.dart';
 import '../data/network/connectivity_monitor.dart';
 import '../data/database/app_database.dart' as app_db;
@@ -168,7 +169,7 @@ class _IndexPageState extends State<IndexPage> {
           }
         } catch (_) {}
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('index_page_load', e); 
       AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
       setState(() { _error = '加载失败'; _loading = false; });
@@ -220,7 +221,7 @@ class _IndexPageState extends State<IndexPage> {
         icon: Icons.local_fire_department, message: '$msg · +$points 积分',
         backgroundColor: AppColors.success,
       );
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('index_page_load', e); 
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
       AppToast.show(context,
@@ -588,7 +589,7 @@ class _IndexPageState extends State<IndexPage> {
         return;
       }
       await SolveRouteHelper.navigateTo(context, q.id, q.questionType);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('index_page_load', e); 
       AuditLogger.instance.error('IndexPage._startQuickPractice', e);
       if (!mounted) return;
       AppToast.show(context, icon: Icons.warning, message: '加载失败，请稍后重试');
@@ -648,3 +649,4 @@ class _IndexPageState extends State<IndexPage> {
     );
   }
 }
+

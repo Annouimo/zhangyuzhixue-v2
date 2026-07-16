@@ -8,6 +8,7 @@ import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../widgets/shared/question_card.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 选题预览页 — 展示已选题目详情，支持移除
 class QuestionPreviewPage extends StatefulWidget {
@@ -47,6 +48,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
       setState(() { _details..clear()..addAll(details); _loading = false; });
     } catch (e) {
       if (!mounted) return;
+      OperationLog.instance.error('QuestionPreviewPage._loadDetails', e);
       setState(() { _error = e.toString(); _loading = false; });
     }
   }
@@ -114,3 +116,4 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
     );
   }
 }
+

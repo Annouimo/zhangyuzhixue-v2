@@ -9,6 +9,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 编辑资料页 — 匹配 HTML 原型 profile_edit.html
 class ProfileEditPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         _loading = false;
       });
       AuditLogger.instance.page('ProfileEditPage', {'name': _nameCtrl.text, 'gaokaoYear': _gaokaoYear, 'loading': _loading});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('profile_edit_page_load', e); 
       AuditLogger.instance.error('ProfileEditPage._load', e);
       if (mounted) setState(() => _loading = false);
     }
@@ -90,7 +91,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
         );
       }
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('profile_edit_page_load', e); 
       AuditLogger.instance.error('ProfileEditPage._pickAndUploadAvatar', e);
       if (mounted) {
         setState(() => _uploading = false);
@@ -289,3 +290,4 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     );
   }
 }
+

@@ -1,13 +1,27 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'data/database/database_provider.dart';
 import 'data/debug/audit_logger.dart';
+import 'data/debug/operation_log.dart';
 import 'pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AuditLogger.instance.init();
+  await OperationLog.instance.init();
   await DatabaseProvider().init();
+
+  FlutterError.onError = (details) {
+    OperationLog.instance.error('FlutterError', details.exception, details.stack);
+    FlutterError.presentError(details);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    OperationLog.instance.error('PlatformDispatcher', error, stack);
+    return true;
+  };
+
   runApp(const TeacherApp());
 }
 

@@ -5,6 +5,7 @@ import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../domain/auth_repository.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 
 /// 注册页
 class RegisterPage extends StatefulWidget {
@@ -75,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       );
       context.pop();
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('register_page_load', e); 
       AuditLogger.instance.error('RegisterPage._register', e);
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
@@ -320,3 +321,4 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+

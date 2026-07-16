@@ -13,6 +13,7 @@ import '../data/database/database_provider.dart';
 import '../widgets/sync_progress_dialog.dart';
 import 'router.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {
@@ -86,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
         if (ids.isNotEmpty) {
           await AppPrefs().setAccessibleCourseIds(ids);
         }
-      } catch (e) {
+      } catch (e) { OperationLog.instance.error('login_page_load', e); 
         AuditLogger.instance.error('LoginPage.cacheCourseIds', e);
       }
 
@@ -120,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         context.go(AppRoutes.preferenceWelcome);
       }
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('login_page_load', e); 
       AuditLogger.instance.error('LoginPage._login', e);
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
@@ -137,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       final count = await _prefRepo!.getCount();
       return count > 0;
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('login_page_load', e); 
       AuditLogger.instance.error('LoginPage._checkPreferences', e);
       // DB 未初始化等，默认有偏好
       return true;
@@ -285,3 +286,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

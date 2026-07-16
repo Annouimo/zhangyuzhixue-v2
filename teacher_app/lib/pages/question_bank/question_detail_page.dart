@@ -7,6 +7,7 @@ import '../../widgets/shared/question_image.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 import '../../data/database/assets_database.dart' as db;
 
 /// 题目详情页（只读模式，无答题交互）
@@ -55,6 +56,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       });
     } catch (e) {
       AuditLogger.instance.error('QuestionDetailPage._load', e);
+      OperationLog.instance.error('QuestionDetailPage._load', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
     }
@@ -445,3 +447,4 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     );
   }
 }
+

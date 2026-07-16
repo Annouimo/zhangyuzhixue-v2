@@ -6,6 +6,7 @@ import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/md_latex_body.dart';
 import 'lecture_pager_widget.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {
@@ -60,6 +61,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       });
     } catch (e) {
       AuditLogger.instance.error('LectureContentPage._load', e);
+      OperationLog.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

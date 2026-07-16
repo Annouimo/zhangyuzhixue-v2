@@ -8,6 +8,7 @@ import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import 'lecture_content_page.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 章节目录页
 class LectureChaptersPage extends StatefulWidget {
@@ -53,6 +54,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       AuditLogger.instance.page('LectureChaptersPage', {'chapterCount': _chapterList?.items.length});
     } catch (e) {
       AuditLogger.instance.error('LectureChaptersPage._load', e);
+      OperationLog.instance.error('LectureChaptersPage._load', e);
       if (!mounted) return;
       setState(() {
         _error = e.toString();

@@ -14,6 +14,7 @@ import 'widgets/filter_panel.dart';
 import 'widgets/preference_dialog_helper.dart';
 import '../../../widgets/shared/difficulty_slider.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 import '../../../data/sync/sync_manager.dart';
 import '../../../data/sync/sync_types.dart';
 import '../../../data/api/api_client.dart';
@@ -78,7 +79,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
       _updatePoolStats();
-    } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) { OperationLog.instance.error('exam_auto_page_load', e);  AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
   /// 保存当前筛选条件为学习偏好
@@ -199,7 +200,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('exam_auto_page_load', e); 
       AuditLogger.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
         final msg = e is InsufficientPoolException ? e.message : '$e';
@@ -364,3 +365,4 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     );
   }
 }
+

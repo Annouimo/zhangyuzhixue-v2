@@ -5,6 +5,7 @@ import '../../constants/app_version.dart';
 import '../../data/update_manager.dart';
 import '../../data/database/database_provider.dart';
 import '../../widgets/sync_progress_dialog.dart';
+import '../../data/debug/operation_log.dart';
 
 /// 设置页（Tab 2）
 class SettingsPage extends StatefulWidget {
@@ -250,3 +251,4 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 }
+
