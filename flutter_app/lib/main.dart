@@ -41,8 +41,11 @@ void main() async {
   final prefs = AppPrefs();
   setTokenProvider(() => prefs.accessToken);
   setRefreshTokenProvider(() => prefs.refreshToken);
-  setOnTokenRefreshed((newAccess) async {
+  setOnTokenRefreshed((newAccess, newRefresh) async {
     await prefs.setAccessToken(newAccess);
+    if (newRefresh != null) {
+      await prefs.setRefreshToken(newRefresh);
+    }
   });
   setOnRefreshFailed(() {
     prefs.clearAll();

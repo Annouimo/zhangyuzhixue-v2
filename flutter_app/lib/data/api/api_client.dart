@@ -27,7 +27,7 @@ class ApiException implements Exception {
 
 typedef TokenProvider = String? Function();
 typedef RefreshTokenProvider = String? Function();
-typedef OnTokenRefreshed = Future<void> Function(String newAccess);
+typedef OnTokenRefreshed = Future<void> Function(String newAccess, String? newRefresh);
 typedef OnRefreshFailed = void Function();
 typedef OnAuthFailure = void Function();
 
@@ -37,7 +37,7 @@ void setTokenProvider(TokenProvider p) => _tokenProvider = p;
 RefreshTokenProvider _refreshTokenProvider = () => null;
 void setRefreshTokenProvider(RefreshTokenProvider p) => _refreshTokenProvider = p;
 
-OnTokenRefreshed _onTokenRefreshed = (_) async {};
+OnTokenRefreshed _onTokenRefreshed = (_, __) async {};
 void setOnTokenRefreshed(OnTokenRefreshed cb) => _onTokenRefreshed = cb;
 
 OnRefreshFailed _onRefreshFailed = () {};
@@ -140,7 +140,8 @@ class _RefreshInterceptor extends Interceptor {
           data: {'refresh': refreshToken},
         );
         final newAccess = response.data['data']['access'] as String;
-        await _onTokenRefreshed.call(newAccess);
+        final newRefresh = response.data['data']['refresh'] as String?;
+        await _onTokenRefreshed.call(newAccess, newRefresh);
         _refreshing = false;
 
         final retryOpts = err.requestOptions;
