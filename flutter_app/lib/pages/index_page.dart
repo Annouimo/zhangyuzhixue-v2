@@ -89,11 +89,9 @@ class IndexPageState extends State<IndexPage> {
       if (lastDate != today) {
         await prefs.setBool('checked_in_today', false);
         await prefs.setString('last_checkin_date', today);
-        final now = DateTime.now().toIso8601String();
-        await AchievementDao(DatabaseProvider()).insertLoginLog(
-          loginDate: today,
-          createdAt: now,
-        );
+        // 注意：签到日志不应在此处写入，否则每次跨天首次打开 App 都会自动插入 today 的签到记录，
+        // 导致本地 getLoginStreak() 推算的连续签到天数虚增。
+        // 签到日志只在用户实际点击签到按钮并成功调用 API 后写入（见 _doCheckin）。
       }
 
       final checkedIn = prefs.getBool('checked_in_today') ?? false;

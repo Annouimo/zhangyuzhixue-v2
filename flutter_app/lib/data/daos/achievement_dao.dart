@@ -74,10 +74,12 @@ class AchievementDao {
       ..orderBy([(t) => OrderingTerm(expression: t.loginDate, mode: OrderingMode.desc)])).get();
     if (rows.isEmpty) return 0;
     var streak = 0;
-    final today = DateTime.now();
+    // 以最新一条签到记录为起点往前推算，而非从 today 开始。
+    // 如果 today 尚未签到，当前算法能从最近的实际签到日期开始连续计数。
+    final mostRecent = DateTime.parse(rows.first.loginDate);
     for (final row in rows) {
       final d = DateTime.parse(row.loginDate);
-      final expected = today.subtract(Duration(days: streak));
+      final expected = mostRecent.subtract(Duration(days: streak));
       if (d.year == expected.year && d.month == expected.month && d.day == expected.day) {
         streak++;
       } else {
