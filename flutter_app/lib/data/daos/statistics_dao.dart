@@ -9,20 +9,9 @@ class StatisticsDao {
   StatisticsDao(this._provider);
   db.AppDatabase get _db => _provider.appDb;
 
-  Future<int> getTotalQuestions() async {
-    final rows = await (_db.select(_db.submissionDetails)
-      ..where((t) => t.isCorrect.isNotNull())).get();
-    AuditLogger.instance.dao('StatisticsDao.getTotalQuestions', rows.length, {});
-    return rows.length;
-  }
-
   Future<double> getAccuracy() async {
-    final rows = await (_db.select(_db.submissionDetails)
-      ..where((t) => t.isCorrect.isNotNull())).get();
-    AuditLogger.instance.dao('StatisticsDao.getAccuracy', rows.length, {});
-    if (rows.isEmpty) return 0.0;
-    final correct = rows.where((r) => r.isCorrect == 1).length;
-    return correct / rows.length;
+    final ov = await getOverviewRaw();
+    return ov.accuracy;
   }
 
   /// 连续做题天数（从 submissionDetail 推算，从今天回溯）

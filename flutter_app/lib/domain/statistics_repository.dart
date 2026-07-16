@@ -70,22 +70,13 @@ class StatisticsRepository {
     );
   }
 
-  Future<int> totalQuestions() => _dao.getTotalQuestions();
-  Future<double> accuracy() => _dao.getAccuracy();
-
-  Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
-    final raw = await _dao.getDailyRecords(rangeDays);
-    return _StatisticsAggregator.aggregateDailyRecords(raw);
-  }
-
-  Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async {
-    final raw = await _dao.getDailyRecords(rangeDays);
-    if (raw.isEmpty) return [];
+  /// 从 DailyRecords 派生正确率趋势（避免重复查询）
+  static List<TrendPoint> deriveAccuracyTrend(List<DailyRecord> records) {
+    if (records.isEmpty) return [];
     final points = <TrendPoint>[];
-    for (final r in raw) {
+    for (final r in records) {
       if (r.count == 0) continue;
-      final acc = r.correct / r.count;
-      points.add(TrendPoint(label: r.date, value: acc * 100));
+      points.add(TrendPoint(label: r.date, value: r.correct / r.count * 100));
     }
     if (points.length > 30) {
       final sampled = <TrendPoint>[];
@@ -102,6 +93,11 @@ class StatisticsRepository {
       return sampled;
     }
     return points;
+  }
+
+  Future<List<DailyRecord>> getDailyRecords(int rangeDays) async {
+    final raw = await _dao.getDailyRecords(rangeDays);
+    return _StatisticsAggregator.aggregateDailyRecords(raw);
   }
 
   Future<List<TrendPoint>> getPointsTrend(int rangeDays) async {

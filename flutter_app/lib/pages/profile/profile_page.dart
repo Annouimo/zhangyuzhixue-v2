@@ -96,12 +96,14 @@ class ProfilePageState extends State<ProfilePage> {
         _repo.getAnswerHistoryCount(),
         _achieveRepo.unlockedCount(),
         _repo.getPointsSummary(),
+        _repo.currentLevel(),
       ]);
       if (!mounted) return;
       final info = results[0] as UserInfo;
       final ps = results[5] as ({double earned, double bonus, double spent, double available});
       _earnedPoints = ps.earned;
       _availablePoints = ps.available;
+      _currentLevel = results[6] as int;
 
       // 查询同步队列状态
       String? syncSubtitle;
@@ -121,13 +123,9 @@ class ProfilePageState extends State<ProfilePage> {
         _answerHistoryCount = results[3] as int;
         _achievementUnlocked = results[4] as int;
         _syncSubtitle = syncSubtitle;
-        _loading = false;
-      });
-      // 等级（在 setState 外 await）
-      final lv = await _repo.currentLevel();
-      if (!mounted) return;
-      setState(() => _currentLevel = lv);
-      AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
+          _loading = false;
+        });
+        AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
     } catch (e) {
       AuditLogger.instance.error('ProfilePage._load', e);
       if (mounted) { setState(() { _error = e.toString(); _loading = false; }); }
@@ -276,9 +274,7 @@ class ProfilePageState extends State<ProfilePage> {
                       radius: 32,
                       backgroundColor: AppColors.primaryLight,
                       backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
-                          ? (info.avatar!.startsWith('http')
-                              ? CachedNetworkImageProvider(info.avatar!)
-                              : NetworkImage(info.avatar!))
+                          ? CachedNetworkImageProvider(info.avatar!)
                           : null,
                       child: info?.avatar == null || info!.avatar!.isEmpty
                           ? Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',

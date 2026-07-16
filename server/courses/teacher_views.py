@@ -394,6 +394,51 @@ def _list_assignments():
         grouped[aid]['ccas'].append(cca)
 
     items = []
+    # ── 批量预计算统计，消除内循环 N+1 ──
+    class_group_ids = {cca.class_course.class_group_id for cca in ccas}
+    assignment_ids = {cca.assignment_id for cca in ccas}
+
+    # 学生数/班级
+    student_count_map = dict(
+        Student.objects.filter(class_group_id__in=class_group_ids)
+        .values('class_group_id')
+        .annotate(cnt=Count('id'))
+        .values_list('class_group_id', 'cnt')
+    )
+
+    # 完成数/班级+作业
+    completed_raw = (
+        StudentSubmission.objects.filter(
+            assignment_id__in=assignment_ids,
+            student__class_group_id__in=class_group_ids,
+            details__is_correct__isnull=False,
+        )
+        .values('student__class_group_id', 'assignment_id')
+        .annotate(cnt=Count('id', distinct=True))
+    )
+    completed_map = {}
+    for r in completed_raw:
+        completed_map[(r['student__class_group_id'], r['assignment_id'])] = r['cnt']
+
+    # 正确率/班级+作业
+    accuracy_raw = (
+        SubmissionDetail.objects.filter(
+            submission__assignment_id__in=assignment_ids,
+            submission__student__class_group_id__in=class_group_ids,
+            is_correct__isnull=False,
+        )
+        .values('submission__student__class_group_id', 'submission__assignment_id')
+        .annotate(
+            total=Count('id'),
+            correct=Count('id', filter=Q(is_correct=True)),
+        )
+    )
+    accuracy_map = {}
+    for r in accuracy_raw:
+        key = (r['submission__student__class_group_id'], r['submission__assignment_id'])
+        t = r['total']
+        accuracy_map[key] = round(r['correct'] / t * 100, 1) if t else 0.0
+
     for aid, g in grouped.items():
         a = g['assignment']
         class_names = []
@@ -405,11 +450,11 @@ def _list_assignments():
         for cca in g['ccas']:
             cg_id = cca.class_course.class_group_id
             class_names.append(cca.class_course.class_group.name)
-            ts = _count_class_students(cg_id)
+            ts = student_count_map.get(cg_id, 0)
             total_students += ts
-            completed = _class_completed_count(cg_id, a.id)
+            completed = completed_map.get((cg_id, aid), 0)
             completed_count += completed
-            acc = _class_accuracy(cg_id, a.id)
+            acc = accuracy_map.get((cg_id, aid), 0.0)
             accuracy_weighted_sum += acc * ts
             if cca.deadline:
                 all_deadlines.append(cca.deadline)

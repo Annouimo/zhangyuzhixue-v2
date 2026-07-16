@@ -48,11 +48,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
   Future<void> _loadAll() async {
     setState(() => _loading = true);
     try {
-      final ov = await _repo.getOverview();
-      final dr = await _repo.getDailyRecords(_rangeDays);
-      final at = await _repo.getAccuracyTrend(_rangeDays);
-      final pt = await _repo.getPointsTrend(_rangeDays);
-      final dist = await _repo.getDistribution(rangeDays: _rangeDays);
+      // 并行加载 5 项独立数据
+      final results = await Future.wait([
+        _repo.getOverview(),
+        _repo.getDailyRecords(_rangeDays),
+        _repo.getPointsTrend(_rangeDays),
+        _repo.getDistribution(rangeDays: _rangeDays),
+      ]);
+      final ov = results[0] as StatsOverview;
+      final dr = results[1] as List<DailyRecord>;
+      // 正确率趋势从 dailyRecords 派生，不再重复查询
+      final at = StatisticsRepository.deriveAccuracyTrend(dr);
+      final pt = results[2] as List<TrendPoint>;
+      final dist = results[3] as Distribution;
       if (!mounted) return;
       setState(() {
         _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist;
