@@ -8,6 +8,7 @@ import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../router.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 
 /// 学习偏好列表页（匹配 preference_list.html）
 class PreferenceListPage extends StatefulWidget {
@@ -43,10 +44,10 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
         _loading = false;
       });
       AuditLogger.instance.page('PreferenceListPage', {'presetCount': _preferences.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_list_page_load', e); 
       AuditLogger.instance.error('PreferenceListPage._load', e);
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -71,7 +72,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       await _repo.delete(id);
       if (!mounted) return;
       setState(() => _preferences.removeAt(index));
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_list_page_load', e); 
       AuditLogger.instance.error('PreferenceListPage._delete', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -188,4 +189,5 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     );
   }
 }
+
 

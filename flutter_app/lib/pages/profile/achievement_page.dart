@@ -8,6 +8,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 
 /// 成就页 — 匹配 HTML 原型 achievement.html
 class AchievementPage extends StatefulWidget {
@@ -40,7 +41,7 @@ class _AchievementPageState extends State<AchievementPage> {
       if (!mounted) return;
       setState(() { _summary = summary; _categories = cats; _loading = false; });
       AuditLogger.instance.page('AchievementPage', {'unlocked': summary.unlockedCount, 'total': summary.totalCount});
-    } catch (e) { AuditLogger.instance.error('AchievementPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('achievement_page_load', e);  AuditLogger.instance.error('AchievementPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   @override
@@ -190,3 +191,4 @@ class _AchievementPageState extends State<AchievementPage> {
     );
   }
 }
+

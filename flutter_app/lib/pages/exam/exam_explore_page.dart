@@ -13,6 +13,8 @@ import '../../../widgets/shared/action_chip.dart';
 import '../../../data/helpers/pdf_helper.dart';
 import 'widgets/paper_card.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 发现组卷 — 匹配 HTML 原型 paper_explore.html
 class ExamExplorePage extends StatefulWidget {
@@ -45,7 +47,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
       if (!mounted) return;
       setState(() { _list = List.of(l)..sort((a, b) => b.createdAt.compareTo(a.createdAt)); _loading = false; });
       AuditLogger.instance.page('ExamExplorePage', {'totalPapers': _list?.length});
-    } catch (e) { AuditLogger.instance.error('ExamExplorePage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('exam_explore_page_load', e);  AuditLogger.instance.error('ExamExplorePage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   Future<void> _toggleLike(int examId) async {
@@ -168,4 +170,5 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
     );
   }
 }
+
 

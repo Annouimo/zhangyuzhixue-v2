@@ -8,6 +8,7 @@ import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
@@ -46,11 +47,11 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _loading = false;
       });
       AuditLogger.instance.page('LectureCoursesPage', {'courseCount': _courses?.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('lecture_courses_page_load', e); 
       AuditLogger.instance.error('LectureCoursesPage._load', e);
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = '加载失败，请稍后重试';
         _loading = false;
       });
     }
@@ -164,4 +165,5 @@ class _CourseCard extends StatelessWidget {
     );
   }
 }
+
 

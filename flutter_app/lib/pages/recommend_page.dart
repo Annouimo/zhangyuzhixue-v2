@@ -10,6 +10,7 @@ import '../../widgets/shared/empty_placeholder.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import 'widgets/recommend_card.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 
 /// 推荐页（双模式：智能推荐 / 偏好推荐）
 class RecommendPage extends StatefulWidget {
@@ -73,10 +74,11 @@ class RecommendPageState extends State<RecommendPage> {
         _loading = false;
       });
       AuditLogger.instance.page('RecommendPage', {'presetCount': _presets.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('recommend_page_load', e); 
       AuditLogger.instance.error('RecommendPage._load', e);
+      OperationLog.instance.error('RecommendPage._load', e);
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -87,7 +89,7 @@ class RecommendPageState extends State<RecommendPage> {
       final qs = await _repo.getSmartList();
       if (!mounted) return;
       setState(() { _questions = qs; _loading = false; });
-    } catch (e) { AuditLogger.instance.error('RecommendPage._switchToSmart', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('recommend_page_load', e);  AuditLogger.instance.error('RecommendPage._switchToSmart', e); OperationLog.instance.error('RecommendPage._switchToSmart', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   Future<void> _switchToPreset(int index) async {
@@ -102,7 +104,7 @@ class RecommendPageState extends State<RecommendPage> {
         id: p.id, title: p.title, questionType: p.questionType,
         difficulty: p.difficulty, recommendReason: '偏好推荐', status: p.status,
       )).toList(); _loading = false; });
-    } catch (e) { AuditLogger.instance.error('RecommendPage._switchToPreset', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('recommend_page_load', e);  AuditLogger.instance.error('RecommendPage._switchToPreset', e); OperationLog.instance.error('RecommendPage._switchToPreset', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   @override
@@ -264,4 +266,7 @@ class _PillButton extends StatelessWidget {
     );
   }
 }
+
+
+
 

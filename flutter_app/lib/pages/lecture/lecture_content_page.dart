@@ -11,6 +11,7 @@ import '../../widgets/md_latex_body.dart';
 import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {
@@ -67,11 +68,11 @@ class _LectureContentPageState extends State<LectureContentPage> {
         _loading = false;
       });
       AuditLogger.instance.page('LectureContentPage', {'hasContent': _content != null});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('lecture_content_page_load', e); 
       AuditLogger.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = '加载失败，请稍后重试';
         _loading = false;
       });
     }
@@ -233,3 +234,4 @@ class _LectureContentPageState extends State<LectureContentPage> {
     );
   }
 }
+

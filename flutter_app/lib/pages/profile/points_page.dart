@@ -11,6 +11,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 
 /// 积分流水页 — 匹配 HTML 原型 points.html
 class PointsPage extends StatefulWidget {
@@ -51,9 +52,9 @@ class _PointsPageState extends State<PointsPage> {
         _loading = false;
       });
       AuditLogger.instance.page('PointsPage', {'recordCount': _records?.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('points_page_load', e); 
       AuditLogger.instance.error('PointsPage._load', e);
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -144,3 +145,4 @@ class _PointsPageState extends State<PointsPage> {
   ];
  }
 }
+

@@ -9,6 +9,7 @@ import '../../data/database/database_provider.dart';
 import '../../domain/progress_repository.dart' as progress;
 import '../../domain/question_repository.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 解答题地图页 — 步骤概览（匹配 solve-map.html）
 class SolveMapPage extends StatefulWidget {
@@ -130,7 +131,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         'completedSteps': _completedSteps.length,
         'reviewMode': _reviewMode,
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_map_page_load', e); 
       AuditLogger.instance.error('SolveMapPage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -501,3 +502,4 @@ class _SolveMapPageState extends State<SolveMapPage> {
     _load();
   }
 }
+

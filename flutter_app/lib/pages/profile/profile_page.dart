@@ -21,6 +21,7 @@ import '../../../domain/achievement_repository.dart';
 import '../../../domain/statistics_repository.dart';
 import '../../../data/api/auth_api.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 import '../../data/daos/sync_queue_dao.dart';
 import '../../widgets/shared/format_utils.dart';
 import '../router.dart';
@@ -126,9 +127,9 @@ class ProfilePageState extends State<ProfilePage> {
           _loading = false;
         });
         AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('profile_page_load', e); 
       AuditLogger.instance.error('ProfilePage._load', e);
-      if (mounted) { setState(() { _error = e.toString(); _loading = false; }); }
+      if (mounted) { setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
     }
   }
 
@@ -163,7 +164,7 @@ class ProfilePageState extends State<ProfilePage> {
           const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
         );
       }
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('profile_page_load', e); 
       AuditLogger.instance.error('ProfilePage._pickAndUploadAvatar', e);
       if (!mounted) return;
       setState(() => _uploading = false);
@@ -226,7 +227,7 @@ class ProfilePageState extends State<ProfilePage> {
       await AuthRepository(AuthApi(ApiClient())).logout();
       if (!mounted) return;
       context.go(AppRoutes.login);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('profile_page_load', e); 
       AuditLogger.instance.error('ProfilePage._logout', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -397,3 +398,4 @@ class ProfilePageState extends State<ProfilePage> {
 
   String? _buildSyncSubtitle() => _syncSubtitle;
 }
+

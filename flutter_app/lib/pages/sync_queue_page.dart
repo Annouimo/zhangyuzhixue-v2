@@ -6,6 +6,7 @@ import '../domain/sync_repository.dart';
 import '../widgets/shared/loading_indicator.dart';
 import '../widgets/shared/error_placeholder.dart';
 import '../data/debug/audit_logger.dart';
+import '../data/debug/operation_log.dart';
 
 /// 同步队列状态页
 class SyncQueuePage extends StatefulWidget {
@@ -36,10 +37,11 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       if (!mounted) return;
       setState(() { _items = items; _loading = false; });
       AuditLogger.instance.page('SyncQueuePage', {'pending': _items?.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('sync_queue_page_load', e); 
       AuditLogger.instance.error('SyncQueuePage._load', e);
+      OperationLog.instance.error('SyncQueuePage._load', e);
       if (!mounted) return;
-      setState(() { _error = e.toString(); _loading = false; });
+      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -141,3 +143,5 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
     );
   }
 }
+
+

@@ -12,6 +12,7 @@ import 'widgets/heatmap_chart.dart';
 import 'widgets/trend_chart.dart';
 import 'widgets/donut_chart.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 学习统计页
 class StatisticsPage extends StatefulWidget {
@@ -72,7 +73,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         _loading = false;
       });
       AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});
-    } catch (e) { AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { setState(() { _error = e.toString(); _loading = false; }); } }
+    } catch (e) { OperationLog.instance.error('statistics_page_load', e);  AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); } }
   }
 
   @override
@@ -162,3 +163,4 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 }
+

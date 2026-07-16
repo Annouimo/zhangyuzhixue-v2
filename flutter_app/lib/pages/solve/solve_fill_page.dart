@@ -13,6 +13,7 @@ import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_reveal_widget.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 填空题解题页 — 揭示答案模式
 ///
@@ -73,7 +74,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       final sec = await dao.getInt('solve_cooldown_fill', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
       AuditLogger.instance.error('SolveFillPage._loadCooldown', e);
     }
   }
@@ -110,7 +111,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _loading = false;
       });
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
       AuditLogger.instance.error('SolveFillPage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -214,7 +215,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _revealed = false;
         _isReviewMode = false;
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
       AuditLogger.instance.error('SolveFillPage._createNewAttempt', e);
     }
   }
@@ -509,3 +510,4 @@ class _SolveFillPageState extends State<SolveFillPage> {
     );
   }
 }
+

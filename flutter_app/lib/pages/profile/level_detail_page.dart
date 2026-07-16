@@ -10,6 +10,7 @@ import '../../../data/daos/user_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../domain/user_repository.dart';
 import '../../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 import '../../../data/prefs/app_prefs.dart';
 
 /// 等级详情页 — 匹配 HTML 原型 level_detail.html
@@ -56,9 +57,9 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
         final pctl = await _repo.levelPercentile();
         if (mounted) setState(() => _percentile = pctl);
       } catch (_) {}
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('level_detail_page_load', e); 
       AuditLogger.instance.error('LevelDetailPage._load', e);
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -169,3 +170,4 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
     );
   }
 }
+

@@ -9,6 +9,7 @@ import '../../domain/exam_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../exam/widgets/filter_panel.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 学习偏好编辑页（新建/编辑）
 class PreferenceEditPage extends StatefulWidget {
@@ -95,7 +96,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       );
       setState(() => _loading = false);
       AuditLogger.instance.page('PreferenceEditPage', {'loaded': true});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e); 
       AuditLogger.instance.error('PreferenceEditPage._loadExisting', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
@@ -142,7 +143,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         const SnackBar(content: Text('保存成功'), behavior: SnackBarBehavior.floating),
       );
       if (context.mounted) context.pop(true);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e); 
       AuditLogger.instance.error('PreferenceEditPage._save', e);
       if (!mounted) return;
       setState(() => _saving = false);
@@ -201,3 +202,4 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
               ),
   );
 }
+

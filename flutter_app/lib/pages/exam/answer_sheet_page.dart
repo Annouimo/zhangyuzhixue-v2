@@ -8,6 +8,8 @@ import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/md_latex_body.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 快对答案
 class AnswerSheetPage extends StatefulWidget {
@@ -40,7 +42,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       if (!mounted) return;
       setState(() { _answers = l; _loading = false; });
       AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
-    } catch (e) { AuditLogger.instance.error('AnswerSheetPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('answer_sheet_page_load', e);  AuditLogger.instance.error('AnswerSheetPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   @override
@@ -77,3 +79,4 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
     );
   }
 }
+

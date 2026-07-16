@@ -11,6 +11,7 @@ import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../../data/debug/operation_log.dart';
 import '../router.dart';
 
 class QuestionHistoryPage extends StatefulWidget {
@@ -40,9 +41,9 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       if (!mounted) return;
       setState(() { _history = list; _loading = false; });
       AuditLogger.instance.page('QuestionHistoryPage', {'total': _history?.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('question_history_page_load', e); 
       AuditLogger.instance.error('QuestionHistoryPage._load', e);
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
     }
   }
 
@@ -85,3 +86,4 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
           ),
   );
 }
+

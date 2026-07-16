@@ -13,6 +13,7 @@ import '../../widgets/shared/error_placeholder.dart';
 import '../../widgets/shared/empty_placeholder.dart';
 import 'widgets/assignment_card.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 作业列表页（作业 Tab 首页）
 class HomeworkListPage extends StatefulWidget {
@@ -69,11 +70,11 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
         });
         AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length, 'source': 'api'});
       }
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('homework_list_page_load', e); 
       AuditLogger.instance.error('HomeworkListPage._load', e);
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = '加载失败，请稍后重试';
         _loading = false;
       });
     }
@@ -130,5 +131,6 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
     );
   }
 }
+
 
 

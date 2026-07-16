@@ -13,6 +13,8 @@ import '../../../widgets/shared/action_chip.dart';
 import '../../../data/helpers/pdf_helper.dart';
 import 'widgets/paper_card.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../data/debug/operation_log.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 我的组卷列表 — 匹配 HTML 原型 paper_history.html
 class ExamHistoryPage extends StatefulWidget {
@@ -44,7 +46,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
       if (!mounted) return;
       setState(() { _list = l; _loading = false; });
       AuditLogger.instance.page('ExamHistoryPage', {'total': _list?.length});
-    } catch (e) { AuditLogger.instance.error('ExamHistoryPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('exam_history_page_load', e);  AuditLogger.instance.error('ExamHistoryPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   Future<void> _deleteExam(int examId) async {
@@ -113,4 +115,5 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     );
   }
 }
+
 

@@ -13,6 +13,7 @@ import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 选择题解题页
 class SolveChoicePage extends StatefulWidget {
@@ -69,7 +70,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       final sec = await dao.getInt('solve_cooldown_choice', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
       AuditLogger.instance.error('SolveChoicePage._loadCooldown', e);
     }
   }
@@ -124,7 +125,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         await _restoreAttemptState(latest);
       }
       AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
       AuditLogger.instance.error('SolveChoicePage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -143,7 +144,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _submitted = true;
         _isCorrect = _selected == _detail?.answer;
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
       AuditLogger.instance.error('SolveChoicePage._submit', e);
     }
   }
@@ -316,7 +317,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _submitted = false;
         _isCorrect = false;
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
       AuditLogger.instance.error('SolveChoicePage._createNewAttempt', e);
     }
   }
@@ -505,3 +506,4 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     );
   }
 }
+

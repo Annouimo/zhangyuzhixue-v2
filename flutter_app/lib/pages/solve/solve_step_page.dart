@@ -13,6 +13,7 @@ import '../../domain/question_repository.dart';
 import 'widgets/step_card_widget.dart';
 import 'widgets/feedback_buttons.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 String _feedbackToStatus(FeedbackType type) {
   switch (type) {
@@ -68,7 +69,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       final sec = await dao.getInt('solve_cooldown_step', 5);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_step_page_load', e); 
       AuditLogger.instance.error('SolveStepPage._loadCooldown', e);
     }
   }
@@ -132,7 +133,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         'stepCount': _currentMethodStepCount, 'currentStep': widget.stepIndex,
         'isRevisit': _isRevisit,
       });
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_step_page_load', e); 
       AuditLogger.instance.error('SolveStepPage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -296,3 +297,4 @@ class _SolveStepPageState extends State<SolveStepPage> {
     ));
   }
 }
+

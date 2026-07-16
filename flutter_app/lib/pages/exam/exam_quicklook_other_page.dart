@@ -11,6 +11,7 @@ import '../../../widgets/shared/loading_indicator.dart';
 import '../../../widgets/shared/error_placeholder.dart';
 import '../../../widgets/shared/action_chip.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 import 'widgets/exam_question_card.dart';
 
 /// 预览（他人的组卷）
@@ -45,7 +46,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       if (!mounted) return;
       setState(() { _preview = p; _liked = p.likeCount > 0; _collected = p.collectCount > 0; _loading = false; });
       AuditLogger.instance.page('ExamQuicklookOtherPage', {'title': _preview?.name});
-    } catch (e) { AuditLogger.instance.error('ExamQuicklookOtherPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('exam_quicklook_other_page_load', e);  AuditLogger.instance.error('ExamQuicklookOtherPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   @override
@@ -100,3 +101,4 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
     setState(() => _collected = !_collected);
   }
 }
+

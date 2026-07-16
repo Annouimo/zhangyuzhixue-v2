@@ -12,6 +12,7 @@ import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 预览（自己的组卷）
 class ExamQuicklookPage extends StatefulWidget {
@@ -45,7 +46,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       if (!mounted) return;
       setState(() { _preview = p; _loading = false; });
       AuditLogger.instance.page('ExamQuicklookPage', {'hasPreview': _preview != null});
-    } catch (e) { AuditLogger.instance.error('ExamQuicklookPage._load', e); if (!mounted) return; setState(() { _error = e.toString(); _loading = false; }); }
+    } catch (e) { OperationLog.instance.error('exam_quicklook_page_load', e);  AuditLogger.instance.error('ExamQuicklookPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }
 
   @override
@@ -109,3 +110,4 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     );
   }
 }
+

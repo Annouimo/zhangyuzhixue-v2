@@ -13,6 +13,7 @@ import '../../domain/question_repository.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 作业详情页
 class HomeworkDetailPage extends StatefulWidget {
@@ -65,11 +66,11 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         _loading = false;
       });
       AuditLogger.instance.page('HomeworkDetailPage', {'qCount': _detail?.questions.length});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('homework_detail_page_load', e); 
       AuditLogger.instance.error('HomeworkDetailPage._load', e);
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = '加载失败，请稍后重试';
         _loading = false;
       });
     }
@@ -192,7 +193,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                         mode = !attempts.last.isCompleted ? 'resume' : 'review';
                         attemptId = attempts.last.id;
                       }
-                    } catch (e) {
+                    } catch (e) { OperationLog.instance.error('homework_detail_page_load', e); 
                       AuditLogger.instance.error('HomeworkDetailPage.onTap', e);
                     }
                   }
@@ -317,3 +318,4 @@ class _QuestionTile extends StatelessWidget {
     );
   }
 }
+

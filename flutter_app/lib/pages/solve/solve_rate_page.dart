@@ -9,6 +9,7 @@ import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
 import '../../data/debug/audit_logger.dart';
+import '../../../data/debug/operation_log.dart';
 
 /// 评分页（3维×10星）
 class SolveRatePage extends StatefulWidget {
@@ -68,7 +69,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
         _loading = false;
       });
       AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
       AuditLogger.instance.error('SolveRatePage._loadRating', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
@@ -89,7 +90,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
         icon: Icons.check_circle, message: '评分已提交',
         backgroundColor: AppColors.success,
       );
-    } catch (e) {
+    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
       AuditLogger.instance.error('SolveRatePage._submit', e);
       setState(() => _saving = false);
       if (!mounted) return;
@@ -205,3 +206,4 @@ class _StarRating extends StatelessWidget {
     );
   }
 }
+
