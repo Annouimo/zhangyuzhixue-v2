@@ -729,17 +729,6 @@
       </a>
     </div>
 
-    <!-- 更新日志 -->
-    <div class="debug-section">
-      <div class="debug-title">📋 更新日志</div>
-      <p style="font-size:13px;color:var(--text-secondary);padding:0 16px 8px;line-height:1.6;">
-        查看当日开发进度
-      </p>
-      <button class="btn btn-primary btn-block" onclick="showChangelog()">
-        显示今日更新日志
-      </button>
-    </div>
-
     <!-- 📦 更新机制测试 -->
     <div class="debug-section">
       <div class="debug-title">📦 更新机制</div>
@@ -848,46 +837,6 @@
       <div class="rating-actions">
         <button class="rating-skip" onclick="closeRatingPopup()">跳过</button>
         <button class="rating-submit" id="rating-submit-btn" disabled onclick="submitRating()">提交评价</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 更新日志弹窗 -->
-  <div class="popup-overlay" id="changelog-popup" onclick="if(event.target===this)closeChangelog()">
-    <div class="changelog-card">
-      <div class="cl-header">
-        <h2>📋 更新日志</h2>
-        <button class="cl-close" onclick="closeChangelog()">✕</button>
-      </div>
-      <div class="cl-date">2026-07-06（周一）</div>
-
-      <div class="cl-item">
-        <span class="cl-tag feat">新增</span>
-        <span>统计页面 — 数据生成/热力分色/难度统计</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag feat">新增</span>
-        <span>难度/计算量滑条分段标签</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag feat">新增</span>
-        <span>首页tab + 作业列表页</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag feat">新增</span>
-        <span>个人信息编辑页</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag feat">新增</span>
-        <span>关于页面 + 同步队列页面 + 检查更新弹窗</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag refactor">调整</span>
-        <span>我的页面拆分信息卡+分类重组</span>
-      </div>
-      <div class="cl-item">
-        <span class="cl-tag refactor">调整</span>
-        <span>用户界面统一显示昵称（真实姓名仅管理员可见）</span>
       </div>
     </div>
   </div>
@@ -1113,14 +1062,6 @@
       console.log('[页面评价] 评分=' + selectedRating + ' 反馈="' + feedback + '"');
       showToast('📋', '页面评价已提交！感谢反馈 +1.0 赠送积分');
       closeRatingPopup();
-    }
-
-    /* ===== 更新日志 ===== */
-    function showChangelog() {
-      document.getElementById('changelog-popup').classList.add('show');
-    }
-    function closeChangelog() {
-      document.getElementById('changelog-popup').classList.remove('show');
     }
 
     /* ===== 更新机制测试 ===== */

@@ -11,6 +11,7 @@ import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
 import 'package:flutter_app/widgets/sync_progress_dialog.dart';
+import 'package:flutter_app/widgets/shared/app_toast.dart';
 import 'package:flutter_app/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
 import 'data/debug/audit_logger.dart';
@@ -166,12 +167,12 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
   );
 }
 
-void _startUpdate(BuildContext context, UpdateSummary summary, String label) {
+Future<void> _startUpdate(BuildContext context, UpdateSummary summary, String label) async {
   // 关闭当前确认弹窗
   Navigator.of(context).pop();
 
   // 显示进度弹窗
-  showSyncProgress(
+  final ok = await showSyncProgress(
     context,
     (onProgress) async {
       await SyncManager().runUpdate(summary.type, onProgress: onProgress);
@@ -179,6 +180,14 @@ void _startUpdate(BuildContext context, UpdateSummary summary, String label) {
     title: '更新数据',
     message: '正在下载$label新版本…',
   );
+  // 更新成功后显示 Toast
+  if (ok && context.mounted) {
+    AppToast.show(context,
+      icon: Icons.check_circle,
+      message: '$label更新完成',
+      backgroundColor: AppColors.success,
+    );
+  }
 }
 
 void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
