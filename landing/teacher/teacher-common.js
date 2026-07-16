@@ -117,13 +117,22 @@ async function loadAssignments() {
     container.innerHTML = '<div class="text-center" style="padding:40px;color:var(--text-muted);font-size:14px;">暂无已发布的作业</div>';
     return;
   }
-  container.innerHTML = items.map(a => `
+  container.innerHTML = items.map(a => {
+    const isActive = a.statusTag === 'in_progress';
+    const statusLabel = isActive ? '进行中' : '已截止';
+    const statusClass = isActive ? 'in-progress' : 'done';
+    return `
     <a href="detail.html?id=${a.id}" class="assign-item">
       <div class="left">
         <div class="title">${esc(a.title)}</div>
         <div class="meta">
           <span>📚 ${esc(a.className)}</span>
+          <span>📖 ${esc(a.courseName)}</span>
           <span>⏰ 截止 ${esc(a.deadline)}</span>
+          <span>📄 ${a.questionCount ?? 0} 题</span>
+        </div>
+        <div class="subtitle" style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+          发布于 ${esc(a.publishAt || '')}
         </div>
       </div>
       <div class="right">
@@ -132,8 +141,10 @@ async function loadAssignments() {
           <div class="progress-track"><div class="progress-fill" style="width:${a.totalStudents > 0 ? Math.round(a.completedCount / a.totalStudents * 100) : 0}%"></div></div>
           ${(a.completionRate ?? 0) + '%'}
         </div>
+        <span class="status-tag ${statusClass}">${statusLabel}</span>
       </div>
-    </a>`).join('');
+    </a>`;
+  }).join('');
 }
 
 // ── UI 工具 ──────────────────────────────────────────────────

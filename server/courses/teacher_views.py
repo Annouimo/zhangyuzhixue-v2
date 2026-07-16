@@ -21,6 +21,7 @@ from courses.models import (
     ClassCourse,
     ClassCourseAssignment,
     ClassGroup,
+    Course,
 )
 from courses.teacher_serializers import (
     CreateAssignmentSerializer,
@@ -174,15 +175,57 @@ def _calc_streak_days(student):
 def class_list(request):
     """班级概览 — 统计卡片 + 列表"""
     groups = ClassGroup.objects.annotate(s_count=Count('students'))
+
+    # 批量预计算班级正确率
+    class_ids = [g.id for g in groups]
+    # 正确率/班级
+    accuracy_raw = (
+        SubmissionDetail.objects.filter(
+            submission__student__class_group_id__in=class_ids,
+            is_correct__isnull=False,
+        )
+        .values('submission__student__class_group_id')
+        .annotate(
+            total=Count('id'),
+            correct=Count('id', filter=Q(is_correct=True)),
+        )
+    )
+    accuracy_map = {}
+    for r in accuracy_raw:
+        cid = r['submission__student__class_group_id']
+        t = r['total']
+        accuracy_map[cid] = round(r['correct'] / t * 100, 1) if t else 0.0
+
+    # 课程数/班级
+    course_count_raw = (
+        ClassCourse.objects.filter(class_group_id__in=class_ids)
+        .values('class_group_id')
+        .annotate(cnt=Count('course', distinct=True))
+    )
+    course_count_map = {r['class_group_id']: r['cnt'] for r in course_count_raw}
+
+    # 总题量/班级
+    questions_raw = (
+        SubmissionDetail.objects.filter(
+            submission__student__class_group_id__in=class_ids,
+        )
+        .values('submission__student__class_group_id')
+        .annotate(cnt=Count('id'))
+    )
+    questions_map = {r['submission__student__class_group_id']: r['cnt'] for r in questions_raw}
+
     items = []
     total_students = 0
     for g in groups:
         total_students += g.s_count
+        cid = g.id
         items.append({
-            'id': g.id,
+            'id': cid,
             'name': g.name,
             'studentCount': g.s_count,
-            'avgAccuracy': _calc_class_accuracy(g.id),
+            'courseCount': course_count_map.get(cid, 0),
+            'totalQuestionsDone': questions_map.get(cid, 0),
+            'avgAccuracy': accuracy_map.get(cid, 0.0),
         })
     return _ok(data={
         'totalClasses': groups.count(),
@@ -439,6 +482,16 @@ def _list_assignments():
         t = r['total']
         accuracy_map[key] = round(r['correct'] / t * 100, 1) if t else 0.0
 
+    # 题数/作业
+    q_count_map = dict(
+        AssignmentQuestion.objects.filter(assignment_id__in=assignment_ids)
+        .values('assignment_id')
+        .annotate(cnt=Count('id'))
+        .values_list('assignment_id', 'cnt')
+    )
+
+    today = timezone.now().date()
+
     for aid, g in grouped.items():
         a = g['assignment']
         class_names = []
@@ -460,12 +513,18 @@ def _list_assignments():
                 all_deadlines.append(cca.deadline)
 
         latest_deadline = max(all_deadlines).strftime('%Y-%m-%d') if all_deadlines else ''
+        deadline_date = max(all_deadlines) if all_deadlines else None
+        publish_ats = [cca.publish_at for cca in g['ccas'] if cca.publish_at]
+        publish_at_str = max(publish_ats).strftime('%Y-%m-%d') if publish_ats else ''
 
         items.append({
             'id': aid,
             'title': a.title,
             'className': '、'.join(class_names),
+            'courseName': g['ccas'][0].class_course.course.name,
             'deadline': latest_deadline,
+            'questionCount': q_count_map.get(aid, 0),
+            'publishAt': publish_at_str,
             'totalStudents': total_students,
             'completedCount': completed_count,
             'completionRate': (
@@ -474,6 +533,7 @@ def _list_assignments():
             'avgAccuracy': (
                 round(accuracy_weighted_sum / total_students, 1)
                 if total_students else 0.0),
+            'statusTag': 'in_progress' if deadline_date and deadline_date >= today else 'done',
         })
 
     # 汇总统计
@@ -504,10 +564,13 @@ def _create_assignment(data):
     """从教师端 JSON 选题创建作业并发布到班级"""
     qids = data['question_ids']
     title = data.get('title', '').strip() or f'作业（{len(qids)}题）'
+    course_id = data.get('course_id')
+    if course_id is not None:
+        get_object_or_404(Course, pk=course_id)
     assignment = Assignment.objects.create(
         title=title,
         description=data.get('description', ''),
-        course_id=data.get('course_id'),
+        course_id=course_id,
     )
     questions = BaseQuestion.objects.filter(pk__in=qids)
     q_map = {q.id: i for i, q in enumerate(questions)}
@@ -601,21 +664,32 @@ def _assignment_detail(cca):
     cg_id = cca.class_course.class_group_id
     a_id = cca.assignment_id
 
-    students = Student.objects.filter(
+    students = list(Student.objects.filter(
         class_group_id=cg_id,
-    ).select_related('user')
+    ).select_related('user'))
+
+    # 批量加载该班级该作业的所有提交详情
+    all_details = (
+        SubmissionDetail.objects.filter(
+            submission__assignment_id=a_id,
+            submission__student__class_group_id=cg_id,
+        )
+        .select_related('submission__student')
+        .order_by('submission__student_id', 'created_at')
+    )
+
+    # 按学生分组
+    from collections import defaultdict
+    student_details = defaultdict(list)
+    for d in all_details:
+        student_details[d.submission.student_id].append(d)
 
     student_items = []
     for s in students:
-        details = SubmissionDetail.objects.filter(
-            submission__assignment_id=a_id,
-            submission__student=s,
-        ).order_by('created_at')
-
-        first = details.first()
-        if first:
-            # 计算耗时：首条到最后一条的时间差
-            last = details.last()
+        details = student_details.get(s.id, [])
+        if details:
+            first = details[0]
+            last = details[-1]
             secs = int((last.created_at - first.created_at).total_seconds())
             if secs < 60:
                 duration = '少于1分钟'
@@ -624,8 +698,8 @@ def _assignment_detail(cca):
             else:
                 duration = f'{secs // 3600}小时{(secs % 3600) // 60}分钟'
 
-            total = details.count()
-            correct = details.filter(is_correct=True).count()
+            total = len(details)
+            correct = sum(1 for d in details if d.is_correct)
             acc = round(correct / total * 100, 1) if total else 0.0
             student_items.append({
                 'id': s.id,
@@ -667,6 +741,23 @@ def _assignment_detail_by_assignment(ccas):
         return _err(40201, '作业不存在')
 
     a = ccas[0].assignment
+    class_group_ids = [cca.class_course.class_group_id for cca in ccas]
+
+    # 批量加载全部学生的提交详情
+    all_details = (
+        SubmissionDetail.objects.filter(
+            submission__assignment_id=a.id,
+            submission__student__class_group_id__in=class_group_ids,
+        )
+        .select_related('submission__student')
+        .order_by('submission__student_id', 'created_at')
+    )
+
+    from collections import defaultdict
+    student_details_map = defaultdict(list)
+    for d in all_details:
+        student_details_map[d.submission.student_id].append(d)
+
     classes = []
     total_students = 0
     completed_count = 0
@@ -677,20 +768,16 @@ def _assignment_detail_by_assignment(ccas):
         cg_id = cca.class_course.class_group_id
         cg_name = cca.class_course.class_group.name
 
-        students = Student.objects.filter(
+        students = list(Student.objects.filter(
             class_group_id=cg_id,
-        ).select_related('user')
+        ).select_related('user'))
 
         student_items = []
         for s in students:
-            details = SubmissionDetail.objects.filter(
-                submission__assignment_id=a.id,
-                submission__student=s,
-            ).order_by('created_at')
-
-            first = details.first()
-            if first:
-                last = details.last()
+            details = student_details_map.get(s.id, [])
+            if details:
+                first = details[0]
+                last = details[-1]
                 secs = int((last.created_at - first.created_at).total_seconds())
                 if secs < 60:
                     duration = '少于1分钟'
@@ -699,8 +786,8 @@ def _assignment_detail_by_assignment(ccas):
                 else:
                     duration = f'{secs // 3600}小时{(secs % 3600) // 60}分钟'
 
-                total = details.count()
-                correct = details.filter(is_correct=True).count()
+                total = len(details)
+                correct = sum(1 for d in details if d.is_correct)
                 acc = round(correct / total * 100, 1) if total else 0.0
                 student_items.append({
                     'id': s.id,
@@ -739,11 +826,15 @@ def _assignment_detail_by_assignment(ccas):
 
     latest_deadline = max(all_deadlines).strftime('%Y-%m-%d') if all_deadlines else ''
 
+    # 题目数量
+    question_count = AssignmentQuestion.objects.filter(assignment=a).count()
+
     return _ok(data={
         'id': a.id,
         'title': a.title,
         'description': a.description,
         'deadline': latest_deadline,
+        'questionCount': question_count,
         'totalStudents': total_students,
         'completedCount': completed_count,
         'avgAccuracy': (

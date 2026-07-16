@@ -59,6 +59,14 @@
       </div>
     </div>
 
+    <!-- 步骤 2.5: 选课程 -->
+    <div class="card">
+      <div class="card-title">②½ 关联课程（可选）</div>
+      <div id="course-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载课程列表...</div>
+      <div id="course-list"></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">不选择则作业不关联课程</div>
+    </div>
+
     <!-- 步骤 3: 选班级 -->
     <div class="card">
       <div class="card-title">③ 选择发布班级</div>
@@ -111,6 +119,11 @@
       if (cb) cb.checked = !cb.checked;
     };
 
+    window.selectCourse = function(el, id) {
+      document.querySelectorAll('#course-list .paper-card').forEach(function(p) { p.classList.remove('selected'); });
+      el.classList.add('selected');
+    };
+
     window.handlePublish = async function() {
       hideError();
       if (!parsedQuestionIds || parsedQuestionIds.length === 0) {
@@ -124,6 +137,10 @@
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.textContent = '发布中...';
 
+      // 获取选中的课程 ID
+      const selectedCourse = document.querySelector('#course-list .paper-card.selected');
+      const courseId = selectedCourse ? parseInt(selectedCourse.dataset.courseId) : null;
+
       try {
         await apiCall('/teacher/assignments/', {
           method: 'POST',
@@ -133,6 +150,7 @@
             deadline: deadline,
             description: document.getElementById('description').value.trim(),
             class_ids: Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.classId)),
+            course_id: courseId,
           }),
         });
         window.location.href = '/teacher/';
@@ -141,6 +159,29 @@
         btn.disabled = false; btn.textContent = '确认发布';
       }
     };
+
+    // 加载课程
+    (async function loadCourses() {
+      try {
+        const courses = await apiCall('/lectures/courses/');
+        hideLoading('course-loading');
+        const courseContainer = document.getElementById('course-list');
+        if (!courses || courses.length === 0) {
+          courseContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无课程数据</div>';
+        } else {
+          courseContainer.innerHTML = courses.map(c => `
+            <div class="paper-card" onclick="selectCourse(this, ${c.id})">
+              <div class="radio"></div>
+              <div class="info">
+                <div class="name">${esc(c.name)}</div>
+              </div>
+            </div>`).join('');
+        }
+      } catch (e) {
+        hideLoading('course-loading');
+        document.getElementById('course-list').innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">加载失败</div>';
+      }
+    })();
 
     // 加载班级
     (async function init() {

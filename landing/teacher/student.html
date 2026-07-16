@@ -71,6 +71,14 @@
           <div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无薄弱知识点数据</div>
         </div>
       </div>
+
+      <!-- 各题型表现 -->
+      <div class="card">
+        <div class="card-title">各题型表现</div>
+        <div id="type-breakdown">
+          <div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无题型数据</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -179,6 +187,25 @@
                 </div>
               </div>`;
           });
+        }
+
+        // 各题型表现
+        const breakdown = d.questionTypeBreakdown || [];
+        const breakdownContainer = document.getElementById('type-breakdown');
+        breakdownContainer.innerHTML = '';
+        if (breakdown.length === 0) {
+          breakdownContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无题型数据</div>';
+        } else {
+          breakdownContainer.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">';
+          breakdown.forEach(item => {
+            breakdownContainer.innerHTML += `
+              <div style="text-align:center;">
+                <div style="font-size:28px;font-weight:700;color:${accuracyColor(item.accuracy)};">${item.accuracy}%</div>
+                <div style="font-size:13px;color:var(--text-secondary);">${esc(item.type)}</div>
+                <div style="font-size:12px;color:var(--text-muted);">${item.count} 题</div>
+              </div>`;
+          });
+          breakdownContainer.innerHTML += '</div>';
         }
 
         document.getElementById('content').style.display = 'block';

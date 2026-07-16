@@ -77,6 +77,14 @@
                     <div style="font-size:20px;font-weight:700;">${c.studentCount ?? 0}</div>
                   </div>
                   <div>
+                    <div style="font-size:12px;color:var(--text-muted);">关联课程</div>
+                    <div style="font-size:20px;font-weight:700;">${c.courseCount ?? 0}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:12px;color:var(--text-muted);">总做题量</div>
+                    <div style="font-size:20px;font-weight:700;">${c.totalQuestionsDone ?? 0}</div>
+                  </div>
+                  <div>
                     <div style="font-size:12px;color:var(--text-muted);">平均正确率</div>
                     <div style="font-size:20px;font-weight:700;color:${accColor};">${(c.avgAccuracy ?? 0) + '%'}</div>
                   </div>

@@ -98,7 +98,7 @@
         tbody.innerHTML = '';
 
         if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无匹配的学生</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center" style="padding:20px;color:var(--text-muted);font-size:14px;">暂无匹配的学生</td></tr>';
         } else {
           data.forEach(s => {
             const color = accuracyColor(s.avgAccuracy);
