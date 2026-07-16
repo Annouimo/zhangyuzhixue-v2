@@ -314,3 +314,49 @@ body {
   background: var(--primary-hover);
   transform: translateY(-1px);
 }
+
+/* === 备用下载（公开页）=== */
+.backup-dl {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.backup-dl a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.backup-dl a:hover { text-decoration: underline; }
+.backup-dl .backup-code {
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* === 备用下载（内部页）=== */
+.backup-section { margin-bottom: 28px; }
+.backup-card {
+  background: #fff;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  border: 1px solid var(--border);
+}
+.backup-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; text-decoration: none; color: inherit;
+  transition: background .12s;
+  border-left: 3px solid transparent;
+}
+.backup-link:hover {
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+}
+.backup-link .name { font-size: 15px; font-weight: 500; }
+.backup-link .desc { font-size: 12px; color: #6b7280; margin-top: 1px; }
+.backup-link .tag-netdisk {
+  font-size: 11px; padding: 3px 10px; border-radius: 10px;
+  flex-shrink: 0; font-weight: 600;
+  background: #e8f5e9; color: #2e7d32;
+  letter-spacing: .3px;
+}
