@@ -245,8 +245,8 @@ class _AboutPageState extends State<AboutPage> {
   Widget _buildUserTile() {
     final hasUpdate = _serverUser > _localUser;
     return ListTile(
-      leading: const Icon(Icons.sync, color: AppColors.primary),
-      title: const Text('用户数据', style: TextStyle(fontSize: 15)),
+      leading: const Icon(Icons.devices, color: AppColors.primary),
+      title: const Text('多设备同步数据', style: TextStyle(fontSize: 15)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -254,23 +254,13 @@ class _AboutPageState extends State<AboutPage> {
             _lastSyncTime,
             style: const TextStyle(fontSize: 12),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '从云端恢复数据到本机',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          Text(
-            '日常记录已自动同步',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-          ),
-          Text(
-            !_versionLoaded
-                ? ''
-                : hasUpdate
-                    ? '检测到服务器有新数据，建议更新'
-                    : '',
-            style: TextStyle(fontSize: 11, color: hasUpdate ? AppColors.warning : Colors.transparent),
-          ),
+          if (_versionLoaded && hasUpdate) ...[
+            const SizedBox(height: 4),
+            Text(
+              '检测到其他设备有新记录，建议同步',
+              style: const TextStyle(fontSize: 11, color: AppColors.warning),
+            ),
+          ],
         ],
       ),
       trailing: !_versionLoaded
@@ -284,7 +274,7 @@ class _AboutPageState extends State<AboutPage> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('更新'),
+                      : const Text('同步'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.warning,
                     side: const BorderSide(color: AppColors.warning),
