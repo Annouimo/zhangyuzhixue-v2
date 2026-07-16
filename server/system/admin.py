@@ -1,5 +1,5 @@
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -131,12 +131,15 @@ class ToolsView(View):
             self._run_build('courses', request.POST.get('mode') == 'test')
         elif action == 'generate_codes':
             self._generate_codes(request)
+        elif action == 'grant_points':
+            self._grant_points(request)
 
         return HttpResponseRedirect(reverse('admin-system-tools'))
 
     def _get_context(self, request):
         """准备模板上下文"""
-        from accounts.models import InvitationCode
+        from accounts.models import InvitationCode, Student
+        from courses.models import ClassGroup
         from interactions.models import SubmissionDetail, StudentSubmission
         from accounts.models import UserLoginLog
         from django.db.models import Count
@@ -147,11 +150,15 @@ class ToolsView(View):
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
             'courses_version': DbVersion.objects.filter(db_type='courses').first(),
             'invitation_codes': InvitationCode.objects.all().order_by('-created_at')[:50],
+            'class_groups': ClassGroup.objects.all().order_by('name'),
+            'students': Student.objects.select_related('user', 'class_group').order_by(
+                'class_group__name', 'user__username'
+            ),
             'has_error': False,
             'messages': [],
             'now': timezone.now(),
             # ── 仪表板数据 ──
-            'dash_active_users': UserLoginLog.objects.filter(login_date=today).values('user').distinct().count(),
+            'dash_active_users': UserLoginLog.objects.filter(login_date=today).values('student').distinct().count(),
             'dash_today_submissions': SubmissionDetail.objects.filter(created_at__startswith=today.isoformat()).count(),
             'dash_today_sync_ok': 0,  # 从 auditlog 统计较复杂，暂设为 0
             'dash_today_sync_fail': 0,
@@ -231,6 +238,64 @@ class ToolsView(View):
                     expires_at=expires,
                 )
                 created += 1
+
+
+    def _grant_points(self, request):
+        """管理员赠送积分"""
+        from accounts.models import Student
+        from system.models import PointsTransaction
+
+        student_id = request.POST.get('student_id', '')
+        amount_str = request.POST.get('amount', '')
+        description = request.POST.get('description', '').strip()
+
+        errors = []
+
+        # 校验学生
+        if not student_id:
+            errors.append('请选择学生')
+        else:
+            try:
+                student = Student.objects.select_related('user').get(
+                    id=int(student_id)
+                )
+            except (ValueError, Student.DoesNotExist):
+                errors.append('学生不存在')
+                student = None
+
+        # 校验积分值
+        amount = None
+        if not amount_str:
+            errors.append('请输入积分值')
+        else:
+            try:
+                amount = float(amount_str)
+                if amount <= 0:
+                    errors.append('积分值必须大于 0')
+            except ValueError:
+                errors.append('积分值格式无效')
+
+        # 校验原因
+        if not description:
+            errors.append('请填写赠送原因')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+            return
+
+        PointsTransaction.objects.create(
+            student=student,
+            amount=amount,
+            transaction_type='EARN',
+            source='ADMIN_ADJUST',
+            description=description,
+        )
+        messages.success(
+            request,
+            f'已向 {student.user.username}（{student.student_id}）'
+            f'赠送 {amount} 积分',
+        )
 
 
 @method_decorator(staff_member_required, name='dispatch')
