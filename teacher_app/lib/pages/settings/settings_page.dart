@@ -171,6 +171,8 @@ class SettingsPageState extends State<SettingsPage> {
             _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
             _infoTile(Icons.code, '版本', appVersion),
           ]),
+          const SizedBox(height: 12),
+          _buildExportLogButton(),
         ],
       ),
     );
@@ -251,6 +253,33 @@ class SettingsPageState extends State<SettingsPage> {
       trailing: Text(value, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
       dense: true,
     );
+  }
+
+  Widget _buildExportLogButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: _exportLog,
+        icon: const Icon(Icons.bug_report_outlined, size: 16),
+        label: const Text('导出运行日志'),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textSecondary,
+          side: BorderSide(color: AppColors.border),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportLog() async {
+    final path = await OperationLog.instance.exportToShare();
+    if (!mounted) return;
+    if (path != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('日志已导出，可通过微信发送'), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 }
 

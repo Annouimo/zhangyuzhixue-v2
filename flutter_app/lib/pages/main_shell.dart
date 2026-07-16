@@ -5,6 +5,7 @@ import 'exam/exam_home_page.dart';
 import 'profile/profile_page.dart';
 import '../data/database/database_provider.dart';
 import '../data/daos/sync_queue_dao.dart';
+import '../data/debug/operation_log.dart';
 
 /// Tab 页枚举
 enum MainTab { home, recommend, exam, profile }
@@ -43,7 +44,9 @@ class _MainShellState extends State<MainShell> {
     try {
       final count = await SyncQueueDao(DatabaseProvider()).getPendingCount();
       if (mounted) setState(() => _syncPendingCount = count);
-    } catch (_) {}
+    } catch (e) {
+      OperationLog.instance.error('MainShell._refreshSyncPending', e);
+    }
   }
 
   @override

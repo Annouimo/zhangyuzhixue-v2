@@ -122,6 +122,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         context.go(AppRoutes.preferenceWelcome);
       }
+      OperationLog.instance.action('login', 'ok');
     } catch (e) {
       AuditLogger.instance.error('LoginPage._login', e);
       OperationLog.instance.error('LoginPage._login', e);
@@ -279,6 +280,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    // 导出日志
+                    GestureDetector(
+                      onTap: _exportLog,
+                      child: Text(
+                        '导出日志',
+                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -287,6 +297,16 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _exportLog() async {
+    final path = await OperationLog.instance.exportToShare();
+    if (!mounted) return;
+    if (path != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('日志已导出，可通过微信发送'), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 }
 
