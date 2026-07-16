@@ -10,7 +10,7 @@ class _MockQuicklookRepo implements ExamRepository {
 
   @override Future<ExamPreview> getPreview(int id) async =>
     preview ?? ExamPreview(name: '测试卷', authorInfo: '',
-      choiceCount: 5, fillCount: 3, solutionCount: 2, totalCount: 10, questions: []);
+      choiceCount: 5, fillCount: 3, solutionCount: 2, totalCount: 10, isPublic: false, questions: []);
   @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
   @override Future<List<ExploreExamSummary>> getExploreList() async => throw UnimplementedError();
   @override Future<List<FavoriteExamSummary>> getFavorites() async => throw UnimplementedError();
@@ -26,7 +26,7 @@ class _MockQuicklookRepo implements ExamRepository {
   @override Future<void> togglePublic(int id) async {}
   @override Future<void> deleteExam(int id) async {}
   @override Future<void> removeFavorite(int id) async {}
-  @override Future<void> downloadPdf(int id) async {}
+  @override Future<void> downloadPdf(int id, {BuildContext? context}) async {}
   @override Future<List<FilterPreset>> getFilterPresets() async => [];
 }
 
@@ -36,7 +36,7 @@ void main() {
     testWidgets('shows loading then preview', (tester) async {
       final repo = _MockQuicklookRepo(preview: ExamPreview(
         name: '测试卷', authorInfo: '', choiceCount: 5, fillCount: 3,
-        solutionCount: 2, totalCount: 10, questions: [],
+        solutionCount: 2, totalCount: 10, isPublic: false, questions: [],
       ));
       await tester.pumpWidget(
         MaterialApp(home: ExamQuicklookPage(examId: 1, examRepository: repo)),

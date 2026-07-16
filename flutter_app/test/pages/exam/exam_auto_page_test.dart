@@ -24,7 +24,7 @@ class _MockAutoRepo implements ExamRepository {
   @override Future<void> togglePublic(int id) async {}
   @override Future<void> deleteExam(int id) async {}
   @override Future<void> removeFavorite(int id) async {}
-  @override Future<void> downloadPdf(int id) async {}
+  @override Future<void> downloadPdf(int id, {BuildContext? context}) async {}
   @override Future<List<FilterPreset>> getFilterPresets() async => [];
 }
 

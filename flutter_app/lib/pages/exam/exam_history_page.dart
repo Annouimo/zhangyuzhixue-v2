@@ -89,7 +89,15 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 IconButton(
                   icon: Icon(e.isPublic ? Icons.public : Icons.lock, size: 18),
                   tooltip: e.isPublic ? '公开' : '私密',
-                  onPressed: () async { await _repo.togglePublic(e.id); _loadKey.currentState?.refresh(); },
+                  onPressed: () async {
+                    await _repo.togglePublic(e.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
+                      );
+                    }
+                    _loadKey.currentState?.refresh();
+                  },
                 ),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                 const SizedBox(width: 4),

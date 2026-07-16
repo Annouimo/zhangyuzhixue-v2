@@ -8,6 +8,8 @@ import '../data/debug/audit_logger.dart';
 import '../data/helpers/pdf_helper.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
+import '../data/api/user_api.dart' as api;
+import '../data/api/api_client.dart';
 
 /// 组卷构建状态
 
@@ -70,11 +72,13 @@ class ExamPreview {
   final int fillCount;
   final int solutionCount;
   final int totalCount;
+  final bool isPublic;
   final List<ExamQuestion> questions;
   const ExamPreview({
     required this.name, required this.authorInfo,
     required this.choiceCount, required this.fillCount,
     required this.solutionCount, required this.totalCount,
+    required this.isPublic,
     required this.questions,
   });
 }
@@ -89,12 +93,15 @@ class ExamPreviewOther {
   final int totalCount;
   final int likeCount;
   final int collectCount;
+  final bool isLiked;
+  final bool isCollected;
   final List<ExamQuestion> questions;
   const ExamPreviewOther({
     required this.name, required this.authorInfo,
     required this.choiceCount, required this.fillCount,
     required this.solutionCount, required this.totalCount,
     required this.likeCount, required this.collectCount,
+    this.isLiked = false, this.isCollected = false,
     required this.questions,
   });
 }
@@ -267,11 +274,35 @@ class InsufficientPoolException implements Exception {
 class ExamRepository {
   final QuestionDao _questionDao;
   final ExamDao _examDao;
+  late final api.UserApi _userApi;
 
-  const ExamRepository(this._questionDao, this._examDao);
+  ExamRepository(this._questionDao, this._examDao, {api.UserApi? userApi}) {
+    _userApi = userApi ?? api.UserApi(ApiClient());
+  }
 
   // ── 发现组卷 ──
   Future<List<ExploreExamSummary>> getExploreList() async {
+    // 优先走 API 获取全平台公开组卷
+    try {
+      final items = await _userApi.getExplorePapers();
+      return items.map((j) {
+        final m = j as Map<String, dynamic>;
+        return ExploreExamSummary(
+          id: m['id'] as int,
+          name: m['name'] as String? ?? '',
+          authorInfo: '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''} · 总积分 ${m['author_points'] ?? 0}',
+          summary: m['summary'] as String? ?? '',
+          likeCount: m['like_count'] as int? ?? 0,
+          collectCount: m['collect_count'] as int? ?? 0,
+          createdAt: m['created_at'] as String? ?? '',
+          isLiked: m['is_liked'] as bool? ?? false,
+          isCollected: m['is_collected'] as bool? ?? false,
+        );
+      }).toList();
+    } catch (e) {
+      AuditLogger.instance.error('ExamRepository.getExploreList.api', e);
+    }
+    // API 失败时回退到本地（仅自己的公开试卷）
     final rows = await _examDao.listPublic();
     final ids = rows.map((r) => r.id).toList();
     final statuses = await _examDao.getExploreStatuses(ids);
@@ -345,6 +376,17 @@ class ExamRepository {
 
   Future<void> togglePublic(int paperId) async {
     await _examDao.togglePublic(paperId);
+    // 入同步队列
+    try {
+      await SyncManager().enqueue(
+        entityType: SyncEntityType.exam,
+        operation: SyncOperationType.upsert,
+        localId: paperId,
+        payload: jsonEncode({'paper_id': paperId}),
+      );
+    } catch (e) {
+      AuditLogger.instance.sync('enqueue_error', {'type': 'togglePublic', 'error': '$e'});
+    }
   }
 
   Future<void> deleteExam(int paperId) async {
@@ -365,6 +407,7 @@ class ExamRepository {
       fillCount: qRows.where((q) => q.questionType == 'fill').length,
       solutionCount: qRows.where((q) => q.questionType == 'solution').length,
       totalCount: qRows.length,
+      isPublic: paper.isPublic == 1,
       questions: qRows.map((q) => ExamQuestion(
         questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',
@@ -374,13 +417,39 @@ class ExamRepository {
   }
 
   Future<ExamPreviewOther> getPreviewOther(int examId) async {
+    // 优先走 API 获取全局数据
+    try {
+      final data = await _userApi.getPreviewOther(examId);
+      final qList = (data['questions'] as List<dynamic>?)?.map((j) {
+        final m = j as Map<String, dynamic>;
+        return ExamQuestion(
+          questionId: m['question_id'] as int,
+          title: m['title'] as String? ?? '',
+          questionType: m['question_type'] as String? ?? '',
+        );
+      }).toList() ?? [];
+      return ExamPreviewOther(
+        name: data['name'] as String? ?? '',
+        authorInfo: '作者：${data['author_name'] ?? ''} · Lv.${data['author_level'] ?? ''} · ${data['created_at']?.toString()?.substring(0, 10) ?? ''}',
+        choiceCount: data['choice_count'] as int? ?? 0,
+        fillCount: data['fill_count'] as int? ?? 0,
+        solutionCount: data['solution_count'] as int? ?? 0,
+        totalCount: data['total_count'] as int? ?? 0,
+        likeCount: data['like_count'] as int? ?? 0,
+        collectCount: data['collect_count'] as int? ?? 0,
+        isLiked: data['is_liked'] as bool? ?? false,
+        isCollected: data['is_collected'] as bool? ?? false,
+        questions: qList,
+      );
+    } catch (e) {
+      AuditLogger.instance.error('ExamRepository.getPreviewOther.api', e);
+    }
+    // API 失败时回退到本地
     final paper = await _examDao.getById(examId);
     if (paper == null) throw Exception('Paper not found: $examId');
     final questions = await _examDao.getQuestions(examId);
     final qIds = questions.map((q) => q.questionId).toList();
     final qRows = await _questionDao.getByIds(qIds);
-    final like = await _examDao.getLike(examId);
-    final collect = await _examDao.getCollect(examId);
     return ExamPreviewOther(
       name: paper.title,
       authorInfo: '',
@@ -388,8 +457,8 @@ class ExamRepository {
       fillCount: qRows.where((q) => q.questionType == 'fill').length,
       solutionCount: qRows.where((q) => q.questionType == 'solution').length,
       totalCount: qRows.length,
-      likeCount: like != null ? 1 : 0,
-      collectCount: collect != null ? 1 : 0,
+      likeCount: 0,
+      collectCount: 0,
       questions: qRows.map((q) => ExamQuestion(
         questionId: q.id,
         title: '${q.number} ${q.examType} ${q.region}',

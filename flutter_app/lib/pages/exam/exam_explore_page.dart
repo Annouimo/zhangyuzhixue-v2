@@ -26,6 +26,14 @@ class ExamExplorePage extends StatefulWidget {
 class _ExamExplorePageState extends State<ExamExplorePage> {
   late final ExamRepository _repo;
   final GlobalKey<AsyncLoadWidgetState<List<ExploreExamSummary>>> _loadKey = GlobalKey();
+  String _sortBy = 'latest'; // latest / collectCount / likeCount
+
+  static const _sortOptions = [
+    ('latest', '最新'),
+    ('collectCount', '收藏'),
+    ('likeCount', '点赞'),
+    ('diff', '热度'),
+  ];
 
   @override
   void initState() {
@@ -79,19 +87,19 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
     appBar: AppBar(title: const Text('发现组卷')),
     body: Column(
       children: [
-        // 排序栏（仅视觉展示，排序逻辑待后续实现）
+        // 排序栏
         Container(
           width: double.infinity, color: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ['最新', '热度', '点赞', '收藏'].map((s) => Padding(
+              children: _sortOptions.map((opt) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
-                  label: Text(s, style: const TextStyle(fontSize: 12)),
-                  selected: false,
-                  onSelected: (_) {},
+                  label: Text(opt.$2, style: const TextStyle(fontSize: 12)),
+                  selected: _sortBy == opt.$1,
+                  onSelected: (_) => setState(() => _sortBy = opt.$1),
                   selectedColor: AppColors.primaryLight,
                   side: BorderSide.none,
                 ),
@@ -108,15 +116,31 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
               message: '还没有人公开分享试卷，去首页试试快速练习吧',
             ),
             builder: (ctx, list) {
+              // 排序
+              final sorted = List<ExploreExamSummary>.from(list);
+              switch (_sortBy) {
+                case 'collectCount':
+                  sorted.sort((a, b) => b.collectCount.compareTo(a.collectCount));
+                  break;
+                case 'likeCount':
+                  sorted.sort((a, b) => b.likeCount.compareTo(a.likeCount));
+                  break;
+                case 'diff':
+                  // 热度 = 点赞 + 收藏
+                  sorted.sort((a, b) => (b.likeCount + b.collectCount).compareTo(a.likeCount + a.collectCount));
+                  break;
+                default: // 'latest' — 按 createdAt 倒序（DAO 默认）
+                  break;
+              }
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 AuditLogger.instance.page('ExamExplorePage', {'totalPapers': list.length});
               });
               return ListView.separated(
                 padding: const EdgeInsets.all(AppSizes.baseSpacing),
-                itemCount: list.length,
+                itemCount: sorted.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (ctx, i) {
-                  final e = list[i];
+                  final e = sorted[i];
                   return PaperCard(
                     title: e.name,
                     subtitle: e.summary.isNotEmpty ? e.summary : '${e.likeCount} 赞 · ${e.collectCount} 收藏',

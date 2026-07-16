@@ -22,7 +22,8 @@ from interactions.models import (
     SubmissionDetail,
 )
 from interactions.serializers import SyncPushSerializer
-from django.db.models import F as DbF
+from django.db.models import F as DbF, Sum
+from rest_framework.permissions import IsAuthenticated
 
 ENTITY_ORDER = [
     'submission',
@@ -295,3 +296,123 @@ class SyncPushView(APIView):
             },
         )
         return pt
+
+
+# ── 组卷发现/预览 API ──────────────────────────────────────────
+
+
+class ExamExploreView(APIView):
+    """获取全平台公开组卷列表（不含当前用户自己的）"""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: OpenApiResponse(description='公开组卷列表')},
+    )
+    def get(self, request):
+        student = getattr(request.user, 'student', None)
+        if not student:
+            return _err(40302, '仅学生用户可访问')
+
+        # 查所有公开组卷（排除自己的）
+        papers = CustomPaper.objects.filter(
+            is_public=True
+        ).exclude(
+            student=student
+        ).order_by('-created_at').prefetch_related(
+            'paper_questions', 'paper_likes', 'paper_collects'
+        )
+
+        result = []
+        for p in papers:
+            like_count = p.paper_likes.count()
+            collect_count = p.paper_collects.count()
+            author_student = p.student
+            author_user = author_student.user
+            # 作者等级
+            from system.models import LevelConfig
+            total_pts = author_student.points_transactions.aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            level = LevelConfig.get_level(total_pts)
+            result.append({
+                'id': p.pk,
+                'name': p.title,
+                'author_name': author_user.username if author_user else '',
+                'author_level': level,
+                'author_points': total_pts,
+                'summary': f'选择 {p.questions.filter(question_type="choice").count()} 题 · '
+                          f'填空 {p.questions.filter(question_type="fill").count()} 题 · '
+                          f'解答 {p.questions.filter(question_type="solution").count()} 题 · '
+                          f'共 {p.questions.count()} 题',
+                'like_count': like_count,
+                'collect_count': collect_count,
+                'is_liked': p.paper_likes.filter(student=student).exists(),
+                'is_collected': p.paper_collects.filter(student=student).exists(),
+                'created_at': p.created_at.isoformat() if p.created_at else '',
+            })
+
+        return _ok(data=result)
+
+
+class ExamPreviewOtherView(APIView):
+    """获取他人组卷预览详情"""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: OpenApiResponse(description='组卷预览详情')},
+    )
+    def get(self, request, paper_id):
+        student = getattr(request.user, 'student', None)
+        if not student:
+            return _err(40302, '仅学生用户可访问')
+
+        try:
+            paper = CustomPaper.objects.get(pk=paper_id, is_public=True)
+        except CustomPaper.DoesNotExist:
+            return _err(40401, '组卷不存在或未公开')
+
+        questions = paper.paper_questions.order_by('sort_order').select_related('question')
+        from qbank.models import BaseQuestion
+
+        q_list = []
+        for pq in questions:
+            q = pq.question
+            q_list.append({
+                'question_id': q.pk,
+                'title': f'{q.number} {q.exam_type} {q.region}',
+                'question_type': q.question_type,
+            })
+
+        choice_count = sum(1 for q in q_list if q['question_type'] == 'choice')
+        fill_count = sum(1 for q in q_list if q['question_type'] == 'fill')
+        solution_count = sum(1 for q in q_list if q['question_type'] == 'solution')
+
+        like_count = paper.paper_likes.count()
+        collect_count = paper.paper_collects.count()
+        is_liked = paper.paper_likes.filter(student=student).exists()
+        is_collected = paper.paper_collects.filter(student=student).exists()
+
+        author_student = paper.student
+        author_user = author_student.user
+        from system.models import LevelConfig
+        total_pts = author_student.points_transactions.aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        level = LevelConfig.get_level(total_pts)
+
+        return _ok(data={
+            'name': paper.title,
+            'author_name': author_user.username if author_user else '',
+            'author_level': level,
+            'author_points': total_pts,
+            'choice_count': choice_count,
+            'fill_count': fill_count,
+            'solution_count': solution_count,
+            'total_count': len(q_list),
+            'like_count': like_count,
+            'collect_count': collect_count,
+            'is_liked': is_liked,
+            'is_collected': is_collected,
+            'created_at': paper.created_at.isoformat() if paper.created_at else '',
+            'questions': q_list,
+        })

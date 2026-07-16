@@ -44,7 +44,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
     try {
       final p = await _repo.getPreviewOther(widget.examId);
       if (!mounted) return;
-      setState(() { _preview = p; _liked = p.likeCount > 0; _collected = p.collectCount > 0; _loading = false; });
+      setState(() { _preview = p; _liked = p.isLiked; _collected = p.isCollected; _loading = false; });
       AuditLogger.instance.page('ExamQuicklookOtherPage', {'title': _preview?.name});
     } catch (e) { OperationLog.instance.error('exam_quicklook_other_page_load', e);  AuditLogger.instance.error('ExamQuicklookOtherPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
   }

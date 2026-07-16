@@ -9,9 +9,9 @@ class _MockAnswerRepo implements ExamRepository {
   _MockAnswerRepo({this.answers = const []});
 
   @override Future<List<AnswerItem>> getQuickAnswers(int id) async => answers;
-  @override Future<ExamPreview> getPreview(int id) async => const ExamPreview(
+  @override Future<ExamPreview> getPreview(int id) async => ExamPreview(
     name: '练习卷', authorInfo: '', choiceCount: 1, fillCount: 0,
-    solutionCount: 0, totalCount: 1, questions: [],
+    solutionCount: 0, totalCount: 1, isPublic: false, questions: [],
   );
   @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
   @override Future<List<ExploreExamSummary>> getExploreList() async => throw UnimplementedError();

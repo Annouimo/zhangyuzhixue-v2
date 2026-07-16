@@ -41,4 +41,18 @@ class UserApi {
     final res = await _client.dio.get('/user/level-percentile/');
     return res.data['data'] as Map<String, dynamic>;
   }
+
+  // ── 组卷发现/预览 ──
+
+  /// 获取全平台公开组卷列表
+  Future<List<dynamic>> getExplorePapers() async {
+    final res = await _client.dio.get('/interactions/exam/explore/');
+    return (res.data['data'] as List<dynamic>?) ?? [];
+  }
+
+  /// 获取他人组卷预览详情
+  Future<Map<String, dynamic>> getPreviewOther(int paperId) async {
+    final res = await _client.dio.get('/interactions/exam/preview-other/$paperId/');
+    return res.data['data'] as Map<String, dynamic>;
+  }
 }

@@ -66,7 +66,11 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
               onPressed: () => context.push('${AppRoutes.answerSheet}?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
               onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
-            IconButton(icon: const Icon(Icons.share), tooltip: '公开/私密', onPressed: _togglePublic),
+            IconButton(
+              icon: Icon(_preview?.isPublic == true ? Icons.public : Icons.lock),
+              tooltip: _preview?.isPublic == true ? '公开' : '私密',
+              onPressed: _togglePublic
+            ),
             IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
               onPressed: () async {
                 await _repo.deleteExam(widget.examId);
@@ -85,6 +89,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
       );
+      _load();
     }
   }
 
