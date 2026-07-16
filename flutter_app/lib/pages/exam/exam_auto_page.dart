@@ -79,7 +79,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
       _updatePoolStats();
-    } catch (e) { OperationLog.instance.error('exam_auto_page_load', e);  AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); OperationLog.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
   /// 保存当前筛选条件为学习偏好
@@ -200,8 +200,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           ),
         );
       }
-    } catch (e) { OperationLog.instance.error('exam_auto_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('ExamAutoPage._confirm', e);
+      OperationLog.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
         final msg = e is InsufficientPoolException ? e.message : '$e';
         ScaffoldMessenger.of(context).showSnackBar(

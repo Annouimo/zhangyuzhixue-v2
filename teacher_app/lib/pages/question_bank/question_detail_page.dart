@@ -7,7 +7,7 @@ import '../../widgets/shared/question_image.dart';
 import '../../widgets/shared/loading_indicator.dart';
 import '../../widgets/shared/error_placeholder.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import '../../data/debug/operation_log.dart';
 import '../../data/database/assets_database.dart' as db;
 
 /// 题目详情页（只读模式，无答题交互）

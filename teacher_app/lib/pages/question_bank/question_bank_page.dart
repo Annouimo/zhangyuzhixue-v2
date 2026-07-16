@@ -12,7 +12,7 @@ import '../../widgets/shared/question_card.dart';
 import '../../widgets/shared/app_toast.dart';
 import '../../widgets/filter_panel.dart';
 import '../../data/debug/audit_logger.dart';
-import '../../../data/debug/operation_log.dart';
+import '../../data/debug/operation_log.dart';
 import 'question_detail_page.dart';
 import 'preview_page.dart';
 
@@ -59,8 +59,9 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
-    } catch (e) { OperationLog.instance.error('question_bank_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('QuestionBankPage._loadFilterOptions', e);
+      OperationLog.instance.error('QuestionBankPage._loadFilterOptions', e);
       if (mounted) setState(() { _loadingOpts = false; });
     }
   }
@@ -92,8 +93,9 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
           gaokaoDiffMin: poolDiffMin, gaokaoDiffAvg: poolDiffMin, gaokaoDiffMax: poolDiffMax,
         );
       });
-    } catch (e) { OperationLog.instance.error('question_bank_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('QuestionBankPage._search', e);
+      OperationLog.instance.error('QuestionBankPage._search', e);
       if (mounted) setState(() => _loadingQ = false);
     }
   }

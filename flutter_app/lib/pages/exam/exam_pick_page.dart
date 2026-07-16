@@ -78,7 +78,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       if (!mounted) return;
       setState(() { _filterOpts = opts; _loadingOpts = false; });
       AuditLogger.instance.page('ExamPickPage', {'totalCount': _questions?.length});
-    } catch (e) { OperationLog.instance.error('exam_pick_page_load', e);  AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) { AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e); OperationLog.instance.error('ExamPickPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
   }
 
   Future<void> _updatePoolStats() async {
@@ -149,7 +149,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       if (!mounted) return;
       setState(() { _questions = qs; _loadingQ = false; });
       _updatePoolStats();
-    } catch (e) { OperationLog.instance.error('exam_pick_page_load', e);  AuditLogger.instance.error('ExamPickPage._search', e); if (mounted) setState(() => _loadingQ = false); }
+    } catch (e) { AuditLogger.instance.error('ExamPickPage._search', e); OperationLog.instance.error('ExamPickPage._search', e); if (mounted) setState(() => _loadingQ = false); }
   }
 
   Future<void> _save() async {
@@ -216,8 +216,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
           const SnackBar(content: Text('组卷成功！'), behavior: SnackBarBehavior.floating));
       }
       setState(() => _saving = false);
-    } catch (e) { OperationLog.instance.error('exam_pick_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('ExamPickPage._save', e);
+      OperationLog.instance.error('ExamPickPage._save', e);
       if (mounted && context.mounted) {
         final msg = e is InsufficientPoolException ? e.message : '$e';
         ScaffoldMessenger.of(context).showSnackBar(

@@ -91,7 +91,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final pts = await _userRepo.bonusPoints();
       if (!mounted) return;
       setState(() { _bonusPoints = pts; _bonusLoaded = true; });
-    } catch (e) { OperationLog.instance.error('preference_welcome_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('PreferenceWelcomePage._loadBonus', e); 
       AuditLogger.instance.error('PreferenceWelcomePage._loadBonus', e);
       if (!mounted) return;
       setState(() => _bonusLoaded = true);
@@ -183,7 +184,8 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           calcMax: _calcMax,
         ),
       );
-    } catch (e) { OperationLog.instance.error('preference_welcome_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('PreferenceWelcomePage._save', e); 
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

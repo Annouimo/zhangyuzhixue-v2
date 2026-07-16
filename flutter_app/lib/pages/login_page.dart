@@ -87,8 +87,9 @@ class _LoginPageState extends State<LoginPage> {
         if (ids.isNotEmpty) {
           await AppPrefs().setAccessibleCourseIds(ids);
         }
-      } catch (e) { OperationLog.instance.error('login_page_load', e); 
+      } catch (e) {
         AuditLogger.instance.error('LoginPage.cacheCourseIds', e);
+        OperationLog.instance.error('LoginPage.cacheCourseIds', e);
       }
 
       // 同步失败时页面内显示提示（登录流程已走完，token 已保存）
@@ -121,8 +122,9 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         context.go(AppRoutes.preferenceWelcome);
       }
-    } catch (e) { OperationLog.instance.error('login_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('LoginPage._login', e);
+      OperationLog.instance.error('LoginPage._login', e);
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
@@ -138,8 +140,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       final count = await _prefRepo!.getCount();
       return count > 0;
-    } catch (e) { OperationLog.instance.error('login_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('LoginPage._checkPreferences', e);
+      OperationLog.instance.error('LoginPage._checkPreferences', e);
       // DB 未初始化等，默认有偏好
       return true;
     }

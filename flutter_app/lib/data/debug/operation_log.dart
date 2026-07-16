@@ -25,7 +25,7 @@ class OperationLog {
     if (await file.exists()) {
       final lines = await file.readAsLines();
       if (lines.length > _maxEntries) {
-        await file.writeAsLines(lines.sublist(lines.length - _maxEntries));
+        await file.writeAsString('${lines.sublist(lines.length - _maxEntries).join('\n')}\n');
       }
     }
     _sink = file.openWrite(mode: FileMode.append);

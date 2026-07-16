@@ -48,7 +48,9 @@ class SettingsPageState extends State<SettingsPage> {
         if (r.type == 'qbank') _serverQbank = r.serverVersion;
         if (r.type == 'courses') _serverCourses = r.serverVersion;
       }
-    } catch (_) {}
+    } catch (e) {
+      OperationLog.instance.error('SettingsPage._load', e);
+    }
     if (mounted) setState(() => _versionLoaded = true);
   }
 

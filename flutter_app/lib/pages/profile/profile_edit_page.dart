@@ -51,8 +51,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         _loading = false;
       });
       AuditLogger.instance.page('ProfileEditPage', {'name': _nameCtrl.text, 'gaokaoYear': _gaokaoYear, 'loading': _loading});
-    } catch (e) { OperationLog.instance.error('profile_edit_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('ProfileEditPage._load', e);
+      OperationLog.instance.error('ProfileEditPage._load', e);
       if (mounted) setState(() => _loading = false);
     }
   }
@@ -91,8 +92,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
         );
       }
-    } catch (e) { OperationLog.instance.error('profile_edit_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('ProfileEditPage._pickAndUploadAvatar', e);
+      OperationLog.instance.error('ProfileEditPage._pickAndUploadAvatar', e);
       if (mounted) {
         setState(() => _uploading = false);
         ScaffoldMessenger.of(context).showSnackBar(
