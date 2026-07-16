@@ -137,6 +137,12 @@ class ToolsView(View):
     def _get_context(self, request):
         """准备模板上下文"""
         from accounts.models import InvitationCode
+        from interactions.models import SubmissionDetail, StudentSubmission
+        from accounts.models import UserLoginLog
+        from django.db.models import Count
+        from django.utils import timezone as tz
+        today = tz.now().date()
+        today_start = tz.make_aware(tz.datetime.combine(today, tz.datetime.min.time()))
         return {
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
             'courses_version': DbVersion.objects.filter(db_type='courses').first(),
@@ -144,6 +150,12 @@ class ToolsView(View):
             'has_error': False,
             'messages': [],
             'now': timezone.now(),
+            # ── 仪表板数据 ──
+            'dash_active_users': UserLoginLog.objects.filter(login_date=today).values('user').distinct().count(),
+            'dash_today_submissions': SubmissionDetail.objects.filter(created_at__startswith=today.isoformat()).count(),
+            'dash_today_sync_ok': 0,  # 从 auditlog 统计较复杂，暂设为 0
+            'dash_today_sync_fail': 0,
+            'dash_today_students': StudentSubmission.objects.filter(created_at__date=today).values('student').distinct().count(),
         }
 
     def _run_build(self, db_type, test_mode):
