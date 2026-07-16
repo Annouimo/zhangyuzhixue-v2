@@ -60,7 +60,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
 }
 
 .brand {
@@ -80,134 +80,150 @@ body {
 }
 .teacher-link:hover { color: var(--primary-hover); }
 
-/* === Hero === */
-.hero {
-  text-align: center;
+/* === 价值观区域 === */
+.values-section {
   margin-bottom: var(--space-4);
 }
 
-.hero h1 {
-  font-size: 32px;
+.values-title {
+  text-align: center;
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.5px;
-  margin-bottom: var(--space-1);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
 }
 
-.hero .subtitle {
-  font-size: 17px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-/* === 下载区域 === */
-.download-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-5);
-}
-
-/* --- 主按钮（当前设备的版本） --- */
-.btn-download {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  text-decoration: none;
-  transition: transform 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
-}
-
-.btn-download.active {
-  width: 100%;
-  padding: 16px var(--space-3);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--primary);
-  cursor: pointer;
-}
-
-.btn-download.active:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
-.btn-download.active:active { transform: translateY(0); }
-
-.btn-download.active .dl-desc {
-  font-size: 12px;
-  font-weight: 400;
-  opacity: 0.75;
-  line-height: 1.3;
-}
-
-/* --- 非当前设备（灰色小字链接） --- */
-.btn-download.inactive {
-  font-size: 13px;
-  font-weight: 400;
+.values-subtitle {
+  text-align: center;
+  font-size: 14px;
   color: var(--text-muted);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  background: transparent;
+  margin-bottom: var(--space-3);
 }
 
-.btn-download.inactive:hover {
-  color: var(--primary);
-  background: var(--primary-light);
-  transform: none;
-  box-shadow: none;
+/* --- 四高 2×2 网格 --- */
+.values-grid-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: var(--space-2);
 }
 
-.btn-download.inactive .dl-desc { display: none; }
-
-.btn-download.inactive .dl-text {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* --- 三新 一行 3 列 --- */
+.values-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
-.dl-others-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-right: 2px;
+/* 分隔装饰 */
+.values-divider {
+  width: 40px;
+  height: 2px;
+  background: var(--border);
+  margin: var(--space-2) auto;
+  border-radius: 1px;
 }
 
-/* === 卡片 === */
-.card {
+/* --- 单张价值观卡片 --- */
+.value-card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: var(--space-3);
-  margin-bottom: var(--space-3);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s;
+}
+
+.value-card:hover {
   box-shadow: var(--shadow);
 }
 
-.card-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: var(--space-2);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+.value-name {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text);
 }
 
-.qr-img {
-  display: block;
-  width: 140px;
-  height: 140px;
-  margin: 0 auto var(--space-2);
+.value-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.val-against {
+  color: var(--text-muted);
+}
+
+.val-for {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* === 联系方式行 === */
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-3);
+}
+
+.qr-sm {
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+  flex-shrink: 0;
 }
 
-.qr-desc {
-  text-align: center;
+.contact-text {
   font-size: 14px;
   color: var(--text-secondary);
+}
+
+/* === 下载链接行 === */
+.download-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: var(--space-4);
+}
+
+.dl-link {
+  font-size: 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 4px;
+  transition: color 0.15s;
+  font-weight: 400;
+}
+
+.dl-link:hover {
+  color: var(--primary);
+}
+
+.dl-link.dl-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.dl-link.dl-netdisk {
+  color: var(--text-muted);
+}
+
+.dl-sep {
+  color: var(--border);
+  font-size: 14px;
+  padding: 0 6px;
+  user-select: none;
 }
 
 /* === 底部链接 === */
@@ -240,7 +256,7 @@ body {
   padding-bottom: var(--space-2);
 }
 
-/* === 弹窗（Windows 下载确认） === */
+/* === 弹窗（iOS 未就绪） === */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -315,48 +331,27 @@ body {
   transform: translateY(-1px);
 }
 
-/* === 备用下载（公开页）=== */
-.backup-dl {
-  text-align: center;
-  margin: 20px 0;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-.backup-dl a {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-}
-.backup-dl a:hover { text-decoration: underline; }
-.backup-dl .backup-code {
-  margin-left: 4px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
+/* === 移动端适配 === */
+@media (max-width: 400px) {
+  .values-grid-4 {
+    grid-template-columns: 1fr;
+  }
 
-/* === 备用下载（内部页）=== */
-.backup-section { margin-bottom: 28px; }
-.backup-card {
-  background: #fff;
-  border-radius: 10px; overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06);
-  border: 1px solid var(--border);
-}
-.backup-link {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; text-decoration: none; color: inherit;
-  transition: background .12s;
-  border-left: 3px solid transparent;
-}
-.backup-link:hover {
-  background: var(--primary-light);
-  border-left-color: var(--primary);
-}
-.backup-link .name { font-size: 15px; font-weight: 500; }
-.backup-link .desc { font-size: 12px; color: #6b7280; margin-top: 1px; }
-.backup-link .tag-netdisk {
-  font-size: 11px; padding: 3px 10px; border-radius: 10px;
-  flex-shrink: 0; font-weight: 600;
-  background: #e8f5e9; color: #2e7d32;
-  letter-spacing: .3px;
+  .values-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .download-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dl-sep {
+    display: none;
+  }
+
+  .contact-row {
+    flex-direction: column;
+    text-align: center;
+  }
 }
