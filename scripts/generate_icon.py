@@ -11,16 +11,17 @@ SRC_CANDIDATES = [
     ROOT / 'flutter_app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
 ]
 
-# Android mipmap
+# Android mipmap: density folder → px
 ANDROID_SIZES = {'mipmap-mdpi': 48, 'mipmap-hdpi': 72, 'mipmap-xhdpi': 96,
                  'mipmap-xxhdpi': 144, 'mipmap-xxxhdpi': 192}
-ANDROID_RES = 'flutter_app/android/app/src/main/res'
-TEACHER_RES = 'teacher_app/android/app/src/main/res'
+ANDROID_MIPMAP = 'android/app/src/main/res'
+TEACHER_MIPMAP = 'android/app/src/main/res'
 
 # Windows ICO
 ICO_SIZES = [16, 32, 48, 256]
+WINDOWS_ICO = 'windows/runner/resources/app_icon.ico'
 
-# iOS
+# iOS: (filename, pixel_size)
 IOS_ICONS = [
     ('Icon-App-20x20@2x.png', 40), ('Icon-App-20x20@3x.png', 60),
     ('Icon-App-29x29@1x.png', 29), ('Icon-App-29x29@2x.png', 58), ('Icon-App-29x29@3x.png', 87),
@@ -31,13 +32,16 @@ IOS_ICONS = [
 ]
 IOS_DIR = 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
 
-# macOS
+# macOS: (filename, pixel_size)
 MACOS_ICONS = [
     ('app_icon_16.png', 16), ('app_icon_32.png', 32), ('app_icon_64.png', 64),
     ('app_icon_128.png', 128), ('app_icon_256.png', 256),
     ('app_icon_512.png', 512), ('app_icon_1024.png', 1024),
 ]
 MACOS_DIR = 'macos/Runner/Assets.xcassets/AppIcon.appiconset'
+
+# Splash logo
+SPLASH_LOGO = 'android/app/src/main/res/drawable/splash_logo.png'
 
 
 def _load_square() -> Image.Image:
@@ -53,49 +57,56 @@ def _load_square() -> Image.Image:
     sys.exit(1)
 
 
+def _save(path: Path, img: Image.Image, px: int, label: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.resize((px, px), Image.LANCZOS).save(path)
+    print(f'✅ {label}')
+
+
 def process():
     square = _load_square()
     print(f'✂️ 正方形: {square.size}')
 
-    # === Android mipmap ===
-    for app, res_base in [('flutter_app', ANDROID_RES), ('teacher_app', TEACHER_RES)]:
+    apps = ['flutter_app', 'teacher_app']
+
+    for app in apps:
+        mipmap_base = ROOT / app / ANDROID_MIPMAP
         for folder, px in ANDROID_SIZES.items():
-            dst = ROOT / app / res_base / folder / 'ic_launcher.png'
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            square.resize((px, px), Image.LANCZOS).save(dst)
-        print(f'✅ {app}: Android mipmap ×{len(ANDROID_SIZES)}')
+            _save(mipmap_base / folder / 'ic_launcher.png', square, px,
+                  f'{app}: {folder}/ic_launcher.png')
+        print(f'  → Android mipmap ×{len(ANDROID_SIZES)} 完成')
 
-    # === Windows .ico ===
-    for app in ('flutter_app', 'teacher_app'):
-        dst = ROOT / app / 'windows/runner/resources/app_icon.ico'
-        dst.parent.mkdir(parents=True, exist_ok=True)
+    for app in apps:
+        _save(ROOT / app / WINDOWS_ICO, square, 256,
+              f'{app}: app_icon.ico')
+        # ICO 需要多帧
+        ico_path = ROOT / app / WINDOWS_ICO
+        ico_path.parent.mkdir(parents=True, exist_ok=True)
         frames = [square.resize((s, s), Image.LANCZOS) for s in ICO_SIZES]
-        frames[0].save(dst, format='ICO', sizes=[(s, s) for s in ICO_SIZES],
+        frames[0].save(ico_path, format='ICO', sizes=[(s, s) for s in ICO_SIZES],
                        append_images=frames[1:])
-        print(f'✅ {app}: Windows .ico')
+        print(f'✅ {app}: app_icon.ico (multi-res ICO)')
 
-    # === iOS AppIcon ===
-    for app in ('flutter_app', 'teacher_app'):
-        d = ROOT / app / IOS_DIR
-        d.mkdir(parents=True, exist_ok=True)
+    for app in apps:
+        ios_dir = ROOT / app / IOS_DIR
+        ios_dir.mkdir(parents=True, exist_ok=True)
         for name, px in IOS_ICONS:
-            square.resize((px, px), Image.LANCZOS).save(d / name)
-        print(f'✅ {app}: iOS AppIcon ×{len(IOS_ICONS)}')
+            _save(ios_dir / name, square, px,
+                  f'{app}: iOS/{name}')
+        print(f'  → iOS AppIcon ×{len(IOS_ICONS)} 完成')
 
-    # === macOS AppIcon（仅学生端）===
-    if (ROOT / 'flutter_app' / MACOS_DIR).parent.exists():
-        d = ROOT / 'flutter_app' / MACOS_DIR
-        d.mkdir(parents=True, exist_ok=True)
+    # macOS 仅学生端
+    macos_dir = ROOT / 'flutter_app' / MACOS_DIR
+    if macos_dir.parent.exists():
+        macos_dir.mkdir(parents=True, exist_ok=True)
         for name, px in MACOS_ICONS:
-            square.resize((px, px), Image.LANCZOS).save(d / name)
-        print(f'✅ flutter_app: macOS AppIcon ×{len(MACOS_ICONS)}')
+            _save(macos_dir / name, square, px,
+                  f'flutter_app: macOS/{name}')
+        print(f'  → macOS AppIcon ×{len(MACOS_ICONS)} 完成')
 
-    # === Android splash logo ===
-    for app, res_base in [('flutter_app', ANDROID_RES), ('teacher_app', TEACHER_RES)]:
-        dst = ROOT / app / res_base / 'drawable' / 'splash_logo.png'
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        square.resize((256, 256), Image.LANCZOS).save(dst)
-        print(f'✅ {app}: splash_logo.png 256×256')
+    for app in apps:
+        _save(ROOT / app / SPLASH_LOGO, square, 256,
+              f'{app}: splash_logo.png')
 
     return True
 
