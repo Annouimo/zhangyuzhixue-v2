@@ -26,6 +26,13 @@ class ConnectivityMonitor {
       _online = results.any((r) => r != ConnectivityResult.none);
       _stateController.add(_online);
     });
+    // 初始检查真实网络状态
+    _connectivity.checkConnectivity().then((results) {
+      _online = results.any((r) => r != ConnectivityResult.none);
+      _stateController.add(_online);
+    }).catchError((_) {
+      // 测试环境无平台实现，保持默认值
+    });
     _initialized = true;
   }
 

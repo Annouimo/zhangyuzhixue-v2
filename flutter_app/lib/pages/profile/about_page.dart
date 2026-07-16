@@ -28,6 +28,7 @@ class _AboutPageState extends State<AboutPage> {
   int _serverCourses = 0;
   int _serverUser = 0;
   bool _versionLoaded = false;
+  bool _versionError = false;
   bool _updatingQbank = false;
   bool _updatingCourses = false;
   bool _updatingUser = false;
@@ -63,7 +64,7 @@ class _AboutPageState extends State<AboutPage> {
         setState(() => _versionLoaded = true);
       }
     } catch (_) {
-      if (mounted) setState(() => _versionLoaded = true);
+      if (mounted) setState(() { _versionLoaded = true; _versionError = true; });
     }
 
     if (mounted) setState(() {});
@@ -196,6 +197,16 @@ class _AboutPageState extends State<AboutPage> {
     required bool updating,
     required VoidCallback onUpdate,
   }) {
+    if (_versionError) {
+      return ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(label, style: const TextStyle(fontSize: 15)),
+        subtitle: const Text('⚠ 检查失败',
+          style: TextStyle(fontSize: 12, color: AppColors.error),
+        ),
+        trailing: null,
+      );
+    }
     final hasUpdate = server > local;
     final statusText = !_versionLoaded
         ? 'v$local'
