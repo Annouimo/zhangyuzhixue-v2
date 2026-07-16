@@ -11,9 +11,15 @@ import 'package:shared/debug/audit_logger.dart';
 class PushSummary {
   final int successCount;
   final int failCount;
+  final int batchesPushed;
   final String? message;
 
-  const PushSummary({required this.successCount, required this.failCount, this.message});
+  const PushSummary({
+    required this.successCount,
+    required this.failCount,
+    this.batchesPushed = 0,
+    this.message,
+  });
 }
 
 /// 推送引擎核心
@@ -36,6 +42,7 @@ class SyncPusher {
 
     var success = 0;
     var fail = 0;
+    var batchesPushed = 0;
 
     while (true) {
       // 每批推送前检查网络状态
@@ -59,6 +66,7 @@ class SyncPusher {
 
       try {
         final result = await _api.pushBatch(items);
+        batchesPushed++;
         // 逐条查 server_ids 映射：有的→成功，没有的→失败
         for (final entry in batch) {
           final sid = result.serverIds[entry.entityId];
@@ -106,6 +114,6 @@ class SyncPusher {
 
     AuditLogger.instance.sync('push', {'success': success, 'fail': fail, 'batchSize': batchSize});
 
-    return PushSummary(successCount: success, failCount: fail);
+    return PushSummary(successCount: success, failCount: fail, batchesPushed: batchesPushed);
   }
 }

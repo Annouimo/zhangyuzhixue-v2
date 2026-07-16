@@ -1,14 +1,16 @@
-import '../daos/sync_queue_dao.dart';
-import '../api/sync_api.dart';
-import '../database/database_provider.dart';
-import 'sync_types.dart';
-import 'sync_pusher.dart';
-import 'update_manager.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shared/debug/audit_logger.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared/debug/audit_logger.dart';
+import '../api/sync_api.dart';
+import '../daos/sync_queue_dao.dart';
+import '../database/database_provider.dart';
 import '../prefs/app_prefs.dart';
+import 'sync_pusher.dart';
+import 'sync_types.dart';
+import 'update_manager.dart';
+
 /// 同步引擎总入口（单例）
 class SyncManager {
   static final SyncManager _instance = SyncManager._();
@@ -21,7 +23,12 @@ class SyncManager {
   SyncApi? _api;
   DatabaseProvider? _dbProvider;
   bool _initialized = false;
-  DateTime _lastPushTime = DateTime(2000);
+
+  /// 并发锁 — 防止 pushNow 重叠（定时器 tick 和主动调用之间）
+  bool _pushing = false;
+
+  /// 后台重试定时器（30 秒间隔，首次 enqueue 启动，队列空后停止）
+  Timer? _retryTimer;
 
   /// 最近一次版本检查中需要用户操作的更新项
   List<UpdateSummary> _pendingUpdates = [];
@@ -46,6 +53,7 @@ class SyncManager {
 
   bool get hasPendingUpdates => _pendingUpdates.isNotEmpty;
 
+  /// 入队后立即尝试推送，并确保后台定时器已启动
   Future<void> enqueue({
     required SyncEntityType entityType,
     required SyncOperationType operation,
@@ -59,11 +67,11 @@ class SyncManager {
       entityId: localId,
       payload: payload,
     );
-    // 入队后自动尝试推送（pushNow 自带 30 秒冷却，不会过度推送）
+    _ensureRetryTimer();
     try {
       await pushNow();
     } catch (_) {
-      // 推送失败静默处理，队列项目保持 pending，下次推送机会再试
+      // 推送失败静默处理，定时器会在 30s 后自动重试
     }
   }
 
@@ -73,6 +81,8 @@ class SyncManager {
   /// 调用方可据此展示更新 UI。
   Future<List<UpdateSummary>> onAppStart() async {
     _ensureInitialized();
+    // 启动后台定时器兜底重试
+    _ensureRetryTimer();
     await pushNow();
     try {
       final results = await _updateManager!.checkAll();
@@ -99,7 +109,6 @@ class SyncManager {
   }) async {
     _ensureInitialized();
     if (type == 'user') {
-      // 用户数据更新：运行时调 fetchUserPullInfo 获取下载信息
       final info = await _api!.fetchUserPullInfo();
       await _dbProvider!.backupUserDb(_currentUserIdentity);
       try {
@@ -134,18 +143,58 @@ class SyncManager {
       newVersion: summary.serverVersion,
       onProgress: onProgress,
     );
-    // 替换成功后从待处理列表中移除
     _pendingUpdates.removeWhere((s) => s.type == type);
   }
 
+  /// 立即推送所有待同步数据。
+  /// 并发锁：[_pushing] 防止重叠调用，重叠时返回 null。
   Future<PushSummary?> pushNow() async {
     _ensureInitialized();
-    final now = DateTime.now();
-    if (now.difference(_lastPushTime).inSeconds < 30) return null;
-    _lastPushTime = now;
-    final summary = await _pusher!.pushAll();
-    AuditLogger.instance.sync('pushAll', {'success': summary.successCount, 'fail': summary.failCount});
-    return summary;
+    if (_pushing) return null;
+    _pushing = true;
+    try {
+      final summary = await _pusher!.pushAll();
+
+      if (summary.batchesPushed > 0) {
+        final current = AppPrefs().userVersion;
+        await AppPrefs().setUserVersion(current + summary.batchesPushed);
+      }
+
+      AuditLogger.instance.sync('pushAll', {
+        'success': summary.successCount,
+        'fail': summary.failCount,
+        'batchesPushed': summary.batchesPushed,
+      });
+      return summary;
+    } finally {
+      _pushing = false;
+    }
+  }
+
+  /// 启动后台定时器：每 30 秒巡查一次，队列空则自动停止。
+  /// 首次 enqueue 或 onAppStart 时调用，可重入。
+  void _ensureRetryTimer() {
+    if (_retryTimer != null) return;
+    _retryTimer = Timer.periodic(const Duration(seconds: 30), (_) => _onTimerTick());
+    AuditLogger.instance.sync('retry_timer', {'action': 'started'});
+  }
+
+  Future<void> _onTimerTick() async {
+    if (_pushing) return;
+    await pushNow();
+
+    // 队列空 → 停掉定时器，避免空转
+    if (_queueDao == null) return;
+    try {
+      final remaining = await _queueDao!.getPendingCount();
+      if (remaining == 0 && _retryTimer != null) {
+        _retryTimer!.cancel();
+        _retryTimer = null;
+        AuditLogger.instance.sync('retry_timer', {'action': 'stopped_empty'});
+      }
+    } catch (_) {
+      // 查询失败不中断
+    }
   }
 
   Future<void> clearQueue() async {
@@ -167,7 +216,6 @@ class SyncManager {
       final summary = await pushNow();
       final info = await _api!.fetchUserPullInfo();
 
-      // 备份当前 user.db（替换前，用于下载失败时回滚）
       await _dbProvider!.backupUserDb(_currentUserIdentity);
 
       try {
@@ -178,14 +226,11 @@ class SyncManager {
           newVersion: info.version,
           onProgress: onProgress,
         );
-        // 下载成功 → 删备份
         await _dbProvider!.deleteUserDbBackup();
         await AppPrefs().setLastSyncTime(DateTime.now().toIso8601String());
       } catch (e) {
-        // 下载失败 → 尝试恢复备份
         final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
         if (!restored) {
-          // 身份不匹配或无备份 → 清空 user.db 防止残留旧数据
           await _dbProvider!.clearUserDb();
           await AppPrefs().setUserVersion(0);
         }
@@ -199,24 +244,26 @@ class SyncManager {
       });
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onLogin', e);
-      // 失败由 UI 层弹窗展示
       rethrow;
     }
   }
 
-  /// 退登前调用：推送积压 → 清空 user.db + sync_queue
+  /// 退登前调用：推送积压 → 停定时器 → 清空 sync_queue
   Future<void> onLogout() async {
+    // 停定时器，避免 logout 后还在尝试推送
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _pushing = false;
+
     try {
       await pushNow();
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onLogout_pending', e);
-      // 无网络则跳过，不清 queue（下次启动自动重推）
     }
     try {
       await clearQueue();
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onLogout_clear', e);
-      // 未初始化则跳过
     }
   }
 
@@ -228,7 +275,6 @@ class SyncManager {
     try {
       await pushNow();
     } catch (_) {
-      // 推送失败不阻塞强制拉取
     }
     final info = await _api!.fetchUserPullInfo();
 
@@ -262,13 +308,15 @@ class SyncManager {
   /// 重置单例状态（仅测试用）
   @visibleForTesting
   static Future<void> resetForTesting() async {
+    _instance._retryTimer?.cancel();
+    _instance._retryTimer = null;
+    _instance._pushing = false;
     _instance._queueDao = null;
     _instance._pusher = null;
     _instance._updateManager = null;
     _instance._api = null;
     _instance._dbProvider = null;
     _instance._initialized = false;
-    _instance._lastPushTime = DateTime(2000);
     _instance._pendingUpdates = [];
   }
 }
