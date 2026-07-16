@@ -42,6 +42,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   bool _isCorrect = false;
   bool _submitting = false;
   bool _loading = true;
+  bool _showResult = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -87,6 +88,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           _selected = match.first.answerText;
           _submitted = true;
           _isCorrect = match.first.isCorrect == 1;
+          _showResult = true;
         });
       }
     } else {
@@ -94,6 +96,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _selected = null;
         _submitted = false;
         _isCorrect = false;
+        _showResult = false;
       });
     }
   }
@@ -147,6 +150,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _submitted = true;
         _isCorrect = _selected == _detail?.answer;
         _submitting = false;
+        _showResult = true;
       });
     } catch (e) {
       setState(() => _submitting = false);
@@ -198,6 +202,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               SolveFlowWidget(
                 cooldownSeconds: _coolDownSec,
                 isRevisit: _submitted,
+                showResult: _showResult,
                 isCorrect: _isCorrect,
                 correctAnswer: _detail?.answer,
                 explanation: _detail?.explanation,
@@ -321,6 +326,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _selected = null;
         _submitted = false;
         _isCorrect = false;
+        _showResult = false;
       });
     } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
       AuditLogger.instance.error('SolveChoicePage._createNewAttempt', e);
@@ -511,4 +517,3 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     );
   }
 }
-

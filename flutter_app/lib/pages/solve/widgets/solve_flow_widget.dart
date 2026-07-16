@@ -8,13 +8,18 @@ import 'done_banner.dart';
 /// 选填解题流程的阶段
 enum SolveStage { cooling, submitting, result, done }
 
-/// 选填共用流程 Widget
+/// 选填共用流程 Widget — 纯受控组件
+///
+/// 状态由父级通过 props 控制，无内部持久状态：
+/// - [showResult]: 是否显示结果条（父级在提交成功后设为 true）
+/// - [isRevisit]: 是否为回顾模式（父级读取已完成的尝试时设为 true）
 class SolveFlowWidget extends StatefulWidget {
   final Widget child;
   final int cooldownSeconds;
   final bool isRevisit;
   final bool isRated;
   final bool isCorrect;
+  final bool showResult;
   final String? correctAnswer;
   final String? explanation;
   final Future<void> Function()? onSubmit;
@@ -29,6 +34,7 @@ class SolveFlowWidget extends StatefulWidget {
     this.isRevisit = false,
     this.isRated = false,
     this.isCorrect = false,
+    this.showResult = false,
     this.correctAnswer,
     this.explanation,
     this.onSubmit,
@@ -42,7 +48,6 @@ class SolveFlowWidget extends StatefulWidget {
 }
 
 class _SolveFlowWidgetState extends State<SolveFlowWidget> {
-  bool _resultShown = false;
   final _timerKey = GlobalKey<CoolingTimerState>();
 
   @override
@@ -57,12 +62,11 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
 
   Future<void> _submit() async {
     await widget.onSubmit?.call();
-    if (mounted) setState(() => _resultShown = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final done = widget.isRevisit || (_resultShown && !widget.submitLoading);
+    final done = widget.isRevisit || (widget.showResult && !widget.submitLoading);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -91,7 +95,7 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
               ),
             ),
           ),
-        if (_resultShown || widget.isRevisit) ...[
+        if (widget.showResult || widget.isRevisit) ...[
           const SizedBox(height: 16),
           _ResultBanner(
             isCorrect: widget.isCorrect,

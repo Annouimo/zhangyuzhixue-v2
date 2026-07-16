@@ -214,6 +214,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
         _revealed = false;
         _isReviewMode = false;
+        _feedbackGiven = false;
+        _feedbackCorrect = false;
       });
     } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
       AuditLogger.instance.error('SolveFillPage._createNewAttempt', e);
