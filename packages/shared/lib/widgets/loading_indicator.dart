@@ -3,12 +3,12 @@ import 'package:shared/theme/app_theme.dart';
 
 /// 加载中指示器 — 支持自定义消息
 class LoadingIndicator extends StatelessWidget {
-  final String message;
+  final String? message;
   final double size;
 
   const LoadingIndicator({
     super.key,
-    this.message = '加载中…',
+    this.message,
     this.size = 24,
   });
 
@@ -26,10 +26,12 @@ class LoadingIndicator extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(message,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-          ),
+          if (message != null) ...[
+            const SizedBox(height: 12),
+            Text(message!,
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ],
         ],
       ),
     );

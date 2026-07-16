@@ -196,6 +196,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
     final filterPanel = _filterOpts != null
         ? FilterPanel(
             key: _filterKey,
+            showSort: true,
             horizontalMargin: 0,
             yearOptions: _filterOpts!.years,
             regionOptions: _filterOpts!.regions,

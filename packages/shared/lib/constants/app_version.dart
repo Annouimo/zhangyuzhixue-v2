@@ -7,3 +7,13 @@ class AppVersion {
   static const String version = '1.0.0-alpha.1+2';
   static const String buildEnv = 'release';
 }
+
+/// App 版本号字符串（自动生成）
+const appVersion = '1.0.0-alpha.1+2';
+
+/// API 基础 URL（支持环境切换）
+const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.top/api/v1');
+
+/// 服务端根域名
+const appServerOrigin =
+    String.fromEnvironment('SERVER_ORIGIN', defaultValue: 'https://zhangyuzhixue.top');
