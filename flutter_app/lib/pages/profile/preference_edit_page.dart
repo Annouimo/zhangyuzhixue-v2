@@ -81,20 +81,23 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       final editData = await _repo.getEdit(widget.editId!);
       if (!mounted) return;
       _nameCtrl.text = editData.name;
-      final filter = editData.filter;
-      _filterKey.currentState?.applyFilter(
-        years: filter.years.toSet(),
-        regions: filter.regions.toSet(),
-        conceptTags: filter.conceptTags.toSet(),
-        examTypes: filter.types.toSet(),
-        knowledgeCards: filter.knowledgeCards.toSet(),
-        types: filter.questionTypes.toSet(),
-        diffMin: filter.diffMin ?? 0,
-        diffMax: filter.diffMax ?? 10,
-        calcMin: filter.calcMin ?? 0,
-        calcMax: filter.calcMax ?? 10,
-      );
+      // 先渲染 FilterPanel，再 applyFilter（否则 currentState 为 null 被静默丢弃）
       setState(() => _loading = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final filter = editData.filter;
+        _filterKey.currentState?.applyFilter(
+          years: filter.years.toSet(),
+          regions: filter.regions.toSet(),
+          conceptTags: filter.conceptTags.toSet(),
+          examTypes: filter.types.toSet(),
+          knowledgeCards: filter.knowledgeCards.toSet(),
+          types: filter.questionTypes.toSet(),
+          diffMin: filter.diffMin ?? 0,
+          diffMax: filter.diffMax ?? 10,
+          calcMin: filter.calcMin ?? 0,
+          calcMax: filter.calcMax ?? 10,
+        );
+      });
       AuditLogger.instance.page('PreferenceEditPage', {'loaded': true});
     } catch (e) { OperationLog.instance.error('preference_edit_page_load', e); 
       AuditLogger.instance.error('PreferenceEditPage._loadExisting', e);
@@ -203,4 +206,3 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
               ),
   );
 }
-
