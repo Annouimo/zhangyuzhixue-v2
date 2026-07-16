@@ -55,4 +55,10 @@ class UserApi {
     final res = await _client.dio.get('/interactions/exam/preview-other/$paperId/');
     return res.data['data'] as Map<String, dynamic>;
   }
+
+  /// 批量查询收藏组卷详情
+  Future<List<dynamic>> getFavoritePapers(List<int> paperIds) async {
+    final res = await _client.dio.post('/interactions/exam/favorites/', data: {'paper_ids': paperIds});
+    return (res.data['data'] as List<dynamic>?) ?? [];
+  }
 }

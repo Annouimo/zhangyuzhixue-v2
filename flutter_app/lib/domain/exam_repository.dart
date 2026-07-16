@@ -104,6 +104,18 @@ class ExamPreviewOther {
     this.isLiked = false, this.isCollected = false,
     required this.questions,
   });
+
+  ExamPreviewOther copyWith({int? likeCount, int? collectCount}) {
+    return ExamPreviewOther(
+      name: name, authorInfo: authorInfo,
+      choiceCount: choiceCount, fillCount: fillCount,
+      solutionCount: solutionCount, totalCount: totalCount,
+      likeCount: likeCount ?? this.likeCount,
+      collectCount: collectCount ?? this.collectCount,
+      isLiked: isLiked, isCollected: isCollected,
+      questions: questions,
+    );
+  }
 }
 
 /// 组卷中的题目
@@ -353,6 +365,23 @@ class ExamRepository {
   Future<List<FavoriteExamSummary>> getFavorites() async {
     final collectedIds = await _examDao.getCollectedPaperIds();
     if (collectedIds.isEmpty) return [];
+    // 优先走 API 获取完整的他人组卷详情
+    try {
+      final items = await _userApi.getFavoritePapers(collectedIds);
+      return items.map((j) {
+        final m = j as Map<String, dynamic>;
+        return FavoriteExamSummary(
+          id: m['id'] as int,
+          name: m['name'] as String? ?? '',
+          authorInfo: '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''}',
+          summary: m['summary'] as String? ?? '',
+          isLiked: m['is_liked'] as bool? ?? false,
+        );
+      }).toList();
+    } catch (e) {
+      AuditLogger.instance.error('ExamRepository.getFavorites.api', e);
+    }
+    // API 失败时回退到本地
     final papers = await _examDao.getByIds(collectedIds);
     return papers.map((p) => FavoriteExamSummary(
       id: p.id, name: p.title,
@@ -402,7 +431,7 @@ class ExamRepository {
     final qRows = await _questionDao.getByIds(qIds);
     return ExamPreview(
       name: paper.title,
-      authorInfo: '',
+      authorInfo: '创建于 ${paper.createdAt.substring(0, 10)}',
       choiceCount: qRows.where((q) => q.questionType == 'choice').length,
       fillCount: qRows.where((q) => q.questionType == 'fill').length,
       solutionCount: qRows.where((q) => q.questionType == 'solution').length,

@@ -416,3 +416,55 @@ class ExamPreviewOtherView(APIView):
             'created_at': paper.created_at.isoformat() if paper.created_at else '',
             'questions': q_list,
         })
+
+
+class ExamFavoritesView(APIView):
+    """获取收藏组卷的详情列表（按 paper_id 批量查询）"""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: OpenApiResponse(description='收藏组卷详情列表')},
+    )
+    def post(self, request):
+        student = getattr(request.user, 'student', None)
+        if not student:
+            return _err(40302, '仅学生用户可访问')
+
+        paper_ids = request.data.get('paper_ids', [])
+        if not paper_ids:
+            return _ok(data=[])
+
+        papers = CustomPaper.objects.filter(
+            pk__in=paper_ids, is_public=True
+        ).prefetch_related('paper_likes', 'paper_collects', 'paper_questions')
+
+        result = []
+        for p in papers:
+            like_count = p.paper_likes.count()
+            collect_count = p.paper_collects.count()
+            author_student = p.student
+            author_user = author_student.user
+            from system.models import LevelConfig
+            total_pts = author_student.points_transactions.aggregate(
+                total=Sum('amount')
+            )['total'] or 0
+            level = LevelConfig.get_level(total_pts)
+
+            choice_count = p.questions.filter(question_type='choice').count()
+            fill_count = p.questions.filter(question_type='fill').count()
+            solution_count = p.questions.filter(question_type='solution').count()
+
+            result.append({
+                'id': p.pk,
+                'name': p.title,
+                'author_name': author_user.username if author_user else '',
+                'author_level': level,
+                'summary': f'选择 {choice_count} 题 · 填空 {fill_count} 题 · '
+                          f'解答 {solution_count} 题 · 共 {choice_count + fill_count + solution_count} 题',
+                'like_count': like_count,
+                'collect_count': collect_count,
+                'is_liked': p.paper_likes.filter(student=student).exists(),
+                'created_at': p.created_at.isoformat() if p.created_at else '',
+            })
+
+        return _ok(data=result)

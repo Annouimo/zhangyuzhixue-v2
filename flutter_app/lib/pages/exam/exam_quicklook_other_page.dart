@@ -93,12 +93,18 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
 
   Future<void> _toggleLike() async {
     await _repo.toggleLike(widget.examId);
-    setState(() => _liked = !_liked);
+    setState(() {
+      _liked = !_liked;
+      _preview = _preview!.copyWith(likeCount: _preview!.likeCount + (_liked ? 1 : -1));
+    });
   }
 
   Future<void> _toggleCollect() async {
     await _repo.toggleCollect(widget.examId);
-    setState(() => _collected = !_collected);
+    setState(() {
+      _collected = !_collected;
+      _preview = _preview!.copyWith(collectCount: _preview!.collectCount + (_collected ? 1 : -1));
+    });
   }
 }
 
