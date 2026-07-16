@@ -459,7 +459,7 @@ class ExamRepository {
       }).toList() ?? [];
       return ExamPreviewOther(
         name: data['name'] as String? ?? '',
-        authorInfo: '作者：${data['author_name'] ?? ''} · Lv.${data['author_level'] ?? ''} · ${data['created_at']?.toString()?.substring(0, 10) ?? ''}',
+        authorInfo: '作者：${data['author_name'] ?? ''} · Lv.${data['author_level'] ?? ''} · ${data['created_at']?.toString().substring(0, 10) ?? ''}',
         choiceCount: data['choice_count'] as int? ?? 0,
         fillCount: data['fill_count'] as int? ?? 0,
         solutionCount: data['solution_count'] as int? ?? 0,

@@ -375,7 +375,8 @@ class TestAssignmentGroupedDetail:
     def test_multi_class(self, auth_client, sample_class_group, sample_students,
                          sample_question, db):
         """多班级作业返回多个分组"""
-        from courses.models import Course, ClassCourse, Assignment, AssignmentQuestion, ClassCourseAssignment
+        from courses.models import Course, ClassCourse, Assignment
+        from courses.models import AssignmentQuestion, ClassCourseAssignment
 
         # Create second class group
         cg2 = ClassGroup.objects.create(

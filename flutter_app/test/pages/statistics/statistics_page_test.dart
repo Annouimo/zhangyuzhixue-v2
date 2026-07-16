@@ -6,10 +6,7 @@ import '../../test_setup.dart';
 
 class _MockStatsRepo implements StatisticsRepository {
   @override Future<StatsOverview> getOverview() async => const StatsOverview(totalQuestions: 100, accuracyPercent: 75, streakDays: 5, activeDays: 5);
-  @override Future<int> totalQuestions() async => 100;
-  @override Future<double> accuracy() async => 0.75;
   @override Future<List<DailyRecord>> getDailyRecords(int rangeDays) async => [const DailyRecord(date: '2025-01-01', count: 3, correct: 2, level: 2)];
-  @override Future<List<TrendPoint>> getAccuracyTrend(int rangeDays) async => [];
   @override Future<List<TrendPoint>> getPointsTrend(int rangeDays) async => [];
   @override Future<Distribution> getDistribution({int rangeDays = 0}) async => const Distribution(total: 10, choiceCount: 5, choicePercent: 50, fillCount: 3, fillPercent: 30, solutionCount: 2, solutionPercent: 20);
 }

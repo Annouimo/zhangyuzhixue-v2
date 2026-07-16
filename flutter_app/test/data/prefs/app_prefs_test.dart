@@ -29,9 +29,9 @@ void main() {
       expect(AppPrefs().qbankVersion, 5);
     });
 
-    test('lectureVersion read/write', () async {
-      await AppPrefs().setLectureVersion(3);
-      expect(AppPrefs().lectureVersion, 3);
+    test('coursesVersion read/write', () async {
+      await AppPrefs().setCoursesVersion(3);
+      expect(AppPrefs().coursesVersion, 3);
     });
 
     test('accessibleCourseIds defaults to empty', () async {

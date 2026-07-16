@@ -14,6 +14,12 @@ class _MockDetailRepo implements AssignmentRepository {
       throw UnimplementedError();
 
   @override
+  Future<List<AssignmentSummary>?> getPendingCached() async => null;
+
+  @override
+  Future<List<AssignmentSummary>> getPendingLocal() async => [];
+
+  @override
   Future<AssignmentDetail> getQuestions(int id) async =>
       detail ?? AssignmentDetail(
         title: '', courseName: '', questions: [],
@@ -28,6 +34,12 @@ class _FailingDetailRepo implements AssignmentRepository {
   @override
   Future<List<AssignmentSummary>> getPending() async =>
       throw UnimplementedError();
+
+  @override
+  Future<List<AssignmentSummary>?> getPendingCached() async => null;
+
+  @override
+  Future<List<AssignmentSummary>> getPendingLocal() async => [];
 
   @override
   Future<AssignmentDetail> getQuestions(int id) async =>

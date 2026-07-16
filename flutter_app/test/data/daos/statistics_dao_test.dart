@@ -19,7 +19,7 @@ void main() {
 
   group('StatisticsDao', () {
     test('getTotalQuestions returns 0 initially', () async {
-      expect(await dao.getTotalQuestions(), 0);
+      expect((await dao.getOverviewRaw()).totalQuestions, 0);
     });
 
     test('getAccuracy returns 0 when no data', () async {
@@ -41,7 +41,7 @@ void main() {
         createdAt: Value(now), updatedAt: Value(now),
       ));
       // in_progress should not be counted (is_correct IS NOT NULL)
-      expect(await dao.getTotalQuestions(), 2);
+      expect((await dao.getOverviewRaw()).totalQuestions, 2);
     });
 
     test('getAccuracy returns correct ratio', () async {

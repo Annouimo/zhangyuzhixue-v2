@@ -27,8 +27,18 @@ class _MockRepo implements UserRepository {
   @override Future<int> streakDays() async => 0;
   @override Future<Map<String, dynamic>> checkin() async => {};
   @override Future<String> questionBankVersion() async => '1.0';
-  @override Future<void> syncAccessibleCourseIds() async {}
-  @override Future<({int total, int correct})> getTodaySubmissionStats() async => (total: 0, correct: 0);
+  @override
+  Future<({int total, int correct})> getTodaySubmissionStats() async => (total: 0, correct: 0);
+
+  @override
+  int getCachedLevelPercentile() => 0;
+
+  @override
+  Future<({int level, String progress})> getLevelAndProgress() async => (level: 1, progress: '0/0');
+
+  @override
+  Future<({double earned, double bonus, double spent, double available})> getPointsSummary() async =>
+      (earned: 0.0, bonus: 0.0, spent: 0.0, available: 0.0);
 }
 
 void main() {

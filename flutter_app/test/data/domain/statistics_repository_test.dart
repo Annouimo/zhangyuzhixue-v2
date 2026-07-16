@@ -21,11 +21,11 @@ void main() {
 
   group('StatisticsRepository', () {
     test('totalQuestions returns 0 initially', () async {
-      expect(await repo.totalQuestions(), 0);
+      expect((await repo.getOverview()).totalQuestions, 0);
     });
 
     test('accuracy returns 0 initially', () async {
-      expect(await repo.accuracy(), 0);
+      expect((await repo.getOverview()).accuracyPercent, 0);
     });
 
     test('getOverview returns zero stats', () async {

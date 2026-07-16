@@ -340,10 +340,12 @@ class ExamExploreView(APIView):
                 'author_name': author_user.username if author_user else '',
                 'author_level': level,
                 'author_points': total_pts,
-                'summary': f'选择 {p.questions.filter(question_type="choice").count()} 题 · '
-                          f'填空 {p.questions.filter(question_type="fill").count()} 题 · '
-                          f'解答 {p.questions.filter(question_type="solution").count()} 题 · '
-                          f'共 {p.questions.count()} 题',
+                'summary': (
+                    f'选择 {p.questions.filter(question_type="choice").count()} 题 · '
+                    f'填空 {p.questions.filter(question_type="fill").count()} 题 · '
+                    f'解答 {p.questions.filter(question_type="solution").count()} 题 · '
+                    f'共 {p.questions.count()} 题'
+                ),
                 'like_count': like_count,
                 'collect_count': collect_count,
                 'is_liked': p.paper_likes.filter(student=student).exists(),
@@ -372,7 +374,6 @@ class ExamPreviewOtherView(APIView):
             return _err(40401, '组卷不存在或未公开')
 
         questions = paper.paper_questions.order_by('sort_order').select_related('question')
-        from qbank.models import BaseQuestion
 
         q_list = []
         for pq in questions:
@@ -459,8 +460,10 @@ class ExamFavoritesView(APIView):
                 'name': p.title,
                 'author_name': author_user.username if author_user else '',
                 'author_level': level,
-                'summary': f'选择 {choice_count} 题 · 填空 {fill_count} 题 · '
-                          f'解答 {solution_count} 题 · 共 {choice_count + fill_count + solution_count} 题',
+                'summary': (
+                    f'选择 {choice_count} 题 · 填空 {fill_count} 题 · '
+                    f'解答 {solution_count} 题 · 共 {choice_count + fill_count + solution_count} 题'
+                ),
                 'like_count': like_count,
                 'collect_count': collect_count,
                 'is_liked': p.paper_likes.filter(student=student).exists(),

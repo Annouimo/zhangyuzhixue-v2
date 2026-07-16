@@ -177,7 +177,10 @@ def _get_points_summary(user):
     student = user.student
     agg = PointsTransaction.objects.filter(student=student).aggregate(
         earned=Sum('amount', filter=Q(source='PRACTICE_REWARD')),
-        bonus=Sum('amount', filter=Q(source__in=['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD'])),
+        bonus=Sum('amount', filter=Q(source__in=[
+            'LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS',
+            'REVIEW_REWARD', 'RATING_REWARD',
+        ])),
         spent=Sum('amount', filter=Q(source='PAPER_PURCHASE')),
     )
     earned = agg['earned'] or 0

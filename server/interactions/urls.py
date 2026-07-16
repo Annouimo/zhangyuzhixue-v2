@@ -6,6 +6,7 @@ from interactions.views import ExamExploreView, ExamPreviewOtherView, ExamFavori
 urlpatterns = [
     path('pdf/request-token/', pdf_request_token, name='pdf-request-token'),
     path('exam/explore/', ExamExploreView.as_view(), name='exam-explore'),
-    path('exam/preview-other/<int:paper_id>/', ExamPreviewOtherView.as_view(), name='exam-preview-other'),
+    path('exam/preview-other/<int:paper_id>/',
+         ExamPreviewOtherView.as_view(), name='exam-preview-other'),
     path('exam/favorites/', ExamFavoritesView.as_view(), name='exam-favorites'),
 ]

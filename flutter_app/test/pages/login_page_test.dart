@@ -46,7 +46,7 @@ class _HasPrefs implements PreferenceRepository {
   @override
   Future<PreferenceEditData> getEdit(int id) async => throw UnimplementedError();
   @override
-  Future<void> save({required String name, required PreferenceFilter filter}) async {}
+  Future<int> save({required String name, required PreferenceFilter filter, int? existingId}) async => 0;
   @override
   Future<void> delete(int id) async {}
 }

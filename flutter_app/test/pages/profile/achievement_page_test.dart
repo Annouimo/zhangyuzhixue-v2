@@ -15,6 +15,12 @@ class _MockAchieveRepo implements AchievementRepository {
         progressPercent: 42, progress: 3, threshold: 7),
     ]),
   ];
+
+  @override
+  List<AchievementItem>? get lastNewUnlocks => null;
+
+  @override
+  set lastNewUnlocks(List<AchievementItem>? v) {}
 }
 
 void main() {

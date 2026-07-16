@@ -142,10 +142,8 @@ class ToolsView(View):
         from courses.models import ClassGroup
         from interactions.models import SubmissionDetail, StudentSubmission
         from accounts.models import UserLoginLog
-        from django.db.models import Count
         from django.utils import timezone as tz
         today = tz.now().date()
-        today_start = tz.make_aware(tz.datetime.combine(today, tz.datetime.min.time()))
         return {
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
             'courses_version': DbVersion.objects.filter(db_type='courses').first(),
@@ -158,11 +156,22 @@ class ToolsView(View):
             'messages': [],
             'now': timezone.now(),
             # ── 仪表板数据 ──
-            'dash_active_users': UserLoginLog.objects.filter(login_date=today).values('student').distinct().count(),
-            'dash_today_submissions': SubmissionDetail.objects.filter(created_at__startswith=today.isoformat()).count(),
-            'dash_today_sync_ok': 0,  # 从 auditlog 统计较复杂，暂设为 0
+            'dash_active_users': (
+                UserLoginLog.objects.filter(login_date=today)
+                .values('student').distinct().count()
+            ),
+            'dash_today_submissions': (
+                SubmissionDetail.objects
+                .filter(created_at__startswith=today.isoformat())
+                .count()
+            ),
+            'dash_today_sync_ok': 0,
             'dash_today_sync_fail': 0,
-            'dash_today_students': StudentSubmission.objects.filter(created_at__date=today).values('student').distinct().count(),
+            'dash_today_students': (
+                StudentSubmission.objects
+                .filter(created_at__date=today)
+                .values('student').distinct().count()
+            ),
         }
 
     def _run_build(self, db_type, test_mode):
@@ -238,7 +247,6 @@ class ToolsView(View):
                     expires_at=expires,
                 )
                 created += 1
-
 
     def _grant_points(self, request):
         """管理员赠送积分"""

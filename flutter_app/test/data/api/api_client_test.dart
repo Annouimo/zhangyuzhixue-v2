@@ -34,7 +34,7 @@ void main() {
   setUp(() {
     setTokenProvider(() => null);
     setRefreshTokenProvider(() => null);
-    setOnTokenRefreshed((_) async {});
+    setOnTokenRefreshed((_, __) async {});
     setOnRefreshFailed(() {});
     setOnAuthFailure(() {});
   });

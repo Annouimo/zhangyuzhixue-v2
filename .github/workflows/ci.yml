@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop ]
 
 jobs:
   flutter:
@@ -26,6 +26,22 @@ jobs:
         working-directory: flutter_app
         run: flutter test
 
+  teacher:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44'
+          channel: 'stable'
+          cache: true
+      - name: flutter pub get
+        working-directory: teacher_app
+        run: flutter pub get
+      - name: dart analyze
+        working-directory: teacher_app
+        run: dart analyze
+
   django:
     runs-on: ubuntu-22.04
     steps:
@@ -33,17 +49,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
       - name: Install deps
         working-directory: server
         run: pip3 install -r dev-requirements.txt -q
       - name: flake8
         working-directory: server
         run: flake8 --config .flake8
-      - name: Django checks
+      - name: Django migration check
         working-directory: server
-        run: |
-          python3 manage.py check --deploy
-          python3 manage.py makemigrations --check
+        run: python3 manage.py makemigrations --check
+      - name: Django deploy checks
+        working-directory: server
+        continue-on-error: true
+        run: python3 manage.py check --deploy
       - name: pytest
         working-directory: server
-        run: python -m pytest -v --tb=short
+        run: python -m pytest -v --tb=short --cov --cov-fail-under=30

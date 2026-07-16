@@ -24,10 +24,11 @@ class _MockPreferenceRepository implements PreferenceRepository {
       const PreferenceEditData(name: '', filter: PreferenceFilter(years: [], regions: [], conceptTags: []));
 
   @override
-  Future<void> save({
+  Future<int> save({
     required String name,
     required PreferenceFilter filter,
-  }) async {}
+    int? existingId,
+  }) async => 0;
 }
 
 void main() {
