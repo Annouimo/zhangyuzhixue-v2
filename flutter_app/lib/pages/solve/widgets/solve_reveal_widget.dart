@@ -4,10 +4,12 @@ import 'package:shared/widgets/md_latex_body.dart';
 import 'cooling_timer.dart';
 import 'done_banner.dart';
 
-/// 填空题专用揭示流程 Widget
+/// 填空题专用揭示流程 Widget — 纯受控组件
 ///
 /// 交互序列：冷却 → 查看答案 → 显示正确答案 → (自评反馈) → 🎉 已完成
 /// 与 SolveFlowWidget（选择题提交→判对错）完全独立。
+///
+/// 状态由父级通过 [revealed] prop 控制，无内部持久状态。
 class SolveRevealWidget extends StatefulWidget {
   /// 冷却秒数
   final int cooldownSeconds;
@@ -21,13 +23,16 @@ class SolveRevealWidget extends StatefulWidget {
   /// 是否为回顾模式（复访时跳过冷却，直接展示结果）
   final bool isRevisit;
 
+  /// 是否已揭示答案（由父级控制）
+  final bool revealed;
+
   /// 下一题回调
   final VoidCallback? onNext;
 
   /// 评分回调
   final VoidCallback? onRate;
 
-  /// 揭示回调（用户点击「查看答案」时触发，可在此记录状态）
+  /// 揭示回调（用户点击「查看答案」时触发，父级在此设 revealed=true）
   final VoidCallback? onReveal;
 
   /// 自评反馈（揭示答案后、已完成之前展示）
@@ -45,6 +50,7 @@ class SolveRevealWidget extends StatefulWidget {
     this.answerValue,
     this.explanation,
     this.isRevisit = false,
+    this.revealed = false,
     this.onNext,
     this.onRate,
     this.onReveal,
@@ -58,13 +64,12 @@ class SolveRevealWidget extends StatefulWidget {
 }
 
 class _SolveRevealWidgetState extends State<SolveRevealWidget> {
-  bool _revealed = false;
   final _timerKey = GlobalKey<CoolingTimerState>();
 
   @override
   void initState() {
     super.initState();
-    if (!widget.isRevisit) {
+    if (!widget.isRevisit && !widget.revealed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _timerKey.currentState?.start();
       });
@@ -72,14 +77,13 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
   }
 
   void _reveal() {
-    setState(() => _revealed = true);
     widget.onReveal?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    // answerShown: 冷却结束或复访，答案/解析已可见
-    final answerShown = widget.isRevisit || _revealed;
+    // answerShown: 回顾模式 || 已揭示
+    final answerShown = widget.isRevisit || widget.revealed;
     // done: 已过自评阶段（feedbackWidget 消失），显示 DoneBanner
     final done = answerShown && widget.feedbackWidget == null;
 
@@ -151,11 +155,11 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             ),
           ],
           // 自评区
-          if (_revealed && widget.feedbackWidget != null) ...[
+          if (widget.revealed && widget.feedbackWidget != null) ...[
             const SizedBox(height: 12),
             widget.feedbackWidget!,
           ],
-          if (_revealed && widget.feedbackResult != null) ...[
+          if (widget.revealed && widget.feedbackResult != null) ...[
             const SizedBox(height: 12),
             widget.feedbackResult!,
           ],

@@ -336,6 +336,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               SolveRevealWidget(
                 cooldownSeconds: _coolDownSec,
                 isRevisit: _isReviewMode,
+                revealed: _revealed,
                 answerValue: _detail?.answer,
                 explanation: _detail?.explanation,
                 onReveal: _onReveal,
