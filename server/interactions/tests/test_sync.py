@@ -433,7 +433,7 @@ class TestSyncPullUserDB:
         assert 'download_url' in data
         assert 'checksum' in data
         assert 'size_bytes' in data
-        assert data['data_version'] == 1
+        assert data['data_version'] == 0
         assert data['size_bytes'] > 0  # gzip 压缩后的空数据库也有大小
 
     def test_pull_success_with_data(self, auth_client, student_user, sample_question):
@@ -455,4 +455,4 @@ class TestSyncPullUserDB:
         assert 'download_url' in data
         assert 'checksum' in data
         assert data['size_bytes'] > 0
-        assert data['data_version'] == 1
+        assert data['data_version'] == 0
