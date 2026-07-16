@@ -165,15 +165,29 @@ def _build_sections(qs):
         full_stem = q.stem or ''
         if qt == 'solution':
             sqs = sq_map.get(q.pk, [])
-            # 如果 stem 末尾已包含子题编号（如 "\\n(1)..."），跳过
-            stem_already_has_sub = '\n(1)' in full_stem or full_stem.rstrip().endswith('(1)')
-            if not stem_already_has_sub:
-                sub_parts = [sq.stem for sq in sqs if sq.stem]
-                if sub_parts:
-                    full_stem += '\n' + '\n'.join(
-                        '({0}) {1}'.format(i + 1, sp)
-                        for i, sp in enumerate(sub_parts)
-                    )
+            # 提取引言：到第一个 \n(1) 或 \n\n 为止
+            intro = full_stem
+            for sep in ('\n(1)', '\n\n'):
+                if sep in intro:
+                    intro = intro[:intro.index(sep)].strip()
+                    break
+
+            # 收集有效子题：跳过自身就是完整题目重复的
+            sub_items = []
+            for sq in sqs:
+                if not sq.stem:
+                    continue
+                # 如果子题内容包含引言前20字符 → 是冗余版本(含完整引言)，跳过
+                if len(sq.stem) > 40 and intro[:20] in sq.stem[:40]:
+                    continue
+                sub_items.append(sq.stem)
+
+            if sub_items:
+                full_stem = intro
+                full_stem += '\n' + '\n'.join(
+                    '({0}) {1}'.format(i + 1, sp)
+                    for i, sp in enumerate(sub_items)
+                )
 
         sections[-1]['questions'].append({
             'number': q.number,
