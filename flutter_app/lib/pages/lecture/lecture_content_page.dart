@@ -122,9 +122,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
         final shown = await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
         if (shown && context.mounted) context.pop();
       },

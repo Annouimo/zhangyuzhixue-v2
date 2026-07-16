@@ -181,7 +181,7 @@ ASSETS_TABLES = {
         ],
         'source': 'static',
         'defaults': [
-            ('exit_rating_probability', '0.2', '退出页面评价触发概率'),
+            ('exit_rating_probability', '0.05', '退出页面评价触发概率'),
             ('exit_rating_min_stay_seconds', '30', '退出页面评价停留阈值(秒)'),
             ('exit_rating_reward_points', '5', '退出页面评价奖励积分'),
             ('solve_cooldown_choice', '10', '选择题冷却时长(秒)'),

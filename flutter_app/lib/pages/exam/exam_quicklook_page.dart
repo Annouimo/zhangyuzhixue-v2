@@ -52,9 +52,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
         final shown = await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
         if (shown && context.mounted) context.pop();
       },

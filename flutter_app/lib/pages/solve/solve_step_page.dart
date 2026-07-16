@@ -219,9 +219,9 @@ class _SolveStepPageState extends State<SolveStepPage> {
   Widget build(BuildContext context) {
     final step = _currentStep();
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop || _entryTime == null) return;
+        if (_entryTime == null) return;
         final shown = await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
         if (shown && context.mounted) context.pop();
       },

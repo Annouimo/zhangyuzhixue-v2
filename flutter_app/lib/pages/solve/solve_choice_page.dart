@@ -179,9 +179,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     }
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop || _entryTime == null) return;
+        if (_entryTime == null) return;
         final shown = await showExitRatingIfNeeded(context, 'solve_choice', _entryTime!);
         if (shown && context.mounted) context.pop();
       },

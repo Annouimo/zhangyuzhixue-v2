@@ -25,7 +25,7 @@ class ExitRatingConfig {
   ExitRatingConfig(this._dao);
 
   Future<double> get probability async =>
-      _probability ??= await _dao.getDouble(_kProbability, 0.2);
+      _probability ??= await _dao.getDouble(_kProbability, 0.05);
   Future<int> get minStaySeconds async =>
       _minStaySeconds ??= await _dao.getInt(_kMinStaySeconds, 30);
   Future<double> get rewardPoints async =>

@@ -318,9 +318,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop || _entryTime == null) return;
+        if (_entryTime == null) return;
         final shown = await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
         if (shown && context.mounted) context.pop();
       },
