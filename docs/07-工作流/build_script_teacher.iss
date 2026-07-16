@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "章鱼智学-教师端"
-#define MyAppVersion "1.0-alpha1"
+#define MyAppVersion "1.0.0-alpha.2+1"
 #define MyAppPublisher "ZhangYuZhiXue, Inc."
 #define MyAppURL "https://zhangyuzhixue.top/"
 #define MyAppExeName "teacher_app.exe"

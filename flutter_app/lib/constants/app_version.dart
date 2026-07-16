@@ -1,6 +1,6 @@
 /// App 版本号（自动生成 — 不要手动修改）
 ///
-/// 来源: pubspec.yaml 中的 version 字段
+/// 来源: flutter_app/pubspec.yaml 中的 version 字段
 /// 生成命令: python scripts/generate_version.py
 const appVersion = '1.0.0-alpha.2+1';
 

@@ -1,27 +1,27 @@
-"""生成 app_version.dart — 从 pubspec.yaml 读取真实版本号"""
+"""生成 app_version.dart + 同步 Inno Setup .iss 版本号
+从每个 app 的 pubspec.yaml 读取真实版本号。"""
 import re, sys
 from pathlib import Path
 
-def generate(app_dir: Path):
+def read_version(app_dir: Path) -> str | None:
     pubspec = app_dir / 'pubspec.yaml'
     if not pubspec.exists():
         print(f'❌ 未找到: {pubspec}', file=sys.stderr)
-        return False
-
+        return None
     text = pubspec.read_text(encoding='utf-8')
     m = re.search(r'^version:\s*(\S+)', text, re.MULTILINE)
     if not m:
-        print(f'❌ 未在 pubspec.yaml 中找到 version 字段', file=sys.stderr)
-        return False
+        print(f'❌ 未在 {pubspec} 中找到 version 字段', file=sys.stderr)
+        return None
+    return m.group(1)
 
-    version = m.group(1)
+def generate_app_version(app_dir: Path, version: str) -> bool:
     out_dir = app_dir / 'lib' / 'constants'
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / 'app_version.dart'
-
     out_file.write_text(f"""/// App 版本号（自动生成 — 不要手动修改）
 ///
-/// 来源: {pubspec.name} 中的 version 字段
+/// 来源: {app_dir.name}/pubspec.yaml 中的 version 字段
 /// 生成命令: python scripts/generate_version.py
 const appVersion = '{version}';
 
@@ -35,10 +35,81 @@ const appServerOrigin =
     print(f'✅ {out_file} 已生成，version={version}')
     return True
 
+def update_iss_file(iss_path: Path, version: str) -> bool:
+    if not iss_path.exists():
+        print(f'⚠️  未找到 .iss 文件: {iss_path}', file=sys.stderr)
+        return True  # 不视为错误
+    text = iss_path.read_text(encoding='utf-8')
+    new_text, n = re.subn(
+        r'(#define MyAppVersion )".*?"',
+        rf'\1"{version}"',
+        text,
+    )
+    if n == 0:
+        print(f'⚠️  未在 {iss_path} 中找到 MyAppVersion 定义')
+        return False
+    if n > 1:
+        print(f'⚠️  {iss_path} 中发现 {n} 处 MyAppVersion，已全部更新')
+    iss_path.write_text(new_text, encoding='utf-8')
+    print(f'✅ {iss_path} 已同步 version={version}')
+    return True
+
+def update_shared_app_version(root: Path, version: str) -> bool:
+    """更新 shared 包中的 app_version.dart（共享源）"""
+    f = root / 'packages' / 'shared' / 'lib' / 'constants' / 'app_version.dart'
+    if not f.exists():
+        print(f'❌ 未找到: {f}', file=sys.stderr)
+        return False
+    text = f.read_text(encoding='utf-8')
+    text, n1 = re.subn(
+        r"(static const String version = ').*?(')",
+        rf'\g<1>{version}\g<2>',
+        text,
+    )
+    text, n2 = re.subn(
+        r"(const appVersion = ').*?(')",
+        rf'\g<1>{version}\g<2>',
+        text,
+    )
+    if n1 == 0 or n2 == 0:
+        print(f'❌ 在 shared app_version.dart 中未找到版本号定义', file=sys.stderr)
+        return False
+    f.write_text(text, encoding='utf-8')
+    print(f'✅ {f} 已同步 version={version}')
+    return True
+
+# ── 映射表：app 名 → (pubspec 子目录, .iss 文件路径) ──
+ISSUES_DIR = Path(__file__).resolve().parent.parent / 'docs' / '07-工作流'
+APP_ISS_MAP = {
+    'flutter_app':  ISSUES_DIR / 'build_script_student.iss',
+    'teacher_app':  ISSUES_DIR / 'build_script_teacher.iss',
+}
+
 if __name__ == '__main__':
     root = Path(__file__).resolve().parent.parent
     ok = True
+
     for name in ('flutter_app', 'teacher_app'):
-        if not generate(root / name):
+        app_dir = root / name
+        version = read_version(app_dir)
+        if version is None:
             ok = False
+            continue
+
+        if not generate_app_version(app_dir, version):
+            ok = False
+            continue
+
+        iss = APP_ISS_MAP.get(name)
+        if iss and not update_iss_file(iss, version):
+            ok = False
+
+    # 以 flutter_app 版本为基准同步 shared 包
+    version = read_version(root / 'flutter_app')
+    if version:
+        if not update_shared_app_version(root, version):
+            ok = False
+    else:
+        ok = False
+
     sys.exit(0 if ok else 1)
