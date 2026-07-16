@@ -75,7 +75,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无章节'), findsOneWidget);
+      expect(find.text('暂无章节内容'), findsOneWidget);
     });
 
     testWidgets('navigates to content page on chapter tap', (tester) async {

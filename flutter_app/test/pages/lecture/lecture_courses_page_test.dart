@@ -93,7 +93,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无讲义'), findsOneWidget);
+      expect(find.text('暂无讲义内容，后续会上线更多课程 📖'), findsOneWidget);
     });
 
     testWidgets('shows error and retry button on failure', (tester) async {
@@ -151,7 +151,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show the chapters page (which has empty state)
-      expect(find.text('暂无章节'), findsOneWidget);
+      expect(find.text('暂无章节内容'), findsOneWidget);
     });
   });
 }

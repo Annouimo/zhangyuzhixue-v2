@@ -44,7 +44,7 @@ void main() {
     testWidgets('shows empty state', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamHistoryPage(examRepository: _MockExamRepo())));
       await tester.pumpAndSettle();
-      expect(find.text('暂无组卷'), findsOneWidget);
+      expect(find.text('还没有创建过试卷，去首页试试快速练习吧'), findsOneWidget);
     });
   });
 }

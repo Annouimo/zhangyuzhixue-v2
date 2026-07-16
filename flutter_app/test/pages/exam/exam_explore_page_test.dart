@@ -44,7 +44,7 @@ void main() {
     testWidgets('shows empty state', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamExplorePage(examRepository: _MockExploreRepo())));
       await tester.pumpAndSettle();
-      expect(find.text('暂无公开组卷'), findsOneWidget);
+      expect(find.text('还没有人公开分享试卷，去首页试试快速练习吧'), findsOneWidget);
     });
   });
 }

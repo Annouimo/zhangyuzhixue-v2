@@ -41,8 +41,8 @@ void main() {
       // Bottom bar with button should be visible
       expect(find.textContaining('已选 0 题'), findsOneWidget);
       expect(find.text('确认组卷 (0)'), findsOneWidget);
-      // Filter panel loaded
-      expect(find.text('年份'), findsOneWidget);
+      // Filter panel section header visible
+      expect(find.text('按来源筛选'), findsOneWidget);
     });
   });
 }

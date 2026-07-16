@@ -10,20 +10,17 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
         body: DifficultySlider(min: 0, max: 10, lower: 2, upper: 8, onChanged: (_) {}, label: '难度范围'),
       )));
-      expect(find.text('基础'), findsOneWidget);
-      expect(find.text('压轴'), findsOneWidget);
-      // Difficulty label should not show calculation labels
-      expect(find.text('少量'), findsNothing);
+      // 只渲染 label + RangeSlider，不渲染难度文本标签
+      expect(find.text('难度范围'), findsOneWidget);
+      expect(find.byType(RangeSlider), findsOneWidget);
     });
 
     testWidgets('calculation label uses calculation breaks', (tester) async {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
         body: DifficultySlider(min: 0, max: 10, lower: 2, upper: 8, onChanged: (_) {}, label: '计算量范围'),
       )));
-      expect(find.text('少量'), findsOneWidget);
-      expect(find.text('繁琐'), findsOneWidget);
-      // Calculation label should not show difficulty labels
-      expect(find.text('基础'), findsNothing);
+      expect(find.text('计算量范围'), findsOneWidget);
+      expect(find.byType(RangeSlider), findsOneWidget);
     });
 
     testWidgets('calls onChanged', (tester) async {

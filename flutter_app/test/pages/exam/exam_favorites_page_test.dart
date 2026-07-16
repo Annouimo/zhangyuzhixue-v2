@@ -43,7 +43,7 @@ void main() {
     testWidgets('shows empty state', (tester) async {
       await tester.pumpWidget(MaterialApp(home: ExamFavoritesPage(examRepository: _MockFavRepo())));
       await tester.pumpAndSettle();
-      expect(find.text('暂无收藏'), findsOneWidget);
+      expect(find.text('你还没有收藏任何试卷，发现好试卷可以收藏哦'), findsOneWidget);
     });
   });
 }

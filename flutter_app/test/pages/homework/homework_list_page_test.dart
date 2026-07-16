@@ -95,7 +95,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无待办作业'), findsOneWidget);
+      expect(find.text('暂无待办作业 🤔 可以先刷刷题或看看讲义'), findsOneWidget);
     });
 
     testWidgets('shows error and retry', (tester) async {

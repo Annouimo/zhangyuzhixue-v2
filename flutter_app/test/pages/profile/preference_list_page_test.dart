@@ -73,7 +73,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('暂无学习偏好，快去创建一个吧'), findsOneWidget);
+      expect(find.text('还没有设置学习偏好，点击右上角 + 新建'), findsOneWidget);
     });
 
     testWidgets('renders preference list after loading', (tester) async {

@@ -11,6 +11,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: Scaffold(
         body: SingleChildScrollView(child: FilterPanel(yearOptions: ['2025', '2024'], regionOptions: ['海淀', '西城'])),
       )));
+      expect(find.text('按来源筛选'), findsOneWidget);
+      // Expand source section to see year/region chips
+      await tester.tap(find.text('按来源筛选'));
+      await tester.pumpAndSettle();
       expect(find.text('年份'), findsOneWidget);
       expect(find.text('2025'), findsOneWidget);
       expect(find.text('2024'), findsOneWidget);
