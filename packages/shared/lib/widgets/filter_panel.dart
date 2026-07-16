@@ -168,12 +168,16 @@ class FilterPanelState extends State<FilterPanel> {
       if (regions != null) { _selectedRegions.clear(); _selectedRegions.addAll(regions); }
       if (conceptTags != null) {
         _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags);
-        _selectedConceptTagNames.clear();
+        _selectedConceptTagNames
+          ..clear()
+          ..addAll(conceptTags);
       }
       if (examTypes != null) { _selectedExamTypes.clear(); _selectedExamTypes.addAll(examTypes); }
       if (knowledgeCards != null) {
         _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards);
-        _selectedKnowledgeCardTitles.clear();
+        _selectedKnowledgeCardTitles
+          ..clear()
+          ..addAll(knowledgeCards);
       }
       if (types != null) { _selectedTypes.clear(); _selectedTypes.addAll(types); }
       if (diffMin != null) _diffMin = diffMin;
