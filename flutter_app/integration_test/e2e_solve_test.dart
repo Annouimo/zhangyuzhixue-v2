@@ -1,8 +1,13 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
 import 'package:flutter_app/main.dart' as app;
+
+/// E2E 凭据从环境变量读取，GitHub Secrets → env
+final _e2eUser = Platform.environment['E2E_USER'] ?? 'e2esolver';
+final _e2ePass = Platform.environment['E2E_PASS'] ?? 'e2e_test_pass';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -12,9 +17,9 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      // 用预设账号登录（假设 staging 环境有此用户）
-      await tester.enterText(find.byType(TextField).at(0), 'e2esolver');
-      await tester.enterText(find.byType(TextField).at(1), 'test123');
+      // 用预设账号登录
+      await tester.enterText(find.byType(TextField).at(0), _e2eUser);
+      await tester.enterText(find.byType(TextField).at(1), _e2ePass);
       await tester.tap(find.text('登录'));
       await tester.pumpAndSettle();
 

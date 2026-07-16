@@ -8,13 +8,13 @@
 """
 import pytest
 
-from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+from scripts.build_schemas import ASSETS_TABLES, COURSES_TABLES
 
 
 def _get_direct_tables():
     """返回所有 transform='direct' 的表"""
     result = {}
-    for name, tdef in {**ASSETS_TABLES, **LECTURE_TABLES}.items():
+    for name, tdef in {**ASSETS_TABLES, **COURSES_TABLES}.items():
         if tdef.get('transform') == 'direct':
             result[name] = tdef
     return result

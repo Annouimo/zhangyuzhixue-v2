@@ -7,7 +7,7 @@ import pytest
 
 from courses.models import Course, Document
 from qbank.models import BaseQuestion
-from scripts.build_schemas import ASSETS_TABLES, LECTURE_TABLES
+from scripts.build_schemas import ASSETS_TABLES, COURSES_TABLES
 from scripts.build_utils import (
     compute_checksum,
     copy_direct,
@@ -184,10 +184,10 @@ class TestWriteChapters:
 
     def test_write_chapters(self, db, course_with_docs):
         """从 Document 生成 chapter 表"""
-        schema = {'chapter': LECTURE_TABLES['chapter']}
+        schema = {'chapter': COURSES_TABLES['chapter']}
         conn, path = create_db(schema)
         try:
-            chapters = write_chapters(conn, LECTURE_TABLES)
+            chapters = write_chapters(conn, COURSES_TABLES)
             assert len(chapters) == 3
             count = conn.execute(
                 'SELECT COUNT(*) FROM chapter'
@@ -201,13 +201,13 @@ class TestWriteChapters:
     def test_lecture_content(self, db, course_with_docs):
         """从 Document 生成 lecture_content"""
         schema = {
-            'chapter': LECTURE_TABLES['chapter'],
-            'lecture_content': LECTURE_TABLES['lecture_content'],
+            'chapter': COURSES_TABLES['chapter'],
+            'lecture_content': COURSES_TABLES['lecture_content'],
         }
         conn, path = create_db(schema)
         try:
-            chapters = write_chapters(conn, LECTURE_TABLES)
-            write_lecture_content(conn, LECTURE_TABLES, chapters)
+            chapters = write_chapters(conn, COURSES_TABLES)
+            write_lecture_content(conn, COURSES_TABLES, chapters)
             count = conn.execute(
                 'SELECT COUNT(*) FROM lecture_content'
             ).fetchone()[0]
