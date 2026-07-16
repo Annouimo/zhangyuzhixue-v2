@@ -3,6 +3,8 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/domain/models.dart';
 
 /// 分类知识卡片组选择视图
+///
+/// 每组标题旁带「全选/取消全选」按钮，支持整组一键操作。
 class KnowledgeCardGroupView extends StatefulWidget {
   final List<KnowledgeCardGroup> groups;
   final Set<String> selectedTitles;
@@ -29,17 +31,40 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
   }
 
   Widget _buildGroup(KnowledgeCardGroup group) {
+    final groupTitles = group.cards.map((c) => c.title).toSet();
+    final selectedCount = widget.selectedTitles.where((t) => groupTitles.contains(t)).length;
+    final allSelected = selectedCount == group.cards.length;
+    final showToggle = group.cards.length > 1;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(group.category,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            children: [
+              Text(group.category,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              ),
+              if (showToggle) ...[
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    final newSet = Set<String>.from(widget.selectedTitles);
+                    if (allSelected) {
+                      newSet.removeAll(groupTitles);
+                    } else {
+                      newSet.addAll(groupTitles);
+                    }
+                    widget.onChanged(newSet);
+                  },
+                  child: Text(
+                    allSelected ? '取消全选' : '全选',
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 4),
           Wrap(
