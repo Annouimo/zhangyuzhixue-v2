@@ -131,6 +131,11 @@
           opt.textContent = c.name;
           filter.appendChild(opt);
         });
+        // 从 URL 参数中读取 class_id，自动选中对应班级
+        const urlClassId = new URLSearchParams(window.location.search).get('class_id');
+        if (urlClassId) {
+          filter.value = urlClassId;
+        }
       } catch (e) {
         // 班级下拉失败不影响学生列表
       }
