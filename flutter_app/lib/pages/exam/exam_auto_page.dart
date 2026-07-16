@@ -193,6 +193,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
         );
       } catch (_) {}
       if (!mounted) return;
+      OperationLog.instance.action('exam_auto', 'created paperId=$paperId');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('组卷成功！'), behavior: SnackBarBehavior.floating,

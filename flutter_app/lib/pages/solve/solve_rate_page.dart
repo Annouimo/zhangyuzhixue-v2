@@ -85,6 +85,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
         elegance: _elegance.toDouble(),
       );
       setState(() { _submitted = true; _saving = false; });
+      OperationLog.instance.action('rate', 'submitted qid=${widget.questionId}');
       if (!mounted) return;
       AppToast.show(context,
         icon: Icons.check_circle, message: '评分已提交',

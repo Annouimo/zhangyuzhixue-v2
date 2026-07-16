@@ -75,6 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+      OperationLog.instance.action('register', 'ok');
       context.pop();
     } catch (e) {
       AuditLogger.instance.error('RegisterPage._register', e);

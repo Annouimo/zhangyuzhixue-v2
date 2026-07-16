@@ -232,6 +232,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
       });
     }
+    OperationLog.instance.action('solve_fill', 'revealed qid=${widget.questionId}');
   }
 
   /// 用户自评后保存记录

@@ -182,7 +182,8 @@ class _ExamPickPageState extends State<ExamPickPage> {
         questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
         selectedIds: _selectedIds.toList(),
       );
-      await _repo.confirm(filters);
+      final paperId = await _repo.confirm(filters);
+      OperationLog.instance.action('exam_pick', 'saved paperId=$paperId');
       // 扣分
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();

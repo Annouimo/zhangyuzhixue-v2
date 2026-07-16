@@ -140,11 +140,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         isCorrect: _selected == _detail?.answer,
       );
       if (!mounted) return;
+      OperationLog.instance.action('solve_choice', 'submitted qid=${widget.questionId}');
       setState(() {
         _submitted = true;
         _isCorrect = _selected == _detail?.answer;
       });
-    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
+    } catch (e) {
       AuditLogger.instance.error('SolveChoicePage._submit', e);
     }
   }
