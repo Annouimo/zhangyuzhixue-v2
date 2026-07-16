@@ -344,7 +344,7 @@ class _ExamFilterEngine {
   const _ExamFilterEngine(this._dao);
 
   Future<PoolStats> compute(SearchFilters filters) async {
-    final pool = await _dao.search(
+    final s = await _dao.searchStats(
       years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
       regions: filters.regions.toList(),
       diffMin: filters.diffMin,
@@ -356,23 +356,10 @@ class _ExamFilterEngine {
       examTypes: filters.examTypes,
       questionTypes: filters.questionTypes,
     );
-
-    final choicePool = pool.where((q) => q.questionType == 'choice').toList();
-    final fillPool = pool.where((q) => q.questionType == 'fill').toList();
-    final solutionPool = pool.where((q) => q.questionType == 'solution').toList();
-
-    final allDiff = pool.map((q) => q.difficulty ?? 0).toList();
-    final gaokaoAll = pool.where((q) => q.examType == '高考').map((q) => q.difficulty ?? 0).toList();
-
     return PoolStats(
-      availableChoice: choicePool.length,
-      availableFill: fillPool.length,
-      availableSolution: solutionPool.length,
-      poolDiffMin: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a < b ? a : b),
-      poolDiffMax: allDiff.isEmpty ? 0 : allDiff.reduce((a, b) => a > b ? a : b),
-      gaokaoDiffMin: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a < b ? a : b),
-      gaokaoDiffAvg: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a + b) / gaokaoAll.length,
-      gaokaoDiffMax: gaokaoAll.isEmpty ? 0 : gaokaoAll.reduce((a, b) => a > b ? a : b),
+      availableChoice: s.choice, availableFill: s.fill, availableSolution: s.solution,
+      poolDiffMin: s.diffMin, poolDiffMax: s.diffMax,
+      gaokaoDiffMin: s.gaokaoDiffMin, gaokaoDiffAvg: s.gaokaoDiffAvg, gaokaoDiffMax: s.gaokaoDiffMax,
     );
   }
 }

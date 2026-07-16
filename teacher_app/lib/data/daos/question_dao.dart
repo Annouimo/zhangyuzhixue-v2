@@ -17,6 +17,19 @@ class QuestionDao {
   }
 
   Future<List<db.QuestionRow>> getByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    if (ids.length > 900) {
+      final batches = <List<db.QuestionRow>>[];
+      for (var i = 0; i < ids.length; i += 500) {
+        final chunk = ids.sublist(i, (i + 500 > ids.length) ? ids.length : i + 500);
+        final q = _db.select(_db.questions)..where((t) => t.id.isIn(chunk));
+        batches.add(await q.get());
+      }
+      final all = <db.QuestionRow>[];
+      for (final b in batches) { all.addAll(b); }
+      AuditLogger.instance.dao('QuestionDao.getByIds', all.length, {'idsCount': ids.length});
+      return all;
+    }
     final q = _db.select(_db.questions)..where((t) => t.id.isIn(ids));
     final rows = await q.get();
     AuditLogger.instance.dao('QuestionDao.getByIds', rows.length, {'idsCount': ids.length});
@@ -27,6 +40,77 @@ class QuestionDao {
     final rows = await _db.select(_db.questions).get();
     AuditLogger.instance.dao('QuestionDao.getAll', rows.length, {});
     return rows;
+  }
+
+  /// 轻量搜索结果统计（仅计数+极值，不加载大文本字段）
+  Future<({int choice, int fill, int solution, double diffMin, double diffMax, double gaokaoDiffMin, double gaokaoDiffAvg, double gaokaoDiffMax})> searchStats({
+    List<int>? years, List<String>? regions,
+    double? diffMin, double? diffMax,
+    double? calcMin, double? calcMax,
+    List<String>? conceptTagNames, List<String>? knowledgeCardNames,
+    List<String>? examTypes, List<String>? questionTypes,
+  }) async {
+    var q = _db.select(_db.questions);
+    if (years != null && years.isNotEmpty) q.where((t) => t.year.isIn(years));
+    if (regions != null && regions.isNotEmpty) q.where((t) => t.region.isIn(regions));
+    if (diffMin != null) q.where((t) => t.difficulty.isBiggerOrEqual(Variable(diffMin)));
+    if (diffMax != null) q.where((t) => t.difficulty.isSmallerOrEqual(Variable(diffMax)));
+    if (calcMin != null) q.where((t) => t.calculation.isBiggerOrEqual(Variable(calcMin)));
+    if (calcMax != null) q.where((t) => t.calculation.isSmallerOrEqual(Variable(calcMax)));
+    if (examTypes != null && examTypes.isNotEmpty) q.where((t) => t.examType.isIn(examTypes));
+    if (questionTypes != null && questionTypes.isNotEmpty) q.where((t) => t.questionType.isIn(questionTypes));
+    var rows = await q.get();
+    // 内存过滤：概念标签
+    if (conceptTagNames != null && conceptTagNames.isNotEmpty) {
+      final tagRows = _db.select(_db.conceptTags)
+        ..where((t) => t.name.isIn(conceptTagNames));
+      final tagIds = (await tagRows.get()).map((t) => t.id).toSet();
+      if (tagIds.isNotEmpty) {
+        final links = await (_db.select(_db.questionConceptTags)
+          ..where((t) => t.conceptTagId.isIn(tagIds))).get();
+        final qIds = links.map((l) => l.questionId).toSet();
+        rows = rows.where((r) => qIds.contains(r.id)).toList();
+      } else {
+        return (choice: 0, fill: 0, solution: 0, diffMin: 0.0, diffMax: 0.0, gaokaoDiffMin: 0.0, gaokaoDiffAvg: 0.0, gaokaoDiffMax: 0.0);
+      }
+    }
+    // 内存过滤：知识卡片
+    if (knowledgeCardNames != null && knowledgeCardNames.isNotEmpty) {
+      final kcRows = _db.select(_db.knowledgeCards)
+        ..where((t) => t.title.isIn(knowledgeCardNames));
+      final kcIds = (await kcRows.get()).map((k) => k.id).toSet();
+      if (kcIds.isNotEmpty) {
+        final links = await (_db.select(_db.questionKnowledgeCards)
+          ..where((t) => t.knowledgeCardId.isIn(kcIds))).get();
+        final qIds = links.map((l) => l.questionId).toSet();
+        rows = rows.where((r) => qIds.contains(r.id)).toList();
+      } else {
+        return (choice: 0, fill: 0, solution: 0, diffMin: 0.0, diffMax: 0.0, gaokaoDiffMin: 0.0, gaokaoDiffAvg: 0.0, gaokaoDiffMax: 0.0);
+      }
+    }
+    int choice = 0, fill = 0, solution = 0;
+    double minD = double.infinity, maxD = 0.0, gkMin = double.infinity, gkMax = 0.0, gkSum = 0.0;
+    int gkCount = 0;
+    for (final r in rows) {
+      if (r.questionType == 'choice') choice++;
+      else if (r.questionType == 'fill') fill++;
+      else if (r.questionType == 'solution') solution++;
+      final d = r.difficulty ?? 0.0;
+      if (d < minD) minD = d;
+      if (d > maxD) maxD = d;
+      if (r.examType == '高考') {
+        if (d < gkMin) gkMin = d;
+        if (d > gkMax) gkMax = d;
+        gkSum += d; gkCount++;
+      }
+    }
+    final gkAvg = gkCount > 0 ? gkSum / gkCount : 0.0;
+    AuditLogger.instance.dao('QuestionDao.searchStats', rows.length, {});
+    return (
+      choice: choice, fill: fill, solution: solution,
+      diffMin: minD == double.infinity ? 0.0 : minD, diffMax: maxD,
+      gaokaoDiffMin: gkMin == double.infinity ? 0.0 : gkMin, gaokaoDiffAvg: gkAvg, gaokaoDiffMax: gkMax,
+    );
   }
 
   Future<List<db.QuestionRow>> search({
