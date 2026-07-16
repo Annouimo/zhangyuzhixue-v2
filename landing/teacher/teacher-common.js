@@ -60,6 +60,7 @@ async function tryRefresh() {
     const body = await resp.json();
     if (body.code === 0) {
       saveToken(body.data.access);
+      if (body.data.refresh) localStorage.setItem(REFRESH_KEY, body.data.refresh);
       return true;
     }
   } catch {}
