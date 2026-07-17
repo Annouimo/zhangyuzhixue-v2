@@ -137,7 +137,7 @@ def _md_table_to_html(text):
                     '<{0}>{1}</{0}>'.format(tag, c) for c in cells
                 ) + '</tr>')
             html.append('</table>')
-            result.append('\n'.join(html))
+            result.append(''.join(html))
         else:
             result.append(line)
             i += 1
@@ -223,6 +223,8 @@ def _build_sections(qs):
                 )
 
         full_stem = _md_table_to_html(full_stem)
+        # stem 中的换行在 HTML <p> 内不可见，转成 <br>
+        full_stem = full_stem.replace('\n', '<br>')
 
         sections[-1]['questions'].append({
             'number': question_counter,
