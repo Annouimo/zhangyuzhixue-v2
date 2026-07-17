@@ -81,7 +81,7 @@ body {
   <h2 class="section-title">{{ section.numbered_label }}</h2>
   {% for question in section.questions %}
   <div class="question">
-    <span class="qnum">{% if question.number %}{{ question.number }}{% else %}{{ forloop.counter }}{% endif %}.</span>
+    <span class="qnum">{{ question.number }}.</span>
     <div class="question-body">
       <p>{{ question.stem|safe }}</p>
       {% for opt in question.options %}

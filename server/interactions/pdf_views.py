@@ -127,9 +127,11 @@ def _build_sections(qs):
         sq_map[sq.question_id].append(sq)
 
     seen_types = []
+    question_counter = 0
     for pq in qs_list:
         q = pq.question
         qt = q.question_type
+        question_counter += 1
 
         if qt not in seen_types:
             seen_types.append(qt)
@@ -165,32 +167,26 @@ def _build_sections(qs):
         full_stem = q.stem or ''
         if qt == 'solution':
             sqs = sq_map.get(q.pk, [])
-            # 提取引言：到第一个 \n(1) 或 \n\n 为止
-            intro = full_stem
-            for sep in ('\n(1)', '\n\n'):
-                if sep in intro:
-                    intro = intro[:intro.index(sep)].strip()
-                    break
-
-            # 收集有效子题：跳过自身就是完整题目重复的
-            sub_items = []
+            extra_parts = []
             for sq in sqs:
                 if not sq.stem:
                     continue
-                # 如果子题内容包含引言前20字符 → 是冗余版本(含完整引言)，跳过
-                if len(sq.stem) > 40 and intro[:20] in sq.stem[:40]:
+                # 跳过冗余版本（子题内容本身就是完整题目的重复）
+                if len(sq.stem) > 40 and (q.stem or '')[:20] in sq.stem[:40]:
                     continue
-                sub_items.append(sq.stem)
-
-            if sub_items:
-                full_stem = intro
-                full_stem += '\n' + '\n'.join(
+                # 如果 stem 中已有此子题内容，跳过
+                snippet = sq.stem[:40].strip()
+                if snippet and (full_stem or '') and snippet in full_stem:
+                    continue
+                extra_parts.append(sq.stem)
+            if extra_parts:
+                full_stem = (full_stem or '') + '<br>' + '<br>'.join(
                     '({0}) {1}'.format(i + 1, sp)
-                    for i, sp in enumerate(sub_items)
+                    for i, sp in enumerate(extra_parts)
                 )
 
         sections[-1]['questions'].append({
-            'number': q.number,
+            'number': question_counter,
             'stem': full_stem,
             'options': opts,
             'images': imgs,
