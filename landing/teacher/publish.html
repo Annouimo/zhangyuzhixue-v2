@@ -67,7 +67,8 @@
     </div>
 
     <!-- 发布按钮 -->
-    <button id="publish-btn" class="btn btn-primary btn-block btn-lg" onclick="handlePublish()">确认发布</button>
+    <button id="publish-btn" class="btn btn-primary btn-block btn-lg" onclick="handlePublish()">保存（管理员发布后生效）</button>
+    <div style="margin-top:8px;font-size:13px;color:var(--text-muted);text-align:center;">📋 保存后学生暂不可见，管理员在后台构建课程后作业才会发布到学生端。</div>
   </div>
 
   <script src="teacher-common.js"></script>
@@ -127,7 +128,7 @@
       if (!selectedCourse) { showError('请先选择一个课程'); return; }
 
       const btn = document.getElementById('publish-btn');
-      btn.disabled = true; btn.textContent = '发布中...';
+      btn.disabled = true; btn.textContent = '保存中...';
 
       const courseId = parseInt(selectedCourse.dataset.courseId);
 
@@ -142,10 +143,12 @@
             course_id: courseId,
           }),
         });
-        window.location.href = '/teacher/';
+        showError('✅ 保存成功，学生暂不可见。管理员构建课程后即可发布。');
+        btn.disabled = false;
+        btn.textContent = '保存（管理员发布后生效）';
       } catch (e) {
-        showError('发布失败: ' + e.message);
-        btn.disabled = false; btn.textContent = '确认发布';
+        showError('保存失败: ' + e.message);
+        btn.disabled = false; btn.textContent = '保存（管理员发布后生效）';
       }
     };
 
