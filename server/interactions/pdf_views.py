@@ -107,6 +107,43 @@ def pdf_request_token(request):
 NUM_CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
 
 
+def _md_table_to_html(text):
+    """Markdown 表格 → HTML <table>，用于 stem 中的纯文本表格"""
+    if '|' not in text or '---' not in text:
+        return text
+
+    lines = text.split('\n')
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        # 检测表格开始：当前行含 | 且下一行含 ---
+        if '|' in line and i + 1 < len(lines) and '---' in lines[i + 1]:
+            rows = []
+            while i < len(lines) and '|' in lines[i]:
+                rows.append(lines[i])
+                i += 1
+            # 跳过分隔行（含 ---），取数据行
+            data = [r for r in rows if '---' not in r.strip()]
+            if not data:
+                result.append(rows[0])
+                continue
+            # 构建 HTML table
+            html = ['<table border="0" style="border-collapse:collapse;width:100%;margin:0.5em 0;text-align:center">']
+            for ri, row in enumerate(data):
+                cells = [c.strip() for c in row.strip().strip('|').split('|')]
+                tag = 'th' if ri == 0 else 'td'
+                html.append('<tr>' + ''.join(
+                    '<{0}>{1}</{0}>'.format(tag, c) for c in cells
+                ) + '</tr>')
+            html.append('</table>')
+            result.append('\n'.join(html))
+        else:
+            result.append(line)
+            i += 1
+    return '\n'.join(result)
+
+
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
@@ -178,12 +215,14 @@ def _build_sections(qs):
                 snippet = sq.stem[:40].strip()
                 if snippet and (full_stem or '') and snippet in full_stem:
                     continue
-                extra_parts.append(sq.stem)
+                extra_parts.append((sq, sq.stem))
             if extra_parts:
                 full_stem = (full_stem or '') + '<br>' + '<br>'.join(
-                    '({0}) {1}'.format(i + 1, sp)
-                    for i, sp in enumerate(extra_parts)
+                    '({0}) {1}'.format(sq.sort_order, sp)
+                    for sq, sp in extra_parts
                 )
+
+        full_stem = _md_table_to_html(full_stem)
 
         sections[-1]['questions'].append({
             'number': question_counter,
