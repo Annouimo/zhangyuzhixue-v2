@@ -11,15 +11,15 @@ class CreateAssignmentSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=128, required=False, allow_blank=True)
     deadline = serializers.DateField()
     description = serializers.CharField(required=False, allow_blank=True, default='')
+    course_id = serializers.IntegerField(required=False, allow_null=True)
     class_ids = serializers.ListField(
         child=serializers.IntegerField(),
-        min_length=1,
+        required=False,
     )
-    course_id = serializers.IntegerField(required=False, allow_null=True)
 
 
 class PatchAssignmentSerializer(serializers.Serializer):
     """修改作业请求校验"""
     deadline = serializers.DateField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
-    title = serializers.CharField(max_length=128, required=False)
+    title = serializers.CharField(max_length=128, required=False) 

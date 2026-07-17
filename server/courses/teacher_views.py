@@ -584,7 +584,12 @@ def _create_assignment(data):
             )
 
     # 发布到班级
-    for cid in data['class_ids']:
+    class_ids = data.get('class_ids') or []
+    if not class_ids and course_id:
+        class_ids = list(ClassCourse.objects.filter(
+            course_id=course_id
+        ).values_list('class_group_id', flat=True).distinct())
+    for cid in class_ids:
         cc = ClassCourse.objects.filter(class_group_id=cid).first()
         if cc:
             ClassCourseAssignment.objects.create(

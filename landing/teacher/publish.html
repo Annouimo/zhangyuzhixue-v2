@@ -61,23 +61,9 @@
 
     <!-- 步骤 2.5: 选课程 -->
     <div class="card">
-      <div class="card-title">②½ 关联课程（可选）</div>
+      <div class="card-title">②½ 关联课程</div>
       <div id="course-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载课程列表...</div>
       <div id="course-list"></div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">不选择则作业不关联课程</div>
-    </div>
-
-    <!-- 步骤 3: 选班级 -->
-    <div class="card">
-      <div class="card-title">③ 选择发布班级</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">
-        <label>
-          <input type="checkbox" id="select-all-classes" onchange="toggleAllClasses(this)" checked style="accent-color:var(--primary);">
-          全选
-        </label>
-      </div>
-      <div id="class-loading" class="text-center" style="padding:16px;color:var(--text-muted);">加载班级列表...</div>
-      <div id="class-list"></div>
     </div>
 
     <!-- 发布按钮 -->
@@ -125,23 +111,9 @@
       }
     };
 
-    window.toggleClass = function(el) {
-      el.classList.toggle('checked');
-      const cb = el.querySelector('input[type="checkbox"]');
-      if (cb) cb.checked = !cb.checked;
-    };
-
     window.selectCourse = function(el, id) {
       document.querySelectorAll('#course-list .paper-card').forEach(function(p) { p.classList.remove('selected'); });
       el.classList.add('selected');
-    };
-
-    window.toggleAllClasses = function(master) {
-      document.querySelectorAll('#class-list .class-checkbox-row').forEach(function(row) {
-        var cb = row.querySelector('input[type="checkbox"]');
-        cb.checked = master.checked;
-        row.classList.toggle('checked', master.checked);
-      });
     };
 
     window.handlePublish = async function() {
@@ -151,15 +123,13 @@
       }
       const deadline = document.getElementById('deadline').value;
       if (!deadline) { showError('请选择截止日期'); return; }
-      const checkedBoxes = document.querySelectorAll('#class-list input[type="checkbox"]:checked');
-      if (checkedBoxes.length === 0) { showError('请至少选择一个班级'); return; }
+      const selectedCourse = document.querySelector('#course-list .paper-card.selected');
+      if (!selectedCourse) { showError('请先选择一个课程'); return; }
 
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.textContent = '发布中...';
 
-      // 获取选中的课程 ID
-      const selectedCourse = document.querySelector('#course-list .paper-card.selected');
-      const courseId = selectedCourse ? parseInt(selectedCourse.dataset.courseId) : null;
+      const courseId = parseInt(selectedCourse.dataset.courseId);
 
       try {
         await apiCall('/teacher/assignments/', {
@@ -169,7 +139,6 @@
             title: document.getElementById('title').value.trim(),
             deadline: deadline,
             description: document.getElementById('description').value.trim(),
-            class_ids: Array.from(checkedBoxes).map(cb => parseInt(cb.dataset.classId)),
             course_id: courseId,
           }),
         });
@@ -195,7 +164,7 @@
           courseContainer.innerHTML = '<div class="text-center" style="padding:12px;color:var(--text-muted);font-size:13px;">暂无课程数据</div>';
         } else {
           courseContainer.innerHTML = courses.map(c => `
-            <div class="paper-card" onclick="selectCourse(this, ${c.id})">
+            <div class="paper-card" onclick="selectCourse(this, ${c.id})" data-course-id="${c.id}">
               <div class="radio"></div>
               <div class="info">
                 <div class="name">${esc(c.name)}</div>
@@ -208,32 +177,6 @@
       }
     })();
 
-    // 加载班级
-    (async function init() {
-      try {
-        const classes = await apiCall('/teacher/classes/');
-        hideLoading('class-loading');
-        const items = classes.items || [];
-        const classContainer = document.getElementById('class-list');
-        if (items.length === 0) {
-          classContainer.innerHTML = '<div class="text-center" style="padding:16px;color:var(--text-muted);font-size:14px;">暂无班级数据</div>';
-        } else {
-          classContainer.innerHTML = items.map(c => `
-            <label class="class-checkbox-row" onclick="toggleClass(this)">
-              <input type="checkbox" value="${esc(c.name)}" data-class-id="${c.id}">
-              <span class="class-name">${esc(c.name)}</span>
-              <span class="class-count">${c.studentCount ?? 0} 人</span>
-            </label>`).join('');
-          document.querySelectorAll('#class-list input[type="checkbox"]').forEach(cb => {
-            cb.checked = true;
-            cb.closest('.class-checkbox-row').classList.add('checked');
-          });
-        }
-      } catch (e) {
-        showError('加载班级数据失败: ' + e.message);
-        hideLoading('class-loading');
-      }
-    })();
   </script>
 </body>
 </html>
