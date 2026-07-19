@@ -92,7 +92,7 @@
   <div class="download-row" id="download-row">
     <a href="https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/student-alpha2.apk" class="dl-link" data-platform="android">📱 Android</a>
     <span class="dl-sep">·</span>
-    <a href="#" class="dl-link" data-platform="ios">🍎 iOS</a>
+    <a href="https://testflight.apple.com/join/tg29y4wF" class="dl-link" data-platform="ios">🍎 iOS</a>
     <span class="dl-sep">·</span>
     <a href="https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-alpha2.exe" class="dl-link" data-platform="windows" id="win-download">💻 Windows</a>
     <span class="dl-sep">·</span>
@@ -112,20 +112,6 @@
 
 </div>
 
-<!-- iOS 弹窗 -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal-card">
-    <button class="modal-close" id="modal-close">&times;</button>
-    <div class="modal-icon">🚧</div>
-    <div class="modal-title">iOS 版尚未就绪</div>
-    <p class="modal-body">
-      我们正在准备 iOS 版本，<br>
-      请先用 Android 或 Windows 版体验。
-    </p>
-    <button class="btn btn-confirm" id="modal-confirm">知道了</button>
-  </div>
-</div>
-
 <script>
 ;(function() {
   var ua = navigator.userAgent.toLowerCase()
@@ -136,21 +122,6 @@
   var links = document.querySelectorAll('.dl-link[data-platform]')
   links.forEach(function(l) {
     if (l.dataset.platform === platform) l.classList.add('dl-active')
-  })
-
-  var iosBtn = document.querySelector('[data-platform="ios"]')
-  var modal = document.getElementById('modal-overlay')
-  var confirmBtn = document.getElementById('modal-confirm')
-  var closeBtn = document.getElementById('modal-close')
-
-  function showModal(e) { e.preventDefault(); modal.classList.add('open') }
-  function hideModal() { modal.classList.remove('open') }
-
-  iosBtn.addEventListener('click', showModal)
-  confirmBtn.addEventListener('click', hideModal)
-  closeBtn.addEventListener('click', hideModal)
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) hideModal()
   })
 })()
 </script>
