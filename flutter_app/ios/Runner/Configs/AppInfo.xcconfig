@@ -2,3 +2,4 @@
 // 需在 Xcode 中设置 Team ID 以启用代码签名
 PRODUCT_BUNDLE_IDENTIFIER = com.zhangyuzhixue.student
 PRODUCT_NAME = 章鱼智学
+DEVELOPMENT_TEAM = R94W7CW29F

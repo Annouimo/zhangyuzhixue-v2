@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>章鱼智学需要使用相机来拍摄头像</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>章鱼智学需要访问相册来选择头像</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

@@ -1,3 +1,4 @@
 // iOS 教师端应用标识配置
 PRODUCT_BUNDLE_IDENTIFIER = com.zhangyuzhixue.teacher
 PRODUCT_NAME = 章鱼智学
+DEVELOPMENT_TEAM = R94W7CW29F
