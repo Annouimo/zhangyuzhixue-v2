@@ -32,19 +32,31 @@ class DifficultySlider extends StatelessWidget {
             fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary,
           ),
         ),
-        RangeSlider(
-          values: RangeValues(lower, upper),
-          min: min,
-          max: max,
-          divisions: divisions,
-          labels: RangeLabels(
-            lower.toStringAsFixed(1),
-            upper.toStringAsFixed(1),
+        if (lower == upper)
+          Slider(
+            value: lower,
+            min: min,
+            max: max,
+            divisions: divisions,
+            label: lower.toStringAsFixed(1),
+            onChanged: (v) => onChanged(RangeValues(v, v)),
+            activeColor: AppColors.primary,
+            inactiveColor: AppColors.border,
+          )
+        else
+          RangeSlider(
+            values: RangeValues(lower, upper),
+            min: min,
+            max: max,
+            divisions: divisions,
+            labels: RangeLabels(
+              lower.toStringAsFixed(1),
+              upper.toStringAsFixed(1),
+            ),
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+            inactiveColor: AppColors.border,
           ),
-          onChanged: onChanged,
-          activeColor: AppColors.primary,
-          inactiveColor: AppColors.border,
-        ),
       ],
     );
   }
