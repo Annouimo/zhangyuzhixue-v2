@@ -92,6 +92,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String _extractErrorMessage(Object e) {
+    // 优先从服务端响应体提取真实错误描述
+    if (e is DioException && e.response?.data is Map) {
+      final serverMsg = (e.response!.data as Map)["message"];
+      if (serverMsg is String && serverMsg.isNotEmpty) {
+        return serverMsg;
+      }
+    }
     final msg = e.toString();
     if (msg.contains('40101')) return '邀请码无效或已使用';
     if (msg.contains('username')) return '用户名已存在';

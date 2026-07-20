@@ -201,11 +201,16 @@ class _ErrorInterceptor extends Interceptor {
 class _NetworkLogInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    String serverMsg = "";
+    if (err.response?.data is Map) {
+      final m = (err.response!.data as Map)["message"];
+      if (m is String && m.isNotEmpty) serverMsg = " | $m" ;
+    }
     OperationLog.instance.api(
       err.requestOptions.method,
       err.requestOptions.path,
       err.response?.statusCode ?? 0,
-      '${err.type.name} ${err.message?.toString().substring(0, (err.message?.toString().length ?? 0).clamp(0, 500))}',
+      "${err.type.name} ${err.message ?? ""}$serverMsg",
     );
     handler.next(err);
   }

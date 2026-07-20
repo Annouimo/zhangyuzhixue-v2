@@ -153,6 +153,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String _extractErrorMessage(Object e) {
+    // 优先从服务端响应体提取真实错误描述
+    if (e is DioException && e.response?.data is Map) {
+      final serverMsg = (e.response!.data as Map)["message"];
+      if (serverMsg is String && serverMsg.isNotEmpty) {
+        return serverMsg;
+      }
+    }
     final msg = e.toString();
     if (msg.contains('40001')) return '用户名或密码错误';
     if (msg.contains('401')) return '用户名或密码错误';
