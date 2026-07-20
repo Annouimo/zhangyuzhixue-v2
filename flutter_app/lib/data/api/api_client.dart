@@ -176,6 +176,7 @@ class _ErrorInterceptor extends Interceptor {
       handler.reject(DioException(
         requestOptions: response.requestOptions,
         response: response,
+        message: body['message'] as String? ?? '业务错误',
         error: ApiException(
           code: body['code'] as int,
           message: body['message'] as String? ?? '未知错误',
@@ -204,7 +205,7 @@ class _NetworkLogInterceptor extends Interceptor {
       err.requestOptions.method,
       err.requestOptions.path,
       err.response?.statusCode ?? 0,
-      '${err.type.name} ${err.message?.toString().substring(0, (err.message?.toString().length ?? 0).clamp(0, 100))}',
+      '${err.type.name} ${err.message?.toString().substring(0, (err.message?.toString().length ?? 0).clamp(0, 500))}',
     );
     handler.next(err);
   }
