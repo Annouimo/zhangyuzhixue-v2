@@ -146,7 +146,7 @@ class UserDao {
       ..where((t) =>
           t.createdAt.isBiggerOrEqual(Variable(today)) &
           t.amount.isBiggerThanValue(0.0) &
-          t.source.isIn(['LOGIN_BONUS', 'PRACTICE_REWARD', 'TASK_REWARD'])));
+          t.source.isIn(['PRACTICE_REWARD'])));
     final rows = await q.get();
     AuditLogger.instance.dao('UserDao.getTodayEarnedPoints', rows.length, {});
     var total = 0.0;

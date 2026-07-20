@@ -172,12 +172,12 @@ class IndexPageState extends State<IndexPage> {
                 );
               } catch (_) {}
               if (!mounted) return;
-              AppToast.show(context, icon: Icons.task_alt, message: '${tasks[i].label} 完成！+${tasks[i].reward} 学习积分');
+              AppToast.show(context, icon: Icons.task_alt, message: '${tasks[i].label} 完成！+${tasks[i].reward} 赠送积分');
             }
           }
           // 全部任务完成提示
           if (mounted && tasks.every((t) => t.done)) {
-            AppToast.show(context, icon: Icons.celebration, message: '🎉 全部每日任务已完成！今日额外 +1.0 学习积分');
+            AppToast.show(context, icon: Icons.celebration, message: '🎉 全部每日任务已完成！今日额外 +1.0 赠送积分');
           }
         } catch (_) {}
       });
@@ -284,7 +284,7 @@ class IndexPageState extends State<IndexPage> {
       });
       OperationLog.instance.action('checkin', 'ok +$points pts, streak=$streak');
       AppToast.show(context,
-        icon: Icons.local_fire_department, message: '签到成功！连续第 $streak 天 · +$points 学习积分',
+        icon: Icons.local_fire_department, message: '签到成功！连续第 $streak 天 · +$points 赠送积分',
         backgroundColor: AppColors.success,
       );
 
