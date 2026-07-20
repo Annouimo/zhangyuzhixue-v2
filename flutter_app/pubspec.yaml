@@ -56,6 +56,16 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.20.0
   build_runner: ^2.4.0
+  msix: ^3.18.0
+
+msix_config:
+  display_name: 章鱼智学
+  publisher_display_name: Annouimo
+  publisher: "CN=4B0BC5E2-DDB8-4E00-8A70-1D231234C993"
+  identity_name: Annouimo.526026C9DD952
+  logo_path: windows/runner/resources/app_icon.ico
+  store: true
+  install_certificate: false
 
 flutter:
   uses-material-design: true
