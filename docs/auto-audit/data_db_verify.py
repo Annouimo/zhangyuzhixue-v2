@@ -31,7 +31,7 @@ MODULE_PAGES = {
     9: ['sync_queue.html'],
 }
 
-ECS_HOST = "root@123.57.85.160"
+ECS_HOST = "root@81.70.243.63"
 PROJECT_DIR = "/opt/zhangyuzhixue-v2/server"
 VENV_PY = "/opt/zhangyuzhixue-v2/venv/bin/python"
 

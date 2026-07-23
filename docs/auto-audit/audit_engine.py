@@ -1704,7 +1704,7 @@ def check_runtime_audit_log(cfg: Config) -> list[Finding]:
 def _try_get_remote_db(cfg):
     """尝试通过 SSH 从 ECS 拉取远程 DB 到临时文件"""
     import subprocess, tempfile
-    remote_host = 'root@123.57.85.160'
+    remote_host = 'root@81.70.243.63'
     remote_path = '/opt/zhangyuzhixue-v2/server/db.sqlite3'
     tmp = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
     tmp.close()

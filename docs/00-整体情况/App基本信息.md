@@ -122,12 +122,12 @@
 
 | 属性 | 值 | 说明 |
 |------|----|------|
-| **API 基础 URL** | `https://zhangyuzhixue.top/api/v1` | 两端共用 |
-| **服务端根域名** | `https://zhangyuzhixue.top` | 用于构建 PDF URL 等 |
-| **公网着陆页** | `https://zhangyuzhixue.top` | `landing/index.html`，nginx 直出 |
+| **API 基础 URL** | `https://zhangyuzhixue.zhtec123.com/api/v1` | 两端共用 |
+| **服务端根域名** | `https://zhangyuzhixue.zhtec123.com` | 用于构建 PDF URL 等 |
+| **公网着陆页** | `https://zhangyuzhixue.top` | `landing/index.html`，Cloudflare Tunnel → nginx 直出 |
 | **内测下载页** | `https://zhangyuzhixue.top/internal.html` | 无公开入口 |
-| **服务器** | 阿里云 ECS, 123.57.85.160 | 2C2G |
-| **TLS** | Cloudflare Tunnel | 域名解析到 Cloudflare |
+| **API 服务器** | 腾讯云轻量应用服务器, 81.70.243.63 | 2C2G |
+| **TLS** | API 域名：Let's Encrypt（nginx）；旧域名：Cloudflare Tunnel |
 
 ---
 

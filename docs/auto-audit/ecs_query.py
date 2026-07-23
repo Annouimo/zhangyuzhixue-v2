@@ -27,7 +27,7 @@ import tempfile
 import textwrap
 
 # ── ECS 连接配置（确认后改） ─────────────────────────────────
-ECS_HOST = "root@123.57.85.160"
+ECS_HOST = "root@81.70.243.63"
 PROJECT_DIR = "/opt/zhangyuzhixue-v2/server"
 VENV_PY = "/opt/zhangyuzhixue-v2/venv/bin/python"
 SETTINGS_MODULE = "math_platform.settings"
