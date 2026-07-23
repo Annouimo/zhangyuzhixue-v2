@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REMOTE="server"
 BRANCH="master"
-SSH_HOST="root@123.57.85.160"
+SSH_HOST="root@81.70.243.63"
 DEPLOY_DIR="/opt/zhangyuzhixue-v2"
 
 DRY_RUN=false
@@ -62,7 +62,7 @@ if git remote get-url "$REMOTE" &>/dev/null; then
     echo "   remote '$REMOTE' 已配置"
 else
     echo "❌ remote '$REMOTE' 未配置"
-    echo "   请先添加: git remote add server ssh://git@123.57.85.160/opt/zhangyuzhixue-v2.git"
+    echo "   请先添加: git remote add server ssh://git@81.70.243.63/opt/zhangyuzhixue-v2.git"
     exit 1
 fi
 run git push "$REMOTE" "$BRANCH" --force
@@ -97,6 +97,6 @@ echo "=========================================="
 echo " ✅ 部署完成"
 echo "    验证步骤（SSH 到服务器）："
 echo "      curl http://127.0.0.1:8000/admin/     → 200"
-echo "      curl https://zhangyuzhixue.top/api/v1/auth/login/ → 200"
+echo "      curl https://zhangyuzhixue.zhtec123.com/api/v1/auth/login/ → 200"
 echo "      curl https://zhangyuzhixue.top/       → 200 (landing)"
 echo "=========================================="

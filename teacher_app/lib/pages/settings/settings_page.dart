@@ -16,7 +16,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
-  String _serverUrl = 'https://zhangyuzhixue.top';
+  String _serverUrl = 'https://zhangyuzhixue.zhtec123.com';
   int _localQbank = 0;
   int _localCourses = 0;
   int _serverQbank = 0;
@@ -36,7 +36,7 @@ class SettingsPageState extends State<SettingsPage> {
     _localQbank = prefs.getInt('qbank_version') ?? 0;
     _localCourses = prefs.getInt('courses_version') ?? 0;
     setState(() {
-      _serverUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+      _serverUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
     });
 
     // 后台检查服务器版本
@@ -62,7 +62,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<void> _onUpdate(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+    final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
     final label = type == 'qbank' ? '题库' : '课程';
     if (type == 'qbank') setState(() => _updatingQbank = true);
     if (type == 'courses') setState(() => _updatingCourses = true);

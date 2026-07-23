@@ -25,7 +25,7 @@ function getCachedUser() {
 }
 
 // ── API 调用封装 ──
-const API_BASE = '/api/v1';
+const API_BASE = 'https://zhangyuzhixue.zhtec123.com/api/v1';
 
 async function apiCall(path, options = {}) {
   const token = getToken();

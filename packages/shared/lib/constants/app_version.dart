@@ -12,8 +12,8 @@ class AppVersion {
 const appVersion = '1.0.0-alpha.2+1';
 
 /// API 基础 URL（支持环境切换）
-const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.top/api/v1');
+const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.zhtec123.com/api/v1');
 
 /// 服务端根域名
 const appServerOrigin =
-    String.fromEnvironment('SERVER_ORIGIN', defaultValue: 'https://zhangyuzhixue.top');
+    String.fromEnvironment('SERVER_ORIGIN', defaultValue: 'https://zhangyuzhixue.zhtec123.com');

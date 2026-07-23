@@ -162,7 +162,7 @@ REST_FRAMEWORK = {
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://zhangyuzhixue.top',
+    default='https://zhangyuzhixue.top,https://zhangyuzhixue.zhtec123.com',
     cast=lambda v: [s.strip() for s in v.split(',')],
 )
 

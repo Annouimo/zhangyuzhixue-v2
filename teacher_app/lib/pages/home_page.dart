@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final baseUrl =
-          prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+          prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
       final manager = UpdateManager(baseUrl, DatabaseProvider());
       final summaries = await manager.checkAll();
       if (!mounted) return;
@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
       context,
       (onProgress) async {
         final prefs = await SharedPreferences.getInstance();
-        final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.top';
+        final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
         final manager = UpdateManager(baseUrl, DatabaseProvider());
         await manager.downloadAndReplace(
           type: info.type, url: info.downloadUrl ?? '',
