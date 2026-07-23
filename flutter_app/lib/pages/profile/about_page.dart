@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
 import 'package:shared/constants/app_version.dart';
@@ -157,14 +158,14 @@ class _AboutPageState extends State<AboutPage> {
             leading: const Icon(Icons.description_outlined),
             title: const Text('用户协议', style: TextStyle(fontSize: 15)),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => AppToast.show(context, icon: Icons.description, message: '用户协议页面即将上线'),
+            onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html')),
           ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
             title: const Text('隐私政策', style: TextStyle(fontSize: 15)),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => AppToast.show(context, icon: Icons.description, message: '隐私政策页面即将上线'),
+            onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html')),
           ),
         ]),
 
