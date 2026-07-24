@@ -19,6 +19,14 @@ class LevelConfig(models.Model):
     def __str__(self):
         return f'Lv.{self.level} {self.title}'
 
+    @staticmethod
+    def get_level(total_pts: int) -> int:
+        """根据累计积分获取等级"""
+        config = LevelConfig.objects.filter(
+            min_xp__lte=total_pts
+        ).order_by('-min_xp').first()
+        return config.level if config else 1
+
 
 class AchievementDef(models.Model):
     """成就定义"""
