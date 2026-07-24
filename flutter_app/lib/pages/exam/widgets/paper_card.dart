@@ -42,7 +42,7 @@ class PaperCard extends StatelessWidget {
                       color: context.colors.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.article_outlined, color: AppColors.primary, size: 20),
+                    child: const Icon(Icons.article_outlined, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -59,7 +59,7 @@ class PaperCard extends StatelessWidget {
                   if (trailingWidget != null) trailingWidget!
                   else if (trailing != null) Text(trailing!, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                   const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+                  const Icon(Icons.chevron_right, size: 20),
                 ],
               ),
             ),
@@ -67,7 +67,10 @@ class PaperCard extends StatelessWidget {
           if (actions != null && actions!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-              child: Row(children: actions!),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: actions!),
+              ),
             ),
         ],
       ),

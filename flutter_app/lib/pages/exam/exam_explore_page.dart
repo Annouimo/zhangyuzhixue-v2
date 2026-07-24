@@ -97,7 +97,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
               children: _sortOptions.map((opt) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
-                  label: Text(opt.$2, style: TextStyle(fontSize: 12)),
+                  label: Text(opt.$2, style: TextStyle(fontSize: 12, color: _sortBy == opt.$1 ? context.colors.primary : context.colors.textPrimary)),
                   selected: _sortBy == opt.$1,
                   onSelected: (_) => setState(() => _sortBy = opt.$1),
                   selectedColor: context.colors.primaryContainer,

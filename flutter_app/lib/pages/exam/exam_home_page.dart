@@ -98,10 +98,10 @@ class _EntryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, size: 24, color: AppColors.primary),
+        leading: Icon(icon, size: 24),
         title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
     );
