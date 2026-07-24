@@ -37,14 +37,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _authRepo = widget.authRepository ?? AuthRepository(AuthApi(ApiClient()));
   }
 
   @override
   void dispose() {
-      final colors = context.colors;
     _inviteCodeController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();

@@ -51,7 +51,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _qDao = widget.questionDao ?? QuestionDao(DatabaseProvider());
@@ -62,7 +61,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   Future<void> _loadOpts() async {
-      final colors = context.colors;
     try {
       final years = (await _qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await _qDao.getDistinctRegions();
