@@ -232,4 +232,29 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
   }
+
+  // ── 平台感知下载卡片排序 ──
+  if (page === 'software') {
+    const container = document.getElementById('download-cards');
+    if (container) {
+      const cards = [...container.querySelectorAll('.platform-card')];
+      const ua = navigator.userAgent.toLowerCase();
+      let detected = 'unknown';
+      if (/android/.test(ua)) detected = 'android';
+      else if (/iphone|ipad|ipod/.test(ua)) detected = 'ios';
+      else if (/windows/.test(ua)) detected = 'windows';
+
+      const detectedCard = cards.find(c => c.dataset.platform === detected);
+      if (detectedCard) {
+        container.innerHTML = '';
+        detectedCard.classList.add('platform-card--detected');
+        container.appendChild(detectedCard);
+
+        const grid = document.createElement('div');
+        grid.className = 'platform-grid';
+        cards.filter(c => c !== detectedCard).forEach(c => grid.appendChild(c));
+        container.appendChild(grid);
+      }
+    }
+  }
 })();
