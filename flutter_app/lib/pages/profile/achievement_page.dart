@@ -107,17 +107,17 @@ class _AchievementPageState extends State<AchievementPage> {
     String statusLabel;
     switch (a.status) {
       case 'unlocked':
-        statusBg = AppColors.statusCompletedBg;
+        statusBg = context.colors.successContainer;
         statusFg = context.colors.success;
         statusLabel = '已解锁';
         break;
       case 'in_progress':
-        statusBg = AppColors.statusInProgressBg;
+        statusBg = context.colors.warningContainer;
         statusFg = context.colors.warning;
         statusLabel = '进行中';
         break;
       default:
-        statusBg = AppColors.statusPendingBg;
+        statusBg = context.colors.surfaceSubtle;
         statusFg = context.colors.textSecondary;
         statusLabel = '未解锁';
     }

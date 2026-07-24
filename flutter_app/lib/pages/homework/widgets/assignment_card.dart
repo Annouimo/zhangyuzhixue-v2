@@ -29,7 +29,7 @@ class AssignmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
       final colors = context.colors;
     final progress = totalCount > 0 ? doneCount / totalCount : 0.0;
-    final st = _statusStyle(status);
+    final st = _statusStyle(status, colors);
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -147,6 +147,6 @@ class AssignmentCard extends StatelessWidget {
 }
 
 /// 状态标签样式
-({String label, Color color, Color bg}) _statusStyle(String status) {
-  return statusStyle(status);
+({String label, Color color, Color bg}) _statusStyle(String status, AppSemanticColors colors) {
+  return statusStyle(status, colors);
 }

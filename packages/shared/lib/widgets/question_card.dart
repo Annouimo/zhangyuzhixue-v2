@@ -139,7 +139,7 @@ class QuestionCard extends StatelessWidget {
   }
 
   Widget _buildStatusTag(AppSemanticColors colors) {
-    final style = _statusStyle(status!);
+    final style = _statusStyle(status!, colors);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -190,6 +190,6 @@ class _Tag extends StatelessWidget {
 }
 
 /// 状态标签样式
-({String label, Color color, Color bg}) _statusStyle(String status) {
-  return statusStyle(status);
+({String label, Color color, Color bg}) _statusStyle(String status, AppSemanticColors colors) {
+  return statusStyle(status, colors);
 }

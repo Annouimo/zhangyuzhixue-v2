@@ -224,8 +224,8 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
 String _typeLabel(String type) => QuestionTypeLabels.of(type);
 
 /// 状态标签样式
-({String label, Color color, Color bg}) _statusStyle(String status) {
-  return statusStyle(status);
+({String label, Color color, Color bg}) _statusStyle(String status, AppSemanticColors colors) {
+  return statusStyle(status, colors);
 }
 
 /// 题目行
@@ -248,7 +248,7 @@ class _QuestionTile extends StatelessWidget {
   Widget build(BuildContext context) {
       final colors = context.colors;
     final isDone = status == 'completed';
-    final st = _statusStyle(status);
+    final st = _statusStyle(status, colors);
     final typeLabel = _typeLabel(questionType);
     return Card(
       child: InkWell(
