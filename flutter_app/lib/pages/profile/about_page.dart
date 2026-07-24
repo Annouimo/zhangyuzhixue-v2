@@ -167,6 +167,13 @@ class _AboutPageState extends State<AboutPage> {
             trailing: Icon(Icons.chevron_right),
             onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html')),
           ),
+          Divider(height: 1),
+          ListTile(
+            leading: Icon(Icons.language_outlined),
+            title: Text('官方网站', style: TextStyle(fontSize: 15)),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.top/')),
+          ),
         ]),
 
         Text(

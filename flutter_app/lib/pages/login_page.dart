@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:shared/theme/app_theme.dart';
@@ -189,6 +190,21 @@ class _LoginPageState extends State<LoginPage> {
         title: const Text('忘记密码'),
         content: const Text('请联系微信管理员重置密码：\n\n微信：zhangyubb101\n（备注「章鱼智学」）'),
         actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.copy, size: 16),
+            label: const Text('复制微信号'),
+            onPressed: () {
+              Clipboard.setData(const ClipboardData(text: 'zhangyubb101'));
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('微信号已复制'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('知道了'),
