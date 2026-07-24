@@ -512,3 +512,8 @@ class AppTheme {
     );
   }
 }
+
+/// BuildContext 快捷取色
+extension ThemeColors on BuildContext {
+  AppSemanticColors get colors => Theme.of(this).extension<AppSemanticColors>()!;
+}
