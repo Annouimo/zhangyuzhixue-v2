@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#edf6ff"/><stop offset="1" stop-color="#f9fdff"/></linearGradient><linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b50c7"/><stop offset="1" stop-color="#14b8cf"/></linearGradient></defs>
+<rect width="640" height="420" fill="url(#bg)"/>
+<circle cx="320" cy="155" r="78" fill="#cfe7ff"/>
+<circle cx="320" cy="140" r="48" fill="#fff"/>
+<path d="M210 362c13-88 62-134 110-134s97 46 110 134" fill="url(#p)"/>
+<text x="320" y="398" text-anchor="middle" fill="#40516d" font-family="Arial, sans-serif" font-size="22">团队照片占位</text>
+</svg>

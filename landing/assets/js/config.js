@@ -1,0 +1,38 @@
+
+/*
+  章鱼智学官网集中配置
+
+  上线前请替换：
+  1. 三个平台下载链接（已填入当前 release 链接）
+  2. 微信二维码图片（已替换为真实二维码）
+  3. 页脚主体与备案信息（已填入 ICP）
+  4. 软件功能文案与截图
+*/
+
+window.SITE_CONFIG = {
+  siteName: "章鱼智学",
+  siteTagline: "个性化高考数学智能学习系统",
+  slogan: "专注高考数学，让学习更高效",
+  secondarySlogan: "数据驱动学习，持续优化提升",
+
+  phoneDisplay: "18500794866",
+  phoneHref: "tel:18500794866",
+  wechatName: "章鱼宝宝",
+  wechatId: "zhangyubb101",
+
+  wechatQr: "assets/images/wechat-qr.png",
+
+  downloads: {
+    android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/student-alpha2.apk",
+    ios: "https://testflight.apple.com/join/tg29y4wF",
+    windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-alpha2.exe",
+    netdisk: "https://pan.baidu.com/s/1vFe6MaYHI3b8tGQMOaOh3Q?pwd=6bjf"
+  },
+
+  footer: {
+    operatorName: "章鱼智学项目团队",
+    icp: "湘ICP备2026008095号-1",
+    police: "",  // 公安备案号待补充
+    copyrightStartYear: 2026
+  }
+};
