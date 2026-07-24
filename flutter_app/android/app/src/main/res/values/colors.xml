@@ -12,6 +12,7 @@
     <color name="background">#F6F8FB</color>
     <color name="surface">#FFFFFF</color>
     <color name="surface_subtle">#F0F4F8</color>
+    <color name="surface_raised">#FFFFFF</color>
 
     <!-- Text -->
     <color name="text_primary">#172033</color>
