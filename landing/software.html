@@ -41,41 +41,45 @@
           <p class="lead">选择您的设备，即可下载对应版本。</p>
         </div>
         <div id="download-cards">
-          <article class="card platform-card" data-platform="android">
-            <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="platform-card__body">
-              <h3>Android</h3>
-              <p class="muted">适用于 Android 手机与平板。</p>
-            </div>
-            <a class="button button--primary" href="#" data-download-platform="android">Android 下载</a>
-          </article>
-          <article class="card platform-card" data-platform="ios">
-            <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="platform-card__body">
-              <h3>iOS</h3>
-              <p class="muted">适用于 iPhone 与 iPad。</p>
-            </div>
-            <a class="button button--primary" href="#" data-download-platform="ios">iOS 下载</a>
-          </article>
-          <article class="card platform-card" data-platform="windows">
-            <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="platform-card__body">
-              <h3>Windows</h3>
-              <p class="muted">适用于 Windows 桌面设备。</p>
-            </div>
-            <a class="button button--primary" href="#" data-download-platform="windows">Windows 下载</a>
-          </article>
-          <article class="card platform-card" data-platform="netdisk">
-            <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-            <div class="platform-card__body">
-              <h3>备用下载（网盘）</h3>
-              <p class="muted">主渠道不可用时使用。提取码自动填入。</p>
-            </div>
-            <a class="button button--secondary" href="#" data-download-platform="netdisk">
-              <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" style="flex-shrink:0"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              网盘下载
-            </a>
-          </article>
+          <div id="default-platforms" class="platform-row">
+            <article class="card platform-card" data-platform="android">
+              <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="platform-card__body">
+                <h3>Android</h3>
+                <p class="muted">适用于 Android 手机与平板。</p>
+              </div>
+              <a class="button button--primary" href="#" data-download-platform="android">Android 下载</a>
+            </article>
+            <article class="card platform-card" data-platform="ios">
+              <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="platform-card__body">
+                <h3>iOS</h3>
+                <p class="muted">适用于 iPhone 与 iPad。</p>
+              </div>
+              <a class="button button--primary" href="#" data-download-platform="ios">iOS 下载</a>
+            </article>
+            <article class="card platform-card" data-platform="windows">
+              <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="platform-card__body">
+                <h3>Windows</h3>
+                <p class="muted">适用于 Windows 桌面设备。</p>
+              </div>
+              <a class="button button--primary" href="#" data-download-platform="windows">Windows 下载</a>
+            </article>
+          </div>
+          <div id="default-netdisk" class="platform-row">
+            <article class="card platform-card" data-platform="netdisk">
+              <div class="card__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="platform-card__body">
+                <h3>备用下载（网盘）</h3>
+                <p class="muted">主渠道不可用时使用。提取码自动填入。</p>
+              </div>
+              <a class="button button--secondary" href="#" data-download-platform="netdisk">
+                <svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" style="flex-shrink:0"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                网盘下载
+              </a>
+            </article>
+          </div>
         </div>
         <!-- 上线前提醒：请在 config.js 中替换下载链接 -->
 

@@ -1671,10 +1671,17 @@ h4 {
   gap: 20px;
 }
 
-.platform-grid {
+.platform-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+}
+
+#default-platforms {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#default-netdisk {
+  grid-template-columns: 1fr;
 }
 
 .platform-card--detected {
@@ -1736,8 +1743,8 @@ h4 {
     width: 100%;
     min-width: auto;
   }
-  .platform-grid {
-    grid-template-columns: 1fr;
+  .platform-row {
+    grid-template-columns: 1fr !important;
   }
 }
 

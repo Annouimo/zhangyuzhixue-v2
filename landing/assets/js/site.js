@@ -237,23 +237,24 @@
   if (page === 'software') {
     const container = document.getElementById('download-cards');
     if (container) {
-      const cards = [...container.querySelectorAll('.platform-card')];
       const ua = navigator.userAgent.toLowerCase();
       let detected = 'unknown';
       if (/android/.test(ua)) detected = 'android';
       else if (/iphone|ipad|ipod/.test(ua)) detected = 'ios';
       else if (/windows/.test(ua)) detected = 'windows';
 
-      const detectedCard = cards.find(c => c.dataset.platform === detected);
-      if (detectedCard) {
+      const detectedCard = container.querySelector(`[data-platform="${detected}"]`);
+      if (detectedCard && detected !== 'unknown') {
+        const cards = [...container.querySelectorAll('.platform-card')];
+        const others = cards.filter(c => c !== detectedCard);
         container.innerHTML = '';
         detectedCard.classList.add('platform-card--detected');
         container.appendChild(detectedCard);
-
-        const grid = document.createElement('div');
-        grid.className = 'platform-grid';
-        cards.filter(c => c !== detectedCard).forEach(c => grid.appendChild(c));
-        container.appendChild(grid);
+        const row = document.createElement('div');
+        row.className = 'platform-row';
+        row.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
+        others.forEach(c => row.appendChild(c));
+        container.appendChild(row);
       }
     }
   }
