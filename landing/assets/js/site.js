@@ -30,7 +30,7 @@
         <div class="container site-header__inner">
           <a class="brand" href="index.html" aria-label="返回章鱼智学首页">
             <span class="brand__mark">
-              <img src="assets/images/icon-app-48.png" alt="" aria-hidden="true">
+              <img src="assets/images/icon-app-48x48.png" alt="" aria-hidden="true">
             </span>
             <span class="brand__text">
               <span class="brand__name">${config.siteName || "章鱼智学"}</span>
