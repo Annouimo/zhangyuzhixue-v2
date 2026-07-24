@@ -5,11 +5,11 @@
    ============================================= */
 
 :root {
-  --primary: #4A6CF7;
-  --primary-light: #EEF1FF;
-  --bg: #F5F7FA;
+  --primary: #006BD1 #006BD1;
+  --primary-light: #EAF4FF #EAF4FF;
+  --bg: #F6F8FB #F6F8FB;
   --card: #FFFFFF;
-  --text: #1A1A2E;
+  --text: #172033 #172033;
   --text-secondary: #6B7280;
   --text-muted: #9CA3AF;
   --success: #10B981;
