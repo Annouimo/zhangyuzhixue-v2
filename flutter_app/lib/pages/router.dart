@@ -182,11 +182,11 @@ class NavigationThrottle {
 }
 
 /// 安全返回：有栈则 pop，无栈则回首页
-Future<void> safePop(BuildContext context) async {
+void safePop(BuildContext context) {
   final router = GoRouter.of(context);
-  if (router.canPop()) {
+  try {
     router.pop();
-  } else {
+  } catch (_) {
     router.go(AppRoutes.mainShell);
   }
 }
@@ -201,7 +201,7 @@ class RouterUtils {
   }
 
   /// 安全返回
-  static Future<void> pop(BuildContext context) => safePop(context);
+  static void pop(BuildContext context) => safePop(context);
 }
 
 /// 路由切换日志
