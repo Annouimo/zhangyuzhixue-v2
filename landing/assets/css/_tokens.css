@@ -1,0 +1,152 @@
+
+/* ════════════════════════════════════════
+   章鱼智学品牌官网样式
+   品牌颜色系统与深色模式设计规范 V1.0
+   ════════════════════════════════════════ */
+
+/* ═══ 品牌色阶（不直接在业务中使用，仅为参考） ═══ */
+/* blue-50  #EAF4FF  blue-100 #D5E9FF  blue-200 #ADD6FF
+   blue-300 #7CC0FF  blue-400 #45A5FF  blue-500 #1488F7
+   blue-600 #0872E6  blue-700 #006BD1  blue-800 #0062C4
+   blue-900 #0055AA  blue-950 #072F57 */
+
+/* ═══ 设计令牌 ═══ */
+:root {
+  /* ── 浅色模式 (默认) ── */
+  --color-brand-blue: #1488F7;
+  --color-cyan: #14b8cf;
+
+  --color-primary: #006BD1;
+  --color-primary-hover: #0062C4;
+  --color-primary-pressed: #0055AA;
+  --color-primary-container: #EAF4FF;
+  --color-primary-border: #9FCEFF;
+
+  --color-background: #F6F8FB;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F0F4F8;
+
+  --color-text-primary: #172033;
+  --color-text-secondary: #536274;
+  --color-text-muted: #667589;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #DEE5ED;
+  --color-divider: #E8EDF3;
+
+  --color-disabled-bg: #E9EEF4;
+  --color-disabled-fg: #667589;
+  --color-focus-ring: #5CAEFF;
+  --color-scrim: rgba(8,18,32,.56);
+
+  --color-media-surface: #FFFFFF;
+  --color-image-border: #C8D2DE;
+
+  /* ── 阴影 ── */
+  --shadow-sm: 0 10px 30px rgba(19, 75, 153, 0.08);
+  --shadow-md: 0 18px 50px rgba(19, 75, 153, 0.12);
+
+  /* ── 圆角 ── */
+  --radius-sm: 14px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
+
+  /* ── 布局 ── */
+  --container: 1180px;
+  --header-height: 76px;
+}
+
+/* ═══ 深色模式 ═══ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-primary: #5CAEFF;
+    --color-primary-hover: #85C3FF;
+    --color-primary-pressed: #3F9CF0;
+    --color-primary-container: #12365B;
+    --color-primary-border: #3F7DB8;
+
+    --color-background: #0B1220;
+    --color-surface: #111C2D;
+    --color-surface-subtle: #162235;
+
+    --color-text-primary: #F4F7FB;
+    --color-text-secondary: #B9C2CF;
+    --color-text-muted: #8994A5;
+    --color-text-inverse: #172033;
+
+    --color-border: #2A3A50;
+    --color-divider: #223146;
+
+    --color-disabled-bg: #222E3E;
+    --color-disabled-fg: #8994A5;
+    --color-scrim: rgba(0,0,0,.64);
+
+    --color-media-surface: #FFFFFF;
+    --color-image-border: #5C6D82;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.25);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.35);
+  }
+}
+
+/* 显式深色覆盖（优先级高于系统） */
+[data-theme="dark"] {
+  --color-primary: #5CAEFF;
+  --color-primary-hover: #85C3FF;
+  --color-primary-pressed: #3F9CF0;
+  --color-primary-container: #12365B;
+  --color-primary-border: #3F7DB8;
+
+  --color-background: #0B1220;
+  --color-surface: #111C2D;
+  --color-surface-subtle: #162235;
+
+  --color-text-primary: #F4F7FB;
+  --color-text-secondary: #B9C2CF;
+  --color-text-muted: #8994A5;
+  --color-text-inverse: #172033;
+
+  --color-border: #2A3A50;
+  --color-divider: #223146;
+
+  --color-disabled-bg: #222E3E;
+  --color-disabled-fg: #8994A5;
+  --color-scrim: rgba(0,0,0,.64);
+
+  --color-media-surface: #FFFFFF;
+  --color-image-border: #5C6D82;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.35);
+}
+
+/* 显式浅色覆盖（优先级高于系统） */
+[data-theme="light"] {
+  --color-primary: #006BD1;
+  --color-primary-hover: #0062C4;
+  --color-primary-pressed: #0055AA;
+  --color-primary-container: #EAF4FF;
+  --color-primary-border: #9FCEFF;
+
+  --color-background: #F6F8FB;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F0F4F8;
+
+  --color-text-primary: #172033;
+  --color-text-secondary: #536274;
+  --color-text-muted: #667589;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #DEE5ED;
+  --color-divider: #E8EDF3;
+
+  --color-disabled-bg: #E9EEF4;
+  --color-disabled-fg: #667589;
+  --color-scrim: rgba(8,18,32,.56);
+
+  --color-media-surface: #FFFFFF;
+  --color-image-border: #C8D2DE;
+
+  --shadow-sm: 0 10px 30px rgba(19, 75, 153, 0.08);
+  --shadow-md: 0 18px 50px rgba(19, 75, 153, 0.12);
+}
