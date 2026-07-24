@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 启动画面：主色蓝背景 + 章鱼智学 Logo -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/primary_blue" />
+    <item android:drawable="@color/brand_blue" />
 
     <!-- 居中 Logo -->
     <item>
