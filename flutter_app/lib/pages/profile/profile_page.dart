@@ -283,7 +283,7 @@ class ProfilePageState extends State<ProfilePage> {
                     onTap: _uploading ? null : _showAvatarPicker,
                     child: CircleAvatar(
                       radius: 32,
-                      backgroundColor: AppColors.primaryLight,
+                      backgroundColor: AppColors.primaryContainer,
                       backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
                           ? CachedNetworkImageProvider(info.avatar!)
                           : null,
@@ -309,7 +309,7 @@ class ProfilePageState extends State<ProfilePage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryLight,
+                              color: AppColors.primaryContainer,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text('学号 ${info!.studentId}',

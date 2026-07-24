@@ -138,7 +138,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
@@ -180,7 +180,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -429,7 +429,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.3),
+            color: AppColors.primaryContainer.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -451,7 +451,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('[${_typeLabel(detail.questionType)}]',
@@ -469,7 +469,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.15),
+              color: AppColors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
@@ -495,7 +495,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 ...detail.conceptTags.map((tag) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),

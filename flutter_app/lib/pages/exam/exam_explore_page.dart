@@ -100,7 +100,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   label: Text(opt.$2, style: const TextStyle(fontSize: 12)),
                   selected: _sortBy == opt.$1,
                   onSelected: (_) => setState(() => _sortBy = opt.$1),
-                  selectedColor: AppColors.primaryLight,
+                  selectedColor: AppColors.primaryContainer,
                   side: BorderSide.none,
                 ),
               )).toList(),

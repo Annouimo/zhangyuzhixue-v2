@@ -38,7 +38,7 @@ class ActionChipWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? AppColors.primaryLight : null,
+          color: active ? AppColors.primaryContainer : null,
           border: active ? null : Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
         ),

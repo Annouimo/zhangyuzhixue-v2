@@ -80,8 +80,8 @@ abstract final class AppColors {
   static const statusCompletedBg = successContainer;
   static const statusInProgressBg = infoContainer;
   static const statusPendingBg = surfaceSubtle;
-  static const heatmapLevel1 = Color(0xFFDBEAFE);
-  static const heatmapLevel2 = Color(0xFF60A5FA);
+  static const heatmapLevel1 = Color(0xFFEAF4FF);
+  static const heatmapLevel2 = Color(0xFF7CC0FF);
   static const heatmapLevel3 = primary;
 }
 

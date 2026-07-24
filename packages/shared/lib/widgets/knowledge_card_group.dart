@@ -78,7 +78,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                 v ? newSet.add(card.title) : newSet.remove(card.title);
                 widget.onChanged(newSet);
               },
-              selectedColor: AppColors.primaryLight,
+              selectedColor: AppColors.primaryContainer,
               checkmarkColor: AppColors.primary,
               side: widget.selectedTitles.contains(card.title)
                   ? BorderSide.none

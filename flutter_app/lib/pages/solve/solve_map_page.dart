@@ -190,7 +190,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
@@ -255,7 +255,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -284,7 +284,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.3),
+              color: AppColors.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -306,7 +306,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text('[${_typeLabel(_detail!.questionType)}]',
@@ -325,7 +325,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.15),
+              color: AppColors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
@@ -375,7 +375,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(child: Text(sq.label,
@@ -440,7 +440,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             child: Row(children: [
                               Container(width: 24, height: 24,
                                 decoration: BoxDecoration(
-                                  color: isStepDone ? AppColors.success : (stepLocked ? AppColors.disabledBackground : AppColors.primaryLight),
+                                  color: isStepDone ? AppColors.success : (stepLocked ? AppColors.disabledBackground : AppColors.primaryContainer),
                                   borderRadius: BorderRadius.circular(12)),
                                 child: Center(child: isStepDone
                                   ? const Icon(Icons.check, size: 14, color: Colors.white)

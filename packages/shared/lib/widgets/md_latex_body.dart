@@ -76,7 +76,7 @@ class MdLatexBody extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         blockquoteDecoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         listBullet: TextStyle(

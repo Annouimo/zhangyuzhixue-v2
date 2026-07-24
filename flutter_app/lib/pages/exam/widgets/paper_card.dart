@@ -39,7 +39,7 @@ class PaperCard extends StatelessWidget {
                   Container(
                     width: 40, height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
+                      color: AppColors.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.article_outlined, color: AppColors.primary, size: 20),

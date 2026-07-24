@@ -126,7 +126,7 @@ class _AchievementPageState extends State<AchievementPage> {
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
         boxShadow: [BoxShadow(color: AppColors.scrim.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))],
       ),

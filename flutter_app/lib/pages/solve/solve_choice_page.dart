@@ -248,7 +248,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
@@ -290,7 +290,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
@@ -347,7 +347,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.primaryLight.withValues(alpha: 0.3),
+            color: AppColors.primaryContainer.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -369,7 +369,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('[${_typeLabel(detail.questionType)}]',
@@ -387,7 +387,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.15),
+              color: AppColors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
@@ -413,7 +413,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                 ...detail.conceptTags.map((tag) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
@@ -450,7 +450,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             bgColor = AppColors.error.withValues(alpha: 0.08);
           } else if (isSel) {
             borderColor = AppColors.primary;
-            bgColor = AppColors.primaryLight;
+            bgColor = AppColors.primaryContainer;
           }
 
           Color dotBg = AppColors.surfaceSubtle;

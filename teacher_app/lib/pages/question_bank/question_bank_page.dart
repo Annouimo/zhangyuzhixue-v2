@@ -314,7 +314,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),

@@ -15,7 +15,7 @@ class DoneBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(children: [

@@ -246,7 +246,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.card,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(_buildContextLabel(),
@@ -259,7 +259,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.card,
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: MdLatexBody(_detail!.stem, fontSize: 14),

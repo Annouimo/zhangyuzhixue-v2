@@ -355,7 +355,7 @@ class IndexPageState extends State<IndexPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
       ),
       child: Column(
@@ -388,7 +388,7 @@ class IndexPageState extends State<IndexPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         ),
         child: Row(
@@ -424,7 +424,7 @@ class IndexPageState extends State<IndexPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         ),
         child: Row(
@@ -461,7 +461,7 @@ class IndexPageState extends State<IndexPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
       ),
       child: Column(
@@ -686,7 +686,7 @@ class IndexPageState extends State<IndexPage> {
       margin: const EdgeInsets.only(top: 12, bottom: 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryLight,
+        color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),

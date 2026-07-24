@@ -131,7 +131,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: _expanded ? Border.all(color: AppColors.primary.withValues(alpha:0.3)) : null,
       ),
@@ -143,7 +143,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             Container(
               width: 28, height: 28,
               decoration: BoxDecoration(
-                color: _feedbackGiven ? AppColors.primary : AppColors.primaryLight,
+                color: _feedbackGiven ? AppColors.primary : AppColors.primaryContainer,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(child: Text('${widget.stepIndex + 1}',
@@ -162,7 +162,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(tag.length > 6 ? '${tag.substring(0, 6)}…' : tag,

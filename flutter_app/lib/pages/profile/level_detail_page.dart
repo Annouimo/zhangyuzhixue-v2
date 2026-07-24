@@ -135,7 +135,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
                 final isCurrent = r.level == _level;
                 return TableRow(
                   decoration: isCurrent
-                      ? const BoxDecoration(color: AppColors.primaryLight)
+                      ? const BoxDecoration(color: AppColors.primaryContainer)
                       : null,
                   children: [
                     Padding(

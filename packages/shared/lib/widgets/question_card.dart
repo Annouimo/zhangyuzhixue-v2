@@ -124,7 +124,7 @@ class QuestionCard extends StatelessWidget {
   Widget _buildTypeTag() {
     return _Tag(
       QuestionTypeLabels.of(questionType),
-      bg: AppColors.primaryLight,
+      bg: AppColors.primaryContainer,
       fg: AppColors.primary,
     );
   }

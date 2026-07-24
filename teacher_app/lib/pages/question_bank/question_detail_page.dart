@@ -106,7 +106,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 children: _detail!.tags.map((t) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(t.name,
@@ -411,7 +411,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: const BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
                 child: Center(

@@ -209,7 +209,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
         title: ref.title,
         content: ref.content,
       ),
-      backgroundColor: AppColors.primaryLight,
+      backgroundColor: AppColors.primaryContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),

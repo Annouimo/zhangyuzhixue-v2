@@ -113,7 +113,7 @@ class _AboutPageState extends State<AboutPage> {
         // ── 品牌标识 ──
         const CircleAvatar(
           radius: 32,
-          backgroundColor: AppColors.primaryLight,
+          backgroundColor: AppColors.primaryContainer,
           child: Icon(Icons.school, size: 32, color: AppColors.primary),
         ),
         const SizedBox(height: 10),

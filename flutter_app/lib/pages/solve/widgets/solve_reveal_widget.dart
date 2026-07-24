@@ -114,7 +114,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryLight.withValues(alpha: 0.2),
+              color: AppColors.primaryContainer.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
             ),
@@ -124,7 +124,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text('正确答案',
@@ -147,7 +147,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),

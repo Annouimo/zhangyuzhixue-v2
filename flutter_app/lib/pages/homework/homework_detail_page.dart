@@ -259,7 +259,7 @@ class _QuestionTile extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: isDone ? AppColors.success : AppColors.primaryLight,
+                  color: isDone ? AppColors.success : AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(

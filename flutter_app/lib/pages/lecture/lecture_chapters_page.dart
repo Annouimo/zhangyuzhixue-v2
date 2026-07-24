@@ -126,7 +126,7 @@ class _ChapterCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(

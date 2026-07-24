@@ -119,7 +119,7 @@ class _CourseCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(

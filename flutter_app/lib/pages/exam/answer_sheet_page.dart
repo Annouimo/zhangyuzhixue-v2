@@ -116,7 +116,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
           Container(
             width: 32, height: 32,
             decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
+              color: AppColors.primaryContainer,
               shape: BoxShape.circle,
             ),
             child: Center(

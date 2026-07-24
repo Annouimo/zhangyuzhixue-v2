@@ -191,7 +191,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
       label: Text(ref.title, style: const TextStyle(fontSize: 13)),
       onPressed: () => _showKnowledgeCard(context, ref.title, ref.content),
-      backgroundColor: AppColors.primaryLight,
+      backgroundColor: AppColors.primaryContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
