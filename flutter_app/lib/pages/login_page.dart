@@ -44,14 +44,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _authRepo = widget.authRepository ?? AuthRepository(AuthApi(ApiClient()));
   }
 
   @override
   void dispose() {
-      final colors = context.colors;
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -141,7 +139,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<bool> _checkPreferences() async {
-      final colors = context.colors;
     try {
       _prefRepo ??= widget.preferenceRepository ?? PreferenceRepository(
         PreferenceDao(DatabaseProvider()),
@@ -157,7 +154,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String _extractErrorMessage(Object e) {
-      final colors = context.colors;
     // 优先从服务端响应体提取真实错误描述
     if (e is DioException && e.response?.data is Map) {
       final serverMsg = (e.response!.data as Map)["message"];
