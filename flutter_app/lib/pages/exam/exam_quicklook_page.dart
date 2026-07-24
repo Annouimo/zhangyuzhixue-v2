@@ -26,6 +26,7 @@ class ExamQuicklookPage extends StatefulWidget {
 
 class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   late final ExamRepository _repo;
+  final PopBackGuard _popGuard = PopBackGuard();
   ExamPreview? _preview;
   bool _loading = true; String? _error;
   final DateTime _entryTime = DateTime.now();
@@ -54,8 +55,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
-        if (context.mounted) context.pop();
+        if (await _popGuard.consume(context, 'exam_quicklook')) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(

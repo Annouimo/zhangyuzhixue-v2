@@ -52,6 +52,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   // 作答次数
   List<SolveAttempt> _attempts = [];
+  final PopBackGuard _popGuard = PopBackGuard();
   SolveAttempt? _currentAttempt;
 
   DateTime? _entryTime;
@@ -340,10 +341,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (_entryTime == null) return;
-        await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
-        _entryTime = null;
-        if (context.mounted) context.pop();
+        if (await _popGuard.consume(context, 'solve_fill')) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),

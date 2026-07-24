@@ -33,6 +33,7 @@ class LectureContentPage extends StatefulWidget {
 
 class _LectureContentPageState extends State<LectureContentPage> {
   late final LectureRepository _repo;
+  final PopBackGuard _popGuard = PopBackGuard();
   final DateTime _entryTime = DateTime.now();
   LectureContent? _content;
   LectureContentParsed? _parsed;
@@ -125,8 +126,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
-        if (context.mounted) context.pop();
+        if (await _popGuard.consume(context, 'lecture_content')) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(

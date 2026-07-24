@@ -50,6 +50,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   int _coolDownSec = 5;
   String? _error;
   late final progress.ProgressRepository _repo;
+  final PopBackGuard _popGuard = PopBackGuard();
   DateTime? _entryTime;
 
   // 题目信息
@@ -185,7 +186,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
           ),
         );
         await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted) RouterUtils.goBack(context);
+        if (mounted) context.pop();
       }
     }
   }
@@ -225,10 +226,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (_entryTime == null) return;
-        await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
-        _entryTime = null;
-        if (context.mounted) context.pop();
+        if (await _popGuard.consume(context, 'solve_step')) context.pop();
       },
       child: Scaffold(
       appBar: AppBar(title: const Text('步骤详情')),
@@ -288,7 +286,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       Row(
                         children: [
                           TextButton.icon(
-                            onPressed: () => RouterUtils.goBack(context),
+                            onPressed: () => context.pop(),
                             icon: const Icon(Icons.arrow_back, size: 16),
                             label: const Text('解题地图',
                               style: TextStyle(fontSize: 13),

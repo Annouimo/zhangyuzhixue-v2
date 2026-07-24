@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/exit_rating_popup.dart';
 import '../data/prefs/app_prefs.dart';
 import 'main_shell.dart';
 import 'login_page.dart';
@@ -191,7 +192,7 @@ void safePop(BuildContext context) {
   }
 }
 
-/// 路由工具：统一节流 push + 安全返回
+/// 路由工具：统一节流 push
 class RouterUtils {
   /// 节流 push（600ms 防抖）
   static Future<T?> push<T>(BuildContext context, String location,
@@ -200,26 +201,34 @@ class RouterUtils {
     return context.push<T>(location, extra: extra);
   }
 
-  // TODO(技术债务): 当前 GoRouter 版本为 17.x，因 router.pop() 存在级联移除父路由的缺陷，
-  // 此处使用 router.replace() 替换栈顶路由来替代 pop。
-  // replace 只替换当前页，保留下层栈（与 go 不同），因此能保持返回按钮。
-  // 若未来升级至 GoRouter 18.x 且官方修复该问题，需评估是否可以切换回原生 router.pop()。
-  /// 动态获取上一级路由并使用 context.replace() 返回，禁止调用 router.pop()
-  static void goBack(BuildContext context) {
-    final matches = GoRouter.of(context)
-        .routerDelegate
-        .currentConfiguration
-        .matches;
-    if (matches.length >= 2) {
-      final previousLocation = matches[matches.length - 2].matchedLocation;
-      context.replace(previousLocation);
-    } else {
-      context.replace('/');
-    }
-  }
-
   /// 安全 pop（仅适用于非 PopScope 页面）
   static void pop(BuildContext context) => safePop(context);
+}
+
+/// PopScope 守卫：防止 GoRouter 17.x 中 PopScope 二次进入导致的级联弹出
+///
+/// 用法：
+/// ```dart
+/// final PopBackGuard _popGuard = PopBackGuard();
+/// // ...
+/// onPopInvokedWithResult: (didPop, _) async {
+///   if (await _popGuard.consume(context, 'page_name')) context.pop();
+/// },
+/// ```
+/// consume() 在第一次调用时执行 showExitRatingIfNeeded 并返回 true；
+/// 若 PopScope 二次触发（GoRouter 17.x bug），consume 直接返回 false，阻止级联。
+class PopBackGuard {
+  DateTime? _guard = DateTime.now();
+
+  /// 消耗守卫并执行退出评分弹窗
+  /// 返回 true 表示可以继续执行 context.pop()
+  Future<bool> consume(BuildContext context, String pageName) async {
+    if (_guard == null) return false;
+    final time = _guard!;
+    _guard = null;
+    await showExitRatingIfNeeded(context, pageName, time);
+    return context.mounted;
+  }
 }
 
 /// 路由切换日志
