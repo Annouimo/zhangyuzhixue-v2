@@ -83,7 +83,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
             return PaperCard(
               title: e.name,
               subtitle: e.authorInfo.isNotEmpty ? e.authorInfo : e.summary,
-              onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+              onTap: () => RouterUtils.push(context,'${AppRoutes.examQuicklookOther}?id=${e.id}'),
               actions: [
                 ActionChipWidget(icon: Icons.favorite, iconColor: context.colors.primary, label: '点赞', onTap: () => _toggleLike(e.id)),
                 SizedBox(width: 8),
@@ -92,7 +92,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                 Spacer(),
                 TextButton(
-                  onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+                  onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklookOther}?id=${e.id}'),
                   child: Text('查看试卷', style: TextStyle(fontSize: 12)),
                 ),
               ],

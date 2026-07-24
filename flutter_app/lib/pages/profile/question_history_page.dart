@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
@@ -75,7 +74,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
                     _ => AppRoutes.solveMap,
                   };
                   final mode = h.isCompleted ? 'review' : 'resume';
-                  context.push(
+                  RouterUtils.push(context,
                     '$route?id=${h.questionId}'
                     '&mode=$mode'
                     '&attemptId=${h.id}',

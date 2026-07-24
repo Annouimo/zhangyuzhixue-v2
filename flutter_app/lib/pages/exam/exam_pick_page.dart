@@ -229,7 +229,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: '查看',
-              onPressed: () => context.push('${AppRoutes.examQuicklook}?id=$paperId'),
+              onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=$paperId'),
             ),
           ),
         );

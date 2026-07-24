@@ -198,7 +198,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('组卷成功！'), behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(label: '查看', onPressed: () => context.push('${AppRoutes.examQuicklook}?id=$paperId')),
+            action: SnackBarAction(label: '查看', onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=$paperId')),
           ),
         );
       }

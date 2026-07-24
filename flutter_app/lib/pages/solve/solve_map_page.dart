@@ -438,7 +438,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             m.steps.take(si).every((ps) => !_completedSteps.contains('${sq.index}_${mi}_${ps.stepNumber}'));
                         return InkWell(
                           onTap: stepLocked ? null : () async {
-                            await context.push(_buildStepRoute(subQIdx, mi, si));
+                            await RouterUtils.push(context,_buildStepRoute(subQIdx, mi, si));
                             _load();
                           },
                           child: Padding(
@@ -491,7 +491,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             label: Text('重新作答'))),
           SizedBox(width: 12),
           Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.push('${AppRoutes.solveRate}?id=${widget.questionId}'),
+            onPressed: () => RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}'),
             icon: Icon(Icons.star, size: 16),
             label: Text('评分'))),
         ]),

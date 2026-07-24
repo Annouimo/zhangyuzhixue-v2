@@ -243,7 +243,7 @@ void _showPendingSyncBanner(int count) {
         label: '查看',
         onPressed: () {
           ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          GoRouter.of(ctx).go('/sync/queue');
+          GoRouter.of(ctx).push('/sync/queue');
         },
       ),
     ),

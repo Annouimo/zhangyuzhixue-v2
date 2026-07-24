@@ -336,7 +336,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
-        if (context.mounted) context.pop();
+        if (context.mounted) safePop(context);
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
@@ -359,7 +359,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                       }
                     : null,
                 onRate: () async {
-                  await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
+                  await RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}');
                 },
                 child: _buildContent(),
               ),

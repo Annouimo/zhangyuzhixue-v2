@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(color: colors.textSecondary),
                         ),
                         TextButton(
-                          onPressed: () => context.push(AppRoutes.register),
+                          onPressed: () => RouterUtils.push(context,AppRoutes.register),
                           child: const Text('使用邀请码注册'),
                         ),
                       ],

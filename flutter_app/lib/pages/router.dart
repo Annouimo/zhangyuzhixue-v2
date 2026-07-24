@@ -166,6 +166,44 @@ String getInitialRoute() {
   return (token != null && token.isNotEmpty) ? AppRoutes.mainShell : AppRoutes.login;
 }
 
+/// 导航节流：600ms 内重复 push 被丢弃
+class NavigationThrottle {
+  static DateTime _lastPush = DateTime(2000);
+  static const Duration minInterval = Duration(milliseconds: 600);
+
+  static bool shouldAllow() {
+    final now = DateTime.now();
+    if (now.difference(_lastPush) < minInterval) return false;
+    _lastPush = now;
+    return true;
+  }
+
+  static void reset() => _lastPush = DateTime(2000);
+}
+
+/// 安全返回：有栈则 pop，无栈则回首页
+Future<void> safePop(BuildContext context) async {
+  final router = GoRouter.of(context);
+  if (router.canPop()) {
+    router.pop();
+  } else {
+    router.go(AppRoutes.mainShell);
+  }
+}
+
+/// 路由工具：统一节流 push + 安全 pop
+class RouterUtils {
+  /// 节流 push（600ms 防抖），所有 push 入口都应通过此函数
+  static Future<T?> push<T>(BuildContext context, String location,
+      {Object? extra}) async {
+    if (!NavigationThrottle.shouldAllow()) return null;
+    return context.push<T>(location, extra: extra);
+  }
+
+  /// 安全返回
+  static Future<void> pop(BuildContext context) => safePop(context);
+}
+
 /// 路由切换日志
 class _RouteLogger extends NavigatorObserver {
   @override
@@ -173,6 +211,22 @@ class _RouteLogger extends NavigatorObserver {
     OperationLog.instance.navigation(
       route.settings.name ?? route.settings.toString(),
       'push',
+    );
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    OperationLog.instance.navigation(
+      route.settings.name ?? route.settings.toString(),
+      'pop',
+    );
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    OperationLog.instance.navigation(
+      route.settings.name ?? route.settings.toString(),
+      'remove',
     );
   }
 }

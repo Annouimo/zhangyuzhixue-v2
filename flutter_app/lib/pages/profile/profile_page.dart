@@ -269,7 +269,7 @@ class ProfilePageState extends State<ProfilePage> {
       margin: EdgeInsets.zero,
       child: InkWell(
         onTap: () async {
-          await context.push(AppRoutes.profileEdit);
+          await RouterUtils.push(context,AppRoutes.profileEdit);
           if (mounted) _load();
         },
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -360,18 +360,18 @@ class ProfilePageState extends State<ProfilePage> {
     final sections = [
       ('学习', [
         (Icons.tune, '学习偏好', prefSubtitle,
-          () => context.push(AppRoutes.profilePreferences)),
-        (Icons.bar_chart, '学习统计', statsSubtitle, () => context.push(AppRoutes.statistics)),
-        (Icons.replay, '做题历史', historySubtitle, () => context.push(AppRoutes.profileHistory)),
+          () => RouterUtils.push(context,AppRoutes.profilePreferences)),
+        (Icons.bar_chart, '学习统计', statsSubtitle, () => RouterUtils.push(context,AppRoutes.statistics)),
+        (Icons.replay, '做题历史', historySubtitle, () => RouterUtils.push(context,AppRoutes.profileHistory)),
       ]),
       ('成长', [
-        (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => context.push(AppRoutes.profileAchievements)),
-        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${formatAmount(_availablePoints!)}' : null, () => context.push(AppRoutes.profileLevel)),
-        (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => context.push(AppRoutes.profilePoints)),
+        (Icons.emoji_events_outlined, '成就', achieveSubtitle, () => RouterUtils.push(context,AppRoutes.profileAchievements)),
+        (Icons.trending_up, '等级', _currentLevel != null && _availablePoints != null ? 'Lv.$_currentLevel · 可用积分 ${formatAmount(_availablePoints!)}' : null, () => RouterUtils.push(context,AppRoutes.profileLevel)),
+        (Icons.monetization_on_outlined, '积分流水', pointsSubtitle, () => RouterUtils.push(context,AppRoutes.profilePoints)),
       ]),
       ('系统', [
-        (Icons.sync, '同步状态', _buildSyncSubtitle(), () => context.push(AppRoutes.syncQueue)),
-        (Icons.info_outline, '关于', null, () => context.push(AppRoutes.profileAbout)),
+        (Icons.sync, '同步状态', _buildSyncSubtitle(), () => RouterUtils.push(context,AppRoutes.syncQueue)),
+        (Icons.info_outline, '关于', null, () => RouterUtils.push(context,AppRoutes.profileAbout)),
         (Icons.logout, '退出登录', null, _logout),
       ]),
     ];

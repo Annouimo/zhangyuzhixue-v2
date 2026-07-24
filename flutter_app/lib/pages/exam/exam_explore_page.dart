@@ -144,7 +144,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   return PaperCard(
                     title: e.name,
                     subtitle: e.summary.isNotEmpty ? e.summary : '${e.likeCount} 赞 · ${e.collectCount} 收藏',
-                    onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+                    onTap: () => RouterUtils.push(context,'${AppRoutes.examQuicklookOther}?id=${e.id}'),
                     actions: [
                       ActionChipWidget(
                         icon: e.isLiked ? Icons.favorite : Icons.favorite_border,
@@ -166,7 +166,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                       ),
                       Spacer(),
                       TextButton(
-                        onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
+                        onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklookOther}?id=${e.id}'),
                         child: Text('查看试卷', style: TextStyle(fontSize: 12)),
                       ),
                     ],

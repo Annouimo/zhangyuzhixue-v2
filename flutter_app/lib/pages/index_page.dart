@@ -392,7 +392,7 @@ class IndexPageState extends State<IndexPage> {
   Widget _buildPendingHomework() {
       final colors = context.colors;
     return InkWell(
-      onTap: () => context.push(AppRoutes.homeworkList),
+      onTap: () => RouterUtils.push(context,AppRoutes.homeworkList),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
@@ -429,7 +429,7 @@ class IndexPageState extends State<IndexPage> {
   Widget _buildLectureEntry() {
       final colors = context.colors;
     return InkWell(
-      onTap: () => context.push(AppRoutes.lectureCourses),
+      onTap: () => RouterUtils.push(context,AppRoutes.lectureCourses),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: double.infinity,
@@ -607,7 +607,7 @@ class IndexPageState extends State<IndexPage> {
     } else if (_syncPendingCount > 0) {
       icon = Icons.sync_problem;
       text = '$_syncPendingCount 条数据待同步';
-      onTap = () => context.push(AppRoutes.syncQueue);
+      onTap = () => RouterUtils.push(context,AppRoutes.syncQueue);
     } else {
       icon = Icons.cloud_done;
       text = '全部已同步';

@@ -124,7 +124,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
             totalCount: a.totalCount,
             deadlineDays: a.deadlineDays,
             status: a.status,
-            onTap: () => context.push('${AppRoutes.homeworkDetail}?id=${a.id}'),
+            onTap: () => RouterUtils.push(context,'${AppRoutes.homeworkDetail}?id=${a.id}'),
           );
         },
       ),

@@ -5,6 +5,7 @@ import '../data/database/database_provider.dart';
 import '../domain/sync_repository.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
+import 'router.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
@@ -84,6 +85,11 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text('同步状态'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: '返回',
+        onPressed: () => safePop(context),
+      ),
       actions: [
         if (_items != null && _items!.any((i) => i.status == 'pending' || i.status == 'failed'))
           IconButton(

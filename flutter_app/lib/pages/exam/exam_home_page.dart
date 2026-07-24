@@ -35,7 +35,7 @@ class ExamHomePage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => context.push(AppRoutes.examAuto),
+                      onPressed: () => RouterUtils.push(context,AppRoutes.examAuto),
                       icon: const Icon(Icons.smart_toy),
                       label: Text('智能组卷 · 消耗 $_autoPaperCost 积分'),
                     ),
@@ -44,7 +44,7 @@ class ExamHomePage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => context.push(AppRoutes.examPick),
+                      onPressed: () => RouterUtils.push(context,AppRoutes.examPick),
                       icon: const Icon(Icons.touch_app),
                       label: Text('自主选题 · 消耗 $_pickPaperCost 积分'),
                     ),
@@ -59,21 +59,21 @@ class ExamHomePage extends StatelessWidget {
             icon: Icons.assignment,
             title: '我的组卷',
             subtitle: '管理我创建的试卷',
-            onTap: () => context.push(AppRoutes.examHistory),
+            onTap: () => RouterUtils.push(context,AppRoutes.examHistory),
           ),
           // 发现组卷
           _EntryItem(
             icon: Icons.language,
             title: '发现组卷',
             subtitle: '浏览他人分享的公开试卷',
-            onTap: () => context.push(AppRoutes.examExplore),
+            onTap: () => RouterUtils.push(context,AppRoutes.examExplore),
           ),
           // 我的收藏
           _EntryItem(
             icon: Icons.bookmark,
             title: '我的收藏',
             subtitle: '收藏的他人试卷',
-            onTap: () => context.push(AppRoutes.examFavorites),
+            onTap: () => RouterUtils.push(context,AppRoutes.examFavorites),
           ),
         ],
       ),

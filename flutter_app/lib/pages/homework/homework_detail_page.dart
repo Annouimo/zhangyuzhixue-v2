@@ -203,7 +203,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                   final nextId = (currentIdx >= 0 && currentIdx + 1 < d.questions.length)
                       ? d.questions[currentIdx + 1].id
                       : null;
-                  await context.push(
+                  await RouterUtils.push(context,
                     '$route?id=${q.id}'
                     '${mode != 'first' ? '&mode=$mode' : ''}'
                     '${attemptId != null ? '&attemptId=$attemptId' : ''}'

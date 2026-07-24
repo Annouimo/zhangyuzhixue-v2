@@ -97,7 +97,7 @@ class SolveRouteHelper {
     }
     final page = pageName(questionType);
     if (!context.mounted) return;
-    context.push('$page?id=$questionId'
+    RouterUtils.push(context,'$page?id=$questionId'
         '${mode != 'first' ? '&mode=$mode' : ''}'
         '${attemptId != null ? '&attemptId=$attemptId' : ''}');
   }

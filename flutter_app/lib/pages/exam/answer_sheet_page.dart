@@ -9,6 +9,7 @@ import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../pages/router.dart';
 
 /// 快对答案
 class AnswerSheetPage extends StatefulWidget {
@@ -151,7 +152,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => safePop(context),
         child: Text('← 返回试卷预览'),
       ),
     );

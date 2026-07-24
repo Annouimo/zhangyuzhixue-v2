@@ -55,14 +55,14 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
-        if (context.mounted) context.pop();
+        if (context.mounted) safePop(context);
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(_preview?.name ?? '预览'),
           actions: [
             IconButton(icon: const Icon(Icons.assignment), tooltip: '快对答案',
-              onPressed: () => context.push('${AppRoutes.answerSheet}?id=${widget.examId}')),
+              onPressed: () => RouterUtils.push(context,'${AppRoutes.answerSheet}?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
               onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
             IconButton(
@@ -73,7 +73,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
               onPressed: () async {
                 await _repo.deleteExam(widget.examId);
-                if (context.mounted) { context.pop(); }
+                if (context.mounted) { safePop(context); }
               }),
           ],
         ),

@@ -124,7 +124,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                         children: [
                           OutlinedButton(
                             onPressed: () async {
-                              await context.push('${AppRoutes.preferenceEdit}?id=${p.id}');
+                              await RouterUtils.push(context,'${AppRoutes.preferenceEdit}?id=${p.id}');
                               _loadKey.currentState?.refresh();
                             },
                             style: OutlinedButton.styleFrom(
@@ -153,7 +153,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          await context.push(AppRoutes.preferenceEdit);
+          await RouterUtils.push(context,AppRoutes.preferenceEdit);
           _loadKey.currentState?.refresh();
         },
         icon: Icon(Icons.add),

@@ -9,6 +9,7 @@ import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../router.dart';
 
 /// 讲义课程列表页（讲义 Tab 首页）
 class LectureCoursesPage extends StatefulWidget {
@@ -85,7 +86,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
           return _CourseCard(
             name: course.name,
             chapterCount: course.chapterCount,
-            onTap: () => context.push(
+            onTap: () => RouterUtils.push(context,
               '/lecture/chapters?courseId=${course.id}',
             ),
           );

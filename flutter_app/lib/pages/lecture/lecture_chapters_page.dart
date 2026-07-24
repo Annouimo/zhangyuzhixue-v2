@@ -9,6 +9,7 @@ import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../router.dart';
 
 /// 章节目录页
 class LectureChaptersPage extends StatefulWidget {
@@ -92,7 +93,7 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
           return _ChapterCard(
             title: chapter.title,
             index: index + 1,
-            onTap: () => context.push(
+            onTap: () => RouterUtils.push(context,
               '/lecture/content?chapterId=${chapter.id}&page=1',
             ),
           );

@@ -195,7 +195,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_choice', _entryTime!);
-        if (context.mounted) context.pop();
+        if (context.mounted) safePop(context);
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
@@ -217,7 +217,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                       }
                     : null,
                 onRate: () async {
-                  await context.push('${AppRoutes.solveRate}?id=${widget.questionId}');
+                  await RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}');
                   _load();
                 },
                 child: _buildContent(),

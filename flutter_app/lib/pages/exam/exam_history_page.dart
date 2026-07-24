@@ -84,7 +84,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
             return PaperCard(
               title: e.name,
               subtitle: '创建于 ${_formatTime(e.createdAt)}',
-              onTap: () => context.push('${AppRoutes.examQuicklook}?id=${e.id}'),
+              onTap: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=${e.id}'),
               actions: [
                 IconButton(
                   icon: Icon(e.isPublic ? Icons.public : Icons.lock, size: 18),
@@ -101,7 +101,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 ),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                 SizedBox(width: 4),
-                ActionChipWidget(icon: Icons.check_circle, iconColor: context.colors.success, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
+                ActionChipWidget(icon: Icons.check_circle, iconColor: context.colors.success, label: '答案', onTap: () => RouterUtils.push(context,'${AppRoutes.answerSheet}?id=${e.id}')),
                 SizedBox(width: 4),
                 ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
               ],
