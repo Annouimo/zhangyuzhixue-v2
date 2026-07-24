@@ -176,12 +176,28 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showError(String message) {
-      final colors = context.colors;
+    final colors = context.colors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showContactDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('忘记密码'),
+        content: const Text('请联系微信管理员重置密码：\n\n微信：zhangyubb101\n（备注「章鱼智学」）'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('知道了'),
+          ),
+        ],
       ),
     );
   }
@@ -276,7 +292,15 @@ class _LoginPageState extends State<LoginPage> {
                       validator: (v) =>
                           (v == null || v.isEmpty) ? '请输入密码' : null,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => _showContactDialog(),
+                      child: Text(
+                        '忘记密码？联系微信管理员',
+                        style: TextStyle(fontSize: 12, color: context.colors.textMuted),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
                     // 登录按钮
                     ElevatedButton(
