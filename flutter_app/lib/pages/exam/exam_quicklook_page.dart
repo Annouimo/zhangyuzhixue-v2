@@ -55,7 +55,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
-        if (context.mounted) RouterUtils.goBack(context);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(

@@ -228,7 +228,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
         _entryTime = null;
-        if (context.mounted) RouterUtils.goBack(context);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
       appBar: AppBar(title: const Text('步骤详情')),

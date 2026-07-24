@@ -202,7 +202,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_choice', _entryTime!);
         _entryTime = null;
-        if (context.mounted) RouterUtils.goBack(context);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),

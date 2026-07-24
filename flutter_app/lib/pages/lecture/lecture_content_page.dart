@@ -126,7 +126,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
-        if (context.mounted) RouterUtils.goBack(context);
+        if (context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(
