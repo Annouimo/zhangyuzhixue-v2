@@ -191,16 +191,37 @@ void safePop(BuildContext context) {
   }
 }
 
-/// 路由工具：统一节流 push + 安全 pop
+/// 路由工具：统一节流 push + 安全返回
 class RouterUtils {
-  /// 节流 push（600ms 防抖），所有 push 入口都应通过此函数
+  /// 节流 push（600ms 防抖），自动附加 &from= 参数记录来源页面
   static Future<T?> push<T>(BuildContext context, String location,
       {Object? extra}) async {
     if (!NavigationThrottle.shouldAllow()) return null;
+    // 自动追加 from 参数，标记当前页面路径（供 goBack 使用）
+    location = _withFromParam(context, location);
     return context.push<T>(location, extra: extra);
   }
 
-  /// 安全返回
+  /// 给 URL 添加 from 参数（仅 PopScope 页面需要，首页/登录页不追加）
+  static String _withFromParam(BuildContext context, String location) {
+    final currentPath = GoRouterState.of(context).uri.toString();
+    if (currentPath.isEmpty || currentPath == '/') return location;
+    final separator = location.contains('?') ? '&' : '?';
+    return '$location${separator}from=${Uri.encodeComponent(currentPath)}';
+  }
+
+  /// 显式返回上一页（基于 from 参数），替代 router.pop() 以规避 GoRouter 17.x bug
+  static void goBack(BuildContext context) {
+    final state = GoRouterState.of(context);
+    final from = state.uri.queryParameters['from'];
+    if (from != null && from.isNotEmpty) {
+      GoRouter.of(context).go(from);
+    } else {
+      GoRouter.of(context).go(AppRoutes.mainShell);
+    }
+  }
+
+  /// 安全 pop（仅适用于非 PopScope 页面）
   static void pop(BuildContext context) => safePop(context);
 }
 

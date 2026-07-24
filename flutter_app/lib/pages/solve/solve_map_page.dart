@@ -491,7 +491,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         SizedBox(height: 8),
         Row(children: [
           Expanded(child: OutlinedButton.icon(
-            onPressed: () => safePop(context),
+            onPressed: () => RouterUtils.goBack(context),
             icon: Icon(Icons.arrow_back, size: 16),
             label: Text('返回'))),
           SizedBox(width: 12),

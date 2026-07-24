@@ -126,7 +126,10 @@ class _LectureContentPageState extends State<LectureContentPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
-        if (context.mounted) safePop(context);
+        if (!context.mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) safePop(context);
+        });
       },
       child: Scaffold(
         appBar: AppBar(

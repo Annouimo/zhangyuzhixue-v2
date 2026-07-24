@@ -185,7 +185,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
           ),
         );
         await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted) safePop(context);
+        if (mounted) RouterUtils.goBack(context);
       }
     }
   }
@@ -227,7 +227,11 @@ class _SolveStepPageState extends State<SolveStepPage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
-        if (context.mounted) safePop(context);
+        _entryTime = null;
+        if (!context.mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) safePop(context);
+        });
       },
       child: Scaffold(
       appBar: AppBar(title: const Text('步骤详情')),
@@ -287,7 +291,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       Row(
                         children: [
                           TextButton.icon(
-                            onPressed: () => safePop(context),
+                            onPressed: () => RouterUtils.goBack(context),
                             icon: const Icon(Icons.arrow_back, size: 16),
                             label: const Text('解题地图',
                               style: TextStyle(fontSize: 13),

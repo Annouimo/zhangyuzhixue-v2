@@ -201,7 +201,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_choice', _entryTime!);
-        if (context.mounted) safePop(context);
+        _entryTime = null;
+        if (!context.mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) safePop(context);
+        });
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
