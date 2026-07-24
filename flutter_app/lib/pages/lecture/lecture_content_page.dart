@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../../widgets/exit_rating_popup.dart';
 import '../../data/daos/lecture_dao.dart';
@@ -125,7 +126,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'lecture_content', _entryTime);
-        if (context.mounted) context.pop();
+        if (context.mounted) safePop(context);
       },
       child: Scaffold(
         appBar: AppBar(

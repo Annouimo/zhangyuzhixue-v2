@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import '../../widgets/exit_rating_popup.dart';
 import 'package:shared/widgets/md_latex_body.dart';
@@ -184,7 +185,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
           ),
         );
         await Future.delayed(const Duration(milliseconds: 800));
-        if (mounted) context.pop();
+        if (mounted) safePop(context);
       }
     }
   }
@@ -226,7 +227,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       onPopInvokedWithResult: (didPop, _) async {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_step', _entryTime!);
-        if (context.mounted) context.pop();
+        if (context.mounted) safePop(context);
       },
       child: Scaffold(
       appBar: AppBar(title: const Text('步骤详情')),
@@ -286,7 +287,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       Row(
                         children: [
                           TextButton.icon(
-                            onPressed: () => context.pop(),
+                            onPressed: () => safePop(context),
                             icon: const Icon(Icons.arrow_back, size: 16),
                             label: const Text('解题地图',
                               style: TextStyle(fontSize: 13),
