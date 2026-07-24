@@ -35,12 +35,18 @@
         <div class="hero-visual" aria-label="软件界面展示">
           <div class="device device--desktop">
             <div class="device__screen">
-              <img src="assets/images/screenshot-hero-desktop.png" alt="章鱼智学桌面端界面" style="width:100%;height:100%;object-fit:cover">
+              <picture>
+                <source srcset="assets/images/screenshot-desktop-dark.png" media="(prefers-color-scheme: dark)">
+                <img src="assets/images/screenshot-desktop-light.png" alt="章鱼智学桌面端界面" style="width:100%;height:100%;object-fit:cover">
+              </picture>
             </div>
           </div>
           <div class="device device--mobile">
             <div class="device__screen">
-              <img src="assets/images/screenshot-hero-mobile.png" alt="章鱼智学手机端界面" style="width:100%;height:100%;object-fit:cover">
+              <picture>
+                <source srcset="assets/images/screenshot-mobile-dark.png" media="(prefers-color-scheme: dark)">
+                <img src="assets/images/screenshot-mobile-light.png" alt="章鱼智学手机端界面" style="width:100%;height:100%;object-fit:cover">
+              </picture>
             </div>
           </div>
         </div>

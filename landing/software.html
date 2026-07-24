@@ -113,8 +113,14 @@
           <h2>软件界面展示</h2>
         </div>
         <div class="screenshot-grid">
-          <img src="assets/images/screenshot-software-1.png" alt="章鱼智学桌面端界面" style="width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)">
-          <img src="assets/images/screenshot-software-2.png" alt="章鱼智学手机端界面" style="width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)">
+          <picture>
+            <source srcset="assets/images/screenshot-desktop-dark.png" media="(prefers-color-scheme: dark)">
+            <img src="assets/images/screenshot-desktop-light.png" alt="章鱼智学桌面端界面" style="width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)">
+          </picture>
+          <picture>
+            <source srcset="assets/images/screenshot-mobile-dark.png" media="(prefers-color-scheme: dark)">
+            <img src="assets/images/screenshot-mobile-light.png" alt="章鱼智学手机端界面" style="width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)">
+          </picture>
         </div>
       </div>
     </section>
