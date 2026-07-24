@@ -1138,12 +1138,19 @@ h4 {
   gap: 9px;
 }
 
-.footer-links a {
+.footer-links a,
+.footer-links button {
   color: rgba(255,255,255,.7);
   font-size: 14px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-weight: inherit;
+  text-align: left;
 }
-
-.footer-links a:hover {
+.footer-links a:hover,
+.footer-links button:hover {
   color: #fff;
 }
 
