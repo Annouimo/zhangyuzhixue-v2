@@ -233,13 +233,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: context.colors.border),
                     borderRadius: BorderRadius.circular(4),
-                    color: AppColors.background,
+                    color: context.colors.surface,
                   ),
                   child: Text(
                     _info?.realName ?? '—',
-                    style: const TextStyle(fontSize: 15, color: AppColors.textMuted),
+                    style: TextStyle(fontSize: 15, color: context.colors.textMuted),
                   ),
                 ),
                 hint: '提交后不可修改，如需更改请联系管理员',
@@ -253,7 +253,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: context.colors.surface,
                   ),
                 ),
               ),
@@ -266,7 +266,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     filled: true,
-                    fillColor: AppColors.background,
+                    fillColor: context.colors.surface,
                   ),
                 ),
                 hint: '提交后不可修改，如需更改请联系管理员',

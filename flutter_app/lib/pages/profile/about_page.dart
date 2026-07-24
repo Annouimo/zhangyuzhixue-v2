@@ -5,6 +5,8 @@ import 'package:shared/widgets/app_toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/prefs/app_prefs.dart';
+import '../../data/daos/sync_queue_dao.dart';
+import '../../data/database/database_provider.dart';
 import 'package:shared/constants/app_version.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
@@ -45,8 +47,31 @@ class _AboutPageState extends State<AboutPage> {
     _localUser = prefs.userVersion;
 
     final ts = prefs.lastSyncTime;
-    if (ts != null && mounted) {
-      setState(() => _lastSyncTime = '上次同步：$ts');
+    final pullDate = ts != null ? DateTime.tryParse(ts) : null;
+
+    // 取同步队列最新上传日期
+    DateTime? uploadDate;
+    try {
+      final dao = SyncQueueDao(DatabaseProvider());
+      uploadDate = await dao.getLatestUploadDate();
+    } catch (_) {}
+
+    // 取 pull 日期和 upload 日期中最新者
+    final dates = <DateTime>[
+      if (pullDate != null) pullDate,
+      if (uploadDate != null) uploadDate,
+    ];
+
+    if (mounted) {
+      if (dates.isNotEmpty) {
+        final latestDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+        setState(() {
+          final y = latestDate.year.toString();
+          final m = latestDate.month.toString().padLeft(2, '0');
+          final d = latestDate.day.toString().padLeft(2, '0');
+          _lastSyncTime = '上次同步：$y-$m-$d';
+        });
+      }
     }
 
     // 后台检查服务器版本

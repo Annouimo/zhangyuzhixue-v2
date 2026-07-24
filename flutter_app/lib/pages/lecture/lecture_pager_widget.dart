@@ -32,7 +32,7 @@ class LecturePagerWidget extends StatelessWidget {
       final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surface,
         border: Border(
           top: BorderSide(color: colors.border),
         ),

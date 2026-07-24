@@ -340,7 +340,7 @@ class FilterPanelState extends State<FilterPanel> {
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? colors.primaryContainer : Colors.white,
+                  color: isSelected ? colors.primaryContainer : colors.surface,
                   borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
                   border: isSelected
                       ? Border.all(color: Colors.transparent)
@@ -598,7 +598,7 @@ class FilterPanelState extends State<FilterPanel> {
         Wrap(
           spacing: 6, runSpacing: 4,
           children: options.map((o) => FilterChip(
-            label: Text(o, style: const TextStyle(fontSize: 12)),
+            label: Text(o, style: TextStyle(fontSize: 12, color: selected.contains(o) ? colors.primary : colors.textPrimary)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
             selectedColor: colors.primaryContainer,
@@ -626,7 +626,7 @@ class FilterPanelState extends State<FilterPanel> {
         Wrap(
           spacing: 6, runSpacing: 4,
           children: rawOptions.map((o) => FilterChip(
-            label: Text(QuestionTypeLabels.of(o), style: const TextStyle(fontSize: 12)),
+            label: Text(QuestionTypeLabels.of(o), style: TextStyle(fontSize: 12, color: selected.contains(o) ? colors.primary : colors.textPrimary)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
             selectedColor: colors.primaryContainer,

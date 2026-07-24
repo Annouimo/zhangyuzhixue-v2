@@ -122,6 +122,17 @@ class SyncQueueDao {
     return rows.isNotEmpty;
   }
 
+  /// 获取最新上传日期（最近完成的 sync 记录）
+  Future<DateTime?> getLatestUploadDate() async {
+    final rows = await (_db.select(_db.syncQueue)
+      ..where((t) => t.status.equals('done'))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])
+      ..limit(1)
+    ).get();
+    if (rows.isEmpty) return null;
+    return DateTime.tryParse(rows.first.createdAt);
+  }
+
   /// 重置所有 failed 项为 pending（重试计数归零）
   Future<void> resetFailed() async {
     final rows = await (_db.select(_db.syncQueue)

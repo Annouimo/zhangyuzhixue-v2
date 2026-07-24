@@ -116,7 +116,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         Container(
           width: double.infinity,
           padding: EdgeInsets.all(AppSizes.baseSpacing),
-          color: Colors.white,
+          color: colors.surface,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

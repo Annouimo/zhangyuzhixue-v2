@@ -39,7 +39,7 @@ class PaperCard extends StatelessWidget {
                   Container(
                     width: 40, height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
+                      color: context.colors.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.article_outlined, color: AppColors.primary, size: 20),
@@ -49,15 +49,15 @@ class PaperCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.colors.textPrimary),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 4),
-                        Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        Text(subtitle, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                       ],
                     ),
                   ),
                   if (trailingWidget != null) trailingWidget!
-                  else if (trailing != null) Text(trailing!, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  else if (trailing != null) Text(trailing!, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                   const SizedBox(width: 4),
                   const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
                 ],
