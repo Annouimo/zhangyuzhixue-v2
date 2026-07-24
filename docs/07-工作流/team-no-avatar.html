@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>团队介绍｜章鱼智学</title>
+  <meta name="description" content="章鱼智学项目团队介绍：联合创始人、专家顾问、课程团队、视觉设计与软件测试团队。">
+  <style>
+    :root{
+      --blue-950:#072a78;
+      --blue-900:#073a9b;
+      --blue-800:#0b50c7;
+      --blue-700:#116be5;
+      --cyan:#14b8cf;
+      --ink:#12213d;
+      --muted:#63708a;
+      --line:rgba(17,107,229,.14);
+      --soft:#f3f8ff;
+      --card:#fff;
+      --shadow:0 16px 45px rgba(22,76,151,.10);
+      --radius:22px;
+      --container:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      color:var(--ink);
+      background:#fff;
+      font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;
+      line-height:1.75;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    .container{width:min(calc(100% - 36px),var(--container));margin:0 auto}
+
+    .site-header{
+      position:sticky;
+      z-index:100;
+      top:0;
+      background:rgba(255,255,255,.88);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(16px);
+    }
+    .header-inner{
+      display:flex;
+      min-height:72px;
+      align-items:center;
+      justify-content:space-between;
+      gap:28px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      color:var(--blue-950);
+    }
+    .brand-mark{
+      display:grid;
+      width:42px;
+      height:42px;
+      color:white;
+      background:linear-gradient(145deg,var(--blue-700),var(--cyan));
+      border-radius:13px;
+      place-items:center;
+      box-shadow:0 8px 22px rgba(17,107,229,.22);
+      font-size:24px;
+    }
+    .brand small{
+      display:block;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:500;
+    }
+    nav{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    nav a{
+      padding:10px 13px;
+      color:#44526c;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:700;
+    }
+    nav a:hover,nav a.active{
+      color:var(--blue-800);
+      background:rgba(17,107,229,.07);
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:112px 0 88px;
+      background:
+        radial-gradient(circle at 15% 10%,rgba(20,184,207,.14),transparent 28%),
+        radial-gradient(circle at 85% 20%,rgba(17,107,229,.12),transparent 28%),
+        linear-gradient(180deg,#f8fcff,#edf7ff);
+    }
+    .hero:before{
+      position:absolute;
+      inset:0;
+      content:"";
+      opacity:.6;
+      background-image:
+        linear-gradient(rgba(17,107,229,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(17,107,229,.05) 1px,transparent 1px);
+      background-size:72px 72px;
+      mask-image:linear-gradient(#000,transparent 92%);
+    }
+    .math{
+      position:absolute;
+      color:rgba(17,107,229,.23);
+      font-family:Georgia,serif;
+      font-style:italic;
+      user-select:none;
+    }
+    .math.m1{left:5%;top:17%;font-size:34px}
+    .math.m2{right:6%;top:20%;font-size:30px}
+    .math.m3{right:10%;bottom:12%;font-size:25px}
+    .hero-inner{position:relative;z-index:2;max-width:900px}
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      margin:0 0 12px;
+      color:var(--blue-700);
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+    .eyebrow:before{
+      width:28px;height:3px;content:"";
+      background:linear-gradient(90deg,var(--blue-700),var(--cyan));
+      border-radius:99px;
+    }
+    h1,h2,h3,p{margin-top:0}
+    h1{
+      margin-bottom:18px;
+      color:var(--blue-950);
+      font-size:clamp(48px,6vw,76px);
+      line-height:1.12;
+      letter-spacing:-.04em;
+    }
+    h2{
+      margin-bottom:14px;
+      color:var(--blue-950);
+      font-size:clamp(32px,4vw,48px);
+      line-height:1.2;
+    }
+    h3{
+      margin-bottom:8px;
+      color:var(--blue-950);
+      font-size:25px;
+      line-height:1.3;
+    }
+    .lead{
+      max-width:780px;
+      color:#40506d;
+      font-size:20px;
+    }
+    .hero-note{
+      margin-top:28px;
+      padding:18px 20px;
+      color:#41506a;
+      background:rgba(255,255,255,.76);
+      border:1px solid var(--line);
+      border-left:4px solid var(--blue-700);
+      border-radius:16px;
+      box-shadow:0 10px 30px rgba(22,76,151,.07);
+    }
+
+    section{padding:88px 0}
+    section.soft{background:linear-gradient(180deg,#f7fbff,#f1f7ff)}
+    .section-head{
+      display:flex;
+      margin-bottom:32px;
+      align-items:end;
+      justify-content:space-between;
+      gap:24px;
+    }
+    .section-head p{max-width:700px;margin-bottom:0;color:var(--muted)}
+
+    .founder-grid,.team-grid{
+      display:grid;
+      gap:22px;
+    }
+    .founder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .team-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .team-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+    .person-card{
+      position:relative;
+      overflow:hidden;
+      height:100%;
+      padding:28px;
+      background:rgba(255,255,255,.96);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .person-card:before{
+      position:absolute;
+      height:5px;
+      content:"";
+      background:linear-gradient(90deg,var(--blue-700),var(--cyan));
+      inset:0 0 auto;
+    }
+    .person-top{
+      display:flex;
+      margin-bottom:20px;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:20px;
+    }
+    .role{
+      margin:0;
+      color:var(--blue-700);
+      font-size:14px;
+      font-weight:850;
+    }
+    .tag{
+      flex:0 0 auto;
+      padding:6px 11px;
+      color:#087385;
+      background:rgba(20,184,207,.09);
+      border:1px solid rgba(20,184,207,.18);
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+    }
+    .bio{
+      padding-left:1.15em;
+      margin:0;
+      color:#46536c;
+      font-size:15px;
+    }
+    .bio li+li{margin-top:8px}
+
+    .advisor-panel{
+      display:grid;
+      margin-bottom:26px;
+      padding:30px;
+      align-items:center;
+      gap:24px;
+      background:
+        radial-gradient(circle at 90% 10%,rgba(20,184,207,.17),transparent 30%),
+        linear-gradient(135deg,#eef7ff,#fff);
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      grid-template-columns:auto 1fr;
+    }
+    .advisor-icon{
+      display:grid;
+      width:82px;height:82px;
+      color:white;
+      background:linear-gradient(145deg,var(--blue-700),var(--cyan));
+      border-radius:24px;
+      place-items:center;
+      font-size:32px;
+      font-weight:900;
+    }
+    .advisor-panel p{margin:0;color:var(--muted)}
+
+    .support-grid{
+      display:grid;
+      gap:22px;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    .support-card{
+      padding:28px;
+      background:white;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .support-list{
+      display:grid;
+      gap:12px;
+      padding:0;
+      margin:16px 0 0;
+      list-style:none;
+    }
+    .support-list li{
+      display:flex;
+      padding:14px 16px;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      background:var(--soft);
+      border-radius:12px;
+    }
+    .support-list span:first-child{color:#516079}
+    .support-list strong{color:var(--blue-900)}
+
+    .cta{
+      padding:50px;
+      color:white;
+      background:
+        radial-gradient(circle at 88% 15%,rgba(56,209,223,.48),transparent 28%),
+        linear-gradient(135deg,var(--blue-900),var(--blue-700) 65%,var(--cyan));
+      border-radius:30px;
+      box-shadow:0 26px 68px rgba(7,58,155,.22);
+    }
+    .cta h2{color:white}
+    .cta p{color:rgba(255,255,255,.82)}
+    .contact-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-top:24px;
+    }
+    .contact-chip{
+      padding:11px 15px;
+      color:white;
+      background:rgba(255,255,255,.13);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      font-weight:750;
+    }
+
+    footer{
+      padding:34px 0;
+      color:rgba(255,255,255,.64);
+      background:#061c4b;
+    }
+    .footer-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      font-size:13px;
+    }
+
+    @media(max-width:900px){
+      nav{display:none}
+      .founder-grid,.team-grid,.team-grid.three,.support-grid{grid-template-columns:1fr}
+      .section-head{align-items:flex-start;flex-direction:column}
+      .advisor-panel{grid-template-columns:1fr;text-align:center}
+      .advisor-icon{margin:auto}
+    }
+    @media(max-width:620px){
+      section{padding:66px 0}
+      .hero{padding:84px 0 68px}
+      .person-card,.support-card{padding:23px}
+      .person-top{flex-direction:column}
+      .cta{padding:34px 24px}
+      .footer-inner{align-items:flex-start;flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">∞</span>
+        <span>章鱼智学<small>个性化高考数学智能学习系统</small></span>
+      </a>
+      <nav aria-label="页面导航">
+        <a href="#founders" class="active">联合创始人</a>
+        <a href="#advisors">顾问团队</a>
+        <a href="#courses">课程团队</a>
+        <a href="#support">项目支持</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="math m1">y = sin x</span>
+      <span class="math m2">f(x) = ax² + bx + c</span>
+      <span class="math m3">A → B → C</span>
+      <div class="container hero-inner">
+        <p class="eyebrow">章鱼智学项目团队</p>
+        <h1>不依赖头像，也能建立清晰、正式的团队形象</h1>
+        <p class="lead">通过姓名、职位、职责和代表性经历建立信息层级，避免使用长期占位头像带来的“模板感”。</p>
+        <div class="hero-note">项目课程纯面向高考数学，不提供数学竞赛课程。页面中的竞赛经历仅作为团队成员专业背景。</div>
+      </div>
+    </section>
+
+    <section id="founders">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">项目核心</p>
+            <h2>联合创始人</h2>
+          </div>
+          <p>联合创始人使用更大的双栏卡片，突出职责与项目贡献，不使用头像也能形成足够强的视觉层级。</p>
+        </div>
+
+        <div class="founder-grid">
+          <article class="person-card">
+            <div class="person-top">
+              <div>
+                <h3>张誉宝</h3>
+                <p class="role">联合创始人｜北京创新题负责人｜公益讲座讲师</p>
+              </div>
+              <span class="tag">课程研究</span>
+            </div>
+            <ul class="bio">
+              <li>高中阶段系统自学高考数学及大学数学。</li>
+              <li>数学竞赛省级二等奖。</li>
+              <li>曾在中学开展图论课程与数学专题讲座。</li>
+              <li>持续研究近 18 年北京高考创新题。</li>
+              <li>现为中科院实习生。</li>
+              <li>负责章鱼智学北京创新题研究与课程建设。</li>
+            </ul>
+          </article>
+
+          <article class="person-card">
+            <div class="person-top">
+              <div>
+                <h3>柯恩</h3>
+                <p class="role">联合创始人｜技术总监｜软件开发与运营负责人</p>
+              </div>
+              <span class="tag">技术与运营</span>
+            </div>
+            <ul class="bio">
+              <li>校内数学成绩长期稳定处于年级前列。</li>
+              <li>自学编程、人工智能及高等几何等课程。</li>
+              <li>负责章鱼智学软件开发、技术维护与运营。</li>
+              <li>参与公益讲座与学习方法分享。</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="soft" id="advisors">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">专业指导</p>
+            <h2>顾问团队</h2>
+          </div>
+        </div>
+
+        <div class="advisor-panel">
+          <div class="advisor-icon">专</div>
+          <div>
+            <h3>匿名专家顾问组</h3>
+            <p>项目获得数学与人工智能、数学与密码学、数据库工程等领域专家的专业指导。应顾问本人要求，相关身份不对外公开。</p>
+          </div>
+        </div>
+
+        <div class="team-grid">
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>徐天杨</h3><p class="role">数学顾问</p></div>
+              <span class="tag">数学指导</span>
+            </div>
+            <ul class="bio">
+              <li>某中学数学竞赛资深讲师。</li>
+              <li>数学竞赛金牌，保送北京大学。</li>
+              <li>为课程研究与数学内容建设提供专业指导。</li>
+            </ul>
+          </article>
+
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>牟思特</h3><p class="role">数学顾问</p></div>
+              <span class="tag">内容研究</span>
+            </div>
+            <ul class="bio">
+              <li>数学领域研究者及数学竞赛命题人。</li>
+              <li>高中阶段获得数学竞赛省级一等奖。</li>
+              <li>现于北京大学访问交流。</li>
+              <li>参与数学内容研究与课程指导。</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="courses">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">课程研发</p>
+            <h2>课程讲师与课程顾问</h2>
+          </div>
+          <p>四位成员采用等规格卡片，突出课程职责与相关背景，版面比头像墙更克制。</p>
+        </div>
+
+        <div class="team-grid">
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>张皓扬</h3><p class="role">课程讲师｜解析几何负责人</p></div>
+              <span class="tag">解析几何</span>
+            </div>
+            <ul class="bio">
+              <li>初中阶段自学微积分和大学物理。</li>
+              <li>高一获得物理竞赛省级二等奖。</li>
+              <li>通过强基计划进入北京大学。</li>
+              <li>负责解析几何课程建设。</li>
+            </ul>
+          </article>
+
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>史谨毓</h3><p class="role">课程讲师｜导数负责人</p></div>
+              <span class="tag">导数</span>
+            </div>
+            <ul class="bio">
+              <li>具备扎实的微积分基础。</li>
+              <li>高中阶段校内成绩长期位于年级前列。</li>
+              <li>录取北京航空航天大学。</li>
+              <li>负责导数课程建设。</li>
+            </ul>
+          </article>
+
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>杨昊东</h3><p class="role">课程顾问</p></div>
+              <span class="tag">内容审核</span>
+            </div>
+            <ul class="bio">
+              <li>数学竞赛省级二等奖。</li>
+              <li>高考成绩 686 分，录取北京大学。</li>
+              <li>参与课程内容审核与学习方法指导。</li>
+            </ul>
+          </article>
+
+          <article class="person-card">
+            <div class="person-top">
+              <div><h3>张梓桐</h3><p class="role">课程顾问</p></div>
+              <span class="tag">课程研究</span>
+            </div>
+            <ul class="bio">
+              <li>数学竞赛省级二等奖。</li>
+              <li>通过强基计划进入上海交通大学。</li>
+              <li>参与数学课程研究与内容审核。</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="soft" id="support">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">项目支持</p>
+            <h2>视觉设计与软件测试</h2>
+          </div>
+        </div>
+
+        <div class="support-grid">
+          <article class="support-card">
+            <h3>美术与视觉设计</h3>
+            <ul class="support-list">
+              <li><span>美术总监</span><strong>李心湉</strong></li>
+              <li><span>美术总助</span><strong>张佳雨</strong></li>
+              <li><span>美术顾问</span><strong>乔墨青</strong></li>
+            </ul>
+          </article>
+
+          <article class="support-card">
+            <h3>软件测试团队</h3>
+            <ul class="support-list">
+              <li><span>软件测试员</span><strong>吴雨霏</strong></li>
+              <li><span>软件测试员</span><strong>杨子轩</strong></li>
+              <li><span>软件测试员</span><strong>尹竹</strong></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="cta">
+          <p class="eyebrow" style="color:#bceef8">联系项目团队</p>
+          <h2>课程、试听与软件下载问题</h2>
+          <p>网站不收集信息，不提供在线报名或支付。详细情况请通过微信或电话了解。</p>
+          <div class="contact-row">
+            <span class="contact-chip">微信：章鱼宝宝</span>
+            <a class="contact-chip" href="tel:18500794866">电话：18500794866</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>© 2026 章鱼智学项目团队</span>
+      <span>专注高考数学，让学习更高效</span>
+    </div>
+  </footer>
+</body>
+</html>
