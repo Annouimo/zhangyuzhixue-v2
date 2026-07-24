@@ -173,6 +173,10 @@ class _AboutPageState extends State<AboutPage> {
           '© ${DateTime.now().year} 章鱼智学 · 北京',
           style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
         ),
+        Text(
+          '湘ICP备2026008095号-1',
+          style: TextStyle(fontSize: 11, color: context.colors.textSecondary),
+        ),
         SizedBox(height: 16),
         _buildExportLogButton(),
         SizedBox(height: 8),
