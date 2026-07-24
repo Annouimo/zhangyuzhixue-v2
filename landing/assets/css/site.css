@@ -262,7 +262,7 @@ h4 {
 }
 
 .button--primary {
-  color: #fff;
+  color: var(--color-text-inverse);
   background: var(--color-primary);
   box-shadow: 0 12px 26px rgba(10,89,205,.22);
 }
@@ -1746,6 +1746,61 @@ h4 {
   .platform-row {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ═══ 深色模式背景修复 ═══ */
+@media (prefers-color-scheme: dark) {
+  .hero {
+    background:
+      radial-gradient(circle at 12% 15%, rgba(20,184,207,.07), transparent 22%),
+      radial-gradient(circle at 85% 20%, rgba(92,174,255,.07), transparent 26%),
+      linear-gradient(180deg, #0B1220 0%, #111C2D 78%, #162235 100%);
+  }
+  .page-hero {
+    background:
+      radial-gradient(circle at 75% 15%, rgba(20,184,207,.08), transparent 25%),
+      linear-gradient(180deg, #0E1728, #111C2D);
+  }
+  .section--soft {
+    background:
+      linear-gradient(180deg, rgba(18,54,91,.35), rgba(22,34,53,.98)),
+      var(--color-surface-subtle);
+  }
+  .advisor-panel {
+    background:
+      radial-gradient(circle at 90% 10%, rgba(20,184,207,.1), transparent 32%),
+      linear-gradient(135deg, #162235, #111C2D);
+    border-color: var(--color-border);
+  }
+  .mobile-bar {
+    background: rgba(17,28,45,.94);
+  }
+}
+
+[data-theme="dark"] .hero {
+  background:
+    radial-gradient(circle at 12% 15%, rgba(20,184,207,.07), transparent 22%),
+    radial-gradient(circle at 85% 20%, rgba(92,174,255,.07), transparent 26%),
+    linear-gradient(180deg, #0B1220 0%, #111C2D 78%, #162235 100%);
+}
+[data-theme="dark"] .page-hero {
+  background:
+    radial-gradient(circle at 75% 15%, rgba(20,184,207,.08), transparent 25%),
+    linear-gradient(180deg, #0E1728, #111C2D);
+}
+[data-theme="dark"] .section--soft {
+  background:
+    linear-gradient(180deg, rgba(18,54,91,.35), rgba(22,34,53,.98)),
+    var(--color-surface-subtle);
+}
+[data-theme="dark"] .advisor-panel {
+  background:
+    radial-gradient(circle at 90% 10%, rgba(20,184,207,.1), transparent 32%),
+    linear-gradient(135deg, #162235, #111C2D);
+  border-color: var(--color-border);
+}
+[data-theme="dark"] .mobile-bar {
+  background: rgba(17,28,45,.94);
 }
 
 @media (prefers-reduced-motion: reduce) {
