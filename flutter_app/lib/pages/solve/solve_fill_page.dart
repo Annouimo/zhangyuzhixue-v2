@@ -87,14 +87,17 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Future<void> _load() async {
-      final colors = context.colors;
     try {
+      OperationLog.instance.action('solve_fill_page_load', 'T1 start');
       final detail = await _repo.getDetail(widget.questionId);
+      OperationLog.instance.action('solve_fill_page_load', 'T2 after getDetail');
       var attempts = await _repo.getAttempts(widget.questionId);
+      OperationLog.instance.action('solve_fill_page_load', 'T3 after getAttempts (${attempts.length})');
 
       // 首次访问且未指定存档时，自动创建
       if (attempts.isEmpty && widget.mode != 'review') {
         await _repo.startSolve(widget.questionId);
+        OperationLog.instance.action('solve_fill_page_load', 'T4 after startSolve');
         attempts = await _repo.getAttempts(widget.questionId);
       }
 
@@ -114,7 +117,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _loading = false;
       });
       AuditLogger.instance.page('SolveFillPage', {'qid': widget.questionId});
-    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
+      OperationLog.instance.action('solve_fill_page_load', 'T5 complete');
+    } catch (e) {
+      OperationLog.instance.action('solve_fill_page_load', 'T6 catch: $e');
+      OperationLog.instance.error('solve_fill_page_load', e);
       AuditLogger.instance.error('SolveFillPage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }

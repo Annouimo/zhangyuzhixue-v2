@@ -102,14 +102,17 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Future<void> _load() async {
-      final colors = context.colors;
     try {
+      OperationLog.instance.action('solve_choice_page_load', 'T1 start');
       final detail = await _repo.getDetail(widget.questionId);
+      OperationLog.instance.action('solve_choice_page_load', 'T2 after getDetail');
       var attempts = await _repo.getAttempts(widget.questionId);
+      OperationLog.instance.action('solve_choice_page_load', 'T3 after getAttempts (${attempts.length})');
 
       // 首次访问且未指定回顾模式时，自动创建存档
       if (attempts.isEmpty && widget.mode != 'review') {
         await _repo.startSolve(widget.questionId);
+        OperationLog.instance.action('solve_choice_page_load', 'T4 after startSolve');
         attempts = await _repo.getAttempts(widget.questionId);
       }
 
@@ -130,7 +133,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         await _restoreAttemptState(latest);
       }
       AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
-    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
+      OperationLog.instance.action('solve_choice_page_load', 'T5 complete');
+    } catch (e) {
+      OperationLog.instance.action('solve_choice_page_load', 'T6 catch: $e');
+      OperationLog.instance.error('solve_choice_page_load', e);
       AuditLogger.instance.error('SolveChoicePage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }

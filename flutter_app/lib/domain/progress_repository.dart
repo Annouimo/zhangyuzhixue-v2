@@ -251,7 +251,7 @@ class ProgressRepository {
           stepRecords.add(StepSolveRecord(
             stepOrder: stepObj.stepNumber,
             feedbackGiven: fb != null && fb.isNotEmpty,
-            feedbackType: fb?.last.status,
+            feedbackType: (fb != null && fb.isNotEmpty) ? fb.last.status : null,
           ));
         }
         methodRecords.add(MethodSolveRecord(

@@ -62,18 +62,25 @@ class _SolveMapPageState extends State<SolveMapPage> {
       ProgressDao(DatabaseProvider()),
     );
     try {
+      OperationLog.instance.action('solve_map_page_load', 'T1 start');
       final s = await repo.getSolveState(widget.questionId);
+      OperationLog.instance.action('solve_map_page_load', 'T2 after getSolveState (subQCount=${s.subQuestions.length})');
       var attempts = await repo.getAttempts(widget.questionId);
+      OperationLog.instance.action('solve_map_page_load', 'T3 after getAttempts (${attempts.length})');
 
       // 加载题目元信息
       QuestionDetail? detail;
       try {
         detail = await qRepo.getDetail(widget.questionId);
-      } catch (_) {}
+        OperationLog.instance.action('solve_map_page_load', 'T4 after getDetail');
+      } catch (e) {
+        OperationLog.instance.action('solve_map_page_load', 'T4 getDetail error: $e');
+      }
 
       // 首次访问自动创建存档
       if (attempts.isEmpty && widget.mode != 'review') {
         await repo.createAttempt(widget.questionId);
+        OperationLog.instance.action('solve_map_page_load', 'T5 after createAttempt');
         attempts = await repo.getAttempts(widget.questionId);
       }
 
@@ -114,24 +121,27 @@ class _SolveMapPageState extends State<SolveMapPage> {
           }
         }
       }
+      OperationLog.instance.action('solve_map_page_load', 'T6 before setState');
 
       if (!mounted) return;
       setState(() {
         _state = s;
+        _attempts = attempts;
+        _detail = detail;
         _completedSteps = doneSteps;
         _reviewMode = review;
-        _attempts = attempts;
         _currentAttemptNumber = currentAttemptNumber;
         _currentSubmissionDetailId = currentSubmissionDetailId;
-        _detail = detail;
         _loading = false;
       });
       AuditLogger.instance.page('SolveMapPage', {
-        'subQCount': _state?.subQuestions.length,
-        'completedSteps': _completedSteps.length,
-        'reviewMode': _reviewMode,
+        'qid': widget.questionId,
+        'subQCount': s.subQuestions.length,
       });
-    } catch (e) { OperationLog.instance.error('solve_map_page_load', e); 
+      OperationLog.instance.action('solve_map_page_load', 'T7 complete');
+    } catch (e) {
+      OperationLog.instance.action('solve_map_page_load', 'T8 catch: $e');
+      OperationLog.instance.error('solve_map_page_load', e);
       AuditLogger.instance.error('SolveMapPage._load', e);
       if (mounted) setState(() { _loading = false; _error = e.toString(); });
     }
