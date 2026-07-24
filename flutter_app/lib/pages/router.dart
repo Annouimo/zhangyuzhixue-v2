@@ -201,9 +201,10 @@ class RouterUtils {
   }
 
   // TODO(技术债务): 当前 GoRouter 版本为 17.x，因 router.pop() 存在级联移除父路由的缺陷，
-  // 此处使用 context.go 动态计算上一级路径来替代 pop。
+  // 此处使用 router.replace() 替换栈顶路由来替代 pop。
+  // replace 只替换当前页，保留下层栈（与 go 不同），因此能保持返回按钮。
   // 若未来升级至 GoRouter 18.x 且官方修复该问题，需评估是否可以切换回原生 router.pop()。
-  /// 动态获取上一级路由并使用 context.go() 返回，禁止调用 router.pop()
+  /// 动态获取上一级路由并使用 context.replace() 返回，禁止调用 router.pop()
   static void goBack(BuildContext context) {
     final matches = GoRouter.of(context)
         .routerDelegate
@@ -211,9 +212,9 @@ class RouterUtils {
         .matches;
     if (matches.length >= 2) {
       final previousLocation = matches[matches.length - 2].matchedLocation;
-      context.go(previousLocation);
+      context.replace(previousLocation);
     } else {
-      context.go('/'); // 默认回首页
+      context.replace('/');
     }
   }
 
