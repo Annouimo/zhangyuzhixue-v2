@@ -518,6 +518,19 @@ h4 {
   min-height: 520px;
 }
 
+.hero-visual.device-mode-desktop .device--mobile { display: none; }
+.hero-visual.device-mode-mobile .device--desktop { display: none; }
+
+@media (max-width: 900px) {
+  .hero-visual.device-mode-desktop .device--mobile { display: none; }
+  .hero-visual .device--mobile {
+    position: static;
+    width: min(100%, 280px);
+    margin: 0 auto;
+  }
+  .hero-visual .device--desktop { display: none; }
+}
+
 .hero-visual::before {
   position: absolute;
   z-index: -1;

@@ -258,4 +258,14 @@
       }
     }
   }
+
+  // ── 首页设备展示：根据当前设备切换 ──
+  if (page === 'home') {
+    const hero = document.querySelector('.hero-visual');
+    if (hero) {
+      const ua = navigator.userAgent.toLowerCase();
+      const isMobile = /android|iphone|ipad|ipod/.test(ua);
+      hero.classList.add(isMobile ? 'device-mode-mobile' : 'device-mode-desktop');
+    }
+  }
 })();
