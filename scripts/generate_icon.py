@@ -7,12 +7,14 @@ ROOT = Path(r'D:\Hermes\zhangyuzhixue_app_v2')
 
 # 源图候选
 SRC_CANDIDATES = [
-    ROOT / 'docs/00-整体情况/logo_mark_positive_2048.png',
     ROOT / 'docs/00-整体情况/icon_final_1024.png',
     ROOT / 'docs/00-整体情况/icon_final.png',
     Path(r'C:\Users\Annouimo\Desktop\微信图片_20260708225603_305_364.jpg'),
     ROOT / 'flutter_app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
 ]
+
+# Splash logo 源图（透明白底 Logo，放在品牌蓝背景上）
+SPLASH_SOURCE = ROOT / 'docs/00-整体情况/logo_mark_reverse_2048.png'
 
 # Android mipmap: density folder → px
 ANDROID_SIZES = {'mipmap-mdpi': 48, 'mipmap-hdpi': 72, 'mipmap-xhdpi': 96,
@@ -125,8 +127,12 @@ def process():
                   f'flutter_app: macOS/{name}')
         print(f'  → macOS AppIcon ×{len(MACOS_ICONS)} 完成')
 
+    splash_sq = Image.open(SPLASH_SOURCE).convert('RGBA')
+    sz = min(splash_sq.width, splash_sq.height)
+    l, t = (splash_sq.width - sz) // 2, (splash_sq.height - sz) // 2
+    splash_sq = splash_sq.crop((l, t, l + sz, t + sz))
     for app in apps:
-        _save(ROOT / app / SPLASH_LOGO, square, 256,
+        _save(ROOT / app / SPLASH_LOGO, splash_sq, 256,
               f'{app}: splash_logo.png')
 
     return True
