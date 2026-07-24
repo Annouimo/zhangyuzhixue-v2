@@ -30,7 +30,7 @@
         <div class="container site-header__inner">
           <a class="brand" href="index.html" aria-label="返回章鱼智学首页">
             <span class="brand__mark">
-              <img src="assets/images/logo-mark-48.png" alt="" aria-hidden="true">
+              <img src="assets/images/icon-app-48.png" alt="" aria-hidden="true">
             </span>
             <span class="brand__text">
               <span class="brand__name">${config.siteName || "章鱼智学"}</span>
@@ -95,9 +95,9 @@
         <div class="container site-footer__bottom">
           <span>© ${yearText} ${config.footer?.operatorName || "章鱼智学项目团队"}</span>
           <div class="legal-links">
-            <a href="privacy.html">隐私政策</a>
-            <a href="terms.html">用户协议</a>
-            <span>${config.footer?.icp || "ICP备案号待替换"}</span>
+            ${page === 'privacy' || page === 'terms' ? `<a href="privacy.html">隐私政策</a>` : ''}
+            ${page === 'privacy' || page === 'terms' ? `<a href="terms.html">用户协议</a>` : ''}
+            ${page === 'privacy' || page === 'terms' && config.footer?.icp ? `<span>${config.footer.icp}</span>` : ''}
             ${config.footer?.police ? `<span>${config.footer.police}</span>` : ""}
           </div>
         </div>
@@ -115,7 +115,7 @@
           <p class="muted">微信：<strong>${config.wechatName || "章鱼宝宝"}</strong></p>
           ${config.wechatId ? `<p class="muted" style="margin-top:0">微信号：<strong>${config.wechatId}</strong> · 备注「章鱼智学」</p>` : ""}
           <div class="modal__qr">
-            <img src="${config.wechatQr || "assets/images/qr-wechat-placeholder.svg"}" alt="章鱼智学微信二维码占位图">
+            <img src="${config.wechatQr || "assets/images/qr-wechat-placeholder.svg"}" alt="微信二维码">
           </div>
           <a class="button button--secondary button--block" href="${config.phoneHref || "tel:18500794866"}">电话联系：${config.phoneDisplay || "18500794866"}</a>
         </div>
