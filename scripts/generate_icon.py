@@ -135,6 +135,22 @@ def process():
         _save(ROOT / app / SPLASH_LOGO, splash_sq, 256,
               f'{app}: splash_logo.png')
 
+    # Windows Store tile images
+    WINDOWS_TILES = [
+        ('Square71x71Logo.png', 71),
+        ('Square150x150Logo.png', 150),
+        ('Square310x310Logo.png', 310),
+    ]
+    WIDE_TILES = [('Wide310x150Logo.png', 310, 150)]
+    for app in apps:
+        tile_dir = ROOT / app / 'windows/runner/resources'
+        for name, px in WINDOWS_TILES:
+            _save(tile_dir / name, square, px, f'{app}: windows/tiles/{name}')
+        for name, w, h in WIDE_TILES:
+            img = square.resize((w, h), Image.LANCZOS)
+            img.save(tile_dir / name)
+            print(f'✅ {app}: windows/tiles/{name}')
+
     return True
 
 
