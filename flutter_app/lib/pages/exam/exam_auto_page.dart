@@ -326,7 +326,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                 ),
               ),
               Container(
-                width: double.infinity, color: Colors.white,
+                width: double.infinity, color: context.colors.surface,
                 padding: const EdgeInsets.all(16),
                 child: ElevatedButton(
                   onPressed: _generating ? null : _confirm,

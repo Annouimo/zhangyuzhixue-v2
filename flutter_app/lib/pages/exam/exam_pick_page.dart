@@ -272,7 +272,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(child: _buildScrollContent()),
             Container(
-              color: Colors.white,
+              color: context.colors.surface,
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(

@@ -89,7 +89,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
       children: [
         // 排序栏
         Container(
-          width: double.infinity, color: Colors.white,
+          width: double.infinity, color: context.colors.surface,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
