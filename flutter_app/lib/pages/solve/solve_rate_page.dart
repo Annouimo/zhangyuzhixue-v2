@@ -40,7 +40,6 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _ratingRepo = widget.ratingRepository ?? RatingRepository(
       RatingDao(DatabaseProvider()),
@@ -50,7 +49,6 @@ class _SolveRatePageState extends State<SolveRatePage> {
   }
 
   Future<void> _loadRating() async {
-      final colors = context.colors;
     try {
       // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
       try {
