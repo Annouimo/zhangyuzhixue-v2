@@ -1189,6 +1189,7 @@ h4 {
   border-radius: 999px;
   box-shadow: 0 16px 38px rgba(7,82,186,.26);
   font-weight: 850;
+  white-space: nowrap;
 }
 
 .mobile-bar {
