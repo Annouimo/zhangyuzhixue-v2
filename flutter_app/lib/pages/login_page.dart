@@ -308,7 +308,7 @@ class _LoginPageState extends State<LoginPage> {
                     GestureDetector(
                       onTap: () => _showContactDialog(),
                       child: Text(
-                        '忘记密码？联系微信管理员',
+                        '忘记密码',
                         style: TextStyle(fontSize: 12, color: context.colors.textMuted),
                       ),
                     ),
