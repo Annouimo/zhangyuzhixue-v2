@@ -140,7 +140,7 @@ class RecommendPageState extends State<RecommendPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
             child: Text('根据你的做题记录和薄弱项智能推送',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 13, color: context.colors.textSecondary),
             ),
           ),
         if (!_preferSmart)
@@ -216,9 +216,9 @@ class RecommendPageState extends State<RecommendPage> {
                 value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
                 isExpanded: true,
                 underline: const SizedBox(),
-                hint: const Text('请选择...', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                hint: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
                 items: [
-                  const DropdownMenuItem(value: -1, child: Text('请选择...', style: TextStyle(fontSize: 14, color: AppColors.textSecondary))),
+                  DropdownMenuItem(value: -1, child: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary))),
                   ...List.generate(_presets.length, (i) => DropdownMenuItem(
                     value: i,
                     child: Text(_presets[i].name, style: const TextStyle(fontSize: 14)),
@@ -256,17 +256,17 @@ class _PillButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.surface,
+          color: selected ? context.colors.primary : context.colors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? context.colors.primary : context.colors.border,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 16, color: selected ? Colors.white : AppColors.textSecondary),
+              Icon(icon, size: 16, color: selected ? Colors.white : context.colors.textSecondary),
               const SizedBox(width: 4),
             ],
             Text(
@@ -274,7 +274,7 @@ class _PillButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: selected ? Colors.white : AppColors.textSecondary,
+                color: selected ? Colors.white : context.colors.textSecondary,
               ),
             ),
           ],

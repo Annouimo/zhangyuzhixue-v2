@@ -14,7 +14,7 @@ class LecturePagerWidget extends StatelessWidget {
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
 
-  const LecturePagerWidget({
+  LecturePagerWidget({
     super.key,
     required this.currentPage,
     required this.totalPages,
@@ -40,7 +40,7 @@ class LecturePagerWidget extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               _buildNavButton(
@@ -48,18 +48,18 @@ class LecturePagerWidget extends StatelessWidget {
                 enabled: _canPrev,
                 onTap: _canPrev ? onPrev : null,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   '第 $currentPage / $totalPages 页 · 展开 $revealedCount / $totalBlocks',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: colors.textSecondary,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _buildNavButton(
                 icon: Icons.chevron_right,
                 enabled: _canNext,

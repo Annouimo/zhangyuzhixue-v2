@@ -165,7 +165,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('积分不足，自主选题需要 $_kPickPaperCost 积分'),
-            backgroundColor: AppColors.error,
+            backgroundColor: context.colors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -350,7 +350,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            side: const BorderSide(color: AppColors.border),
+            side: BorderSide(color: context.colors.border),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -418,10 +418,10 @@ class _ExamPickPageState extends State<ExamPickPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: context.colors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
+      child: Text('$label $count', style: TextStyle(fontSize: 12, color: context.colors.primary, fontWeight: FontWeight.w500)),
     );
   }
 }

@@ -11,7 +11,7 @@ import 'package:shared/debug/operation_log.dart';
 
 /// 关于页 — 数据版本（题库/课程/用户数据）+ 法律信息
 class AboutPage extends StatefulWidget {
-  const AboutPage({super.key});
+  AboutPage({super.key});
 
   @override
   State<AboutPage> createState() => _AboutPageState();
@@ -105,28 +105,28 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('关于')),
+    appBar: AppBar(title: Text('关于')),
     body: SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      padding: EdgeInsets.all(AppSizes.baseSpacing),
       child: Column(children: [
-        const SizedBox(height: 32),
+        SizedBox(height: 32),
         // ── 品牌标识 ──
-        const CircleAvatar(
+        CircleAvatar(
           radius: 32,
-          backgroundColor: AppColors.primaryContainer,
-          child: Icon(Icons.school, size: 32, color: AppColors.primary),
+          backgroundColor: context.colors.primaryContainer,
+          child: Icon(Icons.school, size: 32, color: context.colors.primary),
         ),
-        const SizedBox(height: 10),
-        const Text(
+        SizedBox(height: 10),
+        Text(
           '章鱼智学',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           '版本 $appVersion',
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 13, color: context.colors.textSecondary),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: 28),
 
         // ── 数据版本卡片 ──
         _buildSectionCard([
@@ -138,7 +138,7 @@ class _AboutPageState extends State<AboutPage> {
             updating: _updatingQbank,
             onUpdate: () => _onUpdate('qbank'),
           ),
-          const Divider(height: 1, indent: 48),
+          Divider(height: 1, indent: 48),
           _buildVersionTile(
             icon: Icons.article,
             label: '课程',
@@ -147,35 +147,35 @@ class _AboutPageState extends State<AboutPage> {
             updating: _updatingCourses,
             onUpdate: () => _onUpdate('courses'),
           ),
-          const Divider(height: 1, indent: 48),
+          Divider(height: 1, indent: 48),
           _buildUserTile(),
         ]),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
 
         // ── 法律信息 ──
         _buildSectionCard([
           ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: const Text('用户协议', style: TextStyle(fontSize: 15)),
-            trailing: const Icon(Icons.chevron_right),
+            leading: Icon(Icons.description_outlined),
+            title: Text('用户协议', style: TextStyle(fontSize: 15)),
+            trailing: Icon(Icons.chevron_right),
             onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html')),
           ),
-          const Divider(height: 1),
+          Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
-            title: const Text('隐私政策', style: TextStyle(fontSize: 15)),
-            trailing: const Icon(Icons.chevron_right),
+            leading: Icon(Icons.privacy_tip_outlined),
+            title: Text('隐私政策', style: TextStyle(fontSize: 15)),
+            trailing: Icon(Icons.chevron_right),
             onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html')),
           ),
         ]),
 
         Text(
           '© ${DateTime.now().year} 章鱼智学 · 北京',
-          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 12, color: context.colors.textSecondary),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _buildExportLogButton(),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
       ]),
     ),
   );
@@ -198,10 +198,10 @@ class _AboutPageState extends State<AboutPage> {
   }) {
     if (_versionError) {
       return ListTile(
-        leading: Icon(icon, color: AppColors.primary),
-        title: Text(label, style: const TextStyle(fontSize: 15)),
-        subtitle: const Text('⚠ 检查失败',
-          style: TextStyle(fontSize: 12, color: AppColors.error),
+        leading: Icon(icon, color: context.colors.primary),
+        title: Text(label, style: TextStyle(fontSize: 15)),
+        subtitle: Text('⚠ 检查失败',
+          style: TextStyle(fontSize: 12, color: context.colors.error),
         ),
         trailing: null,
       );
@@ -213,35 +213,35 @@ class _AboutPageState extends State<AboutPage> {
             ? 'v$local → v$server 可用'
             : 'v$local (最新)';
     final statusColor = !_versionLoaded
-        ? AppColors.textSecondary
+        ? context.colors.textSecondary
         : hasUpdate
-            ? AppColors.warning
-            : AppColors.success;
+            ? context.colors.warning
+            : context.colors.success;
 
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(label, style: const TextStyle(fontSize: 15)),
+      leading: Icon(icon, color: context.colors.primary),
+      title: Text(label, style: TextStyle(fontSize: 15)),
       subtitle: Text(
         statusText,
         style: TextStyle(fontSize: 12, color: statusColor),
       ),
       trailing: hasUpdate
           ? ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 80),
+              constraints: BoxConstraints(maxWidth: 80),
               child: OutlinedButton(
                 onPressed: updating ? null : onUpdate,
                 child: updating
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('更新'),
+                    : Text('更新'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.warning,
-                  side: const BorderSide(color: AppColors.warning),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  textStyle: const TextStyle(fontSize: 12),
+                  foregroundColor: context.colors.warning,
+                  side: BorderSide(color: context.colors.warning),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  textStyle: TextStyle(fontSize: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -255,20 +255,20 @@ class _AboutPageState extends State<AboutPage> {
   Widget _buildUserTile() {
     final hasUpdate = _serverUser > _localUser;
     return ListTile(
-      leading: const Icon(Icons.devices, color: AppColors.primary),
-      title: const Text('多设备同步数据', style: TextStyle(fontSize: 15)),
+      leading: Icon(Icons.devices, color: context.colors.primary),
+      title: Text('多设备同步数据', style: TextStyle(fontSize: 15)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _lastSyncTime,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(fontSize: 12),
           ),
           if (_versionLoaded && hasUpdate) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '检测到其他设备有新记录，建议同步',
-              style: const TextStyle(fontSize: 11, color: AppColors.warning),
+              style: TextStyle(fontSize: 11, color: context.colors.warning),
             ),
           ],
         ],
@@ -279,23 +279,23 @@ class _AboutPageState extends State<AboutPage> {
               ? OutlinedButton(
                   onPressed: _updatingUser ? null : () => _onUpdate('user'),
                   child: _updatingUser
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('同步'),
+                      : Text('同步'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.warning,
-                    side: const BorderSide(color: AppColors.warning),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    textStyle: const TextStyle(fontSize: 12),
+                    foregroundColor: context.colors.warning,
+                    side: BorderSide(color: context.colors.warning),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    textStyle: TextStyle(fontSize: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 )
-              : const Icon(Icons.check_circle, size: 20, color: AppColors.success),
+              : Icon(Icons.check_circle, size: 20, color: context.colors.success),
     );
   }
 
@@ -305,12 +305,12 @@ class _AboutPageState extends State<AboutPage> {
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: _exportLog,
-        icon: const Icon(Icons.bug_report_outlined, size: 16),
-        label: const Text('导出运行日志'),
+        icon: Icon(Icons.bug_report_outlined, size: 16),
+        label: Text('导出运行日志'),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textSecondary,
-          side: BorderSide(color: AppColors.border),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          foregroundColor: context.colors.textSecondary,
+          side: BorderSide(color: context.colors.border),
+          padding: EdgeInsets.symmetric(vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),

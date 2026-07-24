@@ -7,7 +7,7 @@ class KnowledgeCardDialog extends StatelessWidget {
   final String cardTitle;
   final String cardContent;
 
-  const KnowledgeCardDialog({
+  KnowledgeCardDialog({
     super.key,
     required this.cardTitle,
     required this.cardContent,
@@ -35,20 +35,20 @@ class KnowledgeCardDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.lightbulb_outline,
+                Icon(Icons.lightbulb_outline,
                     color: colors.primary, size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     cardTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: colors.textPrimary,
@@ -56,28 +56,28 @@ class KnowledgeCardDialog extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: Icon(Icons.close, size: 18),
                   onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  constraints: BoxConstraints(),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
+            Divider(height: 1),
+            SizedBox(height: 12),
             SingleChildScrollView(
               child: MdLatexBody(cardContent, fontSize: 14),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // 卡片掌握度反馈
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _feedbackChip(context, '完全掌握', colors.success),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _feedbackChip(context, '了解', colors.warning),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _feedbackChip(context, '不理解', colors.error),
               ],
             ),
@@ -91,7 +91,7 @@ class KnowledgeCardDialog extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(label),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(8),

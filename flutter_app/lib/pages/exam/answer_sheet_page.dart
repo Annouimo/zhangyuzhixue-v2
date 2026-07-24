@@ -14,7 +14,7 @@ import 'package:shared/debug/operation_log.dart';
 class AnswerSheetPage extends StatefulWidget {
   final int examId;
   final ExamRepository? examRepository;
-  const AnswerSheetPage({super.key, required this.examId, this.examRepository});
+  AnswerSheetPage({super.key, required this.examId, this.examRepository});
 
   @override
   State<AnswerSheetPage> createState() => _AnswerSheetPageState();
@@ -60,46 +60,46 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('快对答案')),
+    appBar: AppBar(title: Text('快对答案')),
     body: _buildBody(),
   );
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载答案…');
+    if (_loading) return LoadingIndicator(message: '加载答案…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
     final items = _answers ?? [];
-    if (items.isEmpty) return const Center(child: Text('暂无答案'));
+    if (items.isEmpty) return Center(child: Text('暂无答案'));
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
         _buildHeader(),
         ...List.generate(items.length, (i) => _buildItem(items[i], i)),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         _buildBackButton(),
       ],
     );
   }
 
   Widget _buildHeader() {
-    if (_examName == null) return const SizedBox.shrink();
+    if (_examName == null) return SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-          side: const BorderSide(color: AppColors.border),
+          side: BorderSide(color: context.colors.border),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(_examName!,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 4),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+              SizedBox(height: 4),
               Text('共 $_totalCount 题 · 仅展示答案，无解析',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
             ],
           ),
         ),
@@ -109,37 +109,37 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
 
   Widget _buildItem(AnswerItem a, int index) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 32, height: 32,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryContainer,
+            decoration: BoxDecoration(
+              color: context.colors.primaryContainer,
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Text('${index + 1}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.colors.primary)),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(a.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 2),
+                Text(a.title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                SizedBox(height: 2),
                 Text(a.questionType,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Container(
-            constraints: const BoxConstraints(maxWidth: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            constraints: BoxConstraints(maxWidth: 200),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             child: MdLatexBody(a.answer, fontSize: 14),
           ),
         ],
@@ -152,7 +152,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('← 返回试卷预览'),
+        child: Text('← 返回试卷预览'),
       ),
     );
   }

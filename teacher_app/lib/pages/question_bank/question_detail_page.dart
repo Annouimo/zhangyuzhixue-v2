@@ -19,7 +19,7 @@ class QuestionDetailPage extends StatefulWidget {
   final QuestionRepository repo;
   final bool initiallySelected;
 
-  const QuestionDetailPage({
+  QuestionDetailPage({
     super.key,
     required this.questionId,
     required this.repo,
@@ -69,13 +69,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       final colors = context.colors;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('题目详情')),
-        body: const LoadingIndicator(message: '加载题目详情…'),
+        appBar: AppBar(title: Text('题目详情')),
+        body: LoadingIndicator(message: '加载题目详情…'),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('题目详情')),
+        appBar: AppBar(title: Text('题目详情')),
         body: ErrorPlaceholder(message: _error!, onRetry: _load),
       );
     }
@@ -98,16 +98,16 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(AppSizes.baseSpacing),
+        padding: EdgeInsets.all(AppSizes.baseSpacing),
         children: [
           // 概念标签
           if (_detail!.tags.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(bottom: 12),
               child: Wrap(
                 spacing: 6, runSpacing: 4,
                 children: _detail!.tags.map((t) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
@@ -123,7 +123,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           // 完整题干
           _section('题干'),
           MdLatexBody(q.stem, fontSize: 15),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 配图
           if (q.images != null && q.images!.isNotEmpty) ...[
@@ -131,18 +131,18 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             ..._parseImagePaths(q.images!).map((path) =>
               QuestionImage(relativePath: path),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
           ],
 
           // 元信息
           _metaInfo(q),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 选择题选项
           if (_detail!.choiceExt != null) ...[
             _section('选项'),
             _buildOptions(_detail!.choiceExt!),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
           ],
 
           // 小题 + 答案 + 解析
@@ -161,9 +161,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   Widget _section(String title) {
       final colors = context.colors;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 12, 0, 6),
+      padding: EdgeInsets.fromLTRB(0, 12, 0, 6),
       child: Text(title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13, fontWeight: FontWeight.w600,
           color: colors.textSecondary,
         ),
@@ -176,7 +176,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         child: Wrap(
           spacing: 16, runSpacing: 6,
           children: [
@@ -226,7 +226,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           child: MdLatexBody(kc.content, fontSize: 14),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('关闭')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('关闭')),
         ],
       ),
     );
@@ -236,19 +236,19 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       final colors = context.colors;
     List<String> titles;
     try {
-      titles = (const JsonDecoder().convert(cardTitlesJson) as List)
+      titles = (JsonDecoder().convert(cardTitlesJson) as List)
           .map((e) => e.toString()).toList();
     } catch (_) {
-      return const SizedBox.shrink();
+      return SizedBox.shrink();
     }
     final matched = titles.map((t) => kcMap[t]).where((kc) => kc != null).cast<db.KnowledgeCardRow>().toList();
-    if (matched.isEmpty) return const SizedBox.shrink();
+    if (matched.isEmpty) return SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(top: 6),
+      padding: EdgeInsets.only(top: 6),
       child: Wrap(
         spacing: 4, runSpacing: 2,
         children: matched.map((kc) => Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: colors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
@@ -269,9 +269,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   Widget _accentContainer(String title, Color accentColor, Widget child) {
       final colors = context.colors;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+        padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -282,7 +282,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           children: [
             Container(
               width: 3, height: 18,
-              margin: const EdgeInsets.only(top: 2, right: 10),
+              margin: EdgeInsets.only(top: 2, right: 10),
               decoration: BoxDecoration(
                 color: accentColor,
                 borderRadius: BorderRadius.circular(2),
@@ -298,7 +298,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   List<String> _parseImagePaths(String imagesJson) {
       final colors = context.colors;
     try {
-      final decoded = const JsonDecoder().convert(imagesJson);
+      final decoded = JsonDecoder().convert(imagesJson);
       return (decoded as List)
           .map((e) => e.toString().replaceAll('\\', '/'))
           .toList();
@@ -312,9 +312,9 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     final options = choiceExt.options;
     Map<String, dynamic> parsed;
     try {
-      parsed = const JsonDecoder().cast<String, dynamic>().convert(options);
+      parsed = JsonDecoder().cast<String, dynamic>().convert(options);
     } catch (_) {
-      return Text(options, style: const TextStyle(fontSize: 13));
+      return Text(options, style: TextStyle(fontSize: 13));
     }
     final answer = _detail!.subQuestions.isNotEmpty
         ? _detail!.subQuestions.first.answer ?? ''
@@ -324,8 +324,8 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       children: parsed.entries.map((e) {
         final isCorrect = answer.toUpperCase().contains(e.key.toUpperCase());
         return Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          margin: EdgeInsets.only(bottom: 6),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: isCorrect ? Colors.white : Colors.white,
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -351,7 +351,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: MdLatexBody(e.value.toString(), fontSize: 14),
               ),
@@ -372,7 +372,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         if (sq.stem != null && sq.stem!.isNotEmpty) ...[
           _section('小题 ${sq.sortOrder}'),
           MdLatexBody(sq.stem!, fontSize: 14),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
         ],
         if (!hideAnswer && sq.answer != null && sq.answer!.isNotEmpty) ...[
           _section('答案'),
@@ -392,7 +392,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
     final methodSteps = _detail!.steps
         .where((s) => s.methodId == method.id)
         .toList();
-    if (methodSteps.isEmpty) return const SizedBox.shrink();
+    if (methodSteps.isEmpty) return SizedBox.shrink();
 
     final kcMap = {for (final kc in _detail!.knowledgeCards) kc.title: kc};
     final hasMultipleMethods = _detail!.methods.length > 1;
@@ -402,13 +402,13 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
       children: [
         if (hasMultipleMethods)
           Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            padding: EdgeInsets.only(top: 4, bottom: 4),
             child: Row(
               children: [
                 Icon(Icons.auto_awesome, size: 14, color: colors.warning),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 Text(method.methodName ?? '解法${method.id}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w600, color: colors.primary,
                   ),
                 ),
@@ -416,14 +416,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             ),
           ),
         ...methodSteps.map((step) => Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 6),
+          padding: EdgeInsets.only(left: 12, bottom: 6),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                decoration: const BoxDecoration(
+                constraints: BoxConstraints(minWidth: 20, minHeight: 20),
+                padding: EdgeInsets.symmetric(horizontal: 6),
+                decoration: BoxDecoration(
                   color: colors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
@@ -433,18 +433,18 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (step.title.isNotEmpty)
                       Text(step.title,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                       ),
                     if (step.content.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 2),
+                        padding: EdgeInsets.only(top: 2),
                         child: MdLatexBody(step.content, fontSize: 13),
                       ),
                     if (step.cardTitles != null && step.cardTitles!.isNotEmpty)
@@ -455,7 +455,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             ],
           ),
         )),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
       ],
     );
   }

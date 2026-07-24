@@ -17,7 +17,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 学习统计页
 class StatisticsPage extends StatefulWidget {
   final StatisticsRepository? statisticsRepository;
-  const StatisticsPage({super.key, this.statisticsRepository});
+  StatisticsPage({super.key, this.statisticsRepository});
 
   @override
   State<StatisticsPage> createState() => _StatisticsPageState();
@@ -78,48 +78,48 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('学习统计')),
+    appBar: AppBar(title: Text('学习统计')),
     body: _loading
-        ? const LoadingIndicator(message: '加载统计数据…')
+        ? LoadingIndicator(message: '加载统计数据…')
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
             : RefreshIndicator(
             onRefresh: _loadAll,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: AppSizes.baseSpacing),
+              padding: EdgeInsets.only(bottom: AppSizes.baseSpacing),
               child: Column(
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   TimeRangePicker(valueDays: _rangeDays, onChanged: (d) { setState(() => _rangeDays = d); _loadAll(); }),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _buildOverviewCards(),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   HeatmapChart(rangeDays: _rangeDays, records: _dailyRecords ?? []),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   // 热力图图例
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('少', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: AppColors.heatmapLevel1, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: AppColors.heatmapLevel2, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: AppColors.heatmapLevel3, borderRadius: BorderRadius.circular(2))),
-                      const Text('多', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      Text('少', style: TextStyle(fontSize: 10, color: context.colors.textSecondary)),
+                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: context.colors.border, borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: context.colors.heatmapLevel1, borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: context.colors.heatmapLevel2, borderRadius: BorderRadius.circular(2))),
+                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(color: context.colors.heatmapLevel3, borderRadius: BorderRadius.circular(2))),
+                      Text('多', style: TextStyle(fontSize: 10, color: context.colors.textSecondary)),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   TrendChart(title: '正确率趋势', points: _accuracyTrend ?? [], fixedYRange: true,
                     summaryLabel: '该时段正确率', summaryValue: _accuracySummary),
-                  const SizedBox(height: 8),
-                  TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: AppColors.success,
+                  SizedBox(height: 8),
+                  TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: context.colors.success,
                     summaryLabel: '时段累计积分', summaryValue: _pointsSummary),
-                  const SizedBox(height: 8),
-                  DonutChart(data: _distribution ?? const Distribution(total: 0, choiceCount: 0, choicePercent: 0, fillCount: 0, fillPercent: 0, solutionCount: 0, solutionPercent: 0)),
+                  SizedBox(height: 8),
+                  DonutChart(data: _distribution ?? Distribution(total: 0, choiceCount: 0, choicePercent: 0, fillCount: 0, fillPercent: 0, solutionCount: 0, solutionPercent: 0)),
                 ],
               ),
             ),
@@ -128,18 +128,18 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   Widget _buildOverviewCards() {
     final ov = _overview;
-    if (ov == null) return const SizedBox.shrink();
+    if (ov == null) return SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+      padding: EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
       child: Row(
         children: [
-          _overviewCard('总做题', '${ov.totalQuestions}', Icons.checklist, AppColors.primary),
-          const SizedBox(width: 8),
-          _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, AppColors.success),
-          const SizedBox(width: 8),
-          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, AppColors.recommendation),
-          const SizedBox(width: 8),
-          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, AppColors.primaryContainer),
+          _overviewCard('总做题', '${ov.totalQuestions}', Icons.checklist, context.colors.primary),
+          SizedBox(width: 8),
+          _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, context.colors.success),
+          SizedBox(width: 8),
+          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, context.colors.recommendation),
+          SizedBox(width: 8),
+          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, context.colors.primaryContainer),
         ],
       ),
     );
@@ -149,13 +149,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return Expanded(
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           child: Column(
             children: [
               Icon(icon, size: 22, color: color),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-              Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              Text(label, style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
             ],
           ),
         ),

@@ -14,7 +14,7 @@ import 'package:shared/debug/operation_log.dart';
 class LectureCoursesPage extends StatefulWidget {
   final LectureRepository? lectureRepository;
 
-  const LectureCoursesPage({super.key, this.lectureRepository});
+  LectureCoursesPage({super.key, this.lectureRepository});
 
   @override
   State<LectureCoursesPage> createState() => _LectureCoursesPageState();
@@ -61,26 +61,26 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('讲义目录')),
+      appBar: AppBar(title: Text('讲义目录')),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
       final colors = context.colors;
-    if (_loading) return const LoadingIndicator(message: '加载讲义目录…');
+    if (_loading) return LoadingIndicator(message: '加载讲义目录…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_courses == null || _courses!.isEmpty) {
-      return const EmptyPlaceholder(icon: Icons.menu_book,
+      return EmptyPlaceholder(icon: Icons.menu_book,
         message: '暂无讲义',
       );
     }
     return ListView.separated(
-        padding: const EdgeInsets.all(AppSizes.baseSpacing),
+        padding: EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _courses!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => SizedBox(height: 8),
         itemBuilder: (context, index) {
           final course = _courses![index];
           return _CourseCard(
@@ -105,7 +105,7 @@ class _CourseCard extends StatelessWidget {
   final int chapterCount;
   final VoidCallback onTap;
 
-  const _CourseCard({
+  _CourseCard({
     required this.name,
     required this.chapterCount,
     required this.onTap,
@@ -119,7 +119,7 @@ class _CourseCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
@@ -129,28 +129,28 @@ class _CourseCard extends StatelessWidget {
                   color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.menu_book_rounded,
                   color: colors.primary,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       '共 $chapterCount 讲',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         color: colors.textSecondary,
                       ),
@@ -158,7 +158,7 @@ class _CourseCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 color: colors.textSecondary,
               ),

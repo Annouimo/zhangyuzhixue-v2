@@ -104,11 +104,11 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         if (p.authorInfo.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: Text(p.authorInfo, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            child: Text(p.authorInfo, style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
           ),
         const SizedBox(height: 4),
         Text('共 ${p.totalCount} 题 · 选择 ${p.choiceCount} 填空 ${p.fillCount} 解答 ${p.solutionCount}',
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+          style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
         const SizedBox(height: 16),
         ...p.questions.map((q) => ExamQuestionCard(
           questionId: q.questionId,

@@ -9,7 +9,7 @@ class CoolingTimer extends StatefulWidget {
   final Widget? child;
   final VoidCallback? onCooldownEnd;
 
-  const CoolingTimer({
+  CoolingTimer({
     super.key,
     required this.seconds,
     this.label = '可提交',
@@ -35,7 +35,7 @@ class CoolingTimerState extends State<CoolingTimer> {
       _remaining = widget.seconds;
       _active = true;
     });
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
       if (_remaining <= 1) {
         _timer?.cancel();
         setState(() => _remaining = 0);
@@ -65,7 +65,7 @@ class CoolingTimerState extends State<CoolingTimer> {
   @override
   Widget build(BuildContext context) {
       final colors = context.colors;
-    if (!_active) return widget.child ?? const SizedBox.shrink();
+    if (!_active) return widget.child ?? SizedBox.shrink();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -74,15 +74,15 @@ class CoolingTimerState extends State<CoolingTimer> {
             opacity: 0.4,
             child: AbsorbPointer(absorbing: true, child: widget.child),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             '⏳ 还剩 $_remaining 秒${widget.label}',
-            style: const TextStyle(
+            style: TextStyle(
               color: colors.textSecondary, fontSize: 12,
             ),
           ),
         ] else
-          widget.child ?? const SizedBox.shrink(),
+          widget.child ?? SizedBox.shrink(),
       ],
     );
   }

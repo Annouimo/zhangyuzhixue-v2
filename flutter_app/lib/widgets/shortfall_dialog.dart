@@ -30,7 +30,7 @@ class _ShortfallDialog extends StatelessWidget {
   final int needed;
   final int available;
 
-  const _ShortfallDialog({
+  _ShortfallDialog({
     required this.type,
     required this.needed,
     required this.available,
@@ -38,64 +38,65 @@ class _ShortfallDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return PopScope(
       canPop: false,
       child: AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        contentPadding: EdgeInsets.fromLTRB(24, 28, 24, 20),
         content: SizedBox(
           width: 280,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded, size: 48, color: AppColors.warning),
-              const SizedBox(height: 8),
+              Icon(Icons.warning_amber_rounded, size: 48, color: colors.warning),
+              SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.warningContainer,
+                  color: colors.warningContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text('池子不足',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onWarningContainer),
+                child: Text('池子不足',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.onWarningContainer),
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text('题库数量不足',
+              SizedBox(height: 8),
+              Text('题库数量不足',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 '$type 类题目池子不足\n（需要 $needed 道，池中只有 $available 道）',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
+                style: TextStyle(fontSize: 13, color: colors.textSecondary, height: 1.5),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary,
-                        side: BorderSide(color: AppColors.border),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: colors.textSecondary,
+                        side: BorderSide(color: colors.border),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: const Text('调整筛选条件', style: TextStyle(fontSize: 14)),
+                      child: Text('调整筛选条件', style: TextStyle(fontSize: 14)),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(true),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: colors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: const Text('直接组卷', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      child: Text('直接组卷', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                     ),
                   ),
                 ],

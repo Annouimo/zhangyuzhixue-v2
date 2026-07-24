@@ -168,7 +168,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
           onPressed: _saving ? null : _save,
           child: _saving
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('保存', style: TextStyle(color: AppColors.primary)),
+              : Text('保存', style: TextStyle(color: context.colors.primary)),
         ),
       ],
     ),
@@ -176,7 +176,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         ? const LoadingIndicator()
         : _error != null
             ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('加载失败', style: TextStyle(color: AppColors.error)),
+                Text('加载失败', style: TextStyle(color: context.colors.error)),
                 const SizedBox(height: 8),
                 ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadExisting(); }, child: const Text('重试')),
               ]))

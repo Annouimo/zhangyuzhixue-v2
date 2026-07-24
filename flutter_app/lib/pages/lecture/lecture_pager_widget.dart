@@ -47,6 +47,7 @@ class LecturePagerWidget extends StatelessWidget {
                 icon: Icons.chevron_left,
                 enabled: _canPrev,
                 onTap: _canPrev ? onPrev : null,
+                colors: colors,
               ),
               SizedBox(width: 12),
               Expanded(
@@ -64,6 +65,7 @@ class LecturePagerWidget extends StatelessWidget {
                 icon: Icons.chevron_right,
                 enabled: _canNext,
                 onTap: _canNext ? onNext : null,
+                colors: colors,
               ),
             ],
           ),
@@ -76,8 +78,8 @@ class LecturePagerWidget extends StatelessWidget {
     required IconData icon,
     required bool enabled,
     required VoidCallback? onTap,
+    required AppSemanticColors colors,
   }) {
-      final colors = context.colors;
     return SizedBox(
       width: 44,
       height: 44,

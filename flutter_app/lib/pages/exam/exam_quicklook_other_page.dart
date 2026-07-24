@@ -74,7 +74,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
         Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text('共 ${p.totalCount} 题 · 选择 ${p.choiceCount} 填空 ${p.fillCount} 解答 ${p.solutionCount}',
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+          style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
         const SizedBox(height: 12),
         Row(children: [
           ActionChipWidget(icon: Icons.thumb_up_alt_outlined, label: '${p.likeCount}', active: _liked, onTap: _toggleLike),

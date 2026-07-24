@@ -31,7 +31,7 @@ class ProfilePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final StatisticsRepository? statisticsRepository;
   final AchievementRepository? achievementRepository;
-  const ProfilePage({
+  ProfilePage({
     super.key,
     this.userRepository,
     this.preferenceRepository,
@@ -171,7 +171,7 @@ class ProfilePageState extends State<ProfilePage> {
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
         );
       }
     } catch (e) { OperationLog.instance.error('profile_page_load', e); 
@@ -180,7 +180,7 @@ class ProfilePageState extends State<ProfilePage> {
       setState(() => _uploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('头像上传失败: $e'), behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.error),
+          backgroundColor: context.colors.error),
       );
     }
   }
@@ -193,13 +193,13 @@ class ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('拍照'),
+              leading: Icon(Icons.camera_alt),
+              title: Text('拍照'),
               onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.camera); },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('从相册选择'),
+              leading: Icon(Icons.photo_library),
+              title: Text('从相册选择'),
               onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.gallery); },
             ),
           ],
@@ -221,13 +221,13 @@ class ProfilePageState extends State<ProfilePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('退出登录'),
+        title: Text('退出登录'),
         content: Text(msg),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('取消')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('退出', style: TextStyle(color: AppColors.error)),
+            child: Text('退出', style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -241,23 +241,23 @@ class ProfilePageState extends State<ProfilePage> {
       AuditLogger.instance.error('ProfilePage._logout', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('退出失败: $e'), backgroundColor: AppColors.error),
+        SnackBar(content: Text('退出失败: $e'), backgroundColor: context.colors.error),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('我的')),
+    appBar: AppBar(title: Text('我的')),
     body: _loading
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(child: CircularProgressIndicator())
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _load)
             : ListView(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
+            padding: EdgeInsets.all(AppSizes.baseSpacing),
             children: [
               _buildUserHeader(),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               _buildMenuEntries(context),
             ],
           ),
@@ -274,7 +274,7 @@ class ProfilePageState extends State<ProfilePage> {
         },
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               Row(
@@ -283,55 +283,55 @@ class ProfilePageState extends State<ProfilePage> {
                     onTap: _uploading ? null : _showAvatarPicker,
                     child: CircleAvatar(
                       radius: 32,
-                      backgroundColor: AppColors.primaryContainer,
+                      backgroundColor: context.colors.primaryContainer,
                       backgroundImage: info?.avatar != null && info!.avatar!.isNotEmpty
                           ? CachedNetworkImageProvider(info.avatar!)
                           : null,
                       child: info?.avatar == null || info!.avatar!.isEmpty
                           ? Text(info?.realName?.isNotEmpty == true ? info!.realName![0] : '?',
-                              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primary))
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.colors.primary))
                           : null,
                     ),
                   ),
                   if (_uploading) ...[
-                    const SizedBox(width: 8),
-                    const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                    SizedBox(width: 8),
+                    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                   ],
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(info?.realName ?? info?.name ?? '未登录',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                        SizedBox(height: 4),
                         if (info?.studentId != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
+                              color: context.colors.primaryContainer,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text('学号 ${info!.studentId}',
-                              style: const TextStyle(fontSize: 11, color: AppColors.primary)),
+                              style: TextStyle(fontSize: 11, color: context.colors.primary)),
                           ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  Icon(Icons.chevron_right, color: context.colors.textSecondary),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 8),
-                decoration: const BoxDecoration(
-                  border: Border(top: BorderSide(color: AppColors.border)),
+                padding: EdgeInsets.only(top: 8),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: context.colors.border)),
                 ),
-                child: const Text(
+                child: Text(
                   '点击编辑个人信息',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 11, color: context.colors.textMuted),
                 ),
               ),
             ],
@@ -383,18 +383,18 @@ class ProfilePageState extends State<ProfilePage> {
           final subtitle = e.$3;
           final onTap = e.$4 as VoidCallback?;
           return ListTile(
-            leading: Icon(icon, color: AppColors.primary),
+            leading: Icon(icon, color: context.colors.primary),
             title: Text(title),
-            subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 12)) : null,
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            subtitle: subtitle != null ? Text(subtitle, style: TextStyle(fontSize: 12)) : null,
+            trailing: Icon(Icons.chevron_right, color: context.colors.textSecondary),
             onTap: onTap,
           );
         });
         return [
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 16, 0, 4),
+            padding: EdgeInsets.fromLTRB(4, 16, 0, 4),
             child: Text(section.$1,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.colors.textSecondary),
             ),
           ),
           ...entries,

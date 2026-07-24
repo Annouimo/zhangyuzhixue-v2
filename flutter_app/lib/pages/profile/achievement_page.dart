@@ -13,7 +13,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 成就页 — 匹配 HTML 原型 achievement.html
 class AchievementPage extends StatefulWidget {
   final AchievementRepository? achievementRepository;
-  const AchievementPage({super.key, this.achievementRepository});
+  AchievementPage({super.key, this.achievementRepository});
 
   @override
   State<AchievementPage> createState() => _AchievementPageState();
@@ -46,19 +46,19 @@ class _AchievementPageState extends State<AchievementPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('成就')),
+    appBar: AppBar(title: Text('成就')),
     body: _buildBody(),
   );
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载成就…');
+    if (_loading) return LoadingIndicator(message: '加载成就…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
     final cats = _categories ?? [];
     return ListView(
-      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      padding: EdgeInsets.all(AppSizes.baseSpacing),
       children: [
         _buildSummary(),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         ...cats.map((cat) => _buildCategory(cat)),
       ],
     );
@@ -66,19 +66,19 @@ class _AchievementPageState extends State<AchievementPage> {
 
   Widget _buildSummary() {
     final s = _summary;
-    if (s == null) return const SizedBox.shrink();
+    if (s == null) return SizedBox.shrink();
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: EdgeInsets.symmetric(vertical: 24),
       child: Column(
         children: [
           Text(
             '${s.unlockedCount} / ${s.totalCount}',
-            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: AppColors.primary),
+            style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: context.colors.primary),
           ),
-          const SizedBox(height: 4),
-          const Text('已解锁成就',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+          SizedBox(height: 4),
+          Text('已解锁成就',
+            style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
         ],
       ),
     );
@@ -86,14 +86,14 @@ class _AchievementPageState extends State<AchievementPage> {
 
   Widget _buildCategory(AchievementCategory cat) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 4),
+            padding: EdgeInsets.only(left: 16, bottom: 4),
             child: Text(cat.label,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.colors.textSecondary)),
           ),
           ...cat.list.map((a) => _buildAchievementItem(a)),
         ],
@@ -108,51 +108,51 @@ class _AchievementPageState extends State<AchievementPage> {
     switch (a.status) {
       case 'unlocked':
         statusBg = AppColors.statusCompletedBg;
-        statusFg = AppColors.success;
+        statusFg = context.colors.success;
         statusLabel = '已解锁';
         break;
       case 'in_progress':
         statusBg = AppColors.statusInProgressBg;
-        statusFg = AppColors.warning;
+        statusFg = context.colors.warning;
         statusLabel = '进行中';
         break;
       default:
         statusBg = AppColors.statusPendingBg;
-        statusFg = AppColors.textSecondary;
+        statusFg = context.colors.textSecondary;
         statusLabel = '未解锁';
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-        boxShadow: [BoxShadow(color: AppColors.scrim.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: context.colors.scrim.withValues(alpha: 0.04), blurRadius: 4, offset: Offset(0, 2))],
       ),
       child: Row(
         children: [
           SizedBox(
             width: 40,
-            child: Text(a.iconEmoji, style: const TextStyle(fontSize: 24), textAlign: TextAlign.center),
+            child: Text(a.iconEmoji, style: TextStyle(fontSize: 24), textAlign: TextAlign.center),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(a.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 1),
-                Text(a.description, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(a.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                SizedBox(height: 1),
+                Text(a.description, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                 if (a.status == 'unlocked' && a.unlockedAt != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 1),
+                    padding: EdgeInsets.only(top: 1),
                     child: Text('${a.unlockedAt} 解锁',
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                      style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
                   ),
                 if (a.status == 'in_progress')
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
+                    padding: EdgeInsets.only(top: 4),
                     child: Row(
                       children: [
                         SizedBox(
@@ -161,16 +161,16 @@ class _AchievementPageState extends State<AchievementPage> {
                             borderRadius: BorderRadius.circular(2),
                             child: LinearProgressIndicator(
                               value: (a.progressPercent / 100).clamp(0.0, 1.0),
-                              backgroundColor: AppColors.border,
+                              backgroundColor: context.colors.border,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           a.isAccuracyRate
                             ? '${a.progress}% / ${a.threshold}%'
                             : '${a.progress}/${a.threshold}',
-                          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                          style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
                       ],
                     ),
                   ),
@@ -178,7 +178,7 @@ class _AchievementPageState extends State<AchievementPage> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
             decoration: BoxDecoration(
               color: statusBg,
               borderRadius: BorderRadius.circular(20),

@@ -44,7 +44,7 @@ class SolveRevealWidget extends StatefulWidget {
   /// 展示题库的内容 widget（stem / 选项等）
   final Widget child;
 
-  const SolveRevealWidget({
+  SolveRevealWidget({
     super.key,
     this.cooldownSeconds = 10,
     this.answerValue,
@@ -94,7 +94,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.child,
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         if (!answerShown)
           CoolingTimer(
             key: _timerKey,
@@ -106,16 +106,16 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
                 height: 44,
                 child: ElevatedButton(
                   onPressed: _reveal,
-                  child: const Text('查看答案'),
+                  child: Text('查看答案'),
                 ),
               ),
             ),
           ),
         if (answerShown) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 答案卡
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: colors.primaryContainer.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
@@ -125,12 +125,12 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                   decoration: BoxDecoration(
                     color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text('正确答案',
+                  child: Text('正确答案',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
@@ -138,7 +138,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
                   ),
                 ),
                 if (widget.answerValue != null) ...[
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   MdLatexBody(widget.answerValue!, fontSize: 20),
                 ],
               ],
@@ -146,9 +146,9 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           ),
           // 解析卡
           if (widget.explanation != null && widget.explanation!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
@@ -159,16 +159,16 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           ],
           // 自评区
           if (widget.revealed && widget.feedbackWidget != null) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             widget.feedbackWidget!,
           ],
           if (widget.revealed && widget.feedbackResult != null) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             widget.feedbackResult!,
           ],
         ],
         if (done) ...[
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           DoneBanner(
             onNext: widget.onNext,
             onRate: widget.onRate,

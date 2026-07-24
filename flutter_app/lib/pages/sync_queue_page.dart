@@ -11,7 +11,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 同步队列状态页
 class SyncQueuePage extends StatefulWidget {
   final SyncRepository? syncRepository;
-  const SyncQueuePage({super.key, this.syncRepository});
+  SyncQueuePage({super.key, this.syncRepository});
 
   @override State<SyncQueuePage> createState() => _SyncQueuePageState();
 }
@@ -53,7 +53,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已重置失败项，将在下次同步时重试'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text('已重置失败项，将在下次同步时重试'), behavior: SnackBarBehavior.floating),
       );
     } catch (_) {}
     if (!mounted) return;
@@ -72,24 +72,24 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'pending': return AppColors.textSecondary;
-      case 'inProgress': return AppColors.warning;
-      case 'failed': return AppColors.error;
-      case 'permanentFailure': return AppColors.textMuted;
-      default: return AppColors.textSecondary;
+      case 'pending': return context.colors.textSecondary;
+      case 'inProgress': return context.colors.warning;
+      case 'failed': return context.colors.error;
+      case 'permanentFailure': return context.colors.textMuted;
+      default: return context.colors.textSecondary;
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('同步状态'),
+      title: Text('同步状态'),
       actions: [
         if (_items != null && _items!.any((i) => i.status == 'pending' || i.status == 'failed'))
           IconButton(
             icon: _retrying
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.refresh),
+                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Icon(Icons.refresh),
             tooltip: '全部重试',
             onPressed: _retrying ? null : _onRetryAll,
           ),
@@ -99,45 +99,45 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
   );
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载同步队列…');
+    if (_loading) return LoadingIndicator(message: '加载同步队列…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
 
     final items = _items ?? [];
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text('✅', style: TextStyle(fontSize: 48)),
           SizedBox(height: 12),
-          Text('全部已同步', style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
+          Text('全部已同步', style: TextStyle(fontSize: 16, color: context.colors.textSecondary)),
         ]),
       );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      padding: EdgeInsets.all(AppSizes.baseSpacing),
       itemCount: items.length,
-      separatorBuilder: (_, _) => const Divider(height: 1),
+      separatorBuilder: (_, _) => Divider(height: 1),
       itemBuilder: (_, i) {
         final item = items[i];
         final isFailed = item.status == 'failed';
         return ListTile(
-          leading: Icon(item.icon, size: 24, color: AppColors.primary),
-          title: Text(item.entityTypeName, style: const TextStyle(fontSize: 15)),
+          leading: Icon(item.icon, size: 24, color: context.colors.primary),
+          title: Text(item.entityTypeName, style: TextStyle(fontSize: 15)),
           subtitle: item.errorMessage != null
               ? Text(item.errorMessage!,
-                  style: const TextStyle(fontSize: 11, color: AppColors.error),
+                  style: TextStyle(fontSize: 11, color: context.colors.error),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis)
               : Text(item.timeAgo,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
           trailing: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 100),
+            constraints: BoxConstraints(maxWidth: 100),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Text(_statusLabel(item.status),
                 style: TextStyle(fontSize: 13, color: _statusColor(item.status))),
               if (isFailed) ...[
-                const SizedBox(width: 4),
-                Text('(${item.retryCount})', style: const TextStyle(fontSize: 11, color: AppColors.error)),
+                SizedBox(width: 4),
+                Text('(${item.retryCount})', style: TextStyle(fontSize: 11, color: context.colors.error)),
               ],
             ]),
           ),

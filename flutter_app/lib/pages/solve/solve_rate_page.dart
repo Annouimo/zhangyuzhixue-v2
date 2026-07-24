@@ -16,7 +16,7 @@ class SolveRatePage extends StatefulWidget {
   final int questionId;
   final RatingRepository? ratingRepository;
 
-  const SolveRatePage({
+  SolveRatePage({
     super.key,
     required this.questionId,
     this.ratingRepository,
@@ -109,46 +109,46 @@ class _SolveRatePageState extends State<SolveRatePage> {
   Widget build(BuildContext context) {
       final colors = context.colors;
     return Scaffold(
-      appBar: AppBar(title: const Text('评分')),
+      appBar: AppBar(title: Text('评分')),
       body: _loading
-          ? const LoadingIndicator()
+          ? LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: const Text('重试')),
+                  SizedBox(height: 8),
+                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: Text('重试')),
                 ]))
               : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text('请为这道题打分', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   _StarRating(label: '难度', value: _difficulty, note: '', algorithmScore: _algoDifficulty > 0 ? _algoDifficulty : null, max: 10, onChanged: (v) => setState(() => _difficulty = v)),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   _StarRating(label: '计算量', value: _calculation, note: '', algorithmScore: _algoCalculation > 0 ? _algoCalculation : null, max: 10, onChanged: (v) => setState(() => _calculation = v)),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
-                  const SizedBox(height: 12),
-                  const Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
+                  SizedBox(height: 12),
+                  Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
                     style: TextStyle(fontSize: 12, color: colors.textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: (_submitted || _saving) ? null : _submit,
                     child: _saving
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : Text(_submitted ? '已评分' : '提交评分（可获得 +$_rewardPoints 赠送积分）'),
                   ),
                   if (_submitted) ...[
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Center(child: TextButton(
                       onPressed: () => setState(() => _submitted = false),
-                      child: const Text('修改评分'),
+                      child: Text('修改评分'),
                     )),
                   ],
                 ],
@@ -165,21 +165,21 @@ class _StarRating extends StatelessWidget {
   final int max;
   final double? algorithmScore;
   final ValueChanged<int> onChanged;
-  const _StarRating({required this.label, required this.value, required this.note, required this.max, this.algorithmScore, required this.onChanged});
+  _StarRating({required this.label, required this.value, required this.note, required this.max, this.algorithmScore, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
       final colors = context.colors;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
           if (algorithmScore != null && algorithmScore! > 0) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: colors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -190,23 +190,23 @@ class _StarRating extends StatelessWidget {
             ),
           ],
           if (note.isNotEmpty) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(note, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
           ],
         ]),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Row(children: List.generate(max, (i) {
           final filled = i < value;
           return GestureDetector(
             onTap: () => onChanged(i + 1),
             child: Padding(
-              padding: const EdgeInsets.only(right: 2),
+              padding: EdgeInsets.only(right: 2),
               child: Icon(filled ? Icons.star : Icons.star_border,
                 color: filled ? colors.warning : colors.disabledForeground, size: 28),
             ),
           );
         })),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(value > 0 ? '$value / $max' : '—', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
       ]),
     );

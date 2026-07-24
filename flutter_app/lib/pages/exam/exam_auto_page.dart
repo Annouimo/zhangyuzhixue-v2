@@ -146,7 +146,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('积分不足，智能组卷需要 $_kAutoPaperCost 积分'),
-            backgroundColor: AppColors.error,
+            backgroundColor: context.colors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -268,7 +268,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-                          side: const BorderSide(color: AppColors.border),
+                          side: BorderSide(color: context.colors.border),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -289,7 +289,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-                        side: const BorderSide(color: AppColors.border),
+                        side: BorderSide(color: context.colors.border),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -304,7 +304,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                             const Text('难度调优（可选）', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                             const SizedBox(height: 4),
                             Text('设置目标平均难度，系统自动挑选最接近的题目组合',
-                                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
                             const SizedBox(height: 8),
                             DifficultySlider(
                               label: '目标难度', min: 0, max: 10,
@@ -314,9 +314,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                             if (_poolStats != null) ...[
                               const SizedBox(height: 4),
                               Text('当前筛选池：${_poolStats!.poolDiffMin.toStringAsFixed(2)} — ${_poolStats!.poolDiffMax.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                                  style: TextStyle(fontSize: 11, color: context.colors.textMuted)),
                               Text('高考全卷参考：最小 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(2)} · 平均 ${_poolStats!.gaokaoDiffAvg.toStringAsFixed(2)} · 最大 ${_poolStats!.gaokaoDiffMax.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                                  style: TextStyle(fontSize: 11, color: context.colors.textMuted)),
                             ],
                           ],
                         ),
@@ -343,10 +343,10 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: context.colors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
+      child: Text('$label $count', style: TextStyle(fontSize: 12, color: context.colors.primary, fontWeight: FontWeight.w500)),
     );
   }
 
@@ -364,7 +364,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
           if (availableCount > 0)
             Padding(
               padding: const EdgeInsets.only(left: 8),
-              child: Text('（可用 $availableCount 题）', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              child: Text('（可用 $availableCount 题）', style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
             ),
         ],
       ),

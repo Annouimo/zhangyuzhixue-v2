@@ -54,7 +54,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       : _error != null
           ? ErrorPlaceholder(message: _error!, onRetry: _load)
           : _history == null || _history!.isEmpty
-        ? const Center(child: Text('暂无做题记录', style: TextStyle(color: AppColors.textSecondary)))
+        ? Center(child: Text('暂无做题记录', style: TextStyle(color: context.colors.textSecondary)))
         : ListView.separated(
             padding: const EdgeInsets.all(AppSizes.baseSpacing),
             itemCount: _history!.length,

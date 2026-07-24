@@ -17,7 +17,7 @@ class SolveMapPage extends StatefulWidget {
   final String? mode;
   final int? attemptId;
 
-  const SolveMapPage({
+  SolveMapPage({
     super.key,
     required this.questionId,
     this.mode,
@@ -169,14 +169,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
   Widget build(BuildContext context) {
       final colors = context.colors;
     return Scaffold(
-      appBar: AppBar(title: const Text('解题地图')),
+      appBar: AppBar(title: Text('解题地图')),
       body: _loading
-          ? const LoadingIndicator()
+          ? LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                   Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+                  SizedBox(height: 8),
+                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: Text('重试')),
                 ]))
               : _buildMapView(),
     );
@@ -185,7 +185,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   Widget _buildAttemptSelector() {
       final colors = context.colors;
-    if (_attempts.isEmpty) return const SizedBox.shrink();
+    if (_attempts.isEmpty) return SizedBox.shrink();
 
     final label = _currentAttemptNumber != null
         ? '第 $_currentAttemptNumber 次作答'
@@ -193,7 +193,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
     if (_attempts.length <= 1) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
@@ -233,7 +233,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           });
         }
       },
-      offset: const Offset(0, 28),
+      offset: Offset(0, 28),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       itemBuilder: (context) => [
         ..._attempts.map((a) => PopupMenuItem<Object>(
@@ -248,7 +248,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                   color: a.attemptNumber == _currentAttemptNumber ? colors.primary : colors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 a.status == 'completed' ? '回顾' : '进行中',
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
@@ -258,7 +258,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         )),
       ],
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
@@ -279,16 +279,16 @@ class _SolveMapPageState extends State<SolveMapPage> {
   Widget _buildMapView() {
       final colors = context.colors;
     if (_state == null || _state!.subQuestions.isEmpty) {
-      return const Center(child: Text('暂无步骤数据'));
+      return Center(child: Text('暂无步骤数据'));
     }
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       children: [
         // 题目元信息栏
         if (_detail != null)
           Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: colors.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
@@ -297,10 +297,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
               children: [
                 if (_detail!.number.isNotEmpty)
                   Text('第 ${_detail!.number} 题',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                 if (_detail!.number.isNotEmpty && _detail!.title.isNotEmpty)
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                 if (_detail!.title.isNotEmpty)
                   Expanded(
                     child: Text(_detail!.title,
@@ -308,9 +308,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
@@ -319,7 +319,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                     style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _buildAttemptSelector(),
               ],
             ),
@@ -328,14 +328,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
         // 回顾横幅
         if (_reviewMode)
           Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: colors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
-            child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
+            child: Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
               style: TextStyle(fontSize: 13, color: colors.primary),
             ),
           ),
@@ -379,20 +379,20 @@ class _SolveMapPageState extends State<SolveMapPage> {
           }
 
           return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(14),
+            margin: EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.all(14),
             decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(child: Text(sq.label,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary))),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
                   child: Text(statusLabel, style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w500)),
                 ),
               ]),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               ...sq.solutions.asMap().entries.map((mEntry) {
                 final mi = mEntry.key;
                 final m = mEntry.value;
@@ -400,7 +400,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 final isCollapsed = _collapsedMethods.contains(methodKey);
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 8),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     // 解法标题（可点击折叠）
                     InkWell(
@@ -414,14 +414,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
                         });
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
+                        padding: EdgeInsets.only(bottom: 6),
                         child: Row(children: [
                           Text(m.methodName?.isNotEmpty == true ? '\u{1F4D0} ${m.methodName}' : '唯一解法',
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
-                          const Spacer(),
+                          Spacer(),
                           Text('${m.steps.where((s) => _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')).length}/${m.steps.length} 步',
                             style: TextStyle(fontSize: 11, color: colors.textSecondary)),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
                             size: 16, color: colors.textSecondary),
                         ]),
@@ -442,18 +442,18 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             _load();
                           },
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            padding: EdgeInsets.symmetric(vertical: 4),
                             child: Row(children: [
                               Container(width: 24, height: 24,
                                 decoration: BoxDecoration(
                                   color: isStepDone ? colors.success : (stepLocked ? colors.disabledBackground : colors.primaryContainer),
                                   borderRadius: BorderRadius.circular(12)),
                                 child: Center(child: isStepDone
-                                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                  ? Icon(Icons.check, size: 14, color: Colors.white)
                                   : (stepLocked
-                                    ? const Text('\u{1F512}', style: TextStyle(fontSize: 11))
+                                    ? Text('\u{1F512}', style: TextStyle(fontSize: 11))
                                     : Text('${st.stepNumber}', style: TextStyle(fontSize: 11, color: colors.primary))))),
-                              const SizedBox(width: 10),
+                              SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,22 +478,22 @@ class _SolveMapPageState extends State<SolveMapPage> {
             ]),
           );
         }),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(children: [
           Expanded(child: OutlinedButton.icon(
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back, size: 16),
-            label: const Text('返回'))),
-          const SizedBox(width: 12),
+            icon: Icon(Icons.arrow_back, size: 16),
+            label: Text('返回'))),
+          SizedBox(width: 12),
           Expanded(child: OutlinedButton.icon(
             onPressed: _onRetry,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('重新作答'))),
-          const SizedBox(width: 12),
+            icon: Icon(Icons.refresh, size: 16),
+            label: Text('重新作答'))),
+          SizedBox(width: 12),
           Expanded(child: OutlinedButton.icon(
             onPressed: () => context.push('${AppRoutes.solveRate}?id=${widget.questionId}'),
-            icon: const Icon(Icons.star, size: 16),
-            label: const Text('评分'))),
+            icon: Icon(Icons.star, size: 16),
+            label: Text('评分'))),
         ]),
       ],
     );

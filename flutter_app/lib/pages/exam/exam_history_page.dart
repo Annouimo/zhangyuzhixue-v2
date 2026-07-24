@@ -42,7 +42,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
         content: const Text('确定要删除此组卷吗？'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('删除', style: TextStyle(color: AppColors.error))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('删除', style: TextStyle(color: context.colors.error))),
         ],
       ),
     );
@@ -101,7 +101,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 ),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                 const SizedBox(width: 4),
-                ActionChipWidget(icon: Icons.check_circle, iconColor: AppColors.success, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
+                ActionChipWidget(icon: Icons.check_circle, iconColor: context.colors.success, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
                 const SizedBox(width: 4),
                 ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
               ],

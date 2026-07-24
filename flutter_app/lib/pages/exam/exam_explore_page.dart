@@ -100,7 +100,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   label: Text(opt.$2, style: const TextStyle(fontSize: 12)),
                   selected: _sortBy == opt.$1,
                   onSelected: (_) => setState(() => _sortBy = opt.$1),
-                  selectedColor: AppColors.primaryContainer,
+                  selectedColor: context.colors.primaryContainer,
                   side: BorderSide.none,
                 ),
               )).toList(),
@@ -148,7 +148,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                     actions: [
                       ActionChipWidget(
                         icon: e.isLiked ? Icons.favorite : Icons.favorite_border,
-                        iconColor: e.isLiked ? AppColors.primary : null,
+                        iconColor: e.isLiked ? context.colors.primary : null,
                         label: '${e.likeCount}',
                         onTap: () => _toggleLike(e.id),
                       ),

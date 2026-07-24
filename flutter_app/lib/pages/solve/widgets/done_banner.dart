@@ -8,36 +8,36 @@ class DoneBanner extends StatelessWidget {
   final VoidCallback? onNext;
   final VoidCallback? onRate;
 
-  const DoneBanner({super.key, this.isRated = false, this.onNext, this.onRate});
+  DoneBanner({super.key, this.isRated = false, this.onNext, this.onRate});
 
   @override
   Widget build(BuildContext context) {
       final colors = context.colors;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
         color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(children: [
         Icon(Icons.celebration, size: 20, color: colors.primary),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Text(isRated ? '已完成 — 已评分' : '已完成',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
           ),
         ),
-        const Spacer(),
+        Spacer(),
         if (onNext != null)
           TextButton.icon(
             onPressed: onNext,
-            icon: const Text('下一题'),
-            label: const Icon(Icons.arrow_forward, size: 16),
+            icon: Text('下一题'),
+            label: Icon(Icons.arrow_forward, size: 16),
           ),
         if (onRate != null)
           TextButton(
             onPressed: onRate,
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.star, size: 14, color: colors.warning),

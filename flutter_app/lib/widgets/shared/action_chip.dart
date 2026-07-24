@@ -32,14 +32,15 @@ class ActionChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = active ? (activeColor ?? AppColors.primary) : (iconColor ?? AppColors.textSecondary);
+      final colors = context.colors;
+    final fg = active ? (activeColor ?? colors.primary) : (iconColor ?? colors.textSecondary);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? AppColors.primaryContainer : null,
-          border: active ? null : Border.all(color: AppColors.border),
+          color: active ? colors.primaryContainer : null,
+          border: active ? null : Border.all(color: colors.border),
           borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
         ),
         child: Row(

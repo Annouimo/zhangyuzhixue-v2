@@ -15,7 +15,7 @@ class LectureChaptersPage extends StatefulWidget {
   final int courseId;
   final LectureRepository? lectureRepository;
 
-  const LectureChaptersPage({
+  LectureChaptersPage({
     super.key,
     required this.courseId,
     this.lectureRepository,
@@ -74,19 +74,19 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载章节…');
+    if (_loading) return LoadingIndicator(message: '加载章节…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_chapterList == null || _chapterList!.items.isEmpty) {
-      return const EmptyPlaceholder(icon: Icons.article,
+      return EmptyPlaceholder(icon: Icons.article,
         message: '暂无章节',
       );
     }
     return ListView.separated(
-        padding: const EdgeInsets.all(AppSizes.baseSpacing),
+        padding: EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _chapterList!.items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => SizedBox(height: 8),
         itemBuilder: (context, index) {
           final chapter = _chapterList!.items[index];
           return _ChapterCard(
@@ -113,7 +113,7 @@ class _ChapterCard extends StatelessWidget {
   final int index;
   final VoidCallback onTap;
 
-  const _ChapterCard({
+  _ChapterCard({
     required this.title,
     required this.index,
     required this.onTap,
@@ -127,7 +127,7 @@ class _ChapterCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
@@ -140,7 +140,7 @@ class _ChapterCard extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$index',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: colors.primary,
@@ -148,18 +148,18 @@ class _ChapterCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: colors.textPrimary,
                   ),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 color: colors.textSecondary,
               ),

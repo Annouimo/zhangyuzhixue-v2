@@ -16,7 +16,7 @@ import '../../../data/prefs/app_prefs.dart';
 /// 等级详情页 — 匹配 HTML 原型 level_detail.html
 class LevelDetailPage extends StatefulWidget {
   final UserRepository? userRepository;
-  const LevelDetailPage({super.key, this.userRepository});
+  LevelDetailPage({super.key, this.userRepository});
 
   @override State<LevelDetailPage> createState() => _LevelDetailPageState();
 }
@@ -65,24 +65,24 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('等级详情')),
+    appBar: AppBar(title: Text('等级详情')),
     body: _loading
-        ? const LoadingIndicator()
+        ? LoadingIndicator()
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _load)
             : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSizes.baseSpacing),
+              padding: EdgeInsets.all(AppSizes.baseSpacing),
               child: Column(children: [
                 // 等级徽章
                 _buildBadge(),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 // 超过百分比
                 Text('超过 $_percentile% 的用户',
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                const SizedBox(height: 16),
+                  style: TextStyle(fontSize: 13, color: context.colors.textSecondary)),
+                SizedBox(height: 16),
                 // 4 积分概览
                 _buildPointsSummary(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 // 等级对照表
                 _buildLevelTable(),
               ]),
@@ -91,18 +91,18 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
 
   Widget _buildBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: context.colors.primary,
         borderRadius: BorderRadius.circular(50),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.emoji_events, color: Colors.white, size: 28),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Text('Lv.$_level',
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
         ],
       ),
     );
@@ -119,45 +119,45 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('等级对照',
+            Text('等级对照',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 2),
-            const Text('等级依据学习积分计算',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            const SizedBox(height: 8),
+            SizedBox(height: 2),
+            Text('等级依据学习积分计算',
+              style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+            SizedBox(height: 8),
             Table(
-              columnWidths: const {0: FixedColumnWidth(50), 1: FlexColumnWidth()},
+              columnWidths: {0: FixedColumnWidth(50), 1: FlexColumnWidth()},
               children: _levels.map((r) {
                 final isCurrent = r.level == _level;
                 return TableRow(
                   decoration: isCurrent
-                      ? const BoxDecoration(color: AppColors.primaryContainer)
+                      ? BoxDecoration(color: context.colors.primaryContainer)
                       : null,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                       child: Text('Lv.${r.level}',
                         style: TextStyle(
                           fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
                           fontSize: 13,
                           color: r.level > _level
-                              ? AppColors.textMuted
-                              : (isCurrent ? AppColors.primary : AppColors.textPrimary),
+                              ? context.colors.textMuted
+                              : (isCurrent ? context.colors.primary : context.colors.textPrimary),
                         )),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                       child: Text(r.range,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: isCurrent ? FontWeight.w600 : FontWeight.normal,
                           color: r.level > _level
-                              ? AppColors.textMuted
-                              : (isCurrent ? AppColors.primary : AppColors.textSecondary),
+                              ? context.colors.textMuted
+                              : (isCurrent ? context.colors.primary : context.colors.textSecondary),
                         )),
                     ),
                   ],

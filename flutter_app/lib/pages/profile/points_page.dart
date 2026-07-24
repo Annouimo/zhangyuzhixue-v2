@@ -16,7 +16,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 积分流水页 — 匹配 HTML 原型 points.html
 class PointsPage extends StatefulWidget {
   final UserRepository? userRepository;
-  const PointsPage({super.key, this.userRepository});
+  PointsPage({super.key, this.userRepository});
 
   @override State<PointsPage> createState() => _PointsPageState();
 }
@@ -60,16 +60,16 @@ class _PointsPageState extends State<PointsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('积分流水')),
+    appBar: AppBar(title: Text('积分流水')),
     body: _loading
-        ? const LoadingIndicator()
+        ? LoadingIndicator()
         : _error != null
             ? ErrorPlaceholder(message: _error!, onRetry: _load)
             : ListView(
-              padding: const EdgeInsets.all(AppSizes.baseSpacing),
+              padding: EdgeInsets.all(AppSizes.baseSpacing),
               children: [
                 _buildSummary(),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 ..._buildTableRows(),
               ],
             ),
@@ -84,63 +84,63 @@ class _PointsPageState extends State<PointsPage> {
   List<Widget> _buildTableRows() {
     final list = _records ?? [];
     if (list.isEmpty) {
-      return [const Center(child: Padding(
+      return [Center(child: Padding(
         padding: EdgeInsets.all(AppSizes.baseSpacing * 2),
-        child: Text('暂无流水记录', style: TextStyle(color: AppColors.textSecondary)),
+        child: Text('暂无流水记录', style: TextStyle(color: context.colors.textSecondary)),
       ))];
     }
     return [
       // 表头
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.border)),
+        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.border)),
         ),
         child: Row(
           children: [
-            Expanded(flex: 2, child: Text('时间', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            Expanded(flex: 2, child: Text('类型', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text('变动', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text('学习', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text('赠送', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text('消耗', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
-            SizedBox(width: 48, child: Text('可用', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary))),
+            Expanded(flex: 2, child: Text('时间', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            Expanded(flex: 2, child: Text('类型', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            SizedBox(width: 48, child: Text('变动', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            SizedBox(width: 48, child: Text('学习', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            SizedBox(width: 48, child: Text('赠送', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            SizedBox(width: 48, child: Text('消耗', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
+            SizedBox(width: 48, child: Text('可用', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: context.colors.textSecondary))),
           ],
         ),
       ),
       ...list.map((r) {
       final isPositive = r.change >= 0;
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: context.colors.border, width: 0.5)),
         ),
         child: Row(
           children: [
             Expanded(flex: 2, child: Text(r.time.length >= 10 ? r.time.substring(5, 10) : r.time,
-              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary))),
-            Expanded(flex: 2, child: Text(r.type, style: const TextStyle(fontSize: 13))),
+              style: TextStyle(fontSize: 11, color: context.colors.textSecondary))),
+            Expanded(flex: 2, child: Text(r.type, style: TextStyle(fontSize: 13))),
             SizedBox(width: 48, child: Text('${isPositive ? '+' : ''}${formatAmount(r.change)}',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                color: isPositive ? AppColors.success : AppColors.error))),
+                color: isPositive ? context.colors.success : context.colors.error))),
             SizedBox(width: 48, child: Text(formatAmount(r.earned),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+              style: TextStyle(fontSize: 12, color: context.colors.textSecondary))),
             SizedBox(width: 48, child: Text(formatAmount(r.bonus),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+              style: TextStyle(fontSize: 12, color: context.colors.textSecondary))),
             SizedBox(width: 48, child: Text(formatAmount(r.spent),
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+              style: TextStyle(fontSize: 12, color: context.colors.textSecondary))),
             SizedBox(width: 48, child: Text(formatAmount(r.available),
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
           ],
         ),
       );
     }),
-    const SizedBox(height: 4),
+    SizedBox(height: 4),
     Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: const Text('💡 类型说明：做题 → 学习积分增加；\n'
+      padding: EdgeInsets.symmetric(horizontal: 4),
+      child: Text('💡 类型说明：做题 → 学习积分增加；\n'
           '签到/完成任务/退出评价/题目评价/新人赠送 → 赠送积分增加；组卷消费 → 消耗增加+可用减少',
-        style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
     ),
   ];
  }

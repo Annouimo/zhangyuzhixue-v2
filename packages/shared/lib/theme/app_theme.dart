@@ -134,6 +134,9 @@ abstract final class AppColorsDark {
   static const selectionText = Color(0xFFEAF4FF);
   static const mediaSurface = Color(0xFFFFFFFF);
   static const imageBorder = Color(0xFF5C6D82);
+  static const heatmapLevel1 = Color(0xFF0E2947);
+  static const heatmapLevel2 = Color(0xFF1A4D85);
+  static const heatmapLevel3 = primary;
 }
 
 /// ThemeExtension — 产品语义色（通过 Theme.of 运行时读取）
@@ -171,6 +174,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     required this.onErrorContainer,
     required this.onInfoContainer,
     required this.onRecommendationContainer,
+    required this.heatmapLevel1,
+    required this.heatmapLevel2,
+    required this.heatmapLevel3,
   });
 
   final Color primary;
@@ -205,6 +211,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color onErrorContainer;
   final Color onInfoContainer;
   final Color onRecommendationContainer;
+  final Color heatmapLevel1;
+  final Color heatmapLevel2;
+  final Color heatmapLevel3;
 
   static const light = AppSemanticColors(
     primary: AppColors.primary,
@@ -239,6 +248,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     onErrorContainer: AppColors.onErrorContainer,
     onInfoContainer: AppColors.onInfoContainer,
     onRecommendationContainer: AppColors.onRecommendationContainer,
+    heatmapLevel1: AppColors.heatmapLevel1,
+    heatmapLevel2: AppColors.heatmapLevel2,
+    heatmapLevel3: AppColors.heatmapLevel3,
   );
 
   static const dark = AppSemanticColors(
@@ -274,6 +286,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     onErrorContainer: AppColorsDark.onErrorContainer,
     onInfoContainer: AppColorsDark.onInfoContainer,
     onRecommendationContainer: AppColorsDark.onRecommendationContainer,
+    heatmapLevel1: AppColorsDark.heatmapLevel1,
+    heatmapLevel2: AppColorsDark.heatmapLevel2,
+    heatmapLevel3: AppColorsDark.heatmapLevel3,
   );
 
   @override
@@ -310,6 +325,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     Color? onErrorContainer,
     Color? onInfoContainer,
     Color? onRecommendationContainer,
+    Color? heatmapLevel1,
+    Color? heatmapLevel2,
+    Color? heatmapLevel3,
   }) {
     return AppSemanticColors(
       primary: primary ?? this.primary,
@@ -344,6 +362,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       onErrorContainer: onErrorContainer ?? this.onErrorContainer,
       onInfoContainer: onInfoContainer ?? this.onInfoContainer,
       onRecommendationContainer: onRecommendationContainer ?? this.onRecommendationContainer,
+      heatmapLevel1: heatmapLevel1 ?? this.heatmapLevel1,
+      heatmapLevel2: heatmapLevel2 ?? this.heatmapLevel2,
+      heatmapLevel3: heatmapLevel3 ?? this.heatmapLevel3,
     );
   }
 
@@ -382,6 +403,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       onErrorContainer: Color.lerp(onErrorContainer, other.onErrorContainer, t)!,
       onInfoContainer: Color.lerp(onInfoContainer, other.onInfoContainer, t)!,
       onRecommendationContainer: Color.lerp(onRecommendationContainer, other.onRecommendationContainer, t)!,
+      heatmapLevel1: Color.lerp(heatmapLevel1, other.heatmapLevel1, t)!,
+      heatmapLevel2: Color.lerp(heatmapLevel2, other.heatmapLevel2, t)!,
+      heatmapLevel3: Color.lerp(heatmapLevel3, other.heatmapLevel3, t)!,
     );
   }
 }
