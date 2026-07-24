@@ -29,7 +29,6 @@ class CoolingTimerState extends State<CoolingTimer> {
   bool get isCoolingDown => _active && _remaining > 0;
 
   void start() {
-      final colors = context.colors;
     _timer?.cancel();
     setState(() {
       _remaining = widget.seconds;
@@ -47,7 +46,6 @@ class CoolingTimerState extends State<CoolingTimer> {
   }
 
   void reset() {
-      final colors = context.colors;
     _timer?.cancel();
     setState(() {
       _remaining = 0;
@@ -57,7 +55,6 @@ class CoolingTimerState extends State<CoolingTimer> {
 
   @override
   void dispose() {
-      final colors = context.colors;
     _timer?.cancel();
     super.dispose();
   }
