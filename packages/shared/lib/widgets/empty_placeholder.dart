@@ -6,7 +6,7 @@ class EmptyPlaceholder extends StatelessWidget {
   final String message;
   final IconData? icon;
 
-  const EmptyPlaceholder({
+  EmptyPlaceholder({
     super.key,
     required this.message,
     this.icon,
@@ -24,10 +24,10 @@ class EmptyPlaceholder extends StatelessWidget {
             size: 48,
             color: colors.textSecondary,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               color: colors.textSecondary,
               fontSize: 14,
             ),

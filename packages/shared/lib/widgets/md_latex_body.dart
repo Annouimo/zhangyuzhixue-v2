@@ -14,7 +14,7 @@ class MdLatexBody extends StatelessWidget {
   final String data;
   final double fontSize;
 
-  const MdLatexBody(
+  MdLatexBody(
     this.data, {
     super.key,
     this.fontSize = 14,
@@ -23,7 +23,7 @@ class MdLatexBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
       final colors = context.colors;
-    if (data.isEmpty) return const SizedBox.shrink();
+    if (data.isEmpty) return SizedBox.shrink();
 
     return MarkdownBody(
       data: data,
@@ -58,11 +58,11 @@ class MdLatexBody extends StatelessWidget {
           color: colors.textPrimary,
           height: 1.4,
         ),
-        strong: const TextStyle(
+        strong: TextStyle(
           fontWeight: FontWeight.bold,
           color: colors.textPrimary,
         ),
-        em: const TextStyle(
+        em: TextStyle(
           fontStyle: FontStyle.normal,
           color: colors.textSecondary,
         ),
@@ -173,7 +173,7 @@ class _SafeMath extends StatelessWidget {
   final String tex;
   final MathStyle mathStyle;
   final TextStyle? textStyle;
-  const _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
+  _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +202,7 @@ class _SafeMath extends StatelessWidget {
       );
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8),
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,

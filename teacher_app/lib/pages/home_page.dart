@@ -124,8 +124,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: [
-        const QuestionBankPage(),
-        const LectureCoursesPage(),
+        QuestionBankPage(),
+        LectureCoursesPage(),
         SettingsPage(key: _settingsKey),
       ]),
       bottomNavigationBar: BottomNavigationBar(

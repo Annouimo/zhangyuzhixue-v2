@@ -47,24 +47,23 @@ class QuestionImage extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
-      final colors = context.colors;
     return Container(
       constraints: const BoxConstraints(minHeight: 80),
       width: width ?? double.infinity,
       decoration: BoxDecoration(
-        color: colors.border,
+        color: AppColors.border,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Center(
+      child: Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.broken_image_outlined, size: 28, color: colors.textSecondary),
+              Icon(Icons.broken_image_outlined, size: 28, color: AppColors.textSecondary),
               SizedBox(height: 4),
               Text('配图加载失败',
-                style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ],
           ),

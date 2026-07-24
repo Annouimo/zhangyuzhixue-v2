@@ -11,7 +11,7 @@ class DifficultySlider extends StatelessWidget {
   final ValueChanged<RangeValues> onChanged;
   final int divisions;
 
-  const DifficultySlider({
+  DifficultySlider({
     super.key,
     required this.label,
     required this.min,
@@ -29,7 +29,7 @@ class DifficultySlider extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary,
           ),
         ),

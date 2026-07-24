@@ -48,7 +48,7 @@ class _SyncProgressDialog extends StatefulWidget {
   final String dialogTitle;
   final String dialogMessage;
 
-  const _SyncProgressDialog({
+  _SyncProgressDialog({
     required this.task,
     required this.completer,
     this.dataVerifier,
@@ -107,7 +107,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     return PopScope(
       canPop: _status != 'progress',
       child: AlertDialog(
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        contentPadding: EdgeInsets.fromLTRB(24, 28, 24, 20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: SizedBox(
           width: 280,
@@ -129,17 +129,17 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.file_download, size: 40, color: colors.primary),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Text(
           widget.dialogTitle,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           widget.dialogMessage,
           style: TextStyle(fontSize: 13, color: colors.textMuted),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         ClipRRect(
           borderRadius: BorderRadius.circular(3),
           child: LinearProgressIndicator(
@@ -149,10 +149,10 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
             valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           '${(_progress * 100).round()}%',
-          style: const TextStyle(fontSize: 12, color: Colors.black45),
+          style: TextStyle(fontSize: 12, color: Colors.black45),
         ),
       ],
     );
@@ -164,17 +164,17 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.check_circle, size: 40, color: colors.success),
-        const SizedBox(height: 12),
-        const Text(
+        SizedBox(height: 12),
+        Text(
           '同步完成',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        SizedBox(height: 8),
+        Text(
           '学习记录已恢复',
           style: TextStyle(fontSize: 13, color: colors.textMuted),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
@@ -184,7 +184,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text('知道了'),
+          child: Text('知道了'),
         ),
       ],
     );
@@ -196,18 +196,18 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.info_outline, size: 40, color: colors.warning),
-        const SizedBox(height: 12),
-        const Text(
+        SizedBox(height: 12),
+        Text(
           '同步完成',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        SizedBox(height: 8),
+        Text(
           '服务器暂无学习记录可恢复，\n请先练习后再试',
           style: TextStyle(fontSize: 13, color: colors.textMuted),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
@@ -217,7 +217,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text('知道了'),
+          child: Text('知道了'),
         ),
       ],
     );
@@ -229,18 +229,18 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.error, size: 40, color: colors.error),
-        const SizedBox(height: 12),
-        const Text(
+        SizedBox(height: 12),
+        Text(
           '同步失败',
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           _errorMessage.isNotEmpty ? _errorMessage : '网络异常，请稍后重试',
           style: TextStyle(fontSize: 13, color: colors.textMuted),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -260,9 +260,9 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('重试'),
+              child: Text('重试'),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
@@ -272,7 +272,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text('关闭'),
+              child: Text('关闭'),
             ),
           ],
         ),

@@ -271,7 +271,7 @@ class FilterPanelState extends State<FilterPanel> {
     void addChip(String text) {
         final colors = context.colors;
       chips.add(Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
@@ -324,8 +324,8 @@ class FilterPanelState extends State<FilterPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
-        const Padding(
+        SizedBox(height: 8),
+        Padding(
           padding: EdgeInsets.only(bottom: 4),
           child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
         ),
@@ -338,7 +338,7 @@ class FilterPanelState extends State<FilterPanel> {
             return GestureDetector(
               onTap: () { setState(() => _sort = mode); _emit(); },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected ? colors.primaryContainer : Colors.white,
                   borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
@@ -359,7 +359,7 @@ class FilterPanelState extends State<FilterPanel> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     return Card(
       margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
       elevation: 0,
@@ -368,36 +368,36 @@ class FilterPanelState extends State<FilterPanel> {
         side: BorderSide(color: colors.border),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 标题行
             Row(
               children: [
-                const Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                const Spacer(),
+                Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                Spacer(),
                 TextButton(
                   onPressed: _allEmpty ? selectAll : clearAll,
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text(_allEmpty ? '全选' : '取消全选', style: const TextStyle(fontSize: 12)),
+                  child: Text(_allEmpty ? '全选' : '取消全选', style: TextStyle(fontSize: 12)),
                 ),
               ],
             ),
             if (_summaryChips.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: 8),
                 child: Wrap(spacing: 4, runSpacing: 4, children: _summaryChips),
               ),
             if (_emptyHints.isNotEmpty && !_allEmpty)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.only(bottom: 8),
                 child: Wrap(spacing: 4, runSpacing: 4, children: _emptyHints.map((h) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: colors.warning.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
@@ -408,8 +408,8 @@ class FilterPanelState extends State<FilterPanel> {
               ),
             if (widget.onSavePreference != null || widget.onLoadPreference != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                margin: const EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin: EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: colors.background,
                   borderRadius: BorderRadius.circular(6),
@@ -421,12 +421,12 @@ class FilterPanelState extends State<FilterPanel> {
                         onTap: widget.onSavePreference,
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Icon(Icons.save_outlined, size: 14, color: colors.primary),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
                         ]),
                       ),
                     if (widget.onSavePreference != null && widget.onLoadPreference != null)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: Text('|', style: TextStyle(fontSize: 12, color: colors.textMuted)),
                       ),
@@ -435,7 +435,7 @@ class FilterPanelState extends State<FilterPanel> {
                         onTap: widget.onLoadPreference,
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Icon(Icons.folder_open_outlined, size: 14, color: colors.primary),
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Text('读取学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
                         ]),
                       ),
@@ -533,13 +533,13 @@ class FilterPanelState extends State<FilterPanel> {
       child: InkWell(
         onTap: onToggle,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
               Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
-              const Spacer(),
+              Spacer(),
               if (trailing != null) trailing,
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: colors.textSecondary),
             ],
           ),
@@ -592,7 +592,7 @@ class FilterPanelState extends State<FilterPanel> {
       children: [
         if (label.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(bottom: 4),
+            padding: EdgeInsets.only(bottom: 4),
             child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
           ),
         Wrap(
@@ -619,7 +619,7 @@ class FilterPanelState extends State<FilterPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.only(bottom: 4),
           child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
         ),
@@ -649,7 +649,7 @@ class FilterPanelState extends State<FilterPanel> {
     final same = minIdx == maxIdx;
     if (same) {
       return Padding(
-        padding: const EdgeInsets.only(top: 2, bottom: 4),
+        padding: EdgeInsets.only(top: 2, bottom: 4),
         child: Text.rich(TextSpan(children: [
           TextSpan(text: segments[minIdx].label,
             style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
@@ -659,7 +659,7 @@ class FilterPanelState extends State<FilterPanel> {
       );
     }
     return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 4),
+      padding: EdgeInsets.only(top: 2, bottom: 4),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text.rich(TextSpan(children: [
           WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
