@@ -521,9 +521,14 @@ h4 {
 .hero-visual.device-mode-desktop .device--mobile { display: none; }
 .hero-visual.device-mode-mobile .device--desktop { display: none; }
 
+/* 默认隐藏手机，JS 检测到手机端再显示 */
+.hero-visual .device--mobile { display: none; }
+.hero-visual.device-mode-mobile .device--mobile { display: block; }
+
 @media (max-width: 900px) {
   .hero-visual.device-mode-desktop .device--mobile { display: none; }
   .hero-visual .device--mobile {
+    display: block;
     position: static;
     width: min(100%, 280px);
     margin: 0 auto;
