@@ -193,31 +193,27 @@ void safePop(BuildContext context) {
 
 /// 路由工具：统一节流 push + 安全返回
 class RouterUtils {
-  /// 节流 push（600ms 防抖），自动附加 &from= 参数记录来源页面
+  /// 节流 push（600ms 防抖）
   static Future<T?> push<T>(BuildContext context, String location,
       {Object? extra}) async {
     if (!NavigationThrottle.shouldAllow()) return null;
-    // 自动追加 from 参数，标记当前页面路径（供 goBack 使用）
-    location = _withFromParam(context, location);
     return context.push<T>(location, extra: extra);
   }
 
-  /// 给 URL 添加 from 参数（仅 PopScope 页面需要，首页/登录页不追加）
-  static String _withFromParam(BuildContext context, String location) {
-    final currentPath = GoRouterState.of(context).uri.toString();
-    if (currentPath.isEmpty || currentPath == '/') return location;
-    final separator = location.contains('?') ? '&' : '?';
-    return '$location${separator}from=${Uri.encodeComponent(currentPath)}';
-  }
-
-  /// 显式返回上一页（基于 from 参数），替代 router.pop() 以规避 GoRouter 17.x bug
+  // TODO(技术债务): 当前 GoRouter 版本为 17.x，因 router.pop() 存在级联移除父路由的缺陷，
+  // 此处使用 context.go 动态计算上一级路径来替代 pop。
+  // 若未来升级至 GoRouter 18.x 且官方修复该问题，需评估是否可以切换回原生 router.pop()。
+  /// 动态获取上一级路由并使用 context.go() 返回，禁止调用 router.pop()
   static void goBack(BuildContext context) {
-    final state = GoRouterState.of(context);
-    final from = state.uri.queryParameters['from'];
-    if (from != null && from.isNotEmpty) {
-      GoRouter.of(context).go(from);
+    final matches = GoRouter.of(context)
+        .routerDelegate
+        .currentConfiguration
+        .matches;
+    if (matches.length >= 2) {
+      final previousLocation = matches[matches.length - 2].matchedLocation;
+      context.go(previousLocation);
     } else {
-      GoRouter.of(context).go(AppRoutes.mainShell);
+      context.go('/'); // 默认回首页
     }
   }
 

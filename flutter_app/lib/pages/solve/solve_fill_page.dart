@@ -343,10 +343,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         if (_entryTime == null) return;
         await showExitRatingIfNeeded(context, 'solve_fill', _entryTime!);
         _entryTime = null;
-        if (!context.mounted) return;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) safePop(context);
-        });
+        if (context.mounted) RouterUtils.goBack(context);
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('解题模式')),

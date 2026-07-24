@@ -55,10 +55,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         await showExitRatingIfNeeded(context, 'exam_quicklook', _entryTime);
-        if (!context.mounted) return;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) safePop(context);
-        });
+        if (context.mounted) RouterUtils.goBack(context);
       },
       child: Scaffold(
         appBar: AppBar(
