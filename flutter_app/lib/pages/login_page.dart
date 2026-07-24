@@ -249,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '北京高考数学 · 题库 · 讲义 · 解题训练',
+                      '个性化高考数学智能学习系统',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
