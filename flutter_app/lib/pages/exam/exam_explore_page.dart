@@ -148,7 +148,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                     actions: [
                       ActionChipWidget(
                         icon: e.isLiked ? Icons.favorite : Icons.favorite_border,
-                        iconColor: e.isLiked ? Colors.red : null,
+                        iconColor: e.isLiked ? AppColors.primary : null,
                         label: '${e.likeCount}',
                         onTap: () => _toggleLike(e.id),
                       ),

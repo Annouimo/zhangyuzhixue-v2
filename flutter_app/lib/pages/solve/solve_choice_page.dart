@@ -453,7 +453,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             bgColor = AppColors.primaryLight;
           }
 
-          Color dotBg = Colors.grey[200]!;
+          Color dotBg = AppColors.surfaceSubtle;
           Color dotText = AppColors.textSecondary;
           if (isCorrectOption) {
             dotBg = AppColors.success;

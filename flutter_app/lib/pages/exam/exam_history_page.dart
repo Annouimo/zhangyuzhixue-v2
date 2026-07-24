@@ -101,7 +101,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 ),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
                 const SizedBox(width: 4),
-                ActionChipWidget(icon: Icons.check_circle, iconColor: Colors.green, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
+                ActionChipWidget(icon: Icons.check_circle, iconColor: AppColors.success, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
                 const SizedBox(width: 4),
                 ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
               ],

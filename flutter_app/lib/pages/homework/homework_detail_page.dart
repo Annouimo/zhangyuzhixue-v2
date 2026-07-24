@@ -144,7 +144,7 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: AppColors.surfaceSubtle,
                         valueColor: const AlwaysStoppedAnimation(AppColors.success),
                         minHeight: 8,
                       ),

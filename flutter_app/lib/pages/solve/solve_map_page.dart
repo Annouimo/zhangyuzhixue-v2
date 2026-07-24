@@ -440,7 +440,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             child: Row(children: [
                               Container(width: 24, height: 24,
                                 decoration: BoxDecoration(
-                                  color: isStepDone ? AppColors.success : (stepLocked ? Colors.grey[200] : AppColors.primaryLight),
+                                  color: isStepDone ? AppColors.success : (stepLocked ? AppColors.disabledBackground : AppColors.primaryLight),
                                   borderRadius: BorderRadius.circular(12)),
                                 child: Center(child: isStepDone
                                   ? const Icon(Icons.check, size: 14, color: Colors.white)

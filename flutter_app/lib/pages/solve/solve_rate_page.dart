@@ -197,7 +197,7 @@ class _StarRating extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(right: 2),
               child: Icon(filled ? Icons.star : Icons.star_border,
-                color: filled ? AppColors.warning : Colors.grey[300], size: 28),
+                color: filled ? AppColors.warning : AppColors.disabledForeground, size: 28),
             ),
           );
         })),

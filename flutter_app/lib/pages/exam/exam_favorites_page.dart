@@ -85,7 +85,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
               subtitle: e.authorInfo.isNotEmpty ? e.authorInfo : e.summary,
               onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
               actions: [
-                ActionChipWidget(icon: Icons.favorite, iconColor: Colors.red, label: '点赞', onTap: () => _toggleLike(e.id)),
+                ActionChipWidget(icon: Icons.favorite, iconColor: AppColors.primary, label: '点赞', onTap: () => _toggleLike(e.id)),
                 const SizedBox(width: 8),
                 ActionChipWidget(icon: Icons.bookmark, label: '取消收藏', onTap: () => _removeCollect(e.id)),
                 const SizedBox(width: 8),

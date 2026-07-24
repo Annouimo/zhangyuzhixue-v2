@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../../domain/preference_repository.dart';
 import 'package:shared/widgets/filter_panel.dart';
 
@@ -76,7 +77,7 @@ Future<int?> showLoadPreferenceDialog(BuildContext context, List<PreferenceSumma
             children: [
               Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
               if (p.summary.isNotEmpty)
-                Text(p.summary, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(p.summary, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
             ],
           ),
         )).toList(),

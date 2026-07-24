@@ -58,7 +58,7 @@ class _FeedbackChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.12) : Colors.grey[100],
+          color: selected ? color.withValues(alpha: 0.12) : AppColors.surfaceSubtle,
           borderRadius: BorderRadius.circular(8),
           border: selected
               ? Border.all(color: color, width: 1.5)

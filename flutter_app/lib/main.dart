@@ -161,7 +161,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
               const SizedBox(height: 8),
               Text(
                 summary.message ?? '$label 有新版本（v$summary.serverVersion），请立即更新',
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
+                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -259,6 +259,8 @@ class ZhangyuzhixueApp extends StatelessWidget {
       title: '章鱼智学',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       routerConfig: appRouter,
     );
   }

@@ -606,7 +606,7 @@ class IndexPageState extends State<IndexPage> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: !online
-              ? Colors.orange.withValues(alpha: 0.08)
+              ? AppColors.recommendation.withValues(alpha: 0.08)
               : _syncPendingCount > 0
                   ? AppColors.warning.withValues(alpha: 0.08)
                   : AppColors.success.withValues(alpha: 0.08),
@@ -616,7 +616,7 @@ class IndexPageState extends State<IndexPage> {
           children: [
             Icon(icon, size: 16,
               color: !online
-                  ? Colors.orange
+                  ? AppColors.recommendation
                   : _syncPendingCount > 0
                       ? AppColors.warning
                       : AppColors.success,
@@ -627,7 +627,7 @@ class IndexPageState extends State<IndexPage> {
                 style: TextStyle(
                   fontSize: 12,
                   color: !online
-                      ? Colors.orange.shade700
+                      ? AppColors.recommendation
                       : _syncPendingCount > 0
                           ? AppColors.warning
                           : AppColors.success,

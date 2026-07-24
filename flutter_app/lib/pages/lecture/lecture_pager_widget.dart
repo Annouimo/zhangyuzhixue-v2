@@ -33,7 +33,7 @@ class LecturePagerWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(color: Colors.grey[200]!),
+          top: BorderSide(color: AppColors.border),
         ),
       ),
       child: SafeArea(
@@ -80,7 +80,7 @@ class LecturePagerWidget extends StatelessWidget {
       width: 44,
       height: 44,
       child: Material(
-        color: enabled ? AppColors.primary : Colors.grey[200],
+        color: enabled ? AppColors.primary : AppColors.disabledBackground,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
@@ -88,7 +88,7 @@ class LecturePagerWidget extends StatelessWidget {
           child: Center(
             child: Icon(
               icon,
-              color: enabled ? Colors.white : Colors.grey[400],
+              color: enabled ? Colors.white : AppColors.disabledForeground,
               size: 24,
             ),
           ),

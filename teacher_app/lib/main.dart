@@ -33,6 +33,8 @@ class TeacherApp extends StatelessWidget {
     return MaterialApp(
       title: '章鱼智学 · 教师端',
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );

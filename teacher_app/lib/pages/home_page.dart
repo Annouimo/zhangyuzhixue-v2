@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 12),
                 const Text('数据更新', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('$label 有新版本（v${info.serverVersion}）', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                Text('$label 有新版本（v${info.serverVersion}）', style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,

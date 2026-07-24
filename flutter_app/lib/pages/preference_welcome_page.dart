@@ -98,7 +98,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black54,
+      barrierColor: AppColors.scrim,
       builder: (ctx) => PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, _) {

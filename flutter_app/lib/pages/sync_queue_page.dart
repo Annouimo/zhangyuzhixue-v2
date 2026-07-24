@@ -75,7 +75,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       case 'pending': return AppColors.textSecondary;
       case 'inProgress': return AppColors.warning;
       case 'failed': return AppColors.error;
-      case 'permanentFailure': return Colors.grey;
+      case 'permanentFailure': return AppColors.textMuted;
       default: return AppColors.textSecondary;
     }
   }
