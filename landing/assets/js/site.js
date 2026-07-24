@@ -66,7 +66,7 @@
         <div class="container site-footer__main">
           <div class="site-footer__brand">
             <h3>${config.siteName || "章鱼智学"}</h3>
-            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件、学习社群与公益讲座现阶段免费开放；系统课程为付费教学服务，详情请添加微信了解。</p>
+            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件、学习社群与公益讲座免费开放；系统课程为付费教学服务，详情请通过微信咨询。</p>
           </div>
           <div>
             <h4>产品与服务</h4>
@@ -81,14 +81,13 @@
             <div class="footer-links">
               <a href="team.html">团队介绍</a>
               <a href="about.html">关于我们</a>
-              <button class="text-link" type="button" data-open-wechat>微信咨询</button>
             </div>
           </div>
           <div>
             <h4>联系方式</h4>
             <div class="footer-links">
               <a href="${config.phoneHref || "tel:18500794866"}">电话：${config.phoneDisplay || "18500794866"}</a>
-              <span>微信：${config.wechatName || "章鱼宝宝"}${config.wechatId ? "（"+config.wechatId+"）" : ""}</span>
+              <button class="text-link" type="button" data-open-wechat>微信：${config.wechatName || "章鱼宝宝"}${config.wechatId ? "（"+config.wechatId+"）" : ""}</button>
             </div>
           </div>
         </div>
