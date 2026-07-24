@@ -68,7 +68,6 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     if (!widget.isRevisit && !widget.revealed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

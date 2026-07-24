@@ -487,7 +487,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: bgColor ?? Colors.white,
+                  color: bgColor ?? colors.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: borderColor ?? colors.border,
