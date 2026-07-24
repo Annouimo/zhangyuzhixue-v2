@@ -16,7 +16,7 @@ import 'package:shared/debug/audit_logger.dart';
 /// 我的组卷列表 — 匹配 HTML 原型 paper_history.html
 class ExamHistoryPage extends StatefulWidget {
   final ExamRepository? examRepository;
-  const ExamHistoryPage({super.key, this.examRepository});
+  ExamHistoryPage({super.key, this.examRepository});
 
   @override
   State<ExamHistoryPage> createState() => _ExamHistoryPageState();
@@ -38,10 +38,10 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除此组卷吗？'),
+        title: Text('确认删除'),
+        content: Text('确定要删除此组卷吗？'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('取消')),
           TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('删除', style: TextStyle(color: context.colors.error))),
         ],
       ),
@@ -62,11 +62,11 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('我的组卷')),
+    appBar: AppBar(title: Text('我的组卷')),
     body: AsyncLoadWidget<List<ExamSummary>>(
       key: _loadKey,
       onLoad: () => _repo.getMyExams(),
-      emptyWidget: const EmptyPlaceholder(
+      emptyWidget: EmptyPlaceholder(
         icon: Icons.assignment,
         message: '还没有创建过试卷，去首页试试快速练习吧',
       ),
@@ -78,7 +78,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
         return ListView.separated(
           padding: const EdgeInsets.all(AppSizes.baseSpacing),
           itemCount: list.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => SizedBox(height: 8),
           itemBuilder: (ctx, i) {
             final e = list[i];
             return PaperCard(
@@ -93,16 +93,16 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                     await _repo.togglePublic(e.id);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
+                        SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
                       );
                     }
                     _loadKey.currentState?.refresh();
                   },
                 ),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 ActionChipWidget(icon: Icons.check_circle, iconColor: context.colors.success, label: '答案', onTap: () => context.push('${AppRoutes.answerSheet}?id=${e.id}')),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
               ],
             );

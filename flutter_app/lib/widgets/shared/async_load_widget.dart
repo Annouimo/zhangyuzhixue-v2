@@ -15,7 +15,7 @@ import 'package:shared/widgets/empty_placeholder.dart';
 ///     itemCount: list.length,
 ///     itemBuilder: (_, i) => AssignmentCard(...),
 ///   ),
-///   emptyWidget: const EmptyPlaceholder(icon: Icons.assignment, message: '暂无'),
+///   emptyWidget: EmptyPlaceholder(icon: Icons.assignment, message: '暂无'),
 /// )
 /// ```
 class AsyncLoadWidget<T> extends StatefulWidget {
@@ -44,7 +44,7 @@ class AsyncLoadWidget<T> extends StatefulWidget {
   /// 加载中提示文案
   final String? loadingMessage;
 
-  const AsyncLoadWidget({
+  AsyncLoadWidget({
     super.key,
     required this.onLoad,
     required this.builder,
@@ -147,7 +147,7 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
         if (customEmpty != null) return customEmpty;
       }
       return widget.emptyWidget ??
-          const EmptyPlaceholder(icon: Icons.inbox_outlined, message: '暂无内容');
+          EmptyPlaceholder(icon: Icons.inbox_outlined, message: '暂无内容');
     }
 
     // 数据就绪 → 构建 UI
@@ -166,7 +166,7 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
       return RefreshIndicator(
         onRefresh: _load,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: AlwaysScrollableScrollPhysics(),
           child: content,
         ),
       );

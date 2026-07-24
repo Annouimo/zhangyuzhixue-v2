@@ -14,7 +14,7 @@ import 'package:shared/debug/operation_log.dart';
 class PreferenceListPage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
 
-  const PreferenceListPage({super.key, this.preferenceRepository});
+  PreferenceListPage({super.key, this.preferenceRepository});
 
   @override
   State<PreferenceListPage> createState() => _PreferenceListPageState();
@@ -35,14 +35,14 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('删除后无法恢复，确定要删除该偏好吗？'),
+        title: Text('确认删除'),
+        content: Text('删除后无法恢复，确定要删除该偏好吗？'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text('取消')),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('删除'),
+            child: Text('删除'),
           ),
         ],
       ),
@@ -70,11 +70,11 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('学习偏好管理')),
+      appBar: AppBar(title: Text('学习偏好管理')),
       body: AsyncLoadWidget<List<PreferenceSummary>>(
         key: _loadKey,
         onLoad: () => _repo.getList(),
-        emptyWidget: const EmptyPlaceholder(
+        emptyWidget: EmptyPlaceholder(
           icon: Icons.assignment,
           message: '还没有设置学习偏好，点击右上角 + 新建',
         ),
@@ -96,12 +96,12 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.assignment, size: 18, color: AppColors.primary),
-                          const SizedBox(width: 8),
+                          Icon(Icons.assignment, size: 18, color: AppColors.primary),
+                          SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               p.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -109,17 +109,17 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text(
                         p.summary,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Row(
                         children: [
                           OutlinedButton(
@@ -130,16 +130,16 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                             style: OutlinedButton.styleFrom(
                               visualDensity: VisualDensity.compact,
                             ),
-                            child: const Text('编辑'),
+                            child: Text('编辑'),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           TextButton(
                             onPressed: () => _delete(p.id, index),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.error,
                               visualDensity: VisualDensity.compact,
                             ),
-                            child: const Text('删除'),
+                            child: Text('删除'),
                           ),
                         ],
                       ),
@@ -156,8 +156,8 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
           await context.push(AppRoutes.preferenceEdit);
           _loadKey.currentState?.refresh();
         },
-        icon: const Icon(Icons.add),
-        label: const Text('新建偏好'),
+        icon: Icon(Icons.add),
+        label: Text('新建偏好'),
       ),
     );
   }

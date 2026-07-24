@@ -17,7 +17,7 @@ import 'package:shared/debug/audit_logger.dart';
 /// 我的收藏 — 匹配 HTML 原型 paper_favorites.html
 class ExamFavoritesPage extends StatefulWidget {
   final ExamRepository? examRepository;
-  const ExamFavoritesPage({super.key, this.examRepository});
+  ExamFavoritesPage({super.key, this.examRepository});
 
   @override
   State<ExamFavoritesPage> createState() => _ExamFavoritesPageState();
@@ -62,11 +62,11 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('我的收藏')),
+    appBar: AppBar(title: Text('我的收藏')),
     body: AsyncLoadWidget<List<FavoriteExamSummary>>(
       key: _loadKey,
       onLoad: () => _repo.getFavorites(),
-      emptyWidget: const EmptyPlaceholder(
+      emptyWidget: EmptyPlaceholder(
         icon: Icons.star,
         message: '你还没有收藏任何试卷，发现好试卷可以收藏哦',
       ),
@@ -77,7 +77,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
         return ListView.separated(
           padding: const EdgeInsets.all(AppSizes.baseSpacing),
           itemCount: list.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => SizedBox(height: 8),
           itemBuilder: (ctx, i) {
             final e = list[i];
             return PaperCard(
@@ -86,14 +86,14 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
               onTap: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
               actions: [
                 ActionChipWidget(icon: Icons.favorite, iconColor: context.colors.primary, label: '点赞', onTap: () => _toggleLike(e.id)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ActionChipWidget(icon: Icons.bookmark, label: '取消收藏', onTap: () => _removeCollect(e.id)),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
-                const Spacer(),
+                Spacer(),
                 TextButton(
                   onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
-                  child: const Text('查看试卷', style: TextStyle(fontSize: 12)),
+                  child: Text('查看试卷', style: TextStyle(fontSize: 12)),
                 ),
               ],
             );

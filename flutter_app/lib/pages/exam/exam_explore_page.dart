@@ -17,7 +17,7 @@ import 'package:shared/debug/audit_logger.dart';
 /// 发现组卷 — 匹配 HTML 原型 paper_explore.html
 class ExamExplorePage extends StatefulWidget {
   final ExamRepository? examRepository;
-  const ExamExplorePage({super.key, this.examRepository});
+  ExamExplorePage({super.key, this.examRepository});
 
   @override
   State<ExamExplorePage> createState() => _ExamExplorePageState();
@@ -84,7 +84,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('发现组卷')),
+    appBar: AppBar(title: Text('发现组卷')),
     body: Column(
       children: [
         // 排序栏
@@ -97,7 +97,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
               children: _sortOptions.map((opt) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
-                  label: Text(opt.$2, style: const TextStyle(fontSize: 12)),
+                  label: Text(opt.$2, style: TextStyle(fontSize: 12)),
                   selected: _sortBy == opt.$1,
                   onSelected: (_) => setState(() => _sortBy = opt.$1),
                   selectedColor: context.colors.primaryContainer,
@@ -111,7 +111,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
           child: AsyncLoadWidget<List<ExploreExamSummary>>(
             key: _loadKey,
             onLoad: () => _repo.getExploreList(),
-            emptyWidget: const EmptyPlaceholder(
+            emptyWidget: EmptyPlaceholder(
               icon: Icons.search,
               message: '还没有人公开分享试卷，去首页试试快速练习吧',
             ),
@@ -138,7 +138,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
               return ListView.separated(
                 padding: const EdgeInsets.all(AppSizes.baseSpacing),
                 itemCount: sorted.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => SizedBox(height: 8),
                 itemBuilder: (ctx, i) {
                   final e = sorted[i];
                   return PaperCard(
@@ -152,22 +152,22 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                         label: '${e.likeCount}',
                         onTap: () => _toggleLike(e.id),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       ActionChipWidget(
                         icon: e.isCollected ? Icons.bookmark : Icons.label_outline,
                         label: '${e.collectCount}',
                         onTap: () => _toggleCollect(e.id),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       ActionChipWidget(
                         icon: Icons.file_download,
                         label: 'PDF',
                         onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context),
                       ),
-                      const Spacer(),
+                      Spacer(),
                       TextButton(
                         onPressed: () => context.push('${AppRoutes.examQuicklookOther}?id=${e.id}'),
-                        child: const Text('查看试卷', style: TextStyle(fontSize: 12)),
+                        child: Text('查看试卷', style: TextStyle(fontSize: 12)),
                       ),
                     ],
                   );

@@ -20,7 +20,7 @@ import 'preview_page.dart';
 /// 题库浏览选题页
 class QuestionBankPage extends StatefulWidget {
   final QuestionRepository? questionRepository;
-  const QuestionBankPage({super.key, this.questionRepository});
+  QuestionBankPage({super.key, this.questionRepository});
 
   @override
   State<QuestionBankPage> createState() => _QuestionBankPageState();
@@ -150,9 +150,9 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('题库浏览')),
+    appBar: AppBar(title: Text('题库浏览')),
     body: _loadingOpts
-        ? const LoadingIndicator()
+        ? LoadingIndicator()
         : LayoutBuilder(builder: (context, constraints) {
             return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(child: _buildScrollContent()),
@@ -164,16 +164,16 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('已选 ${_selectedIds.length} 题',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (_selectedIds.isNotEmpty)
                         TextButton(
                           onPressed: _preview,
-                          child: const Text('预览'),
+                          child: Text('预览'),
                         ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       SizedBox(
                         width: 140,
                         height: 40,
@@ -212,13 +212,13 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
             _sort = state.sort ?? SortMode.newestFirst;
             _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); });
+            _debouncedSearch = Timer(Duration(milliseconds: 300), () { _search(); });
             },
           )
         : null;
 
     if (_loadingQ) {
-      return const Center(child: LoadingIndicator(message: '搜索中…'));
+      return Center(child: LoadingIndicator(message: '搜索中…'));
     }
 
     // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
@@ -230,7 +230,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            side: const BorderSide(color: AppColors.border),
+            side: BorderSide(color: AppColors.border),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -239,16 +239,16 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
               children: [
                 Row(children: [
                   _statChip('选择', _poolStats!.availableChoice),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _statChip('填空', _poolStats!.availableFill),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _statChip('解答', _poolStats!.availableSolution),
                 ]),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   '难度范围 ${_poolStats!.poolDiffMin.toStringAsFixed(1)}~${_poolStats!.poolDiffMax.toStringAsFixed(1)} · '
                   '高考难度 ${_poolStats!.gaokaoDiffMin.toStringAsFixed(1)}~${_poolStats!.gaokaoDiffAvg.toStringAsFixed(1)}~${_poolStats!.gaokaoDiffMax.toStringAsFixed(1)}',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
               ],
             ),
@@ -261,8 +261,8 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
-          const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: Icons.search, message: '设置筛选条件后搜索')),
+          SizedBox(height: 80),
+          Center(child: EmptyPlaceholder(icon: Icons.search, message: '设置筛选条件后搜索')),
         ],
       );
     }
@@ -271,8 +271,8 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
-          const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目')),
+          SizedBox(height: 80),
+          Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目')),
         ],
       );
     }
@@ -317,7 +317,7 @@ class _QuestionBankPageState extends State<QuestionBankPage> {
         color: AppColors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text('$label $count', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
+      child: Text('$label $count', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500)),
     );
   }
 }

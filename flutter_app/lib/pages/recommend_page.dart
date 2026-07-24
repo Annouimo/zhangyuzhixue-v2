@@ -15,7 +15,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 推荐页（双模式：智能推荐 / 偏好推荐）
 class RecommendPage extends StatefulWidget {
   final RecommendRepository? recommendRepository;
-  const RecommendPage({super.key, this.recommendRepository});
+  RecommendPage({super.key, this.recommendRepository});
 
   @override
   State<RecommendPage> createState() => RecommendPageState();
@@ -126,12 +126,12 @@ class RecommendPageState extends State<RecommendPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('题目推荐')),
+    appBar: AppBar(title: Text('题目推荐')),
     body: _buildBody(),
   );
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '生成推荐…');
+    if (_loading) return LoadingIndicator(message: '生成推荐…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
     return Column(
       children: [
@@ -148,14 +148,14 @@ class RecommendPageState extends State<RecommendPage> {
         Expanded(
           child: _questions == null || _questions!.isEmpty
               ? (!_preferSmart && _selectedPresetIndex == -1
-                  ? const EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择一个学习偏好开始推荐')
-                  : const EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂时没有智能推荐 🧠 去首页试试快速练习吧'))
+                  ? EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择一个学习偏好开始推荐')
+                  : EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂时没有智能推荐 🧠 去首页试试快速练习吧'))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
                     padding: const EdgeInsets.all(AppSizes.baseSpacing),
                     itemCount: _questions!.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => SizedBox(height: 8),
                     itemBuilder: (ctx, i) {
                       final q = _questions![i];
                       return RecommendCard(
@@ -185,7 +185,7 @@ class RecommendPageState extends State<RecommendPage> {
             icon: Icons.auto_awesome,
             onPressed: _switchToSmart,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           _PillButton(
             selected: !_preferSmart,
             label: '偏好推荐',
@@ -207,21 +207,21 @@ class RecommendPageState extends State<RecommendPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 '选择学习偏好',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               DropdownButton<int>(
                 value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
                 isExpanded: true,
-                underline: const SizedBox(),
+                underline: SizedBox(),
                 hint: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
                 items: [
                   DropdownMenuItem(value: -1, child: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary))),
                   ...List.generate(_presets.length, (i) => DropdownMenuItem(
                     value: i,
-                    child: Text(_presets[i].name, style: const TextStyle(fontSize: 14)),
+                    child: Text(_presets[i].name, style: TextStyle(fontSize: 14)),
                   )),
                 ],
                 onChanged: (value) {
@@ -267,7 +267,7 @@ class _PillButton extends StatelessWidget {
           children: [
             if (icon != null) ...[
               Icon(icon, size: 16, color: selected ? Colors.white : context.colors.textSecondary),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
             ],
             Text(
               label,

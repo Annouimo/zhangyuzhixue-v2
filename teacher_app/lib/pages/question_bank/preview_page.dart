@@ -16,7 +16,7 @@ class QuestionPreviewPage extends StatefulWidget {
   final QuestionRepository repo;
   final ValueChanged<int> onRemove;
 
-  const QuestionPreviewPage({
+  QuestionPreviewPage({
     super.key,
     required this.questionIds,
     required this.repo,
@@ -70,7 +70,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
         title: Text('预览（${_questionIds.length} 题）'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.copy),
+            icon: Icon(Icons.copy),
             tooltip: '复制全部',
             onPressed: () {
               final json = jsonEncode({
@@ -91,10 +91,10 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
 
   Widget _buildBody() {
       final colors = context.colors;
-    if (_loading) return const LoadingIndicator(message: '加载题目详情…');
+    if (_loading) return LoadingIndicator(message: '加载题目详情…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _loadDetails);
     if (_questionIds.isEmpty) {
-      return const Center(child: EmptyPlaceholder(
+      return Center(child: EmptyPlaceholder(
         icon: Icons.inbox, message: '暂无题目',
       ));
     }

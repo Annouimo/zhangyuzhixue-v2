@@ -19,7 +19,7 @@ import 'package:shared/debug/operation_log.dart';
 class HomeworkListPage extends StatefulWidget {
   final AssignmentRepository? assignmentRepository;
 
-  const HomeworkListPage({super.key, this.assignmentRepository});
+  HomeworkListPage({super.key, this.assignmentRepository});
 
   @override
   State<HomeworkListPage> createState() => _HomeworkListPageState();
@@ -94,18 +94,18 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('待办作业')),
+      appBar: AppBar(title: Text('待办作业')),
       body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载作业…');
+    if (_loading) return LoadingIndicator(message: '加载作业…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     if (_assignments == null || _assignments!.isEmpty) {
-      return const EmptyPlaceholder(icon: Icons.assignment,
+      return EmptyPlaceholder(icon: Icons.assignment,
         message: '暂无待办作业 🤔 可以先刷刷题或看看讲义',
       );
     }
@@ -114,7 +114,7 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       child: ListView.separated(
         padding: const EdgeInsets.all(AppSizes.baseSpacing),
         itemCount: _assignments!.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => SizedBox(height: 8),
         itemBuilder: (context, index) {
           final a = _assignments![index];
           return AssignmentCard(

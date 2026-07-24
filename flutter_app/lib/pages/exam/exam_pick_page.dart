@@ -35,7 +35,7 @@ class ExamPickPage extends StatefulWidget {
   final ExamRepository? examRepository;
   final PreferenceRepository? preferenceRepository;
   final UserRepository? userRepository;
-  const ExamPickPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
+  ExamPickPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
 
   @override
   State<ExamPickPage> createState() => _ExamPickPageState();
@@ -109,7 +109,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     await _prefRepo.save(name: name.trim(), filter: buildPreferenceFilter(state));
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -182,11 +182,11 @@ class _ExamPickPageState extends State<ExamPickPage> {
       // 1. 扣分
       pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
         app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kPickPaperCost * 1.0),
-          source: const Value('PAPER_PURCHASE'),
-          transactionType: const Value('SPEND'),
+          amount: Value(-_kPickPaperCost * 1.0),
+          source: Value('PAPER_PURCHASE'),
+          transactionType: Value('SPEND'),
           createdAt: Value(now),
-          description: const Value('自主选题'),
+          description: Value('自主选题'),
         ),
       );
       // 2. 组卷
@@ -225,7 +225,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('组卷成功！'),
+            content: Text('组卷成功！'),
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: '查看',
@@ -260,9 +260,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('自主选题')),
+    appBar: AppBar(title: Text('自主选题')),
     body: _loadingOpts
-        ? const LoadingIndicator()
+        ? LoadingIndicator()
         : LayoutBuilder(builder: (context, constraints) {
             AuditLogger.instance.page('ExamPickPage.body', {
               'w': constraints.maxWidth,
@@ -279,14 +279,14 @@ class _ExamPickPageState extends State<ExamPickPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('已选 ${_selectedIds.length} 题',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                   SizedBox(
                     width: 140,
                     height: 40,
                     child: ElevatedButton(
                       onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
                       child: _saving
-                          ? const SizedBox(width: 20, height: 20,
+                          ? SizedBox(width: 20, height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                           : Text('确认组卷 (${_selectedIds.length})'),
                     ),
@@ -304,7 +304,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
       child: TextField(
         controller: _nameController,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: '试卷名称',
           hintText: '输入试卷名称',
           border: OutlineInputBorder(),
@@ -331,13 +331,13 @@ class _ExamPickPageState extends State<ExamPickPage> {
             _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
             _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
             _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(const Duration(milliseconds: 300), () { _search(); });
+            _debouncedSearch = Timer(Duration(milliseconds: 300), () { _search(); });
             },
           )
         : null;
 
     if (_loadingQ) {
-      return const Center(child: LoadingIndicator(message: '搜索中…'));
+      return Center(child: LoadingIndicator(message: '搜索中…'));
     }
 
     // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
@@ -357,9 +357,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
             child: Row(
               children: [
                 _statChip('选择', _poolStats!.availableChoice),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _statChip('填空', _poolStats!.availableFill),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 _statChip('解答', _poolStats!.availableSolution),
               ],
             ),
@@ -372,8 +372,8 @@ class _ExamPickPageState extends State<ExamPickPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
-          const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: Icons.search, message: '请设置筛选条件后搜索题目')),
+          SizedBox(height: 80),
+          Center(child: EmptyPlaceholder(icon: Icons.search, message: '请设置筛选条件后搜索题目')),
         ],
       );
     }
@@ -382,8 +382,8 @@ class _ExamPickPageState extends State<ExamPickPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         children: [
           ...headerChildren,
-          const SizedBox(height: 80),
-          const Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目，试试调整筛选条件')),
+          SizedBox(height: 80),
+          Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目，试试调整筛选条件')),
         ],
       );
     }
