@@ -697,7 +697,7 @@ class IndexPageState extends State<IndexPage> {
             children: [
               const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.primary),
               const SizedBox(width: 6),
-              const Text('欢迎来到章鱼智学 🐙',
+              const Text('欢迎来到章鱼智学',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary),
               ),
               const Spacer(),

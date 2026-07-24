@@ -9,7 +9,7 @@
 <body class="has-header">
   <header class="top-header">
     <div class="header-inner">
-      <a href="index.html" class="brand">🐙 章鱼智学</a>
+      <a href="index.html" class="brand"><img src="../images/logo-mark-24.png" alt="" class="brand-icon"> 章鱼智学</a>
       <nav class="nav-links">
         <a href="index.html">作业</a>
         <a href="classes.html">班级</a>
@@ -116,25 +116,25 @@
       const gridLines = [0, 0.25, 0.5, 0.75, 1].map(r => {
         const y = pad.top + ih * (1 - r);
         const label = Math.round(minV + range * r);
-        return `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="#E5E7EB" stroke-width="1"/>
-                <text x="${pad.left - 4}" y="${y + 4}" text-anchor="end" font-size="11" fill="#9CA3AF">${label}%</text>`;
+        return `<line x1="${pad.left}" y1="${y}" x2="${w - pad.right}" y2="${y}" stroke="#DEE5ED" stroke-width="1"/>
+                <text x="${pad.left - 4}" y="${y + 4}" text-anchor="end" font-size="11" fill="#667589">${label}%</text>`;
       }).join('');
 
       const polyline = points.map(p => `${Math.round(p.x)},${Math.round(p.y)}`).join(' ');
 
       const dots = points.map(p =>
-        `<circle cx="${Math.round(p.x)}" cy="${Math.round(p.y)}" r="3" fill="#4A6CF7" stroke="#fff" stroke-width="1.5"/>`
+        `<circle cx="${Math.round(p.x)}" cy="${Math.round(p.y)}" r="3" fill="#006BD1" stroke="#fff" stroke-width="1.5"/>`
       ).join('');
 
       // 日期标签（最多显示 8 个）
       const step = Math.max(1, Math.floor(count / 8));
       const labels = points.filter((_, i) => i % step === 0 || i === count - 1)
-        .map(p => `<text x="${Math.round(p.x)}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#9CA3AF">${esc(p.date || '')}</text>`)
+        .map(p => `<text x="${Math.round(p.x)}" y="${h - 6}" text-anchor="middle" font-size="10" fill="#667589">${esc(p.date || '')}</text>`)
         .join('');
 
       return `<svg width="${w}" height="${h}" style="max-width:100%;display:block;">
         ${gridLines}
-        <polyline points="${polyline}" fill="none" stroke="#4A6CF7" stroke-width="2" stroke-linejoin="round"/>
+        <polyline points="${polyline}" fill="none" stroke="#006BD1" stroke-width="2" stroke-linejoin="round"/>
         ${dots}
         ${labels}
       </svg>`;

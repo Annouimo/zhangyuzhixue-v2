@@ -72,3 +72,5 @@ flutter:
   assets:
     - assets/db/
     - assets/questions/images/
+    - assets/logo_mark.png
+    - assets/logo_mark_white.png

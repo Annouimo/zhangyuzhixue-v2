@@ -53,11 +53,11 @@ class _ShortfallDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
+                  color: AppColors.warningContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text('池子不足',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF92400E)),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onWarningContainer),
                 ),
               ),
               const SizedBox(height: 8),

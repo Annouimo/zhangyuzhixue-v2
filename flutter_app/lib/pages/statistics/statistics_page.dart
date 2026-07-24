@@ -137,9 +137,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
           const SizedBox(width: 8),
           _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, AppColors.success),
           const SizedBox(width: 8),
-          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, Colors.orange),
+          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, AppColors.recommendation),
           const SizedBox(width: 8),
-          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, AppColors.primaryLight),
+          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, AppColors.primaryContainer),
         ],
       ),
     );

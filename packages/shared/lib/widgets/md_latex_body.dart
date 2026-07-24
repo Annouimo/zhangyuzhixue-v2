@@ -67,12 +67,12 @@ class MdLatexBody extends StatelessWidget {
         ),
         code: TextStyle(
           fontSize: fontSize - 1,
-          backgroundColor: Colors.grey[100],
+          backgroundColor: AppColors.surfaceSubtle,
           color: AppColors.textPrimary,
           fontFamily: 'monospace',
         ),
         codeblockDecoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(6),
         ),
         blockquoteDecoration: BoxDecoration(
@@ -84,7 +84,7 @@ class MdLatexBody extends StatelessWidget {
           color: AppColors.textSecondary,
         ),
         horizontalRuleDecoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey[200]!)),
+          border: Border(top: BorderSide(color: AppColors.border)),
         ),
       ),
     );

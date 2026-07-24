@@ -7,6 +7,7 @@ ROOT = Path(r'D:\Hermes\zhangyuzhixue_app_v2')
 
 # 源图候选
 SRC_CANDIDATES = [
+    ROOT / 'docs/00-整体情况/logo_mark_positive_2048.png',
     ROOT / 'docs/00-整体情况/icon_final_1024.png',
     ROOT / 'docs/00-整体情况/icon_final.png',
     Path(r'C:\Users\Annouimo\Desktop\微信图片_20260708225603_305_364.jpg'),

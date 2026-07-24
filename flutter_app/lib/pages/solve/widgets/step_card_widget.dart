@@ -188,7 +188,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             const SizedBox(height: 10),
             Container(
               width: double.infinity, padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8)),
               child: MdLatexBody(widget.step.analysis, fontSize: 14),
             ),
             const SizedBox(height: 12),

@@ -117,6 +117,8 @@ body {
   letter-spacing: -0.3px;
 }
 
+.brand-icon { height: 1.2em; vertical-align: -3px; }
+
 .teacher-link {
   font-size: 14px;
   color: var(--color-primary);

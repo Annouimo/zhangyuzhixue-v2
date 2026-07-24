@@ -133,7 +133,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         Text(
           widget.dialogMessage,
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
         ),
         const SizedBox(height: 20),
         ClipRRect(
@@ -167,7 +167,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         const Text(
           '学习记录已恢复',
-          style: TextStyle(fontSize: 13, color: Colors.black54),
+          style: TextStyle(fontSize: 13, color: AppColors.textMuted),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
@@ -198,7 +198,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         const Text(
           '服务器暂无学习记录可恢复，\n请先练习后再试',
-          style: TextStyle(fontSize: 13, color: Colors.black54),
+          style: TextStyle(fontSize: 13, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
@@ -230,7 +230,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         Text(
           _errorMessage.isNotEmpty ? _errorMessage : '网络异常，请稍后重试',
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
+          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),

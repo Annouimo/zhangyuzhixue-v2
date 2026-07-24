@@ -27,7 +27,7 @@ Future<void> showLevelUpDialog(BuildContext context, {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEEF1FF),
+                  color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text('🏆 等级提升',

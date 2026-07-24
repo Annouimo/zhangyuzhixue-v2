@@ -31,7 +31,7 @@ class TimeRangePicker extends StatelessWidget {
               selected: sel,
               onSelected: (_) => onChanged(o.days),
               selectedColor: AppColors.primary,
-              backgroundColor: Colors.grey[100],
+              backgroundColor: AppColors.surfaceSubtle,
               side: BorderSide.none,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             ),

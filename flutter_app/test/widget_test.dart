@@ -14,7 +14,7 @@ void main() {
     await tester.pumpWidget(const ZhangyuzhixueApp());
 
     // Router 初始路由是 /login（无 token 时），显示登录页品牌标识
-    expect(find.text('🐙 章鱼智学'), findsOneWidget);
+    expect(find.text('章鱼智学'), findsOneWidget);
     expect(find.text('📚 登录'), findsOneWidget);
   });
 }

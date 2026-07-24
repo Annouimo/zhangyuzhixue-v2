@@ -25,11 +25,11 @@ Future<void> showAchievementUnlockDialog(
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD1FAE5),
+                  color: AppColors.successContainer,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text('🏆 新成就解锁',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF065F46)),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onSuccessContainer),
                 ),
               ),
               const SizedBox(height: 8),

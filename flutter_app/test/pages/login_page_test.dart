@@ -63,7 +63,7 @@ void main() {
         ),
       );
 
-      expect(find.text('🐙 章鱼智学'), findsOneWidget);
+      expect(find.text('章鱼智学'), findsOneWidget);
       expect(find.text('📚 登录'), findsOneWidget);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('密码'), findsOneWidget);

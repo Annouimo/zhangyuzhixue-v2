@@ -46,7 +46,7 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
             ),
             const SizedBox(height: 12),
             const Text('纸张选择 A4，取消页眉页脚 ✓',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
             const SizedBox(height: 12),
             Row(
               children: [

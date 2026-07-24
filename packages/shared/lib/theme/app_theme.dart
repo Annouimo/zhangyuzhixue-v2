@@ -459,7 +459,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: colors.primary,
-          foregroundColor: colors.textPrimary.withBrightness(brightness) > 0.5
+          foregroundColor: brightness == Brightness.light
               ? AppColors.textInverse
               : AppColorsDark.textInverse,
           minimumSize: const Size(double.infinity, 48),
@@ -510,12 +510,5 @@ class AppTheme {
       ),
       disabledColor: colors.disabledForeground,
     );
-  }
-}
-
-/// 工具扩展：判断 Color 亮度
-extension _ColorBrightness on Color {
-  double withBrightness(double threshold) {
-    return (red * 299 + green * 587 + blue * 114) / 1000 / 255;
   }
 }

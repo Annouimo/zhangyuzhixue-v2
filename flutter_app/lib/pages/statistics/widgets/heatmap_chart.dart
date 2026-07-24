@@ -303,7 +303,7 @@ class HeatmapChart extends StatelessWidget {
       1 => AppColors.heatmapLevel1,
       2 => AppColors.heatmapLevel2,
       3 => AppColors.heatmapLevel3,
-      _ => Colors.grey[100]!,
+      _ => AppColors.surfaceSubtle,
     };
   }
 }

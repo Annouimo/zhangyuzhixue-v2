@@ -3,9 +3,9 @@ import math
 import os
 from PIL import Image, ImageDraw
 
-PRIMARY = (74, 108, 247)   # #4A6CF7
+PRIMARY = (20, 136, 247)    # #1488F7
 WHITE = (255, 255, 255)
-LIGHT = (238, 241, 255)    # #EEF1FF
+LIGHT = (234, 244, 255)     # #EAF4FF
 
 OUT_DIR = r"D:\Hermes\zhangyuzhixue_app_v2\flutter_app"
 

@@ -271,7 +271,7 @@ class FilterPanelState extends State<FilterPanel> {
       chips.add(Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryLight,
+          color: AppColors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(text, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
@@ -337,7 +337,7 @@ class FilterPanelState extends State<FilterPanel> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryLight : Colors.white,
+                  color: isSelected ? AppColors.primaryContainer : Colors.white,
                   borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
                   border: isSelected
                       ? Border.all(color: Colors.transparent)
@@ -593,7 +593,7 @@ class FilterPanelState extends State<FilterPanel> {
             label: Text(o, style: const TextStyle(fontSize: 12)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: AppColors.primaryLight,
+            selectedColor: AppColors.primaryContainer,
             checkmarkColor: AppColors.primary,
             side: selected.contains(o)
                 ? BorderSide.none
@@ -620,7 +620,7 @@ class FilterPanelState extends State<FilterPanel> {
             label: Text(QuestionTypeLabels.of(o), style: const TextStyle(fontSize: 12)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: AppColors.primaryLight,
+            selectedColor: AppColors.primaryContainer,
             checkmarkColor: AppColors.primary,
             side: selected.contains(o)
                 ? BorderSide.none

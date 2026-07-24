@@ -166,7 +166,8 @@ body.has-header { padding-top: var(--header-height); }
   font-size: 18px; font-weight: 700; color: var(--color-primary);
   text-decoration: none; display: flex; align-items: center; gap: 6px;
 }
-.top-header .nav-links { display: flex; align-items: center; gap: 4px; }
+.brand-icon { height: 1.2em; vertical-align: -3px; }
+.top-header .nav-links {
 .top-header .nav-links a {
   text-decoration: none; color: var(--color-text-secondary);
   font-size: 14px; padding: 6px 14px;
