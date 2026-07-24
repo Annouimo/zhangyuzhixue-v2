@@ -20,7 +20,7 @@ class HomeworkDetailPage extends StatefulWidget {
   final int assignmentId;
   final AssignmentRepository? assignmentRepository;
 
-  const HomeworkDetailPage({
+  HomeworkDetailPage({
     super.key,
     required this.assignmentId,
     this.assignmentRepository,
@@ -78,12 +78,13 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: Text(_detail?.title ?? '作业详情'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: Icon(Icons.picture_as_pdf),
             tooltip: '下载PDF',
             onPressed: () => PdfHelper.downloadPdf(
               sourceId: widget.assignmentId,
@@ -98,12 +99,13 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载作业详情…');
+      final colors = context.colors;
+    if (_loading) return LoadingIndicator(message: '加载作业详情…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     final d = _detail;
-    if (d == null) return const SizedBox.shrink();
+    if (d == null) return SizedBox.shrink();
 
     final progress = d.totalCount > 0 ? d.doneCount / d.totalCount : 0.0;
     final pct = (progress * 100).round();
@@ -113,30 +115,30 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         // 头部信息
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(AppSizes.baseSpacing),
+          padding: EdgeInsets.all(AppSizes.baseSpacing),
           color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 d.title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               if (d.courseName.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   d.courseName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -144,18 +146,18 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: AppColors.surfaceSubtle,
-                        valueColor: const AlwaysStoppedAnimation(AppColors.success),
+                        backgroundColor: colors.surfaceSubtle,
+                        valueColor: AlwaysStoppedAnimation(colors.success),
                         minHeight: 8,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Text(
                     '完成 $pct%',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -166,9 +168,9 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         // 题目列表
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
+            padding: EdgeInsets.all(AppSizes.baseSpacing),
             itemCount: d.questions.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 6),
+            separatorBuilder: (_, _) => SizedBox(height: 6),
             itemBuilder: (context, index) {
               final q = d.questions[index];
               return _QuestionTile(
@@ -234,7 +236,7 @@ class _QuestionTile extends StatelessWidget {
   final String status;
   final VoidCallback onTap;
 
-  const _QuestionTile({
+  _QuestionTile({
     required this.index,
     required this.number,
     required this.questionType,
@@ -244,6 +246,7 @@ class _QuestionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     final isDone = status == 'completed';
     final st = _statusStyle(status);
     final typeLabel = _typeLabel(questionType);
@@ -252,54 +255,54 @@ class _QuestionTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Container(
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: isDone ? AppColors.success : AppColors.primaryContainer,
+                  color: isDone ? colors.success : colors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: isDone
-                      ? const Icon(Icons.check, size: 18, color: Colors.white)
+                      ? Icon(Icons.check, size: 18, color: Colors.white)
                       : Text(
                           '$index',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: colors.primary,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       number.isNotEmpty ? '第 $number 题' : '第 $index 题',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       typeLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: st.bg,
                   borderRadius: BorderRadius.circular(6),
@@ -309,8 +312,8 @@ class _QuestionTile extends StatelessWidget {
                   style: TextStyle(fontSize: 11, color: st.color, fontWeight: FontWeight.w500),
                 ),
               ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              SizedBox(width: 4),
+              Icon(Icons.chevron_right, color: colors.textSecondary),
             ],
           ),
         ),

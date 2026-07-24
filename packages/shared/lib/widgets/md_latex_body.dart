@@ -22,6 +22,7 @@ class MdLatexBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     if (data.isEmpty) return const SizedBox.shrink();
 
     return MarkdownBody(
@@ -36,55 +37,55 @@ class MdLatexBody extends StatelessWidget {
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
           fontSize: fontSize,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           height: 1.6,
         ),
         h1: TextStyle(
           fontSize: fontSize + 6,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           height: 1.4,
         ),
         h2: TextStyle(
           fontSize: fontSize + 4,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           height: 1.4,
         ),
         h3: TextStyle(
           fontSize: fontSize + 2,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
           height: 1.4,
         ),
         strong: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+          color: colors.textPrimary,
         ),
         em: const TextStyle(
           fontStyle: FontStyle.normal,
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
         ),
         code: TextStyle(
           fontSize: fontSize - 1,
-          backgroundColor: AppColors.surfaceSubtle,
-          color: AppColors.textPrimary,
+          backgroundColor: colors.surfaceSubtle,
+          color: colors.textPrimary,
           fontFamily: 'monospace',
         ),
         codeblockDecoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(6),
         ),
         blockquoteDecoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         listBullet: TextStyle(
           fontSize: fontSize,
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
         ),
         horizontalRuleDecoration: BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.border)),
+          border: Border(top: BorderSide(color: colors.border)),
         ),
       ),
     );
@@ -176,12 +177,13 @@ class _SafeMath extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     // flutter_math_fork's Math.build crashes on effectiveTextStyle.color!
     // when color is null (e.g. inside Markdown table header cells).
     final safeStyle = textStyle?.color != null
         ? textStyle
-        : (textStyle?.copyWith(color: AppColors.textPrimary) ??
-            TextStyle(color: AppColors.textPrimary));
+        : (textStyle?.copyWith(color: colors.textPrimary) ??
+            TextStyle(color: colors.textPrimary));
     final m = Math.tex(
       tex,
       mathStyle: mathStyle,

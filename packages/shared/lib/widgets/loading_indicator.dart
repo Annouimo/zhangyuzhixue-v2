@@ -14,6 +14,7 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -23,13 +24,13 @@ class LoadingIndicator extends StatelessWidget {
             height: size,
             child: CircularProgressIndicator(
               strokeWidth: size / 8,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
             ),
           ),
           if (message != null) ...[
             const SizedBox(height: 12),
             Text(message!,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 13, color: colors.textSecondary),
             ),
           ],
         ],

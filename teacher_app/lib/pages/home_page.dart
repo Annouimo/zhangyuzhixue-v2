@@ -26,11 +26,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _checkUpdates();
   }
 
   Future<void> _checkUpdates() async {
+      final colors = context.colors;
     try {
       final prefs = await SharedPreferences.getInstance();
       final baseUrl =
@@ -57,6 +59,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showUpdateDialog(String label, UpdateSummary info) {
+      final colors = context.colors;
     setState(() => _hasUpdate = true);
     showDialog(
       context: context,
@@ -71,11 +74,11 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.system_update, size: 40, color: AppColors.primary),
+                Icon(Icons.system_update, size: 40, color: colors.primary),
                 const SizedBox(height: 12),
                 const Text('数据更新', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                Text('$label 有新版本（v${info.serverVersion}）', style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                Text('$label 有新版本（v${info.serverVersion}）', style: TextStyle(fontSize: 13, color: colors.textMuted)),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,

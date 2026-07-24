@@ -69,6 +69,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Future<void> _loadCooldown() async {
+      final colors = context.colors;
     try {
       final dao = SystemConfigDao(DatabaseProvider());
       final sec = await dao.getInt('solve_cooldown_fill', 10);
@@ -81,10 +82,12 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   @override
   void dispose() {
+      final colors = context.colors;
     super.dispose();
   }
 
   Future<void> _load() async {
+      final colors = context.colors;
     try {
       final detail = await _repo.getDetail(widget.questionId);
       var attempts = await _repo.getAttempts(widget.questionId);
@@ -118,6 +121,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   String _typeLabel(String type) {
+      final colors = context.colors;
     switch (type) {
       case 'choice': return '选择';
       case 'fill': return '填空';
@@ -128,6 +132,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   /// 存档选择器
   Widget _buildAttemptSelector() {
+      final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
@@ -138,11 +143,11 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.primary),
+          style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
     }
@@ -165,13 +170,13 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
-                  color: a.id == _currentAttempt?.id ? AppColors.primary : AppColors.textPrimary,
+                  color: a.id == _currentAttempt?.id ? colors.primary : colors.textPrimary,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
           ),
@@ -180,16 +185,16 @@ class _SolveFillPageState extends State<SolveFillPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label,
-              style: const TextStyle(fontSize: 11, color: AppColors.primary),
+              style: TextStyle(fontSize: 11, color: colors.primary),
             ),
-            const Icon(Icons.expand_more, size: 14, color: AppColors.primary),
+            Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
       ),
@@ -197,6 +202,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   void _switchAttempt(SolveAttempt attempt) {
+      final colors = context.colors;
     setState(() {
       _currentAttempt = attempt;
       _revealed = attempt.isCompleted;
@@ -205,6 +211,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Future<void> _createNewAttempt() async {
+      final colors = context.colors;
     try {
       await _repo.startSolve(widget.questionId);
       final attempts = await _repo.getAttempts(widget.questionId);
@@ -224,6 +231,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   /// 揭示答案时展开结果区域，等待用户自评
   Future<void> _onReveal() async {
+      final colors = context.colors;
     setState(() => _revealed = true);
     if (_currentAttempt == null) {
       await _repo.startSolve(widget.questionId);
@@ -239,6 +247,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   /// 用户自评后保存记录
   Future<void> _submitFeedback(bool correct) async {
+      final colors = context.colors;
     if (!_revealed || _feedbackGiven) return;
     // 乐观锁定：立即阻断后续点击，用户瞬时看到反馈
     if (!mounted) return;
@@ -258,12 +267,13 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackButtons() {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('你觉得自己答对了吗？',
+        Text('你觉得自己答对了吗？',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 13, color: colors.textSecondary),
         ),
         const SizedBox(height: 8),
         Row(
@@ -277,7 +287,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 icon: const Icon(Icons.check_circle, size: 18),
                 label: const Text('正确'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.success,
+                  backgroundColor: colors.success,
                   foregroundColor: Colors.white,
                 ),
               ),
@@ -291,7 +301,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 icon: const Icon(Icons.cancel, size: 18),
                 label: const Text('错误'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
+                  foregroundColor: colors.textSecondary,
                 ),
               ),
             ),
@@ -303,6 +313,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
@@ -313,7 +324,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
+          Text('加载失败', style: TextStyle(color: colors.textSecondary)),
           const SizedBox(height: 8),
           ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试') ),
         ])),
@@ -371,17 +382,18 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackResult() {
+      final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _feedbackCorrect
-            ? AppColors.success.withValues(alpha: 0.08)
-            : AppColors.textSecondary.withValues(alpha: 0.08),
+            ? colors.success.withValues(alpha: 0.08)
+            : colors.textSecondary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _feedbackCorrect
-              ? AppColors.success.withValues(alpha: 0.3)
-              : AppColors.textSecondary.withValues(alpha: 0.15),
+              ? colors.success.withValues(alpha: 0.3)
+              : colors.textSecondary.withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -392,7 +404,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               Icon(
                 _feedbackCorrect ? Icons.check_circle : Icons.cancel,
                 size: 20,
-                color: _feedbackCorrect ? AppColors.success : AppColors.textSecondary,
+                color: _feedbackCorrect ? colors.success : colors.textSecondary,
               ),
               const SizedBox(width: 8),
               Text(
@@ -400,7 +412,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: _feedbackCorrect ? AppColors.success : AppColors.textSecondary,
+                  color: _feedbackCorrect ? colors.success : colors.textSecondary,
                 ),
               ),
             ],
@@ -408,7 +420,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           const SizedBox(height: 4),
           Text(
             _feedbackCorrect ? '' : '继续加油 💪',
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 12, color: colors.textSecondary),
           ),
         ],
       ),
@@ -416,10 +428,11 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildContent() {
+      final colors = context.colors;
     final detail = _detail;
     if (detail == null) {
-      return const Text('题目数据不存在',
-        style: TextStyle(color: AppColors.textSecondary));
+      return Text('题目数据不存在',
+        style: TextStyle(color: colors.textSecondary));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -429,7 +442,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withValues(alpha: 0.3),
+            color: colors.primaryContainer.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -443,7 +456,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               if (detail.title.isNotEmpty)
                 Expanded(
                   child: Text(detail.title,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -451,11 +464,11 @@ class _SolveFillPageState extends State<SolveFillPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('[${_typeLabel(detail.questionType)}]',
-                  style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(width: 8),
@@ -469,12 +482,12 @@ class _SolveFillPageState extends State<SolveFillPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.15),
+              color: colors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
-            child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
-              style: TextStyle(fontSize: 13, color: AppColors.primary),
+            child: Text('📋 回顾模式 · 只读浏览，不可修改',
+              style: TextStyle(fontSize: 13, color: colors.primary),
             ),
           ),
         ],
@@ -495,10 +508,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
                 ...detail.conceptTags.map((tag) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+                  child: Text(tag, style: TextStyle(fontSize: 12, color: colors.primary)),
                 )),
               ],
             ),

@@ -19,7 +19,7 @@ class LectureContentPage extends StatefulWidget {
   final int initialPage;
   final LectureRepository? lectureRepository;
 
-  const LectureContentPage({
+  LectureContentPage({
     super.key,
     required this.chapterId,
     this.initialPage = 1,
@@ -149,21 +149,22 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载讲义…');
+      final colors = context.colors;
+    if (_loading) return LoadingIndicator(message: '加载讲义…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     final page = _currentPage;
     if (page == null || page.blocks.isEmpty) {
-      return const Center(child: Text('讲义内容为空'));
+      return Center(child: Text('讲义内容为空'));
     }
 
     final blocks = page.blocks;
     final cardRefs = page.cardRefs;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.baseSpacing),
+      padding: EdgeInsets.all(AppSizes.baseSpacing),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
+        constraints: BoxConstraints(
           maxWidth: AppSizes.maxContentWidth,
         ),
         child: Column(
@@ -176,18 +177,18 @@ class _LectureContentPageState extends State<LectureContentPage> {
               _buildRevealBlock(i, blocks[i]),
             // 知识标签
             if (cardRefs.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 20),
+              Divider(height: 1),
+              SizedBox(height: 12),
+              Text(
                 '相关知识',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
@@ -201,35 +202,36 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildKnowledgeChip(KnownCardRef ref) {
+      final colors = context.colors;
     return ActionChip(
-      avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
-      label: Text(ref.title, style: const TextStyle(fontSize: 13)),
+      avatar: Icon(Icons.lightbulb_outline, size: 16, color: colors.primary),
+      label: Text(ref.title, style: TextStyle(fontSize: 13)),
       onPressed: () => KnowledgeCardDialog.show(
         context,
         title: ref.title,
         content: ref.content,
       ),
-      backgroundColor: AppColors.primaryContainer,
+      backgroundColor: colors.primaryContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       side: BorderSide.none,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
   Widget _buildRevealBlock(int index, String content) {
     final visible = _revealedSet.contains(index);
     return AnimatedCrossFade(
-      firstChild: const SizedBox.shrink(),
+      firstChild: SizedBox.shrink(),
       secondChild: Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: EdgeInsets.only(top: 12),
         child: MdLatexBody(content, fontSize: 15),
       ),
       crossFadeState: visible
           ? CrossFadeState.showSecond
           : CrossFadeState.showFirst,
-      duration: const Duration(milliseconds: 200),
+      duration: Duration(milliseconds: 200),
     );
   }
 }

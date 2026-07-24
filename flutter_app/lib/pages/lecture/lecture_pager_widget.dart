@@ -14,7 +14,7 @@ class LecturePagerWidget extends StatelessWidget {
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
 
-  const LecturePagerWidget({
+  LecturePagerWidget({
     super.key,
     required this.currentPage,
     required this.totalPages,
@@ -29,17 +29,18 @@ class LecturePagerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(color: AppColors.border),
+          top: BorderSide(color: colors.border),
         ),
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               _buildNavButton(
@@ -47,18 +48,18 @@ class LecturePagerWidget extends StatelessWidget {
                 enabled: _canPrev,
                 onTap: _canPrev ? onPrev : null,
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   '第 $currentPage / $totalPages 页 · 展开 $revealedCount / $totalBlocks',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               _buildNavButton(
                 icon: Icons.chevron_right,
                 enabled: _canNext,
@@ -76,11 +77,12 @@ class LecturePagerWidget extends StatelessWidget {
     required bool enabled,
     required VoidCallback? onTap,
   }) {
+      final colors = context.colors;
     return SizedBox(
       width: 44,
       height: 44,
       child: Material(
-        color: enabled ? AppColors.primary : AppColors.disabledBackground,
+        color: enabled ? colors.primary : colors.disabledBackground,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
@@ -88,7 +90,7 @@ class LecturePagerWidget extends StatelessWidget {
           child: Center(
             child: Icon(
               icon,
-              color: enabled ? Colors.white : AppColors.disabledForeground,
+              color: enabled ? Colors.white : colors.disabledForeground,
               size: 24,
             ),
           ),

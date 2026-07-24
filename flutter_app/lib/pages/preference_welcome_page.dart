@@ -51,6 +51,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _qDao = widget.questionDao ?? QuestionDao(DatabaseProvider());
@@ -61,6 +62,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   Future<void> _loadOpts() async {
+      final colors = context.colors;
     try {
       final years = (await _qDao.getDistinctYears()).map((y) => y.toString()).toList();
       final regions = await _qDao.getDistinctRegions();
@@ -81,6 +83,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   Future<void> _loadBonus() async {
+      final colors = context.colors;
     try {
       final cfg = SystemConfigDao(DatabaseProvider());
       final pts = await cfg.getDouble('signup_bonus_amount', 10);
@@ -95,10 +98,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   void _showWelcome(BuildContext context) {
+      final colors = context.colors;
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: AppColors.scrim,
+      barrierColor: colors.scrim,
       builder: (ctx) => PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, _) {
@@ -109,19 +113,19 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.celebration, size: 64, color: AppColors.primary),
+            Icon(Icons.celebration, size: 64, color: colors.primary),
             const SizedBox(height: 16),
             const Text('欢迎加入章鱼智学！', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Text('首次注册赠送 ${_bonusLoaded ? _bonusPoints.toStringAsFixed(0) : '...'} 积分',
-              style: const TextStyle(fontSize: 16, color: AppColors.success)),
+              style: TextStyle(fontSize: 16, color: colors.success)),
             const SizedBox(height: 4),
-            const Text('可用于组卷等消费功能', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+            Text('可用于组卷等消费功能', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () { Navigator.of(ctx).pop(); },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -141,7 +145,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 Navigator.of(ctx).pop();
                 context.go(AppRoutes.mainShell);
               },
-              child: const Text('跳过', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('跳过', style: TextStyle(color: colors.textSecondary)),
             ),
           ]),
         ),
@@ -198,6 +202,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('设置学习偏好')),
       body: _yearOpts == null
@@ -212,11 +217,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        const Icon(Icons.auto_awesome, size: 56, color: AppColors.primary),
+                        Icon(Icons.auto_awesome, size: 56, color: colors.primary),
                         const SizedBox(height: 12),
                         const Text('选择你的学习偏好', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
-                        const Text('我们为你推荐最合适的题目', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                        Text('我们为你推荐最合适的题目', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
                       ],
                     ),
                   ),

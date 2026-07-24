@@ -139,6 +139,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   // 入口分流路由构造
   String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
+      final colors = context.colors;
     final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
         '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
     if (_currentAttemptNumber != null) {
@@ -148,6 +149,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   }
 
   String _typeLabel(String type) {
+      final colors = context.colors;
     switch (type) {
       case 'choice': return '选择';
       case 'fill': return '填空';
@@ -157,6 +159,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   }
 
   String _formatCardLabels(List<String> cards) {
+      final colors = context.colors;
     if (cards.isEmpty) return '';
     if (cards.length == 1) return cards.first;
     return '${cards.first} 等 ${cards.length} 个';
@@ -164,13 +167,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('解题地图')),
       body: _loading
           ? const LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
                 ]))
@@ -180,6 +184,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
 
   Widget _buildAttemptSelector() {
+      final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttemptNumber != null
@@ -190,11 +195,11 @@ class _SolveMapPageState extends State<SolveMapPage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.primary),
+          style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
     }
@@ -240,13 +245,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.attemptNumber == _currentAttemptNumber ? FontWeight.w600 : FontWeight.normal,
-                  color: a.attemptNumber == _currentAttemptNumber ? AppColors.primary : AppColors.textPrimary,
+                  color: a.attemptNumber == _currentAttemptNumber ? colors.primary : colors.textPrimary,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 a.status == 'completed' ? '回顾' : '进行中',
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
           ),
@@ -255,16 +260,16 @@ class _SolveMapPageState extends State<SolveMapPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label,
-              style: const TextStyle(fontSize: 11, color: AppColors.primary),
+              style: TextStyle(fontSize: 11, color: colors.primary),
             ),
-            const Icon(Icons.expand_more, size: 14, color: AppColors.primary),
+            Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
       ),
@@ -272,6 +277,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   }
 
   Widget _buildMapView() {
+      final colors = context.colors;
     if (_state == null || _state!.subQuestions.isEmpty) {
       return const Center(child: Text('暂无步骤数据'));
     }
@@ -284,7 +290,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.3),
+              color: colors.primaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -298,7 +304,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 if (_detail!.title.isNotEmpty)
                   Expanded(
                     child: Text(_detail!.title,
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 13, color: colors.textSecondary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -306,11 +312,11 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text('[${_typeLabel(_detail!.questionType)}]',
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -325,12 +331,12 @@ class _SolveMapPageState extends State<SolveMapPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.15),
+              color: colors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
             child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
-              style: TextStyle(fontSize: 13, color: AppColors.primary),
+              style: TextStyle(fontSize: 13, color: colors.primary),
             ),
           ),
 
@@ -360,26 +366,26 @@ class _SolveMapPageState extends State<SolveMapPage> {
           Color statusColor;
           if (allMethodsFullyDone && sq.solutions.isNotEmpty) {
             statusLabel = '完全掌握';
-            statusColor = AppColors.warning; // 金色
+            statusColor = colors.warning; // 金色
           } else if (anyMethodFullyDone) {
             statusLabel = '已完成';
-            statusColor = AppColors.success;
+            statusColor = colors.success;
           } else if (hasAnyStepDone) {
             statusLabel = '进行中...';
-            statusColor = AppColors.warning;
+            statusColor = colors.warning;
           } else {
             statusLabel = '未解锁';
-            statusColor = AppColors.textSecondary;
+            statusColor = colors.textSecondary;
           }
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(child: Text(sq.label,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary))),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
@@ -411,13 +417,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
                         padding: const EdgeInsets.only(bottom: 6),
                         child: Row(children: [
                           Text(m.methodName?.isNotEmpty == true ? '\u{1F4D0} ${m.methodName}' : '唯一解法',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
                           const Spacer(),
                           Text('${m.steps.where((s) => _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')).length}/${m.steps.length} 步',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                            style: TextStyle(fontSize: 11, color: colors.textSecondary)),
                           const SizedBox(width: 4),
                           Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
-                            size: 16, color: AppColors.textSecondary),
+                            size: 16, color: colors.textSecondary),
                         ]),
                       ),
                     ),
@@ -440,13 +446,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
                             child: Row(children: [
                               Container(width: 24, height: 24,
                                 decoration: BoxDecoration(
-                                  color: isStepDone ? AppColors.success : (stepLocked ? AppColors.disabledBackground : AppColors.primaryContainer),
+                                  color: isStepDone ? colors.success : (stepLocked ? colors.disabledBackground : colors.primaryContainer),
                                   borderRadius: BorderRadius.circular(12)),
                                 child: Center(child: isStepDone
                                   ? const Icon(Icons.check, size: 14, color: Colors.white)
                                   : (stepLocked
                                     ? const Text('\u{1F512}', style: TextStyle(fontSize: 11))
-                                    : Text('${st.stepNumber}', style: const TextStyle(fontSize: 11, color: AppColors.primary))))),
+                                    : Text('${st.stepNumber}', style: TextStyle(fontSize: 11, color: colors.primary))))),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
@@ -454,14 +460,14 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text('第 ${st.stepNumber} 步',
-                                      style: TextStyle(fontSize: 13, color: isStepDone ? AppColors.success : (stepLocked ? AppColors.textSecondary : AppColors.textPrimary))),
+                                      style: TextStyle(fontSize: 13, color: isStepDone ? colors.success : (stepLocked ? colors.textSecondary : colors.textPrimary))),
                                     if (!stepLocked && st.cardTitles.isNotEmpty)
                                       Text(_formatCardLabels(st.cardTitles),
-                                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                                        style: TextStyle(fontSize: 10, color: colors.textSecondary)),
                                   ],
                                 ),
                               ),
-                              if (!stepLocked) const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textSecondary),
+                              if (!stepLocked) Icon(Icons.arrow_forward_ios, size: 12, color: colors.textSecondary),
                             ]),
                           ),
                         );

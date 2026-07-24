@@ -44,18 +44,21 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _authRepo = widget.authRepository ?? AuthRepository(AuthApi(ApiClient()));
   }
 
   @override
   void dispose() {
+      final colors = context.colors;
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
+      final colors = context.colors;
     if (!_formKey.currentState!.validate()) return;
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -101,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('数据同步失败，部分数据可能未恢复'),
-            backgroundColor: AppColors.warning,
+            backgroundColor: colors.warning,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 8),
             action: SnackBarAction(
@@ -138,6 +141,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<bool> _checkPreferences() async {
+      final colors = context.colors;
     try {
       _prefRepo ??= widget.preferenceRepository ?? PreferenceRepository(
         PreferenceDao(DatabaseProvider()),
@@ -153,6 +157,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   String _extractErrorMessage(Object e) {
+      final colors = context.colors;
     // 优先从服务端响应体提取真实错误描述
     if (e is DioException && e.response?.data is Map) {
       final serverMsg = (e.response!.data as Map)["message"];
@@ -171,10 +176,11 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showError(String message) {
+      final colors = context.colors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.error,
+        backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -182,6 +188,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -200,34 +207,34 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset('assets/logo_mark.png', width: 32, height: 32),
-                        const SizedBox(width: 8),
-                        const Text(
+                        SizedBox(width: 8),
+                        Text(
                           '章鱼智学',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       '北京高考数学 · 题库 · 讲义 · 解题训练',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       '📚 登录',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -291,9 +298,9 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           '还没有账号？',
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: colors.textSecondary),
                         ),
                         TextButton(
                           onPressed: () => context.push(AppRoutes.register),
@@ -307,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
                       onTap: _exportLog,
                       child: Text(
                         '导出日志',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        style: TextStyle(fontSize: 11, color: colors.textMuted),
                       ),
                     ),
                   ],

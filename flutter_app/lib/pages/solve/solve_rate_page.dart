@@ -40,6 +40,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _ratingRepo = widget.ratingRepository ?? RatingRepository(
       RatingDao(DatabaseProvider()),
@@ -49,6 +50,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
   }
 
   Future<void> _loadRating() async {
+      final colors = context.colors;
     try {
       // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
       try {
@@ -76,6 +78,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
   }
 
   Future<void> _submit() async {
+      final colors = context.colors;
     setState(() => _saving = true);
     try {
       await _ratingRepo.submitRating(
@@ -89,7 +92,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       if (!mounted) return;
       AppToast.show(context,
         icon: Icons.check_circle, message: '评分已提交！+$_rewardPoints 赠送积分',
-        backgroundColor: AppColors.success,
+        backgroundColor: colors.success,
       );
     } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
       AuditLogger.instance.error('SolveRatePage._submit', e);
@@ -97,20 +100,21 @@ class _SolveRatePageState extends State<SolveRatePage> {
       if (!mounted) return;
       AppToast.show(context,
         icon: Icons.error, message: '评分提交失败，请重试',
-        backgroundColor: AppColors.error,
+        backgroundColor: colors.error,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('评分')),
       body: _loading
           ? const LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: const Text('重试')),
                 ]))
@@ -119,9 +123,9 @@ class _SolveRatePageState extends State<SolveRatePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('请为这道题打分', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                  Text('请为这道题打分', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.textPrimary)),
                   const SizedBox(height: 8),
-                  const Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                  Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
                   const SizedBox(height: 24),
                   _StarRating(label: '难度', value: _difficulty, note: '', algorithmScore: _algoDifficulty > 0 ? _algoDifficulty : null, max: 10, onChanged: (v) => setState(() => _difficulty = v)),
                   const SizedBox(height: 20),
@@ -130,7 +134,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                   _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
                   const SizedBox(height: 12),
                   const Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary, height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
@@ -165,28 +169,29 @@ class _StarRating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+          Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
           if (algorithmScore != null && algorithmScore! > 0) ...[
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.1),
+                color: colors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text('算法: ${formatAmount(algorithmScore!)}',
-                style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 11, color: colors.success, fontWeight: FontWeight.w500),
               ),
             ),
           ],
           if (note.isNotEmpty) ...[
             const SizedBox(width: 8),
-            Text(note, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text(note, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
           ],
         ]),
         const SizedBox(height: 10),
@@ -197,12 +202,12 @@ class _StarRating extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(right: 2),
               child: Icon(filled ? Icons.star : Icons.star_border,
-                color: filled ? AppColors.warning : AppColors.disabledForeground, size: 28),
+                color: filled ? colors.warning : colors.disabledForeground, size: 28),
             ),
           );
         })),
         const SizedBox(height: 4),
-        Text(value > 0 ? '$value / $max' : '—', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        Text(value > 0 ? '$value / $max' : '—', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
       ]),
     );
   }

@@ -60,6 +60,7 @@ class QuestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -72,19 +73,19 @@ class QuestionCard extends StatelessWidget {
               // 第一行：标签行 + 尾部
               Row(
                 children: [
-                  _buildTypeTag(),
+                  _buildTypeTag(colors),
                   if (difficulty != null) ...[
                     const SizedBox(width: 6),
-                    _buildDiffTag(),
+                    _buildDiffTag(colors),
                   ],
                   if (subtitle != null && difficulty == null) ...[
                     // 无难度标签时，subtitle 前加分隔点
                     const SizedBox(width: 6),
-                    Text(subtitle!, style: const TextStyle(height: 1.2, fontSize: 11, color: AppColors.textSecondary)),
+                    Text(subtitle!, style: TextStyle(height: 1.2, fontSize: 11, color: colors.textSecondary)),
                   ],
                   const Spacer(),
                   if (status != null) ...[
-                    _buildStatusTag(),
+                    _buildStatusTag(colors),
                     const SizedBox(width: 4),
                   ],
                   _buildTrailing(context),
@@ -98,7 +99,7 @@ class QuestionCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(subtitle!,
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 11, color: colors.textSecondary),
                   ),
                 ),
               // 第四行（可选）：推荐原因
@@ -106,10 +107,10 @@ class QuestionCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.lightbulb_outline, size: 14, color: AppColors.warning),
+                    Icon(Icons.lightbulb_outline, size: 14, color: colors.warning),
                     const SizedBox(width: 4),
                     Text('推荐原因：$reason',
-                      style: const TextStyle(fontSize: 12, color: AppColors.warning),
+                      style: TextStyle(fontSize: 12, color: colors.warning),
                     ),
                   ],
                 ),
@@ -121,23 +122,23 @@ class QuestionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTypeTag() {
+  Widget _buildTypeTag(AppSemanticColors colors) {
     return _Tag(
       QuestionTypeLabels.of(questionType),
-      bg: AppColors.primaryContainer,
-      fg: AppColors.primary,
+      bg: colors.primaryContainer,
+      fg: colors.primary,
     );
   }
 
-  Widget _buildDiffTag() {
+  Widget _buildDiffTag(AppSemanticColors colors) {
     return _Tag(
       DifficultySegments.diffNameFor(difficulty!),
-      bg: AppColors.tagDifficultyBg,
-      fg: AppColors.tagDifficultyFg,
+      bg: colors.warningContainer,
+      fg: colors.onWarningContainer,
     );
   }
 
-  Widget _buildStatusTag() {
+  Widget _buildStatusTag(AppSemanticColors colors) {
     final style = _statusStyle(status!);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -153,15 +154,16 @@ class QuestionCard extends StatelessWidget {
   }
 
   Widget _buildTrailing(BuildContext context) {
+      final colors = context.colors;
     if (trailing != null) return trailing!;
     if (selectable) {
       return Icon(
         selected ? Icons.check_circle : Icons.radio_button_unchecked,
-        color: selected ? AppColors.primary : AppColors.textSecondary,
+        color: selected ? colors.primary : colors.textSecondary,
         size: 24,
       );
     }
-    return const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary);
+    return Icon(Icons.chevron_right, size: 18, color: colors.textSecondary);
   }
 }
 

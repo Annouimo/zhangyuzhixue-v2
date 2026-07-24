@@ -37,12 +37,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _authRepo = widget.authRepository ?? AuthRepository(AuthApi(ApiClient()));
   }
 
   @override
   void dispose() {
+      final colors = context.colors;
     _inviteCodeController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -53,6 +55,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
+      final colors = context.colors;
     if (!_formKey.currentState!.validate()) return;
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -72,9 +75,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
       // 注册成功，不返回 token，跳回登录页
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('注册成功，请登录'),
-          backgroundColor: AppColors.success,
+          backgroundColor: colors.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -92,6 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String _extractErrorMessage(Object e) {
+      final colors = context.colors;
     // 优先从服务端响应体提取真实错误描述
     if (e is DioException && e.response?.data is Map) {
       final serverMsg = (e.response!.data as Map)["message"];
@@ -111,10 +115,11 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showError(String message) {
+      final colors = context.colors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.error,
+        backgroundColor: colors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -122,6 +127,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: const Text('注册'),
@@ -142,20 +148,20 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
+                    Text(
                       '使用邀请码注册',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       '需要邀请码才能注册，请联系管理员获取',
                       style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -317,9 +323,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           '已有账号？',
-                          style: TextStyle(color: AppColors.textSecondary),
+                          style: TextStyle(color: colors.textSecondary),
                         ),
                         TextButton(
                           onPressed: () => context.pop(),

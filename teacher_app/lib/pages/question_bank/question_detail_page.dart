@@ -38,12 +38,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _selected = widget.initiallySelected;
     _load();
   }
 
   Future<void> _load() async {
+      final colors = context.colors;
     setState(() { _loading = true; _error = null; });
     try {
       final detail = await widget.repo.getQuestionDetail(widget.questionId);
@@ -64,6 +66,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: const Text('题目详情')),
@@ -87,7 +90,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
           IconButton(
             icon: Icon(
               _selected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: _selected ? AppColors.primary : AppColors.textSecondary,
+              color: _selected ? colors.primary : colors.textSecondary,
             ),
             onPressed: () => setState(() => _selected = !_selected),
             tooltip: _selected ? '取消勾选' : '勾选此题',
@@ -106,11 +109,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 children: _detail!.tags.map((t) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(t.name,
-                    style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                    style: TextStyle(fontSize: 12, color: colors.primary),
                   ),
                 )).toList(),
               ),
@@ -156,18 +159,20 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _section(String title) {
+      final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 12, 0, 6),
       child: Text(title,
         style: const TextStyle(
           fontSize: 13, fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
+          color: colors.textSecondary,
         ),
       ),
     );
   }
 
   Widget _metaInfo(db.QuestionRow q) {
+      final colors = context.colors;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
@@ -190,7 +195,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             if (q.number.isNotEmpty)
               _metaItem('题号', '第${q.number}题'),
             Text('ID: ${_detail!.question.id}',
-              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+              style: TextStyle(fontSize: 10, color: colors.textMuted),
             ),
           ],
         ),
@@ -199,18 +204,20 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _metaItem(String label, String value) {
+      final colors = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text('$label: ',
-          style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          style: TextStyle(fontSize: 12, color: colors.textMuted)),
         Text(value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
       ],
     );
   }
 
   void _showKnowledgeCard(db.KnowledgeCardRow kc) {
+      final colors = context.colors;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -226,6 +233,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _buildStepKnowledgeCards(String cardTitlesJson, Map<String, db.KnowledgeCardRow> kcMap) {
+      final colors = context.colors;
     List<String> titles;
     try {
       titles = (const JsonDecoder().convert(cardTitlesJson) as List)
@@ -242,15 +250,15 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         children: matched.map((kc) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.1),
+            color: colors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+            border: Border.all(color: colors.warning.withValues(alpha: 0.3)),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(6),
             onTap: () => _showKnowledgeCard(kc),
             child: Text('${kc.category}·${kc.title}',
-              style: const TextStyle(fontSize: 11, color: AppColors.warning),
+              style: TextStyle(fontSize: 11, color: colors.warning),
             ),
           ),
         )).toList(),
@@ -259,6 +267,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _accentContainer(String title, Color accentColor, Widget child) {
+      final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Container(
@@ -266,7 +275,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: colors.border),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,6 +296,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   List<String> _parseImagePaths(String imagesJson) {
+      final colors = context.colors;
     try {
       final decoded = const JsonDecoder().convert(imagesJson);
       return (decoded as List)
@@ -298,6 +308,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _buildOptions(db.ChoiceExtRow choiceExt) {
+      final colors = context.colors;
     final options = choiceExt.options;
     Map<String, dynamic> parsed;
     try {
@@ -319,7 +330,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             color: isCorrect ? Colors.white : Colors.white,
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             border: Border.all(
-              color: isCorrect ? AppColors.success : AppColors.border,
+              color: isCorrect ? colors.success : colors.border,
               width: isCorrect ? 1.5 : 0.5,
             ),
           ),
@@ -328,14 +339,14 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
               Container(
                 width: 24, height: 24,
                 decoration: BoxDecoration(
-                  color: isCorrect ? AppColors.success : AppColors.background,
+                  color: isCorrect ? colors.success : colors.background,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Center(
                   child: Text(e.key,
                     style: TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w600,
-                      color: isCorrect ? Colors.white : AppColors.textSecondary,
+                      color: isCorrect ? Colors.white : colors.textSecondary,
                     ),
                   ),
                 ),
@@ -345,7 +356,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 child: MdLatexBody(e.value.toString(), fontSize: 14),
               ),
               if (isCorrect)
-                const Icon(Icons.check, size: 16, color: AppColors.success),
+                Icon(Icons.check, size: 16, color: colors.success),
             ],
           ),
         );
@@ -354,6 +365,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _buildSubQuestion(db.SubQuestionRow sq, List<db.SolutionMethodRow> methods, {bool hideAnswer = false}) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,11 +376,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
         ],
         if (!hideAnswer && sq.answer != null && sq.answer!.isNotEmpty) ...[
           _section('答案'),
-          _accentContainer('答案', AppColors.success, MdLatexBody(sq.answer!, fontSize: 14)),
+          _accentContainer('答案', colors.success, MdLatexBody(sq.answer!, fontSize: 14)),
         ],
         if (sq.explanation != null && sq.explanation!.isNotEmpty) ...[
           _section('解析'),
-          _accentContainer('解析', AppColors.primary, MdLatexBody(sq.explanation!, fontSize: 14)),
+          _accentContainer('解析', colors.primary, MdLatexBody(sq.explanation!, fontSize: 14)),
         ],
         ...methods.map((m) => _buildMethod(m)),
       ],
@@ -376,6 +388,7 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   Widget _buildMethod(db.SolutionMethodRow method) {
+      final colors = context.colors;
     final methodSteps = _detail!.steps
         .where((s) => s.methodId == method.id)
         .toList();
@@ -392,11 +405,11 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
             padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Row(
               children: [
-                const Icon(Icons.auto_awesome, size: 14, color: AppColors.warning),
+                Icon(Icons.auto_awesome, size: 14, color: colors.warning),
                 const SizedBox(width: 4),
                 Text(method.methodName ?? '解法${method.id}',
                   style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary,
+                    fontSize: 13, fontWeight: FontWeight.w600, color: colors.primary,
                   ),
                 ),
               ],
@@ -411,12 +424,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
                 constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: const BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: colors.primaryContainer,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: Text('${step.stepNumber}',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.primary),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.primary),
                   ),
                 ),
               ),

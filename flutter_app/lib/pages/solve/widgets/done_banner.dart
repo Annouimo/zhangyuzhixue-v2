@@ -12,18 +12,19 @@ class DoneBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(children: [
-        const Icon(Icons.celebration, size: 20, color: AppColors.primary),
+        Icon(Icons.celebration, size: 20, color: colors.primary),
         const SizedBox(width: 8),
         Text(isRated ? '已完成 — 已评分' : '已完成',
           style: const TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
+            fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
           ),
         ),
         const Spacer(),
@@ -39,7 +40,7 @@ class DoneBanner extends StatelessWidget {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.star, size: 14, color: AppColors.warning),
+                Icon(Icons.star, size: 14, color: colors.warning),
                 SizedBox(width: 4),
                 Text('评分'),
               ],

@@ -112,6 +112,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widget.nodes.map((node) => _buildNode(node, 0)).toList(),
@@ -119,6 +120,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   }
 
   Widget _buildNode(ConceptTagNode node, int depth) {
+      final colors = context.colors;
     final isLeaf = node.children.isEmpty;
     final isSelected = widget.selectedNames.contains(node.name);
     return Padding(
@@ -145,14 +147,14 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
                         ? Icons.check_box
                         : Icons.check_box_outline_blank,
                     size: 18,
-                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    color: isSelected ? colors.primary : colors.textSecondary,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     node.name,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      color: isSelected ? colors.primary : colors.textPrimary,
                       fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                     ),
                   ),

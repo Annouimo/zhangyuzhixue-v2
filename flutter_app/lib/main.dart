@@ -99,7 +99,7 @@ void main() async {
             content: const Text('无法连接服务器，请检查网络'),
             duration: const Duration(seconds: 4),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.warning,
+            backgroundColor: ctx.colors.warning,
           ),
         );
       });
@@ -152,7 +152,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.system_update, size: 40, color: AppColors.primary),
+              Icon(Icons.system_update, size: 40, color: ctx.colors.primary),
               const SizedBox(height: 12),
               const Text(
                 '数据更新',
@@ -161,7 +161,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
               const SizedBox(height: 8),
               Text(
                 summary.message ?? '$label 有新版本（v$summary.serverVersion），请立即更新',
-                style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                style: TextStyle(fontSize: 13, color: ctx.colors.textMuted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -170,7 +170,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
                 child: ElevatedButton(
                   onPressed: () => _startUpdate(ctx, summary, label),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: ctx.colors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -206,7 +206,7 @@ Future<void> _startUpdate(BuildContext context, UpdateSummary summary, String la
     AppToast.show(context,
       icon: Icons.check_circle,
       message: '$label更新完成',
-      backgroundColor: AppColors.success,
+      backgroundColor: context.colors.success,
     );
   }
 }

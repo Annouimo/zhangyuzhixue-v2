@@ -67,11 +67,13 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     _runTask();
   }
 
   Future<void> _runTask() async {
+      final colors = context.colors;
     try {
       await widget.task((p) {
         if (mounted) setState(() => _progress = p);
@@ -101,6 +103,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return PopScope(
       canPop: _status != 'progress',
       child: AlertDialog(
@@ -121,10 +124,11 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildProgress() {
+      final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.file_download, size: 40, color: AppColors.primary),
+        Icon(Icons.file_download, size: 40, color: colors.primary),
         const SizedBox(height: 12),
         Text(
           widget.dialogTitle,
@@ -133,7 +137,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         Text(
           widget.dialogMessage,
-          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+          style: TextStyle(fontSize: 13, color: colors.textMuted),
         ),
         const SizedBox(height: 20),
         ClipRRect(
@@ -141,8 +145,8 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
           child: LinearProgressIndicator(
             value: _progress,
             minHeight: 6,
-            backgroundColor: AppColors.border,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            backgroundColor: colors.border,
+            valueColor: AlwaysStoppedAnimation<Color>(colors.primary),
           ),
         ),
         const SizedBox(height: 8),
@@ -155,10 +159,11 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildDone() {
+      final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.check_circle, size: 40, color: AppColors.success),
+        Icon(Icons.check_circle, size: 40, color: colors.success),
         const SizedBox(height: 12),
         const Text(
           '同步完成',
@@ -167,13 +172,13 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         const Text(
           '学习记录已恢复',
-          style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+          style: TextStyle(fontSize: 13, color: colors.textMuted),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: colors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -186,10 +191,11 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildNoData() {
+      final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.info_outline, size: 40, color: AppColors.warning),
+        Icon(Icons.info_outline, size: 40, color: colors.warning),
         const SizedBox(height: 12),
         const Text(
           '同步完成',
@@ -198,14 +204,14 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         const Text(
           '服务器暂无学习记录可恢复，\n请先练习后再试',
-          style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+          style: TextStyle(fontSize: 13, color: colors.textMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: colors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -218,10 +224,11 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildFail() {
+      final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.error, size: 40, color: AppColors.error),
+        Icon(Icons.error, size: 40, color: colors.error),
         const SizedBox(height: 12),
         const Text(
           '同步失败',
@@ -230,7 +237,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         const SizedBox(height: 8),
         Text(
           _errorMessage.isNotEmpty ? _errorMessage : '网络异常，请稍后重试',
-          style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+          style: TextStyle(fontSize: 13, color: colors.textMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
@@ -247,8 +254,8 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
                 _runTask();
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+                foregroundColor: colors.primary,
+                side: BorderSide(color: colors.primary),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -259,7 +266,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),

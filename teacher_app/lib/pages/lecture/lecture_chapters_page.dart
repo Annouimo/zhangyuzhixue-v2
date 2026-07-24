@@ -121,6 +121,7 @@ class _ChapterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -133,7 +134,7 @@ class _ChapterCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
@@ -142,7 +143,7 @@ class _ChapterCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: colors.primary,
                     ),
                   ),
                 ),
@@ -154,13 +155,13 @@ class _ChapterCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
               const Icon(
                 Icons.chevron_right,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ],
           ),

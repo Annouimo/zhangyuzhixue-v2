@@ -76,15 +76,18 @@ class _StepCardWidgetState extends State<StepCardWidget> {
   }
 
   void _toggleExpand() {
+      final colors = context.colors;
     if (!_expanded) setState(() => _expanded = true);
   }
 
   void _onFeedback(FeedbackType type) {
+      final colors = context.colors;
     setState(() { _feedbackGiven = true; _feedbackType = type; });
     widget.onFeedback?.call(type);
   }
 
   Future<void> _showKnowledgeCard(BuildContext context, String tag) async {
+      final colors = context.colors;
     final dao = QuestionDao(DatabaseProvider());
     final card = await dao.getKnowledgeCardByTitle(tag);
     if (!context.mounted) return;
@@ -127,13 +130,14 @@ class _StepCardWidgetState extends State<StepCardWidget> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: _expanded ? Border.all(color: AppColors.primary.withValues(alpha:0.3)) : null,
+        border: _expanded ? Border.all(color: colors.primary.withValues(alpha:0.3)) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,17 +147,17 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             Container(
               width: 28, height: 28,
               decoration: BoxDecoration(
-                color: _feedbackGiven ? AppColors.primary : AppColors.primaryContainer,
+                color: _feedbackGiven ? colors.primary : colors.primaryContainer,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(child: Text('${widget.stepIndex + 1}',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                  color: _feedbackGiven ? Colors.white : AppColors.primary),
+                  color: _feedbackGiven ? Colors.white : colors.primary),
               )),
             ),
             const SizedBox(width: 10),
             Expanded(child: Text(widget.step.title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.textPrimary),
             )),
             ...widget.step.cardTitles.take(2).map((tag) => Padding(
               padding: const EdgeInsets.only(left: 4),
@@ -162,11 +166,11 @@ class _StepCardWidgetState extends State<StepCardWidget> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(tag.length > 6 ? '${tag.substring(0, 6)}…' : tag,
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary),
+                    style: TextStyle(fontSize: 11, color: colors.primary),
                   ),
                 ),
               ),
@@ -188,7 +192,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             const SizedBox(height: 10),
             Container(
               width: double.infinity, padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(8)),
               child: MdLatexBody(widget.step.analysis, fontSize: 14),
             ),
             const SizedBox(height: 12),
@@ -203,9 +207,9 @@ class _StepCardWidgetState extends State<StepCardWidget> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Row(children: [
                   const Text('✅', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 6),
-                  const Text('该题全部步骤已完成',
-                    style: TextStyle(fontSize: 13, color: AppColors.success, fontWeight: FontWeight.w500),
+                  SizedBox(width: 6),
+                  Text('该题全部步骤已完成',
+                    style: TextStyle(fontSize: 13, color: colors.success, fontWeight: FontWeight.w500),
                   ),
                 ]),
               ),

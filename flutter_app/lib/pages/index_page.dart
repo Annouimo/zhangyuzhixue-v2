@@ -214,6 +214,7 @@ class IndexPageState extends State<IndexPage> {
           await achieveRepo.getCategories();
           final newUnlocks = achieveRepo.lastNewUnlocks;
           if (newUnlocks != null && newUnlocks.isNotEmpty && mounted) {
+              final colors = context.colors;
             await AppPrefs().setLastKnownUnlockCount(
               prevCount + newUnlocks.length,
             );
@@ -241,7 +242,9 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _doCheckin() async {
+      final colors = context.colors;
     if (_checkedIn || _submitting) {
+        final colors = context.colors;
       if (_checkedIn) AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
       return;
     }
@@ -278,6 +281,7 @@ class IndexPageState extends State<IndexPage> {
         );
       } catch (_) {}
       setState(() {
+          final colors = context.colors;
         _streakDays = streak;
         _checkedIn = true;
         _submitting = false;
@@ -285,18 +289,21 @@ class IndexPageState extends State<IndexPage> {
       OperationLog.instance.action('checkin', 'ok +$points pts, streak=$streak');
       AppToast.show(context,
         icon: Icons.local_fire_department, message: '签到成功！连续第 $streak 天 · +$points 赠送积分',
-        backgroundColor: AppColors.success,
+        backgroundColor: colors.success,
       );
 
       // 签到后重新检测等级（积分可能触发升级）
       final oldLevel = AppPrefs().lastKnownLevel;
       if (oldLevel > 0) {
+          final colors = context.colors;
         try {
           final newLevel = await _repo.currentLevel();
           if (newLevel > oldLevel && mounted) {
+              final colors = context.colors;
             await AppPrefs().setLastKnownLevel(newLevel);
             final pctl = await _repo.levelPercentile();
             if (mounted) {
+                final colors = context.colors;
               showLevelUpDialog(context, oldLevel: oldLevel, newLevel: newLevel, percentile: pctl);
             }
           }
@@ -309,13 +316,14 @@ class IndexPageState extends State<IndexPage> {
       if (!mounted) return;
       AppToast.show(context,
         icon: Icons.warning, message: '签到失败，请检查网络',
-        backgroundColor: AppColors.error,
+        backgroundColor: colors.error,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('首页')),
       body: _loading
@@ -351,11 +359,12 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildWelcomeCard() {
+      final colors = context.colors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
       ),
       child: Column(
@@ -363,17 +372,17 @@ class IndexPageState extends State<IndexPage> {
           Text(
             _welcomeText,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+              color: colors.primary,
               height: 1.6,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
+          SizedBox(height: 6),
+          Text(
             '每天一句，保持节奏',
-            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 11, color: colors.textSecondary),
           ),
         ],
       ),
@@ -381,6 +390,7 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildPendingHomework() {
+      final colors = context.colors;
     return InkWell(
       onTap: () => context.push(AppRoutes.homeworkList),
       borderRadius: BorderRadius.circular(12),
@@ -388,12 +398,12 @@ class IndexPageState extends State<IndexPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         ),
         child: Row(
           children: [
-            const Icon(Icons.assignment, size: 20, color: AppColors.primary),
+            Icon(Icons.assignment, size: 20, color: colors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -404,12 +414,12 @@ class IndexPageState extends State<IndexPage> {
                   ),
                   Text(
                     '$_pendingCount 项未完成',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            Icon(Icons.chevron_right, color: colors.textSecondary),
           ],
         ),
       ),
@@ -417,6 +427,7 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildLectureEntry() {
+      final colors = context.colors;
     return InkWell(
       onTap: () => context.push(AppRoutes.lectureCourses),
       borderRadius: BorderRadius.circular(12),
@@ -424,12 +435,12 @@ class IndexPageState extends State<IndexPage> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         ),
         child: Row(
           children: [
-            const Icon(Icons.menu_book, size: 20, color: AppColors.primary),
+            Icon(Icons.menu_book, size: 20, color: colors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -438,13 +449,13 @@ class IndexPageState extends State<IndexPage> {
                   const Text('讲义',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
-                  const Text('浏览课程与讲义内容',
-                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  Text('浏览课程与讲义内容',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            Icon(Icons.chevron_right, color: colors.textSecondary),
           ],
         ),
       ),
@@ -452,6 +463,7 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildCheckinCard() {
+      final colors = context.colors;
     final todayReward = UserRepository.todayRewardText(_streakDays);
     final nextReward = UserRepository.nextRewardText(_streakDays);
     final progress = (_streakDays % 7) / 7.0;
@@ -461,7 +473,7 @@ class IndexPageState extends State<IndexPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
       ),
       child: Column(
@@ -469,7 +481,7 @@ class IndexPageState extends State<IndexPage> {
           // 签到行
           Row(
             children: [
-              const Icon(Icons.local_fire_department, size: 20, color: AppColors.primary),
+              Icon(Icons.local_fire_department, size: 20, color: colors.primary),
               const SizedBox(width: 4),
               Text(
                 '已连续签到 $_streakDays 天',
@@ -494,14 +506,14 @@ class IndexPageState extends State<IndexPage> {
           // 奖励行
           Row(
             children: [
-              Text('今日奖励 ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text('今日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               Text('+$todayReward',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
               ),
               const Spacer(),
-              Text('明日奖励 ', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text('明日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               Text('+$nextReward',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
               ),
             ],
           ),
@@ -512,8 +524,8 @@ class IndexPageState extends State<IndexPage> {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 4,
-              backgroundColor: AppColors.border,
-              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+              backgroundColor: colors.border,
+              valueColor: AlwaysStoppedAnimation(colors.primary),
             ),
           ),
           const SizedBox(height: 2),
@@ -522,9 +534,9 @@ class IndexPageState extends State<IndexPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('第1天',
-                style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
               Text('第7天 🎯',
-                style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
             ],
           ),
           const Divider(height: 20),
@@ -536,9 +548,9 @@ class IndexPageState extends State<IndexPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                style: TextStyle(fontSize: 12, color: colors.textSecondary)),
               Text('今日学习积分 +${formatAmount(_todayEarned)}',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
             ],
           ),
         ],
@@ -547,11 +559,12 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildTaskItem(bool done, String label, String points, {bool inProgress = false}) {
+      final colors = context.colors;
     final icon = done
-        ? const Icon(Icons.check_circle, size: 18, color: AppColors.success)
+        ? Icon(Icons.check_circle, size: 18, color: colors.success)
         : (inProgress
-            ? const Icon(Icons.hourglass_empty, size: 18, color: AppColors.warning)
-            : const Icon(Icons.circle_outlined, size: 18, color: AppColors.textSecondary));
+            ? Icon(Icons.hourglass_empty, size: 18, color: colors.warning)
+            : Icon(Icons.circle_outlined, size: 18, color: colors.textSecondary));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -563,7 +576,7 @@ class IndexPageState extends State<IndexPage> {
               label,
               style: TextStyle(
                 fontSize: 13,
-                color: done ? AppColors.textSecondary : AppColors.textPrimary,
+                color: done ? colors.textSecondary : colors.textPrimary,
                 decoration: done ? TextDecoration.lineThrough : null,
               ),
             ),
@@ -572,7 +585,7 @@ class IndexPageState extends State<IndexPage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: done ? AppColors.textSecondary : AppColors.primary,
+              color: done ? colors.textSecondary : colors.primary,
             ),
           ),
         ],
@@ -581,12 +594,14 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildSyncStatus() {
+      final colors = context.colors;
     final online = ConnectivityMonitor().isOnline;
     IconData icon;
     String text;
     VoidCallback? onTap;
 
     if (!online) {
+        final colors = context.colors;
       icon = Icons.cloud_off;
       text = '当前离线，数据将在联网后同步';
     } else if (_syncPendingCount > 0) {
@@ -606,20 +621,20 @@ class IndexPageState extends State<IndexPage> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: !online
-              ? AppColors.recommendation.withValues(alpha: 0.08)
+              ? colors.recommendation.withValues(alpha: 0.08)
               : _syncPendingCount > 0
-                  ? AppColors.warning.withValues(alpha: 0.08)
-                  : AppColors.success.withValues(alpha: 0.08),
+                  ? colors.warning.withValues(alpha: 0.08)
+                  : colors.success.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Icon(icon, size: 16,
               color: !online
-                  ? AppColors.recommendation
+                  ? colors.recommendation
                   : _syncPendingCount > 0
-                      ? AppColors.warning
-                      : AppColors.success,
+                      ? colors.warning
+                      : colors.success,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -627,15 +642,15 @@ class IndexPageState extends State<IndexPage> {
                 style: TextStyle(
                   fontSize: 12,
                   color: !online
-                      ? AppColors.recommendation
+                      ? colors.recommendation
                       : _syncPendingCount > 0
-                          ? AppColors.warning
-                          : AppColors.success,
+                          ? colors.warning
+                          : colors.success,
                 ),
               ),
             ),
             if (onTap != null)
-              const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+              Icon(Icons.chevron_right, size: 16, color: colors.textSecondary),
           ],
         ),
       ),
@@ -645,6 +660,7 @@ class IndexPageState extends State<IndexPage> {
 
   /// 快速练习 — 随机做一道题
   Widget _buildQuickStart() {
+      final colors = context.colors;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
@@ -662,12 +678,14 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _startQuickPractice() async {
+      final colors = context.colors;
     try {
       final dao = QuestionDao(DatabaseProvider());
       var q = await dao.getRandomByType(preferredType: 'choice');
       q ??= await dao.getRandomByType(preferredType: 'fill');
       q ??= await dao.getRandomByType();
       if (q == null || !mounted) {
+          final colors = context.colors;
         AppToast.show(context, icon: Icons.info, message: '题库暂无数据');
         return;
       }
@@ -681,29 +699,30 @@ class IndexPageState extends State<IndexPage> {
 
   /// 新手提示引导卡片
   Widget _buildWelcomeHint() {
+      final colors = context.colors;
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 12, bottom: 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryContainer,
+        color: colors.primaryContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.primary),
-              const SizedBox(width: 6),
-              const Text('欢迎来到章鱼智学',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary),
+              Icon(Icons.lightbulb_outline, size: 18, color: colors.primary),
+              SizedBox(width: 6),
+              Text('欢迎来到章鱼智学',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary),
               ),
               const Spacer(),
               GestureDetector(
                 onTap: () => setState(() => _showWelcomeHint = false),
-                child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                child: Icon(Icons.close, size: 16, color: colors.textSecondary),
               ),
             ],
           ),
@@ -721,12 +740,13 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _hintItem(IconData icon, String text) {
+      final colors = context.colors;
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.primary),
+        Icon(icon, size: 14, color: colors.primary),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(text, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+          child: Text(text, style: TextStyle(fontSize: 13, color: colors.textPrimary)),
         ),
       ],
     );

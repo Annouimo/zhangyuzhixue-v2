@@ -29,6 +29,7 @@ class KnowledgeCardDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
@@ -42,7 +43,7 @@ class KnowledgeCardDialog extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.lightbulb_outline,
-                    color: AppColors.primary, size: 20),
+                    color: colors.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -50,7 +51,7 @@ class KnowledgeCardDialog extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
                 ),
@@ -73,11 +74,11 @@ class KnowledgeCardDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _feedbackChip(context, '完全掌握', AppColors.success),
+                _feedbackChip(context, '完全掌握', colors.success),
                 const SizedBox(width: 8),
-                _feedbackChip(context, '了解', AppColors.warning),
+                _feedbackChip(context, '了解', colors.warning),
                 const SizedBox(width: 8),
-                _feedbackChip(context, '不理解', AppColors.error),
+                _feedbackChip(context, '不理解', colors.error),
               ],
             ),
           ],

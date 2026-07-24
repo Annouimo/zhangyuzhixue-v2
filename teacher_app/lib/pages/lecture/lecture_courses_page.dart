@@ -67,6 +67,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   }
 
   Widget _buildBody() {
+      final colors = context.colors;
     if (_loading) return const LoadingIndicator(message: '加载讲义目录…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
@@ -112,6 +113,7 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -124,12 +126,12 @@ class _CourseCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.menu_book_rounded,
-                  color: AppColors.primary,
+                  color: colors.primary,
                 ),
               ),
               const SizedBox(width: 12),
@@ -142,7 +144,7 @@ class _CourseCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -150,7 +152,7 @@ class _CourseCard extends StatelessWidget {
                       '共 $chapterCount 讲',
                       style: const TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
@@ -158,7 +160,7 @@ class _CourseCard extends StatelessWidget {
               ),
               const Icon(
                 Icons.chevron_right,
-                color: AppColors.textSecondary,
+                color: colors.textSecondary,
               ),
             ],
           ),

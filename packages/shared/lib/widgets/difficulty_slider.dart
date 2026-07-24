@@ -24,12 +24,13 @@ class DifficultySlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
           style: const TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary,
+            fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary,
           ),
         ),
         if (lower == upper)
@@ -40,8 +41,8 @@ class DifficultySlider extends StatelessWidget {
             divisions: divisions,
             label: lower.toStringAsFixed(1),
             onChanged: (v) => onChanged(RangeValues(v, v)),
-            activeColor: AppColors.primary,
-            inactiveColor: AppColors.border,
+            activeColor: colors.primary,
+            inactiveColor: colors.border,
           )
         else
           RangeSlider(
@@ -54,8 +55,8 @@ class DifficultySlider extends StatelessWidget {
               upper.toStringAsFixed(1),
             ),
             onChanged: onChanged,
-            activeColor: AppColors.primary,
-            inactiveColor: AppColors.border,
+            activeColor: colors.primary,
+            inactiveColor: colors.border,
           ),
       ],
     );

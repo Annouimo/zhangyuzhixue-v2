@@ -39,7 +39,7 @@ class AppToast {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: backgroundColor ?? AppColors.textPrimary,
+        backgroundColor: backgroundColor ?? colors.textPrimary,
         duration: Duration(milliseconds: durationMs),
       ),
     );
@@ -48,13 +48,13 @@ class AppToast {
   static void success(BuildContext context, String message,
       {IconData icon = Icons.check_circle}) {
     show(context, icon: icon, message: message,
-        backgroundColor: AppColors.success);
+        backgroundColor: colors.success);
   }
 
   static void error(BuildContext context, String message,
       {IconData icon = Icons.error}) {
     show(context, icon: icon, message: message,
-        backgroundColor: AppColors.error);
+        backgroundColor: colors.error);
   }
 
   static void info(BuildContext context, String message,

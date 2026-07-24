@@ -113,6 +113,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.chapterTitle),
@@ -135,6 +136,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildBody() {
+      final colors = context.colors;
     if (_loading) return const LoadingIndicator(message: '加载讲义…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
@@ -170,7 +172,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -187,11 +189,12 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildKnowledgeChip(KnownCardRef ref) {
+      final colors = context.colors;
     return ActionChip(
-      avatar: const Icon(Icons.lightbulb_outline, size: 16, color: AppColors.primary),
+      avatar: Icon(Icons.lightbulb_outline, size: 16, color: colors.primary),
       label: Text(ref.title, style: const TextStyle(fontSize: 13)),
       onPressed: () => _showKnowledgeCard(context, ref.title, ref.content),
-      backgroundColor: AppColors.primaryContainer,
+      backgroundColor: colors.primaryContainer,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -201,12 +204,13 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   void _showKnowledgeCard(BuildContext context, String title, String content) {
+      final colors = context.colors;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20),
+            Icon(Icons.lightbulb_outline, color: colors.primary, size: 20),
             const SizedBox(width: 8),
             Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
           ],

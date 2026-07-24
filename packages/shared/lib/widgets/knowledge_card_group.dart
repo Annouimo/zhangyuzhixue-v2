@@ -24,6 +24,7 @@ class KnowledgeCardGroupView extends StatefulWidget {
 class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widget.groups.map((group) => _buildGroup(group)).toList(),
@@ -31,6 +32,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
   }
 
   Widget _buildGroup(KnowledgeCardGroup group) {
+      final colors = context.colors;
     final groupTitles = group.cards.map((c) => c.title).toSet();
     final selectedCount = widget.selectedTitles.where((t) => groupTitles.contains(t)).length;
     final allSelected = selectedCount == group.cards.length;
@@ -44,7 +46,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
           Row(
             children: [
               Text(group.category,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary),
               ),
               if (showToggle) ...[
                 const Spacer(),
@@ -60,7 +62,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                   },
                   child: Text(
                     allSelected ? '取消全选' : '全选',
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary),
+                    style: TextStyle(fontSize: 11, color: colors.primary),
                   ),
                 ),
               ],
@@ -78,11 +80,11 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                 v ? newSet.add(card.title) : newSet.remove(card.title);
                 widget.onChanged(newSet);
               },
-              selectedColor: AppColors.primaryContainer,
-              checkmarkColor: AppColors.primary,
+              selectedColor: colors.primaryContainer,
+              checkmarkColor: colors.primary,
               side: widget.selectedTitles.contains(card.title)
                   ? BorderSide.none
-                  : const BorderSide(color: AppColors.border),
+                  : BorderSide(color: colors.border),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             )).toList(),
           ),

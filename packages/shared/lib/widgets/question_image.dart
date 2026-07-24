@@ -23,6 +23,7 @@ class QuestionImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     final audit = AuditLogger.instance;
     final effectiveWidth = width ?? double.infinity;
     final effectiveMaxHeight = maxHeight ?? MediaQuery.of(context).size.height * 0.4;
@@ -46,11 +47,12 @@ class QuestionImage extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
+      final colors = context.colors;
     return Container(
       constraints: const BoxConstraints(minHeight: 80),
       width: width ?? double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.border,
+        color: colors.border,
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Center(
@@ -59,10 +61,10 @@ class QuestionImage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.broken_image_outlined, size: 28, color: AppColors.textSecondary),
+              Icon(Icons.broken_image_outlined, size: 28, color: colors.textSecondary),
               SizedBox(height: 4),
               Text('配图加载失败',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
           ),

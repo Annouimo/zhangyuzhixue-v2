@@ -14,6 +14,7 @@ class EmptyPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -21,13 +22,13 @@ class EmptyPlaceholder extends StatelessWidget {
           Icon(
             icon ?? Icons.mail_outline,
             size: 48,
-            color: AppColors.textSecondary,
+            color: colors.textSecondary,
           ),
           const SizedBox(height: 12),
           Text(
             message,
             style: const TextStyle(
-              color: AppColors.textSecondary,
+              color: colors.textSecondary,
               fontSize: 14,
             ),
           ),

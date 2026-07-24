@@ -14,7 +14,7 @@ class AssignmentCard extends StatelessWidget {
   final String status;
   final VoidCallback onTap;
 
-  const AssignmentCard({
+  AssignmentCard({
     super.key,
     required this.title,
     required this.courseName,
@@ -27,6 +27,7 @@ class AssignmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     final progress = totalCount > 0 ? doneCount / totalCount : 0.0;
     final st = _statusStyle(status);
     return Card(
@@ -34,7 +35,7 @@ class AssignmentCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -44,38 +45,38 @@ class AssignmentCard extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
+                      color: colors.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.assignment,
-                        color: AppColors.primary, size: 20),
+                    child: Icon(Icons.assignment,
+                        color: colors.primary, size: 20),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                              color: colors.textPrimary,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis),
                         if (courseName.isNotEmpty) ...[
-                          const SizedBox(height: 2),
+                          SizedBox(height: 2),
                           Text(courseName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary)),
+                                  color: colors.textSecondary)),
                         ],
                       ],
                     ),
                   ),
                   // 状态标签
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: st.bg,
                       borderRadius: BorderRadius.circular(6),
@@ -88,11 +89,11 @@ class AssignmentCard extends StatelessWidget {
                           fontWeight: FontWeight.w500),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  SizedBox(width: 4),
+                  Icon(Icons.chevron_right, color: colors.textSecondary),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -100,42 +101,42 @@ class AssignmentCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: AppColors.surfaceSubtle,
+                        backgroundColor: colors.surfaceSubtle,
                         valueColor:
-                            const AlwaysStoppedAnimation(AppColors.success),
+                            AlwaysStoppedAnimation(colors.success),
                         minHeight: 6,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text('$doneCount/$totalCount',
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
+                      style: TextStyle(
+                          fontSize: 12, color: colors.textSecondary)),
                 ],
               ),
               if (deadlineDays != null) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 if (deadlineDays! > 0)
                   Text('剩余 $deadlineDays 天',
                       style: TextStyle(
                         fontSize: 12,
                         color: deadlineDays! <= 3
-                            ? AppColors.error
-                            : AppColors.warning,
+                            ? colors.error
+                            : colors.warning,
                       ))
                 else if (deadlineDays! == 0)
-                  const Text('今日截止',
+                  Text('今日截止',
                       style:
-                          TextStyle(fontSize: 12, color: AppColors.error))
+                          TextStyle(fontSize: 12, color: colors.error))
                 else
-                  const Text('已截止',
+                  Text('已截止',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
+                          fontSize: 12, color: colors.textSecondary)),
               ] else ...[
-                const SizedBox(height: 8),
-                const Text('无截止日期',
+                SizedBox(height: 8),
+                Text('无截止日期',
                     style: TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
+                        fontSize: 12, color: colors.textSecondary)),
               ],
             ],
           ),

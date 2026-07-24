@@ -225,6 +225,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   void _emit() {
+      final colors = context.colors;
     final flatTags = _selectedConceptTagNames.isNotEmpty
         ? _selectedConceptTagNames
         : _selectedConceptTags;
@@ -268,13 +269,14 @@ class FilterPanelState extends State<FilterPanel> {
   List<Widget> get _summaryChips {
     final chips = <Widget>[];
     void addChip(String text) {
+        final colors = context.colors;
       chips.add(Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(text, style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+        child: Text(text, style: TextStyle(fontSize: 10, color: colors.primary)),
       ));
     }
     if (_selectedYears.isNotEmpty && _selectedYears.length < widget.yearOptions.length) {
@@ -318,13 +320,14 @@ class FilterPanelState extends State<FilterPanel> {
   };
 
   Widget _buildSortRow() {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
         const Padding(
           padding: EdgeInsets.only(bottom: 4),
-          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
         ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -337,14 +340,14 @@ class FilterPanelState extends State<FilterPanel> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryContainer : Colors.white,
+                  color: isSelected ? colors.primaryContainer : Colors.white,
                   borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
                   border: isSelected
                       ? Border.all(color: Colors.transparent)
-                      : Border.all(color: AppColors.border),
+                      : Border.all(color: colors.border),
                 ),
                 child: Text(label,
-                  style: TextStyle(fontSize: 12, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                  style: TextStyle(fontSize: 12, color: isSelected ? colors.primary : colors.textSecondary),
                 ),
               ),
             );
@@ -356,12 +359,13 @@ class FilterPanelState extends State<FilterPanel> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Card(
       margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: colors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -395,11 +399,11 @@ class FilterPanelState extends State<FilterPanel> {
                 child: Wrap(spacing: 4, runSpacing: 4, children: _emptyHints.map((h) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.15),
+                    color: colors.warning.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                    border: Border.all(color: colors.warning.withValues(alpha: 0.3)),
                   ),
-                  child: Text(h, style: const TextStyle(fontSize: 10, color: AppColors.warning)),
+                  child: Text(h, style: TextStyle(fontSize: 10, color: colors.warning)),
                 )).toList()),
               ),
             if (widget.onSavePreference != null || widget.onLoadPreference != null)
@@ -407,7 +411,7 @@ class FilterPanelState extends State<FilterPanel> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: colors.background,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -416,23 +420,23 @@ class FilterPanelState extends State<FilterPanel> {
                       GestureDetector(
                         onTap: widget.onSavePreference,
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.save_outlined, size: 14, color: AppColors.primary),
+                          Icon(Icons.save_outlined, size: 14, color: colors.primary),
                           const SizedBox(width: 4),
-                          const Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                          Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
                         ]),
                       ),
                     if (widget.onSavePreference != null && widget.onLoadPreference != null)
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('|', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                        child: Text('|', style: TextStyle(fontSize: 12, color: colors.textMuted)),
                       ),
                     if (widget.onLoadPreference != null)
                       GestureDetector(
                         onTap: widget.onLoadPreference,
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.folder_open_outlined, size: 14, color: AppColors.primary),
+                          Icon(Icons.folder_open_outlined, size: 14, color: colors.primary),
                           const SizedBox(width: 4),
-                          const Text('读取学习偏好', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                          Text('读取学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
                         ]),
                       ),
                   ],
@@ -523,19 +527,20 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _sectionHeader(String title, bool expanded, VoidCallback onToggle, {Widget? trailing}) {
+      final colors = context.colors;
     return Container(
-      color: AppColors.background,
+      color: colors.background,
       child: InkWell(
         onTap: onToggle,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+              Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
               const Spacer(),
               if (trailing != null) trailing,
               const SizedBox(width: 4),
-              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textSecondary),
+              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: colors.textSecondary),
             ],
           ),
         ),
@@ -544,6 +549,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildSection(String title, bool expanded, VoidCallback onToggle, List<Widget> children) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -561,6 +567,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _section(String title, bool expanded, VoidCallback onToggle, Widget child) {
+      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -578,6 +585,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildChipGroup(String label, List<String> options, Set<String> selected) {
+      final colors = context.colors;
     if (options.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,7 +593,7 @@ class FilterPanelState extends State<FilterPanel> {
         if (label.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+            child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
           ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -593,11 +601,11 @@ class FilterPanelState extends State<FilterPanel> {
             label: Text(o, style: const TextStyle(fontSize: 12)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: AppColors.primaryContainer,
-            checkmarkColor: AppColors.primary,
+            selectedColor: colors.primaryContainer,
+            checkmarkColor: colors.primary,
             side: selected.contains(o)
                 ? BorderSide.none
-                : const BorderSide(color: AppColors.border),
+                : BorderSide(color: colors.border),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           )).toList(),
         ),
@@ -606,13 +614,14 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildTypeChipGroup(List<String> rawOptions, Set<String> selected) {
+      final colors = context.colors;
     if (rawOptions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Padding(
           padding: EdgeInsets.only(bottom: 4),
-          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
         ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -620,11 +629,11 @@ class FilterPanelState extends State<FilterPanel> {
             label: Text(QuestionTypeLabels.of(o), style: const TextStyle(fontSize: 12)),
             selected: selected.contains(o),
             onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: AppColors.primaryContainer,
-            checkmarkColor: AppColors.primary,
+            selectedColor: colors.primaryContainer,
+            checkmarkColor: colors.primary,
             side: selected.contains(o)
                 ? BorderSide.none
-                : const BorderSide(color: AppColors.border),
+                : BorderSide(color: colors.border),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           )).toList(),
         ),
@@ -633,6 +642,7 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   Widget _buildSegmentDesc(List<_DifficultySegment> segments, double lower, double upper) {
+      final colors = context.colors;
     int segIndex(double v) => segments.indexWhere((s) => v <= s.max);
     final minIdx = segIndex(lower).clamp(0, segments.length - 1);
     final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
@@ -642,9 +652,9 @@ class FilterPanelState extends State<FilterPanel> {
         padding: const EdgeInsets.only(top: 2, bottom: 4),
         child: Text.rich(TextSpan(children: [
           TextSpan(text: segments[minIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
           TextSpan(text: ' ${segments[minIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),
       );
     }
@@ -652,18 +662,18 @@ class FilterPanelState extends State<FilterPanel> {
       padding: const EdgeInsets.only(top: 2, bottom: 4),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text.rich(TextSpan(children: [
-          const WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+          WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
           TextSpan(text: segments[minIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
           TextSpan(text: ' ${segments[minIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),
         Text.rich(TextSpan(children: [
-          const WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: AppColors.textSecondary))),
+          WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
           TextSpan(text: segments[maxIdx].label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
           TextSpan(text: ' ${segments[maxIdx].sample}',
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),
       ]),
     );

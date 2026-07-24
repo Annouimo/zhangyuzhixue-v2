@@ -29,11 +29,12 @@ class LecturePagerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(color: AppColors.surfaceSubtle),
+          top: BorderSide(color: colors.surfaceSubtle),
         ),
       ),
       child: SafeArea(
@@ -54,7 +55,7 @@ class LecturePagerWidget extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
@@ -80,7 +81,7 @@ class LecturePagerWidget extends StatelessWidget {
       width: 44,
       height: 44,
       child: Material(
-        color: enabled ? AppColors.primary : AppColors.disabledBackground,
+        color: enabled ? colors.primary : colors.disabledBackground,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
@@ -88,7 +89,7 @@ class LecturePagerWidget extends StatelessWidget {
           child: Center(
             child: Icon(
               icon,
-              color: enabled ? Colors.white : AppColors.disabledForeground,
+              color: enabled ? Colors.white : colors.disabledForeground,
               size: 24,
             ),
           ),

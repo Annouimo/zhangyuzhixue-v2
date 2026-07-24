@@ -17,6 +17,7 @@ class FeedbackButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: FeedbackType.values.map((type) {
@@ -47,10 +48,11 @@ class _FeedbackChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     final (label, color) = switch (type) {
-      FeedbackType.fullCorrect => ('全对', AppColors.success),
-      FeedbackType.partialCorrect => ('部分对', AppColors.warning),
-      FeedbackType.wrong => ('不对', AppColors.error),
+      FeedbackType.fullCorrect => ('全对', colors.success),
+      FeedbackType.partialCorrect => ('部分对', colors.warning),
+      FeedbackType.wrong => ('不对', colors.error),
     };
 
     return GestureDetector(
@@ -58,7 +60,7 @@ class _FeedbackChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.12) : AppColors.surfaceSubtle,
+          color: selected ? color.withValues(alpha: 0.12) : colors.surfaceSubtle,
           borderRadius: BorderRadius.circular(8),
           border: selected
               ? Border.all(color: color, width: 1.5)
@@ -69,7 +71,7 @@ class _FeedbackChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-            color: selected ? color : AppColors.textSecondary,
+            color: selected ? color : colors.textSecondary,
           ),
         ),
       ),

@@ -68,6 +68,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
 
   @override
   void initState() {
+      final colors = context.colors;
     super.initState();
     if (!widget.isRevisit && !widget.revealed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -77,11 +78,13 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
   }
 
   void _reveal() {
+      final colors = context.colors;
     widget.onReveal?.call();
   }
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     // answerShown: 回顾模式 || 已揭示
     final answerShown = widget.isRevisit || widget.revealed;
     // done: 已过自评阶段（feedbackWidget 消失），显示 DoneBanner
@@ -114,9 +117,9 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.2),
+              color: colors.primaryContainer.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,13 +127,13 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text('正确答案',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.primary,
+                      fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
                     ),
                   ),
                 ),
@@ -147,9 +150,9 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: colors.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: colors.border),
               ),
               child: MdLatexBody(widget.explanation!),
             ),

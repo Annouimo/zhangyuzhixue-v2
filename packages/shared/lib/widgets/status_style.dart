@@ -7,20 +7,20 @@ import 'package:shared/theme/app_theme.dart';
     case 'completed':
       return (
         label: '已完成',
-        color: AppColors.success,
-        bg: AppColors.statusCompletedBg,
+        color: colors.success,
+        bg: colors.statusCompletedBg,
       );
     case 'in_progress':
       return (
         label: '进行中',
-        color: AppColors.warning,
-        bg: AppColors.statusInProgressBg,
+        color: colors.warning,
+        bg: colors.statusInProgressBg,
       );
     default:
       return (
         label: '未做',
-        color: AppColors.textSecondary,
-        bg: AppColors.statusPendingBg,
+        color: colors.textSecondary,
+        bg: colors.statusPendingBg,
       );
   }
 }

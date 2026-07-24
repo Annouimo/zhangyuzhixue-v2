@@ -102,6 +102,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Future<void> _load() async {
+      final colors = context.colors;
     try {
       final detail = await _repo.getDetail(widget.questionId);
       var attempts = await _repo.getAttempts(widget.questionId);
@@ -136,6 +137,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Future<void> _submit() async {
+      final colors = context.colors;
     if (_selected == null || _submitting) return;
     setState(() => _submitting = true);
     try {
@@ -159,6 +161,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   String _typeLabel(String type) {
+      final colors = context.colors;
     switch (type) {
       case 'choice': return '选择';
       case 'fill': return '填空';
@@ -169,6 +172,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
@@ -179,7 +183,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(title: const Text('解题模式')),
         body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
+          Text('加载失败', style: TextStyle(color: colors.textSecondary)),
           const SizedBox(height: 8),
           ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
         ])),
@@ -238,6 +242,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   /// 构建作答次数选择器
   Widget _buildAttemptSelector() {
+      final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
@@ -248,11 +253,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.primary),
+          style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
     }
@@ -275,13 +280,13 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
-                  color: a.id == _currentAttempt?.id ? AppColors.primary : AppColors.textPrimary,
+                  color: a.id == _currentAttempt?.id ? colors.primary : colors.textPrimary,
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
-                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
           ),
@@ -290,16 +295,16 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.primaryContainer,
+          color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(label,
-              style: const TextStyle(fontSize: 11, color: AppColors.primary),
+              style: TextStyle(fontSize: 11, color: colors.primary),
             ),
-            const Icon(Icons.expand_more, size: 14, color: AppColors.primary),
+            Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
       ),
@@ -308,6 +313,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   /// 切换作答次数
   Future<void> _switchAttempt(SolveAttempt attempt) async {
+      final colors = context.colors;
     setState(() {
       _currentAttempt = attempt;
     });
@@ -316,6 +322,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   /// 创建新作答
   Future<void> _createNewAttempt() async {
+      final colors = context.colors;
     try {
       await _repo.startSolve(widget.questionId);
       final attempts = await _repo.getAttempts(widget.questionId);
@@ -334,10 +341,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   }
 
   Widget _buildContent() {
+      final colors = context.colors;
     final detail = _detail;
     if (detail == null) {
-      return const Text('题目数据不存在',
-        style: TextStyle(color: AppColors.textSecondary));
+      return Text('题目数据不存在',
+        style: TextStyle(color: colors.textSecondary));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -347,7 +355,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.primaryContainer.withValues(alpha: 0.3),
+            color: colors.primaryContainer.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -361,7 +369,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               if (detail.title.isNotEmpty)
                 Expanded(
                   child: Text(detail.title,
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -369,11 +377,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
+                  color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('[${_typeLabel(detail.questionType)}]',
-                  style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
                 ),
               ),
               const SizedBox(width: 8),
@@ -387,12 +395,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primaryContainer.withValues(alpha: 0.15),
+              color: colors.primaryContainer.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
-            child: const Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
-              style: TextStyle(fontSize: 13, color: AppColors.primary),
+            child: Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
+              style: TextStyle(fontSize: 13, color: colors.primary),
             ),
           ),
         ],
@@ -413,10 +421,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                 ...detail.conceptTags.map((tag) => Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
+                    color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(tag, style: const TextStyle(fontSize: 12, color: AppColors.primary)),
+                  child: Text(tag, style: TextStyle(fontSize: 12, color: colors.primary)),
                 )),
               ],
             ),
@@ -426,7 +434,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Text('相关概念：${detail.conceptTags.join("、")}',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              style: TextStyle(fontSize: 13, color: colors.textSecondary),
             ),
           ),
         MdLatexBody(detail.stem, fontSize: 15),
@@ -443,26 +451,26 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           Color? borderColor;
           Color? bgColor;
           if (isCorrectOption) {
-            borderColor = AppColors.success;
-            bgColor = AppColors.success.withValues(alpha: 0.08);
+            borderColor = colors.success;
+            bgColor = colors.success.withValues(alpha: 0.08);
           } else if (isWrongSelection) {
-            borderColor = AppColors.error;
-            bgColor = AppColors.error.withValues(alpha: 0.08);
+            borderColor = colors.error;
+            bgColor = colors.error.withValues(alpha: 0.08);
           } else if (isSel) {
-            borderColor = AppColors.primary;
-            bgColor = AppColors.primaryContainer;
+            borderColor = colors.primary;
+            bgColor = colors.primaryContainer;
           }
 
-          Color dotBg = AppColors.surfaceSubtle;
-          Color dotText = AppColors.textSecondary;
+          Color dotBg = colors.surfaceSubtle;
+          Color dotText = colors.textSecondary;
           if (isCorrectOption) {
-            dotBg = AppColors.success;
+            dotBg = colors.success;
             dotText = Colors.white;
           } else if (isWrongSelection) {
-            dotBg = AppColors.error;
+            dotBg = colors.error;
             dotText = Colors.white;
           } else if (isSel) {
-            dotBg = AppColors.primary;
+            dotBg = colors.primary;
             dotText = Colors.white;
           }
 
@@ -476,7 +484,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                   color: bgColor ?? Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: borderColor ?? AppColors.border,
+                    color: borderColor ?? colors.border,
                     width: borderColor != null ? 1.5 : 1,
                   ),
                 ),

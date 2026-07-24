@@ -129,7 +129,8 @@ class _ResultBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isCorrect ? AppColors.success : AppColors.error;
+      final colors = context.colors;
+    final color = isCorrect ? colors.success : colors.error;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

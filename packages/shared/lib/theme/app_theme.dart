@@ -166,6 +166,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     required this.errorContainer,
     required this.infoContainer,
     required this.recommendationContainer,
+    required this.onSuccessContainer,
+    required this.onWarningContainer,
+    required this.onErrorContainer,
+    required this.onInfoContainer,
+    required this.onRecommendationContainer,
   });
 
   final Color primary;
@@ -195,6 +200,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color errorContainer;
   final Color infoContainer;
   final Color recommendationContainer;
+  final Color onSuccessContainer;
+  final Color onWarningContainer;
+  final Color onErrorContainer;
+  final Color onInfoContainer;
+  final Color onRecommendationContainer;
 
   static const light = AppSemanticColors(
     primary: AppColors.primary,
@@ -224,6 +234,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     errorContainer: AppColors.errorContainer,
     infoContainer: AppColors.infoContainer,
     recommendationContainer: AppColors.recommendationContainer,
+    onSuccessContainer: AppColors.onSuccessContainer,
+    onWarningContainer: AppColors.onWarningContainer,
+    onErrorContainer: AppColors.onErrorContainer,
+    onInfoContainer: AppColors.onInfoContainer,
+    onRecommendationContainer: AppColors.onRecommendationContainer,
   );
 
   static const dark = AppSemanticColors(
@@ -254,6 +269,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     errorContainer: AppColorsDark.errorContainer,
     infoContainer: AppColorsDark.infoContainer,
     recommendationContainer: AppColorsDark.recommendationContainer,
+    onSuccessContainer: AppColorsDark.onSuccessContainer,
+    onWarningContainer: AppColorsDark.onWarningContainer,
+    onErrorContainer: AppColorsDark.onErrorContainer,
+    onInfoContainer: AppColorsDark.onInfoContainer,
+    onRecommendationContainer: AppColorsDark.onRecommendationContainer,
   );
 
   @override
@@ -285,6 +305,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     Color? errorContainer,
     Color? infoContainer,
     Color? recommendationContainer,
+    Color? onSuccessContainer,
+    Color? onWarningContainer,
+    Color? onErrorContainer,
+    Color? onInfoContainer,
+    Color? onRecommendationContainer,
   }) {
     return AppSemanticColors(
       primary: primary ?? this.primary,
@@ -314,6 +339,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       errorContainer: errorContainer ?? this.errorContainer,
       infoContainer: infoContainer ?? this.infoContainer,
       recommendationContainer: recommendationContainer ?? this.recommendationContainer,
+      onSuccessContainer: onSuccessContainer ?? this.onSuccessContainer,
+      onWarningContainer: onWarningContainer ?? this.onWarningContainer,
+      onErrorContainer: onErrorContainer ?? this.onErrorContainer,
+      onInfoContainer: onInfoContainer ?? this.onInfoContainer,
+      onRecommendationContainer: onRecommendationContainer ?? this.onRecommendationContainer,
     );
   }
 
@@ -347,6 +377,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       errorContainer: Color.lerp(errorContainer, other.errorContainer, t)!,
       infoContainer: Color.lerp(infoContainer, other.infoContainer, t)!,
       recommendationContainer: Color.lerp(recommendationContainer, other.recommendationContainer, t)!,
+      onSuccessContainer: Color.lerp(onSuccessContainer, other.onSuccessContainer, t)!,
+      onWarningContainer: Color.lerp(onWarningContainer, other.onWarningContainer, t)!,
+      onErrorContainer: Color.lerp(onErrorContainer, other.onErrorContainer, t)!,
+      onInfoContainer: Color.lerp(onInfoContainer, other.onInfoContainer, t)!,
+      onRecommendationContainer: Color.lerp(onRecommendationContainer, other.onRecommendationContainer, t)!,
     );
   }
 }

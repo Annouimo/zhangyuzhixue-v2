@@ -54,6 +54,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
   }
 
   void _remove(int id) {
+      final colors = context.colors;
     widget.onRemove(id);
     setState(() {
       _details.remove(id);
@@ -63,6 +64,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: Text('预览（${_questionIds.length} 题）'),
@@ -88,6 +90,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
   }
 
   Widget _buildBody() {
+      final colors = context.colors;
     if (_loading) return const LoadingIndicator(message: '加载题目详情…');
     if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _loadDetails);
     if (_questionIds.isEmpty) {
@@ -107,7 +110,7 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
           subtitle: '${q.number.isNotEmpty ? '第${q.number}题 ' : ''}${q.examType} ${q.region} ${q.year}'.trim(),
           difficulty: q.difficulty,
           trailing: IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: AppColors.error, size: 20),
+            icon: Icon(Icons.remove_circle_outline, color: colors.error, size: 20),
             tooltip: '移除此题',
             onPressed: () => _remove(id),
           ),

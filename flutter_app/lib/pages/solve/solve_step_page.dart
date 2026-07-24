@@ -163,6 +163,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   }
 
   Future<void> _onFeedback(FeedbackType type) async {
+      final colors = context.colors;
     await _repo.submitStepFeedback(
       questionId: widget.questionId,
       attemptNumber: _currentAttemptNumber ?? 1,
@@ -198,6 +199,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   // 获取当前步骤所属的小问&方法名
   String _buildContextLabel() {
+      final colors = context.colors;
     if (_state == null || _state!.subQuestions.isEmpty) return '';
     final sq = _state!.subQuestions[widget.subQuestionIndex];
     final buf = StringBuffer(sq.label);
@@ -217,6 +219,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   @override
   Widget build(BuildContext context) {
+      final colors = context.colors;
     final step = _currentStep();
     return PopScope(
       canPop: false,
@@ -231,7 +234,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
           ? const LoadingIndicator()
           : _error != null
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('加载失败', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
                   const SizedBox(height: 8),
                   ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
                 ]))
@@ -246,11 +249,11 @@ class _SolveStepPageState extends State<SolveStepPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: colors.surface,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(_buildContextLabel(),
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                          style: TextStyle(fontSize: 13, color: colors.textSecondary),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -259,7 +262,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: colors.surface,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: MdLatexBody(_detail!.stem, fontSize: 14),
