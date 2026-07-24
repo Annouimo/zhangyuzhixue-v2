@@ -6,6 +6,7 @@ import '../../data/update_manager.dart';
 import '../../data/database/database_provider.dart';
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'package:shared/debug/operation_log.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// 设置页（Tab 2）
 class SettingsPage extends StatefulWidget {
@@ -129,6 +130,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('设置')),
       body: ListView(
@@ -137,10 +139,10 @@ class SettingsPageState extends State<SettingsPage> {
           _sectionHeader('服务器'),
           _buildCard([
             ListTile(
-              leading: const Icon(Icons.dns, color: AppColors.primary),
+              leading: Icon(Icons.dns, color: colors.primary),
               title: const Text('服务器地址', style: TextStyle(fontSize: 15)),
-              subtitle: Text(_serverUrl, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-              trailing: const Icon(Icons.edit, size: 16, color: AppColors.textMuted),
+              subtitle: Text(_serverUrl, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+              trailing: Icon(Icons.edit, size: 16, color: colors.textMuted),
               onTap: _editServerUrl,
             ),
           ]),
@@ -171,6 +173,25 @@ class SettingsPageState extends State<SettingsPage> {
             _infoTile(Icons.info_outline, '应用名称', '章鱼智学 · 教师端'),
             _infoTile(Icons.code, '版本', appVersion),
           ]),
+          const SizedBox(height: 16),
+
+          // ── 法律信息 ──
+          _sectionHeader('法律信息'),
+          _buildCard([
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('用户协议', style: TextStyle(fontSize: 15)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html')),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: const Text('隐私政策', style: TextStyle(fontSize: 15)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html')),
+            ),
+          ]),
           const SizedBox(height: 24),
           _buildExportLogButton(),
         ],
@@ -179,10 +200,11 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _sectionHeader(String title) {
+    final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 8, 0, 4),
       child: Text(title,
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary),
       ),
     );
   }
@@ -203,6 +225,7 @@ class SettingsPageState extends State<SettingsPage> {
     required bool updating,
     required VoidCallback onUpdate,
   }) {
+    final colors = context.colors;
     final hasUpdate = server > local;
     final statusText = !_versionLoaded
         ? 'v$local'
@@ -210,13 +233,13 @@ class SettingsPageState extends State<SettingsPage> {
             ? 'v$local → v$server 可用'
             : 'v$local (最新)';
     final statusColor = !_versionLoaded
-        ? AppColors.textSecondary
+        ? colors.textSecondary
         : hasUpdate
-            ? AppColors.warning
-            : AppColors.success;
+            ? colors.warning
+            : colors.success;
 
     return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
+      leading: Icon(icon, color: colors.primary),
       title: Text(label, style: const TextStyle(fontSize: 15)),
       subtitle: Text(
         statusText,
@@ -226,8 +249,8 @@ class SettingsPageState extends State<SettingsPage> {
           ? OutlinedButton(
               onPressed: updating ? null : onUpdate,
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.warning,
-                side: const BorderSide(color: AppColors.warning),
+                foregroundColor: colors.warning,
+                side: BorderSide(color: colors.warning),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 textStyle: const TextStyle(fontSize: 12),
                 shape: RoundedRectangleBorder(
@@ -247,15 +270,17 @@ class SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _infoTile(IconData icon, String title, String value) {
+    final colors = context.colors;
     return ListTile(
-      leading: Icon(icon, color: AppColors.textSecondary),
+      leading: Icon(icon, color: colors.textSecondary),
       title: Text(title, style: const TextStyle(fontSize: 15)),
-      trailing: Text(value, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+      trailing: Text(value, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
       dense: true,
     );
   }
 
   Widget _buildExportLogButton() {
+    final colors = context.colors;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -263,8 +288,8 @@ class SettingsPageState extends State<SettingsPage> {
         icon: const Icon(Icons.bug_report_outlined, size: 16),
         label: const Text('导出运行日志'),
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textSecondary,
-          side: BorderSide(color: AppColors.border),
+          foregroundColor: colors.textSecondary,
+          side: BorderSide(color: colors.border),
           padding: const EdgeInsets.symmetric(vertical: 10),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
