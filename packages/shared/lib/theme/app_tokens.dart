@@ -95,6 +95,7 @@ abstract final class AppMotion {
 /// 章鱼智学 V1.0 阴影令牌 — 浅色模式
 abstract final class AppShadows {
   static List<BoxShadow> get low => level1;
+  static List<BoxShadow> get medium => level2;
   static List<BoxShadow> get level1 => [
         BoxShadow(
           offset: const Offset(0, 1),

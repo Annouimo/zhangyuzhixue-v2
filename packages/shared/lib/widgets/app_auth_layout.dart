@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
-import '../theme/app_icons.dart';
 import 'app_card.dart';
 
 /// 登录、注册等认证页面的统一品牌布局。
