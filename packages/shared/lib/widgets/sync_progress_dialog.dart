@@ -67,7 +67,6 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _runTask();
   }

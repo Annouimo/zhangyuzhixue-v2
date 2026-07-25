@@ -136,7 +136,7 @@ class PointsTransaction(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f'{self.get_source_display()} {self.amount:+d} ({self.student})'
+        return f'{self.get_source_display()} {self.amount:+.1f} ({self.student})'
 
 
 class DbVersion(models.Model):

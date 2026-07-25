@@ -1743,52 +1743,6 @@ h4 {
   margin: 0;
 }
 
-/* ═══ 软件页截图设备框（与首页 Hero 风格一致） ═══ */
-.screenshot-device {
-  overflow: hidden;
-  background: var(--color-surface);
-  border: 1px solid rgba(17,107,229,.16);
-  box-shadow: 0 30px 80px rgba(6,58,155,.18);
-}
-
-.screenshot-device--desktop {
-  padding: 12px 12px 20px;
-  border-radius: 26px;
-}
-
-.screenshot-device--desktop::after {
-  display: block;
-  width: 180px;
-  height: 10px;
-  margin: 20px auto -10px;
-  content: "";
-  background: linear-gradient(90deg, transparent, rgba(7,58,155,.35), transparent);
-  border-radius: 50%;
-}
-
-.screenshot-device--mobile {
-  padding: 10px;
-  border-radius: 34px;
-}
-
-.screenshot-device__screen {
-  overflow: hidden;
-  background: linear-gradient(180deg, #eef7ff, #fdfefe);
-  border-radius: 18px;
-  aspect-ratio: 16 / 10;
-}
-
-.screenshot-device--mobile .screenshot-device__screen {
-  border-radius: 25px;
-  aspect-ratio: 9 / 18;
-}
-
-@media (max-width: 900px) {
-  .screenshot-device--desktop::after {
-    display: none;
-  }
-}
-
 @media (max-width: 900px) {
   .founder-grid,
   .support-grid {
