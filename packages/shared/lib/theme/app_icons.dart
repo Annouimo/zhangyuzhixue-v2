@@ -45,6 +45,7 @@ abstract final class AppIcons {
   static const IconData delete = Icons.delete_outline;
   static const IconData check = Icons.check;
   static const IconData chevronRight = Icons.chevron_right;
+  static const IconData arrowForward = Icons.arrow_forward;
   static const IconData chevronLeft = Icons.chevron_left;
   static const IconData expandMore = Icons.expand_more;
   static const IconData expandLess = Icons.expand_less;

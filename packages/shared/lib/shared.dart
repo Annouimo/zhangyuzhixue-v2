@@ -27,6 +27,7 @@ export 'widgets/app_toast.dart';
 export 'widgets/app_button.dart';
 export 'widgets/app_card.dart';
 export 'widgets/app_page_layout.dart';
+export 'widgets/app_state_panel.dart';
 export 'widgets/app_status_badge.dart';
 export 'widgets/app_feature_banner.dart';
 export 'widgets/app_metric_card.dart';
