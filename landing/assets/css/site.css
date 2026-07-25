@@ -839,6 +839,16 @@ h4 {
   display: grid;
   gap: 24px;
   grid-template-columns: 1.25fr .75fr;
+  align-items: end;
+}
+
+.screenshot-grid .device-mockup--desktop {
+  max-width: 520px;
+  justify-self: end;
+}
+
+.screenshot-grid .device-mockup--mobile {
+  max-width: 260px;
 }
 
 .screenshot-grid .placeholder-media {
@@ -1465,6 +1475,14 @@ h4 {
   .module-grid,
   .screenshot-grid {
     grid-template-columns: 1fr;
+  }
+
+  .screenshot-grid .device-mockup--desktop {
+    max-width: 100%;
+    justify-self: auto;
+  }
+  .screenshot-grid .device-mockup--mobile {
+    max-width: 100%;
   }
 
   .screenshot-grid .placeholder-media {
