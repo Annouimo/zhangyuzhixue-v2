@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_tokens.dart';
 
 /// 品牌色 — 来自已定稿 App 图标（不与交互色共享）
 abstract final class BrandColors {
@@ -150,6 +151,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     required this.textPrimary,
     required this.textSecondary,
     required this.textMuted,
+    required this.textInverse,
+    required this.primaryOnContainer,
+    required this.primaryBorder,
     required this.border,
     required this.borderStrong,
     required this.divider,
@@ -187,6 +191,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color textPrimary;
   final Color textSecondary;
   final Color textMuted;
+  final Color textInverse;
+  final Color primaryOnContainer;
+  final Color primaryBorder;
   final Color border;
   final Color borderStrong;
   final Color divider;
@@ -224,6 +231,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     textPrimary: AppColors.textPrimary,
     textSecondary: AppColors.textSecondary,
     textMuted: AppColors.textMuted,
+    textInverse: AppColors.textInverse,
+    primaryOnContainer: AppColors.primaryOnContainer,
+    primaryBorder: AppColors.primaryBorder,
     border: AppColors.border,
     borderStrong: AppColors.borderStrong,
     divider: AppColors.divider,
@@ -262,6 +272,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     textPrimary: AppColorsDark.textPrimary,
     textSecondary: AppColorsDark.textSecondary,
     textMuted: AppColorsDark.textMuted,
+    textInverse: AppColorsDark.textInverse,
+    primaryOnContainer: AppColorsDark.primaryOnContainer,
+    primaryBorder: AppColorsDark.primaryBorder,
     border: AppColorsDark.border,
     borderStrong: AppColorsDark.borderStrong,
     divider: AppColorsDark.divider,
@@ -301,6 +314,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
     Color? textPrimary,
     Color? textSecondary,
     Color? textMuted,
+    Color? textInverse,
+    Color? primaryOnContainer,
+    Color? primaryBorder,
     Color? border,
     Color? borderStrong,
     Color? divider,
@@ -338,6 +354,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
+      textInverse: textInverse ?? this.textInverse,
+      primaryOnContainer: primaryOnContainer ?? this.primaryOnContainer,
+      primaryBorder: primaryBorder ?? this.primaryBorder,
       border: border ?? this.border,
       borderStrong: borderStrong ?? this.borderStrong,
       divider: divider ?? this.divider,
@@ -379,6 +398,9 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
+      textInverse: Color.lerp(textInverse, other.textInverse, t)!,
+      primaryOnContainer: Color.lerp(primaryOnContainer, other.primaryOnContainer, t)!,
+      primaryBorder: Color.lerp(primaryBorder, other.primaryBorder, t)!,
       border: Color.lerp(border, other.border, t)!,
       borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
@@ -512,7 +534,7 @@ class AppTheme {
         color: colors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -521,9 +543,9 @@ class AppTheme {
           foregroundColor: brightness == Brightness.light
               ? AppColors.textInverse
               : AppColorsDark.textInverse,
-          minimumSize: const Size(double.infinity, 48),
+          minimumSize: const Size(double.infinity, AppControlSize.lg),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
@@ -531,27 +553,69 @@ class AppTheme {
           ),
         ),
       ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: colors.primary,
+          foregroundColor: colors.textInverse,
+          minimumSize: const Size(double.infinity, AppControlSize.lg),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.primary,
+          minimumSize: const Size(double.infinity, AppControlSize.lg),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          side: BorderSide(color: colors.primaryBorder),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colors.primary,
+          textStyle: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: colors.textSecondary,
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colors.surface,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
+          horizontal: AppSpacing.md,
           vertical: 14,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colors.borderStrong),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           borderSide: BorderSide(color: colors.error),
         ),
       ),
@@ -561,6 +625,159 @@ class AppTheme {
         unselectedItemColor: colors.textMuted,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colors.surface,
+        indicatorColor: colors.primaryContainer,
+        surfaceTintColor: Colors.transparent,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colors.primary,
+            );
+          }
+          return TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: colors.textMuted,
+          );
+        }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: colors.surface,
+        indicatorColor: colors.primaryContainer,
+        selectedLabelTextStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: colors.primary,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: colors.textMuted,
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: colors.surfaceSubtle,
+        labelStyle: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: colors.textSecondary,
+        ),
+        side: BorderSide(color: colors.border),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
+          ),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colors.textPrimary,
+        contentTextStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: colors.textInverse,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+        ),
+        titleTextStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: colors.textPrimary,
+        ),
+        subtitleTextStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: colors.textSecondary,
+        ),
+        leadingAndTrailingTextStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: colors.textMuted,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colors.primary;
+          if (states.contains(WidgetState.disabled)) return colors.disabledBackground;
+          return Colors.transparent;
+        }),
+        checkColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colors.textInverse;
+          return null;
+        }),
+        side: BorderSide(color: colors.borderStrong),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colors.primary;
+          return colors.textMuted;
+        }),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colors.primary;
+          return colors.textMuted;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) return colors.primaryContainer;
+          return colors.disabledBackground;
+        }),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: colors.primary,
+        linearMinHeight: 4,
+        linearTrackColor: colors.disabledBackground,
+      ),
+      badgeTheme: BadgeThemeData(
+        backgroundColor: colors.error,
+        textColor: colors.textInverse,
+        smallSize: 8,
+        largeSize: 20,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: colors.textPrimary,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+        textStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: colors.textInverse,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
       ),
       dividerTheme: DividerThemeData(
         color: colors.divider,

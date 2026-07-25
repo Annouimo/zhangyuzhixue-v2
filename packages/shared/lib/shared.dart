@@ -5,6 +5,9 @@
 
 // ── 主题 ──
 export 'theme/app_theme.dart';
+export 'theme/app_tokens.dart';
+export 'theme/app_typography.dart';
+export 'theme/app_icons.dart';
 
 // ── 域名模型 ──
 export 'domain/models.dart';
@@ -21,6 +24,10 @@ export 'widgets/md_latex_body.dart';
 export 'widgets/question_card.dart';
 export 'widgets/question_image.dart';
 export 'widgets/app_toast.dart';
+export 'widgets/app_button.dart';
+export 'widgets/app_card.dart';
+export 'widgets/app_page_layout.dart';
+export 'widgets/app_status_badge.dart';
 export 'widgets/empty_placeholder.dart';
 export 'widgets/error_placeholder.dart';
 export 'widgets/loading_indicator.dart';
