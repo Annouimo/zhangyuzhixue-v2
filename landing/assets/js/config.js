@@ -23,9 +23,9 @@ window.SITE_CONFIG = {
   wechatQr: "assets/images/wechat-qr.png",
 
   downloads: {
-    android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/student-alpha2.apk",
+    android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-beta1/app-release.apk",
     ios: "https://testflight.apple.com/join/tg29y4wF",
-    windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-alpha.2+1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-alpha2.exe",
+    windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-beta1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6.exe",
     netdisk: "https://pan.baidu.com/s/1vFe6MaYHI3b8tGQMOaOh3Q?pwd=6bjf"
   },
 
