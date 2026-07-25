@@ -527,13 +527,15 @@ h4 {
 
 @media (max-width: 900px) {
   .hero-visual.device-mode-desktop .device--mobile { display: none; }
-  .hero-visual .device--mobile {
+  .hero-visual .device--mobile,
+  .hero-visual .device-mockup--mobile {
     display: block;
     position: static;
     width: min(100%, 280px);
     margin: 0 auto;
   }
-  .hero-visual .device--desktop { display: none; }
+  .hero-visual .device--desktop,
+  .hero-visual .device-mockup--desktop { display: none; }
 }
 
 .hero-visual::before {
@@ -547,22 +549,21 @@ h4 {
   inset: 40px 0 auto auto;
 }
 
+.device-mockup,
 .device {
-  position: absolute;
   overflow: hidden;
   background: var(--color-surface);
   border: 1px solid rgba(17,107,229,.16);
   box-shadow: 0 30px 80px rgba(6,58,155,.18);
 }
 
+.device-mockup--desktop,
 .device--desktop {
-  width: 520px;
-  right: 0;
-  top: 70px;
   padding: 12px 12px 20px;
   border-radius: 26px;
 }
 
+.device-mockup--desktop::after,
 .device--desktop::after {
   display: block;
   width: 180px;
@@ -573,25 +574,49 @@ h4 {
   border-radius: 50%;
 }
 
+.device-mockup--mobile,
 .device--mobile {
-  z-index: 3;
-  width: 215px;
-  left: 5px;
-  bottom: 42px;
   padding: 10px;
   border-radius: 34px;
 }
 
+.device-mockup__screen,
 .device__screen {
   overflow: hidden;
   background: linear-gradient(180deg, #eef7ff, #fdfefe);
   border-radius: 18px;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16 / 10;
 }
 
+.device-mockup--mobile .device-mockup__screen,
 .device--mobile .device__screen {
   border-radius: 25px;
-  aspect-ratio: 9/18;
+  aspect-ratio: 9 / 18;
+}
+
+/* Hero 专用定位（覆盖上方的通用视觉样式） */
+.hero .device--desktop,
+.hero .device-mockup--desktop {
+  position: absolute;
+  width: 520px;
+  right: 0;
+  top: 70px;
+}
+
+.hero .device--mobile,
+.hero .device-mockup--mobile {
+  position: absolute;
+  z-index: 3;
+  width: 215px;
+  left: 5px;
+  bottom: 42px;
+}
+
+@media (max-width: 900px) {
+  .device-mockup--desktop::after,
+  .device--desktop::after {
+    display: none;
+  }
 }
 
 .placeholder-media {
