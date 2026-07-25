@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_button.dart';
 
 import 'cooling_timer.dart';
 import 'done_banner.dart';
 import 'solve_result_card.dart';
 
-/// 选填解题流程的阶�?
+/// 选填解题流程的阶段
 // ignore: unused_element
 enum SolveStage { cooling, submitting, result, done }
 
-/// 选择题共用流�?Widget �?纯受控组件�?
+/// 选择题共用流程 Widget — 纯受控组件。
 class SolveFlowWidget extends StatefulWidget {
   const SolveFlowWidget({
     super.key,

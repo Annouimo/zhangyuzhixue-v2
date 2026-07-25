@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 
 /// 反馈按钮类型
 
 enum FeedbackType { fullCorrect, partialCorrect, wrong }
 
-/// 自评反馈按钮组�?
+/// 自评反馈按钮组。
 class FeedbackButtons extends StatelessWidget {
   const FeedbackButtons({
     super.key,

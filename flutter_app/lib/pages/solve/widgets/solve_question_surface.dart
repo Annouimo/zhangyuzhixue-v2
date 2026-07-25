@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/widgets/question_image.dart';
 
-/// 做题页统一题目容器�?
+/// 做题页统一题目容器。
 ///
 /// 负责题目信息、回顾状态、知识标签、题干与图片的视觉层级，
-/// 选择题、填空题和解答题在此基础上追加各自的交互内容�?
+/// 选择题、填空题和解答题在此基础上追加各自的交互内容。
 class SolveQuestionSurface extends StatelessWidget {
   const SolveQuestionSurface({
     super.key,
@@ -54,7 +53,7 @@ class SolveQuestionSurface extends StatelessWidget {
             children: [
               if (hasNumber)
                 Text(
-                  '�?${number!.trim()} �?,
+                  '第 ${number!.trim()} 题',
                   style: textTheme.titleMedium,
                 ),
               AppStatusBadge(
@@ -139,7 +138,7 @@ class _ReviewBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
-              '回顾模式 · 当前记录仅供浏览，不会修改历史答�?,
+              '回顾模式 · 当前记录仅供浏览，不会修改历史答案',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onInfoContainer,
                   ),
@@ -153,9 +152,9 @@ class _ReviewBanner extends StatelessWidget {
 
 enum SolveOptionState { idle, selected, correct, incorrect, disabled }
 
-/// 统一答案选项�?
+/// 统一答案选项。
 ///
-/// 同时通过图标、文字与颜色表达状态，避免只依赖红绿色�?
+/// 同时通过图标、文字与颜色表达状态，避免只依赖红绿色。
 class SolveAnswerOption extends StatelessWidget {
   const SolveAnswerOption({
     super.key,

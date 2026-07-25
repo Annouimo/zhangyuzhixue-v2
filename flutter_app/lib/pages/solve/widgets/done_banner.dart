@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 
-/// 完成后的下一步操作区�?
+/// 完成后的下一步操作区。
 class DoneBanner extends StatelessWidget {
   const DoneBanner({
     super.key,
@@ -31,7 +30,7 @@ class DoneBanner extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const AppStatusBadge(
-                label: '本题已完�?,
+                label: '本题已完成',
                 tone: AppStatusTone.success,
                 icon: Icons.celebration_rounded,
               ),
@@ -40,7 +39,7 @@ class DoneBanner extends StatelessWidget {
                 Icon(Icons.star_rounded, size: 18, color: colors.warning),
                 const SizedBox(width: AppSpacing.xxs),
                 Text(
-                  '已评�?,
+                  '已评分',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: colors.warning,
                       ),
@@ -56,14 +55,14 @@ class DoneBanner extends StatelessWidget {
             children: [
               if (onRate != null)
                 AppButton(
-                  label: isRated ? '查看评分' : '给题目评�?,
+                  label: isRated ? '查看评分' : '给题目评分',
                   icon: Icons.star_outline_rounded,
                   variant: AppButtonVariant.secondary,
                   onPressed: onRate,
                 ),
               if (onNext != null)
                 AppButton(
-                  label: '下一�?,
+                  label: '下一题',
                   icon: Icons.arrow_forward_rounded,
                   onPressed: onNext,
                 ),

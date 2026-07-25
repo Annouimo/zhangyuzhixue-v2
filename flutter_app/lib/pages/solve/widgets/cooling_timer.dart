@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 
-/// 冷却倒计时组�?�?纯展示，由外层通过 GlobalKey 控制�?
+/// 冷却倒计时组件 — 纯展示，由外层通过 GlobalKey 控制。
 class CoolingTimer extends StatefulWidget {
   const CoolingTimer({
     super.key,
     required this.seconds,
-    this.label = '可提�?,
+    this.label = '可提交',
     this.child,
     this.onCooldownEnd,
   });
@@ -95,7 +94,7 @@ class CoolingTimerState extends State<CoolingTimer> {
             Icon(Icons.timer_outlined, size: 16, color: colors.textSecondary),
             const SizedBox(width: AppSpacing.xxs),
             Text(
-              '阅读后还需 $_remaining �?{widget.label}',
+              '阅读后还需 $_remaining 秒${widget.label}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.textSecondary,
                   ),

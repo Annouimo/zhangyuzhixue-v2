@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
@@ -9,7 +8,6 @@ import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
@@ -21,6 +19,7 @@ import 'widgets/feedback_buttons.dart';
 import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../widgets/pop_back_guard.dart';
 
 String _feedbackToStatus(FeedbackType type) {
   switch (type) {
@@ -102,7 +101,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       progress.StepSolveRecord? existingRecord;
 
       if (widget.attemptId != null) {
-        // 从路由参数解�?attempt
+        // 从路由参数解析 attempt
         final dao = ProgressDao(DatabaseProvider());
         final attempts = await dao.getAttempts(widget.questionId);
         final match = attempts.where((a) => a.id == widget.attemptId).toList();
@@ -185,7 +184,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('�?该题全部步骤已完�?),
+            content: Text('✅ 该题全部步骤已完成'),
             duration: Duration(milliseconds: 1000),
           ),
         );
@@ -203,7 +202,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
     }
   }
 
-  // 获取当前步骤所属的小问&方法�?
+  // 获取当前步骤所属的小问&方法名
   String _buildContextLabel() {
     if (_state == null || _state!.subQuestions.isEmpty) return '';
     final sq = _state!.subQuestions[widget.subQuestionIndex];
@@ -214,7 +213,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         buf.write(' · ${m.methodName}');
       }
     } catch (_) {}
-    buf.write(' · �?${widget.stepIndex + 1} �?);
+    buf.write(' · 第 ${widget.stepIndex + 1} 步');
     final step = _currentStep();
     if (step != null && step.title.isNotEmpty) {
       buf.write(' · ${step.title}');
@@ -246,7 +245,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                     },
                   )
                 : step == null
-                    ? const ErrorPlaceholder(message: '步骤数据不存�?)
+                    ? const ErrorPlaceholder(message: '步骤数据不存在')
                     : AppContentContainer(
                         maxWidth: AppContentWidth.reading,
                         padding: const EdgeInsets.symmetric(
@@ -290,7 +289,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                                 SolveQuestionSurface(
                                   number: _detail!.number,
                                   title: _detail!.title,
-                                  questionTypeLabel: '解答�?,
+                                  questionTypeLabel: '解答题',
                                   isReviewMode: _isRevisit,
                                   conceptTags: _detail!.conceptTags,
                                   stem: _detail!.stem,

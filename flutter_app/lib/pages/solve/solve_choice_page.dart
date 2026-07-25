@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import '../router.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -17,6 +15,7 @@ import 'widgets/solve_flow_widget.dart';
 import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../widgets/pop_back_guard.dart';
 
 /// 选择题解题页
 class SolveChoicePage extends StatefulWidget {
@@ -51,7 +50,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   String? _error;
   late final QuestionRepository _repo;
 
-  // 作答次数选择�?
+  // 作答次数选择器
   List<SolveAttempt> _attempts = [];
   final PopBackGuard _popGuard = PopBackGuard();
   SolveAttempt? _currentAttempt;
@@ -78,7 +77,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     }
   }
 
-  /// 根据存档恢复选择状�?
+  /// 根据存档恢复选择状态
   Future<void> _restoreAttemptState(SolveAttempt attempt) async {
     if (attempt.isCompleted) {
       final dao = ProgressDao(DatabaseProvider());
@@ -129,7 +128,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _currentAttempt = latest;
         _loading = false;
       });
-      // 恢复选择状�?
+      // 恢复选择状态
       if (latest != null) {
         await _restoreAttemptState(latest);
       }
@@ -179,13 +178,13 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('选择�?)),
+        appBar: AppBar(title: const Text('选择题')),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('选择�?)),
+        appBar: AppBar(title: const Text('选择题')),
         body: ErrorPlaceholder(
           message: '题目加载失败，请检查后重试',
           onRetry: () {
@@ -205,7 +204,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         if (await _popGuard.consume(context, 'solve_choice')) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('选择�?)),
+        appBar: AppBar(title: const Text('选择题')),
         body: AppContentContainer(
           maxWidth: AppContentWidth.reading,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -233,10 +232,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                         }
                       : null,
                   onRate: () async {
-                    await RouterUtils.push(
-                      context,
-                      '${AppRoutes.solveRate}?id=${widget.questionId}',
-                    );
+                    await context.push('/solve/rate?id=${widget.questionId}');
                     _load();
                   },
                   child: _buildContent(),
@@ -260,14 +256,14 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     );
   }
 
-  /// 构建作答次数选择�?
+  /// 构建作答次数选择器
   Widget _buildAttemptSelector() {
       final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
-        ? '�?${_currentAttempt!.attemptNumber} 次作�?
-        : '�?${_attempts.length + 1} 次作�?;
+        ? '第 ${_currentAttempt!.attemptNumber} 次作答'
+        : '第 ${_attempts.length + 1} 次作答';
 
     if (_attempts.length <= 1) {
       return Container(
@@ -296,7 +292,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('�?${a.attemptNumber} 次作�?,
+              Text('第 ${a.attemptNumber} 次作答',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
@@ -305,7 +301,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
               ),
               const SizedBox(width: 8),
               Text(
-                a.isCompleted ? '回顾' : (a.isStarted ? '进行�? : '未开�?),
+                a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
@@ -339,7 +335,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     await _restoreAttemptState(attempt);
   }
 
-  /// 创建新作�?
+  /// 创建新作答
   Future<void> _createNewAttempt() async {
     try {
       await _repo.startSolve(widget.questionId);
@@ -362,7 +358,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     final detail = _detail;
     if (detail == null) {
       return ErrorPlaceholder(
-        message: '题目数据不存�?,
+        message: '题目数据不存在',
         onRetry: _load,
       );
     }
@@ -382,7 +378,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            _submitted ? '作答结果' : '请选择一个答�?,
+            _submitted ? '作答结果' : '请选择一个答案',
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: AppSpacing.sm),

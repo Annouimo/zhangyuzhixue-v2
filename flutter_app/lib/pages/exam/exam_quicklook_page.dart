@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
@@ -12,6 +11,7 @@ import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../widgets/pop_back_guard.dart';
 
 /// 预览（自己的组卷）
 class ExamQuicklookPage extends StatefulWidget {
@@ -60,7 +60,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
           title: Text(_preview?.name ?? '预览'),
           actions: [
             IconButton(icon: const Icon(Icons.assignment), tooltip: '快对答案',
-              onPressed: () => RouterUtils.push(context,'${AppRoutes.answerSheet}?id=${widget.examId}')),
+              onPressed: () => context.push('/exam/answersheet?id=${widget.examId}')),
             IconButton(icon: const Icon(Icons.picture_as_pdf), tooltip: '下载PDF',
               onPressed: () => PdfHelper.downloadPdf(sourceId: widget.examId, sourceType: 'paper', context: context)),
             IconButton(
@@ -71,7 +71,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             IconButton(icon: const Icon(Icons.delete_outline), tooltip: '删除',
               onPressed: () async {
                 await _repo.deleteExam(widget.examId);
-                if (context.mounted) { safePop(context); }
+                if (context.mounted) { final router = GoRouter.of(context); try { router.pop(); } catch (_) { router.go('/'); } }
               }),
           ],
         ),

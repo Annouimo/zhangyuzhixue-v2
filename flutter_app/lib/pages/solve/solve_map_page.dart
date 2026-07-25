@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
@@ -9,7 +8,6 @@ import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -18,7 +16,7 @@ import '../../domain/question_repository.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 解答题地图页 �?步骤概览（匹�?solve-map.html�?
+/// 解答题地图页 — 步骤概览（匹配 solve-map.html）
 class SolveMapPage extends StatefulWidget {
   final int questionId;
   final String? mode;
@@ -42,7 +40,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   String? _error;
   bool _reviewMode = false;
 
-  // 存档选择�?
+  // 存档选择器
   List<progress.AttemptSummary> _attempts = [];
   int? _currentAttemptNumber;
   int? _currentSubmissionDetailId;
@@ -50,7 +48,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   // 题目信息
   QuestionDetail? _detail;
 
-  // 解法折叠状�? methodIndex->collapsed
+  // 解法折叠状态: methodIndex->collapsed
   final Set<String> _collapsedMethods = {};
 
   @override
@@ -75,7 +73,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
       var attempts = await repo.getAttempts(widget.questionId);
       OperationLog.instance.action('solve_map_page_load', 'T3 after getAttempts (${attempts.length})');
 
-      // 加载题目元信�?
+      // 加载题目元信息
       QuestionDetail? detail;
       try {
         detail = await qRepo.getDetail(widget.questionId);
@@ -91,13 +89,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
         attempts = await repo.getAttempts(widget.questionId);
       }
 
-      // 判断回顾模式: mode=review �?attempts.last.completed 且不是最�?
+      // 判断回顾模式: mode=review 或 attempts.last.completed 且不是最新
       final lastStarted = attempts.isNotEmpty ? attempts.last : null;
       final review = widget.mode == 'review' ||
           (lastStarted != null && lastStarted.status == 'completed' &&
            widget.attemptId != null && widget.attemptId != lastStarted.id);
 
-      // 计算已完成步骤（按当�?attemptId 或最新存档）
+      // 计算已完成步骤（按当前 attemptId 或最新存档）
       Set<String> doneSteps = {};
       int? currentSubmissionDetailId;
       int? currentAttemptNumber;
@@ -154,9 +152,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
     }
   }
 
-  // 入口分流路由构�?
+  // 入口分流路由构造
   String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
-    final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
+    final buf = StringBuffer('/solve/step?id=${widget.questionId}'
         '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
     if (_currentAttemptNumber != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
@@ -167,7 +165,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   String _formatCardLabels(List<String> cards) {
     if (cards.isEmpty) return '';
     if (cards.length == 1) return cards.first;
-    return '${cards.first} �?${cards.length} �?;
+    return '${cards.first} 等 ${cards.length} 个';
   }
 
   @override
@@ -196,8 +194,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
     if (_attempts.isEmpty) return SizedBox.shrink();
 
     final label = _currentAttemptNumber != null
-        ? '�?$_currentAttemptNumber 次作�?
-        : '�?${_attempts.length + 1} 次作�?;
+        ? '第 $_currentAttemptNumber 次作答'
+        : '第 ${_attempts.length + 1} 次作答';
 
     if (_attempts.length <= 1) {
       return Container(
@@ -215,7 +213,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return PopupMenuButton<Object>(
       onSelected: (value) async {
         if (value is progress.AttemptSummary) {
-          // 切换到其他存�?
+          // 切换到其他存档
           final repo = progress.ProgressRepository(
             ProgressDao(DatabaseProvider()),
             QuestionDao(DatabaseProvider()),
@@ -249,7 +247,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('�?${a.attemptNumber} 次作�?,
+              Text('第 ${a.attemptNumber} 次作答',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.attemptNumber == _currentAttemptNumber ? FontWeight.w600 : FontWeight.normal,
@@ -258,7 +256,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
               ),
               SizedBox(width: 8),
               Text(
-                a.status == 'completed' ? '回顾' : '进行�?,
+                a.status == 'completed' ? '回顾' : '进行中',
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
@@ -306,11 +304,11 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 children: [
                   if (_detail!.number.isNotEmpty)
                     Text(
-                      '�?${_detail!.number} �?,
+                      '第 ${_detail!.number} 题',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   const AppStatusBadge(
-                    label: '解答�?,
+                    label: '解答题',
                     tone: AppStatusTone.primary,
                     compact: true,
                   ),
@@ -340,7 +338,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           Text('选择解题路径', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '按步骤逐层展开解析，并在每一步完成后进行自评�?,
+            '按步骤逐层展开解析，并在每一步完成后进行自评。',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -378,10 +376,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
             final (statusLabel, statusTone) = allMethodsFullyDone
                 ? ('完全掌握', AppStatusTone.recommendation)
                 : anyMethodFullyDone
-                    ? ('已完�?, AppStatusTone.success)
+                    ? ('已完成', AppStatusTone.success)
                     : hasAnyStepDone
-                        ? ('进行�?, AppStatusTone.warning)
-                        : ('待开�?, AppStatusTone.neutral);
+                        ? ('进行中', AppStatusTone.warning)
+                        : ('待开始', AppStatusTone.neutral);
 
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -463,7 +461,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                         ),
                                       ),
                                       Text(
-                                        '$completedCount/${method.steps.length} �?,
+                                        '$completedCount/${method.steps.length} 步',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
@@ -514,7 +512,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                           ),
                                           child: _SolveStepTile(
                                             stepNumber: step.stepNumber,
-                                            label: '�?${step.stepNumber} �?,
+                                            label: '第 ${step.stepNumber} 步',
                                             subtitle: !locked &&
                                                     step.cardTitles.isNotEmpty
                                                 ? _formatCardLabels(
@@ -526,8 +524,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                             onTap: locked
                                                 ? null
                                                 : () async {
-                                                    await RouterUtils.push(
-                                                      context,
+                                                    await context.push(
                                                       _buildStepRoute(
                                                         subQIdx,
                                                         methodIndex,
@@ -570,11 +567,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
                   onPressed: _onRetry,
                 ),
                 AppButton(
-                  label: '给题目评�?,
+                  label: '给题目评分',
                   icon: Icons.star_outline_rounded,
-                  onPressed: () => RouterUtils.push(
-                    context,
-                    '${AppRoutes.solveRate}?id=${widget.questionId}',
+                  onPressed: () => context.push(
+                    '/solve/rate?id=${widget.questionId}',
                   ),
                 ),
               ];

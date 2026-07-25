@@ -3,7 +3,6 @@ import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_page_layout.dart';
@@ -19,7 +18,7 @@ import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
 import '../../widgets/shared/format_utils.dart';
 
-/// 题目多维评分页�?
+/// 题目多维评分页。
 class SolveRatePage extends StatefulWidget {
   const SolveRatePage({
     super.key,
@@ -116,7 +115,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
       AppToast.show(
         context,
         icon: Icons.check_circle_rounded,
-        message: '评分已提交！+$_rewardPoints 赠送积�?,
+        message: '评分已提交！+$_rewardPoints 赠送积分',
         backgroundColor: colors.success,
       );
     } catch (e) {
@@ -169,18 +168,18 @@ class _SolveRatePageState extends State<SolveRatePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const AppStatusBadge(
-                                label: '完成后反�?,
+                                label: '完成后反馈',
                                 tone: AppStatusTone.recommendation,
                                 icon: Icons.star_rounded,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               Text(
-                                '请为这道题打�?,
+                                '请为这道题打分',
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
-                                '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本�?,
+                                '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -192,7 +191,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                         const SizedBox(height: AppSpacing.md),
                         _StarRating(
                           label: '理解难度',
-                          description: '理解题意和找到解法有多困�?,
+                          description: '理解题意和找到解法有多困难',
                           value: _difficulty,
                           algorithmScore:
                               _algoDifficulty > 0 ? _algoDifficulty : null,
@@ -204,8 +203,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _StarRating(
-                          label: '计算�?,
-                          description: '实际推导、运算和书写工作�?,
+                          label: '计算量',
+                          description: '实际推导、运算和书写工作量',
                           value: _calculation,
                           algorithmScore:
                               _algoCalculation > 0 ? _algoCalculation : null,
@@ -217,8 +216,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         _StarRating(
-                          label: '解法优雅�?,
-                          description: '解法是否简洁、自然且具有启发�?,
+                          label: '解法优雅度',
+                          description: '解法是否简洁、自然且具有启发性',
                           value: _elegance,
                           max: 10,
                           onChanged: _submitted
@@ -227,7 +226,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                         ),
                         const SizedBox(height: AppSpacing.md),
                         Text(
-                          '评分可跳过，不影响学习记录；算法评分仅作为参考�?,
+                          '评分可跳过，不影响学习记录；算法评分仅作为参考。',
                           style: Theme.of(context)
                               .textTheme
                               .bodySmall
@@ -241,7 +240,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                             child: Row(
                               children: [
                                 const AppStatusBadge(
-                                  label: '评分已提�?,
+                                  label: '评分已提交',
                                   tone: AppStatusTone.success,
                                 ),
                                 const Spacer(),
@@ -257,7 +256,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                           )
                         else
                           AppButton(
-                            label: '提交评分�?$_rewardPoints 赠送积分）',
+                            label: '提交评分（+$_rewardPoints 赠送积分）',
                             icon: Icons.send_rounded,
                             fullWidth: true,
                             isLoading: _saving,
@@ -335,9 +334,9 @@ class _StarRating extends StatelessWidget {
               return Semantics(
                 button: onChanged != null,
                 selected: filled,
-                label: '$label $score �?,
+                label: '$label $score 分',
                 child: IconButton(
-                  tooltip: '$score �?,
+                  tooltip: '$score 分',
                   onPressed: onChanged == null
                       ? null
                       : () => onChanged!(score),

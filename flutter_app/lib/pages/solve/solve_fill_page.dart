@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
@@ -19,11 +17,12 @@ import 'widgets/solve_reveal_widget.dart';
 import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../widgets/pop_back_guard.dart';
 
-/// 填空题解题页 �?揭示答案模式
+/// 填空题解题页 — 揭示答案模式
 ///
-/// �?solve-fill.html 原型对齐�?
-/// 冷却 �?查看答案 �?显示正确答案 �?🎉 已完�?
+/// 与 solve-fill.html 原型对齐：
+/// 冷却 → 查看答案 → 显示正确答案 → 🎉 已完成
 class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
@@ -131,14 +130,14 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 存档选择�?
+  /// 存档选择器
   Widget _buildAttemptSelector() {
       final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
-        ? '�?${_currentAttempt!.attemptNumber} 次作�?
-        : '�?${_attempts.length + 1} 次作�?;
+        ? '第 ${_currentAttempt!.attemptNumber} 次作答'
+        : '第 ${_attempts.length + 1} 次作答';
 
     if (_attempts.length <= 1) {
       return Container(
@@ -167,7 +166,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('�?${a.attemptNumber} 次作�?,
+              Text('第 ${a.attemptNumber} 次作答',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
@@ -176,7 +175,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                a.isCompleted ? '回顾' : (a.isStarted ? '进行�? : '未开�?),
+                a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
@@ -228,7 +227,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 揭示答案时展开结果区域，等待用户自�?
+  /// 揭示答案时展开结果区域，等待用户自评
   Future<void> _onReveal() async {
     setState(() => _revealed = true);
     if (_currentAttempt == null) {
@@ -243,7 +242,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     OperationLog.instance.action('solve_fill', 'revealed qid=${widget.questionId}');
   }
 
-  /// 用户自评后保存记�?
+  /// 用户自评后保存记录
   Future<void> _submitFeedback(bool correct) async {
     if (!_revealed || _feedbackGiven) return;
     // 乐观锁定：立即阻断后续点击，用户瞬时看到反馈
@@ -277,7 +276,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            '请根据完整推导过程自评，而不只是最终结果�?,
+            '请根据完整推导过程自评，而不只是最终结果。',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -290,7 +289,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               final correctButton = FilledButton.icon(
                 onPressed: () => _submitFeedback(true),
                 icon: const Icon(Icons.check_circle_outline_rounded),
-                label: const Text('答对�?),
+                label: const Text('答对了'),
                 style: FilledButton.styleFrom(
                   backgroundColor: colors.success,
                   foregroundColor: colors.onSuccess,
@@ -334,13 +333,13 @@ class _SolveFillPageState extends State<SolveFillPage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('填空�?)),
+        appBar: AppBar(title: const Text('填空题')),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('填空�?)),
+        appBar: AppBar(title: const Text('填空题')),
         body: ErrorPlaceholder(
           message: '题目加载失败，请检查后重试',
           onRetry: () {
@@ -360,7 +359,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         if (await _popGuard.consume(context, 'solve_fill')) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('填空�?)),
+        appBar: AppBar(title: const Text('填空题')),
         body: AppContentContainer(
           maxWidth: AppContentWidth.reading,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -391,10 +390,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                         }
                       : null,
                   onRate: () async {
-                    await RouterUtils.push(
-                      context,
-                      '${AppRoutes.solveRate}?id=${widget.questionId}',
-                    );
+                    await context.push('/solve/rate?id=${widget.questionId}');
                   },
                   child: _buildContent(),
                 ),
@@ -424,7 +420,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       child: Row(
         children: [
           AppStatusBadge(
-            label: _feedbackCorrect ? '自评：回答正�? : '自评：仍需巩固',
+            label: _feedbackCorrect ? '自评：回答正确' : '自评：仍需巩固',
             tone: _feedbackCorrect
                 ? AppStatusTone.success
                 : AppStatusTone.warning,
@@ -435,7 +431,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              _feedbackCorrect ? '这道题已经掌握，可以继续下一题�? : '建议结合解析再梳理一遍关键步骤�?,
+              _feedbackCorrect ? '这道题已经掌握，可以继续下一题。' : '建议结合解析再梳理一遍关键步骤。',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -450,7 +446,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
     final detail = _detail;
     if (detail == null) {
       return ErrorPlaceholder(
-        message: '题目数据不存�?,
+        message: '题目数据不存在',
         onRetry: _load,
       );
     }
@@ -482,7 +478,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Text(
-                '请先独立完成推导或计算。阅读时间结束后，再查看标准答案并进行自评�?,
+                '请先独立完成推导或计算。阅读时间结束后，再查看标准答案并进行自评。',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: context.colors.textSecondary,
                     ),

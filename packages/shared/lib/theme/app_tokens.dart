@@ -87,6 +87,7 @@ abstract final class AppMotion {
   static const Curve easeIn = Curves.easeInCubic;
   static const Curve easeInOut = Curves.easeInOutCubic;
   static const Curve spring = Curves.fastOutSlowIn;
+  static const Curve emphasizedCurve = Curves.fastOutSlowIn;
   static const Curve decelerate = Curves.decelerate;
 }
 

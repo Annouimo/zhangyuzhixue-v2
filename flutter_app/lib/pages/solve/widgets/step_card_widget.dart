@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_status_badge.dart';
@@ -19,7 +18,7 @@ import 'cooling_timer.dart';
 import 'feedback_buttons.dart';
 import 'knowledge_card_dialog.dart';
 
-/// 解答题的单步学习卡�?
+/// 解答题的单步学习卡。
 class StepCardWidget extends StatefulWidget {
   const StepCardWidget({
     super.key,
@@ -101,7 +100,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
     final feedback = await KnowledgeCardDialog.show(
       context,
       title: tag,
-      content: card?.content ?? '知识卡片�?tag',
+      content: card?.content ?? '知识卡片：$tag',
     );
     if (feedback != null && context.mounted) {
       final pDao = ProgressDao(DatabaseProvider());
@@ -180,7 +179,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
                   children: [
                     Text(
                       widget.step.title.isEmpty
-                          ? '�?${widget.stepIndex + 1} �?
+                          ? '第 ${widget.stepIndex + 1} 步'
                           : widget.step.title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
@@ -196,7 +195,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
               ),
               if (_feedbackGiven)
                 const AppStatusBadge(
-                  label: '已完�?,
+                  label: '已完成',
                   tone: AppStatusTone.success,
                   compact: true,
                 ),
@@ -231,7 +230,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
           if (!_expanded && !_feedbackGiven) ...[
             const SizedBox(height: AppSpacing.lg),
             Text(
-              '先独立思考本步骤，倒计时结束后再展开解析�?,
+              '先独立思考本步骤，倒计时结束后再展开解析。',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.textSecondary,
                   ),
@@ -241,7 +240,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             CoolingTimer(
               key: _timerKey,
               seconds: widget.cooldownSeconds,
-              label: '可查看解�?,
+              label: '可查看解析',
               child: AppButton(
                 label: '查看本步解析',
                 icon: Icons.visibility_rounded,
@@ -288,7 +287,7 @@ class _StepCardWidgetState extends State<StepCardWidget> {
               const SizedBox(height: AppSpacing.md),
               const Center(
                 child: AppStatusBadge(
-                  label: '全部步骤已完�?,
+                  label: '全部步骤已完成',
                   tone: AppStatusTone.success,
                   icon: Icons.celebration_rounded,
                 ),

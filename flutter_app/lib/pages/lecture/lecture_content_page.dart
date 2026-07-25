@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -12,6 +11,7 @@ import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../../widgets/pop_back_guard.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {

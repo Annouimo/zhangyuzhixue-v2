@@ -6,7 +6,7 @@ import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 
-/// 判题结果卡�?
+/// 判题结果卡。
 class SolveResultCard extends StatelessWidget {
   const SolveResultCard({
     super.key,
@@ -52,7 +52,7 @@ class SolveResultCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  isCorrect ? '做得很好' : '看看正确答案和解�?,
+                  isCorrect ? '做得很好' : '看看正确答案和解析',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: foreground,
                       ),
@@ -84,7 +84,7 @@ class SolveResultCard extends StatelessWidget {
   }
 }
 
-/// 揭示型题目的答案卡�?
+/// 揭示型题目的答案卡。
 class SolveAnswerRevealCard extends StatelessWidget {
   const SolveAnswerRevealCard({
     super.key,

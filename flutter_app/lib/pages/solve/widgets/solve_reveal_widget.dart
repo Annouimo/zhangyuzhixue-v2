@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_button.dart';
 
 import 'cooling_timer.dart';
 import 'done_banner.dart';
 import 'solve_result_card.dart';
 
-/// 填空题专用揭示流�?Widget �?纯受控组件�?
+/// 填空题专用揭示流程 Widget — 纯受控组件。
 class SolveRevealWidget extends StatefulWidget {
   const SolveRevealWidget({
     super.key,
@@ -68,7 +66,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           CoolingTimer(
             key: _timerKey,
             seconds: widget.cooldownSeconds,
-            label: '可查看答�?,
+            label: '可查看答案',
             child: AppButton(
               label: '查看答案',
               icon: Icons.visibility_rounded,
