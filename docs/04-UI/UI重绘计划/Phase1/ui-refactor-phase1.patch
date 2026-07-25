@@ -1,0 +1,2118 @@
+diff --git a/docs/04-UI/ui-refactor-phase-1.md b/docs/04-UI/ui-refactor-phase-1.md
+new file mode 100644
+index 0000000..56f5da7
+--- /dev/null
++++ b/docs/04-UI/ui-refactor-phase-1.md
+@@ -0,0 +1,70 @@
++# UI 重构第一批说明
++
++基准版本：`3ff19e0bde5fdce177566a87567918ba12b83dc3`
++
++本批次只建立视觉基础并调整学生端主导航，不改路由、数据访问、状态管理和业务流程。
++
++## 颜色依据
++
++所有颜色继续以《品牌颜色系统与深色模式设计规范 V1.0》为唯一依据：
++
++- 品牌蓝只用于品牌展示；普通交互使用 `primary`。
++- 智能推荐与收藏使用 `recommendation` 暖金色。
++- 浅色和深色模式共用相同语义命名。
++- 业务页面后续应通过 `context.colors` 取色，不新增任意硬编码颜色。
++
++## 新增设计令牌
++
++- `AppSpacing`：固定间距档位。
++- `AppRadius`：固定圆角档位。
++- `AppControlSize`：按钮和点击区域尺寸。
++- `AppBreakpoints`：紧凑、中等和宽屏断点。
++- `AppContentWidth`：表单、阅读、标准内容和仪表盘宽度。
++- `AppMotion`：统一动画时长与曲线。
++- `AppShadows`：浅色模式柔和阴影。
++- `AppTypography`：中文学习场景字体层级。
++- `AppIcons`：主导航与通用操作图标映射。
++
++`AppSizes` 暂时保留为兼容入口，旧页面可逐步迁移。
++
++## 补齐的全局主题
++
++本批次统一了以下 Material 组件：
++
++- AppBar、Card
++- FilledButton、ElevatedButton、OutlinedButton、TextButton、IconButton
++- TextField / InputDecoration
++- ListTile、Chip
++- Dialog、BottomSheet、SnackBar、Tooltip
++- NavigationBar、NavigationRail、BottomNavigationBar
++- Checkbox、Radio、Switch、ProgressIndicator、Badge
++
++按钮包含默认、悬浮、按下、键盘焦点和禁用状态。输入框使用规范中的强边框及焦点边框。
++
++## 新增共享组件
++
++- `AppButton`：统一按钮类型、图标间距、全宽和加载状态。
++- `AppCard`：统一卡片边框、选中态和可选悬浮层级。
++- `AppContentContainer`：统一页面边距与最大内容宽度。
++- `AppSectionHeader`：统一页面分区标题层级。
++- `AppStatusBadge`：状态文字、图标和颜色联合表达。
++
++这些组件已从 `package:shared/shared.dart` 导出。
++
++## 学生端主导航
++
++- 手机继续使用四项底部导航。
++- 中等宽度开始切换为侧边导航。
++- 宽屏侧边导航自动展开，并展示品牌标识和产品名称。
++- 保留原有首页、推荐、组卷、个人中心入口及刷新逻辑。
++- 个人中心仍显示待同步数量徽标。
++
++## 后续页面迁移建议
++
++页面改造时优先按以下顺序替换：
++
++1. 零散 `TextStyle` 改用 `Theme.of(context).textTheme`。
++2. 零散间距和圆角改用设计令牌。
++3. 普通按钮和卡片改用共享组件。
++4. 状态提示改用 `AppStatusBadge`，避免只靠颜色表达。
++5. 页面主体用 `AppContentContainer` 控制宽屏阅读体验。
+diff --git a/flutter_app/lib/pages/main_shell.dart b/flutter_app/lib/pages/main_shell.dart
+index adc20b2..53e533a 100644
+--- a/flutter_app/lib/pages/main_shell.dart
++++ b/flutter_app/lib/pages/main_shell.dart
+@@ -1,16 +1,20 @@
+ import 'package:flutter/material.dart';
+-import 'index_page.dart';
+-import 'recommend_page.dart';
++import 'package:shared/debug/operation_log.dart';
++import 'package:shared/theme/app_theme.dart';
++
++import '../data/daos/sync_queue_dao.dart';
++import '../data/database/database_provider.dart';
+ import 'exam/exam_home_page.dart';
++import 'index_page.dart';
+ import 'profile/profile_page.dart';
+-import '../data/database/database_provider.dart';
+-import '../data/daos/sync_queue_dao.dart';
+-import 'package:shared/debug/operation_log.dart';
++import 'recommend_page.dart';
+ 
+-/// Tab 页枚举
++/// Tab 页枚举。
+ enum MainTab { home, recommend, exam, profile }
+ 
+-/// 底部导航框架（4 Tab：首页/推荐/组卷/我的 — 匹配 HTML 原型）
++/// 学生端主导航框架。
++///
++/// 紧凑窗口使用 Material 3 底部导航；中等及以上窗口自动切换侧边导航。
+ class MainShell extends StatefulWidget {
+   const MainShell({super.key});
+ 
+@@ -26,16 +30,17 @@ class _MainShellState extends State<MainShell> {
+   final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
+   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
+ 
+-  List<Widget> get _pages => [
+-    IndexPage(key: _indexKey),
+-    RecommendPage(key: _recommendKey),
+-    const ExamHomePage(),
+-    ProfilePage(key: _profileKey),
+-  ];
++  late final List<Widget> _pages;
+ 
+   @override
+   void initState() {
+     super.initState();
++    _pages = [
++      IndexPage(key: _indexKey),
++      RecommendPage(key: _recommendKey),
++      const ExamHomePage(),
++      ProfilePage(key: _profileKey),
++    ];
+     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
+     _refreshSyncPending();
+   }
+@@ -57,68 +62,195 @@ class _MainShellState extends State<MainShell> {
+ 
+   void _onDbVersionChanged() {
+     if (!mounted) return;
+-    // 刷新所有 Tab 页
+     _indexKey.currentState?.reload();
+     _recommendKey.currentState?.refresh();
+     _profileKey.currentState?.reload();
+   }
+ 
+-  @override
+-  Widget build(BuildContext context) {
+-    return Scaffold(
+-      body: IndexedStack(
+-        index: _currentIndex,
+-        children: _pages,
++  void _selectTab(int index) {
++    if (_currentIndex != index) {
++      setState(() => _currentIndex = index);
++    }
++
++    if (index == MainTab.home.index) {
++      _indexKey.currentState?.reload();
++    } else if (index == MainTab.recommend.index) {
++      _recommendKey.currentState?.refresh();
++    } else if (index == MainTab.profile.index) {
++      _profileKey.currentState?.reload();
++      _refreshSyncPending();
++    }
++  }
++
++  Widget _profileIcon({required bool selected}) {
++    final icon = Icon(
++      selected ? AppIcons.profileSelected : AppIcons.profile,
++    );
++    if (_syncPendingCount <= 0) return icon;
++
++    return Badge(
++      isLabelVisible: true,
++      label: Text(
++        _syncPendingCount > 99 ? '99+' : '$_syncPendingCount',
+       ),
+-      bottomNavigationBar: BottomNavigationBar(
+-        currentIndex: _currentIndex,
+-        onTap: (index) {
+-          setState(() => _currentIndex = index);
+-          if (index == 0) _indexKey.currentState?.reload();
+-          if (index == 1) _recommendKey.currentState?.refresh();
+-          if (index == 3) {
+-            _profileKey.currentState?.reload();
+-            _refreshSyncPending();
+-          }
+-        },
+-        type: BottomNavigationBarType.fixed,
+-        items: [
+-          const BottomNavigationBarItem(
+-            icon: Icon(Icons.home_outlined),
+-            activeIcon: Icon(Icons.home),
+-            label: '首页',
+-          ),
+-          const BottomNavigationBarItem(
+-            icon: Icon(Icons.auto_awesome_outlined),
+-            activeIcon: Icon(Icons.auto_awesome),
+-            label: '推荐',
+-          ),
+-          const BottomNavigationBarItem(
+-            icon: Icon(Icons.description_outlined),
+-            activeIcon: Icon(Icons.description),
+-            label: '组卷',
+-          ),
+-          BottomNavigationBarItem(
+-            icon: _syncPendingCount > 0
+-                ? Badge(
+-                    isLabelVisible: true,
+-                    label: Text('$_syncPendingCount',
+-                        style: const TextStyle(fontSize: 9)),
+-                    child: const Icon(Icons.person_outline),
+-                  )
+-                : const Icon(Icons.person_outline),
+-            activeIcon: _syncPendingCount > 0
+-                ? Badge(
+-                    isLabelVisible: true,
+-                    label: Text('$_syncPendingCount',
+-                        style: const TextStyle(fontSize: 9)),
+-                    child: const Icon(Icons.person),
+-                  )
+-                : const Icon(Icons.person),
+-            label: '我的',
++      child: icon,
++    );
++  }
++
++  List<NavigationDestination> get _bottomDestinations => [
++        const NavigationDestination(
++          icon: Icon(AppIcons.home),
++          selectedIcon: Icon(AppIcons.homeSelected),
++          label: '首页',
++          tooltip: '首页',
++        ),
++        const NavigationDestination(
++          icon: Icon(AppIcons.recommendation),
++          selectedIcon: Icon(AppIcons.recommendationSelected),
++          label: '推荐',
++          tooltip: '题目推荐',
++        ),
++        const NavigationDestination(
++          icon: Icon(AppIcons.exam),
++          selectedIcon: Icon(AppIcons.examSelected),
++          label: '组卷',
++          tooltip: '智能组卷',
++        ),
++        NavigationDestination(
++          icon: _profileIcon(selected: false),
++          selectedIcon: _profileIcon(selected: true),
++          label: '我的',
++          tooltip: '个人中心',
++        ),
++      ];
++
++  List<NavigationRailDestination> get _railDestinations => [
++        const NavigationRailDestination(
++          icon: Icon(AppIcons.home),
++          selectedIcon: Icon(AppIcons.homeSelected),
++          label: Text('首页'),
++        ),
++        const NavigationRailDestination(
++          icon: Icon(AppIcons.recommendation),
++          selectedIcon: Icon(AppIcons.recommendationSelected),
++          label: Text('推荐'),
++        ),
++        const NavigationRailDestination(
++          icon: Icon(AppIcons.exam),
++          selectedIcon: Icon(AppIcons.examSelected),
++          label: Text('组卷'),
++        ),
++        NavigationRailDestination(
++          icon: _profileIcon(selected: false),
++          selectedIcon: _profileIcon(selected: true),
++          label: const Text('我的'),
++        ),
++      ];
++
++  Widget _buildPageStack() {
++    return IndexedStack(
++      index: _currentIndex,
++      children: _pages,
++    );
++  }
++
++  Widget _buildRailHeader(BuildContext context, {required bool extended}) {
++    final mark = Image.asset(
++      'assets/logo_mark.png',
++      width: 38,
++      height: 38,
++      filterQuality: FilterQuality.high,
++    );
++
++    if (!extended) {
++      return Padding(
++        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
++        child: Tooltip(
++          message: '章鱼智学',
++          child: Semantics(label: '章鱼智学', image: true, child: mark),
++        ),
++      );
++    }
++
++    return Padding(
++      padding: const EdgeInsets.fromLTRB(
++        AppSpacing.md,
++        AppSpacing.sm,
++        AppSpacing.md,
++        AppSpacing.lg,
++      ),
++      child: Row(
++        mainAxisSize: MainAxisSize.min,
++        children: [
++          mark,
++          const SizedBox(width: AppSpacing.sm),
++          Text(
++            '章鱼智学',
++            style: Theme.of(context).textTheme.titleMedium?.copyWith(
++                  color: context.colors.textPrimary,
++                  fontWeight: FontWeight.w700,
++                ),
+           ),
+         ],
+       ),
+     );
+   }
++
++  @override
++  Widget build(BuildContext context) {
++    return LayoutBuilder(
++      builder: (context, constraints) {
++        final useSideNavigation = constraints.maxWidth >= AppBreakpoints.medium;
++        final extendRail = constraints.maxWidth >= AppBreakpoints.expanded;
++
++        if (!useSideNavigation) {
++          return Scaffold(
++            body: _buildPageStack(),
++            bottomNavigationBar: DecoratedBox(
++              decoration: BoxDecoration(
++                border: Border(
++                  top: BorderSide(color: context.colors.divider),
++                ),
++              ),
++              child: NavigationBar(
++                selectedIndex: _currentIndex,
++                onDestinationSelected: _selectTab,
++                destinations: _bottomDestinations,
++              ),
++            ),
++          );
++        }
++
++        return Scaffold(
++          body: Row(
++            children: [
++              SafeArea(
++                right: false,
++                child: NavigationRail(
++                  selectedIndex: _currentIndex,
++                  onDestinationSelected: _selectTab,
++                  extended: extendRail,
++                  labelType: extendRail
++                      ? NavigationRailLabelType.none
++                      : NavigationRailLabelType.all,
++                  groupAlignment: -0.72,
++                  leading: _buildRailHeader(
++                    context,
++                    extended: extendRail,
++                  ),
++                  destinations: _railDestinations,
++                ),
++              ),
++              VerticalDivider(
++                width: 1,
++                thickness: 1,
++                color: context.colors.divider,
++              ),
++              Expanded(child: _buildPageStack()),
++            ],
++          ),
++        );
++      },
++    );
++  }
+ }
+diff --git a/packages/shared/lib/shared.dart b/packages/shared/lib/shared.dart
+index cb30b6d..4e5305d 100644
+--- a/packages/shared/lib/shared.dart
++++ b/packages/shared/lib/shared.dart
+@@ -21,6 +21,10 @@ export 'widgets/md_latex_body.dart';
+ export 'widgets/question_card.dart';
+ export 'widgets/question_image.dart';
+ export 'widgets/app_toast.dart';
++export 'widgets/app_button.dart';
++export 'widgets/app_card.dart';
++export 'widgets/app_page_layout.dart';
++export 'widgets/app_status_badge.dart';
+ export 'widgets/empty_placeholder.dart';
+ export 'widgets/error_placeholder.dart';
+ export 'widgets/loading_indicator.dart';
+diff --git a/packages/shared/lib/theme/app_icons.dart b/packages/shared/lib/theme/app_icons.dart
+new file mode 100644
+index 0000000..4639db3
+--- /dev/null
++++ b/packages/shared/lib/theme/app_icons.dart
+@@ -0,0 +1,38 @@
++import 'package:flutter/material.dart';
++
++/// 应用图标语义映射。
++///
++/// 业务页面只表达图标含义，不自行混搭不同风格的图标。
++abstract final class AppIcons {
++  // 主导航
++  static const IconData home = Icons.home_outlined;
++  static const IconData homeSelected = Icons.home_rounded;
++  static const IconData recommendation = Icons.auto_awesome_outlined;
++  static const IconData recommendationSelected = Icons.auto_awesome_rounded;
++  static const IconData exam = Icons.description_outlined;
++  static const IconData examSelected = Icons.description_rounded;
++  static const IconData profile = Icons.person_outline_rounded;
++  static const IconData profileSelected = Icons.person_rounded;
++
++  // 通用操作
++  static const IconData back = Icons.arrow_back_rounded;
++  static const IconData close = Icons.close_rounded;
++  static const IconData more = Icons.more_horiz_rounded;
++  static const IconData search = Icons.search_rounded;
++  static const IconData filter = Icons.tune_rounded;
++  static const IconData refresh = Icons.refresh_rounded;
++  static const IconData add = Icons.add_rounded;
++  static const IconData edit = Icons.edit_outlined;
++  static const IconData delete = Icons.delete_outline_rounded;
++  static const IconData chevronRight = Icons.chevron_right_rounded;
++
++  // 产品语义
++  static const IconData success = Icons.check_circle_rounded;
++  static const IconData warning = Icons.warning_amber_rounded;
++  static const IconData error = Icons.error_rounded;
++  static const IconData info = Icons.info_outline_rounded;
++  static const IconData favorite = Icons.star_border_rounded;
++  static const IconData favoriteSelected = Icons.star_rounded;
++  static const IconData like = Icons.thumb_up_alt_outlined;
++  static const IconData likeSelected = Icons.thumb_up_alt_rounded;
++}
+diff --git a/packages/shared/lib/theme/app_theme.dart b/packages/shared/lib/theme/app_theme.dart
+index cc1c9e1..5b36029 100644
+--- a/packages/shared/lib/theme/app_theme.dart
++++ b/packages/shared/lib/theme/app_theme.dart
+@@ -1,5 +1,12 @@
+ import 'package:flutter/material.dart';
+ 
++import 'app_tokens.dart';
++import 'app_typography.dart';
++
++export 'app_icons.dart';
++export 'app_tokens.dart';
++export 'app_typography.dart';
++
+ /// 品牌色 — 来自已定稿 App 图标（不与交互色共享）
+ abstract final class BrandColors {
+   static const blueBright = Color(0xFF1D8EFE);
+@@ -18,11 +25,15 @@ abstract final class BrandColors {
+ abstract final class AppColors {
+   // ── 主交互色 ──
+   static const primary = Color(0xFF006BD1);
++  static const onPrimary = Color(0xFFFFFFFF);
+   static const primaryHover = Color(0xFF0062C4);
++  static const onPrimaryHover = Color(0xFFFFFFFF);
+   static const primaryPressed = Color(0xFF0055AA);
++  static const onPrimaryPressed = Color(0xFFFFFFFF);
+   static const primaryContainer = Color(0xFFEAF4FF);
+   static const primaryOnContainer = Color(0xFF0055AA);
+   static const primaryBorder = Color(0xFF9FCEFF);
++  static const onPrimaryBorder = Color(0xFF0055AA);
+ 
+   // ── 页面与表层 ──
+   static const background = Color(0xFFF6F8FB);
+@@ -47,10 +58,15 @@ abstract final class AppColors {
+ 
+   // ── 语义色 — 主色 ──
+   static const success = Color(0xFF087A55);
++  static const onSuccess = Color(0xFFFFFFFF);
+   static const warning = Color(0xFFF5A524);
++  static const onWarning = Color(0xFF2A1800);
+   static const error = Color(0xFFD92D20);
++  static const onError = Color(0xFFFFFFFF);
+   static const info = Color(0xFF006BD1);
++  static const onInfo = Color(0xFFFFFFFF);
+   static const recommendation = Color(0xFFE59A00);
++  static const onRecommendation = Color(0xFF2A1800);
+ 
+   // ── 语义色 — 容器 ──
+   static const successContainer = Color(0xFFE8F7F0);
+@@ -65,7 +81,7 @@ abstract final class AppColors {
+   static const onRecommendationContainer = Color(0xFF7A4500);
+ 
+   // ── 辅助 ──
+-  static const scrim = Color(0xCC081220); // rgba(8,18,32,.56) → 0xCC
++  static const scrim = Color(0x8F081220); // rgba(8,18,32,.56) → 0x8F
+   static const focusRing = Color(0xFF5CAEFF);
+   static const selectionBackground = Color(0xFFCDE5FF);
+   static const selectionText = Color(0xFF0B2D50);
+@@ -88,11 +104,15 @@ abstract final class AppColors {
+ /// 章鱼智学 V1.0 色彩系统 — 深色模式
+ abstract final class AppColorsDark {
+   static const primary = Color(0xFF5CAEFF);
++  static const onPrimary = Color(0xFF00294D);
+   static const primaryHover = Color(0xFF85C3FF);
++  static const onPrimaryHover = Color(0xFF00294D);
+   static const primaryPressed = Color(0xFF3F9CF0);
++  static const onPrimaryPressed = Color(0xFF001E38);
+   static const primaryContainer = Color(0xFF12365B);
+   static const primaryOnContainer = Color(0xFFCDE6FF);
+   static const primaryBorder = Color(0xFF3F7DB8);
++  static const onPrimaryBorder = Color(0xFFEAF4FF);
+ 
+   static const background = Color(0xFF0B1220);
+   static const surface = Color(0xFF111C2D);
+@@ -112,10 +132,15 @@ abstract final class AppColorsDark {
+   static const disabledForeground = Color(0xFF8994A5);
+ 
+   static const success = Color(0xFF67D6AD);
++  static const onSuccess = Color(0xFF052E24);
+   static const warning = Color(0xFFFFD37A);
++  static const onWarning = Color(0xFF3A2500);
+   static const error = Color(0xFFFF8B84);
++  static const onError = Color(0xFF4A0C08);
+   static const info = Color(0xFF85C3FF);
++  static const onInfo = Color(0xFF00294D);
+   static const recommendation = Color(0xFFFFC65A);
++  static const onRecommendation = Color(0xFF3A2400);
+ 
+   static const successContainer = Color(0xFF123B31);
+   static const onSuccessContainer = Color(0xFFA7EACF);
+@@ -143,27 +168,44 @@ abstract final class AppColorsDark {
+ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   const AppSemanticColors({
+     required this.primary,
++    required this.onPrimary,
++    required this.primaryHover,
++    required this.onPrimaryHover,
++    required this.primaryPressed,
++    required this.onPrimaryPressed,
+     required this.primaryContainer,
++    required this.onPrimaryContainer,
++    required this.primaryBorder,
++    required this.onPrimaryBorder,
+     required this.background,
+     required this.surface,
+     required this.surfaceSubtle,
++    required this.surfaceRaised,
+     required this.textPrimary,
+     required this.textSecondary,
+     required this.textMuted,
++    required this.textInverse,
+     required this.border,
+     required this.borderStrong,
+     required this.divider,
+     required this.disabledBackground,
+     required this.disabledForeground,
+     required this.focusRing,
++    required this.selectionBackground,
++    required this.selectionText,
+     required this.scrim,
+     required this.mediaSurface,
+     required this.imageBorder,
+     required this.success,
++    required this.onSuccess,
+     required this.warning,
++    required this.onWarning,
+     required this.error,
++    required this.onError,
+     required this.info,
++    required this.onInfo,
+     required this.recommendation,
++    required this.onRecommendation,
+     required this.successContainer,
+     required this.warningContainer,
+     required this.errorContainer,
+@@ -180,27 +222,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   });
+ 
+   final Color primary;
++  final Color onPrimary;
++  final Color primaryHover;
++  final Color onPrimaryHover;
++  final Color primaryPressed;
++  final Color onPrimaryPressed;
+   final Color primaryContainer;
++  final Color onPrimaryContainer;
++  final Color primaryBorder;
++  final Color onPrimaryBorder;
+   final Color background;
+   final Color surface;
+   final Color surfaceSubtle;
++  final Color surfaceRaised;
+   final Color textPrimary;
+   final Color textSecondary;
+   final Color textMuted;
++  final Color textInverse;
+   final Color border;
+   final Color borderStrong;
+   final Color divider;
+   final Color disabledBackground;
+   final Color disabledForeground;
+   final Color focusRing;
++  final Color selectionBackground;
++  final Color selectionText;
+   final Color scrim;
+   final Color mediaSurface;
+   final Color imageBorder;
+   final Color success;
++  final Color onSuccess;
+   final Color warning;
++  final Color onWarning;
+   final Color error;
++  final Color onError;
+   final Color info;
++  final Color onInfo;
+   final Color recommendation;
++  final Color onRecommendation;
+   final Color successContainer;
+   final Color warningContainer;
+   final Color errorContainer;
+@@ -217,27 +276,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+ 
+   static const light = AppSemanticColors(
+     primary: AppColors.primary,
++    onPrimary: AppColors.onPrimary,
++    primaryHover: AppColors.primaryHover,
++    onPrimaryHover: AppColors.onPrimaryHover,
++    primaryPressed: AppColors.primaryPressed,
++    onPrimaryPressed: AppColors.onPrimaryPressed,
+     primaryContainer: AppColors.primaryContainer,
++    onPrimaryContainer: AppColors.primaryOnContainer,
++    primaryBorder: AppColors.primaryBorder,
++    onPrimaryBorder: AppColors.onPrimaryBorder,
+     background: AppColors.background,
+     surface: AppColors.surface,
+     surfaceSubtle: AppColors.surfaceSubtle,
++    surfaceRaised: AppColors.surfaceRaised,
+     textPrimary: AppColors.textPrimary,
+     textSecondary: AppColors.textSecondary,
+     textMuted: AppColors.textMuted,
++    textInverse: AppColors.textInverse,
+     border: AppColors.border,
+     borderStrong: AppColors.borderStrong,
+     divider: AppColors.divider,
+     disabledBackground: AppColors.disabledBackground,
+     disabledForeground: AppColors.disabledForeground,
+     focusRing: AppColors.focusRing,
++    selectionBackground: AppColors.selectionBackground,
++    selectionText: AppColors.selectionText,
+     scrim: AppColors.scrim,
+     mediaSurface: AppColors.mediaSurface,
+     imageBorder: AppColors.imageBorder,
+     success: AppColors.success,
++    onSuccess: AppColors.onSuccess,
+     warning: AppColors.warning,
++    onWarning: AppColors.onWarning,
+     error: AppColors.error,
++    onError: AppColors.onError,
+     info: AppColors.info,
++    onInfo: AppColors.onInfo,
+     recommendation: AppColors.recommendation,
++    onRecommendation: AppColors.onRecommendation,
+     successContainer: AppColors.successContainer,
+     warningContainer: AppColors.warningContainer,
+     errorContainer: AppColors.errorContainer,
+@@ -255,27 +331,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+ 
+   static const dark = AppSemanticColors(
+     primary: AppColorsDark.primary,
++    onPrimary: AppColorsDark.onPrimary,
++    primaryHover: AppColorsDark.primaryHover,
++    onPrimaryHover: AppColorsDark.onPrimaryHover,
++    primaryPressed: AppColorsDark.primaryPressed,
++    onPrimaryPressed: AppColorsDark.onPrimaryPressed,
+     primaryContainer: AppColorsDark.primaryContainer,
++    onPrimaryContainer: AppColorsDark.primaryOnContainer,
++    primaryBorder: AppColorsDark.primaryBorder,
++    onPrimaryBorder: AppColorsDark.onPrimaryBorder,
+     background: AppColorsDark.background,
+     surface: AppColorsDark.surface,
+     surfaceSubtle: AppColorsDark.surfaceSubtle,
++    surfaceRaised: AppColorsDark.surfaceRaised,
+     textPrimary: AppColorsDark.textPrimary,
+     textSecondary: AppColorsDark.textSecondary,
+     textMuted: AppColorsDark.textMuted,
++    textInverse: AppColorsDark.textInverse,
+     border: AppColorsDark.border,
+     borderStrong: AppColorsDark.borderStrong,
+     divider: AppColorsDark.divider,
+     disabledBackground: AppColorsDark.disabledBackground,
+     disabledForeground: AppColorsDark.disabledForeground,
+     focusRing: AppColorsDark.focusRing,
++    selectionBackground: AppColorsDark.selectionBackground,
++    selectionText: AppColorsDark.selectionText,
+     scrim: AppColorsDark.scrim,
+     mediaSurface: AppColorsDark.mediaSurface,
+     imageBorder: AppColorsDark.imageBorder,
+     success: AppColorsDark.success,
++    onSuccess: AppColorsDark.onSuccess,
+     warning: AppColorsDark.warning,
++    onWarning: AppColorsDark.onWarning,
+     error: AppColorsDark.error,
++    onError: AppColorsDark.onError,
+     info: AppColorsDark.info,
++    onInfo: AppColorsDark.onInfo,
+     recommendation: AppColorsDark.recommendation,
++    onRecommendation: AppColorsDark.onRecommendation,
+     successContainer: AppColorsDark.successContainer,
+     warningContainer: AppColorsDark.warningContainer,
+     errorContainer: AppColorsDark.errorContainer,
+@@ -294,27 +387,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   @override
+   AppSemanticColors copyWith({
+     Color? primary,
++    Color? onPrimary,
++    Color? primaryHover,
++    Color? onPrimaryHover,
++    Color? primaryPressed,
++    Color? onPrimaryPressed,
+     Color? primaryContainer,
++    Color? onPrimaryContainer,
++    Color? primaryBorder,
++    Color? onPrimaryBorder,
+     Color? background,
+     Color? surface,
+     Color? surfaceSubtle,
++    Color? surfaceRaised,
+     Color? textPrimary,
+     Color? textSecondary,
+     Color? textMuted,
++    Color? textInverse,
+     Color? border,
+     Color? borderStrong,
+     Color? divider,
+     Color? disabledBackground,
+     Color? disabledForeground,
+     Color? focusRing,
++    Color? selectionBackground,
++    Color? selectionText,
+     Color? scrim,
+     Color? mediaSurface,
+     Color? imageBorder,
+     Color? success,
++    Color? onSuccess,
+     Color? warning,
++    Color? onWarning,
+     Color? error,
++    Color? onError,
+     Color? info,
++    Color? onInfo,
+     Color? recommendation,
++    Color? onRecommendation,
+     Color? successContainer,
+     Color? warningContainer,
+     Color? errorContainer,
+@@ -331,27 +441,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   }) {
+     return AppSemanticColors(
+       primary: primary ?? this.primary,
++      onPrimary: onPrimary ?? this.onPrimary,
++      primaryHover: primaryHover ?? this.primaryHover,
++      onPrimaryHover: onPrimaryHover ?? this.onPrimaryHover,
++      primaryPressed: primaryPressed ?? this.primaryPressed,
++      onPrimaryPressed: onPrimaryPressed ?? this.onPrimaryPressed,
+       primaryContainer: primaryContainer ?? this.primaryContainer,
++      onPrimaryContainer: onPrimaryContainer ?? this.onPrimaryContainer,
++      primaryBorder: primaryBorder ?? this.primaryBorder,
++      onPrimaryBorder: onPrimaryBorder ?? this.onPrimaryBorder,
+       background: background ?? this.background,
+       surface: surface ?? this.surface,
+       surfaceSubtle: surfaceSubtle ?? this.surfaceSubtle,
++      surfaceRaised: surfaceRaised ?? this.surfaceRaised,
+       textPrimary: textPrimary ?? this.textPrimary,
+       textSecondary: textSecondary ?? this.textSecondary,
+       textMuted: textMuted ?? this.textMuted,
++      textInverse: textInverse ?? this.textInverse,
+       border: border ?? this.border,
+       borderStrong: borderStrong ?? this.borderStrong,
+       divider: divider ?? this.divider,
+       disabledBackground: disabledBackground ?? this.disabledBackground,
+       disabledForeground: disabledForeground ?? this.disabledForeground,
+       focusRing: focusRing ?? this.focusRing,
++      selectionBackground: selectionBackground ?? this.selectionBackground,
++      selectionText: selectionText ?? this.selectionText,
+       scrim: scrim ?? this.scrim,
+       mediaSurface: mediaSurface ?? this.mediaSurface,
+       imageBorder: imageBorder ?? this.imageBorder,
+       success: success ?? this.success,
++      onSuccess: onSuccess ?? this.onSuccess,
+       warning: warning ?? this.warning,
++      onWarning: onWarning ?? this.onWarning,
+       error: error ?? this.error,
++      onError: onError ?? this.onError,
+       info: info ?? this.info,
++      onInfo: onInfo ?? this.onInfo,
+       recommendation: recommendation ?? this.recommendation,
++      onRecommendation: onRecommendation ?? this.onRecommendation,
+       successContainer: successContainer ?? this.successContainer,
+       warningContainer: warningContainer ?? this.warningContainer,
+       errorContainer: errorContainer ?? this.errorContainer,
+@@ -372,27 +499,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   AppSemanticColors lerp(AppSemanticColors other, double t) {
+     return AppSemanticColors(
+       primary: Color.lerp(primary, other.primary, t)!,
++      onPrimary: Color.lerp(onPrimary, other.onPrimary, t)!,
++      primaryHover: Color.lerp(primaryHover, other.primaryHover, t)!,
++      onPrimaryHover: Color.lerp(onPrimaryHover, other.onPrimaryHover, t)!,
++      primaryPressed: Color.lerp(primaryPressed, other.primaryPressed, t)!,
++      onPrimaryPressed: Color.lerp(onPrimaryPressed, other.onPrimaryPressed, t)!,
+       primaryContainer: Color.lerp(primaryContainer, other.primaryContainer, t)!,
++      onPrimaryContainer: Color.lerp(onPrimaryContainer, other.onPrimaryContainer, t)!,
++      primaryBorder: Color.lerp(primaryBorder, other.primaryBorder, t)!,
++      onPrimaryBorder: Color.lerp(onPrimaryBorder, other.onPrimaryBorder, t)!,
+       background: Color.lerp(background, other.background, t)!,
+       surface: Color.lerp(surface, other.surface, t)!,
+       surfaceSubtle: Color.lerp(surfaceSubtle, other.surfaceSubtle, t)!,
++      surfaceRaised: Color.lerp(surfaceRaised, other.surfaceRaised, t)!,
+       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
++      textInverse: Color.lerp(textInverse, other.textInverse, t)!,
+       border: Color.lerp(border, other.border, t)!,
+       borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
+       divider: Color.lerp(divider, other.divider, t)!,
+       disabledBackground: Color.lerp(disabledBackground, other.disabledBackground, t)!,
+       disabledForeground: Color.lerp(disabledForeground, other.disabledForeground, t)!,
+       focusRing: Color.lerp(focusRing, other.focusRing, t)!,
++      selectionBackground: Color.lerp(selectionBackground, other.selectionBackground, t)!,
++      selectionText: Color.lerp(selectionText, other.selectionText, t)!,
+       scrim: Color.lerp(scrim, other.scrim, t)!,
+       mediaSurface: Color.lerp(mediaSurface, other.mediaSurface, t)!,
+       imageBorder: Color.lerp(imageBorder, other.imageBorder, t)!,
+       success: Color.lerp(success, other.success, t)!,
++      onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
+       warning: Color.lerp(warning, other.warning, t)!,
++      onWarning: Color.lerp(onWarning, other.onWarning, t)!,
+       error: Color.lerp(error, other.error, t)!,
++      onError: Color.lerp(onError, other.onError, t)!,
+       info: Color.lerp(info, other.info, t)!,
++      onInfo: Color.lerp(onInfo, other.onInfo, t)!,
+       recommendation: Color.lerp(recommendation, other.recommendation, t)!,
++      onRecommendation: Color.lerp(onRecommendation, other.onRecommendation, t)!,
+       successContainer: Color.lerp(successContainer, other.successContainer, t)!,
+       warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
+       errorContainer: Color.lerp(errorContainer, other.errorContainer, t)!,
+@@ -410,14 +554,6 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+   }
+ }
+ 
+-/// 布局尺寸常量
+-abstract final class AppSizes {
+-  static const double baseSpacing = 16.0;
+-  static const double cardRadius = 12.0;
+-  static const double buttonRadius = 8.0;
+-  static const double maxContentWidth = 480.0;
+-}
+-
+ /// 题型中文映射
+ abstract final class QuestionTypeLabels {
+   static const Map<String, String> labels = {
+@@ -453,40 +589,96 @@ class AppTheme {
+     'Noto Sans CJK SC',
+   ];
+ 
++  static ColorScheme get _lightColorScheme => ColorScheme.fromSeed(
++        seedColor: AppColors.primary,
++        brightness: Brightness.light,
++      ).copyWith(
++        primary: AppColors.primary,
++        onPrimary: AppColors.onPrimary,
++        primaryContainer: AppColors.primaryContainer,
++        onPrimaryContainer: AppColors.primaryOnContainer,
++        secondary: AppColors.info,
++        onSecondary: AppColors.onInfo,
++        secondaryContainer: AppColors.infoContainer,
++        onSecondaryContainer: AppColors.onInfoContainer,
++        tertiary: AppColors.recommendation,
++        onTertiary: AppColors.onRecommendation,
++        tertiaryContainer: AppColors.recommendationContainer,
++        onTertiaryContainer: AppColors.onRecommendationContainer,
++        error: AppColors.error,
++        onError: AppColors.onError,
++        errorContainer: AppColors.errorContainer,
++        onErrorContainer: AppColors.onErrorContainer,
++        surface: AppColors.surface,
++        surfaceDim: AppColors.background,
++        surfaceBright: AppColors.surface,
++        surfaceContainerLowest: AppColors.surface,
++        surfaceContainerLow: AppColors.surface,
++        surfaceContainer: AppColors.surfaceSubtle,
++        surfaceContainerHigh: AppColors.surfaceSubtle,
++        surfaceContainerHighest: AppColors.surfaceSubtle,
++        onSurface: AppColors.textPrimary,
++        onSurfaceVariant: AppColors.textSecondary,
++        outline: AppColors.borderStrong,
++        outlineVariant: AppColors.border,
++        shadow: const Color(0x24081220),
++        scrim: AppColors.scrim,
++        inverseSurface: AppColors.textPrimary,
++        onInverseSurface: AppColors.textInverse,
++        inversePrimary: AppColorsDark.primary,
++        surfaceTint: Colors.transparent,
++      );
++
++  static ColorScheme get _darkColorScheme => ColorScheme.fromSeed(
++        seedColor: AppColorsDark.primary,
++        brightness: Brightness.dark,
++      ).copyWith(
++        primary: AppColorsDark.primary,
++        onPrimary: AppColorsDark.onPrimary,
++        primaryContainer: AppColorsDark.primaryContainer,
++        onPrimaryContainer: AppColorsDark.primaryOnContainer,
++        secondary: AppColorsDark.info,
++        onSecondary: AppColorsDark.onInfo,
++        secondaryContainer: AppColorsDark.infoContainer,
++        onSecondaryContainer: AppColorsDark.onInfoContainer,
++        tertiary: AppColorsDark.recommendation,
++        onTertiary: AppColorsDark.onRecommendation,
++        tertiaryContainer: AppColorsDark.recommendationContainer,
++        onTertiaryContainer: AppColorsDark.onRecommendationContainer,
++        error: AppColorsDark.error,
++        onError: AppColorsDark.onError,
++        errorContainer: AppColorsDark.errorContainer,
++        onErrorContainer: AppColorsDark.onErrorContainer,
++        surface: AppColorsDark.surface,
++        surfaceDim: AppColorsDark.background,
++        surfaceBright: AppColorsDark.surfaceRaised,
++        surfaceContainerLowest: AppColorsDark.background,
++        surfaceContainerLow: AppColorsDark.surface,
++        surfaceContainer: AppColorsDark.surfaceSubtle,
++        surfaceContainerHigh: AppColorsDark.surfaceRaised,
++        surfaceContainerHighest: AppColorsDark.surfaceRaised,
++        onSurface: AppColorsDark.textPrimary,
++        onSurfaceVariant: AppColorsDark.textSecondary,
++        outline: AppColorsDark.borderStrong,
++        outlineVariant: AppColorsDark.border,
++        shadow: const Color(0x73000000),
++        scrim: AppColorsDark.scrim,
++        inverseSurface: AppColorsDark.textPrimary,
++        onInverseSurface: AppColorsDark.textInverse,
++        inversePrimary: AppColors.primary,
++        surfaceTint: Colors.transparent,
++      );
++
+   static ThemeData get light => _buildTheme(
+         brightness: Brightness.light,
+         colors: AppSemanticColors.light,
+-        colorScheme: ColorScheme.light(
+-          primary: AppColors.primary,
+-          onPrimary: AppColors.textInverse,
+-          primaryContainer: AppColors.primaryContainer,
+-          onPrimaryContainer: AppColors.primaryOnContainer,
+-          secondary: AppColors.info,
+-          surface: AppColors.surface,
+-          onSurface: AppColors.textPrimary,
+-          error: AppColors.error,
+-          onError: AppColors.textInverse,
+-          outline: AppColors.border,
+-          outlineVariant: AppColors.divider,
+-        ),
++        colorScheme: _lightColorScheme,
+       );
+ 
+   static ThemeData get dark => _buildTheme(
+         brightness: Brightness.dark,
+         colors: AppSemanticColors.dark,
+-        colorScheme: ColorScheme.dark(
+-          primary: AppColorsDark.primary,
+-          onPrimary: AppColorsDark.textInverse,
+-          primaryContainer: AppColorsDark.primaryContainer,
+-          onPrimaryContainer: AppColorsDark.primaryOnContainer,
+-          secondary: AppColorsDark.info,
+-          surface: AppColorsDark.surface,
+-          onSurface: AppColorsDark.textPrimary,
+-          error: AppColorsDark.error,
+-          onError: AppColorsDark.textInverse,
+-          outline: AppColorsDark.border,
+-          outlineVariant: AppColorsDark.divider,
+-        ),
++        colorScheme: _darkColorScheme,
+       );
+ 
+   static ThemeData _buildTheme({
+@@ -494,80 +686,459 @@ class AppTheme {
+     required AppSemanticColors colors,
+     required ColorScheme colorScheme,
+   }) {
++    final isDark = brightness == Brightness.dark;
++    final primaryHover = isDark ? AppColorsDark.primaryHover : AppColors.primaryHover;
++    final primaryPressed = isDark ? AppColorsDark.primaryPressed : AppColors.primaryPressed;
++    final primaryBorder = isDark ? AppColorsDark.primaryBorder : AppColors.primaryBorder;
++    final primaryForeground = colors.onPrimary;
++    final raisedSurface = isDark ? AppColorsDark.surfaceRaised : AppColors.surfaceRaised;
++    final selectionBackground = isDark
++        ? AppColorsDark.selectionBackground
++        : AppColors.selectionBackground;
++    final textTheme = AppTypography.build(
++      primary: colors.textPrimary,
++      secondary: colors.textSecondary,
++      muted: colors.textMuted,
++    );
++    final buttonShape = RoundedRectangleBorder(
++      borderRadius: BorderRadius.circular(AppRadius.medium),
++    );
++    final cardShape = RoundedRectangleBorder(
++      borderRadius: BorderRadius.circular(AppRadius.large),
++      side: BorderSide(color: colors.border),
++    );
++
++    Color primaryBackground(Set<WidgetState> states) {
++      if (states.contains(WidgetState.disabled)) {
++        return colors.disabledBackground;
++      }
++      if (states.contains(WidgetState.pressed)) return primaryPressed;
++      if (states.contains(WidgetState.hovered)) return primaryHover;
++      return colors.primary;
++    }
++
++    Color primaryContent(Set<WidgetState> states) {
++      if (states.contains(WidgetState.disabled)) {
++        return colors.disabledForeground;
++      }
++      if (states.contains(WidgetState.pressed)) return colors.onPrimaryPressed;
++      if (states.contains(WidgetState.hovered)) return colors.onPrimaryHover;
++      return primaryForeground;
++    }
++
++    BorderSide focusSide(Set<WidgetState> states) {
++      if (states.contains(WidgetState.focused)) {
++        return BorderSide(color: colors.focusRing, width: 2);
++      }
++      return BorderSide.none;
++    }
++
+     return ThemeData(
+       useMaterial3: true,
+       brightness: brightness,
+       fontFamilyFallback: _fontFamilyFallback,
+       colorScheme: colorScheme,
++      textTheme: textTheme,
++      primaryTextTheme: textTheme.apply(
++        bodyColor: primaryForeground,
++        displayColor: primaryForeground,
++      ),
+       extensions: [colors],
+       scaffoldBackgroundColor: colors.background,
+-      appBarTheme: AppBarTheme(
++      canvasColor: colors.background,
++      cardColor: colors.surface,
++      dividerColor: colors.divider,
++      disabledColor: colors.disabledForeground,
++      focusColor: colors.focusRing,
++      hoverColor: colors.primaryContainer,
++      highlightColor: Colors.transparent,
++      splashColor: colors.primaryContainer,
++      visualDensity: VisualDensity.standard,
++      materialTapTargetSize: MaterialTapTargetSize.padded,
++      textSelectionTheme: TextSelectionThemeData(
++        cursorColor: colors.primary,
++        selectionColor: selectionBackground,
++        selectionHandleColor: colors.primary,
++      ),
++      appBarTheme: AppBarThemeData(
+         backgroundColor: colors.surface,
+         foregroundColor: colors.textPrimary,
+         elevation: 0,
++        scrolledUnderElevation: 0,
+         centerTitle: true,
+         surfaceTintColor: Colors.transparent,
++        titleTextStyle: textTheme.titleLarge,
++        iconTheme: IconThemeData(color: colors.textPrimary, size: 22),
++        actionsIconTheme: IconThemeData(color: colors.textSecondary, size: 22),
+       ),
+       cardTheme: CardThemeData(
+         color: colors.surface,
++        surfaceTintColor: Colors.transparent,
++        shadowColor: colorScheme.shadow,
+         elevation: 0,
+-        shape: RoundedRectangleBorder(
+-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
++        shape: cardShape,
++      ),
++      filledButtonTheme: FilledButtonThemeData(
++        style: ButtonStyle(
++          backgroundColor: WidgetStateProperty.resolveWith(primaryBackground),
++          foregroundColor: WidgetStateProperty.resolveWith(primaryContent),
++          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
++          elevation: const WidgetStatePropertyAll(0),
++          side: WidgetStateProperty.resolveWith(focusSide),
++          minimumSize: const WidgetStatePropertyAll(
++            Size(AppControlSize.regular, AppControlSize.regular),
++          ),
++          padding: const WidgetStatePropertyAll(
++            EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
++          ),
++          shape: WidgetStatePropertyAll(buttonShape),
++          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
+         ),
+       ),
+       elevatedButtonTheme: ElevatedButtonThemeData(
+-        style: ElevatedButton.styleFrom(
+-          backgroundColor: colors.primary,
+-          foregroundColor: brightness == Brightness.light
+-              ? AppColors.textInverse
+-              : AppColorsDark.textInverse,
+-          minimumSize: const Size(double.infinity, 48),
+-          shape: RoundedRectangleBorder(
+-            borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
++        style: ButtonStyle(
++          backgroundColor: WidgetStateProperty.resolveWith(primaryBackground),
++          foregroundColor: WidgetStateProperty.resolveWith(primaryContent),
++          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
++          elevation: const WidgetStatePropertyAll(0),
++          side: WidgetStateProperty.resolveWith(focusSide),
++          minimumSize: const WidgetStatePropertyAll(
++            Size(double.infinity, AppControlSize.regular),
+           ),
+-          textStyle: const TextStyle(
+-            fontSize: 16,
+-            fontWeight: FontWeight.w600,
++          padding: const WidgetStatePropertyAll(
++            EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+           ),
++          shape: WidgetStatePropertyAll(buttonShape),
++          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
+         ),
+       ),
+-      inputDecorationTheme: InputDecorationTheme(
++      outlinedButtonTheme: OutlinedButtonThemeData(
++        style: ButtonStyle(
++          backgroundColor: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.disabled)) {
++              return colors.disabledBackground;
++            }
++            if (states.contains(WidgetState.pressed)) {
++              return colors.primaryContainer;
++            }
++            if (states.contains(WidgetState.hovered)) {
++              return isDark ? colors.primaryContainer : AppColors.primaryContainer;
++            }
++            return isDark ? colors.primaryContainer : colors.surface;
++          }),
++          foregroundColor: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.disabled)) {
++              return colors.disabledForeground;
++            }
++            return colors.onPrimaryBorder;
++          }),
++          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
++          side: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.focused)) {
++              return BorderSide(color: colors.focusRing, width: 2);
++            }
++            final color = states.contains(WidgetState.disabled)
++                ? colors.border
++                : primaryBorder;
++            return BorderSide(color: color);
++          }),
++          elevation: const WidgetStatePropertyAll(0),
++          minimumSize: const WidgetStatePropertyAll(
++            Size(AppControlSize.regular, AppControlSize.regular),
++          ),
++          padding: const WidgetStatePropertyAll(
++            EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
++          ),
++          shape: WidgetStatePropertyAll(buttonShape),
++          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
++        ),
++      ),
++      textButtonTheme: TextButtonThemeData(
++        style: ButtonStyle(
++          foregroundColor: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.disabled)) {
++              return colors.disabledForeground;
++            }
++            if (states.contains(WidgetState.pressed) ||
++                states.contains(WidgetState.hovered)) {
++              return primaryPressed;
++            }
++            return colors.primary;
++          }),
++          overlayColor: WidgetStatePropertyAll(colors.primaryContainer),
++          side: WidgetStateProperty.resolveWith(focusSide),
++          minimumSize: const WidgetStatePropertyAll(
++            Size(AppControlSize.compact, AppControlSize.compact),
++          ),
++          padding: const WidgetStatePropertyAll(
++            EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
++          ),
++          shape: WidgetStatePropertyAll(buttonShape),
++          textStyle: WidgetStatePropertyAll(textTheme.labelLarge),
++        ),
++      ),
++      iconButtonTheme: IconButtonThemeData(
++        style: ButtonStyle(
++          foregroundColor: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.disabled)) {
++              return colors.disabledForeground;
++            }
++            if (states.contains(WidgetState.selected)) return colors.primary;
++            return colors.textSecondary;
++          }),
++          backgroundColor: WidgetStateProperty.resolveWith((states) {
++            if (states.contains(WidgetState.selected)) {
++              return colors.primaryContainer;
++            }
++            if (states.contains(WidgetState.hovered) ||
++                states.contains(WidgetState.pressed)) {
++              return colors.surfaceSubtle;
++            }
++            return Colors.transparent;
++          }),
++          side: WidgetStateProperty.resolveWith(focusSide),
++          minimumSize: const WidgetStatePropertyAll(
++            Size(AppControlSize.minimumTapTarget, AppControlSize.minimumTapTarget),
++          ),
++          shape: const WidgetStatePropertyAll(CircleBorder()),
++        ),
++      ),
++      inputDecorationTheme: InputDecorationThemeData(
+         filled: true,
+         fillColor: colors.surface,
+         contentPadding: const EdgeInsets.symmetric(
+-          horizontal: 16,
+-          vertical: 14,
++          horizontal: AppSpacing.md,
++          vertical: AppSpacing.sm,
+         ),
++        labelStyle: textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
++        floatingLabelStyle: textTheme.bodySmall?.copyWith(
++          color: colors.primary,
++          fontWeight: FontWeight.w600,
++        ),
++        hintStyle: textTheme.bodyMedium?.copyWith(color: colors.textMuted),
++        helperStyle: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
++        errorStyle: textTheme.bodySmall?.copyWith(color: colors.error),
++        prefixIconColor: colors.textSecondary,
++        suffixIconColor: colors.textSecondary,
+         border: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
++          borderRadius: BorderRadius.circular(AppRadius.medium),
+           borderSide: BorderSide(color: colors.borderStrong),
+         ),
+         enabledBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+-          borderSide: BorderSide(color: colors.border),
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          borderSide: BorderSide(color: colors.borderStrong),
+         ),
+         focusedBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+-          borderSide: BorderSide(color: colors.primary, width: 2),
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          borderSide: BorderSide(color: primaryBorder, width: 2),
+         ),
+         errorBorder: OutlineInputBorder(
+-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
++          borderRadius: BorderRadius.circular(AppRadius.medium),
+           borderSide: BorderSide(color: colors.error),
+         ),
++        focusedErrorBorder: OutlineInputBorder(
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          borderSide: BorderSide(color: colors.error, width: 2),
++        ),
++        disabledBorder: OutlineInputBorder(
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          borderSide: BorderSide(color: colors.border),
++        ),
++      ),
++      listTileTheme: ListTileThemeData(
++        iconColor: colors.textSecondary,
++        textColor: colors.textPrimary,
++        titleTextStyle: textTheme.titleMedium,
++        subtitleTextStyle: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
++        contentPadding: const EdgeInsets.symmetric(
++          horizontal: AppSpacing.md,
++          vertical: AppSpacing.xs,
++        ),
++        minLeadingWidth: 24,
++        minVerticalPadding: AppSpacing.xs,
++        shape: RoundedRectangleBorder(
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++        ),
++      ),
++      chipTheme: ChipThemeData(
++        backgroundColor: colors.surfaceSubtle,
++        selectedColor: colors.primaryContainer,
++        disabledColor: colors.disabledBackground,
++        labelStyle: textTheme.labelMedium?.copyWith(color: colors.textSecondary),
++        secondaryLabelStyle: textTheme.labelMedium?.copyWith(color: colors.primary),
++        side: BorderSide(color: colors.border),
++        shape: RoundedRectangleBorder(
++          borderRadius: BorderRadius.circular(AppRadius.pill),
++        ),
++        padding: const EdgeInsets.symmetric(
++          horizontal: AppSpacing.sm,
++          vertical: AppSpacing.xs,
++        ),
++      ),
++      dialogTheme: DialogThemeData(
++        backgroundColor: raisedSurface,
++        barrierColor: colors.scrim,
++        surfaceTintColor: Colors.transparent,
++        elevation: isDark ? 0 : 12,
++        shadowColor: colorScheme.shadow,
++        shape: RoundedRectangleBorder(
++          borderRadius: BorderRadius.circular(AppRadius.extraLarge),
++          side: BorderSide(color: colors.border),
++        ),
++        titleTextStyle: textTheme.titleLarge,
++        contentTextStyle: textTheme.bodyMedium,
++      ),
++      bottomSheetTheme: BottomSheetThemeData(
++        backgroundColor: raisedSurface,
++        modalBackgroundColor: raisedSurface,
++        surfaceTintColor: Colors.transparent,
++        modalBarrierColor: colors.scrim,
++        elevation: isDark ? 0 : 12,
++        shape: const RoundedRectangleBorder(
++          borderRadius: BorderRadius.vertical(
++            top: Radius.circular(AppRadius.extraLarge),
++          ),
++        ),
++        showDragHandle: true,
++        dragHandleColor: colors.borderStrong,
++      ),
++      snackBarTheme: SnackBarThemeData(
++        backgroundColor: isDark ? AppColorsDark.surfaceRaised : AppColors.textPrimary,
++        contentTextStyle: textTheme.bodyMedium?.copyWith(
++          color: isDark ? AppColorsDark.textPrimary : AppColors.textInverse,
++        ),
++        actionTextColor: colorScheme.inversePrimary,
++        behavior: SnackBarBehavior.floating,
++        elevation: 0,
++        insetPadding: const EdgeInsets.all(AppSpacing.md),
++        shape: RoundedRectangleBorder(
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++        ),
++      ),
++      navigationBarTheme: NavigationBarThemeData(
++        height: 72,
++        backgroundColor: colors.surface,
++        surfaceTintColor: Colors.transparent,
++        indicatorColor: colors.primaryContainer,
++        elevation: 0,
++        shadowColor: colorScheme.shadow,
++        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
++        iconTheme: WidgetStateProperty.resolveWith((states) {
++          return IconThemeData(
++            color: states.contains(WidgetState.selected)
++                ? colors.primary
++                : colors.textMuted,
++            size: 24,
++          );
++        }),
++        labelTextStyle: WidgetStateProperty.resolveWith((states) {
++          return textTheme.labelSmall?.copyWith(
++            color: states.contains(WidgetState.selected)
++                ? colors.primary
++                : colors.textMuted,
++            fontWeight: states.contains(WidgetState.selected)
++                ? FontWeight.w700
++                : FontWeight.w600,
++          );
++        }),
++      ),
++      navigationRailTheme: NavigationRailThemeData(
++        backgroundColor: colors.surface,
++        indicatorColor: colors.primaryContainer,
++        elevation: 0,
++        selectedIconTheme: IconThemeData(color: colors.primary, size: 24),
++        unselectedIconTheme: IconThemeData(color: colors.textMuted, size: 24),
++        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(color: colors.primary),
++        unselectedLabelTextStyle: textTheme.labelMedium?.copyWith(color: colors.textMuted),
++        useIndicator: true,
++        minWidth: 80,
++        minExtendedWidth: 216,
+       ),
+       bottomNavigationBarTheme: BottomNavigationBarThemeData(
+         backgroundColor: colors.surface,
+         selectedItemColor: colors.primary,
+         unselectedItemColor: colors.textMuted,
+         type: BottomNavigationBarType.fixed,
+-        elevation: 8,
++        elevation: 0,
++        selectedLabelStyle: textTheme.labelSmall,
++        unselectedLabelStyle: textTheme.labelSmall,
+       ),
+       dividerTheme: DividerThemeData(
+         color: colors.divider,
+         thickness: 1,
+         space: 1,
+       ),
+-      disabledColor: colors.disabledForeground,
++      checkboxTheme: CheckboxThemeData(
++        fillColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.disabled)) {
++            return colors.disabledBackground;
++          }
++          if (states.contains(WidgetState.selected)) return colors.primary;
++          return Colors.transparent;
++        }),
++        checkColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.disabled)) {
++            return colors.disabledForeground;
++          }
++          return primaryForeground;
++        }),
++        side: BorderSide(color: colors.borderStrong, width: 1.5),
++        shape: RoundedRectangleBorder(
++          borderRadius: BorderRadius.circular(AppRadius.small / 2),
++        ),
++      ),
++      radioTheme: RadioThemeData(
++        fillColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.disabled)) {
++            return colors.disabledForeground;
++          }
++          if (states.contains(WidgetState.selected)) return colors.primary;
++          return colors.borderStrong;
++        }),
++      ),
++      switchTheme: SwitchThemeData(
++        thumbColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.disabled)) {
++            return colors.disabledForeground;
++          }
++          return states.contains(WidgetState.selected)
++              ? primaryForeground
++              : colors.textMuted;
++        }),
++        trackColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.disabled)) {
++            return colors.disabledBackground;
++          }
++          return states.contains(WidgetState.selected)
++              ? colors.primary
++              : colors.surfaceSubtle;
++        }),
++        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
++          if (states.contains(WidgetState.selected)) return colors.primary;
++          return colors.borderStrong;
++        }),
++      ),
++      progressIndicatorTheme: ProgressIndicatorThemeData(
++        color: colors.primary,
++        linearTrackColor: colors.surfaceSubtle,
++        circularTrackColor: colors.surfaceSubtle,
++      ),
++      badgeTheme: BadgeThemeData(
++        backgroundColor: colors.error,
++        textColor: colorScheme.onError,
++        textStyle: textTheme.labelSmall,
++        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
++      ),
++      tooltipTheme: TooltipThemeData(
++        decoration: BoxDecoration(
++          color: isDark ? AppColorsDark.surfaceRaised : AppColors.textPrimary,
++          borderRadius: BorderRadius.circular(AppRadius.small),
++        ),
++        textStyle: textTheme.bodySmall?.copyWith(
++          color: isDark ? AppColorsDark.textPrimary : AppColors.textInverse,
++        ),
++        waitDuration: const Duration(milliseconds: 500),
++      ),
+     );
+   }
+ }
+diff --git a/packages/shared/lib/theme/app_tokens.dart b/packages/shared/lib/theme/app_tokens.dart
+new file mode 100644
+index 0000000..4007a74
+--- /dev/null
++++ b/packages/shared/lib/theme/app_tokens.dart
+@@ -0,0 +1,87 @@
++import 'package:flutter/material.dart';
++
++/// 全局间距令牌。
++///
++/// 业务页面应优先使用这些固定档位，避免继续新增零散数值。
++abstract final class AppSpacing {
++  static const double xxs = 4;
++  static const double xs = 8;
++  static const double sm = 12;
++  static const double md = 16;
++  static const double lg = 24;
++  static const double xl = 32;
++  static const double xxl = 40;
++  static const double xxxl = 48;
++}
++
++/// 全局圆角令牌。
++abstract final class AppRadius {
++  static const double small = 8;
++  static const double medium = 12;
++  static const double large = 16;
++  static const double extraLarge = 24;
++  static const double pill = 999;
++}
++
++/// 组件高度与点击区域。
++abstract final class AppControlSize {
++  static const double compact = 40;
++  static const double regular = 48;
++  static const double large = 56;
++  static const double minimumTapTarget = 48;
++}
++
++/// 响应式断点。
++abstract final class AppBreakpoints {
++  static const double compact = 600;
++  static const double medium = 840;
++  static const double expanded = 1200;
++}
++
++/// 不同内容类型的最大宽度。
++abstract final class AppContentWidth {
++  static const double form = 480;
++  static const double reading = 720;
++  static const double standard = 960;
++  static const double dashboard = 1200;
++}
++
++/// 统一动效时长。
++abstract final class AppMotion {
++  static const Duration fast = Duration(milliseconds: 150);
++  static const Duration standard = Duration(milliseconds: 220);
++  static const Duration slow = Duration(milliseconds: 320);
++
++  static const Curve emphasizedCurve = Curves.easeOutCubic;
++}
++
++/// 统一阴影。
++///
++/// 深色模式主要依赖表面层级与边框，因此只在浅色模式按需使用。
++abstract final class AppShadows {
++  static const List<BoxShadow> low = [
++    BoxShadow(
++      color: Color(0x12081220),
++      blurRadius: 12,
++      offset: Offset(0, 4),
++    ),
++  ];
++
++  static const List<BoxShadow> medium = [
++    BoxShadow(
++      color: Color(0x1A081220),
++      blurRadius: 24,
++      offset: Offset(0, 8),
++    ),
++  ];
++}
++
++/// 旧尺寸 API 的兼容入口。
++///
++/// 后续页面改造时逐步迁移到 AppSpacing / AppRadius / AppContentWidth。
++abstract final class AppSizes {
++  static const double baseSpacing = AppSpacing.md;
++  static const double cardRadius = AppRadius.large;
++  static const double buttonRadius = AppRadius.medium;
++  static const double maxContentWidth = AppContentWidth.form;
++}
+diff --git a/packages/shared/lib/theme/app_typography.dart b/packages/shared/lib/theme/app_typography.dart
+new file mode 100644
+index 0000000..ea02b7d
+--- /dev/null
++++ b/packages/shared/lib/theme/app_typography.dart
+@@ -0,0 +1,110 @@
++import 'package:flutter/material.dart';
++
++/// 中文学习产品的字体层级。
++///
++/// 不绑定额外字体文件，优先使用系统中文字体与 ThemeData 中的 fallback。
++abstract final class AppTypography {
++  static TextTheme build({
++    required Color primary,
++    required Color secondary,
++    required Color muted,
++  }) {
++    return TextTheme(
++      displayLarge: TextStyle(
++        fontSize: 40,
++        height: 1.2,
++        fontWeight: FontWeight.w700,
++        letterSpacing: -0.6,
++        color: primary,
++      ),
++      displayMedium: TextStyle(
++        fontSize: 36,
++        height: 1.2,
++        fontWeight: FontWeight.w700,
++        letterSpacing: -0.5,
++        color: primary,
++      ),
++      displaySmall: TextStyle(
++        fontSize: 32,
++        height: 1.25,
++        fontWeight: FontWeight.w700,
++        letterSpacing: -0.4,
++        color: primary,
++      ),
++      headlineLarge: TextStyle(
++        fontSize: 30,
++        height: 1.25,
++        fontWeight: FontWeight.w700,
++        letterSpacing: -0.4,
++        color: primary,
++      ),
++      headlineMedium: TextStyle(
++        fontSize: 28,
++        height: 1.3,
++        fontWeight: FontWeight.w700,
++        letterSpacing: -0.3,
++        color: primary,
++      ),
++      headlineSmall: TextStyle(
++        fontSize: 24,
++        height: 1.35,
++        fontWeight: FontWeight.w700,
++        color: primary,
++      ),
++      titleLarge: TextStyle(
++        fontSize: 20,
++        height: 1.4,
++        fontWeight: FontWeight.w700,
++        color: primary,
++      ),
++      titleMedium: TextStyle(
++        fontSize: 16,
++        height: 1.5,
++        fontWeight: FontWeight.w600,
++        color: primary,
++      ),
++      titleSmall: TextStyle(
++        fontSize: 14,
++        height: 1.45,
++        fontWeight: FontWeight.w600,
++        color: primary,
++      ),
++      bodyLarge: TextStyle(
++        fontSize: 16,
++        height: 1.6,
++        fontWeight: FontWeight.w400,
++        color: primary,
++      ),
++      bodyMedium: TextStyle(
++        fontSize: 14,
++        height: 1.55,
++        fontWeight: FontWeight.w400,
++        color: primary,
++      ),
++      bodySmall: TextStyle(
++        fontSize: 12,
++        height: 1.5,
++        fontWeight: FontWeight.w400,
++        color: secondary,
++      ),
++      labelLarge: TextStyle(
++        fontSize: 15,
++        height: 1.4,
++        fontWeight: FontWeight.w600,
++        color: primary,
++      ),
++      labelMedium: TextStyle(
++        fontSize: 13,
++        height: 1.4,
++        fontWeight: FontWeight.w600,
++        color: secondary,
++      ),
++      labelSmall: TextStyle(
++        fontSize: 11,
++        height: 1.4,
++        fontWeight: FontWeight.w600,
++        color: muted,
++      ),
++    );
++  }
++}
+diff --git a/packages/shared/lib/widgets/app_button.dart b/packages/shared/lib/widgets/app_button.dart
+new file mode 100644
+index 0000000..87f1123
+--- /dev/null
++++ b/packages/shared/lib/widgets/app_button.dart
+@@ -0,0 +1,109 @@
++import 'package:flutter/material.dart';
++
++import '../theme/app_theme.dart';
++
++/// 章鱼智学统一按钮类型。
++enum AppButtonVariant { primary, secondary, text, danger }
++
++/// 带统一尺寸、图标间距和加载状态的按钮。
++class AppButton extends StatelessWidget {
++  const AppButton({
++    super.key,
++    required this.label,
++    required this.onPressed,
++    this.icon,
++    this.variant = AppButtonVariant.primary,
++    this.isLoading = false,
++    this.fullWidth = false,
++    this.tooltip,
++  });
++
++  final String label;
++  final VoidCallback? onPressed;
++  final IconData? icon;
++  final AppButtonVariant variant;
++  final bool isLoading;
++  final bool fullWidth;
++  final String? tooltip;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final effectiveOnPressed = isLoading && onPressed != null
++        ? () {}
++        : onPressed;
++    final contentColor = switch (variant) {
++      AppButtonVariant.primary => Theme.of(context).colorScheme.onPrimary,
++      AppButtonVariant.secondary => colors.primary,
++      AppButtonVariant.text => colors.primary,
++      AppButtonVariant.danger => Theme.of(context).colorScheme.onError,
++    };
++
++    final child = AnimatedSwitcher(
++      duration: AppMotion.fast,
++      child: isLoading
++          ? SizedBox(
++              key: const ValueKey('loading'),
++              width: 20,
++              height: 20,
++              child: CircularProgressIndicator(
++                strokeWidth: 2,
++                color: contentColor,
++              ),
++            )
++          : Row(
++              key: const ValueKey('content'),
++              mainAxisSize: MainAxisSize.min,
++              mainAxisAlignment: MainAxisAlignment.center,
++              children: [
++                if (icon != null) ...[
++                  Icon(icon, size: 20),
++                  const SizedBox(width: AppSpacing.xs),
++                ],
++                Text(label),
++              ],
++            ),
++    );
++
++    final button = switch (variant) {
++      AppButtonVariant.primary => FilledButton(
++          onPressed: effectiveOnPressed,
++          child: child,
++        ),
++      AppButtonVariant.secondary => OutlinedButton(
++          onPressed: effectiveOnPressed,
++          child: child,
++        ),
++      AppButtonVariant.text => TextButton(
++          onPressed: effectiveOnPressed,
++          child: child,
++        ),
++      AppButtonVariant.danger => FilledButton(
++          onPressed: effectiveOnPressed,
++          style: FilledButton.styleFrom(
++            backgroundColor: colors.error,
++            foregroundColor: Theme.of(context).colorScheme.onError,
++            disabledBackgroundColor: colors.disabledBackground,
++            disabledForegroundColor: colors.disabledForeground,
++          ),
++          child: child,
++        ),
++    };
++
++    Widget result = SizedBox(
++      width: fullWidth ? double.infinity : null,
++      child: button,
++    );
++
++    if (tooltip != null) {
++      result = Tooltip(message: tooltip!, child: result);
++    }
++
++    return Semantics(
++      button: true,
++      enabled: onPressed != null,
++      label: label,
++      child: result,
++    );
++  }
++}
+diff --git a/packages/shared/lib/widgets/app_card.dart b/packages/shared/lib/widgets/app_card.dart
+new file mode 100644
+index 0000000..5b9749c
+--- /dev/null
++++ b/packages/shared/lib/widgets/app_card.dart
+@@ -0,0 +1,65 @@
++import 'package:flutter/material.dart';
++
++import '../theme/app_theme.dart';
++
++/// 统一内容卡片。
++///
++/// 默认使用主题中的 surface、边框和 16px 圆角；可点击时自动提供水波纹与语义。
++class AppCard extends StatelessWidget {
++  const AppCard({
++    super.key,
++    required this.child,
++    this.onTap,
++    this.padding = const EdgeInsets.all(AppSpacing.md),
++    this.margin,
++    this.selected = false,
++    this.elevated = false,
++    this.semanticLabel,
++  });
++
++  final Widget child;
++  final VoidCallback? onTap;
++  final EdgeInsetsGeometry padding;
++  final EdgeInsetsGeometry? margin;
++  final bool selected;
++  final bool elevated;
++  final String? semanticLabel;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final shape = RoundedRectangleBorder(
++      borderRadius: BorderRadius.circular(AppRadius.large),
++      side: BorderSide(
++        color: selected ? colors.primary : colors.border,
++        width: selected ? 1.5 : 1,
++      ),
++    );
++
++    Widget content = Padding(padding: padding, child: child);
++    if (onTap != null) {
++      content = InkWell(
++        onTap: onTap,
++        borderRadius: BorderRadius.circular(AppRadius.large),
++        child: content,
++      );
++    }
++
++    return Semantics(
++      button: onTap != null,
++      selected: selected,
++      label: semanticLabel,
++      container: true,
++      child: Card(
++        margin: margin,
++        color: selected ? colors.primaryContainer : colors.surface,
++        elevation: elevated && Theme.of(context).brightness == Brightness.light
++            ? 2
++            : 0,
++        shape: shape,
++        clipBehavior: Clip.antiAlias,
++        child: content,
++      ),
++    );
++  }
++}
+diff --git a/packages/shared/lib/widgets/app_page_layout.dart b/packages/shared/lib/widgets/app_page_layout.dart
+new file mode 100644
+index 0000000..a2cc198
+--- /dev/null
++++ b/packages/shared/lib/widgets/app_page_layout.dart
+@@ -0,0 +1,107 @@
++import 'package:flutter/material.dart';
++
++import '../theme/app_theme.dart';
++
++/// 当前窗口宽度分类。
++enum AppWindowClass { compact, medium, expanded }
++
++extension AppWindowClassX on BoxConstraints {
++  AppWindowClass get windowClass {
++    if (maxWidth >= AppBreakpoints.expanded) return AppWindowClass.expanded;
++    if (maxWidth >= AppBreakpoints.medium) return AppWindowClass.medium;
++    return AppWindowClass.compact;
++  }
++}
++
++/// 为表单、阅读页和仪表盘提供统一边距与最大宽度约束。
++class AppContentContainer extends StatelessWidget {
++  const AppContentContainer({
++    super.key,
++    required this.child,
++    this.maxWidth = AppContentWidth.standard,
++    this.padding,
++    this.alignment = Alignment.topCenter,
++    this.useSafeArea = true,
++  });
++
++  final Widget child;
++  final double maxWidth;
++  final EdgeInsetsGeometry? padding;
++  final AlignmentGeometry alignment;
++  final bool useSafeArea;
++
++  @override
++  Widget build(BuildContext context) {
++    Widget result = LayoutBuilder(
++      builder: (context, constraints) {
++        final horizontalPadding = constraints.maxWidth < AppBreakpoints.compact
++            ? AppSpacing.md
++            : AppSpacing.lg;
++        return Align(
++          alignment: alignment,
++          child: ConstrainedBox(
++            constraints: BoxConstraints(maxWidth: maxWidth),
++            child: Padding(
++              padding: padding ?? EdgeInsets.symmetric(horizontal: horizontalPadding),
++              child: child,
++            ),
++          ),
++        );
++      },
++    );
++
++    if (useSafeArea) result = SafeArea(child: result);
++    return result;
++  }
++}
++
++/// 页面分区标题，统一标题、说明和右侧操作的层级。
++class AppSectionHeader extends StatelessWidget {
++  const AppSectionHeader({
++    super.key,
++    required this.title,
++    this.subtitle,
++    this.action,
++    this.padding = EdgeInsets.zero,
++  });
++
++  final String title;
++  final String? subtitle;
++  final Widget? action;
++  final EdgeInsetsGeometry padding;
++
++  @override
++  Widget build(BuildContext context) {
++    final textTheme = Theme.of(context).textTheme;
++
++    return Padding(
++      padding: padding,
++      child: Row(
++        crossAxisAlignment: CrossAxisAlignment.end,
++        children: [
++          Expanded(
++            child: Column(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [
++                Text(title, style: textTheme.titleLarge),
++                if (subtitle != null) ...[
++                  const SizedBox(height: AppSpacing.xxs),
++                  Text(
++                    subtitle!,
++                    style: textTheme.bodySmall?.copyWith(
++                      color: context.colors.textSecondary,
++                    ),
++                  ),
++                ],
++              ],
++            ),
++          ),
++          if (action != null) ...[
++            const SizedBox(width: AppSpacing.md),
++            action!,
++          ],
++        ],
++      ),
++    );
++  }
++}
+diff --git a/packages/shared/lib/widgets/app_status_badge.dart b/packages/shared/lib/widgets/app_status_badge.dart
+new file mode 100644
+index 0000000..eb8ca0d
+--- /dev/null
++++ b/packages/shared/lib/widgets/app_status_badge.dart
+@@ -0,0 +1,136 @@
++import 'package:flutter/material.dart';
++
++import '../theme/app_theme.dart';
++
++/// 状态标签的语义类型。
++enum AppStatusTone {
++  neutral,
++  primary,
++  info,
++  success,
++  warning,
++  error,
++  recommendation,
++}
++
++/// 统一的状态标签。
++///
++/// 标签同时使用文字、图标和颜色表达状态，避免只依赖颜色区分。
++class AppStatusBadge extends StatelessWidget {
++  const AppStatusBadge({
++    super.key,
++    required this.label,
++    this.tone = AppStatusTone.neutral,
++    this.icon,
++    this.compact = false,
++  });
++
++  final String label;
++  final AppStatusTone tone;
++  final IconData? icon;
++  final bool compact;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final scheme = _resolveScheme(colors);
++    final resolvedIcon = icon ?? _defaultIcon;
++
++    return Semantics(
++      label: label,
++      child: DecoratedBox(
++        decoration: BoxDecoration(
++          color: scheme.background,
++          borderRadius: BorderRadius.circular(AppRadius.pill),
++          border: Border.all(color: scheme.border),
++        ),
++        child: Padding(
++          padding: EdgeInsets.symmetric(
++            horizontal: compact ? AppSpacing.xs : AppSpacing.sm,
++            vertical: compact ? AppSpacing.xxs : AppSpacing.xs,
++          ),
++          child: Row(
++            mainAxisSize: MainAxisSize.min,
++            children: [
++              if (resolvedIcon != null) ...[
++                Icon(
++                  resolvedIcon,
++                  size: compact ? 14 : 16,
++                  color: scheme.foreground,
++                ),
++                const SizedBox(width: AppSpacing.xxs),
++              ],
++              Text(
++                label,
++                style: Theme.of(context).textTheme.labelMedium?.copyWith(
++                      color: scheme.foreground,
++                      fontSize: compact ? 12 : null,
++                    ),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++
++  IconData? get _defaultIcon => switch (tone) {
++        AppStatusTone.neutral => null,
++        AppStatusTone.primary => AppIcons.info,
++        AppStatusTone.info => AppIcons.info,
++        AppStatusTone.success => AppIcons.success,
++        AppStatusTone.warning => AppIcons.warning,
++        AppStatusTone.error => AppIcons.error,
++        AppStatusTone.recommendation => AppIcons.favoriteSelected,
++      };
++
++  _BadgeScheme _resolveScheme(AppSemanticColors colors) => switch (tone) {
++        AppStatusTone.neutral => _BadgeScheme(
++            background: colors.surfaceSubtle,
++            foreground: colors.textSecondary,
++            border: colors.border,
++          ),
++        AppStatusTone.primary => _BadgeScheme(
++            background: colors.primaryContainer,
++            foreground: colors.onPrimaryContainer,
++            border: colors.primaryBorder,
++          ),
++        AppStatusTone.info => _BadgeScheme(
++            background: colors.infoContainer,
++            foreground: colors.onInfoContainer,
++            border: colors.primaryBorder,
++          ),
++        AppStatusTone.success => _BadgeScheme(
++            background: colors.successContainer,
++            foreground: colors.onSuccessContainer,
++            border: colors.success,
++          ),
++        AppStatusTone.warning => _BadgeScheme(
++            background: colors.warningContainer,
++            foreground: colors.onWarningContainer,
++            border: colors.warning,
++          ),
++        AppStatusTone.error => _BadgeScheme(
++            background: colors.errorContainer,
++            foreground: colors.onErrorContainer,
++            border: colors.error,
++          ),
++        AppStatusTone.recommendation => _BadgeScheme(
++            background: colors.recommendationContainer,
++            foreground: colors.onRecommendationContainer,
++            border: colors.recommendation,
++          ),
++      };
++}
++
++class _BadgeScheme {
++  const _BadgeScheme({
++    required this.background,
++    required this.foreground,
++    required this.border,
++  });
++
++  final Color background;
++  final Color foreground;
++  final Color border;
++}
