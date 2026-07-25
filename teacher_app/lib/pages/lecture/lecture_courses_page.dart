@@ -67,7 +67,6 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   }
 
   Widget _buildBody() {
-      final colors = context.colors;
     if (_loading) return LoadingIndicator(message: '加载讲义目录…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);

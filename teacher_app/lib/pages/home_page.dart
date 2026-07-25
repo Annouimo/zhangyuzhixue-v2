@@ -26,13 +26,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _checkUpdates();
   }
 
   Future<void> _checkUpdates() async {
-      final colors = context.colors;
     try {
       final prefs = await SharedPreferences.getInstance();
       final baseUrl =
