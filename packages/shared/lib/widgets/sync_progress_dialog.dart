@@ -72,7 +72,6 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Future<void> _runTask() async {
-      final colors = context.colors;
     try {
       await widget.task((p) {
         if (mounted) setState(() => _progress = p);
