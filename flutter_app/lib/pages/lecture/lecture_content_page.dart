@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
-import '../../widgets/exit_rating_popup.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
@@ -34,7 +33,6 @@ class LectureContentPage extends StatefulWidget {
 class _LectureContentPageState extends State<LectureContentPage> {
   late final LectureRepository _repo;
   final PopBackGuard _popGuard = PopBackGuard();
-  final DateTime _entryTime = DateTime.now();
   LectureContent? _content;
   LectureContentParsed? _parsed;
   int _pageIndex = 0;

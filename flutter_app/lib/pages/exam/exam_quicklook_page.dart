@@ -4,7 +4,6 @@ import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
-import '../../widgets/exit_rating_popup.dart';
 import 'widgets/exam_question_card.dart';
 import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -29,7 +28,6 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   final PopBackGuard _popGuard = PopBackGuard();
   ExamPreview? _preview;
   bool _loading = true; String? _error;
-  final DateTime _entryTime = DateTime.now();
 
   @override
   void initState() {

@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/widgets/md_latex_body.dart';
-import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/question_image.dart';
-import '../../widgets/exit_rating_popup.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -55,12 +55,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
   final PopBackGuard _popGuard = PopBackGuard();
   SolveAttempt? _currentAttempt;
 
-  DateTime? _entryTime;
-
   @override
   void initState() {
     super.initState();
-    _entryTime = DateTime.now();
     _repo = widget.questionRepository ?? QuestionRepository(
       QuestionDao(DatabaseProvider()),
       ProgressDao(DatabaseProvider()),

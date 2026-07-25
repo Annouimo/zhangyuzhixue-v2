@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
-import '../../widgets/exit_rating_popup.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../../data/daos/question_dao.dart';
@@ -51,7 +50,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
   String? _error;
   late final progress.ProgressRepository _repo;
   final PopBackGuard _popGuard = PopBackGuard();
-  DateTime? _entryTime;
 
   // 题目信息
   QuestionDetail? _detail;
@@ -63,7 +61,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
   progress.StepSolveRecord? _existingRecord;
 
   @override
-  void initState() { super.initState(); _entryTime = DateTime.now(); _load(); _loadCooldown(); }
+  void initState() { super.initState(); _load(); _loadCooldown(); }
 
   Future<void> _loadCooldown() async {
     try {
