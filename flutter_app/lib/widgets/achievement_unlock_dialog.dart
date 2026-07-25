@@ -1,69 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_status_badge.dart';
+
 import '../domain/achievement_repository.dart';
 
-/// 成就解锁弹窗 — 匹配 HTML 原型 achievement-popup
 Future<void> showAchievementUnlockDialog(
   BuildContext context, {
   required AchievementItem achievement,
 }) async {
-  await showDialog(
+  await showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => PopScope(
+    builder: (dialogContext) => PopScope(
       canPop: false,
       child: AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        content: SizedBox(
-          width: 280,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(achievement.iconEmoji, style: const TextStyle(fontSize: 48)),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.successContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text('🏆 新成就解锁',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onSuccessContainer),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(achievement.name,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 4),
-              Text(achievement.description,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-              if (achievement.unlockedAt != null) ...[
-                const SizedBox(height: 4),
-                Text('${achievement.unlockedAt} 解锁',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
-              ],
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        icon: Container(
+          width: 72,
+          height: 72,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: context.colors.successContainer,
+            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
+            border: Border.all(color: context.colors.success),
+          ),
+          child: Text(achievement.iconEmoji, style: const TextStyle(fontSize: 38)),
+        ),
+        title: Text(achievement.name),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppStatusBadge(
+              label: '新成就解锁',
+              tone: AppStatusTone.success,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              achievement.description,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.colors.textSecondary,
                   ),
-                  child: const Text('太棒了', style: TextStyle(fontSize: 15)),
-                ),
+            ),
+            if (achievement.unlockedAt != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${achievement.unlockedAt} 解锁',
+                style: Theme.of(context).textTheme.labelSmall,
               ),
             ],
-          ),
+          ],
         ),
+        actions: [
+          AppButton(
+            label: '继续加油',
+            icon: Icons.celebration_rounded,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        ],
       ),
     ),
   );

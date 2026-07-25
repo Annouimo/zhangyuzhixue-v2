@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_feature_banner.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/system_config_dao.dart';
@@ -81,7 +87,6 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   Future<void> _loadBonus() async {
-      final colors = context.colors;
     try {
       final cfg = SystemConfigDao(DatabaseProvider());
       final pts = await cfg.getDouble('signup_bonus_amount', 10);
@@ -96,57 +101,57 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   void _showWelcome(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: colors.scrim,
-      builder: (ctx) => PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) return;
-          // 遮罩点击 → 跳主框架
-          context.go(AppRoutes.mainShell);
-        },
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.celebration, size: 64, color: colors.primary),
-            const SizedBox(height: 16),
-            const Text('欢迎加入章鱼智学！', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text('首次注册赠送 ${_bonusLoaded ? _bonusPoints.toStringAsFixed(0) : '...'} 积分',
-              style: TextStyle(fontSize: 16, color: colors.success)),
-            const SizedBox(height: 4),
-            Text('可用于组卷等消费功能', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () { Navigator.of(ctx).pop(); },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.thumb_up_alt, size: 20, color: Colors.white),
-                  SizedBox(width: 6),
-                  Text('开始设置学习偏好'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                context.go(AppRoutes.mainShell);
-              },
-              child: Text('跳过', style: TextStyle(color: colors.textSecondary)),
-            ),
-          ]),
+      builder: (dialogContext) => AlertDialog(
+        icon: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: BrandColors.gradient),
+            borderRadius: BorderRadius.circular(AppRadius.large),
+          ),
+          child: const Icon(Icons.celebration_rounded, color: Colors.white, size: 32),
         ),
+        title: const Text('欢迎加入章鱼智学'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '首次注册将获得 ${_bonusLoaded ? _bonusPoints.toStringAsFixed(0) : '…'} 积分',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: colors.success,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '完成学习偏好后，系统会为你提供更匹配的题目与学习路径。',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              context.go(AppRoutes.mainShell);
+            },
+            child: const Text('稍后设置'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            icon: const Icon(Icons.tune_rounded),
+            label: const Text('开始设置'),
+          ),
+        ],
       ),
     );
   }
@@ -200,42 +205,71 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    if (_yearOpts == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('设置学习偏好')),
+        body: const LoadingIndicator(message: '正在准备可选条件…'),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('设置学习偏好')),
-      body: _yearOpts == null
-          ? const LoadingIndicator()
-          : SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Hero 卡片
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(Icons.auto_awesome, size: 56, color: colors.primary),
-                        const SizedBox(height: 12),
-                        const Text('选择你的学习偏好', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 4),
-                        Text('我们为你推荐最合适的题目', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
-                      ],
-                    ),
+      appBar: AppBar(
+        title: const Text('设置学习偏好'),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : () => context.go(AppRoutes.mainShell),
+            child: const Text('跳过'),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+      ),
+      body: AppContentContainer(
+        maxWidth: AppContentWidth.dashboard,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          children: [
+            AppFeatureBanner(
+              icon: Icons.auto_awesome_rounded,
+              eyebrow: '个性化推荐',
+              title: '告诉我们你想练什么',
+              subtitle: '你可以按年份、地区、题型、知识点与难度组合偏好，之后也能在个人中心随时修改。',
+              footer: Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: const [
+                  AppStatusBadge(label: '可创建多个偏好', tone: AppStatusTone.info),
+                  AppStatusBadge(label: '随时调整', tone: AppStatusTone.success),
+                  AppStatusBadge(label: '推荐更精准', tone: AppStatusTone.recommendation),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= AppBreakpoints.medium;
+                final nameCard = AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AppSectionHeader(
+                        title: '偏好名称',
+                        subtitle: '给这组条件起一个容易识别的名称。',
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      TextField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(
+                          labelText: '名称',
+                          hintText: '例如：高考选择题专项',
+                          prefixIcon: Icon(Icons.bookmark_outline_rounded),
+                        ),
+                        enabled: !_saving,
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: '偏好名称',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  enabled: !_saving,
-                ),
-                const SizedBox(height: 20),
-                FilterPanel(
+                );
+
+                final filter = FilterPanel(
                   horizontalMargin: 0,
                   yearOptions: _yearOpts!,
                   regionOptions: _regionOpts!,
@@ -246,31 +280,46 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                   knowledgeCardOptions: _knowledgeCardOpts ?? [],
                   knowledgeCardGroups: _kcGroups ?? [],
                   onChanged: (state) {
-                    _years = state.years; _regions = state.regions; _types = state.types; _conceptTags = state.conceptTags;
-                    _examTypes = state.examTypes; _knowledgeCards = state.knowledgeCards;
-                    _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
+                    _years = state.years;
+                    _regions = state.regions;
+                    _types = state.types;
+                    _conceptTags = state.conceptTags;
+                    _examTypes = state.examTypes;
+                    _knowledgeCards = state.knowledgeCards;
+                    _diffMin = state.diffMin;
+                    _diffMax = state.diffMax;
+                    _calcMin = state.calcMin;
+                    _calcMax = state.calcMax;
                   },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _saving ? null : _saveAndGoHome,
-                    child: _saving
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.save, size: 20, color: Colors.white),
-                            SizedBox(width: 6),
-                            Text('保存偏好'),
-                          ],
-                        ),
-                  ),
-                ),
-              ],
-            )),
+                );
+
+                if (!wide) {
+                  return Column(
+                    children: [nameCard, const SizedBox(height: AppSpacing.lg), filter],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 320, child: nameCard),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(child: filter),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: '保存偏好并进入首页',
+              icon: Icons.check_rounded,
+              onPressed: _saving ? null : _saveAndGoHome,
+              isLoading: _saving,
+              fullWidth: true,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        ),
+      ),
     );
   }
 }
-

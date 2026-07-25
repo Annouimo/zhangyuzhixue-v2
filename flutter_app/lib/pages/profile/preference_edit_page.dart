@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_feature_banner.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -99,7 +104,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         );
       });
       AuditLogger.instance.page('PreferenceEditPage', {'loaded': true});
-    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e); 
+    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e);
       AuditLogger.instance.error('PreferenceEditPage._loadExisting', e);
       if (!mounted) return;
       setState(() { _error = e.toString(); _loading = false; });
@@ -146,7 +151,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         const SnackBar(content: Text('保存成功'), behavior: SnackBarBehavior.floating),
       );
       if (context.mounted) context.pop(true);
-    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e); 
+    } catch (e) { OperationLog.instance.error('preference_edit_page_load', e);
       AuditLogger.instance.error('PreferenceEditPage._save', e);
       if (!mounted) return;
       setState(() => _saving = false);
@@ -160,49 +165,81 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   void dispose() { _nameCtrl.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(widget.editId != null ? '编辑偏好' : '新建偏好'),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : _save,
-          child: _saving
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text('保存', style: TextStyle(color: context.colors.primary)),
-        ),
-      ],
-    ),
-    body: _loading || _loadingOpts
-        ? const LoadingIndicator()
-        : _error != null
-            ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('加载失败', style: TextStyle(color: context.colors.error)),
-                const SizedBox(height: 8),
-                ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadExisting(); }, child: const Text('重试')),
-              ]))
-            : ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextField(
-                    controller: _nameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: '偏好名称',
-                      border: OutlineInputBorder(),
-                    ),
+  Widget build(BuildContext context) {
+    final editing = widget.editId != null;
+    return Scaffold(
+      appBar: AppBar(title: Text(editing ? '编辑偏好' : '新建偏好')),
+      body: _loading || _loadingOpts
+          ? const LoadingIndicator(message: '正在准备筛选条件…')
+          : _error != null
+              ? ErrorPlaceholder(
+                  message: _error!,
+                  onRetry: () {
+                    setState(() {
+                      _error = null;
+                      _loading = true;
+                    });
+                    _loadExisting();
+                  },
+                )
+              : AppContentContainer(
+                  maxWidth: AppContentWidth.dashboard,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    children: [
+                      AppFeatureBanner(
+                        icon: editing
+                            ? Icons.edit_note_rounded
+                            : Icons.playlist_add_rounded,
+                        eyebrow: editing ? '调整推荐条件' : '创建推荐条件',
+                        title: editing ? '编辑这组学习偏好' : '创建一组学习偏好',
+                        subtitle: '组合年份、地区、题型、知识点与难度，让推荐结果更贴近当前学习目标。',
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppSectionHeader(
+                              title: '偏好名称',
+                              subtitle: '建议使用目标明确、容易识别的名称。',
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextField(
+                              controller: _nameCtrl,
+                              decoration: const InputDecoration(
+                                labelText: '名称',
+                                hintText: '例如：函数选择题专项',
+                                prefixIcon: Icon(Icons.bookmark_outline_rounded),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      FilterPanel(
+                        horizontalMargin: 0,
+                        key: _filterKey,
+                        yearOptions: _yearOpts ?? [],
+                        regionOptions: _regionOpts ?? [],
+                        conceptTagOptions: _tagOpts ?? [],
+                        conceptTagTree: _tagTree ?? [],
+                        examTypeOptions: _examTypeOpts ?? [],
+                        knowledgeCardOptions: _knowledgeCardOpts ?? [],
+                        knowledgeCardGroups: _kcGroups ?? [],
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      AppButton(
+                        label: editing ? '保存修改' : '创建偏好',
+                        icon: Icons.check_rounded,
+                        onPressed: _saving ? null : _save,
+                        isLoading: _saving,
+                        fullWidth: true,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  FilterPanel(
-                    horizontalMargin: 0,
-                    key: _filterKey,
-                    yearOptions: _yearOpts ?? [],
-                    regionOptions: _regionOpts ?? [],
-                    conceptTagOptions: _tagOpts ?? [],
-                    conceptTagTree: _tagTree ?? [],
-                    examTypeOptions: _examTypeOpts ?? [],
-                    knowledgeCardOptions: _knowledgeCardOpts ?? [],
-                    knowledgeCardGroups: _kcGroups ?? [],
-                  ),
-                ],
-              ),
-  );
+                ),
+    );
+  }
 }
