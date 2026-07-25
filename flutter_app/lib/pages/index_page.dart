@@ -1,14 +1,19 @@
 import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'router.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 import '../widgets/level_up_dialog.dart';
 import '../widgets/achievement_unlock_dialog.dart';
 import '../domain/achievement_repository.dart';
@@ -214,7 +219,6 @@ class IndexPageState extends State<IndexPage> {
           await achieveRepo.getCategories();
           final newUnlocks = achieveRepo.lastNewUnlocks;
           if (newUnlocks != null && newUnlocks.isNotEmpty && mounted) {
-              final colors = context.colors;
             await AppPrefs().setLastKnownUnlockCount(
               prevCount + newUnlocks.length,
             );
@@ -242,9 +246,8 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Future<void> _doCheckin() async {
-      final colors = context.colors;
+    final colors = context.colors;
     if (_checkedIn || _submitting) {
-        final colors = context.colors;
       if (_checkedIn) AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
       return;
     }
@@ -281,7 +284,6 @@ class IndexPageState extends State<IndexPage> {
         );
       } catch (_) {}
       setState(() {
-          final colors = context.colors;
         _streakDays = streak;
         _checkedIn = true;
         _submitting = false;
@@ -295,22 +297,19 @@ class IndexPageState extends State<IndexPage> {
       // 签到后重新检测等级（积分可能触发升级）
       final oldLevel = AppPrefs().lastKnownLevel;
       if (oldLevel > 0) {
-          final colors = context.colors;
         try {
           final newLevel = await _repo.currentLevel();
           if (newLevel > oldLevel && mounted) {
-              final colors = context.colors;
             await AppPrefs().setLastKnownLevel(newLevel);
             final pctl = await _repo.levelPercentile();
             if (mounted) {
-                final colors = context.colors;
               showLevelUpDialog(context, oldLevel: oldLevel, newLevel: newLevel, percentile: pctl);
             }
           }
         } catch (_) {}
       }
     } catch (e) {
-      _submitting = false;
+      if (mounted) setState(() => _submitting = false);
       OperationLog.instance.error('IndexPage._doCheckin', e); 
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
@@ -323,234 +322,349 @@ class IndexPageState extends State<IndexPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(title: const Text('首页')),
       body: _loading
-          ? const LoadingIndicator()
+          ? const LoadingIndicator(message: '正在整理今天的学习计划…')
           : _error != null
               ? ErrorPlaceholder(message: _error!, onRetry: _load)
-              : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // 欢迎语卡片
-                  _buildWelcomeCard(),
-                  // 新手提示卡片（前 3 次）
-                  if (_showWelcomeHint) _buildWelcomeHint(),
-                  const SizedBox(height: 12),
-                  // 快速练习
-                  _buildQuickStart(),
-                  // 待办作业
-                  _buildPendingHomework(),
-                  const SizedBox(height: 8),
-                  // 讲义入口
-                  _buildLectureEntry(),
-                  const SizedBox(height: 12),
-                  // 签到/任务卡片
-                  _buildCheckinCard(),
-                  const SizedBox(height: 8),
-                  // 同步状态行
-                  _buildSyncStatus(),
-                ],
-              ),
-            ),
+              : AppContentContainer(
+                  maxWidth: AppContentWidth.dashboard,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.sm,
+                      bottom: AppSpacing.xl,
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return _buildDashboard(constraints.maxWidth);
+                      },
+                    ),
+                  ),
+                ),
     );
   }
 
-  Widget _buildWelcomeCard() {
-      final colors = context.colors;
+  Widget _buildDashboard(double width) {
+    final useTwoColumns = width >= AppBreakpoints.medium;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHero(compact: width < AppBreakpoints.compact),
+        if (_showWelcomeHint) ...[
+          const SizedBox(height: AppSpacing.sm),
+          _buildWelcomeHint(),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        const AppSectionHeader(
+          title: '今日概览',
+          subtitle: '用几个关键数字快速了解当前学习状态',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _buildOverviewGrid(width),
+        const SizedBox(height: AppSpacing.lg),
+        if (useTwoColumns)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 5, child: _buildLearningResources()),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(flex: 6, child: _buildCheckinCard()),
+            ],
+          )
+        else ...[
+          _buildLearningResources(),
+          const SizedBox(height: AppSpacing.md),
+          _buildCheckinCard(),
+        ],
+        const SizedBox(height: AppSpacing.md),
+        _buildSyncStatus(),
+      ],
+    );
+  }
+
+  Widget _buildHero({required bool compact}) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
+    final copy = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppStatusBadge(
+          label: _todayTotal > 0 ? '今日已练 $_todayTotal 题' : '今天，从一道题开始',
+          tone: AppStatusTone.primary,
+          icon: Icons.bolt_rounded,
+          compact: true,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          _welcomeText,
+          style: textTheme.headlineSmall?.copyWith(
+            color: colors.onPrimaryContainer,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          _pendingCount > 0
+              ? '你还有 $_pendingCount 项作业待完成，也可以先用一道快速练习进入状态。'
+              : '今日待办已清爽，可以继续巩固薄弱知识点。',
+          style: textTheme.bodyMedium?.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
+      ],
+    );
+
+    final action = AppButton(
+      label: '开始快速练习',
+      icon: Icons.play_arrow_rounded,
+      onPressed: _startQuickPractice,
+      fullWidth: compact,
+    );
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
+        border: Border.all(color: colors.primaryBorder),
       ),
-      child: Column(
-        children: [
-          Text(
-            _welcomeText,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.primary,
-              height: 1.6,
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                copy,
+                const SizedBox(height: AppSpacing.lg),
+                action,
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.large),
+                  ),
+                  child: Icon(
+                    Icons.school_rounded,
+                    size: 32,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(child: copy),
+                const SizedBox(width: AppSpacing.lg),
+                action,
+              ],
             ),
+    );
+  }
+
+  Widget _buildOverviewGrid(double width) {
+    final colors = context.colors;
+    final accuracy = _todayTotal == 0
+        ? 0
+        : ((_todayCorrect / _todayTotal) * 100).round();
+    final columns = width < 360 ? 1 : width >= AppBreakpoints.medium ? 4 : 2;
+    final gap = AppSpacing.sm;
+    final itemWidth = (width - gap * (columns - 1)) / columns;
+
+    final items = [
+      _DashboardMetric(
+        icon: Icons.assignment_outlined,
+        label: '待办作业',
+        value: '$_pendingCount',
+        caption: _pendingCount == 0 ? '全部完成' : '项待处理',
+        foreground: _pendingCount == 0 ? colors.success : colors.primary,
+        background: _pendingCount == 0
+            ? colors.successContainer
+            : colors.primaryContainer,
+      ),
+      _DashboardMetric(
+        icon: Icons.edit_note_rounded,
+        label: '今日练习',
+        value: '$_todayTotal',
+        caption: '题已作答',
+        foreground: colors.primary,
+        background: colors.primaryContainer,
+      ),
+      _DashboardMetric(
+        icon: Icons.track_changes_rounded,
+        label: '今日正确率',
+        value: '$accuracy%',
+        caption: _todayTotal == 0 ? '完成练习后生成' : '$_todayCorrect 题正确',
+        foreground: accuracy >= 80 ? colors.success : colors.recommendation,
+        background: accuracy >= 80
+            ? colors.successContainer
+            : colors.recommendationContainer,
+      ),
+      _DashboardMetric(
+        icon: Icons.workspace_premium_outlined,
+        label: '当前等级',
+        value: 'Lv.$_currentLevel',
+        caption: '今日 +${formatAmount(_todayEarned)} 学习积分',
+        foreground: colors.recommendation,
+        background: colors.recommendationContainer,
+      ),
+    ];
+
+    return Wrap(
+      spacing: gap,
+      runSpacing: gap,
+      children: items
+          .map((item) => SizedBox(width: itemWidth, child: item))
+          .toList(),
+    );
+  }
+
+  Widget _buildLearningResources() {
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppSectionHeader(
+            title: '学习入口',
+            subtitle: '按任务推进，或随时查阅课程讲义',
           ),
-          SizedBox(height: 6),
-          Text(
-            '每天一句，保持节奏',
-            style: TextStyle(fontSize: 11, color: colors.textSecondary),
+          const SizedBox(height: AppSpacing.sm),
+          _HomeActionTile(
+            icon: Icons.assignment_outlined,
+            title: '待办作业',
+            subtitle: _pendingCount == 0
+                ? '今天没有未完成作业'
+                : '还有 $_pendingCount 项任务等待完成',
+            onTap: () => RouterUtils.push(context, AppRoutes.homeworkList),
+            trailing: _pendingCount > 0
+                ? AppStatusBadge(
+                    label: '$_pendingCount 项',
+                    tone: AppStatusTone.warning,
+                    compact: true,
+                  )
+                : const AppStatusBadge(
+                    label: '已完成',
+                    tone: AppStatusTone.success,
+                    compact: true,
+                  ),
+          ),
+          const Divider(height: AppSpacing.lg),
+          _HomeActionTile(
+            icon: Icons.menu_book_outlined,
+            title: '课程讲义',
+            subtitle: '浏览章节、知识点与配套内容',
+            onTap: () => RouterUtils.push(context, AppRoutes.lectureCourses),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPendingHomework() {
-      final colors = context.colors;
-    return InkWell(
-      onTap: () => RouterUtils.push(context,AppRoutes.homeworkList),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.assignment, size: 20, color: colors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('待办作业',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    '$_pendingCount 项未完成',
-                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: colors.textSecondary),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLectureEntry() {
-      final colors = context.colors;
-    return InkWell(
-      onTap: () => RouterUtils.push(context,AppRoutes.lectureCourses),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.menu_book, size: 20, color: colors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('讲义',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  Text('浏览课程与讲义内容',
-                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: colors.textSecondary),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildCheckinCard() {
-      final colors = context.colors;
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
     final todayReward = UserRepository.todayRewardText(_streakDays);
     final nextReward = UserRepository.nextRewardText(_streakDays);
     final progress = (_streakDays % 7) / 7.0;
     final tasks = UserRepository.computeTodayTasks(_todayTotal, _todayCorrect);
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-      ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 签到行
+          AppSectionHeader(
+            title: '连续学习',
+            subtitle: '完成签到和每日任务，保持稳定节奏',
+            action: AppButton(
+              label: _checkedIn ? '已签到' : '签到',
+              icon: _checkedIn ? Icons.check_rounded : Icons.local_fire_department,
+              onPressed: _checkedIn ? null : _doCheckin,
+              isLoading: _submitting,
+              variant: _checkedIn
+                  ? AppButtonVariant.secondary
+                  : AppButtonVariant.primary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              Icon(Icons.local_fire_department, size: 20, color: colors.primary),
-              const SizedBox(width: 4),
-              Text(
-                '已连续签到 $_streakDays 天',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colors.recommendationContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Icon(
+                  Icons.local_fire_department_rounded,
+                  color: colors.recommendation,
+                ),
               ),
-              const Spacer(),
-              SizedBox(
-                height: 32,
-                width: 80,
-                child: ElevatedButton(
-                  onPressed: _doCheckin,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    textStyle: const TextStyle(fontSize: 12),
-                  ),
-                  child: Text(_checkedIn ? '已签到' : '签到'),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '已连续学习 $_streakDays 天',
+                      style: textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      '今日奖励 +$todayReward · 明日可得 +$nextReward',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // 奖励行
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: LinearProgressIndicator(value: progress, minHeight: 8),
+          ),
+          const SizedBox(height: AppSpacing.xs),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('今日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-              Text('+$todayReward',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
-              ),
-              const Spacer(),
-              Text('明日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-              Text('+$nextReward',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
-              ),
+              Text('本周第 ${(_streakDays % 7) + 1} 天', style: textTheme.bodySmall),
+              Text('7 天阶段目标', style: textTheme.bodySmall),
             ],
           ),
-          const SizedBox(height: 6),
-          // 进度条
-          ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 4,
-              backgroundColor: colors.border,
-              valueColor: AlwaysStoppedAnimation(colors.primary),
+          const Divider(height: AppSpacing.xl),
+          Text('每日任务', style: textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          ...tasks.map(
+            (task) => _buildTaskItem(
+              task.done,
+              task.label,
+              task.rewardText,
+              inProgress: task.inProgress,
             ),
           ),
-          const SizedBox(height: 2),
-          // 进度标签
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const Divider(height: AppSpacing.xl),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            alignment: WrapAlignment.spaceBetween,
             children: [
-              Text('第1天',
-                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-              Text('第7天 🎯',
-                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-            ],
-          ),
-          const Divider(height: 20),
-          // 任务列表
-          ...tasks.map((t) => _buildTaskItem(t.done, t.label, t.rewardText, inProgress: t.inProgress)),
-          // 等级进度行
-          const Divider(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
-                style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-              Text('今日学习积分 +${formatAmount(_todayEarned)}',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
+              Text(
+                'Lv.$_currentLevel · 升级进度 $_levelProgress',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              Text(
+                '今日学习积分 +${formatAmount(_todayEarned)}',
+                style: textTheme.labelMedium?.copyWith(color: colors.primary),
+              ),
             ],
           ),
         ],
@@ -558,35 +672,44 @@ class IndexPageState extends State<IndexPage> {
     );
   }
 
-  Widget _buildTaskItem(bool done, String label, String points, {bool inProgress = false}) {
-      final colors = context.colors;
+  Widget _buildTaskItem(
+    bool done,
+    String label,
+    String points, {
+    bool inProgress = false,
+  }) {
+    final colors = context.colors;
     final icon = done
-        ? Icon(Icons.check_circle, size: 18, color: colors.success)
-        : (inProgress
-            ? Icon(Icons.hourglass_empty, size: 18, color: colors.warning)
-            : Icon(Icons.circle_outlined, size: 18, color: colors.textSecondary));
+        ? Icons.check_circle_rounded
+        : inProgress
+            ? Icons.timelapse_rounded
+            : Icons.radio_button_unchecked_rounded;
+    final iconColor = done
+        ? colors.success
+        : inProgress
+            ? colors.warning
+            : colors.textMuted;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          icon,
-          const SizedBox(width: 8),
+          Icon(icon, size: 20, color: iconColor),
+          const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                color: done ? colors.textSecondary : colors.textPrimary,
-                decoration: done ? TextDecoration.lineThrough : null,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: done ? colors.textSecondary : colors.textPrimary,
+                    decoration: done ? TextDecoration.lineThrough : null,
+                  ),
             ),
           ),
-          Text('+$points',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: done ? colors.textSecondary : colors.primary,
-            ),
+          Text(
+            '+$points',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: done ? colors.textMuted : colors.primary,
+                ),
           ),
         ],
       ),
@@ -594,162 +717,267 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildSyncStatus() {
-      final colors = context.colors;
+    final colors = context.colors;
     final online = ConnectivityMonitor().isOnline;
-    IconData icon;
-    String text;
+    late final IconData icon;
+    late final String text;
+    late final Color foreground;
+    late final Color background;
+    late final Color border;
     VoidCallback? onTap;
 
     if (!online) {
-        final colors = context.colors;
-      icon = Icons.cloud_off;
-      text = '当前离线，数据将在联网后同步';
+      icon = Icons.cloud_off_outlined;
+      text = '当前离线，数据将在联网后自动同步';
+      foreground = colors.onRecommendationContainer;
+      background = colors.recommendationContainer;
+      border = colors.recommendation;
     } else if (_syncPendingCount > 0) {
-      icon = Icons.sync_problem;
-      text = '$_syncPendingCount 条数据待同步';
-      onTap = () => RouterUtils.push(context,AppRoutes.syncQueue);
+      icon = Icons.sync_problem_rounded;
+      text = '$_syncPendingCount 条学习数据等待同步';
+      foreground = colors.onWarningContainer;
+      background = colors.warningContainer;
+      border = colors.warning;
+      onTap = () => RouterUtils.push(context, AppRoutes.syncQueue);
     } else {
-      icon = Icons.cloud_done;
-      text = '全部已同步';
+      icon = Icons.cloud_done_outlined;
+      text = '学习数据已全部同步';
+      foreground = colors.onSuccessContainer;
+      background = colors.successContainer;
+      border = colors.success;
     }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: !online
-              ? colors.recommendation.withValues(alpha: 0.08)
-              : _syncPendingCount > 0
-                  ? colors.warning.withValues(alpha: 0.08)
-                  : colors.success.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16,
-              color: !online
-                  ? colors.recommendation
-                  : _syncPendingCount > 0
-                      ? colors.warning
-                      : colors.success,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(text,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: !online
-                      ? colors.recommendation
-                      : _syncPendingCount > 0
-                          ? colors.warning
-                          : colors.success,
+    return Material(
+      color: background,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        side: BorderSide(color: border.withValues(alpha: 0.55)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: foreground),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  text,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ),
-            ),
-            if (onTap != null)
-              Icon(Icons.chevron_right, size: 16, color: colors.textSecondary),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  /// 快速练习 — 随机做一道题
-  Widget _buildQuickStart() {
-      final colors = context.colors;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ElevatedButton.icon(
-        onPressed: _startQuickPractice,
-        icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('🚀 快速练习 — 随机做一道题'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              if (onTap != null)
+                Icon(AppIcons.chevronRight, size: 20, color: foreground),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Future<void> _startQuickPractice() async {
-      final colors = context.colors;
     try {
       final dao = QuestionDao(DatabaseProvider());
-      var q = await dao.getRandomByType(preferredType: 'choice');
-      q ??= await dao.getRandomByType(preferredType: 'fill');
-      q ??= await dao.getRandomByType();
-      if (q == null || !mounted) {
-          final colors = context.colors;
-        AppToast.show(context, icon: Icons.info, message: '题库暂无数据');
+      var question = await dao.getRandomByType(preferredType: 'choice');
+      question ??= await dao.getRandomByType(preferredType: 'fill');
+      question ??= await dao.getRandomByType();
+      if (question == null || !mounted) {
+        AppToast.show(context, icon: Icons.info_outline, message: '题库暂无数据');
         return;
       }
-      await SolveRouteHelper.navigateTo(context, q.id, q.questionType);
-    } catch (e) { OperationLog.instance.error('index_page_load', e); 
-      AuditLogger.instance.error('IndexPage._startQuickPractice', e);
+      await SolveRouteHelper.navigateTo(
+        context,
+        question.id,
+        question.questionType,
+      );
+    } catch (error) {
+      OperationLog.instance.error('index_page_quick_practice', error);
+      AuditLogger.instance.error('IndexPage._startQuickPractice', error);
       if (!mounted) return;
-      AppToast.show(context, icon: Icons.warning, message: '加载失败，请稍后重试');
+      AppToast.show(context, icon: Icons.warning_amber_rounded, message: '加载失败，请稍后重试');
     }
   }
 
-  /// 新手提示引导卡片
   Widget _buildWelcomeHint() {
-      final colors = context.colors;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 12, bottom: 4),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
-      ),
+    final colors = context.colors;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline, size: 18, color: colors.primary),
-              SizedBox(width: 6),
-              Text('欢迎来到章鱼智学',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: colors.infoContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.small),
+                ),
+                child: Icon(Icons.lightbulb_outline_rounded, color: colors.info),
               ),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => setState(() => _showWelcomeHint = false),
-                child: Icon(Icons.close, size: 16, color: colors.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('第一次使用？从这里开始', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      '快速练习、讲义、推荐和组卷构成主要学习路径。',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: '关闭提示',
+                onPressed: () => setState(() => _showWelcomeHint = false),
+                icon: const Icon(Icons.close_rounded),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          _hintItem(Icons.play_arrow, '🚀 快速练习 — 直接随机做一道题'),
-          const SizedBox(height: 6),
-          _hintItem(Icons.menu_book, '📖 讲义 — 浏览课程知识点'),
-          const SizedBox(height: 6),
-          _hintItem(Icons.auto_awesome, '🧠 推荐 — 智能推送适合你的题目'),
-          const SizedBox(height: 6),
-          _hintItem(Icons.description, '📝 组卷 — 自己组卷或使用他人试卷'),
+          const SizedBox(height: AppSpacing.sm),
+          const Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              AppStatusBadge(label: '快速练习', tone: AppStatusTone.primary, compact: true),
+              AppStatusBadge(label: '课程讲义', tone: AppStatusTone.info, compact: true),
+              AppStatusBadge(label: '智能推荐', tone: AppStatusTone.recommendation, compact: true),
+              AppStatusBadge(label: '自主组卷', tone: AppStatusTone.neutral, compact: true),
+            ],
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _hintItem(IconData icon, String text) {
-      final colors = context.colors;
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: colors.primary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(text, style: TextStyle(fontSize: 13, color: colors.textPrimary)),
-        ),
-      ],
+class _DashboardMetric extends StatelessWidget {
+  const _DashboardMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.caption,
+    required this.foreground,
+    required this.background,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String caption;
+  final Color foreground;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(AppRadius.medium),
+            ),
+            child: Icon(icon, size: 22, color: foreground),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(label, style: textTheme.bodySmall),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(value, style: textTheme.titleLarge?.copyWith(color: foreground)),
+          const SizedBox(height: AppSpacing.xxs),
+          Text(
+            caption,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.labelSmall,
+          ),
+        ],
+      ),
     );
   }
 }
 
+class _HomeActionTile extends StatelessWidget {
+  const _HomeActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.medium),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Icon(icon, color: colors.primary),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      subtitle,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: AppSpacing.xs),
+                trailing!,
+              ] else
+                Icon(AppIcons.chevronRight, color: colors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

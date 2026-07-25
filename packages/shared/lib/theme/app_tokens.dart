@@ -18,10 +18,15 @@ abstract final class AppSpacing {
 abstract final class AppRadius {
   static const double none = 0;
   static const double sm = 4;
+  static const double small = 4;
   static const double md = 8;
+  static const double medium = 8;
   static const double lg = 12;
+  static const double large = 12;
   static const double xl = 16;
+  static const double extraLarge = 16;
   static const double full = 999;
+  static const double pill = 999;
 }
 
 /// 章鱼智学 V1.0 控件尺寸

@@ -12,9 +12,12 @@ class AppButton extends StatelessWidget {
     required this.onPressed,
     required this.label,
     this.type = AppButtonType.primary,
+    this.variant,
     this.icon,
     this.expanded = true,
+    this.fullWidth,
     this.loading = false,
+    this.isLoading,
     this.size = AppButtonSize.lg,
     this.minWidth,
   });
@@ -28,14 +31,23 @@ class AppButton extends StatelessWidget {
   /// 变体类型
   final AppButtonType type;
 
+  /// 变体别名（兼容 Phase 1 原命名，覆盖 type）
+  final AppButtonVariant? variant;
+
   /// 前置图标（可选）
   final IconData? icon;
 
   /// 是否撑满父容器宽度（默认 true）
   final bool expanded;
 
+  /// 全宽别名（兼容 Phase 1 原命名，覆盖 expanded）
+  final bool? fullWidth;
+
   /// 是否显示加载转圈
   final bool loading;
+
+  /// 加载态别名（兼容 Phase 1 原命名，覆盖 loading）
+  final bool? isLoading;
 
   /// 按钮尺寸
   final AppButtonSize size;
@@ -43,15 +55,20 @@ class AppButton extends StatelessWidget {
   /// 最小宽度（覆盖 expanded 行为时使用）
   final double? minWidth;
 
+  AppButtonType get _effectiveType => variant != null ? AppButtonType.fromVariant(variant!) : type;
+  bool get _effectiveExpanded => fullWidth ?? expanded;
+  bool get _effectiveLoading => isLoading ?? loading;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final disabled = onPressed == null || loading;
+    final t = _effectiveType;
+    final disabled = onPressed == null || _effectiveLoading;
 
     Widget button;
     final content = _buildContent(colors);
 
-    switch (type) {
+    switch (t) {
       case AppButtonType.primary:
         button = FilledButton(
           onPressed: disabled ? null : onPressed,
@@ -78,7 +95,7 @@ class AppButton extends StatelessWidget {
         );
     }
 
-    if (expanded) {
+    if (_effectiveExpanded) {
       button = SizedBox(
         width: minWidth ?? double.infinity,
         child: button,
@@ -89,7 +106,7 @@ class AppButton extends StatelessWidget {
   }
 
   Widget _buildContent(AppSemanticColors colors) {
-    if (loading) {
+    if (_effectiveLoading) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -122,7 +139,7 @@ class AppButton extends StatelessWidget {
   }
 
   Color _foregroundColor(AppSemanticColors colors) {
-    switch (type) {
+    switch (_effectiveType) {
       case AppButtonType.primary:
         return colors.textInverse;
       case AppButtonType.secondary:
@@ -229,6 +246,21 @@ enum AppButtonType {
   outlined,
 
   /// 纯文字按钮
+  text;
+
+  static AppButtonType fromVariant(AppButtonVariant v) => switch (v) {
+        AppButtonVariant.primary => primary,
+        AppButtonVariant.secondary => secondary,
+        AppButtonVariant.outlined => outlined,
+        AppButtonVariant.text => text,
+      };
+}
+
+/// 变体别名（原 Phase 1 命名）
+enum AppButtonVariant {
+  primary,
+  secondary,
+  outlined,
   text,
 }
 

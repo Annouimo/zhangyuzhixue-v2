@@ -6,27 +6,31 @@ import '../theme/app_icons.dart';
 /// 页面容器 — 统一边距与最大内容宽度
 ///
 /// 控制页面内容在宽屏下的最大宽度，自动居中。
-/// 使用 [layout] 选择适合当前页面类型的宽度。
+/// 使用 [layout] 或 [maxWidth] 指定宽度。
 class AppContentContainer extends StatelessWidget {
   const AppContentContainer({
     super.key,
     required this.child,
     this.layout = AppContentLayout.standard,
+    this.maxWidth,
     this.padding,
   });
 
   /// 页面内容
   final Widget child;
 
-  /// 布局类型（决定最大宽度）
+  /// 布局类型（决定最大宽度，与 [maxWidth] 二选一）
   final AppContentLayout layout;
+
+  /// 直接指定最大宽度（覆盖 layout，与 [layout] 二选一）
+  final double? maxWidth;
 
   /// 水平内边距覆盖（默认使用响应式间距）
   final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
-    final maxWidth = switch (layout) {
+    final w = maxWidth ?? switch (layout) {
       AppContentLayout.form => AppContentWidth.form,
       AppContentLayout.reading => AppContentWidth.reading,
       AppContentLayout.standard => AppContentWidth.standard,
@@ -37,7 +41,7 @@ class AppContentContainer extends StatelessWidget {
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        constraints: BoxConstraints(maxWidth: w),
         child: Padding(
           padding: padding ?? EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -74,14 +78,19 @@ class AppSectionHeader extends StatelessWidget {
   const AppSectionHeader({
     super.key,
     required this.title,
+    this.subtitle,
     this.actionLabel,
     this.onActionTap,
     this.icon,
     this.trailing,
+    this.action,
   });
 
   /// 分区标题
   final String title;
+
+  /// 副标题（显示在标题下方）
+  final String? subtitle;
 
   /// "查看更多"等操作文字
   final String? actionLabel;
@@ -94,6 +103,9 @@ class AppSectionHeader extends StatelessWidget {
 
   /// 自定义尾部组件（优先级高于 actionLabel）
   final Widget? trailing;
+
+  /// 自定义操作组件别名（兼容 Phase 1 命名，优先级高于 trailing）
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -111,15 +123,32 @@ class AppSectionHeader extends StatelessWidget {
             const SizedBox(width: AppSpacing.xs),
           ],
           Expanded(
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                if (subtitle != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textMuted,
+                          ),
+                    ),
                   ),
+              ],
             ),
           ),
-          if (trailing != null)
+          if (action != null)
+            action!
+          else if (trailing != null)
             trailing!
           else if (actionLabel != null && onActionTap != null)
             GestureDetector(

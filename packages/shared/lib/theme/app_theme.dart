@@ -194,6 +194,10 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   final Color textInverse;
   final Color primaryOnContainer;
   final Color primaryBorder;
+
+  /// 兼容别名
+  Color get onPrimaryContainer => primaryOnContainer;
+  Color get onRecommendation => recommendationContainer;
   final Color border;
   final Color borderStrong;
   final Color divider;

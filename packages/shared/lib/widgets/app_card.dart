@@ -16,6 +16,7 @@ class AppCard extends StatelessWidget {
     this.selected = false,
     this.elevated = false,
     this.borderColor,
+    this.semanticLabel,
   });
 
   /// 卡片内容
@@ -38,6 +39,9 @@ class AppCard extends StatelessWidget {
 
   /// 边框颜色覆盖
   final Color? borderColor;
+
+  /// 无障碍语义标签
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +69,19 @@ class AppCard extends StatelessWidget {
       ),
     );
 
-    if (!isClickable) return card;
+    if (!isClickable) {
+      if (semanticLabel != null) {
+        return Semantics(
+          label: semanticLabel,
+          child: card,
+        );
+      }
+      return card;
+    }
 
-    return GestureDetector(
+    return Semantics(
+      label: semanticLabel,
+      child: GestureDetector(
       onTap: onTap,
       child: card,
     );
