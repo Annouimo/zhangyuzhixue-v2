@@ -82,8 +82,9 @@ class AppCard extends StatelessWidget {
     return Semantics(
       label: semanticLabel,
       child: GestureDetector(
-      onTap: onTap,
-      child: card,
+        onTap: onTap,
+        child: card,
+      ),
     );
   }
 }
