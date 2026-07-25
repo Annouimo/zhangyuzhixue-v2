@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import '../api/sync_api.dart';
+import 'package:shared/debug/operation_log.dart';
 import '../database/database_provider.dart';
 import '../prefs/app_prefs.dart';
 import 'package:shared/debug/audit_logger.dart';
@@ -109,6 +110,7 @@ class UpdateManager {
 
     await _downloadClient.download(url, gzPath,
         onReceiveProgress: (received, total) {
+      OperationLog.instance.action('download_progress', '$received/$total');
       if (total > 0 && onProgress != null) onProgress(received / total);
     });
 
