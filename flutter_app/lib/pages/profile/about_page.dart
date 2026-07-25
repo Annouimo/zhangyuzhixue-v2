@@ -47,6 +47,7 @@ class _AboutPageState extends State<AboutPage> {
     _localUser = prefs.userVersion;
 
     final ts = prefs.lastSyncTime;
+    if (ts != null) OperationLog.instance.action('about_lastSync', ts);
     final pullDate = ts != null ? DateTime.tryParse(ts) : null;
 
     // 取同步队列最新上传日期
@@ -54,7 +55,14 @@ class _AboutPageState extends State<AboutPage> {
     try {
       final dao = SyncQueueDao(DatabaseProvider());
       uploadDate = await dao.getLatestUploadDate();
-    } catch (_) {}
+      if (uploadDate != null) {
+        OperationLog.instance.action('about_uploadDate', uploadDate.toIso8601String());
+      } else {
+        OperationLog.instance.action('about_uploadDate', 'null');
+      }
+    } catch (e) {
+      OperationLog.instance.action('about_uploadDate', 'error: $e');
+    }
 
     // 取 pull 日期和 upload 日期中最新者
     final dates = <DateTime>[
@@ -65,8 +73,7 @@ class _AboutPageState extends State<AboutPage> {
     if (mounted) {
       if (dates.isNotEmpty) {
         final latestDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
-        // ignore: avoid_print
-        debugPrint('about_sync: pull=$pullDate upload=$uploadDate latest=$latestDate');
+        OperationLog.instance.action('about_sync_result', latestDate.toIso8601String());
         setState(() {
           final y = latestDate.year.toString();
           final m = latestDate.month.toString().padLeft(2, '0');
@@ -74,7 +81,7 @@ class _AboutPageState extends State<AboutPage> {
           _lastSyncTime = '上次同步：$y-$m-$d';
         });
       } else {
-        debugPrint('about_sync: dates empty, pull=$pullDate upload=$uploadDate');
+        OperationLog.instance.action('about_sync_result', 'dates empty: pull=$pullDate upload=$uploadDate');
       }
     }
 
