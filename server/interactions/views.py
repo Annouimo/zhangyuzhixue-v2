@@ -313,11 +313,9 @@ class ExamExploreView(APIView):
         if not student:
             return _err(40302, '仅学生用户可访问')
 
-        # 查所有公开组卷（排除自己的）
+        # 查所有公开组卷（不含自己的）
         papers = CustomPaper.objects.filter(
             is_public=True
-        ).exclude(
-            student=student
         ).order_by('-created_at').prefetch_related(
             'paper_questions', 'paper_likes', 'paper_collects'
         )

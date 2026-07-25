@@ -41,6 +41,7 @@ docs/auto-audit/screenshots/
 
 # Archive
 docs/_archive/
+*.zip
 
 # Auto-audit generated output
 docs/auto-audit/audit_report_latest.txt
