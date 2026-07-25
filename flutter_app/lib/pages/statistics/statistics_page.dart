@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import '../../../widgets/shared/format_utils.dart';
-import '../../../data/daos/statistics_dao.dart';
-import '../../../data/daos/question_dao.dart';
-import '../../../data/database/database_provider.dart';
-import '../../../domain/statistics_repository.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'widgets/time_range_picker.dart';
-import 'widgets/heatmap_chart.dart';
-import 'widgets/trend_chart.dart';
-import 'widgets/donut_chart.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
+import 'package:shared/shared.dart';
 
-/// 学习统计页
+import '../../data/daos/question_dao.dart';
+import '../../data/daos/statistics_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../domain/statistics_repository.dart';
+import '../../widgets/shared/format_utils.dart';
+import 'widgets/donut_chart.dart';
+import 'widgets/heatmap_chart.dart';
+import 'widgets/time_range_picker.dart';
+import 'widgets/trend_chart.dart';
+
+/// 学习统计页。
 class StatisticsPage extends StatefulWidget {
-  final StatisticsRepository? statisticsRepository;
   StatisticsPage({super.key, this.statisticsRepository});
+
+  final StatisticsRepository? statisticsRepository;
 
   @override
   State<StatisticsPage> createState() => _StatisticsPageState();
@@ -39,128 +37,232 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.statisticsRepository ?? StatisticsRepository(
-      StatisticsDao(DatabaseProvider()),
-      questionDao: QuestionDao(DatabaseProvider()),
-    );
+    _repo = widget.statisticsRepository ??
+        StatisticsRepository(
+          StatisticsDao(DatabaseProvider()),
+          questionDao: QuestionDao(DatabaseProvider()),
+        );
     _loadAll();
   }
 
   Future<void> _loadAll() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      // 并行加载 5 项独立数据
       final results = await Future.wait([
         _repo.getOverview(),
         _repo.getDailyRecords(_rangeDays),
         _repo.getPointsTrend(_rangeDays),
         _repo.getDistribution(rangeDays: _rangeDays),
       ]);
-      final ov = results[0] as StatsOverview;
-      final dr = results[1] as List<DailyRecord>;
-      // 正确率趋势从 dailyRecords 派生，不再重复查询
-      final at = StatisticsRepository.deriveAccuracyTrend(dr);
-      final pt = results[2] as List<TrendPoint>;
-      final dist = results[3] as Distribution;
+      final overview = results[0] as StatsOverview;
+      final dailyRecords = results[1] as List<DailyRecord>;
+      final accuracyTrend = StatisticsRepository.deriveAccuracyTrend(
+        dailyRecords,
+      );
+      final pointsTrend = results[2] as List<TrendPoint>;
+      final distribution = results[3] as Distribution;
+      final totalAnswers = dailyRecords.fold<int>(
+        0,
+        (sum, record) => sum + record.count,
+      );
+      final totalCorrect = dailyRecords.fold<int>(
+        0,
+        (sum, record) => sum + record.correct,
+      );
       if (!mounted) return;
       setState(() {
-        _overview = ov; _dailyRecords = dr; _accuracyTrend = at; _pointsTrend = pt; _distribution = dist;
-        // 全时段整体正确率（sum(correct)/sum(count)），匹配 HTML 原型
-        _accuracySummary = dr.isNotEmpty
-            ? '${(dr.fold<int>(0, (s, r) => s + r.correct) / dr.fold<int>(0, (s, r) => s + r.count) * 100).toStringAsFixed(0)}%'
+        _overview = overview;
+        _dailyRecords = dailyRecords;
+        _accuracyTrend = accuracyTrend;
+        _pointsTrend = pointsTrend;
+        _distribution = distribution;
+        _accuracySummary = totalAnswers > 0
+            ? '${(totalCorrect / totalAnswers * 100).toStringAsFixed(0)}%'
             : null;
-        _pointsSummary = pt.isNotEmpty ? formatAmount(pt.last.value) : null;
+        _pointsSummary = pointsTrend.isNotEmpty
+            ? formatAmount(pointsTrend.last.value)
+            : null;
         _loading = false;
       });
-      AuditLogger.instance.page('StatisticsPage', {'hasData': _overview != null});
-    } catch (e) { OperationLog.instance.error('statistics_page_load', e);  AuditLogger.instance.error('StatisticsPage._loadAll', e); if (mounted) { setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); } }
+      AuditLogger.instance.page(
+        'StatisticsPage',
+        {'hasData': _overview != null},
+      );
+    } catch (error) {
+      OperationLog.instance.error('statistics_page_load', error);
+      AuditLogger.instance.error('StatisticsPage._loadAll', error);
+      if (!mounted) return;
+      setState(() {
+        _error = '加载失败，请稍后重试';
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('学习统计')),
-    body: _loading
-        ? LoadingIndicator(message: '加载统计数据…')
-        : _error != null
-            ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
-            : RefreshIndicator(
-            onRefresh: _loadAll,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: AppSizes.baseSpacing),
-              child: Column(
-                children: [
-                  SizedBox(height: 8),
-                  TimeRangePicker(valueDays: _rangeDays, onChanged: (d) { setState(() => _rangeDays = d); _loadAll(); }),
-                  SizedBox(height: 12),
-                  _buildOverviewCards(),
-                  SizedBox(height: 12),
-                  HeatmapChart(rangeDays: _rangeDays, records: _dailyRecords ?? []),
-                  SizedBox(height: 4),
-                  // 热力图图例
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('少', style: TextStyle(fontSize: 10, color: context.colors.textSecondary)),
-                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: context.colors.border, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: context.colors.heatmapLevel1, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: context.colors.heatmapLevel2, borderRadius: BorderRadius.circular(2))),
-                      Container(width: 12, height: 12, margin: EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(color: context.colors.heatmapLevel3, borderRadius: BorderRadius.circular(2))),
-                      Text('多', style: TextStyle(fontSize: 10, color: context.colors.textSecondary)),
-                    ],
+        appBar: AppBar(title: const Text('学习统计')),
+        body: _loading
+            ? const LoadingIndicator(message: '加载统计数据…')
+            : _error != null
+                ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
+                : RefreshIndicator(
+                    onRefresh: _loadAll,
+                    child: AppContentContainer(
+                      maxWidth: AppContentWidth.dashboard,
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md,
+                        ),
+                        children: [
+                          AppFeatureBanner(
+                            eyebrow: '学习数据',
+                            icon: Icons.insights_rounded,
+                            title: '看见每一次积累',
+                            subtitle: '通过做题数量、正确率、连续学习和题型分布，了解近期学习节奏。',
+                            footer: TimeRangePicker(
+                              valueDays: _rangeDays,
+                              onChanged: (days) {
+                                setState(() => _rangeDays = days);
+                                _loadAll();
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
+                          const AppSectionHeader(
+                            title: '核心概览',
+                            subtitle: '总览数据不受当前时间范围筛选影响。',
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildOverviewCards(),
+                          const SizedBox(height: AppSpacing.xl),
+                          AppSectionHeader(
+                            title: '趋势与分布',
+                            subtitle: '当前展示：${_rangeLabel(_rangeDays)}',
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final twoColumns = constraints.maxWidth >=
+                                  AppBreakpoints.expanded;
+                              const gap = AppSpacing.md;
+                              final width = twoColumns
+                                  ? (constraints.maxWidth - gap) / 2
+                                  : constraints.maxWidth;
+                              final charts = <Widget>[
+                                HeatmapChart(
+                                  rangeDays: _rangeDays,
+                                  records: _dailyRecords ?? [],
+                                ),
+                                TrendChart(
+                                  title: '正确率趋势',
+                                  points: _accuracyTrend ?? [],
+                                  lineColor: context.colors.primary,
+                                  fixedYRange: true,
+                                  summaryLabel: '该时段正确率',
+                                  summaryValue: _accuracySummary,
+                                ),
+                                TrendChart(
+                                  title: '积分累计趋势',
+                                  points: _pointsTrend ?? [],
+                                  lineColor: context.colors.success,
+                                  summaryLabel: '时段累计积分',
+                                  summaryValue: _pointsSummary,
+                                ),
+                                DonutChart(
+                                  data: _distribution ??
+                                      Distribution(
+                                        total: 0,
+                                        choiceCount: 0,
+                                        choicePercent: 0,
+                                        fillCount: 0,
+                                        fillPercent: 0,
+                                        solutionCount: 0,
+                                        solutionPercent: 0,
+                                      ),
+                                ),
+                              ];
+                              return Wrap(
+                                spacing: gap,
+                                runSpacing: gap,
+                                children: charts
+                                    .map(
+                                      (chart) => SizedBox(
+                                        width: width,
+                                        child: chart,
+                                      ),
+                                    )
+                                    .toList(),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.xl),
+                        ],
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 8),
-                  TrendChart(title: '正确率趋势', points: _accuracyTrend ?? [], fixedYRange: true,
-                    summaryLabel: '该时段正确率', summaryValue: _accuracySummary),
-                  SizedBox(height: 8),
-                  TrendChart(title: '积分累计趋势', points: _pointsTrend ?? [], lineColor: context.colors.success,
-                    summaryLabel: '时段累计积分', summaryValue: _pointsSummary),
-                  SizedBox(height: 8),
-                  DonutChart(data: _distribution ?? Distribution(total: 0, choiceCount: 0, choicePercent: 0, fillCount: 0, fillPercent: 0, solutionCount: 0, solutionPercent: 0)),
-                ],
-              ),
-            ),
-          ),
-  );
+      );
 
   Widget _buildOverviewCards() {
-    final ov = _overview;
-    if (ov == null) return SizedBox.shrink();
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
-      child: Row(
-        children: [
-          _overviewCard('总做题', '${ov.totalQuestions}', Icons.checklist, context.colors.primary),
-          SizedBox(width: 8),
-          _overviewCard('正确率', '${ov.accuracyPercent.toStringAsFixed(0)}%', Icons.percent, context.colors.success),
-          SizedBox(width: 8),
-          _overviewCard('连续做题天', '${ov.streakDays} 天', Icons.local_fire_department, context.colors.recommendation),
-          SizedBox(width: 8),
-          _overviewCard('活跃天', '${ov.activeDays}', Icons.today, context.colors.primaryContainer),
-        ],
-      ),
-    );
-  }
+    final overview = _overview;
+    if (overview == null) return const SizedBox.shrink();
 
-  Widget _overviewCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          child: Column(
-            children: [
-              Icon(icon, size: 22, color: color),
-              SizedBox(height: 4),
-              Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-              Text(label, style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
-            ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= AppBreakpoints.expanded
+            ? 4
+            : constraints.maxWidth >= AppBreakpoints.compact
+                ? 2
+                : 1;
+        const gap = AppSpacing.sm;
+        final width = columns == 1
+            ? constraints.maxWidth
+            : (constraints.maxWidth - gap * (columns - 1)) / columns;
+        final cards = [
+          AppMetricCard(
+            label: '总做题',
+            value: '${overview.totalQuestions}',
+            icon: Icons.checklist_rounded,
+            tone: AppStatusTone.primary,
           ),
-        ),
-      ),
+          AppMetricCard(
+            label: '整体正确率',
+            value: '${overview.accuracyPercent.toStringAsFixed(0)}%',
+            icon: Icons.track_changes_rounded,
+            tone: AppStatusTone.success,
+          ),
+          AppMetricCard(
+            label: '连续学习',
+            value: '${overview.streakDays} 天',
+            icon: Icons.local_fire_department_rounded,
+            tone: AppStatusTone.recommendation,
+          ),
+          AppMetricCard(
+            label: '活跃天数',
+            value: '${overview.activeDays}',
+            icon: Icons.calendar_month_outlined,
+            tone: AppStatusTone.info,
+          ),
+        ];
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: cards
+              .map((card) => SizedBox(width: width, child: card))
+              .toList(),
+        );
+      },
     );
   }
-}
 
+  String _rangeLabel(int days) => switch (days) {
+        7 => '近一周',
+        30 => '近一月',
+        90 => '近三月',
+        365 => '近一年',
+        _ => '全部记录',
+      };
+}

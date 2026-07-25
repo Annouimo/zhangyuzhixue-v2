@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
 
-/// 时间范围选择 pill 组（5 选 1）
+/// 时间范围选择器。
 class TimeRangePicker extends StatelessWidget {
+  const TimeRangePicker({
+    super.key,
+    required this.valueDays,
+    required this.onChanged,
+  });
+
   final int valueDays;
   final ValueChanged<int> onChanged;
 
@@ -14,24 +20,23 @@ class TimeRangePicker extends StatelessWidget {
     (label: '全部', days: 0),
   ];
 
-  const TimeRangePicker({super.key, required this.valueDays, required this.onChanged});
-
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 6,
-      children: _options.map((o) {
-        final sel = valueDays == o.days;
-        return ChoiceChip(
-          label: Text(o.label, style: TextStyle(fontSize: 13, color: sel ? Colors.white : AppColors.textPrimary)),
-          selected: sel,
-          onSelected: (_) => onChanged(o.days),
-          selectedColor: AppColors.primary,
-          backgroundColor: AppColors.surfaceSubtle,
-          side: BorderSide.none,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        );
-      }).toList(),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SegmentedButton<int>(
+        segments: _options
+            .map(
+              (option) => ButtonSegment<int>(
+                value: option.days,
+                label: Text(option.label),
+              ),
+            )
+            .toList(),
+        selected: {valueDays},
+        showSelectedIcon: false,
+        onSelectionChanged: (selection) => onChanged(selection.first),
+      ),
     );
   }
 }

@@ -28,6 +28,8 @@ export 'widgets/app_button.dart';
 export 'widgets/app_card.dart';
 export 'widgets/app_page_layout.dart';
 export 'widgets/app_status_badge.dart';
+export 'widgets/app_feature_banner.dart';
+export 'widgets/app_metric_card.dart';
 export 'widgets/empty_placeholder.dart';
 export 'widgets/error_placeholder.dart';
 export 'widgets/loading_indicator.dart';

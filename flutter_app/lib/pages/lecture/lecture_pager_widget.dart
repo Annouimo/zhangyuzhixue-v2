@@ -1,20 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
 
-/// 翻页/展开栏组件
-///
-/// 智能决定 ◀/▶ 行为：
-/// - ◀：有已展开块则收回，无则翻上一页
-/// - ▶：有未展开块则展开，无则翻下一页
+/// 讲义翻页与逐段展开栏。
 class LecturePagerWidget extends StatelessWidget {
-  final int currentPage;
-  final int totalPages;
-  final int revealedCount;
-  final int totalBlocks;
-  final VoidCallback? onPrev;
-  final VoidCallback? onNext;
-
-  LecturePagerWidget({
+  const LecturePagerWidget({
     super.key,
     required this.currentPage,
     required this.totalPages,
@@ -24,76 +13,76 @@ class LecturePagerWidget extends StatelessWidget {
     required this.onNext,
   });
 
+  final int currentPage;
+  final int totalPages;
+  final int revealedCount;
+  final int totalBlocks;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+
   bool get _canPrev => currentPage > 1 || revealedCount > 1;
   bool get _canNext => currentPage < totalPages || revealedCount < totalBlocks;
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(
-          top: BorderSide(color: colors.border),
+    final colors = context.colors;
+    final revealing = revealedCount < totalBlocks;
+    final nextLabel = revealing ? '继续展开' : '下一页';
+
+    return Material(
+      color: colors.surface,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: colors.divider)),
+          boxShadow: Theme.of(context).brightness == Brightness.light
+              ? AppShadows.low
+              : null,
         ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              _buildNavButton(
-                icon: Icons.chevron_left,
-                enabled: _canPrev,
-                onTap: _canPrev ? onPrev : null,
-                colors: colors,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '第 $currentPage / $totalPages 页 · 展开 $revealedCount / $totalBlocks',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colors.textSecondary,
+        child: SafeArea(
+          top: false,
+          child: AppContentContainer(
+            maxWidth: AppContentWidth.reading,
+            useSafeArea: false,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                IconButton.outlined(
+                  tooltip: revealedCount > 1 ? '收回上一段' : '上一页',
+                  onPressed: _canPrev ? onPrev : null,
+                  icon: const Icon(Icons.chevron_left_rounded),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '第 $currentPage / $totalPages 页',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        '当前页已展开 $revealedCount / $totalBlocks 段',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              SizedBox(width: 12),
-              _buildNavButton(
-                icon: Icons.chevron_right,
-                enabled: _canNext,
-                onTap: _canNext ? onNext : null,
-                colors: colors,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton({
-    required IconData icon,
-    required bool enabled,
-    required VoidCallback? onTap,
-    required AppSemanticColors colors,
-  }) {
-    return SizedBox(
-      width: 44,
-      height: 44,
-      child: Material(
-        color: enabled ? colors.primary : colors.disabledBackground,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Center(
-            child: Icon(
-              icon,
-              color: enabled ? Colors.white : colors.disabledForeground,
-              size: 24,
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton.icon(
+                  onPressed: _canNext ? onNext : null,
+                  icon: Icon(
+                    revealing
+                        ? Icons.unfold_more_rounded
+                        : Icons.chevron_right_rounded,
+                    size: 19,
+                  ),
+                  label: Text(nextLabel),
+                ),
+              ],
             ),
           ),
         ),

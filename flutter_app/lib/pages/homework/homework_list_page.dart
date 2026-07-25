@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../router.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
+
 import '../../data/daos/assignment_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
-import '../../domain/assignment_repository.dart';
 import '../../data/prefs/app_prefs.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
+import '../../domain/assignment_repository.dart';
+import '../router.dart';
 import 'widgets/assignment_card.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 
-/// 作业列表页（作业 Tab 首页）
+/// 待办作业列表。
 class HomeworkListPage extends StatefulWidget {
-  final AssignmentRepository? assignmentRepository;
-
   HomeworkListPage({super.key, this.assignmentRepository});
+
+  final AssignmentRepository? assignmentRepository;
 
   @override
   State<HomeworkListPage> createState() => _HomeworkListPageState();
@@ -49,7 +44,6 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       _error = null;
     });
     try {
-      // 有精确缓存则秒开，否则等 API
       final cached = await _repo.getPendingCached();
       if (cached != null) {
         if (!mounted) return;
@@ -58,7 +52,10 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
           _assignments = cached;
           _loading = false;
         });
-        AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length, 'source': 'cache'});
+        AuditLogger.instance.page(
+          'HomeworkListPage',
+          {'total': _assignments?.length, 'source': 'cache'},
+        );
         _refreshFromApi();
       } else {
         final list = await _repo.getPending();
@@ -68,10 +65,14 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
           _assignments = list;
           _loading = false;
         });
-        AuditLogger.instance.page('HomeworkListPage', {'total': _assignments?.length, 'source': 'api'});
+        AuditLogger.instance.page(
+          'HomeworkListPage',
+          {'total': _assignments?.length, 'source': 'api'},
+        );
       }
-    } catch (e) { OperationLog.instance.error('homework_list_page_load', e); 
-      AuditLogger.instance.error('HomeworkListPage._load', e);
+    } catch (error) {
+      OperationLog.instance.error('homework_list_page_load', error);
+      AuditLogger.instance.error('HomeworkListPage._load', error);
       if (!mounted) return;
       setState(() {
         _error = '加载失败，请稍后重试';
@@ -87,50 +88,97 @@ class _HomeworkListPageState extends State<HomeworkListPage> {
       AppPrefs().setPendingHomeworkCount(list.length);
       setState(() => _assignments = list);
     } catch (_) {
-      // API 失败静默忽略，已有本地数据兜底
+      // 已有本地数据时静默保留。
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('待办作业')),
-      body: _buildBody(),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('待办作业')),
+        body: _buildBody(),
+      );
 
   Widget _buildBody() {
-    if (_loading) return LoadingIndicator(message: '加载作业…');
+    if (_loading) return const LoadingIndicator(message: '加载作业…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
-    if (_assignments == null || _assignments!.isEmpty) {
-      return EmptyPlaceholder(icon: Icons.assignment,
-        message: '暂无待办作业 🤔 可以先刷刷题或看看讲义',
+    final assignments = _assignments ?? [];
+    if (assignments.isEmpty) {
+      return EmptyPlaceholder(
+        icon: Icons.task_alt_rounded,
+        message: '当前没有待办作业，可以先练题或阅读讲义',
       );
     }
+
+    final dueSoon = assignments.where((item) {
+      final days = item.deadlineDays;
+      return days != null && days >= 0 && days <= 3;
+    }).length;
+    final totalQuestions = assignments.fold<int>(
+      0,
+      (sum, item) => sum + item.totalCount,
+    );
+
     return RefreshIndicator(
       onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSizes.baseSpacing),
-        itemCount: _assignments!.length,
-        separatorBuilder: (_, _) => SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final a = _assignments![index];
-          return AssignmentCard(
-            title: a.title,
-            courseName: a.courseName,
-            doneCount: a.doneCount,
-            totalCount: a.totalCount,
-            deadlineDays: a.deadlineDays,
-            status: a.status,
-            onTap: () => RouterUtils.push(context,'${AppRoutes.homeworkDetail}?id=${a.id}'),
-          );
-        },
+      child: AppContentContainer(
+        maxWidth: AppContentWidth.standard,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          itemCount: assignments.length + 1,
+          separatorBuilder: (_, _) =>
+              const SizedBox(height: AppSpacing.sm),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: AppFeatureBanner(
+                  eyebrow: '学习待办',
+                  icon: Icons.assignment_turned_in_outlined,
+                  title: '还有 ${assignments.length} 项作业待完成',
+                  subtitle: '优先处理临近截止的任务，完成后进度会自动同步。',
+                  footer: Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      AppStatusBadge(
+                        label: '共 $totalQuestions 题',
+                        tone: AppStatusTone.info,
+                        icon: Icons.format_list_numbered_rounded,
+                        compact: true,
+                      ),
+                      AppStatusBadge(
+                        label: dueSoon == 0 ? '暂无紧急任务' : '$dueSoon 项即将截止',
+                        tone: dueSoon == 0
+                            ? AppStatusTone.success
+                            : AppStatusTone.warning,
+                        icon: dueSoon == 0
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.schedule_rounded,
+                        compact: true,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            final assignment = assignments[index - 1];
+            return AssignmentCard(
+              title: assignment.title,
+              courseName: assignment.courseName,
+              doneCount: assignment.doneCount,
+              totalCount: assignment.totalCount,
+              deadlineDays: assignment.deadlineDays,
+              status: assignment.status,
+              onTap: () => RouterUtils.push(
+                context,
+                '${AppRoutes.homeworkDetail}?id=${assignment.id}',
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 }
-
-
-

@@ -13,6 +13,7 @@ class AppContentContainer extends StatelessWidget {
     required this.child,
     this.layout = AppContentLayout.standard,
     this.maxWidth,
+    this.useSafeArea = true,
     this.padding,
   });
 
@@ -24,6 +25,9 @@ class AppContentContainer extends StatelessWidget {
 
   /// 直接指定最大宽度（覆盖 layout，与 [layout] 二选一）
   final double? maxWidth;
+
+  /// 是否启用 SafeArea（默认 true）
+  final bool useSafeArea;
 
   /// 水平内边距覆盖（默认使用响应式间距）
   final EdgeInsetsGeometry? padding;
@@ -38,7 +42,7 @@ class AppContentContainer extends StatelessWidget {
       AppContentLayout.solving => AppContentWidth.solving,
     };
 
-    return Align(
+    final content = Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: w),
@@ -50,6 +54,11 @@ class AppContentContainer extends StatelessWidget {
         ),
       ),
     );
+
+    if (useSafeArea) {
+      return SafeArea(child: content);
+    }
+    return content;
   }
 }
 

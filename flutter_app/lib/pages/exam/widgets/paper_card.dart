@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
 
-/// 组卷卡片（列表页复用：我的组卷/发现/收藏）
-///
-/// 支持底部操作行（actions）和尾部可选 widget（trailingWidget）。
+/// 组卷卡片（我的组卷 / 发现 / 收藏共用）。
 class PaperCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String? trailing;
-  final VoidCallback onTap;
-  final Widget? trailingWidget;
-  final List<Widget>? actions;
-
   const PaperCard({
     super.key,
     required this.title,
@@ -22,57 +13,104 @@ class PaperCard extends StatelessWidget {
     this.actions,
   });
 
+  final String title;
+  final String subtitle;
+  final String? trailing;
+  final VoidCallback onTap;
+  final Widget? trailingWidget;
+  final List<Widget>? actions;
+
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AppCard(
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.large),
+              bottom: Radius.circular(AppRadius.large),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 40, height: 40,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: context.colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
                     ),
-                    child: const Icon(Icons.article_outlined, size: 20),
+                    child: Icon(
+                      Icons.description_outlined,
+                      size: 22,
+                      color: colors.primary,
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: context.colors.textPrimary),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 4),
-                        Text(subtitle, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
+                        Text(
+                          title,
+                          style: textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          subtitle,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
-                  if (trailingWidget != null) trailingWidget!
-                  else if (trailing != null) Text(trailing!, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right, size: 20),
+                  if (trailingWidget != null) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    trailingWidget!,
+                  ] else if (trailing != null) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      trailing!,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colors.textMuted,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: AppSpacing.xxs),
+                  Icon(AppIcons.chevronRight, color: colors.textMuted),
                 ],
               ),
             ),
           ),
-          if (actions != null && actions!.isNotEmpty)
+          if (actions != null && actions!.isNotEmpty) ...[
+            Divider(height: 1, color: colors.divider),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
               child: Wrap(
-                spacing: 4,
-                runSpacing: 4,
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
                 children: actions!,
               ),
             ),
+          ],
         ],
       ),
     );

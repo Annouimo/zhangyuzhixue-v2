@@ -27,6 +27,8 @@ abstract final class AppIcons {
   static const IconData share = Icons.share_outlined;
   static const IconData favorite = Icons.favorite_outline;
   static const IconData favoriteFilled = Icons.favorite;
+  static const IconData like = Icons.favorite_outline;
+  static const IconData likeSelected = Icons.favorite;
   static const IconData bookmark = Icons.bookmark_outline;
   static const IconData bookmarkFilled = Icons.bookmark;
   static const IconData info = Icons.info_outline;

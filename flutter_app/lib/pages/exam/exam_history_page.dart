@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../router.dart';
-import 'package:shared/theme/app_theme.dart';
-import '../../../data/daos/exam_dao.dart';
-import '../../../data/daos/question_dao.dart';
-import '../../../data/database/database_provider.dart';
-import '../../../domain/exam_repository.dart';
-import '../../../widgets/shared/action_chip.dart';
-import '../../../widgets/shared/async_load_widget.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
-import '../../../data/helpers/pdf_helper.dart';
-import 'widgets/paper_card.dart';
-import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/shared.dart';
 
-/// 我的组卷列表 — 匹配 HTML 原型 paper_history.html
+import '../../data/daos/exam_dao.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../data/helpers/pdf_helper.dart';
+import '../../domain/exam_repository.dart';
+import '../../widgets/shared/action_chip.dart';
+import '../../widgets/shared/async_load_widget.dart';
+import '../router.dart';
+import 'widgets/paper_card.dart';
+
+/// 我的组卷列表。
 class ExamHistoryPage extends StatefulWidget {
-  final ExamRepository? examRepository;
   ExamHistoryPage({super.key, this.examRepository});
+
+  final ExamRepository? examRepository;
 
   @override
   State<ExamHistoryPage> createState() => _ExamHistoryPageState();
@@ -24,25 +23,38 @@ class ExamHistoryPage extends StatefulWidget {
 
 class _ExamHistoryPageState extends State<ExamHistoryPage> {
   late final ExamRepository _repo;
-  final GlobalKey<AsyncLoadWidgetState<List<ExamSummary>>> _loadKey = GlobalKey();
+  final GlobalKey<AsyncLoadWidgetState<List<ExamSummary>>> _loadKey =
+      GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ?? ExamRepository(
-      QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()),
-    );
+    _repo = widget.examRepository ??
+        ExamRepository(
+          QuestionDao(DatabaseProvider()),
+          ExamDao(DatabaseProvider()),
+        );
   }
 
   Future<void> _deleteExam(int examId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('确认删除'),
-        content: Text('确定要删除此组卷吗？'),
+        icon: Icon(AppIcons.delete, color: context.colors.error),
+        title: const Text('删除这份试卷？'),
+        content: const Text('删除后无法恢复，已经下载的 PDF 不受影响。'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('取消')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('删除', style: TextStyle(color: context.colors.error))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              '删除',
+              style: TextStyle(color: context.colors.error),
+            ),
+          ),
         ],
       ),
     );
@@ -62,53 +74,99 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('我的组卷')),
-    body: AsyncLoadWidget<List<ExamSummary>>(
-      key: _loadKey,
-      onLoad: () => _repo.getMyExams(),
-      emptyWidget: EmptyPlaceholder(
-        icon: Icons.assignment,
-        message: '还没有创建过试卷，去首页试试快速练习吧',
-      ),
-      builder: (ctx, list) {
-        // 构建后记录审计日志
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          AuditLogger.instance.page('ExamHistoryPage', {'total': list.length});
-        });
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSizes.baseSpacing),
-          itemCount: list.length,
-          separatorBuilder: (_, _) => SizedBox(height: 8),
-          itemBuilder: (ctx, i) {
-            final e = list[i];
-            return PaperCard(
-              title: e.name,
-              subtitle: '创建于 ${_formatTime(e.createdAt)}',
-              onTap: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=${e.id}'),
-              actions: [
-                IconButton(
-                  icon: Icon(e.isPublic ? Icons.public : Icons.lock, size: 18),
-                  tooltip: e.isPublic ? '公开' : '私密',
-                  onPressed: () async {
-                    await _repo.togglePublic(e.id);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('公开状态已切换'), behavior: SnackBarBehavior.floating),
-                      );
-                    }
-                    _loadKey.currentState?.refresh();
-                  },
-                ),
-                ActionChipWidget(icon: Icons.file_download, label: 'PDF', onTap: () => PdfHelper.downloadPdf(sourceId: e.id, sourceType: 'paper', context: context)),
-                SizedBox(width: 4),
-                ActionChipWidget(icon: Icons.check_circle, iconColor: context.colors.success, label: '答案', onTap: () => RouterUtils.push(context,'${AppRoutes.answerSheet}?id=${e.id}')),
-                SizedBox(width: 4),
-                ActionChipWidget(icon: Icons.delete_outline, label: '删除', onTap: () => _deleteExam(e.id)),
-              ],
+        appBar: AppBar(title: const Text('我的组卷')),
+        body: AsyncLoadWidget<List<ExamSummary>>(
+          key: _loadKey,
+          onLoad: _repo.getMyExams,
+          emptyWidget: EmptyPlaceholder(
+            icon: Icons.description_outlined,
+            message: '还没有创建过试卷，先从智能组卷开始吧',
+          ),
+          builder: (ctx, list) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AuditLogger.instance.page(
+                'ExamHistoryPage',
+                {'total': list.length},
+              );
+            });
+            return AppContentContainer(
+              maxWidth: AppContentWidth.standard,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                itemCount: list.length + 1,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(height: AppSpacing.sm),
+                itemBuilder: (ctx, index) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                      child: AppSectionHeader(
+                        title: '共 ${list.length} 份试卷',
+                        subtitle: '可以切换公开状态、下载 PDF、查看答案或删除。',
+                      ),
+                    );
+                  }
+                  final exam = list[index - 1];
+                  return PaperCard(
+                    title: exam.name,
+                    subtitle: '创建于 ${_formatTime(exam.createdAt)}',
+                    trailingWidget: AppStatusBadge(
+                      label: exam.isPublic ? '公开' : '私密',
+                      tone: exam.isPublic
+                          ? AppStatusTone.success
+                          : AppStatusTone.neutral,
+                      icon: exam.isPublic ? Icons.public : Icons.lock_outline,
+                      compact: true,
+                    ),
+                    onTap: () => RouterUtils.push(
+                      context,
+                      '${AppRoutes.examQuicklook}?id=${exam.id}',
+                    ),
+                    actions: [
+                      ActionChipWidget(
+                        icon: exam.isPublic ? Icons.lock_outline : Icons.public,
+                        label: exam.isPublic ? '设为私密' : '公开分享',
+                        onTap: () async {
+                          await _repo.togglePublic(exam.id);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('公开状态已更新')),
+                            );
+                          }
+                          _loadKey.currentState?.refresh();
+                        },
+                      ),
+                      ActionChipWidget(
+                        icon: Icons.picture_as_pdf_outlined,
+                        label: '下载 PDF',
+                        onTap: () => PdfHelper.downloadPdf(
+                          sourceId: exam.id,
+                          sourceType: 'paper',
+                          context: context,
+                        ),
+                      ),
+                      ActionChipWidget(
+                        icon: Icons.fact_check_outlined,
+                        iconColor: context.colors.success,
+                        label: '快速对答案',
+                        onTap: () => RouterUtils.push(
+                          context,
+                          '${AppRoutes.answerSheet}?id=${exam.id}',
+                        ),
+                      ),
+                      ActionChipWidget(
+                        icon: AppIcons.delete,
+                        iconColor: context.colors.error,
+                        label: '删除',
+                        onTap: () => _deleteExam(exam.id),
+                      ),
+                    ],
+                  );
+                },
+              ),
             );
           },
-        );
-      },
-    ),
-  );
+        ),
+      );
+
 }

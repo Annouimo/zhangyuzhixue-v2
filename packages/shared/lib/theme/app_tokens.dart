@@ -81,6 +81,7 @@ abstract final class AppMotion {
   static const Duration normal = Duration(milliseconds: 250);
   static const Duration slow = Duration(milliseconds: 400);
   static const Duration pageTransition = Duration(milliseconds: 300);
+  static const Duration standard = Duration(milliseconds: 300);
 
   // ── 曲线 ──
   static const Curve easeOut = Curves.easeOutCubic;
@@ -93,6 +94,7 @@ abstract final class AppMotion {
 
 /// 章鱼智学 V1.0 阴影令牌 — 浅色模式
 abstract final class AppShadows {
+  static List<BoxShadow> get low => level1;
   static List<BoxShadow> get level1 => [
         BoxShadow(
           offset: const Offset(0, 1),

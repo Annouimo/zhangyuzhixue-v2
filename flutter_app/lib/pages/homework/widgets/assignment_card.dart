@@ -1,20 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
-import 'package:shared/widgets/status_style.dart';
+import 'package:shared/shared.dart';
 
-/// 作业卡片 — 从 homework_list_page 提取的共享组件
-///
-/// 显示作业标题、课程名、进度条、截止天数、状态标签。
+/// 作业摘要卡片。
 class AssignmentCard extends StatelessWidget {
-  final String title;
-  final String courseName;
-  final int doneCount;
-  final int totalCount;
-  final int? deadlineDays; // null = 无截止日期
-  final String status;
-  final VoidCallback onTap;
-
-  AssignmentCard({
+  const AssignmentCard({
     super.key,
     required this.title,
     required this.courseName,
@@ -25,128 +14,154 @@ class AssignmentCard extends StatelessWidget {
     required this.onTap,
   });
 
+  final String title;
+  final String courseName;
+  final int doneCount;
+  final int totalCount;
+  final int? deadlineDays;
+  final String status;
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
     final progress = totalCount > 0 ? doneCount / totalCount : 0.0;
-    final st = _statusStyle(status, colors);
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
+    final statusInfo = statusStyle(status, colors);
+
+    return AppCard(
+      onTap: onTap,
+      semanticLabel: title,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.assignment,
-                        color: colors.primary, size: 20),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(title,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
-                        if (courseName.isNotEmpty) ...[
-                          SizedBox(height: 2),
-                          Text(courseName,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: colors.textSecondary)),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // 状态标签
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: st.bg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      st.label,
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: st.color,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(Icons.chevron_right, color: colors.textSecondary),
-                ],
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Icon(
+                  Icons.assignment_outlined,
+                  color: colors.primary,
+                  size: 22,
+                ),
               ),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: colors.surfaceSubtle,
-                        valueColor:
-                            AlwaysStoppedAnimation(colors.success),
-                        minHeight: 6,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (courseName.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        courseName,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  Text('$doneCount/$totalCount',
-                      style: TextStyle(
-                          fontSize: 12, color: colors.textSecondary)),
-                ],
+                    ],
+                  ],
+                ),
               ),
-              if (deadlineDays != null) ...[
-                SizedBox(height: 8),
-                if (deadlineDays! > 0)
-                  Text('剩余 $deadlineDays 天',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: deadlineDays! <= 3
-                            ? colors.error
-                            : colors.warning,
-                      ))
-                else if (deadlineDays! == 0)
-                  Text('今日截止',
-                      style:
-                          TextStyle(fontSize: 12, color: colors.error))
-                else
-                  Text('已截止',
-                      style: TextStyle(
-                          fontSize: 12, color: colors.textSecondary)),
-              ] else ...[
-                SizedBox(height: 8),
-                Text('无截止日期',
-                    style: TextStyle(
-                        fontSize: 12, color: colors.textSecondary)),
-              ],
+              const SizedBox(width: AppSpacing.xs),
+              AppStatusBadge(
+                label: statusInfo.label,
+                tone: _statusTone(status),
+                compact: true,
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              Icon(AppIcons.chevronRight, color: colors.textMuted),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.pill),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: colors.surfaceSubtle,
+                    valueColor: AlwaysStoppedAnimation(
+                      progress >= 1 ? colors.success : colors.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '$doneCount / $totalCount',
+                style: textTheme.labelMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Icon(
+                _deadlineIcon,
+                size: 16,
+                color: _deadlineColor(colors),
+              ),
+              const SizedBox(width: AppSpacing.xxs),
+              Text(
+                _deadlineLabel,
+                style: textTheme.bodySmall?.copyWith(
+                  color: _deadlineColor(colors),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${(progress * 100).round()}% 完成',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
-}
 
-/// 状态标签样式
-({String label, Color color, Color bg}) _statusStyle(String status, AppSemanticColors colors) {
-  return statusStyle(status, colors);
+  AppStatusTone _statusTone(String value) {
+    if (value == 'completed') return AppStatusTone.success;
+    if (value == 'in_progress' || value == 'inProgress') {
+      return AppStatusTone.info;
+    }
+    return AppStatusTone.neutral;
+  }
+
+  String get _deadlineLabel {
+    if (deadlineDays == null) return '无截止日期';
+    if (deadlineDays! < 0) return '已截止';
+    if (deadlineDays == 0) return '今日截止';
+    return '剩余 $deadlineDays 天';
+  }
+
+  IconData get _deadlineIcon {
+    if (deadlineDays == null) return Icons.event_available_outlined;
+    if (deadlineDays! <= 0) return Icons.event_busy_outlined;
+    return Icons.schedule_rounded;
+  }
+
+  Color _deadlineColor(AppSemanticColors colors) {
+    if (deadlineDays == null) return colors.textMuted;
+    if (deadlineDays! <= 0) return colors.error;
+    if (deadlineDays! <= 3) return colors.warning;
+    return colors.textSecondary;
+  }
 }
