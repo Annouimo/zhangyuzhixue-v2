@@ -5,6 +5,8 @@
 
 set -euo pipefail
 
+cd /
+
 PROJECT="zhangyuzhixue-v2"
 PROJECT_DIR="/opt/$PROJECT/server"
 BACKUP_DIR="/var/backups/$PROJECT/db"

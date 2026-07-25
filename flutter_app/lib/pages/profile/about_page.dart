@@ -65,12 +65,16 @@ class _AboutPageState extends State<AboutPage> {
     if (mounted) {
       if (dates.isNotEmpty) {
         final latestDate = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+        // ignore: avoid_print
+        debugPrint('about_sync: pull=$pullDate upload=$uploadDate latest=$latestDate');
         setState(() {
           final y = latestDate.year.toString();
           final m = latestDate.month.toString().padLeft(2, '0');
           final d = latestDate.day.toString().padLeft(2, '0');
           _lastSyncTime = '上次同步：$y-$m-$d';
         });
+      } else {
+        debugPrint('about_sync: dates empty, pull=$pullDate upload=$uploadDate');
       }
     }
 
