@@ -58,12 +58,14 @@ class DoneBanner extends StatelessWidget {
                   label: isRated ? '查看评分' : '给题目评分',
                   icon: Icons.star_outline_rounded,
                   variant: AppButtonVariant.secondary,
+                  fullWidth: false,
                   onPressed: onRate,
                 ),
               if (onNext != null)
                 AppButton(
                   label: '下一题',
                   icon: Icons.arrow_forward_rounded,
+                  fullWidth: false,
                   onPressed: onNext,
                 ),
             ],
