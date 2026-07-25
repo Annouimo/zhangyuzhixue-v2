@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/theme/app_theme.dart';
-import 'package:shared/widgets/md_latex_body.dart';
-import 'package:shared/widgets/question_image.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_reveal_widget.dart';
+import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 填空题解题页 — 揭示答案模式
+/// 填空题解题页 �?揭示答案模式
 ///
-/// 与 solve-fill.html 原型对齐：
-/// 冷却 → 查看答案 → 显示正确答案 → 🎉 已完成
+/// �?solve-fill.html 原型对齐�?
+/// 冷却 �?查看答案 �?显示正确答案 �?🎉 已完�?
 class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
@@ -67,7 +72,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Future<void> _loadCooldown() async {
-      final colors = context.colors;
     try {
       final dao = SystemConfigDao(DatabaseProvider());
       final sec = await dao.getInt('solve_cooldown_fill', 10);
@@ -76,12 +80,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
     } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
       AuditLogger.instance.error('SolveFillPage._loadCooldown', e);
     }
-  }
-
-  @override
-  void dispose() {
-      final colors = context.colors;
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -125,7 +123,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   String _typeLabel(String type) {
-      final colors = context.colors;
     switch (type) {
       case 'choice': return '选择';
       case 'fill': return '填空';
@@ -134,14 +131,14 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 存档选择器
+  /// 存档选择�?
   Widget _buildAttemptSelector() {
       final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
-        ? '第 ${_currentAttempt!.attemptNumber} 次作答'
-        : '第 ${_attempts.length + 1} 次作答';
+        ? '�?${_currentAttempt!.attemptNumber} 次作�?
+        : '�?${_attempts.length + 1} 次作�?;
 
     if (_attempts.length <= 1) {
       return Container(
@@ -170,7 +167,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('第 ${a.attemptNumber} 次作答',
+              Text('�?${a.attemptNumber} 次作�?,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
@@ -179,7 +176,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
+                a.isCompleted ? '回顾' : (a.isStarted ? '进行�? : '未开�?),
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
@@ -206,7 +203,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   void _switchAttempt(SolveAttempt attempt) {
-      final colors = context.colors;
     setState(() {
       _currentAttempt = attempt;
       _revealed = attempt.isCompleted;
@@ -215,7 +211,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Future<void> _createNewAttempt() async {
-      final colors = context.colors;
     try {
       await _repo.startSolve(widget.questionId);
       final attempts = await _repo.getAttempts(widget.questionId);
@@ -233,9 +228,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
     }
   }
 
-  /// 揭示答案时展开结果区域，等待用户自评
+  /// 揭示答案时展开结果区域，等待用户自�?
   Future<void> _onReveal() async {
-      final colors = context.colors;
     setState(() => _revealed = true);
     if (_currentAttempt == null) {
       await _repo.startSolve(widget.questionId);
@@ -249,9 +243,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
     OperationLog.instance.action('solve_fill', 'revealed qid=${widget.questionId}');
   }
 
-  /// 用户自评后保存记录
+  /// 用户自评后保存记�?
   Future<void> _submitFeedback(bool correct) async {
-      final colors = context.colors;
     if (!_revealed || _feedbackGiven) return;
     // 乐观锁定：立即阻断后续点击，用户瞬时看到反馈
     if (!mounted) return;
@@ -271,67 +264,93 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackButtons() {
-      final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('你觉得自己答对了吗？',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 100,
-              height: 40,
-              child: ElevatedButton.icon(
+    final colors = context.colors;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '对照答案后，你认为自己答对了吗？',
+            style: Theme.of(context).textTheme.titleSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '请根据完整推导过程自评，而不只是最终结果�?,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 420;
+              final correctButton = FilledButton.icon(
                 onPressed: () => _submitFeedback(true),
-                icon: const Icon(Icons.check_circle, size: 18),
-                label: const Text('正确'),
-                style: ElevatedButton.styleFrom(
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                label: const Text('答对�?),
+                style: FilledButton.styleFrom(
                   backgroundColor: colors.success,
-                  foregroundColor: Colors.white,
+                  foregroundColor: colors.onSuccess,
                 ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            SizedBox(
-              width: 100,
-              height: 40,
-              child: OutlinedButton.icon(
+              );
+              final retryButton = OutlinedButton.icon(
                 onPressed: () => _submitFeedback(false),
-                icon: const Icon(Icons.cancel, size: 18),
-                label: const Text('错误'),
+                icon: const Icon(Icons.replay_rounded),
+                label: const Text('还没答对'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: colors.textSecondary,
+                  foregroundColor: colors.error,
+                  side: BorderSide(color: colors.error),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ],
+              );
+
+              if (compact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    correctButton,
+                    const SizedBox(height: AppSpacing.xs),
+                    retryButton,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: correctButton),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: retryButton),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('解题模式')),
-        body: const LoadingIndicator(),
+        appBar: AppBar(title: const Text('填空�?)),
+        body: const LoadingIndicator(message: '正在加载题目'),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('解题模式')),
-        body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-          const SizedBox(height: 8),
-          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试') ),
-        ])),
+        appBar: AppBar(title: const Text('填空�?)),
+        body: ErrorPlaceholder(
+          message: '题目加载失败，请检查后重试',
+          onRetry: () {
+            setState(() {
+              _error = null;
+              _loading = true;
+            });
+            _load();
+          },
+        ),
       );
     }
 
@@ -341,42 +360,57 @@ class _SolveFillPageState extends State<SolveFillPage> {
         if (await _popGuard.consume(context, 'solve_fill')) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('解题模式')),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              SolveRevealWidget(
-                cooldownSeconds: _coolDownSec,
-                isRevisit: _isReviewMode,
-                revealed: _revealed,
-                answerValue: _detail?.answer,
-                explanation: _detail?.explanation,
-                onReveal: _onReveal,
-                feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
-                feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
-                onNext: widget.nextQuestionId != null
-                    ? () {
-                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
-                      }
-                    : null,
-                onRate: () async {
-                  await RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}');
-                },
-                child: _buildContent(),
-              ),
-              if (_attempts.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _createNewAttempt,
-                    icon: const Icon(Icons.refresh, size: 16),
-                    label: const Text('重新作答'),
-                  ),
+        appBar: AppBar(title: const Text('填空�?)),
+        body: AppContentContainer(
+          maxWidth: AppContentWidth.reading,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SolveRevealWidget(
+                  cooldownSeconds: _coolDownSec,
+                  isRevisit: _isReviewMode,
+                  revealed: _revealed,
+                  answerValue: _detail?.answer,
+                  explanation: _detail?.explanation,
+                  onReveal: _onReveal,
+                  feedbackWidget: !_feedbackGiven && !_isReviewMode
+                      ? _buildFeedbackButtons()
+                      : null,
+                  feedbackResult:
+                      _feedbackGiven ? _buildFeedbackResult() : null,
+                  onNext: widget.nextQuestionId != null
+                      ? () {
+                          SolveRouteHelper.navigateTo(
+                            context,
+                            widget.nextQuestionId!,
+                            _detail!.questionType,
+                          );
+                        }
+                      : null,
+                  onRate: () async {
+                    await RouterUtils.push(
+                      context,
+                      '${AppRoutes.solveRate}?id=${widget.questionId}',
+                    );
+                  },
+                  child: _buildContent(),
                 ),
+                if (_attempts.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  AppButton(
+                    label: '重新作答',
+                    icon: Icons.refresh_rounded,
+                    variant: AppButtonVariant.secondary,
+                    fullWidth: true,
+                    onPressed: _createNewAttempt,
+                  ),
+                ],
+                const SizedBox(height: AppSpacing.lg),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -384,45 +418,28 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackResult() {
-      final colors = context.colors;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _feedbackCorrect
-            ? colors.success.withValues(alpha: 0.08)
-            : colors.textSecondary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _feedbackCorrect
-              ? colors.success.withValues(alpha: 0.3)
-              : colors.textSecondary.withValues(alpha: 0.15),
-        ),
-      ),
-      child: Column(
+    final colors = context.colors;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _feedbackCorrect ? Icons.check_circle : Icons.cancel,
-                size: 20,
-                color: _feedbackCorrect ? colors.success : colors.textSecondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _feedbackCorrect ? '回答正确！' : '回答有误',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: _feedbackCorrect ? colors.success : colors.textSecondary,
-                ),
-              ),
-            ],
+          AppStatusBadge(
+            label: _feedbackCorrect ? '自评：回答正�? : '自评：仍需巩固',
+            tone: _feedbackCorrect
+                ? AppStatusTone.success
+                : AppStatusTone.warning,
+            icon: _feedbackCorrect
+                ? Icons.check_circle_rounded
+                : Icons.replay_rounded,
           ),
-          const SizedBox(height: 4),
-          Text(
-            _feedbackCorrect ? '' : '继续加油 💪',
-            style: TextStyle(fontSize: 12, color: colors.textSecondary),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              _feedbackCorrect ? '这道题已经掌握，可以继续下一题�? : '建议结合解析再梳理一遍关键步骤�?,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+            ),
           ),
         ],
       ),
@@ -430,104 +447,52 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildContent() {
-      final colors = context.colors;
     final detail = _detail;
     if (detail == null) {
-      return Text('题目数据不存在',
-        style: TextStyle(color: colors.textSecondary));
+      return ErrorPlaceholder(
+        message: '题目数据不存�?,
+        onRetry: _load,
+      );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 题目元信息栏
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: colors.primaryContainer.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              if (detail.number.isNotEmpty)
-                Text('第 ${detail.number} 题',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-              if (detail.number.isNotEmpty && detail.title.isNotEmpty)
-                const SizedBox(width: 4),
-              if (detail.title.isNotEmpty)
-                Expanded(
-                  child: Text(detail.title,
-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text('[${_typeLabel(detail.questionType)}]',
-                  style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
-                ),
-              ),
-              const SizedBox(width: 8),
-              _buildAttemptSelector(),
-            ],
-          ),
+
+    return SolveQuestionSurface(
+      number: detail.number,
+      title: detail.title,
+      questionTypeLabel: _typeLabel(detail.questionType),
+      attemptSelector: _buildAttemptSelector(),
+      isReviewMode: _isReviewMode,
+      conceptTags: detail.conceptTags,
+      stem: detail.stem,
+      imagePaths: detail.images,
+      footer: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: context.colors.surfaceSubtle,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: Border.all(color: context.colors.border),
         ),
-        // 回顾横幅
-        if (_isReviewMode) ...[
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: colors.primaryContainer.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.edit_note_rounded,
+              size: 22,
+              color: context.colors.primary,
             ),
-            child: Text('📋 回顾模式 · 只读浏览，不可修改',
-              style: TextStyle(fontSize: 13, color: colors.primary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                '请先独立完成推导或计算。阅读时间结束后，再查看标准答案并进行自评�?,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.colors.textSecondary,
+                    ),
+              ),
             ),
-          ),
-        ],
-        // 概念标签
-        if (detail.conceptTags.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
-                  child: Text('\u{1F3F7}\u{FE0F}',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-                ...detail.conceptTags.map((tag) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(tag, style: TextStyle(fontSize: 12, color: colors.primary)),
-                )),
-              ],
-            ),
-          ),
-        // 题干（含 LaTeX）
-        MdLatexBody(detail.stem, fontSize: 15),
-        const SizedBox(height: 16),
-        // 图片
-        ...detail.images.map((url) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: QuestionImage(relativePath: url),
-        )),
-      ],
+          ],
+        ),
+      ),
     );
   }
+
 }
 

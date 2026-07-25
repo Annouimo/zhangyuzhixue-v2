@@ -1,77 +1,151 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
 
 /// 反馈按钮类型
+
 enum FeedbackType { fullCorrect, partialCorrect, wrong }
 
-/// 反馈按钮组 — FullCorrect / PartialCorrect / Wrong
+/// 自评反馈按钮组�?
 class FeedbackButtons extends StatelessWidget {
-  final FeedbackType? selected;
-  final ValueChanged<FeedbackType>? onChanged;
-
   const FeedbackButtons({
     super.key,
     this.selected,
     this.onChanged,
   });
 
+  final FeedbackType? selected;
+  final ValueChanged<FeedbackType>? onChanged;
+
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: FeedbackType.values.map((type) {
-        final isSelected = selected == type;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: _FeedbackChip(
-            type: type,
-            selected: isSelected,
-            onTap: () => onChanged?.call(type),
-          ),
-        );
-      }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          '这一步你掌握得怎么样？',
+          style: Theme.of(context).textTheme.titleSmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 440;
+            final items = FeedbackType.values
+                .map(
+                  (type) => _FeedbackChoice(
+                    type: type,
+                    selected: selected == type,
+                    onTap: onChanged == null
+                        ? null
+                        : () => onChanged!.call(type),
+                  ),
+                )
+                .toList();
+
+            if (compact) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < items.length; i++) ...[
+                    items[i],
+                    if (i != items.length - 1)
+                      const SizedBox(height: AppSpacing.xs),
+                  ],
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  Expanded(child: items[i]),
+                  if (i != items.length - 1)
+                    const SizedBox(width: AppSpacing.xs),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _FeedbackChip extends StatelessWidget {
-  final FeedbackType type;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FeedbackChip({
+class _FeedbackChoice extends StatelessWidget {
+  const _FeedbackChoice({
     required this.type,
     required this.selected,
     required this.onTap,
   });
 
+  final FeedbackType type;
+  final bool selected;
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    final (label, color) = switch (type) {
-      FeedbackType.fullCorrect => ('全对', colors.success),
-      FeedbackType.partialCorrect => ('部分对', colors.warning),
-      FeedbackType.wrong => ('不对', colors.error),
+    final colors = context.colors;
+    final (label, icon, color, containerColor) = switch (type) {
+      FeedbackType.fullCorrect => (
+          '完全掌握',
+          Icons.check_circle_outline_rounded,
+          colors.success,
+          colors.successContainer,
+        ),
+      FeedbackType.partialCorrect => (
+          '部分掌握',
+          Icons.change_circle_outlined,
+          colors.warning,
+          colors.warningContainer,
+        ),
+      FeedbackType.wrong => (
+          '还没掌握',
+          Icons.replay_rounded,
+          colors.error,
+          colors.errorContainer,
+        ),
     };
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Semantics(
+      button: onTap != null,
+      selected: selected,
+      label: label,
+      child: AnimatedContainer(
+        duration: AppMotion.fast,
         decoration: BoxDecoration(
-          color: selected ? color.withValues(alpha: 0.12) : colors.surfaceSubtle,
-          borderRadius: BorderRadius.circular(8),
-          border: selected
-              ? Border.all(color: color, width: 1.5)
-              : Border.all(color: Colors.transparent),
+          color: selected ? containerColor : colors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          border: Border.all(
+            color: selected ? color : colors.border,
+            width: selected ? 1.5 : 1,
+          ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-            color: selected ? color : colors.textSecondary,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 18, color: selected ? color : colors.textSecondary),
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: selected ? color : colors.textSecondary,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

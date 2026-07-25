@@ -1,29 +1,26 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
-import '../../../domain/progress_repository.dart' as progress;
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
+
 import '../../../data/daos/progress_dao.dart';
 import '../../../data/daos/question_dao.dart';
 import '../../../data/database/database_provider.dart';
 import '../../../data/sync/sync_manager.dart';
 import '../../../data/sync/sync_types.dart';
+import '../../../domain/progress_repository.dart' as progress;
 import 'cooling_timer.dart';
 import 'feedback_buttons.dart';
 import 'knowledge_card_dialog.dart';
 
-/// 解答步骤卡
+/// 解答题的单步学习卡�?
 class StepCardWidget extends StatefulWidget {
-  final progress.Step step;
-  final int stepIndex;
-  final int totalSteps;
-  final int cooldownSeconds;
-  final bool isRevisit;
-  final progress.StepSolveRecord? existingRecord;
-  final ValueChanged<FeedbackType>? onFeedback;
-  final int? questionId;
-  final int? submissionDetailId;
-
   const StepCardWidget({
     super.key,
     required this.step,
@@ -36,6 +33,16 @@ class StepCardWidget extends StatefulWidget {
     this.questionId,
     this.submissionDetailId,
   });
+
+  final progress.Step step;
+  final int stepIndex;
+  final int totalSteps;
+  final int cooldownSeconds;
+  final bool isRevisit;
+  final progress.StepSolveRecord? existingRecord;
+  final ValueChanged<FeedbackType>? onFeedback;
+  final int? questionId;
+  final int? submissionDetailId;
 
   @override
   State<StepCardWidget> createState() => _StepCardWidgetState();
@@ -67,36 +74,35 @@ class _StepCardWidgetState extends State<StepCardWidget> {
   }
 
   FeedbackType? _parseFeedback(String type) {
-    switch (type) {
-      case 'full_correct': return FeedbackType.fullCorrect;
-      case 'partial_correct': return FeedbackType.partialCorrect;
-      case 'wrong': return FeedbackType.wrong;
-      default: return null;
-    }
+    return switch (type) {
+      'full_correct' => FeedbackType.fullCorrect,
+      'partial_correct' => FeedbackType.partialCorrect,
+      'wrong' => FeedbackType.wrong,
+      _ => null,
+    };
   }
 
   void _toggleExpand() {
-      final colors = context.colors;
     if (!_expanded) setState(() => _expanded = true);
   }
 
   void _onFeedback(FeedbackType type) {
-      final colors = context.colors;
-    setState(() { _feedbackGiven = true; _feedbackType = type; });
+    setState(() {
+      _feedbackGiven = true;
+      _feedbackType = type;
+    });
     widget.onFeedback?.call(type);
   }
 
   Future<void> _showKnowledgeCard(BuildContext context, String tag) async {
-      final colors = context.colors;
     final dao = QuestionDao(DatabaseProvider());
     final card = await dao.getKnowledgeCardByTitle(tag);
     if (!context.mounted) return;
     final feedback = await KnowledgeCardDialog.show(
       context,
       title: tag,
-      content: card?.content ?? '知识卡片：$tag',
+      content: card?.content ?? '知识卡片�?tag',
     );
-    // 如果用户选择了反馈，保存到数据库
     if (feedback != null && context.mounted) {
       final pDao = ProgressDao(DatabaseProvider());
       final submissionDetailId = widget.submissionDetailId ?? 0;
@@ -109,7 +115,6 @@ class _StepCardWidgetState extends State<StepCardWidget> {
             cardTitle: tag,
             cardStatus: feedback,
           );
-          // 入同步队列
           try {
             await SyncManager().enqueue(
               entityType: SyncEntityType.cardFeedback,
@@ -130,89 +135,165 @@ class _StepCardWidgetState extends State<StepCardWidget> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: _expanded ? Border.all(color: colors.primary.withValues(alpha:0.3)) : null,
-      ),
+    final colors = context.colors;
+    final progressValue = widget.totalSteps <= 0
+        ? 0.0
+        : (widget.stepIndex + 1) / widget.totalSteps;
+
+    return AppCard(
+      selected: _expanded,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 步骤标题 + 知识标签
-          Row(children: [
-            Container(
-              width: 28, height: 28,
-              decoration: BoxDecoration(
-                color: _feedbackGiven ? colors.primary : colors.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Center(child: Text('${widget.stepIndex + 1}',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                  color: _feedbackGiven ? Colors.white : colors.primary),
-              )),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Text(widget.step.title,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.textPrimary),
-            )),
-            ...widget.step.cardTitles.take(2).map((tag) => Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: GestureDetector(
-                onTap: () => _showKnowledgeCard(context, tag),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(tag.length > 6 ? '${tag.substring(0, 6)}…' : tag,
-                    style: TextStyle(fontSize: 11, color: colors.primary),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _feedbackGiven
+                      ? colors.successContainer
+                      : colors.primaryContainer,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _feedbackGiven ? colors.success : colors.primaryBorder,
                   ),
                 ),
+                child: Center(
+                  child: _feedbackGiven
+                      ? Icon(Icons.check_rounded,
+                          size: 22, color: colors.success)
+                      : Text(
+                          '${widget.stepIndex + 1}',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: colors.primary,
+                              ),
+                        ),
+                ),
               ),
-            )),
-          ]),
-          const SizedBox(height: 10),
-          if (!_expanded && !_feedbackGiven)
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.step.title.isEmpty
+                          ? '�?${widget.stepIndex + 1} �?
+                          : widget.step.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      '步骤 ${widget.stepIndex + 1} / ${widget.totalSteps}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_feedbackGiven)
+                const AppStatusBadge(
+                  label: '已完�?,
+                  tone: AppStatusTone.success,
+                  compact: true,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: LinearProgressIndicator(
+              minHeight: 5,
+              value: progressValue.clamp(0.0, 1.0).toDouble(),
+              backgroundColor: colors.surfaceSubtle,
+              color: _feedbackGiven ? colors.success : colors.primary,
+            ),
+          ),
+          if (widget.step.cardTitles.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: widget.step.cardTitles
+                  .map(
+                    (tag) => ActionChip(
+                      avatar: const Icon(Icons.lightbulb_outline_rounded, size: 16),
+                      label: Text(tag),
+                      onPressed: () => _showKnowledgeCard(context, tag),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+          if (!_expanded && !_feedbackGiven) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              '先独立思考本步骤，倒计时结束后再展开解析�?,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.sm),
             CoolingTimer(
               key: _timerKey,
               seconds: widget.cooldownSeconds,
-              child: ElevatedButton.icon(
+              label: '可查看解�?,
+              child: AppButton(
+                label: '查看本步解析',
+                icon: Icons.visibility_rounded,
+                fullWidth: true,
                 onPressed: _toggleExpand,
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(isLast ? '查看解析' : '下一步'),
-                style: ElevatedButton.styleFrom(minimumSize: const Size(140, 38)),
               ),
             ),
+          ],
           if (_expanded) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.lg),
             Container(
-              width: double.infinity, padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(8)),
-              child: MdLatexBody(widget.step.analysis, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            if (!_feedbackGiven)
-              FeedbackButtons(onChanged: _onFeedback)
-            else if (widget.isRevisit)
-              FeedbackButtons(selected: _feedbackType)
-            else
-              FeedbackButtons(selected: _feedbackType, onChanged: _onFeedback),
-            if (_feedbackGiven && isLast)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(children: [
-                  const Text('✅', style: TextStyle(fontSize: 16)),
-                  SizedBox(width: 6),
-                  Text('该题全部步骤已完成',
-                    style: TextStyle(fontSize: 13, color: colors.success, fontWeight: FontWeight.w500),
-                  ),
-                ]),
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: colors.surfaceSubtle,
+                borderRadius: BorderRadius.circular(AppRadius.medium),
+                border: Border.all(color: colors.border),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.menu_book_rounded,
+                          size: 20, color: colors.primary),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text('步骤解析',
+                          style: Theme.of(context).textTheme.titleSmall),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  MdLatexBody(widget.step.analysis, fontSize: 15),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            FeedbackButtons(
+              selected: _feedbackType,
+              onChanged: widget.isRevisit && _feedbackGiven
+                  ? null
+                  : _onFeedback,
+            ),
+            if (_feedbackGiven && isLast) ...[
+              const SizedBox(height: AppSpacing.md),
+              const Center(
+                child: AppStatusBadge(
+                  label: '全部步骤已完�?,
+                  tone: AppStatusTone.success,
+                  icon: Icons.celebration_rounded,
+                ),
+              ),
+            ],
           ],
         ],
       ),

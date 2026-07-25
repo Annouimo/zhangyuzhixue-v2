@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/md_latex_body.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/system_config_dao.dart';
@@ -12,6 +18,7 @@ import '../../domain/progress_repository.dart' as progress;
 import '../../domain/question_repository.dart';
 import 'widgets/step_card_widget.dart';
 import 'widgets/feedback_buttons.dart';
+import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
@@ -95,7 +102,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       progress.StepSolveRecord? existingRecord;
 
       if (widget.attemptId != null) {
-        // 从路由参数解析 attempt
+        // 从路由参数解�?attempt
         final dao = ProgressDao(DatabaseProvider());
         final attempts = await dao.getAttempts(widget.questionId);
         final match = attempts.where((a) => a.id == widget.attemptId).toList();
@@ -163,7 +170,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
   }
 
   Future<void> _onFeedback(FeedbackType type) async {
-      final colors = context.colors;
     await _repo.submitStepFeedback(
       questionId: widget.questionId,
       attemptNumber: _currentAttemptNumber ?? 1,
@@ -179,7 +185,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ 该题全部步骤已完成'),
+            content: Text('�?该题全部步骤已完�?),
             duration: Duration(milliseconds: 1000),
           ),
         );
@@ -197,9 +203,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
     }
   }
 
-  // 获取当前步骤所属的小问&方法名
+  // 获取当前步骤所属的小问&方法�?
   String _buildContextLabel() {
-      final colors = context.colors;
     if (_state == null || _state!.subQuestions.isEmpty) return '';
     final sq = _state!.subQuestions[widget.subQuestionIndex];
     final buf = StringBuffer(sq.label);
@@ -209,7 +214,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
         buf.write(' · ${m.methodName}');
       }
     } catch (_) {}
-    buf.write(' · 第 ${widget.stepIndex + 1} 步');
+    buf.write(' · �?${widget.stepIndex + 1} �?);
     final step = _currentStep();
     if (step != null && step.title.isNotEmpty) {
       buf.write(' · ${step.title}');
@@ -219,7 +224,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     final step = _currentStep();
     return PopScope(
       canPop: false,
@@ -227,75 +231,101 @@ class _SolveStepPageState extends State<SolveStepPage> {
         if (await _popGuard.consume(context, 'solve_step')) context.pop();
       },
       child: Scaffold(
-      appBar: AppBar(title: const Text('步骤详情')),
-      body: _loading
-          ? const LoadingIndicator()
-          : _error != null
-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-                  const SizedBox(height: 8),
-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
-                ]))
-              : step == null
-              ? const Center(child: Text('步骤数据不存在'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // 上下文位置标识
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: colors.surface,
-                          borderRadius: BorderRadius.circular(8),
+        appBar: AppBar(title: const Text('逐步解析')),
+        body: _loading
+            ? const LoadingIndicator(message: '正在加载解题步骤')
+            : _error != null
+                ? ErrorPlaceholder(
+                    message: '步骤加载失败，请检查后重试',
+                    onRetry: () {
+                      setState(() {
+                        _error = null;
+                        _loading = true;
+                      });
+                      _load();
+                    },
+                  )
+                : step == null
+                    ? const ErrorPlaceholder(message: '步骤数据不存�?)
+                    : AppContentContainer(
+                        maxWidth: AppContentWidth.reading,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
                         ),
-                        child: Text(_buildContextLabel(),
-                          style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // 精简题干
-                      if (_detail != null && _detail!.stem.isNotEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: colors.surface,
-                            borderRadius: BorderRadius.circular(8),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.lg,
                           ),
-                          child: MdLatexBody(_detail!.stem, fontSize: 14),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                      // 步骤卡片
-                      StepCardWidget(
-                        cooldownSeconds: _coolDownSec,
-                        step: step,
-                        stepIndex: widget.stepIndex,
-                        totalSteps: _currentMethodStepCount,
-                        isRevisit: _isRevisit,
-                        existingRecord: _existingRecord,
-                        questionId: widget.questionId,
-                        submissionDetailId: _currentSubmissionDetailId,
-                        onFeedback: _onFeedback,
-                      ),
-                      const SizedBox(height: 16),
-                      // 底部导航栏
-                      Row(
-                        children: [
-                          TextButton.icon(
-                            onPressed: () => context.pop(),
-                            icon: const Icon(Icons.arrow_back, size: 16),
-                            label: const Text('解题地图',
-                              style: TextStyle(fontSize: 13),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AppCard(
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                child: Row(
+                                  children: [
+                                    const AppStatusBadge(
+                                      label: '当前步骤',
+                                      tone: AppStatusTone.primary,
+                                      icon: Icons.route_rounded,
+                                      compact: true,
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: Text(
+                                        _buildContextLabel(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: context.colors.textSecondary,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_detail != null &&
+                                  _detail!.stem.trim().isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                SolveQuestionSurface(
+                                  number: _detail!.number,
+                                  title: _detail!.title,
+                                  questionTypeLabel: '解答�?,
+                                  isReviewMode: _isRevisit,
+                                  conceptTags: _detail!.conceptTags,
+                                  stem: _detail!.stem,
+                                  imagePaths: _detail!.images,
+                                ),
+                              ],
+                              const SizedBox(height: AppSpacing.md),
+                              StepCardWidget(
+                                cooldownSeconds: _coolDownSec,
+                                step: step,
+                                stepIndex: widget.stepIndex,
+                                totalSteps: _currentMethodStepCount,
+                                isRevisit: _isRevisit,
+                                existingRecord: _existingRecord,
+                                questionId: widget.questionId,
+                                submissionDetailId:
+                                    _currentSubmissionDetailId,
+                                onFeedback: _onFeedback,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              AppButton(
+                                label: '返回解题地图',
+                                icon: Icons.map_outlined,
+                                variant: AppButtonVariant.secondary,
+                                fullWidth: true,
+                                onPressed: () => context.pop(),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-    ));
+      ),
+    );
   }
+
 }
 

@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -11,7 +18,7 @@ import '../../domain/question_repository.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 解答题地图页 — 步骤概览（匹配 solve-map.html）
+/// 解答题地图页 �?步骤概览（匹�?solve-map.html�?
 class SolveMapPage extends StatefulWidget {
   final int questionId;
   final String? mode;
@@ -35,7 +42,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   String? _error;
   bool _reviewMode = false;
 
-  // 存档选择器
+  // 存档选择�?
   List<progress.AttemptSummary> _attempts = [];
   int? _currentAttemptNumber;
   int? _currentSubmissionDetailId;
@@ -43,7 +50,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   // 题目信息
   QuestionDetail? _detail;
 
-  // 解法折叠状态: methodIndex->collapsed
+  // 解法折叠状�? methodIndex->collapsed
   final Set<String> _collapsedMethods = {};
 
   @override
@@ -68,7 +75,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
       var attempts = await repo.getAttempts(widget.questionId);
       OperationLog.instance.action('solve_map_page_load', 'T3 after getAttempts (${attempts.length})');
 
-      // 加载题目元信息
+      // 加载题目元信�?
       QuestionDetail? detail;
       try {
         detail = await qRepo.getDetail(widget.questionId);
@@ -84,13 +91,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
         attempts = await repo.getAttempts(widget.questionId);
       }
 
-      // 判断回顾模式: mode=review 或 attempts.last.completed 且不是最新
+      // 判断回顾模式: mode=review �?attempts.last.completed 且不是最�?
       final lastStarted = attempts.isNotEmpty ? attempts.last : null;
       final review = widget.mode == 'review' ||
           (lastStarted != null && lastStarted.status == 'completed' &&
            widget.attemptId != null && widget.attemptId != lastStarted.id);
 
-      // 计算已完成步骤（按当前 attemptId 或最新存档）
+      // 计算已完成步骤（按当�?attemptId 或最新存档）
       Set<String> doneSteps = {};
       int? currentSubmissionDetailId;
       int? currentAttemptNumber;
@@ -147,9 +154,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
     }
   }
 
-  // 入口分流路由构造
+  // 入口分流路由构�?
   String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
-      final colors = context.colors;
     final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
         '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
     if (_currentAttemptNumber != null) {
@@ -158,48 +164,40 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return buf.toString();
   }
 
-  String _typeLabel(String type) {
-      final colors = context.colors;
-    switch (type) {
-      case 'choice': return '选择';
-      case 'fill': return '填空';
-      case 'solution': return '解答';
-      default: return type;
-    }
-  }
-
   String _formatCardLabels(List<String> cards) {
-      final colors = context.colors;
     if (cards.isEmpty) return '';
     if (cards.length == 1) return cards.first;
-    return '${cards.first} 等 ${cards.length} 个';
+    return '${cards.first} �?${cards.length} �?;
   }
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return Scaffold(
-      appBar: AppBar(title: Text('解题地图')),
+      appBar: AppBar(title: const Text('解题步骤')),
       body: _loading
-          ? LoadingIndicator()
+          ? const LoadingIndicator(message: '正在整理解题步骤')
           : _error != null
-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-                  SizedBox(height: 8),
-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: Text('重试')),
-                ]))
+              ? ErrorPlaceholder(
+                  message: '解题步骤加载失败，请检查后重试',
+                  onRetry: () {
+                    setState(() {
+                      _error = null;
+                      _loading = true;
+                    });
+                    _load();
+                  },
+                )
               : _buildMapView(),
     );
   }
-
 
   Widget _buildAttemptSelector() {
       final colors = context.colors;
     if (_attempts.isEmpty) return SizedBox.shrink();
 
     final label = _currentAttemptNumber != null
-        ? '第 $_currentAttemptNumber 次作答'
-        : '第 ${_attempts.length + 1} 次作答';
+        ? '�?$_currentAttemptNumber 次作�?
+        : '�?${_attempts.length + 1} 次作�?;
 
     if (_attempts.length <= 1) {
       return Container(
@@ -217,7 +215,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return PopupMenuButton<Object>(
       onSelected: (value) async {
         if (value is progress.AttemptSummary) {
-          // 切换到其他存档
+          // 切换到其他存�?
           final repo = progress.ProgressRepository(
             ProgressDao(DatabaseProvider()),
             QuestionDao(DatabaseProvider()),
@@ -251,7 +249,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('第 ${a.attemptNumber} 次作答',
+              Text('�?${a.attemptNumber} 次作�?,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: a.attemptNumber == _currentAttemptNumber ? FontWeight.w600 : FontWeight.normal,
@@ -260,7 +258,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
               ),
               SizedBox(width: 8),
               Text(
-                a.status == 'completed' ? '回顾' : '进行中',
+                a.status == 'completed' ? '回顾' : '进行�?,
                 style: TextStyle(fontSize: 11, color: colors.textSecondary),
               ),
             ],
@@ -287,225 +285,326 @@ class _SolveMapPageState extends State<SolveMapPage> {
   }
 
   Widget _buildMapView() {
-      final colors = context.colors;
+    final colors = context.colors;
     if (_state == null || _state!.subQuestions.isEmpty) {
-      return Center(child: Text('暂无步骤数据'));
+      return const Center(child: Text('暂无步骤数据'));
     }
-    return ListView(
-      padding: EdgeInsets.all(16),
-      children: [
-        // 题目元信息栏
-        if (_detail != null)
-          Container(
-            margin: EdgeInsets.only(bottom: 12),
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: colors.primaryContainer.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                if (_detail!.number.isNotEmpty)
-                  Text('第 ${_detail!.number} 题',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                if (_detail!.number.isNotEmpty && _detail!.title.isNotEmpty)
-                  SizedBox(width: 4),
-                if (_detail!.title.isNotEmpty)
-                  Expanded(
-                    child: Text(_detail!.title,
-                      style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                      overflow: TextOverflow.ellipsis,
+
+    return AppContentContainer(
+      maxWidth: AppContentWidth.standard,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        children: [
+          if (_detail != null)
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (_detail!.number.isNotEmpty)
+                    Text(
+                      '�?${_detail!.number} �?,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
+                  const AppStatusBadge(
+                    label: '解答�?,
+                    tone: AppStatusTone.primary,
+                    compact: true,
                   ),
-                SizedBox(width: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text('[${_typeLabel(_detail!.questionType)}]',
-                    style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
-                  ),
+                  _buildAttemptSelector(),
+                  if (_detail!.title.isNotEmpty)
+                    Text(
+                      _detail!.title,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                    ),
+                ],
+              ),
+            ),
+          if (_reviewMode) ...[
+            const SizedBox(height: AppSpacing.md),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: AppStatusBadge(
+                label: '回顾模式 · 当前步骤记录只读',
+                tone: AppStatusTone.info,
+                icon: Icons.history_rounded,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          Text('选择解题路径', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '按步骤逐层展开解析，并在每一步完成后进行自评�?,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.textSecondary,
                 ),
-                SizedBox(width: 8),
-                _buildAttemptSelector(),
-              ],
-            ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          ..._state!.subQuestions.asMap().entries.map((sqEntry) {
+            final subQIdx = sqEntry.key;
+            final sq = sqEntry.value;
+            var anyMethodFullyDone = false;
+            var allMethodsFullyDone = true;
+            var hasAnyStepDone = false;
 
-        // 回顾横幅
-        if (_reviewMode)
-          Container(
-            margin: EdgeInsets.only(bottom: 12),
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: colors.primaryContainer.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
-            ),
-            child: Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
-              style: TextStyle(fontSize: 13, color: colors.primary),
-            ),
-          ),
-
-        // 解题树
-        ..._state!.subQuestions.asMap().entries.map((sqEntry) {
-          final subQIdx = sqEntry.key; // 0-based
-          final sq = sqEntry.value;
-          // 方法级完成检测
-          bool anyMethodFullyDone = false;
-          bool allMethodsFullyDone = true;
-          bool hasAnyStepDone = false;
-
-          for (final mEntry in sq.solutions.asMap().entries) {
-            final mi = mEntry.key;
-            final m = mEntry.value;
-            bool thisMethodAllDone = true;
-            for (final s in m.steps) {
-              final isDone = _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}');
-              if (isDone) { hasAnyStepDone = true; } else { thisMethodAllDone = false; }
+            for (final mEntry in sq.solutions.asMap().entries) {
+              final methodIndex = mEntry.key;
+              final method = mEntry.value;
+              var methodDone = true;
+              for (final step in method.steps) {
+                final isDone = _completedSteps.contains(
+                  '${sq.index}_${methodIndex}_${step.stepNumber}',
+                );
+                if (isDone) {
+                  hasAnyStepDone = true;
+                } else {
+                  methodDone = false;
+                }
+              }
+              if (methodDone && method.steps.isNotEmpty) {
+                anyMethodFullyDone = true;
+              } else {
+                allMethodsFullyDone = false;
+              }
             }
-            if (thisMethodAllDone) { anyMethodFullyDone = true; } else { allMethodsFullyDone = false; }
-          }
-          // 没有方法（空题）
-          if (sq.solutions.isEmpty) allMethodsFullyDone = false;
+            if (sq.solutions.isEmpty) allMethodsFullyDone = false;
 
-          String statusLabel;
-          Color statusColor;
-          if (allMethodsFullyDone && sq.solutions.isNotEmpty) {
-            statusLabel = '完全掌握';
-            statusColor = colors.warning; // 金色
-          } else if (anyMethodFullyDone) {
-            statusLabel = '已完成';
-            statusColor = colors.success;
-          } else if (hasAnyStepDone) {
-            statusLabel = '进行中...';
-            statusColor = colors.warning;
-          } else {
-            statusLabel = '未解锁';
-            statusColor = colors.textSecondary;
-          }
+            final (statusLabel, statusTone) = allMethodsFullyDone
+                ? ('完全掌握', AppStatusTone.recommendation)
+                : anyMethodFullyDone
+                    ? ('已完�?, AppStatusTone.success)
+                    : hasAnyStepDone
+                        ? ('进行�?, AppStatusTone.warning)
+                        : ('待开�?, AppStatusTone.neutral);
 
-          return Container(
-            margin: EdgeInsets.only(bottom: 16),
-            padding: EdgeInsets.all(14),
-            decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(sq.label,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary))),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-                  child: Text(statusLabel, style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w500)),
-                ),
-              ]),
-              SizedBox(height: 10),
-              ...sq.solutions.asMap().entries.map((mEntry) {
-                final mi = mEntry.key;
-                final m = mEntry.value;
-                final methodKey = '${sq.index}_$mi';
-                final isCollapsed = _collapsedMethods.contains(methodKey);
-
-                return Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    // 解法标题（可点击折叠）
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          if (isCollapsed) {
-                            _collapsedMethods.remove(methodKey);
-                          } else {
-                            _collapsedMethods.add(methodKey);
-                          }
-                        });
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: 6),
-                        child: Row(children: [
-                          Text(m.methodName?.isNotEmpty == true ? '\u{1F4D0} ${m.methodName}' : '唯一解法',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
-                          Spacer(),
-                          Text('${m.steps.where((s) => _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')).length}/${m.steps.length} 步',
-                            style: TextStyle(fontSize: 11, color: colors.textSecondary)),
-                          SizedBox(width: 4),
-                          Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
-                            size: 16, color: colors.textSecondary),
-                        ]),
-                      ),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: AppCard(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            sq.label,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        AppStatusBadge(
+                          label: statusLabel,
+                          tone: statusTone,
+                          compact: true,
+                        ),
+                      ],
                     ),
-                    // 步骤列表（折叠时隐藏）
-                    if (!isCollapsed)
-                      ...m.steps.asMap().entries.map((sEntry) {
-                        final si = sEntry.key;
-                        final st = sEntry.value;
-                        final stepKey = '${sq.index}_${mi}_${st.stepNumber}';
-                        final isStepDone = _completedSteps.contains(stepKey);
-                        final stepLocked = !isStepDone && si > 0 &&
-                            m.steps.take(si).every((ps) => !_completedSteps.contains('${sq.index}_${mi}_${ps.stepNumber}'));
-                        return InkWell(
-                          onTap: stepLocked ? null : () async {
-                            await RouterUtils.push(context,_buildStepRoute(subQIdx, mi, si));
-                            _load();
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            child: Row(children: [
-                              Container(width: 24, height: 24,
-                                decoration: BoxDecoration(
-                                  color: isStepDone ? colors.success : (stepLocked ? colors.disabledBackground : colors.primaryContainer),
-                                  borderRadius: BorderRadius.circular(12)),
-                                child: Center(child: isStepDone
-                                  ? Icon(Icons.check, size: 14, color: Colors.white)
-                                  : (stepLocked
-                                    ? Text('\u{1F512}', style: TextStyle(fontSize: 11))
-                                    : Text('${st.stepNumber}', style: TextStyle(fontSize: 11, color: colors.primary))))),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text('第 ${st.stepNumber} 步',
-                                      style: TextStyle(fontSize: 13, color: isStepDone ? colors.success : (stepLocked ? colors.textSecondary : colors.textPrimary))),
-                                    if (!stepLocked && st.cardTitles.isNotEmpty)
-                                      Text(_formatCardLabels(st.cardTitles),
-                                        style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-                                  ],
+                    const SizedBox(height: AppSpacing.md),
+                    ...sq.solutions.asMap().entries.map((mEntry) {
+                      final methodIndex = mEntry.key;
+                      final method = mEntry.value;
+                      final methodKey = '${sq.index}_$methodIndex';
+                      final collapsed = _collapsedMethods.contains(methodKey);
+                      final completedCount = method.steps
+                          .where(
+                            (step) => _completedSteps.contains(
+                              '${sq.index}_${methodIndex}_${step.stepNumber}',
+                            ),
+                          )
+                          .length;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colors.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(AppRadius.medium),
+                            border: Border.all(color: colors.border),
+                          ),
+                          child: Column(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    if (collapsed) {
+                                      _collapsedMethods.remove(methodKey);
+                                    } else {
+                                      _collapsedMethods.add(methodKey);
+                                    }
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.medium,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.md),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.account_tree_outlined,
+                                        size: 20,
+                                        color: colors.primary,
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      Expanded(
+                                        child: Text(
+                                          method.methodName?.isNotEmpty == true
+                                              ? method.methodName!
+                                              : '标准解法',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$completedCount/${method.steps.length} �?,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: colors.textSecondary,
+                                            ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.xs),
+                                      Icon(
+                                        collapsed
+                                            ? Icons.expand_more_rounded
+                                            : Icons.expand_less_rounded,
+                                        color: colors.textSecondary,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              if (!stepLocked) Icon(Icons.arrow_forward_ios, size: 12, color: colors.textSecondary),
-                            ]),
+                              if (!collapsed)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    AppSpacing.md,
+                                    0,
+                                    AppSpacing.md,
+                                    AppSpacing.md,
+                                  ),
+                                  child: Column(
+                                    children: method.steps.asMap().entries.map(
+                                      (stepEntry) {
+                                        final stepIndex = stepEntry.key;
+                                        final step = stepEntry.value;
+                                        final stepKey =
+                                            '${sq.index}_${methodIndex}_${step.stepNumber}';
+                                        final isDone =
+                                            _completedSteps.contains(stepKey);
+                                        final locked = !isDone &&
+                                            stepIndex > 0 &&
+                                            method.steps.take(stepIndex).every(
+                                                  (previous) => !_completedSteps
+                                                      .contains(
+                                                    '${sq.index}_${methodIndex}_${previous.stepNumber}',
+                                                  ),
+                                                );
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: AppSpacing.xs,
+                                          ),
+                                          child: _SolveStepTile(
+                                            stepNumber: step.stepNumber,
+                                            label: '�?${step.stepNumber} �?,
+                                            subtitle: !locked &&
+                                                    step.cardTitles.isNotEmpty
+                                                ? _formatCardLabels(
+                                                    step.cardTitles,
+                                                  )
+                                                : null,
+                                            isDone: isDone,
+                                            isLocked: locked,
+                                            onTap: locked
+                                                ? null
+                                                : () async {
+                                                    await RouterUtils.push(
+                                                      context,
+                                                      _buildStepRoute(
+                                                        subQIdx,
+                                                        methodIndex,
+                                                        stepIndex,
+                                                      ),
+                                                    );
+                                                    _load();
+                                                  },
+                                          ),
+                                        );
+                                      },
+                                    ).toList(),
+                                  ),
+                                ),
+                            ],
                           ),
-                        );
-                      }),
-                  ]),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: AppSpacing.xs),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final compact = constraints.maxWidth < 620;
+              final actions = [
+                AppButton(
+                  label: '返回',
+                  icon: Icons.arrow_back_rounded,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: () => context.pop(),
+                ),
+                AppButton(
+                  label: '重新作答',
+                  icon: Icons.refresh_rounded,
+                  variant: AppButtonVariant.secondary,
+                  onPressed: _onRetry,
+                ),
+                AppButton(
+                  label: '给题目评�?,
+                  icon: Icons.star_outline_rounded,
+                  onPressed: () => RouterUtils.push(
+                    context,
+                    '${AppRoutes.solveRate}?id=${widget.questionId}',
+                  ),
+                ),
+              ];
+
+              if (compact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < actions.length; i++) ...[
+                      actions[i],
+                      if (i != actions.length - 1)
+                        const SizedBox(height: AppSpacing.xs),
+                    ],
+                  ],
                 );
-              }),
-            ]),
-          );
-        }),
-        SizedBox(height: 8),
-        Row(children: [
-          Expanded(child: OutlinedButton.icon(
-            onPressed: () => context.pop(),
-            icon: Icon(Icons.arrow_back, size: 16),
-            label: Text('返回'))),
-          SizedBox(width: 12),
-          Expanded(child: OutlinedButton.icon(
-            onPressed: _onRetry,
-            icon: Icon(Icons.refresh, size: 16),
-            label: Text('重新作答'))),
-          SizedBox(width: 12),
-          Expanded(child: OutlinedButton.icon(
-            onPressed: () => RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}'),
-            icon: Icon(Icons.star, size: 16),
-            label: Text('评分'))),
-        ]),
-      ],
+              }
+              return Row(
+                children: [
+                  for (var i = 0; i < actions.length; i++) ...[
+                    Expanded(child: actions[i]),
+                    if (i != actions.length - 1)
+                      const SizedBox(width: AppSpacing.sm),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+      ),
     );
   }
 
@@ -516,6 +615,117 @@ class _SolveMapPageState extends State<SolveMapPage> {
     );
     await repo.createAttempt(widget.questionId);
     _load();
+  }
+}
+
+class _SolveStepTile extends StatelessWidget {
+  const _SolveStepTile({
+    required this.stepNumber,
+    required this.label,
+    required this.isDone,
+    required this.isLocked,
+    this.subtitle,
+    this.onTap,
+  });
+
+  final int stepNumber;
+  final String label;
+  final String? subtitle;
+  final bool isDone;
+  final bool isLocked;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final foreground = isDone
+        ? colors.success
+        : isLocked
+            ? colors.disabledForeground
+            : colors.textPrimary;
+
+    return Semantics(
+      button: onTap != null,
+      enabled: onTap != null,
+      label: '$label${isLocked ? '，未解锁' : isDone ? '，已完成' : ''}',
+      child: Material(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.medium),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: isDone
+                        ? colors.successContainer
+                        : isLocked
+                            ? colors.disabledBackground
+                            : colors.primaryContainer,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDone
+                          ? colors.success
+                          : isLocked
+                              ? colors.border
+                              : colors.primaryBorder,
+                    ),
+                  ),
+                  child: Center(
+                    child: isDone
+                        ? Icon(Icons.check_rounded,
+                            size: 18, color: colors.success)
+                        : isLocked
+                            ? Icon(Icons.lock_outline_rounded,
+                                size: 16, color: colors.disabledForeground)
+                            : Text(
+                                '$stepNumber',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(color: colors.primary),
+                              ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(color: foreground),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          subtitle!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colors.textSecondary),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (!isLocked)
+                  Icon(Icons.chevron_right_rounded,
+                      color: colors.textSecondary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

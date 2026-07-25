@@ -1,26 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/app_toast.dart';
-import '../../widgets/shared/format_utils.dart';
+import 'package:shared/debug/audit_logger.dart';
+import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
-import '../../data/daos/rating_dao.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/theme/app_icons.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
+
 import '../../data/daos/question_dao.dart';
+import '../../data/daos/rating_dao.dart';
 import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/rating_repository.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
+import '../../widgets/shared/format_utils.dart';
 
-/// 评分页（3维×10星）
+/// 题目多维评分页�?
 class SolveRatePage extends StatefulWidget {
-  final int questionId;
-  final RatingRepository? ratingRepository;
-
-  SolveRatePage({
+  const SolveRatePage({
     super.key,
     required this.questionId,
     this.ratingRepository,
   });
+
+  final int questionId;
+  final RatingRepository? ratingRepository;
+
   @override
   State<SolveRatePage> createState() => _SolveRatePageState();
 }
@@ -41,22 +50,23 @@ class _SolveRatePageState extends State<SolveRatePage> {
   @override
   void initState() {
     super.initState();
-    _ratingRepo = widget.ratingRepository ?? RatingRepository(
-      RatingDao(DatabaseProvider()),
-      QuestionDao(DatabaseProvider()),
-    );
+    _ratingRepo = widget.ratingRepository ??
+        RatingRepository(
+          RatingDao(DatabaseProvider()),
+          QuestionDao(DatabaseProvider()),
+        );
     _loadRating();
   }
 
   Future<void> _loadRating() async {
     try {
-      // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
       try {
         final cfg = SystemConfigDao(DatabaseProvider());
         _rewardPoints = await cfg.getDouble('question_rating_reward', 0.3);
-      } catch (_) {} 
+      } catch (_) {}
 
       final rating = await _ratingRepo.getRating(widget.questionId);
+      if (!mounted) return;
       setState(() {
         _algoDifficulty = rating.algorithmDifficulty;
         _algoCalculation = rating.algorithmCalculation;
@@ -68,15 +78,24 @@ class _SolveRatePageState extends State<SolveRatePage> {
         }
         _loading = false;
       });
-      AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
-    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
+      AuditLogger.instance.page('SolveRatePage', {
+        'difficulty': _difficulty,
+        'calcScore': _calculation,
+      });
+    } catch (e) {
+      OperationLog.instance.error('solve_rate_page_load', e);
       AuditLogger.instance.error('SolveRatePage._loadRating', e);
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 
   Future<void> _submit() async {
-      final colors = context.colors;
+    final colors = context.colors;
     setState(() => _saving = true);
     try {
       await _ratingRepo.submitRating(
@@ -85,19 +104,30 @@ class _SolveRatePageState extends State<SolveRatePage> {
         calculation: _calculation.toDouble(),
         elegance: _elegance.toDouble(),
       );
-      setState(() { _submitted = true; _saving = false; });
-      OperationLog.instance.action('rate', 'submitted qid=${widget.questionId}');
       if (!mounted) return;
-      AppToast.show(context,
-        icon: Icons.check_circle, message: '评分已提交！+$_rewardPoints 赠送积分',
+      setState(() {
+        _submitted = true;
+        _saving = false;
+      });
+      OperationLog.instance.action(
+        'rate',
+        'submitted qid=${widget.questionId}',
+      );
+      AppToast.show(
+        context,
+        icon: Icons.check_circle_rounded,
+        message: '评分已提交！+$_rewardPoints 赠送积�?,
         backgroundColor: colors.success,
       );
-    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_rate_page_load', e);
       AuditLogger.instance.error('SolveRatePage._submit', e);
-      setState(() => _saving = false);
       if (!mounted) return;
-      AppToast.show(context,
-        icon: Icons.error, message: '评分提交失败，请重试',
+      setState(() => _saving = false);
+      AppToast.show(
+        context,
+        icon: Icons.error_rounded,
+        message: '评分提交失败，请重试',
         backgroundColor: colors.error,
       );
     }
@@ -105,109 +135,233 @@ class _SolveRatePageState extends State<SolveRatePage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     return Scaffold(
-      appBar: AppBar(title: Text('评分')),
+      appBar: AppBar(title: const Text('题目评分')),
       body: _loading
-          ? LoadingIndicator()
+          ? const LoadingIndicator(message: '正在读取评分')
           : _error != null
-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
-                  SizedBox(height: 8),
-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: Text('重试')),
-                ]))
-              : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('请为这道题打分', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-                  SizedBox(height: 8),
-                  Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
-                  SizedBox(height: 24),
-                  _StarRating(label: '难度', value: _difficulty, note: '', algorithmScore: _algoDifficulty > 0 ? _algoDifficulty : null, max: 10, onChanged: (v) => setState(() => _difficulty = v)),
-                  SizedBox(height: 20),
-                  _StarRating(label: '计算量', value: _calculation, note: '', algorithmScore: _algoCalculation > 0 ? _algoCalculation : null, max: 10, onChanged: (v) => setState(() => _calculation = v)),
-                  SizedBox(height: 20),
-                  _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
-                  SizedBox(height: 12),
-                  Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
-                    style: TextStyle(fontSize: 12, color: colors.textSecondary, height: 1.4),
-                    textAlign: TextAlign.center,
+              ? ErrorPlaceholder(
+                  message: '评分信息加载失败，请检查后重试',
+                  onRetry: () {
+                    setState(() {
+                      _error = null;
+                      _loading = true;
+                    });
+                    _loadRating();
+                  },
+                )
+              : AppContentContainer(
+                  maxWidth: AppContentWidth.reading,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
                   ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: (_submitted || _saving) ? null : _submit,
-                    child: _saving
-                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text(_submitted ? '已评分' : '提交评分（可获得 +$_rewardPoints 赠送积分）'),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AppCard(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const AppStatusBadge(
+                                label: '完成后反�?,
+                                tone: AppStatusTone.recommendation,
+                                icon: Icons.star_rounded,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                '请为这道题打�?,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本�?,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: colors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _StarRating(
+                          label: '理解难度',
+                          description: '理解题意和找到解法有多困�?,
+                          value: _difficulty,
+                          algorithmScore:
+                              _algoDifficulty > 0 ? _algoDifficulty : null,
+                          max: 10,
+                          onChanged: _submitted
+                              ? null
+                              : (value) =>
+                                  setState(() => _difficulty = value),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _StarRating(
+                          label: '计算�?,
+                          description: '实际推导、运算和书写工作�?,
+                          value: _calculation,
+                          algorithmScore:
+                              _algoCalculation > 0 ? _algoCalculation : null,
+                          max: 10,
+                          onChanged: _submitted
+                              ? null
+                              : (value) =>
+                                  setState(() => _calculation = value),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _StarRating(
+                          label: '解法优雅�?,
+                          description: '解法是否简洁、自然且具有启发�?,
+                          value: _elegance,
+                          max: 10,
+                          onChanged: _submitted
+                              ? null
+                              : (value) => setState(() => _elegance = value),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          '评分可跳过，不影响学习记录；算法评分仅作为参考�?,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colors.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        if (_submitted)
+                          AppCard(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            child: Row(
+                              children: [
+                                const AppStatusBadge(
+                                  label: '评分已提�?,
+                                  tone: AppStatusTone.success,
+                                ),
+                                const Spacer(),
+                                AppButton(
+                                  label: '修改评分',
+                                  icon: Icons.edit_outlined,
+                                  variant: AppButtonVariant.text,
+                                  onPressed: () =>
+                                      setState(() => _submitted = false),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          AppButton(
+                            label: '提交评分�?$_rewardPoints 赠送积分）',
+                            icon: Icons.send_rounded,
+                            fullWidth: true,
+                            isLoading: _saving,
+                            onPressed: _saving ? null : _submit,
+                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                    ),
                   ),
-                  if (_submitted) ...[
-                    SizedBox(height: 12),
-                    Center(child: TextButton(
-                      onPressed: () => setState(() => _submitted = false),
-                      child: Text('修改评分'),
-                    )),
-                  ],
-                ],
-              ),
-            ),
+                ),
     );
   }
 }
 
 class _StarRating extends StatelessWidget {
+  const _StarRating({
+    required this.label,
+    required this.description,
+    required this.value,
+    required this.max,
+    required this.onChanged,
+    this.algorithmScore,
+  });
+
   final String label;
+  final String description;
   final int value;
-  final String note;
   final int max;
   final double? algorithmScore;
-  final ValueChanged<int> onChanged;
-  _StarRating({required this.label, required this.value, required this.note, required this.max, this.algorithmScore, required this.onChanged});
+  final ValueChanged<int>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-          if (algorithmScore != null && algorithmScore! > 0) ...[
-            SizedBox(width: 8),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: colors.success.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+    final colors = context.colors;
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                    ),
+                  ],
+                ),
               ),
-              child: Text('算法: ${formatAmount(algorithmScore!)}',
-                style: TextStyle(fontSize: 11, color: colors.success, fontWeight: FontWeight.w500),
-              ),
-            ),
-          ],
-          if (note.isNotEmpty) ...[
-            SizedBox(width: 8),
-            Text(note, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-          ],
-        ]),
-        SizedBox(height: 10),
-        Row(children: List.generate(max, (i) {
-          final filled = i < value;
-          return GestureDetector(
-            onTap: () => onChanged(i + 1),
-            child: Padding(
-              padding: EdgeInsets.only(right: 2),
-              child: Icon(filled ? Icons.star : Icons.star_border,
-                color: filled ? colors.warning : colors.disabledForeground, size: 28),
-            ),
-          );
-        })),
-        SizedBox(height: 4),
-        Text(value > 0 ? '$value / $max' : '—', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-      ]),
+              if (algorithmScore != null && algorithmScore! > 0)
+                AppStatusBadge(
+                  label: '算法 ${formatAmount(algorithmScore!)}',
+                  tone: AppStatusTone.info,
+                  icon: Icons.auto_awesome_rounded,
+                  compact: true,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: AppSpacing.xxs,
+            runSpacing: AppSpacing.xs,
+            children: List.generate(max, (index) {
+              final score = index + 1;
+              final filled = score <= value;
+              return Semantics(
+                button: onChanged != null,
+                selected: filled,
+                label: '$label $score �?,
+                child: IconButton(
+                  tooltip: '$score �?,
+                  onPressed: onChanged == null
+                      ? null
+                      : () => onChanged!(score),
+                  icon: Icon(
+                    filled ? Icons.star_rounded : Icons.star_outline_rounded,
+                    color: filled
+                        ? colors.warning
+                        : colors.disabledForeground,
+                    size: 30,
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value > 0 ? '$value / $max' : '尚未评分',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: value > 0 ? colors.warning : colors.textSecondary,
+                ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
-
