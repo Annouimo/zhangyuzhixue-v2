@@ -81,12 +81,12 @@ class SyncQueueDao {
     }
   }
 
-  /// 清理：删除 done 和过期的 permanentFailure（保留 7 天）
+  /// 清理：删除 7 天前的 done 和过期的 permanentFailure
   Future<void> cleanup() async {
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
     await (_db.delete(_db.syncQueue)
       ..where((t) =>
-        t.status.equals('done') |
+        (t.status.equals('done') & t.createdAt.isSmallerThanValue(sevenDaysAgo)) |
         (t.status.equals('permanentFailure') & t.createdAt.isSmallerThanValue(sevenDaysAgo))))
       .go();
   }
