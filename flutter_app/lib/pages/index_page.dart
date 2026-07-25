@@ -584,6 +584,7 @@ class IndexPageState extends State<IndexPage> {
               icon: _checkedIn ? Icons.check_rounded : Icons.local_fire_department,
               onPressed: _checkedIn ? null : _doCheckin,
               isLoading: _submitting,
+              fullWidth: false,
               variant: _checkedIn
                   ? AppButtonVariant.secondary
                   : AppButtonVariant.primary,
