@@ -18,26 +18,20 @@ class TimeRangePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
-      child: Row(
-        children: _options.map((o) {
-          final sel = valueDays == o.days;
-          return Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ChoiceChip(
-              label: Text(o.label, style: TextStyle(fontSize: 13, color: sel ? Colors.white : AppColors.textPrimary)),
-              selected: sel,
-              onSelected: (_) => onChanged(o.days),
-              selectedColor: AppColors.primary,
-              backgroundColor: AppColors.surfaceSubtle,
-              side: BorderSide.none,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            ),
-          );
-        }).toList(),
-      ),
+    return Wrap(
+      spacing: 6,
+      children: _options.map((o) {
+        final sel = valueDays == o.days;
+        return ChoiceChip(
+          label: Text(o.label, style: TextStyle(fontSize: 13, color: sel ? Colors.white : AppColors.textPrimary)),
+          selected: sel,
+          onSelected: (_) => onChanged(o.days),
+          selectedColor: AppColors.primary,
+          backgroundColor: AppColors.surfaceSubtle,
+          side: BorderSide.none,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        );
+      }).toList(),
     );
   }
 }

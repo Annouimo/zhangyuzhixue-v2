@@ -67,9 +67,10 @@ class PaperCard extends StatelessWidget {
           if (actions != null && actions!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: actions!),
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: actions!,
               ),
             ),
         ],
