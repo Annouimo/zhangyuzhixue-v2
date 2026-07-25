@@ -78,7 +78,9 @@ class _AboutPageState extends State<AboutPage> {
           final y = latestDate.year.toString();
           final m = latestDate.month.toString().padLeft(2, '0');
           final d = latestDate.day.toString().padLeft(2, '0');
-          _lastSyncTime = '上次同步：$y-$m-$d';
+          final h = latestDate.hour.toString().padLeft(2, '0');
+          final min = latestDate.minute.toString().padLeft(2, '0');
+          _lastSyncTime = '上次同步：$y-$m-$d $h:$min';
         });
       } else {
         OperationLog.instance.action('about_sync_result', 'dates empty: pull=$pullDate upload=$uploadDate');
