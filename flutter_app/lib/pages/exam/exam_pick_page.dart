@@ -309,6 +309,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
                 AppButton(
                   label: '确认组卷',
                   icon: Icons.playlist_add_check_rounded,
+                  fullWidth: false,
                   isLoading: _saving,
                   onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
                 ),

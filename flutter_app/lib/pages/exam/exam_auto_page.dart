@@ -436,6 +436,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                   label: '确认组卷',
                   icon: Icons.auto_awesome_rounded,
                   isLoading: _generating,
+                  fullWidth: false,
                   onPressed: _generating ? null : _confirm,
                 ),
               ],
