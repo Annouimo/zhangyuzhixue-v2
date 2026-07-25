@@ -113,7 +113,6 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.chapterTitle),

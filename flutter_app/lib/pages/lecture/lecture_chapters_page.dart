@@ -1,26 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
+
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 import '../router.dart';
 
-/// 章节目录页
+/// 讲义章节目录。
 class LectureChaptersPage extends StatefulWidget {
-  final int courseId;
-  final LectureRepository? lectureRepository;
-
   LectureChaptersPage({
     super.key,
     required this.courseId,
     this.lectureRepository,
   });
+
+  final int courseId;
+  final LectureRepository? lectureRepository;
 
   @override
   State<LectureChaptersPage> createState() => _LectureChaptersPageState();
@@ -46,15 +41,19 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       _error = null;
     });
     try {
-      final cl = await _repo.getChapters(widget.courseId);
+      final chapterList = await _repo.getChapters(widget.courseId);
       if (!mounted) return;
       setState(() {
-        _chapterList = cl;
+        _chapterList = chapterList;
         _loading = false;
       });
-      AuditLogger.instance.page('LectureChaptersPage', {'chapterCount': _chapterList?.items.length});
-    } catch (e) { OperationLog.instance.error('lecture_chapters_page_load', e); 
-      AuditLogger.instance.error('LectureChaptersPage._load', e);
+      AuditLogger.instance.page(
+        'LectureChaptersPage',
+        {'chapterCount': _chapterList?.items.length},
+      );
+    } catch (error) {
+      OperationLog.instance.error('lecture_chapters_page_load', error);
+      AuditLogger.instance.error('LectureChaptersPage._load', error);
       if (!mounted) return;
       setState(() {
         _error = '加载失败，请稍后重试';
@@ -64,106 +63,86 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_chapterList?.courseName ?? '章节列表'),
-      ),
-      body: _buildBody(),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text(_chapterList?.courseName ?? '章节目录'),
+        ),
+        body: _buildBody(),
+      );
 
   Widget _buildBody() {
-      final colors = context.colors;
-    if (_loading) return LoadingIndicator(message: '加载章节…');
+    if (_loading) return const LoadingIndicator(message: '加载章节…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
-    if (_chapterList == null || _chapterList!.items.isEmpty) {
-      return EmptyPlaceholder(icon: Icons.article,
-        message: '暂无章节内容',
+    final chapterList = _chapterList;
+    if (chapterList == null || chapterList.items.isEmpty) {
+      return EmptyPlaceholder(
+        icon: Icons.article_outlined,
+        message: '这门课程暂时没有章节内容',
       );
     }
-    return ListView.separated(
-        padding: EdgeInsets.all(AppSizes.baseSpacing),
-        itemCount: _chapterList!.items.length,
-        separatorBuilder: (_, _) => SizedBox(height: 8),
+
+    return AppContentContainer(
+      maxWidth: AppContentWidth.reading,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        itemCount: chapterList.items.length + 1,
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (context, index) {
-          final chapter = _chapterList!.items[index];
-          return _ChapterCard(
-            title: chapter.title,
-            index: index + 1,
-            onTap: () => RouterUtils.push(context,
+          if (index == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+              child: AppFeatureBanner(
+                eyebrow: '章节目录',
+                icon: Icons.library_books_rounded,
+                title: chapterList.courseName,
+                subtitle: '共 ${chapterList.items.length} 讲，建议按顺序阅读并逐段展开内容。',
+              ),
+            );
+          }
+          final chapter = chapterList.items[index - 1];
+          return AppCard(
+            onTap: () => RouterUtils.push(
+              context,
               '/lecture/content?chapterId=${chapter.id}&page=1',
+            ),
+            semanticLabel: chapter.title,
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: context.colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.medium),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$index',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: context.colors.primary,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    chapter.title,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                const AppStatusBadge(
+                  label: '阅读',
+                  tone: AppStatusTone.info,
+                  icon: Icons.arrow_forward_rounded,
+                  compact: true,
+                ),
+              ],
             ),
           );
         },
-      );
-  }
-}
-
-/// 章节卡片
-class _ChapterCard extends StatelessWidget {
-  final String title;
-  final int index;
-  final VoidCallback onTap;
-
-  _ChapterCard({
-    required this.title,
-    required this.index,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    '$index',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colors.primary,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: colors.textSecondary,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
 }
-
-

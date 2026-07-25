@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
+
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 import '../router.dart';
 
-/// 讲义课程列表页（讲义 Tab 首页）
+/// 讲义课程列表页。
 class LectureCoursesPage extends StatefulWidget {
-  final LectureRepository? lectureRepository;
-
   LectureCoursesPage({super.key, this.lectureRepository});
+
+  final LectureRepository? lectureRepository;
 
   @override
   State<LectureCoursesPage> createState() => _LectureCoursesPageState();
@@ -47,9 +42,13 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _courses = courses;
         _loading = false;
       });
-      AuditLogger.instance.page('LectureCoursesPage', {'courseCount': _courses?.length});
-    } catch (e) { OperationLog.instance.error('lecture_courses_page_load', e); 
-      AuditLogger.instance.error('LectureCoursesPage._load', e);
+      AuditLogger.instance.page(
+        'LectureCoursesPage',
+        {'courseCount': _courses?.length},
+      );
+    } catch (error) {
+      OperationLog.instance.error('lecture_courses_page_load', error);
+      AuditLogger.instance.error('LectureCoursesPage._load', error);
       if (!mounted) return;
       setState(() {
         _error = '加载失败，请稍后重试';
@@ -59,111 +58,158 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('讲义目录')),
-      body: _buildBody(),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('讲义目录')),
+        body: _buildBody(),
+      );
 
   Widget _buildBody() {
-      final colors = context.colors;
-    if (_loading) return LoadingIndicator(message: '加载讲义目录…');
+    if (_loading) return const LoadingIndicator(message: '加载讲义目录…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
-    if (_courses == null || _courses!.isEmpty) {
-      return EmptyPlaceholder(icon: Icons.menu_book,
-        message: '暂无讲义内容，后续会上线更多课程 📖',
+    final courses = _courses ?? [];
+    if (courses.isEmpty) {
+      return EmptyPlaceholder(
+        icon: Icons.menu_book_outlined,
+        message: '暂时没有讲义内容，后续会陆续上线',
       );
     }
-    return ListView.separated(
-        padding: EdgeInsets.all(AppSizes.baseSpacing),
-        itemCount: _courses!.length,
-        separatorBuilder: (_, _) => SizedBox(height: 8),
-        itemBuilder: (context, index) {
-          final course = _courses![index];
-          return _CourseCard(
-            name: course.name,
-            chapterCount: course.chapterCount,
-            onTap: () => RouterUtils.push(context,
-              '/lecture/chapters?courseId=${course.id}',
+
+    final chapterCount = courses.fold<int>(
+      0,
+      (sum, course) => sum + course.chapterCount,
+    );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+      child: AppContentContainer(
+        maxWidth: AppContentWidth.dashboard,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            AppFeatureBanner(
+              eyebrow: '课程讲义',
+              icon: Icons.menu_book_rounded,
+              title: '按章节理解知识脉络',
+              subtitle: '讲义支持逐段展开，适合在做题前预习，也可以在错题后快速回顾相关知识。',
+              footer: Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  AppStatusBadge(
+                    label: '${courses.length} 门课程',
+                    tone: AppStatusTone.info,
+                    icon: Icons.school_outlined,
+                    compact: true,
+                  ),
+                  AppStatusBadge(
+                    label: '共 $chapterCount 讲',
+                    tone: AppStatusTone.success,
+                    icon: Icons.library_books_outlined,
+                    compact: true,
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-      );
-  }
-}
-
-/// 课程卡片
-class _CourseCard extends StatelessWidget {
-  final String name;
-  final int chapterCount;
-  final VoidCallback onTap;
-
-  _CourseCard({
-    required this.name,
-    required this.chapterCount,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.menu_book_rounded,
-                  color: colors.primary,
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '共 $chapterCount 讲',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: colors.textSecondary,
-              ),
-            ],
-          ),
+            const SizedBox(height: AppSpacing.xl),
+            const AppSectionHeader(
+              title: '选择课程',
+              subtitle: '进入课程后可以按章节顺序阅读。',
+            ),
+            const SizedBox(height: AppSpacing.md),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= AppBreakpoints.expanded
+                    ? 3
+                    : constraints.maxWidth >= AppBreakpoints.compact
+                        ? 2
+                        : 1;
+                const gap = AppSpacing.md;
+                final width = columns == 1
+                    ? constraints.maxWidth
+                    : (constraints.maxWidth - gap * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  children: courses
+                      .map(
+                        (course) => SizedBox(
+                          width: width,
+                          child: _CourseCard(
+                            name: course.name,
+                            chapterCount: course.chapterCount,
+                            onTap: () => RouterUtils.push(
+                              context,
+                              '/lecture/chapters?courseId=${course.id}',
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+class _CourseCard extends StatelessWidget {
+  const _CourseCard({
+    required this.name,
+    required this.chapterCount,
+    required this.onTap,
+  });
 
+  final String name;
+  final int chapterCount;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      semanticLabel: name,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Icon(
+                  Icons.menu_book_rounded,
+                  color: colors.primary,
+                ),
+              ),
+              const Spacer(),
+              Icon(AppIcons.chevronRight, color: colors.textMuted),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(name, style: textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '共 $chapterCount 讲 · 点击进入目录',
+            style: textTheme.bodySmall?.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

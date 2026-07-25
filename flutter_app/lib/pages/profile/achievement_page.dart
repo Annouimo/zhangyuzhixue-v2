@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
-import '../../../data/daos/achievement_dao.dart';
-import '../../../data/daos/question_dao.dart';
-import '../../../data/daos/exam_dao.dart';
-import '../../../data/database/database_provider.dart';
-import '../../../domain/achievement_repository.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_feature_banner.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_state_panel.dart';
+import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/error_placeholder.dart';
+import 'package:shared/widgets/loading_indicator.dart';
 
-/// 成就页 — 匹配 HTML 原型 achievement.html
+import '../../data/daos/achievement_dao.dart';
+import '../../data/daos/exam_dao.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../domain/achievement_repository.dart';
+
+/// 学习成就与解锁进度。
 class AchievementPage extends StatefulWidget {
+  const AchievementPage({super.key, this.achievementRepository});
+
   final AchievementRepository? achievementRepository;
-  AchievementPage({super.key, this.achievementRepository});
 
   @override
   State<AchievementPage> createState() => _AchievementPageState();
@@ -29,162 +37,130 @@ class _AchievementPageState extends State<AchievementPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.achievementRepository ?? AchievementRepository(AchievementDao(DatabaseProvider()), QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()));
+    _repo = widget.achievementRepository ??
+        AchievementRepository(
+          AchievementDao(DatabaseProvider()),
+          QuestionDao(DatabaseProvider()),
+          ExamDao(DatabaseProvider()),
+        );
     _load();
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final summary = await _repo.getSummary();   // 实时推算，不再依赖缓存表
-      final cats = await _repo.getCategories();
+      final summary = await _repo.getSummary();
+      final categories = await _repo.getCategories();
       if (!mounted) return;
-      setState(() { _summary = summary; _categories = cats; _loading = false; });
-      AuditLogger.instance.page('AchievementPage', {'unlocked': summary.unlockedCount, 'total': summary.totalCount});
-    } catch (e) { OperationLog.instance.error('achievement_page_load', e);  AuditLogger.instance.error('AchievementPage._load', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
+      setState(() {
+        _summary = summary;
+        _categories = categories;
+        _loading = false;
+      });
+      AuditLogger.instance.page('AchievementPage', {
+        'unlocked': summary.unlockedCount,
+        'total': summary.totalCount,
+      });
+    } catch (error) {
+      OperationLog.instance.error('achievement_page_load', error);
+      AuditLogger.instance.error('AchievementPage._load', error);
+      if (!mounted) return;
+      setState(() {
+        _error = '加载失败，请稍后重试';
+        _loading = false;
+      });
+    }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('成就')),
-    body: _buildBody(),
-  );
-
-  Widget _buildBody() {
-    if (_loading) return LoadingIndicator(message: '加载成就…');
-    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
-    final cats = _categories ?? [];
-    return ListView(
-      padding: EdgeInsets.all(AppSizes.baseSpacing),
-      children: [
-        _buildSummary(),
-        SizedBox(height: 16),
-        ...cats.map((cat) => _buildCategory(cat)),
-      ],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('学习成就')),
+      body: _buildBody(),
     );
   }
 
-  Widget _buildSummary() {
-    final s = _summary;
-    if (s == null) return SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 24),
-      child: Column(
+  Widget _buildBody() {
+    if (_loading) return const LoadingIndicator(message: '正在整理成就进度…');
+    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
+
+    final summary = _summary;
+    final categories = _categories ?? [];
+    if (summary == null || categories.isEmpty) {
+      return const AppStatePanel(
+        title: '暂无成就数据',
+        message: '完成练习、签到和组卷后，新的成就会出现在这里。',
+        tone: AppStateTone.empty,
+        icon: Icons.emoji_events_outlined,
+      );
+    }
+
+    final progress = summary.totalCount == 0
+        ? 0.0
+        : summary.unlockedCount / summary.totalCount;
+
+    return AppContentContainer(
+      maxWidth: AppContentWidth.dashboard,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         children: [
-          Text(
-            '${s.unlockedCount} / ${s.totalCount}',
-            style: TextStyle(fontSize: 36, fontWeight: FontWeight.w700, color: context.colors.primary),
+          AppFeatureBanner(
+            icon: Icons.emoji_events_rounded,
+            eyebrow: '成长记录',
+            title: '已解锁 ${summary.unlockedCount} 项成就',
+            subtitle: '共 ${summary.totalCount} 项，持续练习会逐步解锁新的里程碑。',
+            footer: ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              child: LinearProgressIndicator(
+                value: progress.clamp(0.0, 1.0),
+                minHeight: 8,
+              ),
+            ),
           ),
-          SizedBox(height: 4),
-          Text('已解锁成就',
-            style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
+          const SizedBox(height: AppSpacing.lg),
+          ...categories.map(_buildCategory),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
   }
 
-  Widget _buildCategory(AchievementCategory cat) {
+  Widget _buildCategory(AchievementCategory category) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.only(left: 16, bottom: 4),
-            child: Text(cat.label,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.colors.textSecondary)),
+          AppSectionHeader(
+            title: category.label,
+            subtitle: '已解锁 ${category.list.where((item) => item.status == 'unlocked').length} / ${category.list.length}',
           ),
-          ...cat.list.map((a) => _buildAchievementItem(a)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAchievementItem(AchievementItem a) {
-    Color statusBg;
-    Color statusFg;
-    String statusLabel;
-    switch (a.status) {
-      case 'unlocked':
-        statusBg = context.colors.successContainer;
-        statusFg = context.colors.success;
-        statusLabel = '已解锁';
-        break;
-      case 'in_progress':
-        statusBg = context.colors.warningContainer;
-        statusFg = context.colors.warning;
-        statusLabel = '进行中';
-        break;
-      default:
-        statusBg = context.colors.surfaceSubtle;
-        statusFg = context.colors.textSecondary;
-        statusLabel = '未解锁';
-    }
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 4),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.colors.surface,
-        borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-        boxShadow: [BoxShadow(color: context.colors.scrim.withValues(alpha: 0.04), blurRadius: 4, offset: Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 40,
-            child: Text(a.iconEmoji, style: TextStyle(fontSize: 24), textAlign: TextAlign.center),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(a.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                SizedBox(height: 1),
-                Text(a.description, style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-                if (a.status == 'unlocked' && a.unlockedAt != null)
-                  Padding(
-                    padding: EdgeInsets.only(top: 1),
-                    child: Text('${a.unlockedAt} 解锁',
-                      style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
-                  ),
-                if (a.status == 'in_progress')
-                  Padding(
-                    padding: EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 60, height: 4,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(2),
-                            child: LinearProgressIndicator(
-                              value: (a.progressPercent / 100).clamp(0.0, 1.0),
-                              backgroundColor: context.colors.border,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          a.isAccuracyRate
-                            ? '${a.progress}% / ${a.threshold}%'
-                            : '${a.progress}/${a.threshold}',
-                          style: TextStyle(fontSize: 11, color: context.colors.textSecondary)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-            decoration: BoxDecoration(
-              color: statusBg,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(statusLabel,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: statusFg)),
+          const SizedBox(height: AppSpacing.md),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= AppBreakpoints.expanded
+                  ? 3
+                  : constraints.maxWidth >= AppBreakpoints.compact
+                      ? 2
+                      : 1;
+              final spacing = AppSpacing.sm;
+              final width = columns == 1
+                  ? constraints.maxWidth
+                  : (constraints.maxWidth - spacing * (columns - 1)) / columns;
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: category.list
+                    .map((achievement) => SizedBox(
+                          width: width,
+                          child: _AchievementCard(achievement: achievement),
+                        ))
+                    .toList(),
+              );
+            },
           ),
         ],
       ),
@@ -192,3 +168,106 @@ class _AchievementPageState extends State<AchievementPage> {
   }
 }
 
+class _AchievementCard extends StatelessWidget {
+  const _AchievementCard({required this.achievement});
+
+  final AchievementItem achievement;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final unlocked = achievement.status == 'unlocked';
+    final inProgress = achievement.status == 'in_progress';
+    final tone = unlocked
+        ? AppStatusTone.success
+        : inProgress
+            ? AppStatusTone.warning
+            : AppStatusTone.neutral;
+    final statusLabel = unlocked
+        ? '已解锁'
+        : inProgress
+            ? '进行中'
+            : '未解锁';
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: unlocked
+                      ? colors.successContainer
+                      : colors.surfaceSubtle,
+                  borderRadius: BorderRadius.circular(AppRadius.medium),
+                ),
+                child: Text(
+                  achievement.iconEmoji,
+                  style: const TextStyle(fontSize: 26),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      achievement.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    Text(
+                      achievement.description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              AppStatusBadge(label: statusLabel, tone: tone, compact: true),
+            ],
+          ),
+          if (inProgress) ...[
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    child: LinearProgressIndicator(
+                      value: (achievement.progressPercent / 100).clamp(0.0, 1.0),
+                      minHeight: 7,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  achievement.isAccuracyRate
+                      ? '${achievement.progress}% / ${achievement.threshold}%'
+                      : '${achievement.progress}/${achievement.threshold}',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ],
+            ),
+          ],
+          if (unlocked && achievement.unlockedAt != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '${achievement.unlockedAt} 解锁',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colors.success,
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

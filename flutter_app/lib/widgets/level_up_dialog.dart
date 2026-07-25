@@ -1,72 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_status_badge.dart';
 
-/// 升级弹窗 — 匹配 HTML 原型 levelup-popup
-///
-/// 用户等级提升时弹出，显示新旧等级和超过百分比。
-Future<void> showLevelUpDialog(BuildContext context, {
+Future<void> showLevelUpDialog(
+  BuildContext context, {
   required int oldLevel,
   required int newLevel,
   required int percentile,
 }) async {
-  await showDialog(
+  await showDialog<void>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => PopScope(
+    builder: (dialogContext) => PopScope(
       canPop: false,
       child: AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        content: SizedBox(
-          width: 280,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.celebration, size: 48, color: AppColors.primary),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text('🏆 等级提升',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
-                ),
-              ),
-              const SizedBox(height: 8),
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                  children: [
-                    TextSpan(text: 'Lv.$oldLevel → '),
-                    TextSpan(text: 'Lv.$newLevel', style: const TextStyle(color: AppColors.primary)),
-                    const TextSpan(text: ' 🎊'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '超过 $percentile% 的用户',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: const Text('👏 继续加油', style: TextStyle(fontSize: 15)),
-                ),
-              ),
-            ],
+        icon: Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: BrandColors.gradient),
+            borderRadius: BorderRadius.circular(AppRadius.extraLarge),
+          ),
+          child: const Icon(
+            Icons.military_tech_rounded,
+            size: 38,
+            color: Colors.white,
           ),
         ),
+        title: const Text('等级提升'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppStatusBadge(
+              label: '成长里程碑',
+              tone: AppStatusTone.primary,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text.rich(
+              TextSpan(
+                text: 'Lv.$oldLevel  →  ',
+                children: [
+                  TextSpan(
+                    text: 'Lv.$newLevel',
+                    style: TextStyle(color: context.colors.primary),
+                  ),
+                ],
+              ),
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '你的学习积分已超过 $percentile% 的用户。',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          AppButton(
+            label: '继续学习',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        ],
       ),
     ),
   );

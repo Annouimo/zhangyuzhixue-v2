@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/app_state_panel.dart';
+import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_feature_banner.dart';
+import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/sync_repository.dart';
@@ -12,7 +19,7 @@ import 'package:shared/debug/operation_log.dart';
 /// 同步队列状态页
 class SyncQueuePage extends StatefulWidget {
   final SyncRepository? syncRepository;
-  SyncQueuePage({super.key, this.syncRepository});
+  const SyncQueuePage({super.key, this.syncRepository});
 
   @override State<SyncQueuePage> createState() => _SyncQueuePageState();
 }
@@ -71,86 +78,148 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
     }
   }
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'pending': return context.colors.textSecondary;
-      case 'inProgress': return context.colors.warning;
-      case 'failed': return context.colors.error;
-      case 'permanentFailure': return context.colors.textMuted;
-      default: return context.colors.textSecondary;
-    }
+  AppStatusTone _statusTone(String status) {
+    return switch (status) {
+      'pending' => AppStatusTone.neutral,
+      'inProgress' => AppStatusTone.warning,
+      'failed' => AppStatusTone.error,
+      'permanentFailure' => AppStatusTone.error,
+      _ => AppStatusTone.info,
+    };
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text('同步状态'),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: '返回',
-        onPressed: () => safePop(context),
+  Widget build(BuildContext context) {
+    final retryableCount = _items
+            ?.where((item) => item.status == 'pending' || item.status == 'failed')
+            .length ??
+        0;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('同步状态'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '返回',
+          onPressed: () => safePop(context),
+        ),
       ),
-      actions: [
-        if (_items != null && _items!.any((i) => i.status == 'pending' || i.status == 'failed'))
-          IconButton(
-            icon: _retrying
-                ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : Icon(Icons.refresh),
-            tooltip: '全部重试',
-            onPressed: _retrying ? null : _onRetryAll,
-          ),
-      ],
-    ),
-    body: _buildBody(),
-  );
+      body: _buildBody(retryableCount),
+    );
+  }
 
-  Widget _buildBody() {
-    if (_loading) return LoadingIndicator(message: '加载同步队列…');
-    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
+  Widget _buildBody(int retryableCount) {
+    if (_loading) {
+      return const LoadingIndicator(message: '正在读取本地同步队列…');
+    }
+    if (_error != null) {
+      return ErrorPlaceholder(message: _error!, onRetry: _load);
+    }
 
     final items = _items ?? [];
     if (items.isEmpty) {
-      return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('✅', style: TextStyle(fontSize: 48)),
-          SizedBox(height: 12),
-          Text('全部已同步', style: TextStyle(fontSize: 16, color: context.colors.textSecondary)),
-        ]),
+      return const AppStatePanel(
+        title: '全部数据已同步',
+        message: '你的学习记录、答题进度和个人设置已经安全保存。',
+        tone: AppStateTone.success,
       );
     }
 
-    return ListView.separated(
-      padding: EdgeInsets.all(AppSizes.baseSpacing),
-      itemCount: items.length,
-      separatorBuilder: (_, _) => Divider(height: 1),
-      itemBuilder: (_, i) {
-        final item = items[i];
-        final isFailed = item.status == 'failed';
-        return ListTile(
-          leading: Icon(item.icon, size: 24, color: context.colors.primary),
-          title: Text(item.entityTypeName, style: TextStyle(fontSize: 15)),
-          subtitle: item.errorMessage != null
-              ? Text(item.errorMessage!,
-                  style: TextStyle(fontSize: 11, color: context.colors.error),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis)
-              : Text(item.timeAgo,
-                  style: TextStyle(fontSize: 12, color: context.colors.textSecondary)),
-          trailing: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 100),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(_statusLabel(item.status),
-                style: TextStyle(fontSize: 13, color: _statusColor(item.status))),
-              if (isFailed) ...[
-                SizedBox(width: 4),
-                Text('(${item.retryCount})', style: TextStyle(fontSize: 11, color: context.colors.error)),
-              ],
-            ]),
+    return AppContentContainer(
+      maxWidth: AppContentWidth.standard,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        children: [
+          AppFeatureBanner(
+            icon: Icons.cloud_sync_outlined,
+            eyebrow: '数据安全',
+            title: '有 $retryableCount 项等待处理',
+            subtitle: '网络恢复后系统会自动继续同步；失败项目也可以在这里统一重试。',
+            action: AppButton(
+              label: '全部重试',
+              icon: Icons.refresh,
+              onPressed: retryableCount == 0 || _retrying ? null : _onRetryAll,
+              isLoading: _retrying,
+              variant: AppButtonVariant.secondary,
+            ),
           ),
-        );
-      },
+          const SizedBox(height: AppSpacing.lg),
+          const AppSectionHeader(
+            title: '同步队列',
+            subtitle: '按最近更新时间显示，错误信息会保留在对应项目中。',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          ...items.map((item) {
+            final failed = item.status == 'failed' ||
+                item.status == 'permanentFailure';
+            return AppCard(
+              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: failed
+                          ? context.colors.errorContainer
+                          : context.colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(AppRadius.medium),
+                    ),
+                    child: Icon(
+                      item.icon,
+                      color: failed
+                          ? context.colors.onErrorContainer
+                          : context.colors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.entityTypeName,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                            ),
+                            AppStatusBadge(
+                              label: _statusLabel(item.status),
+                              tone: _statusTone(item.status),
+                              compact: true,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          item.errorMessage ?? item.timeAgo,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: failed
+                                    ? context.colors.error
+                                    : context.colors.textSecondary,
+                              ),
+                        ),
+                        if (item.retryCount > 0) ...[
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            '已重试 ${item.retryCount} 次',
+                            style: Theme.of(context).textTheme.labelSmall,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+      ),
     );
   }
 }
-
-

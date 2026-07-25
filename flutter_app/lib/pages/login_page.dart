@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_auth_layout.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../data/api/user_api.dart';
@@ -216,149 +219,120 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppSizes.maxContentWidth),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    final colors = context.colors;
+    return AppAuthLayout(
+      title: '欢迎回来',
+      subtitle: '登录后继续你的个性化数学学习计划。',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: '用户名',
+                hintText: '输入用户名',
+                prefixIcon: Icon(Icons.person_outline_rounded),
+              ),
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.username],
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? '请输入用户名'
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: '密码',
+                hintText: '输入密码',
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                suffixIcon: IconButton(
+                  tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(
+                    () => _obscurePassword = !_obscurePassword,
+                  ),
+                ),
+              ),
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.password],
+              onFieldSubmitted: (_) => _login(),
+              validator: (value) => value == null || value.isEmpty
+                  ? '请输入密码'
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _showContactDialog,
+                child: const Text('忘记密码？'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppButton(
+              label: '登录',
+              icon: Icons.login_rounded,
+              onPressed: _loading ? null : _login,
+              isLoading: _loading,
+              fullWidth: true,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.surfaceSubtle,
+                borderRadius: BorderRadius.circular(AppRadius.medium),
+                border: Border.all(color: colors.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Row(
                   children: [
-                    // 品牌标识
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset('assets/logo_mark.png', width: 32, height: 32),
-                        SizedBox(width: 8),
-                        Text(
-                          '章鱼智学',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: colors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '个性化高考数学智能学习系统',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    Text(
-                      '📚 登录',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 用户名
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: '用户名',
-                        hintText: '输入用户名',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 密码
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: '密码',
-                        hintText: '输入密码',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _login(),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? '请输入密码' : null,
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: () => _showContactDialog(),
+                    Icon(Icons.shield_outlined, size: 18, color: colors.primary),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
                       child: Text(
-                        '忘记密码',
-                        style: TextStyle(fontSize: 12, color: context.colors.textMuted),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 登录按钮
-                    ElevatedButton(
-                      onPressed: _loading ? null : _login,
-                      child: _loading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('登录'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 注册入口
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '还没有账号？',
-                          style: TextStyle(color: colors.textSecondary),
-                        ),
-                        TextButton(
-                          onPressed: () => RouterUtils.push(context,AppRoutes.register),
-                          child: const Text('使用邀请码注册'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // 导出日志
-                    GestureDetector(
-                      onTap: _exportLog,
-                      child: Text(
-                        '导出日志',
-                        style: TextStyle(fontSize: 11, color: colors.textMuted),
+                        '学习记录会在登录后自动恢复，并支持离线使用。',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
+          ],
         ),
+      ),
+      footer: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '还没有账号？',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              TextButton(
+                onPressed: () => RouterUtils.push(context, AppRoutes.register),
+                child: const Text('使用邀请码注册'),
+              ),
+            ],
+          ),
+          TextButton.icon(
+            onPressed: _exportLog,
+            icon: const Icon(Icons.description_outlined, size: 18),
+            label: const Text('导出运行日志'),
+          ),
+        ],
       ),
     );
   }

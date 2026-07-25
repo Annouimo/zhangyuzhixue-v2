@@ -1,55 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
 
-/// 统一操作 Chip — 替代各地零散的 _actionChip 私有方法
-///
-/// 两种样式：
-/// - 普通模式（默认）：带边框，灰色文字
-/// - 激活模式（active=true）：填充背景色，高亮色文字
+/// 统一的小型操作按钮。
 class ActionChipWidget extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final double fontSize;
-  final Color? iconColor;
-
-  /// 激活态：填充背景色 + 去除边框 + 高亮色
-  final bool active;
-
-  /// 激活态下的图标/文字颜色，覆盖 iconColor
-  final Color? activeColor;
-
   const ActionChipWidget({
     super.key,
     required this.icon,
     required this.label,
     required this.onTap,
-    this.fontSize = 11,
+    this.fontSize = 12,
     this.iconColor,
     this.active = false,
     this.activeColor,
   });
 
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final double fontSize;
+  final Color? iconColor;
+  final bool active;
+  final Color? activeColor;
+
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    final fg = active ? (activeColor ?? colors.primary) : (iconColor ?? colors.textSecondary);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: active ? colors.primaryContainer : null,
-          border: active ? null : Border.all(color: colors.border),
-          borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
+    final colors = context.colors;
+    final foreground = active
+        ? (activeColor ?? colors.primary)
+        : (iconColor ?? colors.textSecondary);
+
+    return Semantics(
+      button: true,
+      selected: active,
+      label: label,
+      child: Material(
+        color: active ? colors.primaryContainer : colors.surface,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: active ? colors.primaryBorder : colors.border,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: fontSize + 5, color: fg),
-            const SizedBox(width: 2),
-            Text(label, style: TextStyle(fontSize: fontSize, color: fg)),
-          ],
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: fontSize + 5, color: foreground),
+                const SizedBox(width: AppSpacing.xxs),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: foreground,
+                        fontSize: fontSize,
+                      ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

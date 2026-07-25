@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'dart:async';
 import 'dart:convert';
 import '../router.dart';
-import 'package:shared/theme/app_theme.dart';
-import '../../../data/daos/exam_dao.dart';
-import '../../../data/daos/question_dao.dart';
-import '../../../data/database/database_provider.dart';
-import '../../../domain/exam_repository.dart';
-import '../../../domain/preference_repository.dart';
-import '../../../data/daos/preference_dao.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
-import 'package:shared/widgets/question_card.dart';
-import '../../../widgets/shortfall_dialog.dart';
-import 'package:shared/widgets/filter_panel.dart';
+import 'package:shared/shared.dart';
+import '../../data/daos/exam_dao.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../domain/exam_repository.dart';
+import '../../domain/preference_repository.dart';
+import '../../data/daos/preference_dao.dart';
+import '../../widgets/shortfall_dialog.dart';
 import 'widgets/preference_dialog_helper.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 import '../../data/sync/sync_manager.dart';
 import '../../data/sync/sync_types.dart';
-import '../../../data/api/api_client.dart';
-import '../../../data/api/user_api.dart';
-import '../../../data/daos/user_dao.dart';
-import '../../../domain/user_repository.dart';
-import '../../../data/database/app_database.dart' as app_db;
+import '../../data/api/api_client.dart';
+import '../../data/api/user_api.dart';
+import '../../data/daos/user_dao.dart';
+import '../../domain/user_repository.dart';
+import '../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
 
 /// 自主选题积分消耗常量
@@ -260,55 +253,81 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('自主选题')),
-    body: _loadingOpts
-        ? LoadingIndicator()
-        : LayoutBuilder(builder: (context, constraints) {
-            AuditLogger.instance.page('ExamPickPage.body', {
-              'w': constraints.maxWidth,
-              'h': constraints.maxHeight,
-              'hasInfiniteW': constraints.maxWidth.isInfinite,
-            });
-            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Expanded(child: _buildScrollContent()),
-            Container(
-              color: context.colors.surface,
-              height: 56,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        appBar: AppBar(title: const Text('自主选题')),
+        body: _loadingOpts
+            ? const LoadingIndicator(message: '加载题库条件…')
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('已选 ${_selectedIds.length} 题',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                  SizedBox(
-                    width: 140,
-                    height: 40,
-                    child: ElevatedButton(
-                      onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
-                      child: _saving
-                          ? SizedBox(width: 20, height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text('确认组卷 (${_selectedIds.length})'),
+                  Expanded(
+                    child: AppContentContainer(
+                      maxWidth: AppContentWidth.standard,
+                      child: _buildScrollContent(),
                     ),
                   ),
+                  _buildBottomAction(),
                 ],
               ),
+      );
+
+  Widget _buildBottomAction() {
+    final colors = context.colors;
+    return Material(
+      color: colors.surface,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: colors.divider)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: AppContentContainer(
+            maxWidth: AppContentWidth.standard,
+            useSafeArea: false,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
             ),
-          ]);
-        },
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '已选 ${_selectedIds.length} 题',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      Text(
+                        '创建时消耗 $_kPickPaperCost 积分',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                AppButton(
+                  label: '确认组卷',
+                  icon: Icons.playlist_add_check_rounded,
+                  fullWidth: false,
+                  isLoading: _saving,
+                  onPressed: (_selectedIds.isEmpty || _saving) ? null : _save,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-  );
+    );
+  }
 
   Widget _buildScrollContent() {
-    final nameField = Padding(
-      padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-      child: TextField(
-        controller: _nameController,
-        decoration: InputDecoration(
-          labelText: '试卷名称',
-          hintText: '输入试卷名称',
-          border: OutlineInputBorder(),
-        ),
+    final nameField = TextField(
+      controller: _nameController,
+      decoration: const InputDecoration(
+        labelText: '试卷名称',
+        hintText: '例如：周末自主选题卷',
+        prefixIcon: Icon(Icons.edit_note_rounded),
       ),
     );
 
@@ -327,103 +346,161 @@ class _ExamPickPageState extends State<ExamPickPage> {
             onSavePreference: _savePreference,
             onLoadPreference: _loadPreference,
             onChanged: (state) {
-            _years = state.years; _regions = state.regions; _conceptTags = state.conceptTags;
-            _selectedTypes = state.types; _selectedExamTypes = state.examTypes; _selectedKnowledgeCards = state.knowledgeCards;
-            _diffMin = state.diffMin; _diffMax = state.diffMax; _calcMin = state.calcMin; _calcMax = state.calcMax;
-            _debouncedSearch?.cancel();
-            _debouncedSearch = Timer(Duration(milliseconds: 300), () { _search(); });
+              _years = state.years;
+              _regions = state.regions;
+              _conceptTags = state.conceptTags;
+              _selectedTypes = state.types;
+              _selectedExamTypes = state.examTypes;
+              _selectedKnowledgeCards = state.knowledgeCards;
+              _diffMin = state.diffMin;
+              _diffMax = state.diffMax;
+              _calcMin = state.calcMin;
+              _calcMax = state.calcMax;
+              _debouncedSearch?.cancel();
+              _debouncedSearch = Timer(
+                const Duration(milliseconds: 300),
+                _search,
+              );
             },
           )
         : null;
 
     if (_loadingQ) {
-      return Center(child: LoadingIndicator(message: '搜索中…'));
+      return const Center(child: LoadingIndicator(message: '搜索题目…'));
     }
 
-    // 组装：filterPanel + 池统计 在顶部，下方根据状态切换
     final headerChildren = <Widget>[
-      nameField,
-      if (filterPanel != null) filterPanel,
-      if (_poolStats != null)
-        Card(
-          margin: const EdgeInsets.fromLTRB(0, 4, 0, 0),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-            side: BorderSide(color: context.colors.border),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                _statChip('选择', _poolStats!.availableChoice),
-                SizedBox(width: 8),
-                _statChip('填空', _poolStats!.availableFill),
-                SizedBox(width: 8),
-                _statChip('解答', _poolStats!.availableSolution),
-              ],
+      const SizedBox(height: AppSpacing.md),
+      AppFeatureBanner(
+        eyebrow: '自定义试卷',
+        icon: Icons.touch_app_rounded,
+        title: '从题库中逐题挑选',
+        subtitle: '先设置筛选范围，再勾选适合当前学习目标的题目。已选数量会固定显示在页面底部。',
+        footer: Wrap(
+          spacing: AppSpacing.xs,
+          runSpacing: AppSpacing.xs,
+          children: [
+            AppStatusBadge(
+              label: '已选 ${_selectedIds.length} 题',
+              tone: _selectedIds.isEmpty
+                  ? AppStatusTone.neutral
+                  : AppStatusTone.success,
+              icon: Icons.checklist_rounded,
+              compact: true,
             ),
+            const AppStatusBadge(
+              label: '消耗 $_kPickPaperCost 积分',
+              tone: AppStatusTone.recommendation,
+              icon: Icons.toll_rounded,
+              compact: true,
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      const AppSectionHeader(
+        title: '试卷信息与筛选',
+        subtitle: '修改条件后会自动重新搜索。',
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      nameField,
+      if (filterPanel != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        filterPanel,
+      ],
+      if (_poolStats != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppSectionHeader(
+                title: '当前筛选池',
+                subtitle: '下面是各题型可供选择的数量。',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  _statChip('选择题', _poolStats!.availableChoice),
+                  _statChip('填空题', _poolStats!.availableFill),
+                  _statChip('解答题', _poolStats!.availableSolution),
+                ],
+              ),
+            ],
           ),
         ),
+      ],
+      const SizedBox(height: AppSpacing.lg),
+      AppSectionHeader(
+        title: _questions == null ? '题目结果' : '题目结果 · ${_questions!.length} 题',
+        subtitle: '点击题目卡片即可加入或移出试卷。',
+      ),
+      const SizedBox(height: AppSpacing.sm),
     ];
 
     if (_questions == null) {
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
         children: [
           ...headerChildren,
-          SizedBox(height: 80),
-          Center(child: EmptyPlaceholder(icon: Icons.search, message: '请设置筛选条件后搜索题目')),
+          const SizedBox(height: AppSpacing.lg),
+          EmptyPlaceholder(
+            icon: Icons.manage_search_rounded,
+            message: '设置筛选条件后，这里会显示匹配题目',
+          ),
         ],
       );
     }
     if (_questions!.isEmpty) {
       return ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
         children: [
           ...headerChildren,
-          SizedBox(height: 80),
-          Center(child: EmptyPlaceholder(icon: Icons.mail_outline, message: '未找到匹配的题目，试试调整筛选条件')),
+          const SizedBox(height: AppSpacing.lg),
+          EmptyPlaceholder(
+            icon: Icons.search_off_rounded,
+            message: '没有找到匹配题目，请放宽筛选条件',
+          ),
         ],
       );
     }
-    // 有搜索结果
+
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
       itemCount: _questions!.length + headerChildren.length,
       itemBuilder: (context, index) {
-        if (index < headerChildren.length) {
-          return headerChildren[index];
-        }
-        final qIdx = index - headerChildren.length;
-        final q = _questions![qIdx];
-        final sel = _selectedIds.contains(q.id);
-        return QuestionCard(
-          questionId: q.id,
-          title: q.title,
-          questionType: q.questionType,
-          subtitle: q.meta,
-          difficulty: q.difficulty,
-          selectable: true,
-          selected: sel,
-          onTap: () => setState(() {
-            if (sel) { _selectedIds.remove(q.id); } else { _selectedIds.add(q.id); }
-          }),
+        if (index < headerChildren.length) return headerChildren[index];
+        final question = _questions![index - headerChildren.length];
+        final selected = _selectedIds.contains(question.id);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: QuestionCard(
+            questionId: question.id,
+            title: question.title,
+            questionType: question.questionType,
+            subtitle: question.meta,
+            difficulty: question.difficulty,
+            selectable: true,
+            selected: selected,
+            onTap: () => setState(() {
+              if (selected) {
+                _selectedIds.remove(question.id);
+              } else {
+                _selectedIds.add(question.id);
+              }
+            }),
+          ),
         );
       },
     );
   }
 
-  Widget _statChip(String label, int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: context.colors.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text('$label $count', style: TextStyle(fontSize: 12, color: context.colors.primary, fontWeight: FontWeight.w500)),
-    );
-  }
+  Widget _statChip(String label, int count) => AppStatusBadge(
+        label: '$label $count',
+        tone: count > 0 ? AppStatusTone.info : AppStatusTone.neutral,
+        icon: Icons.inventory_2_outlined,
+        compact: true,
+      );
 }
-
-

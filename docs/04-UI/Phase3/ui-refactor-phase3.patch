@@ -1,0 +1,4038 @@
+diff --git a/flutter_app/lib/pages/solve/solve_choice_page.dart b/flutter_app/lib/pages/solve/solve_choice_page.dart
+index 73ced9b..bf48cec 100644
+--- a/flutter_app/lib/pages/solve/solve_choice_page.dart
++++ b/flutter_app/lib/pages/solve/solve_choice_page.dart
+@@ -1,10 +1,10 @@
+ import 'package:flutter/material.dart';
+ import 'package:go_router/go_router.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import 'package:shared/widgets/md_latex_body.dart';
+-import 'package:shared/widgets/question_image.dart';
+ import 'package:shared/widgets/loading_indicator.dart';
+ import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_page_layout.dart';
+ import '../router.dart';
+ import '../../domain/question_repository.dart';
+ import '../../data/daos/question_dao.dart';
+@@ -12,6 +12,7 @@ import '../../data/daos/progress_dao.dart';
+ import '../../data/daos/system_config_dao.dart';
+ import '../../data/database/database_provider.dart';
+ import 'widgets/solve_flow_widget.dart';
++import 'widgets/solve_question_surface.dart';
+ import 'package:shared/debug/audit_logger.dart';
+ import 'package:shared/debug/operation_log.dart';
+ 
+@@ -141,7 +142,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+   }
+ 
+   Future<void> _submit() async {
+-      final colors = context.colors;
+     if (_selected == null || _submitting) return;
+     setState(() => _submitting = true);
+     try {
+@@ -165,7 +165,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+   }
+ 
+   String _typeLabel(String type) {
+-      final colors = context.colors;
+     switch (type) {
+       case 'choice': return '选择';
+       case 'fill': return '填空';
+@@ -176,21 +175,25 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+     if (_loading) {
+       return Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: const LoadingIndicator(),
++        appBar: AppBar(title: const Text('选择题')),
++        body: const LoadingIndicator(message: '正在加载题目'),
+       );
+     }
+     if (_error != null) {
+       return Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+-          Text('加载失败', style: TextStyle(color: colors.textSecondary)),
+-          const SizedBox(height: 8),
+-          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+-        ])),
++        appBar: AppBar(title: const Text('选择题')),
++        body: ErrorPlaceholder(
++          message: '题目加载失败，请检查后重试',
++          onRetry: () {
++            setState(() {
++              _error = null;
++              _loading = true;
++            });
++            _load();
++          },
++        ),
+       );
+     }
+ 
+@@ -200,42 +203,55 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+         if (await _popGuard.consume(context, 'solve_choice')) context.pop();
+       },
+       child: Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: SingleChildScrollView(
+-          padding: const EdgeInsets.all(16),
+-          child: Column(
+-            children: [
+-              SolveFlowWidget(
+-                cooldownSeconds: _coolDownSec,
+-                isRevisit: _submitted,
+-                showResult: _showResult,
+-                isCorrect: _isCorrect,
+-                correctAnswer: _detail?.answer,
+-                explanation: _detail?.explanation,
+-                onSubmit: _submit,
+-                onNext: widget.nextQuestionId != null
+-                    ? () {
+-                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
+-                      }
+-                    : null,
+-                onRate: () async {
+-                  await RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}');
+-                  _load();
+-                },
+-                child: _buildContent(),
+-              ),
+-              if (_attempts.isNotEmpty) ...[
+-                const SizedBox(height: 20),
+-                SizedBox(
+-                  width: double.infinity,
+-                  child: OutlinedButton.icon(
++        appBar: AppBar(title: const Text('选择题')),
++        body: AppContentContainer(
++          maxWidth: AppContentWidth.reading,
++          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
++          child: SingleChildScrollView(
++            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
++            child: Column(
++              crossAxisAlignment: CrossAxisAlignment.stretch,
++              children: [
++                SolveFlowWidget(
++                  cooldownSeconds: _coolDownSec,
++                  isRevisit: _submitted,
++                  showResult: _showResult,
++                  isCorrect: _isCorrect,
++                  correctAnswer: _detail?.answer,
++                  explanation: _detail?.explanation,
++                  onSubmit: _selected == null ? null : _submit,
++                  submitLoading: _submitting,
++                  onNext: widget.nextQuestionId != null
++                      ? () {
++                          SolveRouteHelper.navigateTo(
++                            context,
++                            widget.nextQuestionId!,
++                            _detail!.questionType,
++                          );
++                        }
++                      : null,
++                  onRate: () async {
++                    await RouterUtils.push(
++                      context,
++                      '${AppRoutes.solveRate}?id=${widget.questionId}',
++                    );
++                    _load();
++                  },
++                  child: _buildContent(),
++                ),
++                if (_attempts.isNotEmpty) ...[
++                  const SizedBox(height: AppSpacing.md),
++                  AppButton(
++                    label: '重新作答',
++                    icon: Icons.refresh_rounded,
++                    variant: AppButtonVariant.secondary,
++                    fullWidth: true,
+                     onPressed: _createNewAttempt,
+-                    icon: const Icon(Icons.refresh, size: 16),
+-                    label: const Text('重新作答'),
+                   ),
+-                ),
++                ],
++                const SizedBox(height: AppSpacing.lg),
+               ],
+-            ],
++            ),
+           ),
+         ),
+       ),
+@@ -315,7 +331,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+ 
+   /// 切换作答次数
+   Future<void> _switchAttempt(SolveAttempt attempt) async {
+-      final colors = context.colors;
+     setState(() {
+       _currentAttempt = attempt;
+     });
+@@ -324,7 +339,6 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+ 
+   /// 创建新作答
+   Future<void> _createNewAttempt() async {
+-      final colors = context.colors;
+     try {
+       await _repo.startSolve(widget.questionId);
+       final attempts = await _repo.getAttempts(widget.questionId);
+@@ -343,187 +357,59 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
+   }
+ 
+   Widget _buildContent() {
+-      final colors = context.colors;
+     final detail = _detail;
+     if (detail == null) {
+-      return Text('题目数据不存在',
+-        style: TextStyle(color: colors.textSecondary));
++      return ErrorPlaceholder(
++        message: '题目数据不存在',
++        onRetry: _load,
++      );
+     }
+-    return Column(
+-      crossAxisAlignment: CrossAxisAlignment.stretch,
+-      children: [
+-        // 题目元信息区
+-        Container(
+-          margin: const EdgeInsets.only(bottom: 16),
+-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+-          decoration: BoxDecoration(
+-            color: colors.primaryContainer.withValues(alpha: 0.3),
+-            borderRadius: BorderRadius.circular(8),
+-          ),
+-          child: Row(
+-            children: [
+-              if (detail.number.isNotEmpty)
+-                Text('第 ${detail.number} 题',
+-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+-                ),
+-              if (detail.number.isNotEmpty && detail.title.isNotEmpty)
+-                const SizedBox(width: 4),
+-              if (detail.title.isNotEmpty)
+-                Expanded(
+-                  child: Text(detail.title,
+-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-                    overflow: TextOverflow.ellipsis,
+-                  ),
+-                ),
+-              const SizedBox(width: 8),
+-              Container(
+-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+-                decoration: BoxDecoration(
+-                  color: colors.primaryContainer,
+-                  borderRadius: BorderRadius.circular(4),
+-                ),
+-                child: Text('[${_typeLabel(detail.questionType)}]',
+-                  style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
+-                ),
+-              ),
+-              const SizedBox(width: 8),
+-              _buildAttemptSelector(),
+-            ],
++
++    final options = detail.options?.entries.toList() ??
++        const <MapEntry<String, String>>[];
++    return SolveQuestionSurface(
++      number: detail.number,
++      title: detail.title,
++      questionTypeLabel: _typeLabel(detail.questionType),
++      attemptSelector: _buildAttemptSelector(),
++      isReviewMode: _submitted,
++      conceptTags: detail.conceptTags,
++      stem: detail.stem,
++      imagePaths: detail.images,
++      footer: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Text(
++            _submitted ? '作答结果' : '请选择一个答案',
++            style: Theme.of(context).textTheme.titleSmall,
+           ),
+-        ),
+-        // 回顾横幅
+-        if (_submitted) ...[
+-          Container(
+-            margin: const EdgeInsets.only(bottom: 12),
+-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+-            decoration: BoxDecoration(
+-              color: colors.primaryContainer.withValues(alpha: 0.15),
+-              borderRadius: BorderRadius.circular(8),
+-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+-            ),
+-            child: Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
+-              style: TextStyle(fontSize: 13, color: colors.primary),
++          const SizedBox(height: AppSpacing.sm),
++          for (var i = 0; i < options.length; i++) ...[
++            SolveAnswerOption(
++              label: options[i].key,
++              content: options[i].value,
++              state: _optionState(options[i].key, detail.answer),
++              onTap: _submitted
++                  ? null
++                  : () => setState(() => _selected = options[i].key),
+             ),
+-          ),
++            if (i != options.length - 1)
++              const SizedBox(height: AppSpacing.sm),
++          ],
+         ],
+-        // 概念标签
+-        if (detail.conceptTags.isNotEmpty)
+-          Padding(
+-            padding: const EdgeInsets.only(bottom: 12),
+-            child: Wrap(
+-              spacing: 6,
+-              runSpacing: 4,
+-              children: [
+-                const Padding(
+-                  padding: EdgeInsets.only(top: 2),
+-                  child: Text('\u{1F3F7}\u{FE0F}',
+-                    style: TextStyle(fontSize: 14),
+-                  ),
+-                ),
+-                ...detail.conceptTags.map((tag) => Container(
+-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+-                  decoration: BoxDecoration(
+-                    color: colors.primaryContainer,
+-                    borderRadius: BorderRadius.circular(4),
+-                  ),
+-                  child: Text(tag, style: TextStyle(fontSize: 12, color: colors.primary)),
+-                )),
+-              ],
+-            ),
+-          ),
+-        // 题干（含 LaTeX）
+-        if (detail.conceptTags.isNotEmpty)
+-          Padding(
+-            padding: const EdgeInsets.only(bottom: 8),
+-            child: Text('相关概念：${detail.conceptTags.join("、")}',
+-              style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-            ),
+-          ),
+-        MdLatexBody(detail.stem, fontSize: 15),
+-        const SizedBox(height: 20),
+-        // 图片
+-        ...detail.images.map((url) => QuestionImage(relativePath: url)),
+-        const SizedBox(height: 12),
+-        // 选项
+-        ...(detail.options?.entries.map((e) {
+-          final isSel = _selected == e.key;
+-          final isCorrectOption = _submitted && e.key == detail.answer;
+-          final isWrongSelection = _submitted && isSel && !_isCorrect;
+-
+-          Color? borderColor;
+-          Color? bgColor;
+-          if (isCorrectOption) {
+-            borderColor = colors.success;
+-            bgColor = colors.success.withValues(alpha: 0.08);
+-          } else if (isWrongSelection) {
+-            borderColor = colors.error;
+-            bgColor = colors.error.withValues(alpha: 0.08);
+-          } else if (isSel) {
+-            borderColor = colors.primary;
+-            bgColor = colors.primaryContainer;
+-          }
+-
+-          Color dotBg = colors.surfaceSubtle;
+-          Color dotText = colors.textSecondary;
+-          if (isCorrectOption) {
+-            dotBg = colors.success;
+-            dotText = Colors.white;
+-          } else if (isWrongSelection) {
+-            dotBg = colors.error;
+-            dotText = Colors.white;
+-          } else if (isSel) {
+-            dotBg = colors.primary;
+-            dotText = Colors.white;
+-          }
+-
+-          return Padding(
+-            padding: const EdgeInsets.only(bottom: 8),
+-            child: GestureDetector(
+-              onTap: _submitted ? null : () => setState(() => _selected = e.key),
+-              child: Container(
+-                padding: const EdgeInsets.all(14),
+-                decoration: BoxDecoration(
+-                  color: bgColor ?? colors.surface,
+-                  borderRadius: BorderRadius.circular(10),
+-                  border: Border.all(
+-                    color: borderColor ?? colors.border,
+-                    width: borderColor != null ? 1.5 : 1,
+-                  ),
+-                ),
+-                child: Row(
+-                  crossAxisAlignment: CrossAxisAlignment.start,
+-                  children: [
+-                    Container(
+-                      width: 28, height: 28,
+-                      margin: const EdgeInsets.only(top: 1),
+-                      decoration: BoxDecoration(
+-                        shape: BoxShape.circle,
+-                        color: dotBg,
+-                      ),
+-                      child: Center(
+-                        child: isCorrectOption
+-                            ? const Icon(Icons.check, size: 16, color: Colors.white)
+-                            : isWrongSelection
+-                                ? const Icon(Icons.close, size: 16, color: Colors.white)
+-                                : Text(e.key,
+-                                    style: TextStyle(
+-                                      fontWeight: FontWeight.w600,
+-                                      color: dotText,
+-                                    ),
+-                                  ),
+-                      ),
+-                    ),
+-                    const SizedBox(width: 12),
+-                    Expanded(
+-                      child: MdLatexBody(e.value, fontSize: 14),
+-                    ),
+-                  ],
+-                ),
+-              ),
+-            ),
+-          );
+-        }) ?? []),
+-      ],
++      ),
+     );
+   }
++
++  SolveOptionState _optionState(String key, String? correctAnswer) {
++    final selected = _selected == key;
++    if (_submitted && key == correctAnswer) return SolveOptionState.correct;
++    if (_submitted && selected && !_isCorrect) {
++      return SolveOptionState.incorrect;
++    }
++    if (selected) return SolveOptionState.selected;
++    if (_submitted) return SolveOptionState.disabled;
++    return SolveOptionState.idle;
++  }
++
+ }
+diff --git a/flutter_app/lib/pages/solve/solve_fill_page.dart b/flutter_app/lib/pages/solve/solve_fill_page.dart
+index 6263fc7..869b223 100644
+--- a/flutter_app/lib/pages/solve/solve_fill_page.dart
++++ b/flutter_app/lib/pages/solve/solve_fill_page.dart
+@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
+ import 'package:go_router/go_router.dart';
+ import '../router.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import 'package:shared/widgets/md_latex_body.dart';
+-import 'package:shared/widgets/question_image.dart';
+ import 'package:shared/widgets/loading_indicator.dart';
+ import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import '../../domain/question_repository.dart';
+ import '../../data/daos/question_dao.dart';
+ import '../../data/daos/progress_dao.dart';
+ import '../../data/daos/system_config_dao.dart';
+ import '../../data/database/database_provider.dart';
+ import 'widgets/solve_reveal_widget.dart';
++import 'widgets/solve_question_surface.dart';
+ import 'package:shared/debug/audit_logger.dart';
+ import 'package:shared/debug/operation_log.dart';
+ 
+@@ -67,7 +70,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   Future<void> _loadCooldown() async {
+-      final colors = context.colors;
+     try {
+       final dao = SystemConfigDao(DatabaseProvider());
+       final sec = await dao.getInt('solve_cooldown_fill', 10);
+@@ -78,12 +80,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+     }
+   }
+ 
+-  @override
+-  void dispose() {
+-      final colors = context.colors;
+-    super.dispose();
+-  }
+-
+   Future<void> _load() async {
+     try {
+       OperationLog.instance.action('solve_fill_page_load', 'T1 start');
+@@ -125,7 +121,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   String _typeLabel(String type) {
+-      final colors = context.colors;
+     switch (type) {
+       case 'choice': return '选择';
+       case 'fill': return '填空';
+@@ -206,7 +201,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   void _switchAttempt(SolveAttempt attempt) {
+-      final colors = context.colors;
+     setState(() {
+       _currentAttempt = attempt;
+       _revealed = attempt.isCompleted;
+@@ -215,7 +209,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   Future<void> _createNewAttempt() async {
+-      final colors = context.colors;
+     try {
+       await _repo.startSolve(widget.questionId);
+       final attempts = await _repo.getAttempts(widget.questionId);
+@@ -235,7 +228,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+ 
+   /// 揭示答案时展开结果区域，等待用户自评
+   Future<void> _onReveal() async {
+-      final colors = context.colors;
+     setState(() => _revealed = true);
+     if (_currentAttempt == null) {
+       await _repo.startSolve(widget.questionId);
+@@ -251,7 +243,6 @@ class _SolveFillPageState extends State<SolveFillPage> {
+ 
+   /// 用户自评后保存记录
+   Future<void> _submitFeedback(bool correct) async {
+-      final colors = context.colors;
+     if (!_revealed || _feedbackGiven) return;
+     // 乐观锁定：立即阻断后续点击，用户瞬时看到反馈
+     if (!mounted) return;
+@@ -271,67 +262,93 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   Widget _buildFeedbackButtons() {
+-      final colors = context.colors;
+-    return Column(
+-      crossAxisAlignment: CrossAxisAlignment.stretch,
+-      children: [
+-        Text('你觉得自己答对了吗？',
+-          textAlign: TextAlign.center,
+-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-        ),
+-        const SizedBox(height: 8),
+-        Row(
+-          mainAxisAlignment: MainAxisAlignment.center,
+-          children: [
+-            SizedBox(
+-              width: 100,
+-              height: 40,
+-              child: ElevatedButton.icon(
++    final colors = context.colors;
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Text(
++            '对照答案后，你认为自己答对了吗？',
++            style: Theme.of(context).textTheme.titleSmall,
++            textAlign: TextAlign.center,
++          ),
++          const SizedBox(height: AppSpacing.xs),
++          Text(
++            '请根据完整推导过程自评，而不只是最终结果。',
++            style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                  color: colors.textSecondary,
++                ),
++            textAlign: TextAlign.center,
++          ),
++          const SizedBox(height: AppSpacing.md),
++          LayoutBuilder(
++            builder: (context, constraints) {
++              final compact = constraints.maxWidth < 420;
++              final correctButton = FilledButton.icon(
+                 onPressed: () => _submitFeedback(true),
+-                icon: const Icon(Icons.check_circle, size: 18),
+-                label: const Text('正确'),
+-                style: ElevatedButton.styleFrom(
++                icon: const Icon(Icons.check_circle_outline_rounded),
++                label: const Text('答对了'),
++                style: FilledButton.styleFrom(
+                   backgroundColor: colors.success,
+-                  foregroundColor: Colors.white,
++                  foregroundColor: colors.onSuccess,
+                 ),
+-              ),
+-            ),
+-            const SizedBox(width: 16),
+-            SizedBox(
+-              width: 100,
+-              height: 40,
+-              child: OutlinedButton.icon(
++              );
++              final retryButton = OutlinedButton.icon(
+                 onPressed: () => _submitFeedback(false),
+-                icon: const Icon(Icons.cancel, size: 18),
+-                label: const Text('错误'),
++                icon: const Icon(Icons.replay_rounded),
++                label: const Text('还没答对'),
+                 style: OutlinedButton.styleFrom(
+-                  foregroundColor: colors.textSecondary,
++                  foregroundColor: colors.error,
++                  side: BorderSide(color: colors.error),
+                 ),
+-              ),
+-            ),
+-          ],
+-        ),
+-      ],
++              );
++
++              if (compact) {
++                return Column(
++                  crossAxisAlignment: CrossAxisAlignment.stretch,
++                  children: [
++                    correctButton,
++                    const SizedBox(height: AppSpacing.xs),
++                    retryButton,
++                  ],
++                );
++              }
++              return Row(
++                children: [
++                  Expanded(child: correctButton),
++                  const SizedBox(width: AppSpacing.sm),
++                  Expanded(child: retryButton),
++                ],
++              );
++            },
++          ),
++        ],
++      ),
+     );
+   }
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+     if (_loading) {
+       return Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: const LoadingIndicator(),
++        appBar: AppBar(title: const Text('填空题')),
++        body: const LoadingIndicator(message: '正在加载题目'),
+       );
+     }
+     if (_error != null) {
+       return Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+-          Text('加载失败', style: TextStyle(color: colors.textSecondary)),
+-          const SizedBox(height: 8),
+-          ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试') ),
+-        ])),
++        appBar: AppBar(title: const Text('填空题')),
++        body: ErrorPlaceholder(
++          message: '题目加载失败，请检查后重试',
++          onRetry: () {
++            setState(() {
++              _error = null;
++              _loading = true;
++            });
++            _load();
++          },
++        ),
+       );
+     }
+ 
+@@ -341,42 +358,57 @@ class _SolveFillPageState extends State<SolveFillPage> {
+         if (await _popGuard.consume(context, 'solve_fill')) context.pop();
+       },
+       child: Scaffold(
+-        appBar: AppBar(title: const Text('解题模式')),
+-        body: SingleChildScrollView(
+-          padding: const EdgeInsets.all(16),
+-          child: Column(
+-            children: [
+-              SolveRevealWidget(
+-                cooldownSeconds: _coolDownSec,
+-                isRevisit: _isReviewMode,
+-                revealed: _revealed,
+-                answerValue: _detail?.answer,
+-                explanation: _detail?.explanation,
+-                onReveal: _onReveal,
+-                feedbackWidget: !_feedbackGiven ? _buildFeedbackButtons() : null,
+-                feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
+-                onNext: widget.nextQuestionId != null
+-                    ? () {
+-                        SolveRouteHelper.navigateTo(context, widget.nextQuestionId!, _detail!.questionType);
+-                      }
+-                    : null,
+-                onRate: () async {
+-                  await RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}');
+-                },
+-                child: _buildContent(),
+-              ),
+-              if (_attempts.isNotEmpty) ...[
+-                const SizedBox(height: 20),
+-                SizedBox(
+-                  width: double.infinity,
+-                  child: OutlinedButton.icon(
++        appBar: AppBar(title: const Text('填空题')),
++        body: AppContentContainer(
++          maxWidth: AppContentWidth.reading,
++          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
++          child: SingleChildScrollView(
++            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
++            child: Column(
++              crossAxisAlignment: CrossAxisAlignment.stretch,
++              children: [
++                SolveRevealWidget(
++                  cooldownSeconds: _coolDownSec,
++                  isRevisit: _isReviewMode,
++                  revealed: _revealed,
++                  answerValue: _detail?.answer,
++                  explanation: _detail?.explanation,
++                  onReveal: _onReveal,
++                  feedbackWidget: !_feedbackGiven && !_isReviewMode
++                      ? _buildFeedbackButtons()
++                      : null,
++                  feedbackResult:
++                      _feedbackGiven ? _buildFeedbackResult() : null,
++                  onNext: widget.nextQuestionId != null
++                      ? () {
++                          SolveRouteHelper.navigateTo(
++                            context,
++                            widget.nextQuestionId!,
++                            _detail!.questionType,
++                          );
++                        }
++                      : null,
++                  onRate: () async {
++                    await RouterUtils.push(
++                      context,
++                      '${AppRoutes.solveRate}?id=${widget.questionId}',
++                    );
++                  },
++                  child: _buildContent(),
++                ),
++                if (_attempts.isNotEmpty) ...[
++                  const SizedBox(height: AppSpacing.md),
++                  AppButton(
++                    label: '重新作答',
++                    icon: Icons.refresh_rounded,
++                    variant: AppButtonVariant.secondary,
++                    fullWidth: true,
+                     onPressed: _createNewAttempt,
+-                    icon: const Icon(Icons.refresh, size: 16),
+-                    label: const Text('重新作答'),
+                   ),
+-                ),
++                ],
++                const SizedBox(height: AppSpacing.lg),
+               ],
+-            ],
++            ),
+           ),
+         ),
+       ),
+@@ -384,45 +416,28 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   Widget _buildFeedbackResult() {
+-      final colors = context.colors;
+-    return Container(
+-      padding: const EdgeInsets.all(16),
+-      decoration: BoxDecoration(
+-        color: _feedbackCorrect
+-            ? colors.success.withValues(alpha: 0.08)
+-            : colors.textSecondary.withValues(alpha: 0.08),
+-        borderRadius: BorderRadius.circular(12),
+-        border: Border.all(
+-          color: _feedbackCorrect
+-              ? colors.success.withValues(alpha: 0.3)
+-              : colors.textSecondary.withValues(alpha: 0.15),
+-        ),
+-      ),
+-      child: Column(
++    final colors = context.colors;
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.md),
++      child: Row(
+         children: [
+-          Row(
+-            mainAxisAlignment: MainAxisAlignment.center,
+-            children: [
+-              Icon(
+-                _feedbackCorrect ? Icons.check_circle : Icons.cancel,
+-                size: 20,
+-                color: _feedbackCorrect ? colors.success : colors.textSecondary,
+-              ),
+-              const SizedBox(width: 8),
+-              Text(
+-                _feedbackCorrect ? '回答正确！' : '回答有误',
+-                style: TextStyle(
+-                  fontSize: 16,
+-                  fontWeight: FontWeight.w600,
+-                  color: _feedbackCorrect ? colors.success : colors.textSecondary,
+-                ),
+-              ),
+-            ],
++          AppStatusBadge(
++            label: _feedbackCorrect ? '自评：回答正确' : '自评：仍需巩固',
++            tone: _feedbackCorrect
++                ? AppStatusTone.success
++                : AppStatusTone.warning,
++            icon: _feedbackCorrect
++                ? Icons.check_circle_rounded
++                : Icons.replay_rounded,
+           ),
+-          const SizedBox(height: 4),
+-          Text(
+-            _feedbackCorrect ? '' : '继续加油 💪',
+-            style: TextStyle(fontSize: 12, color: colors.textSecondary),
++          const SizedBox(width: AppSpacing.sm),
++          Expanded(
++            child: Text(
++              _feedbackCorrect ? '这道题已经掌握，可以继续下一题。' : '建议结合解析再梳理一遍关键步骤。',
++              style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                    color: colors.textSecondary,
++                  ),
++            ),
+           ),
+         ],
+       ),
+@@ -430,104 +445,52 @@ class _SolveFillPageState extends State<SolveFillPage> {
+   }
+ 
+   Widget _buildContent() {
+-      final colors = context.colors;
+     final detail = _detail;
+     if (detail == null) {
+-      return Text('题目数据不存在',
+-        style: TextStyle(color: colors.textSecondary));
++      return ErrorPlaceholder(
++        message: '题目数据不存在',
++        onRetry: _load,
++      );
+     }
+-    return Column(
+-      crossAxisAlignment: CrossAxisAlignment.stretch,
+-      children: [
+-        // 题目元信息栏
+-        Container(
+-          margin: const EdgeInsets.only(bottom: 16),
+-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+-          decoration: BoxDecoration(
+-            color: colors.primaryContainer.withValues(alpha: 0.3),
+-            borderRadius: BorderRadius.circular(8),
+-          ),
+-          child: Row(
+-            children: [
+-              if (detail.number.isNotEmpty)
+-                Text('第 ${detail.number} 题',
+-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+-                ),
+-              if (detail.number.isNotEmpty && detail.title.isNotEmpty)
+-                const SizedBox(width: 4),
+-              if (detail.title.isNotEmpty)
+-                Expanded(
+-                  child: Text(detail.title,
+-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-                    overflow: TextOverflow.ellipsis,
+-                  ),
+-                ),
+-              const SizedBox(width: 8),
+-              Container(
+-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+-                decoration: BoxDecoration(
+-                  color: colors.primaryContainer,
+-                  borderRadius: BorderRadius.circular(4),
+-                ),
+-                child: Text('[${_typeLabel(detail.questionType)}]',
+-                  style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
+-                ),
+-              ),
+-              const SizedBox(width: 8),
+-              _buildAttemptSelector(),
+-            ],
+-          ),
++
++    return SolveQuestionSurface(
++      number: detail.number,
++      title: detail.title,
++      questionTypeLabel: _typeLabel(detail.questionType),
++      attemptSelector: _buildAttemptSelector(),
++      isReviewMode: _isReviewMode,
++      conceptTags: detail.conceptTags,
++      stem: detail.stem,
++      imagePaths: detail.images,
++      footer: Container(
++        padding: const EdgeInsets.all(AppSpacing.md),
++        decoration: BoxDecoration(
++          color: context.colors.surfaceSubtle,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          border: Border.all(color: context.colors.border),
+         ),
+-        // 回顾横幅
+-        if (_isReviewMode) ...[
+-          Container(
+-            margin: const EdgeInsets.only(bottom: 12),
+-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+-            decoration: BoxDecoration(
+-              color: colors.primaryContainer.withValues(alpha: 0.15),
+-              borderRadius: BorderRadius.circular(8),
+-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+-            ),
+-            child: Text('📋 回顾模式 · 只读浏览，不可修改',
+-              style: TextStyle(fontSize: 13, color: colors.primary),
++        child: Row(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [
++            Icon(
++              Icons.edit_note_rounded,
++              size: 22,
++              color: context.colors.primary,
+             ),
+-          ),
+-        ],
+-        // 概念标签
+-        if (detail.conceptTags.isNotEmpty)
+-          Padding(
+-            padding: const EdgeInsets.only(bottom: 12),
+-            child: Wrap(
+-              spacing: 6,
+-              runSpacing: 4,
+-              children: [
+-                const Padding(
+-                  padding: EdgeInsets.only(top: 2),
+-                  child: Text('\u{1F3F7}\u{FE0F}',
+-                    style: TextStyle(fontSize: 14),
+-                  ),
+-                ),
+-                ...detail.conceptTags.map((tag) => Container(
+-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+-                  decoration: BoxDecoration(
+-                    color: colors.primaryContainer,
+-                    borderRadius: BorderRadius.circular(4),
+-                  ),
+-                  child: Text(tag, style: TextStyle(fontSize: 12, color: colors.primary)),
+-                )),
+-              ],
++            const SizedBox(width: AppSpacing.sm),
++            Expanded(
++              child: Text(
++                '请先独立完成推导或计算。阅读时间结束后，再查看标准答案并进行自评。',
++                style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                      color: context.colors.textSecondary,
++                    ),
++              ),
+             ),
+-          ),
+-        // 题干（含 LaTeX）
+-        MdLatexBody(detail.stem, fontSize: 15),
+-        const SizedBox(height: 16),
+-        // 图片
+-        ...detail.images.map((url) => Padding(
+-          padding: const EdgeInsets.only(bottom: 12),
+-          child: QuestionImage(relativePath: url),
+-        )),
+-      ],
++          ],
++        ),
++      ),
+     );
+   }
++
+ }
+ 
+diff --git a/flutter_app/lib/pages/solve/solve_map_page.dart b/flutter_app/lib/pages/solve/solve_map_page.dart
+index aa89c55..c00b14c 100644
+--- a/flutter_app/lib/pages/solve/solve_map_page.dart
++++ b/flutter_app/lib/pages/solve/solve_map_page.dart
+@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
+ import 'package:go_router/go_router.dart';
+ import '../router.dart';
+ import 'package:shared/widgets/loading_indicator.dart';
++import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import 'package:shared/theme/app_theme.dart';
+ import '../../data/daos/question_dao.dart';
+ import '../../data/daos/progress_dao.dart';
+@@ -149,7 +154,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
+ 
+   // 入口分流路由构造
+   String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
+-      final colors = context.colors;
+     final buf = StringBuffer('${AppRoutes.solveStep}?id=${widget.questionId}'
+         '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
+     if (_currentAttemptNumber != null) {
+@@ -158,18 +162,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
+     return buf.toString();
+   }
+ 
+-  String _typeLabel(String type) {
+-      final colors = context.colors;
+-    switch (type) {
+-      case 'choice': return '选择';
+-      case 'fill': return '填空';
+-      case 'solution': return '解答';
+-      default: return type;
+-    }
+-  }
+-
+   String _formatCardLabels(List<String> cards) {
+-      final colors = context.colors;
+     if (cards.isEmpty) return '';
+     if (cards.length == 1) return cards.first;
+     return '${cards.first} 等 ${cards.length} 个';
+@@ -177,22 +170,25 @@ class _SolveMapPageState extends State<SolveMapPage> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+     return Scaffold(
+-      appBar: AppBar(title: Text('解题地图')),
++      appBar: AppBar(title: const Text('解题步骤')),
+       body: _loading
+-          ? LoadingIndicator()
++          ? const LoadingIndicator(message: '正在整理解题步骤')
+           : _error != null
+-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
+-                  SizedBox(height: 8),
+-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: Text('重试')),
+-                ]))
++              ? ErrorPlaceholder(
++                  message: '解题步骤加载失败，请检查后重试',
++                  onRetry: () {
++                    setState(() {
++                      _error = null;
++                      _loading = true;
++                    });
++                    _load();
++                  },
++                )
+               : _buildMapView(),
+     );
+   }
+ 
+-
+   Widget _buildAttemptSelector() {
+       final colors = context.colors;
+     if (_attempts.isEmpty) return SizedBox.shrink();
+@@ -287,225 +283,326 @@ class _SolveMapPageState extends State<SolveMapPage> {
+   }
+ 
+   Widget _buildMapView() {
+-      final colors = context.colors;
++    final colors = context.colors;
+     if (_state == null || _state!.subQuestions.isEmpty) {
+-      return Center(child: Text('暂无步骤数据'));
++      return const Center(child: Text('暂无步骤数据'));
+     }
+-    return ListView(
+-      padding: EdgeInsets.all(16),
+-      children: [
+-        // 题目元信息栏
+-        if (_detail != null)
+-          Container(
+-            margin: EdgeInsets.only(bottom: 12),
+-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+-            decoration: BoxDecoration(
+-              color: colors.primaryContainer.withValues(alpha: 0.3),
+-              borderRadius: BorderRadius.circular(8),
+-            ),
+-            child: Row(
+-              children: [
+-                if (_detail!.number.isNotEmpty)
+-                  Text('第 ${_detail!.number} 题',
+-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+-                  ),
+-                if (_detail!.number.isNotEmpty && _detail!.title.isNotEmpty)
+-                  SizedBox(width: 4),
+-                if (_detail!.title.isNotEmpty)
+-                  Expanded(
+-                    child: Text(_detail!.title,
+-                      style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-                      overflow: TextOverflow.ellipsis,
++
++    return AppContentContainer(
++      maxWidth: AppContentWidth.standard,
++      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
++      child: ListView(
++        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
++        children: [
++          if (_detail != null)
++            AppCard(
++              padding: const EdgeInsets.all(AppSpacing.md),
++              child: Wrap(
++                spacing: AppSpacing.xs,
++                runSpacing: AppSpacing.xs,
++                crossAxisAlignment: WrapCrossAlignment.center,
++                children: [
++                  if (_detail!.number.isNotEmpty)
++                    Text(
++                      '第 ${_detail!.number} 题',
++                      style: Theme.of(context).textTheme.titleMedium,
+                     ),
++                  const AppStatusBadge(
++                    label: '解答题',
++                    tone: AppStatusTone.primary,
++                    compact: true,
+                   ),
+-                SizedBox(width: 8),
+-                Container(
+-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+-                  decoration: BoxDecoration(
+-                    color: colors.primaryContainer,
+-                    borderRadius: BorderRadius.circular(4),
+-                  ),
+-                  child: Text('[${_typeLabel(_detail!.questionType)}]',
+-                    style: TextStyle(fontSize: 11, color: colors.primary, fontWeight: FontWeight.w500),
+-                  ),
+-                ),
+-                SizedBox(width: 8),
+-                _buildAttemptSelector(),
+-              ],
+-            ),
+-          ),
+-
+-        // 回顾横幅
+-        if (_reviewMode)
+-          Container(
+-            margin: EdgeInsets.only(bottom: 12),
+-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+-            decoration: BoxDecoration(
+-              color: colors.primaryContainer.withValues(alpha: 0.15),
+-              borderRadius: BorderRadius.circular(8),
+-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
++                  _buildAttemptSelector(),
++                  if (_detail!.title.isNotEmpty)
++                    Text(
++                      _detail!.title,
++                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                            color: colors.textSecondary,
++                          ),
++                    ),
++                ],
++              ),
+             ),
+-            child: Text('\u{1F4CB} 回顾模式 \u00B7 只读浏览，不可修改',
+-              style: TextStyle(fontSize: 13, color: colors.primary),
++          if (_reviewMode) ...[
++            const SizedBox(height: AppSpacing.md),
++            const Align(
++              alignment: Alignment.centerLeft,
++              child: AppStatusBadge(
++                label: '回顾模式 · 当前步骤记录只读',
++                tone: AppStatusTone.info,
++                icon: Icons.history_rounded,
++              ),
+             ),
++          ],
++          const SizedBox(height: AppSpacing.lg),
++          Text('选择解题路径', style: Theme.of(context).textTheme.titleLarge),
++          const SizedBox(height: AppSpacing.xs),
++          Text(
++            '按步骤逐层展开解析，并在每一步完成后进行自评。',
++            style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                  color: colors.textSecondary,
++                ),
+           ),
+-
+-        // 解题树
+-        ..._state!.subQuestions.asMap().entries.map((sqEntry) {
+-          final subQIdx = sqEntry.key; // 0-based
+-          final sq = sqEntry.value;
+-          // 方法级完成检测
+-          bool anyMethodFullyDone = false;
+-          bool allMethodsFullyDone = true;
+-          bool hasAnyStepDone = false;
+-
+-          for (final mEntry in sq.solutions.asMap().entries) {
+-            final mi = mEntry.key;
+-            final m = mEntry.value;
+-            bool thisMethodAllDone = true;
+-            for (final s in m.steps) {
+-              final isDone = _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}');
+-              if (isDone) { hasAnyStepDone = true; } else { thisMethodAllDone = false; }
++          const SizedBox(height: AppSpacing.md),
++          ..._state!.subQuestions.asMap().entries.map((sqEntry) {
++            final subQIdx = sqEntry.key;
++            final sq = sqEntry.value;
++            var anyMethodFullyDone = false;
++            var allMethodsFullyDone = true;
++            var hasAnyStepDone = false;
++
++            for (final mEntry in sq.solutions.asMap().entries) {
++              final methodIndex = mEntry.key;
++              final method = mEntry.value;
++              var methodDone = true;
++              for (final step in method.steps) {
++                final isDone = _completedSteps.contains(
++                  '${sq.index}_${methodIndex}_${step.stepNumber}',
++                );
++                if (isDone) {
++                  hasAnyStepDone = true;
++                } else {
++                  methodDone = false;
++                }
++              }
++              if (methodDone && method.steps.isNotEmpty) {
++                anyMethodFullyDone = true;
++              } else {
++                allMethodsFullyDone = false;
++              }
+             }
+-            if (thisMethodAllDone) { anyMethodFullyDone = true; } else { allMethodsFullyDone = false; }
+-          }
+-          // 没有方法（空题）
+-          if (sq.solutions.isEmpty) allMethodsFullyDone = false;
+-
+-          String statusLabel;
+-          Color statusColor;
+-          if (allMethodsFullyDone && sq.solutions.isNotEmpty) {
+-            statusLabel = '完全掌握';
+-            statusColor = colors.warning; // 金色
+-          } else if (anyMethodFullyDone) {
+-            statusLabel = '已完成';
+-            statusColor = colors.success;
+-          } else if (hasAnyStepDone) {
+-            statusLabel = '进行中...';
+-            statusColor = colors.warning;
+-          } else {
+-            statusLabel = '未解锁';
+-            statusColor = colors.textSecondary;
+-          }
+-
+-          return Container(
+-            margin: EdgeInsets.only(bottom: 16),
+-            padding: EdgeInsets.all(14),
+-            decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
+-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+-              Row(children: [
+-                Expanded(child: Text(sq.label,
+-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.textPrimary))),
+-                Container(
+-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+-                  decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+-                  child: Text(statusLabel, style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w500)),
+-                ),
+-              ]),
+-              SizedBox(height: 10),
+-              ...sq.solutions.asMap().entries.map((mEntry) {
+-                final mi = mEntry.key;
+-                final m = mEntry.value;
+-                final methodKey = '${sq.index}_$mi';
+-                final isCollapsed = _collapsedMethods.contains(methodKey);
+-
+-                return Padding(
+-                  padding: EdgeInsets.only(bottom: 8),
+-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+-                    // 解法标题（可点击折叠）
+-                    InkWell(
+-                      onTap: () {
+-                        setState(() {
+-                          if (isCollapsed) {
+-                            _collapsedMethods.remove(methodKey);
+-                          } else {
+-                            _collapsedMethods.add(methodKey);
+-                          }
+-                        });
+-                      },
+-                      child: Padding(
+-                        padding: EdgeInsets.only(bottom: 6),
+-                        child: Row(children: [
+-                          Text(m.methodName?.isNotEmpty == true ? '\u{1F4D0} ${m.methodName}' : '唯一解法',
+-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
+-                          Spacer(),
+-                          Text('${m.steps.where((s) => _completedSteps.contains('${sq.index}_${mi}_${s.stepNumber}')).length}/${m.steps.length} 步',
+-                            style: TextStyle(fontSize: 11, color: colors.textSecondary)),
+-                          SizedBox(width: 4),
+-                          Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
+-                            size: 16, color: colors.textSecondary),
+-                        ]),
+-                      ),
++            if (sq.solutions.isEmpty) allMethodsFullyDone = false;
++
++            final (statusLabel, statusTone) = allMethodsFullyDone
++                ? ('完全掌握', AppStatusTone.recommendation)
++                : anyMethodFullyDone
++                    ? ('已完成', AppStatusTone.success)
++                    : hasAnyStepDone
++                        ? ('进行中', AppStatusTone.warning)
++                        : ('待开始', AppStatusTone.neutral);
++
++            return Padding(
++              padding: const EdgeInsets.only(bottom: AppSpacing.md),
++              child: AppCard(
++                padding: const EdgeInsets.all(AppSpacing.lg),
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.stretch,
++                  children: [
++                    Row(
++                      children: [
++                        Expanded(
++                          child: Text(
++                            sq.label,
++                            style: Theme.of(context).textTheme.titleMedium,
++                          ),
++                        ),
++                        AppStatusBadge(
++                          label: statusLabel,
++                          tone: statusTone,
++                          compact: true,
++                        ),
++                      ],
+                     ),
+-                    // 步骤列表（折叠时隐藏）
+-                    if (!isCollapsed)
+-                      ...m.steps.asMap().entries.map((sEntry) {
+-                        final si = sEntry.key;
+-                        final st = sEntry.value;
+-                        final stepKey = '${sq.index}_${mi}_${st.stepNumber}';
+-                        final isStepDone = _completedSteps.contains(stepKey);
+-                        final stepLocked = !isStepDone && si > 0 &&
+-                            m.steps.take(si).every((ps) => !_completedSteps.contains('${sq.index}_${mi}_${ps.stepNumber}'));
+-                        return InkWell(
+-                          onTap: stepLocked ? null : () async {
+-                            await RouterUtils.push(context,_buildStepRoute(subQIdx, mi, si));
+-                            _load();
+-                          },
+-                          child: Padding(
+-                            padding: EdgeInsets.symmetric(vertical: 4),
+-                            child: Row(children: [
+-                              Container(width: 24, height: 24,
+-                                decoration: BoxDecoration(
+-                                  color: isStepDone ? colors.success : (stepLocked ? colors.disabledBackground : colors.primaryContainer),
+-                                  borderRadius: BorderRadius.circular(12)),
+-                                child: Center(child: isStepDone
+-                                  ? Icon(Icons.check, size: 14, color: Colors.white)
+-                                  : (stepLocked
+-                                    ? Text('\u{1F512}', style: TextStyle(fontSize: 11))
+-                                    : Text('${st.stepNumber}', style: TextStyle(fontSize: 11, color: colors.primary))))),
+-                              SizedBox(width: 10),
+-                              Expanded(
+-                                child: Column(
+-                                  crossAxisAlignment: CrossAxisAlignment.start,
+-                                  mainAxisSize: MainAxisSize.min,
+-                                  children: [
+-                                    Text('第 ${st.stepNumber} 步',
+-                                      style: TextStyle(fontSize: 13, color: isStepDone ? colors.success : (stepLocked ? colors.textSecondary : colors.textPrimary))),
+-                                    if (!stepLocked && st.cardTitles.isNotEmpty)
+-                                      Text(_formatCardLabels(st.cardTitles),
+-                                        style: TextStyle(fontSize: 10, color: colors.textSecondary)),
+-                                  ],
++                    const SizedBox(height: AppSpacing.md),
++                    ...sq.solutions.asMap().entries.map((mEntry) {
++                      final methodIndex = mEntry.key;
++                      final method = mEntry.value;
++                      final methodKey = '${sq.index}_$methodIndex';
++                      final collapsed = _collapsedMethods.contains(methodKey);
++                      final completedCount = method.steps
++                          .where(
++                            (step) => _completedSteps.contains(
++                              '${sq.index}_${methodIndex}_${step.stepNumber}',
++                            ),
++                          )
++                          .length;
++
++                      return Padding(
++                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
++                        child: Container(
++                          decoration: BoxDecoration(
++                            color: colors.surfaceSubtle,
++                            borderRadius: BorderRadius.circular(AppRadius.medium),
++                            border: Border.all(color: colors.border),
++                          ),
++                          child: Column(
++                            children: [
++                              InkWell(
++                                onTap: () {
++                                  setState(() {
++                                    if (collapsed) {
++                                      _collapsedMethods.remove(methodKey);
++                                    } else {
++                                      _collapsedMethods.add(methodKey);
++                                    }
++                                  });
++                                },
++                                borderRadius: BorderRadius.circular(
++                                  AppRadius.medium,
++                                ),
++                                child: Padding(
++                                  padding: const EdgeInsets.all(AppSpacing.md),
++                                  child: Row(
++                                    children: [
++                                      Icon(
++                                        Icons.account_tree_outlined,
++                                        size: 20,
++                                        color: colors.primary,
++                                      ),
++                                      const SizedBox(width: AppSpacing.xs),
++                                      Expanded(
++                                        child: Text(
++                                          method.methodName?.isNotEmpty == true
++                                              ? method.methodName!
++                                              : '标准解法',
++                                          style: Theme.of(context)
++                                              .textTheme
++                                              .titleSmall,
++                                        ),
++                                      ),
++                                      Text(
++                                        '$completedCount/${method.steps.length} 步',
++                                        style: Theme.of(context)
++                                            .textTheme
++                                            .bodySmall
++                                            ?.copyWith(
++                                              color: colors.textSecondary,
++                                            ),
++                                      ),
++                                      const SizedBox(width: AppSpacing.xs),
++                                      Icon(
++                                        collapsed
++                                            ? Icons.expand_more_rounded
++                                            : Icons.expand_less_rounded,
++                                        color: colors.textSecondary,
++                                      ),
++                                    ],
++                                  ),
+                                 ),
+                               ),
+-                              if (!stepLocked) Icon(Icons.arrow_forward_ios, size: 12, color: colors.textSecondary),
+-                            ]),
++                              if (!collapsed)
++                                Padding(
++                                  padding: const EdgeInsets.fromLTRB(
++                                    AppSpacing.md,
++                                    0,
++                                    AppSpacing.md,
++                                    AppSpacing.md,
++                                  ),
++                                  child: Column(
++                                    children: method.steps.asMap().entries.map(
++                                      (stepEntry) {
++                                        final stepIndex = stepEntry.key;
++                                        final step = stepEntry.value;
++                                        final stepKey =
++                                            '${sq.index}_${methodIndex}_${step.stepNumber}';
++                                        final isDone =
++                                            _completedSteps.contains(stepKey);
++                                        final locked = !isDone &&
++                                            stepIndex > 0 &&
++                                            method.steps.take(stepIndex).every(
++                                                  (previous) => !_completedSteps
++                                                      .contains(
++                                                    '${sq.index}_${methodIndex}_${previous.stepNumber}',
++                                                  ),
++                                                );
++
++                                        return Padding(
++                                          padding: const EdgeInsets.only(
++                                            top: AppSpacing.xs,
++                                          ),
++                                          child: _SolveStepTile(
++                                            stepNumber: step.stepNumber,
++                                            label: '第 ${step.stepNumber} 步',
++                                            subtitle: !locked &&
++                                                    step.cardTitles.isNotEmpty
++                                                ? _formatCardLabels(
++                                                    step.cardTitles,
++                                                  )
++                                                : null,
++                                            isDone: isDone,
++                                            isLocked: locked,
++                                            onTap: locked
++                                                ? null
++                                                : () async {
++                                                    await RouterUtils.push(
++                                                      context,
++                                                      _buildStepRoute(
++                                                        subQIdx,
++                                                        methodIndex,
++                                                        stepIndex,
++                                                      ),
++                                                    );
++                                                    _load();
++                                                  },
++                                          ),
++                                        );
++                                      },
++                                    ).toList(),
++                                  ),
++                                ),
++                            ],
+                           ),
+-                        );
+-                      }),
+-                  ]),
++                        ),
++                      );
++                    }),
++                  ],
++                ),
++              ),
++            );
++          }),
++          const SizedBox(height: AppSpacing.xs),
++          LayoutBuilder(
++            builder: (context, constraints) {
++              final compact = constraints.maxWidth < 620;
++              final actions = [
++                AppButton(
++                  label: '返回',
++                  icon: Icons.arrow_back_rounded,
++                  variant: AppButtonVariant.secondary,
++                  onPressed: () => context.pop(),
++                ),
++                AppButton(
++                  label: '重新作答',
++                  icon: Icons.refresh_rounded,
++                  variant: AppButtonVariant.secondary,
++                  onPressed: _onRetry,
++                ),
++                AppButton(
++                  label: '给题目评分',
++                  icon: Icons.star_outline_rounded,
++                  onPressed: () => RouterUtils.push(
++                    context,
++                    '${AppRoutes.solveRate}?id=${widget.questionId}',
++                  ),
++                ),
++              ];
++
++              if (compact) {
++                return Column(
++                  crossAxisAlignment: CrossAxisAlignment.stretch,
++                  children: [
++                    for (var i = 0; i < actions.length; i++) ...[
++                      actions[i],
++                      if (i != actions.length - 1)
++                        const SizedBox(height: AppSpacing.xs),
++                    ],
++                  ],
+                 );
+-              }),
+-            ]),
+-          );
+-        }),
+-        SizedBox(height: 8),
+-        Row(children: [
+-          Expanded(child: OutlinedButton.icon(
+-            onPressed: () => context.pop(),
+-            icon: Icon(Icons.arrow_back, size: 16),
+-            label: Text('返回'))),
+-          SizedBox(width: 12),
+-          Expanded(child: OutlinedButton.icon(
+-            onPressed: _onRetry,
+-            icon: Icon(Icons.refresh, size: 16),
+-            label: Text('重新作答'))),
+-          SizedBox(width: 12),
+-          Expanded(child: OutlinedButton.icon(
+-            onPressed: () => RouterUtils.push(context,'${AppRoutes.solveRate}?id=${widget.questionId}'),
+-            icon: Icon(Icons.star, size: 16),
+-            label: Text('评分'))),
+-        ]),
+-      ],
++              }
++              return Row(
++                children: [
++                  for (var i = 0; i < actions.length; i++) ...[
++                    Expanded(child: actions[i]),
++                    if (i != actions.length - 1)
++                      const SizedBox(width: AppSpacing.sm),
++                  ],
++                ],
++              );
++            },
++          ),
++          const SizedBox(height: AppSpacing.lg),
++        ],
++      ),
+     );
+   }
+ 
+@@ -519,3 +616,114 @@ class _SolveMapPageState extends State<SolveMapPage> {
+   }
+ }
+ 
++class _SolveStepTile extends StatelessWidget {
++  const _SolveStepTile({
++    required this.stepNumber,
++    required this.label,
++    required this.isDone,
++    required this.isLocked,
++    this.subtitle,
++    this.onTap,
++  });
++
++  final int stepNumber;
++  final String label;
++  final String? subtitle;
++  final bool isDone;
++  final bool isLocked;
++  final VoidCallback? onTap;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final foreground = isDone
++        ? colors.success
++        : isLocked
++            ? colors.disabledForeground
++            : colors.textPrimary;
++
++    return Semantics(
++      button: onTap != null,
++      enabled: onTap != null,
++      label: '$label${isLocked ? '，未解锁' : isDone ? '，已完成' : ''}',
++      child: Material(
++        color: colors.surface,
++        borderRadius: BorderRadius.circular(AppRadius.medium),
++        child: InkWell(
++          onTap: onTap,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          child: Padding(
++            padding: const EdgeInsets.all(AppSpacing.sm),
++            child: Row(
++              children: [
++                Container(
++                  width: 32,
++                  height: 32,
++                  decoration: BoxDecoration(
++                    color: isDone
++                        ? colors.successContainer
++                        : isLocked
++                            ? colors.disabledBackground
++                            : colors.primaryContainer,
++                    shape: BoxShape.circle,
++                    border: Border.all(
++                      color: isDone
++                          ? colors.success
++                          : isLocked
++                              ? colors.border
++                              : colors.primaryBorder,
++                    ),
++                  ),
++                  child: Center(
++                    child: isDone
++                        ? Icon(Icons.check_rounded,
++                            size: 18, color: colors.success)
++                        : isLocked
++                            ? Icon(Icons.lock_outline_rounded,
++                                size: 16, color: colors.disabledForeground)
++                            : Text(
++                                '$stepNumber',
++                                style: Theme.of(context)
++                                    .textTheme
++                                    .labelMedium
++                                    ?.copyWith(color: colors.primary),
++                              ),
++                  ),
++                ),
++                const SizedBox(width: AppSpacing.sm),
++                Expanded(
++                  child: Column(
++                    crossAxisAlignment: CrossAxisAlignment.start,
++                    children: [
++                      Text(
++                        label,
++                        style: Theme.of(context)
++                            .textTheme
++                            .titleSmall
++                            ?.copyWith(color: foreground),
++                      ),
++                      if (subtitle != null) ...[
++                        const SizedBox(height: AppSpacing.xxs),
++                        Text(
++                          subtitle!,
++                          style: Theme.of(context)
++                              .textTheme
++                              .bodySmall
++                              ?.copyWith(color: colors.textSecondary),
++                        ),
++                      ],
++                    ],
++                  ),
++                ),
++                if (!isLocked)
++                  Icon(Icons.chevron_right_rounded,
++                      color: colors.textSecondary),
++              ],
++            ),
++          ),
++        ),
++      ),
++    );
++  }
++}
++
+diff --git a/flutter_app/lib/pages/solve/solve_rate_page.dart b/flutter_app/lib/pages/solve/solve_rate_page.dart
+index a5cbe6f..165b5dc 100644
+--- a/flutter_app/lib/pages/solve/solve_rate_page.dart
++++ b/flutter_app/lib/pages/solve/solve_rate_page.dart
+@@ -1,26 +1,33 @@
+ import 'package:flutter/material.dart';
+-import 'package:shared/widgets/loading_indicator.dart';
+-import 'package:shared/widgets/app_toast.dart';
+-import '../../widgets/shared/format_utils.dart';
++import 'package:shared/debug/audit_logger.dart';
++import 'package:shared/debug/operation_log.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import '../../data/daos/rating_dao.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
++import 'package:shared/widgets/app_toast.dart';
++import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/loading_indicator.dart';
++
+ import '../../data/daos/question_dao.dart';
++import '../../data/daos/rating_dao.dart';
+ import '../../data/daos/system_config_dao.dart';
+ import '../../data/database/database_provider.dart';
+ import '../../domain/rating_repository.dart';
+-import 'package:shared/debug/audit_logger.dart';
+-import 'package:shared/debug/operation_log.dart';
++import '../../widgets/shared/format_utils.dart';
+ 
+-/// 评分页（3维×10星）
++/// 题目多维评分页。
+ class SolveRatePage extends StatefulWidget {
+-  final int questionId;
+-  final RatingRepository? ratingRepository;
+-
+-  SolveRatePage({
++  const SolveRatePage({
+     super.key,
+     required this.questionId,
+     this.ratingRepository,
+   });
++
++  final int questionId;
++  final RatingRepository? ratingRepository;
++
+   @override
+   State<SolveRatePage> createState() => _SolveRatePageState();
+ }
+@@ -41,22 +48,23 @@ class _SolveRatePageState extends State<SolveRatePage> {
+   @override
+   void initState() {
+     super.initState();
+-    _ratingRepo = widget.ratingRepository ?? RatingRepository(
+-      RatingDao(DatabaseProvider()),
+-      QuestionDao(DatabaseProvider()),
+-    );
++    _ratingRepo = widget.ratingRepository ??
++        RatingRepository(
++          RatingDao(DatabaseProvider()),
++          QuestionDao(DatabaseProvider()),
++        );
+     _loadRating();
+   }
+ 
+   Future<void> _loadRating() async {
+     try {
+-      // 加载奖励积分配置（独立 try-catch，失败不影响主流程）
+       try {
+         final cfg = SystemConfigDao(DatabaseProvider());
+         _rewardPoints = await cfg.getDouble('question_rating_reward', 0.3);
+-      } catch (_) {} 
++      } catch (_) {}
+ 
+       final rating = await _ratingRepo.getRating(widget.questionId);
++      if (!mounted) return;
+       setState(() {
+         _algoDifficulty = rating.algorithmDifficulty;
+         _algoCalculation = rating.algorithmCalculation;
+@@ -68,15 +76,24 @@ class _SolveRatePageState extends State<SolveRatePage> {
+         }
+         _loading = false;
+       });
+-      AuditLogger.instance.page('SolveRatePage', {'difficulty': _difficulty, 'calcScore': _calculation});
+-    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
++      AuditLogger.instance.page('SolveRatePage', {
++        'difficulty': _difficulty,
++        'calcScore': _calculation,
++      });
++    } catch (e) {
++      OperationLog.instance.error('solve_rate_page_load', e);
+       AuditLogger.instance.error('SolveRatePage._loadRating', e);
+-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
++      if (mounted) {
++        setState(() {
++          _loading = false;
++          _error = e.toString();
++        });
++      }
+     }
+   }
+ 
+   Future<void> _submit() async {
+-      final colors = context.colors;
++    final colors = context.colors;
+     setState(() => _saving = true);
+     try {
+       await _ratingRepo.submitRating(
+@@ -85,19 +102,30 @@ class _SolveRatePageState extends State<SolveRatePage> {
+         calculation: _calculation.toDouble(),
+         elegance: _elegance.toDouble(),
+       );
+-      setState(() { _submitted = true; _saving = false; });
+-      OperationLog.instance.action('rate', 'submitted qid=${widget.questionId}');
+       if (!mounted) return;
+-      AppToast.show(context,
+-        icon: Icons.check_circle, message: '评分已提交！+$_rewardPoints 赠送积分',
++      setState(() {
++        _submitted = true;
++        _saving = false;
++      });
++      OperationLog.instance.action(
++        'rate',
++        'submitted qid=${widget.questionId}',
++      );
++      AppToast.show(
++        context,
++        icon: Icons.check_circle_rounded,
++        message: '评分已提交！+$_rewardPoints 赠送积分',
+         backgroundColor: colors.success,
+       );
+-    } catch (e) { OperationLog.instance.error('solve_rate_page_load', e); 
++    } catch (e) {
++      OperationLog.instance.error('solve_rate_page_load', e);
+       AuditLogger.instance.error('SolveRatePage._submit', e);
+-      setState(() => _saving = false);
+       if (!mounted) return;
+-      AppToast.show(context,
+-        icon: Icons.error, message: '评分提交失败，请重试',
++      setState(() => _saving = false);
++      AppToast.show(
++        context,
++        icon: Icons.error_rounded,
++        message: '评分提交失败，请重试',
+         backgroundColor: colors.error,
+       );
+     }
+@@ -105,109 +133,233 @@ class _SolveRatePageState extends State<SolveRatePage> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
++    final colors = context.colors;
+     return Scaffold(
+-      appBar: AppBar(title: Text('评分')),
++      appBar: AppBar(title: const Text('题目评分')),
+       body: _loading
+-          ? LoadingIndicator()
++          ? const LoadingIndicator(message: '正在读取评分')
+           : _error != null
+-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
+-                  SizedBox(height: 8),
+-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _loadRating(); }, child: Text('重试')),
+-                ]))
+-              : SingleChildScrollView(
+-              padding: EdgeInsets.all(16),
+-              child: Column(
+-                crossAxisAlignment: CrossAxisAlignment.stretch,
+-                children: [
+-                  Text('请为这道题打分', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+-                  SizedBox(height: 8),
+-                  Text('你的评分帮助其他同学更好地了解题目难度', style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+-                  SizedBox(height: 24),
+-                  _StarRating(label: '难度', value: _difficulty, note: '', algorithmScore: _algoDifficulty > 0 ? _algoDifficulty : null, max: 10, onChanged: (v) => setState(() => _difficulty = v)),
+-                  SizedBox(height: 20),
+-                  _StarRating(label: '计算量', value: _calculation, note: '', algorithmScore: _algoCalculation > 0 ? _algoCalculation : null, max: 10, onChanged: (v) => setState(() => _calculation = v)),
+-                  SizedBox(height: 20),
+-                  _StarRating(label: '优雅度', value: _elegance, note: '你的主观感受', max: 10, onChanged: (v) => setState(() => _elegance = v)),
+-                  SizedBox(height: 12),
+-                  Text('可跳过，不影响学习记录 · 绿色为算法综合评估分',
+-                    style: TextStyle(fontSize: 12, color: colors.textSecondary, height: 1.4),
+-                    textAlign: TextAlign.center,
++              ? ErrorPlaceholder(
++                  message: '评分信息加载失败，请检查后重试',
++                  onRetry: () {
++                    setState(() {
++                      _error = null;
++                      _loading = true;
++                    });
++                    _loadRating();
++                  },
++                )
++              : AppContentContainer(
++                  maxWidth: AppContentWidth.reading,
++                  padding: const EdgeInsets.symmetric(
++                    horizontal: AppSpacing.md,
+                   ),
+-                  SizedBox(height: 20),
+-                  ElevatedButton(
+-                    onPressed: (_submitted || _saving) ? null : _submit,
+-                    child: _saving
+-                        ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+-                        : Text(_submitted ? '已评分' : '提交评分（可获得 +$_rewardPoints 赠送积分）'),
++                  child: SingleChildScrollView(
++                    padding: const EdgeInsets.symmetric(
++                      vertical: AppSpacing.lg,
++                    ),
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.stretch,
++                      children: [
++                        AppCard(
++                          padding: const EdgeInsets.all(AppSpacing.lg),
++                          child: Column(
++                            crossAxisAlignment: CrossAxisAlignment.start,
++                            children: [
++                              const AppStatusBadge(
++                                label: '完成后反馈',
++                                tone: AppStatusTone.recommendation,
++                                icon: Icons.star_rounded,
++                              ),
++                              const SizedBox(height: AppSpacing.md),
++                              Text(
++                                '请为这道题打分',
++                                style: Theme.of(context).textTheme.titleLarge,
++                              ),
++                              const SizedBox(height: AppSpacing.xs),
++                              Text(
++                                '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
++                                style: Theme.of(context)
++                                    .textTheme
++                                    .bodySmall
++                                    ?.copyWith(color: colors.textSecondary),
++                              ),
++                            ],
++                          ),
++                        ),
++                        const SizedBox(height: AppSpacing.md),
++                        _StarRating(
++                          label: '理解难度',
++                          description: '理解题意和找到解法有多困难',
++                          value: _difficulty,
++                          algorithmScore:
++                              _algoDifficulty > 0 ? _algoDifficulty : null,
++                          max: 10,
++                          onChanged: _submitted
++                              ? null
++                              : (value) =>
++                                  setState(() => _difficulty = value),
++                        ),
++                        const SizedBox(height: AppSpacing.md),
++                        _StarRating(
++                          label: '计算量',
++                          description: '实际推导、运算和书写工作量',
++                          value: _calculation,
++                          algorithmScore:
++                              _algoCalculation > 0 ? _algoCalculation : null,
++                          max: 10,
++                          onChanged: _submitted
++                              ? null
++                              : (value) =>
++                                  setState(() => _calculation = value),
++                        ),
++                        const SizedBox(height: AppSpacing.md),
++                        _StarRating(
++                          label: '解法优雅度',
++                          description: '解法是否简洁、自然且具有启发性',
++                          value: _elegance,
++                          max: 10,
++                          onChanged: _submitted
++                              ? null
++                              : (value) => setState(() => _elegance = value),
++                        ),
++                        const SizedBox(height: AppSpacing.md),
++                        Text(
++                          '评分可跳过，不影响学习记录；算法评分仅作为参考。',
++                          style: Theme.of(context)
++                              .textTheme
++                              .bodySmall
++                              ?.copyWith(color: colors.textSecondary),
++                          textAlign: TextAlign.center,
++                        ),
++                        const SizedBox(height: AppSpacing.md),
++                        if (_submitted)
++                          AppCard(
++                            padding: const EdgeInsets.all(AppSpacing.md),
++                            child: Row(
++                              children: [
++                                const AppStatusBadge(
++                                  label: '评分已提交',
++                                  tone: AppStatusTone.success,
++                                ),
++                                const Spacer(),
++                                AppButton(
++                                  label: '修改评分',
++                                  icon: Icons.edit_outlined,
++                                  variant: AppButtonVariant.text,
++                                  onPressed: () =>
++                                      setState(() => _submitted = false),
++                                ),
++                              ],
++                            ),
++                          )
++                        else
++                          AppButton(
++                            label: '提交评分（+$_rewardPoints 赠送积分）',
++                            icon: Icons.send_rounded,
++                            fullWidth: true,
++                            isLoading: _saving,
++                            onPressed: _saving ? null : _submit,
++                          ),
++                        const SizedBox(height: AppSpacing.lg),
++                      ],
++                    ),
+                   ),
+-                  if (_submitted) ...[
+-                    SizedBox(height: 12),
+-                    Center(child: TextButton(
+-                      onPressed: () => setState(() => _submitted = false),
+-                      child: Text('修改评分'),
+-                    )),
+-                  ],
+-                ],
+-              ),
+-            ),
++                ),
+     );
+   }
+ }
+ 
+ class _StarRating extends StatelessWidget {
++  const _StarRating({
++    required this.label,
++    required this.description,
++    required this.value,
++    required this.max,
++    required this.onChanged,
++    this.algorithmScore,
++  });
++
+   final String label;
++  final String description;
+   final int value;
+-  final String note;
+   final int max;
+   final double? algorithmScore;
+-  final ValueChanged<int> onChanged;
+-  _StarRating({required this.label, required this.value, required this.note, required this.max, this.algorithmScore, required this.onChanged});
++  final ValueChanged<int>? onChanged;
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    return Container(
+-      padding: EdgeInsets.all(16),
+-      decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(12)),
+-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+-        Row(children: [
+-          Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+-          if (algorithmScore != null && algorithmScore! > 0) ...[
+-            SizedBox(width: 8),
+-            Container(
+-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+-              decoration: BoxDecoration(
+-                color: colors.success.withValues(alpha: 0.1),
+-                borderRadius: BorderRadius.circular(12),
+-              ),
+-              child: Text('算法: ${formatAmount(algorithmScore!)}',
+-                style: TextStyle(fontSize: 11, color: colors.success, fontWeight: FontWeight.w500),
++    final colors = context.colors;
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Row(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(label, style: Theme.of(context).textTheme.titleMedium),
++                    const SizedBox(height: AppSpacing.xxs),
++                    Text(
++                      description,
++                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                            color: colors.textSecondary,
++                          ),
++                    ),
++                  ],
++                ),
+               ),
+-            ),
+-          ],
+-          if (note.isNotEmpty) ...[
+-            SizedBox(width: 8),
+-            Text(note, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+-          ],
+-        ]),
+-        SizedBox(height: 10),
+-        Row(children: List.generate(max, (i) {
+-          final filled = i < value;
+-          return GestureDetector(
+-            onTap: () => onChanged(i + 1),
+-            child: Padding(
+-              padding: EdgeInsets.only(right: 2),
+-              child: Icon(filled ? Icons.star : Icons.star_border,
+-                color: filled ? colors.warning : colors.disabledForeground, size: 28),
+-            ),
+-          );
+-        })),
+-        SizedBox(height: 4),
+-        Text(value > 0 ? '$value / $max' : '—', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+-      ]),
++              if (algorithmScore != null && algorithmScore! > 0)
++                AppStatusBadge(
++                  label: '算法 ${formatAmount(algorithmScore!)}',
++                  tone: AppStatusTone.info,
++                  icon: Icons.auto_awesome_rounded,
++                  compact: true,
++                ),
++            ],
++          ),
++          const SizedBox(height: AppSpacing.lg),
++          Wrap(
++            alignment: WrapAlignment.center,
++            spacing: AppSpacing.xxs,
++            runSpacing: AppSpacing.xs,
++            children: List.generate(max, (index) {
++              final score = index + 1;
++              final filled = score <= value;
++              return Semantics(
++                button: onChanged != null,
++                selected: filled,
++                label: '$label $score 分',
++                child: IconButton(
++                  tooltip: '$score 分',
++                  onPressed: onChanged == null
++                      ? null
++                      : () => onChanged!(score),
++                  icon: Icon(
++                    filled ? Icons.star_rounded : Icons.star_outline_rounded,
++                    color: filled
++                        ? colors.warning
++                        : colors.disabledForeground,
++                    size: 30,
++                  ),
++                ),
++              );
++            }),
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          Text(
++            value > 0 ? '$value / $max' : '尚未评分',
++            style: Theme.of(context).textTheme.labelMedium?.copyWith(
++                  color: value > 0 ? colors.warning : colors.textSecondary,
++                ),
++            textAlign: TextAlign.center,
++          ),
++        ],
++      ),
+     );
+   }
+ }
+-
+diff --git a/flutter_app/lib/pages/solve/solve_step_page.dart b/flutter_app/lib/pages/solve/solve_step_page.dart
+index 1e34e44..28b453f 100644
+--- a/flutter_app/lib/pages/solve/solve_step_page.dart
++++ b/flutter_app/lib/pages/solve/solve_step_page.dart
+@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
+ import 'package:go_router/go_router.dart';
+ import '../router.dart';
+ import 'package:shared/widgets/loading_indicator.dart';
+-import 'package:shared/widgets/md_latex_body.dart';
++import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import 'package:shared/theme/app_theme.dart';
+ import '../../data/daos/question_dao.dart';
+ import '../../data/daos/progress_dao.dart';
+@@ -12,6 +16,7 @@ import '../../domain/progress_repository.dart' as progress;
+ import '../../domain/question_repository.dart';
+ import 'widgets/step_card_widget.dart';
+ import 'widgets/feedback_buttons.dart';
++import 'widgets/solve_question_surface.dart';
+ import 'package:shared/debug/audit_logger.dart';
+ import 'package:shared/debug/operation_log.dart';
+ 
+@@ -163,7 +168,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
+   }
+ 
+   Future<void> _onFeedback(FeedbackType type) async {
+-      final colors = context.colors;
+     await _repo.submitStepFeedback(
+       questionId: widget.questionId,
+       attemptNumber: _currentAttemptNumber ?? 1,
+@@ -199,7 +203,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
+ 
+   // 获取当前步骤所属的小问&方法名
+   String _buildContextLabel() {
+-      final colors = context.colors;
+     if (_state == null || _state!.subQuestions.isEmpty) return '';
+     final sq = _state!.subQuestions[widget.subQuestionIndex];
+     final buf = StringBuffer(sq.label);
+@@ -219,7 +222,6 @@ class _SolveStepPageState extends State<SolveStepPage> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+     final step = _currentStep();
+     return PopScope(
+       canPop: false,
+@@ -227,75 +229,101 @@ class _SolveStepPageState extends State<SolveStepPage> {
+         if (await _popGuard.consume(context, 'solve_step')) context.pop();
+       },
+       child: Scaffold(
+-      appBar: AppBar(title: const Text('步骤详情')),
+-      body: _loading
+-          ? const LoadingIndicator()
+-          : _error != null
+-              ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+-                  Text('加载失败', style: TextStyle(color: colors.textSecondary)),
+-                  const SizedBox(height: 8),
+-                  ElevatedButton(onPressed: () { setState(() { _error = null; _loading = true; }); _load(); }, child: const Text('重试')),
+-                ]))
+-              : step == null
+-              ? const Center(child: Text('步骤数据不存在'))
+-              : SingleChildScrollView(
+-                  padding: const EdgeInsets.all(16),
+-                  child: Column(
+-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+-                    children: [
+-                      // 上下文位置标识
+-                      Container(
+-                        padding: const EdgeInsets.all(10),
+-                        decoration: BoxDecoration(
+-                          color: colors.surface,
+-                          borderRadius: BorderRadius.circular(8),
++        appBar: AppBar(title: const Text('逐步解析')),
++        body: _loading
++            ? const LoadingIndicator(message: '正在加载解题步骤')
++            : _error != null
++                ? ErrorPlaceholder(
++                    message: '步骤加载失败，请检查后重试',
++                    onRetry: () {
++                      setState(() {
++                        _error = null;
++                        _loading = true;
++                      });
++                      _load();
++                    },
++                  )
++                : step == null
++                    ? const ErrorPlaceholder(message: '步骤数据不存在')
++                    : AppContentContainer(
++                        maxWidth: AppContentWidth.reading,
++                        padding: const EdgeInsets.symmetric(
++                          horizontal: AppSpacing.md,
+                         ),
+-                        child: Text(_buildContextLabel(),
+-                          style: TextStyle(fontSize: 13, color: colors.textSecondary),
+-                        ),
+-                      ),
+-                      const SizedBox(height: 12),
+-                      // 精简题干
+-                      if (_detail != null && _detail!.stem.isNotEmpty) ...[
+-                        Container(
+-                          padding: const EdgeInsets.all(12),
+-                          decoration: BoxDecoration(
+-                            color: colors.surface,
+-                            borderRadius: BorderRadius.circular(8),
++                        child: SingleChildScrollView(
++                          padding: const EdgeInsets.symmetric(
++                            vertical: AppSpacing.lg,
+                           ),
+-                          child: MdLatexBody(_detail!.stem, fontSize: 14),
+-                        ),
+-                        const SizedBox(height: 12),
+-                      ],
+-                      // 步骤卡片
+-                      StepCardWidget(
+-                        cooldownSeconds: _coolDownSec,
+-                        step: step,
+-                        stepIndex: widget.stepIndex,
+-                        totalSteps: _currentMethodStepCount,
+-                        isRevisit: _isRevisit,
+-                        existingRecord: _existingRecord,
+-                        questionId: widget.questionId,
+-                        submissionDetailId: _currentSubmissionDetailId,
+-                        onFeedback: _onFeedback,
+-                      ),
+-                      const SizedBox(height: 16),
+-                      // 底部导航栏
+-                      Row(
+-                        children: [
+-                          TextButton.icon(
+-                            onPressed: () => context.pop(),
+-                            icon: const Icon(Icons.arrow_back, size: 16),
+-                            label: const Text('解题地图',
+-                              style: TextStyle(fontSize: 13),
+-                            ),
++                          child: Column(
++                            crossAxisAlignment: CrossAxisAlignment.stretch,
++                            children: [
++                              AppCard(
++                                padding: const EdgeInsets.all(AppSpacing.md),
++                                child: Row(
++                                  children: [
++                                    const AppStatusBadge(
++                                      label: '当前步骤',
++                                      tone: AppStatusTone.primary,
++                                      icon: Icons.route_rounded,
++                                      compact: true,
++                                    ),
++                                    const SizedBox(width: AppSpacing.sm),
++                                    Expanded(
++                                      child: Text(
++                                        _buildContextLabel(),
++                                        style: Theme.of(context)
++                                            .textTheme
++                                            .bodySmall
++                                            ?.copyWith(
++                                              color: context.colors.textSecondary,
++                                            ),
++                                      ),
++                                    ),
++                                  ],
++                                ),
++                              ),
++                              if (_detail != null &&
++                                  _detail!.stem.trim().isNotEmpty) ...[
++                                const SizedBox(height: AppSpacing.md),
++                                SolveQuestionSurface(
++                                  number: _detail!.number,
++                                  title: _detail!.title,
++                                  questionTypeLabel: '解答题',
++                                  isReviewMode: _isRevisit,
++                                  conceptTags: _detail!.conceptTags,
++                                  stem: _detail!.stem,
++                                  imagePaths: _detail!.images,
++                                ),
++                              ],
++                              const SizedBox(height: AppSpacing.md),
++                              StepCardWidget(
++                                cooldownSeconds: _coolDownSec,
++                                step: step,
++                                stepIndex: widget.stepIndex,
++                                totalSteps: _currentMethodStepCount,
++                                isRevisit: _isRevisit,
++                                existingRecord: _existingRecord,
++                                questionId: widget.questionId,
++                                submissionDetailId:
++                                    _currentSubmissionDetailId,
++                                onFeedback: _onFeedback,
++                              ),
++                              const SizedBox(height: AppSpacing.md),
++                              AppButton(
++                                label: '返回解题地图',
++                                icon: Icons.map_outlined,
++                                variant: AppButtonVariant.secondary,
++                                fullWidth: true,
++                                onPressed: () => context.pop(),
++                              ),
++                              const SizedBox(height: AppSpacing.lg),
++                            ],
+                           ),
+-                        ],
++                        ),
+                       ),
+-                    ],
+-                  ),
+-                ),
+-    ));
++      ),
++    );
+   }
++
+ }
+ 
+diff --git a/flutter_app/lib/pages/solve/widgets/cooling_timer.dart b/flutter_app/lib/pages/solve/widgets/cooling_timer.dart
+index c0111e3..93d4985 100644
+--- a/flutter_app/lib/pages/solve/widgets/cooling_timer.dart
++++ b/flutter_app/lib/pages/solve/widgets/cooling_timer.dart
+@@ -1,15 +1,11 @@
+ import 'dart:async';
++
+ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
+ 
+-/// 冷却倒计时组件 — 纯展示，由外层通过 GlobalKey 控制
++/// 冷却倒计时组件 — 纯展示，由外层通过 GlobalKey 控制。
+ class CoolingTimer extends StatefulWidget {
+-  final int seconds;
+-  final String label;
+-  final Widget? child;
+-  final VoidCallback? onCooldownEnd;
+-
+-  CoolingTimer({
++  const CoolingTimer({
+     super.key,
+     required this.seconds,
+     this.label = '可提交',
+@@ -17,6 +13,11 @@ class CoolingTimer extends StatefulWidget {
+     this.onCooldownEnd,
+   });
+ 
++  final int seconds;
++  final String label;
++  final Widget? child;
++  final VoidCallback? onCooldownEnd;
++
+   @override
+   CoolingTimerState createState() => CoolingTimerState();
+ }
+@@ -34,7 +35,7 @@ class CoolingTimerState extends State<CoolingTimer> {
+       _remaining = widget.seconds;
+       _active = true;
+     });
+-    _timer = Timer.periodic(Duration(seconds: 1), (_) {
++    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+       if (_remaining <= 1) {
+         _timer?.cancel();
+         setState(() => _remaining = 0);
+@@ -61,25 +62,44 @@ class CoolingTimerState extends State<CoolingTimer> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    if (!_active) return widget.child ?? SizedBox.shrink();
++    final colors = context.colors;
++    if (!_active) return widget.child ?? const SizedBox.shrink();
++    if (_remaining <= 0) return widget.child ?? const SizedBox.shrink();
++
++    final total = widget.seconds <= 0 ? 1 : widget.seconds;
++    final progress = 1 - (_remaining / total);
++
+     return Column(
+-      mainAxisSize: MainAxisSize.min,
++      crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+-        if (_remaining > 0) ...[
+-          Opacity(
+-            opacity: 0.4,
+-            child: AbsorbPointer(absorbing: true, child: widget.child),
++        Opacity(
++          opacity: 0.48,
++          child: AbsorbPointer(absorbing: true, child: widget.child),
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        ClipRRect(
++          borderRadius: BorderRadius.circular(AppRadius.pill),
++          child: LinearProgressIndicator(
++            minHeight: 4,
++            value: progress.clamp(0.0, 1.0).toDouble(),
++            backgroundColor: colors.surfaceSubtle,
++            color: colors.primary,
+           ),
+-          SizedBox(height: 6),
+-          Text(
+-            '⏳ 还剩 $_remaining 秒${widget.label}',
+-            style: TextStyle(
+-              color: colors.textSecondary, fontSize: 12,
++        ),
++        const SizedBox(height: AppSpacing.xs),
++        Row(
++          mainAxisAlignment: MainAxisAlignment.center,
++          children: [
++            Icon(Icons.timer_outlined, size: 16, color: colors.textSecondary),
++            const SizedBox(width: AppSpacing.xxs),
++            Text(
++              '阅读后还需 $_remaining 秒${widget.label}',
++              style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                    color: colors.textSecondary,
++                  ),
+             ),
+-          ),
+-        ] else
+-          widget.child ?? SizedBox.shrink(),
++          ],
++        ),
+       ],
+     );
+   }
+diff --git a/flutter_app/lib/pages/solve/widgets/done_banner.dart b/flutter_app/lib/pages/solve/widgets/done_banner.dart
+index f85da55..443121a 100644
+--- a/flutter_app/lib/pages/solve/widgets/done_banner.dart
++++ b/flutter_app/lib/pages/solve/widgets/done_banner.dart
+@@ -1,52 +1,94 @@
+ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ 
+-/// 完成横幅 — 选填共用
+-/// 🎉 已完成 + [下一题 →] [⭐ 评分]
++/// 完成后的下一步操作区。
+ class DoneBanner extends StatelessWidget {
++  const DoneBanner({
++    super.key,
++    this.isRated = false,
++    this.onNext,
++    this.onRate,
++  });
++
+   final bool isRated;
+   final VoidCallback? onNext;
+   final VoidCallback? onRate;
+ 
+-  DoneBanner({super.key, this.isRated = false, this.onNext, this.onRate});
+-
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    return Container(
+-      padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+-      decoration: BoxDecoration(
+-        color: colors.primaryContainer,
+-        borderRadius: BorderRadius.circular(12),
+-      ),
+-      child: Row(children: [
+-        Icon(Icons.celebration, size: 20, color: colors.primary),
+-        SizedBox(width: 8),
+-        Text(isRated ? '已完成 — 已评分' : '已完成',
+-          style: TextStyle(
+-            fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
+-          ),
+-        ),
+-        Spacer(),
+-        if (onNext != null)
+-          TextButton.icon(
+-            onPressed: onNext,
+-            icon: Text('下一题'),
+-            label: Icon(Icons.arrow_forward, size: 16),
+-          ),
+-        if (onRate != null)
+-          TextButton(
+-            onPressed: onRate,
+-            child: Row(
+-              mainAxisSize: MainAxisSize.min,
++    final colors = context.colors;
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.md),
++      child: LayoutBuilder(
++        builder: (context, constraints) {
++          final compact = constraints.maxWidth < 520;
++          final message = Row(
++            mainAxisSize: MainAxisSize.min,
++            children: [
++              const AppStatusBadge(
++                label: '本题已完成',
++                tone: AppStatusTone.success,
++                icon: Icons.celebration_rounded,
++              ),
++              if (isRated) ...[
++                const SizedBox(width: AppSpacing.xs),
++                Icon(Icons.star_rounded, size: 18, color: colors.warning),
++                const SizedBox(width: AppSpacing.xxs),
++                Text(
++                  '已评分',
++                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
++                        color: colors.warning,
++                      ),
++                ),
++              ],
++            ],
++          );
++
++          final actions = Wrap(
++            spacing: AppSpacing.xs,
++            runSpacing: AppSpacing.xs,
++            alignment: WrapAlignment.end,
++            children: [
++              if (onRate != null)
++                AppButton(
++                  label: isRated ? '查看评分' : '给题目评分',
++                  icon: Icons.star_outline_rounded,
++                  variant: AppButtonVariant.secondary,
++                  onPressed: onRate,
++                ),
++              if (onNext != null)
++                AppButton(
++                  label: '下一题',
++                  icon: Icons.arrow_forward_rounded,
++                  onPressed: onNext,
++                ),
++            ],
++          );
++
++          if (compact) {
++            return Column(
++              crossAxisAlignment: CrossAxisAlignment.stretch,
+               children: [
+-                Icon(Icons.star, size: 14, color: colors.warning),
+-                SizedBox(width: 4),
+-                Text('评分'),
++                message,
++                if (onRate != null || onNext != null) ...[
++                  const SizedBox(height: AppSpacing.md),
++                  actions,
++                ],
+               ],
+-            ),
+-          ),
+-      ]),
++            );
++          }
++
++          return Row(
++            children: [
++              Expanded(child: message),
++              if (onRate != null || onNext != null) actions,
++            ],
++          );
++        },
++      ),
+     );
+   }
+ }
+diff --git a/flutter_app/lib/pages/solve/widgets/feedback_buttons.dart b/flutter_app/lib/pages/solve/widgets/feedback_buttons.dart
+index 9262392..a7b52e8 100644
+--- a/flutter_app/lib/pages/solve/widgets/feedback_buttons.dart
++++ b/flutter_app/lib/pages/solve/widgets/feedback_buttons.dart
+@@ -2,76 +2,148 @@ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
+ 
+ /// 反馈按钮类型
++
+ enum FeedbackType { fullCorrect, partialCorrect, wrong }
+ 
+-/// 反馈按钮组 — FullCorrect / PartialCorrect / Wrong
++/// 自评反馈按钮组。
+ class FeedbackButtons extends StatelessWidget {
+-  final FeedbackType? selected;
+-  final ValueChanged<FeedbackType>? onChanged;
+-
+   const FeedbackButtons({
+     super.key,
+     this.selected,
+     this.onChanged,
+   });
+ 
++  final FeedbackType? selected;
++  final ValueChanged<FeedbackType>? onChanged;
++
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    return Row(
+-      mainAxisAlignment: MainAxisAlignment.center,
+-      children: FeedbackType.values.map((type) {
+-        final isSelected = selected == type;
+-        return Padding(
+-          padding: const EdgeInsets.symmetric(horizontal: 4),
+-          child: _FeedbackChip(
+-            type: type,
+-            selected: isSelected,
+-            onTap: () => onChanged?.call(type),
+-          ),
+-        );
+-      }).toList(),
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.stretch,
++      children: [
++        Text(
++          '这一步你掌握得怎么样？',
++          style: Theme.of(context).textTheme.titleSmall,
++          textAlign: TextAlign.center,
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        LayoutBuilder(
++          builder: (context, constraints) {
++            final compact = constraints.maxWidth < 440;
++            final items = FeedbackType.values
++                .map(
++                  (type) => _FeedbackChoice(
++                    type: type,
++                    selected: selected == type,
++                    onTap: onChanged == null
++                        ? null
++                        : () => onChanged!.call(type),
++                  ),
++                )
++                .toList();
++
++            if (compact) {
++              return Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: [
++                  for (var i = 0; i < items.length; i++) ...[
++                    items[i],
++                    if (i != items.length - 1)
++                      const SizedBox(height: AppSpacing.xs),
++                  ],
++                ],
++              );
++            }
++
++            return Row(
++              children: [
++                for (var i = 0; i < items.length; i++) ...[
++                  Expanded(child: items[i]),
++                  if (i != items.length - 1)
++                    const SizedBox(width: AppSpacing.xs),
++                ],
++              ],
++            );
++          },
++        ),
++      ],
+     );
+   }
+ }
+ 
+-class _FeedbackChip extends StatelessWidget {
+-  final FeedbackType type;
+-  final bool selected;
+-  final VoidCallback onTap;
+-
+-  const _FeedbackChip({
++class _FeedbackChoice extends StatelessWidget {
++  const _FeedbackChoice({
+     required this.type,
+     required this.selected,
+     required this.onTap,
+   });
+ 
++  final FeedbackType type;
++  final bool selected;
++  final VoidCallback? onTap;
++
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    final (label, color) = switch (type) {
+-      FeedbackType.fullCorrect => ('全对', colors.success),
+-      FeedbackType.partialCorrect => ('部分对', colors.warning),
+-      FeedbackType.wrong => ('不对', colors.error),
++    final colors = context.colors;
++    final (label, icon, color, containerColor) = switch (type) {
++      FeedbackType.fullCorrect => (
++          '完全掌握',
++          Icons.check_circle_outline_rounded,
++          colors.success,
++          colors.successContainer,
++        ),
++      FeedbackType.partialCorrect => (
++          '部分掌握',
++          Icons.change_circle_outlined,
++          colors.warning,
++          colors.warningContainer,
++        ),
++      FeedbackType.wrong => (
++          '还没掌握',
++          Icons.replay_rounded,
++          colors.error,
++          colors.errorContainer,
++        ),
+     };
+ 
+-    return GestureDetector(
+-      onTap: onTap,
+-      child: Container(
+-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
++    return Semantics(
++      button: onTap != null,
++      selected: selected,
++      label: label,
++      child: AnimatedContainer(
++        duration: AppMotion.fast,
+         decoration: BoxDecoration(
+-          color: selected ? color.withValues(alpha: 0.12) : colors.surfaceSubtle,
+-          borderRadius: BorderRadius.circular(8),
+-          border: selected
+-              ? Border.all(color: color, width: 1.5)
+-              : Border.all(color: Colors.transparent),
++          color: selected ? containerColor : colors.surface,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          border: Border.all(
++            color: selected ? color : colors.border,
++            width: selected ? 1.5 : 1,
++          ),
+         ),
+-        child: Text(
+-          label,
+-          style: TextStyle(
+-            fontSize: 13,
+-            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+-            color: selected ? color : colors.textSecondary,
++        child: InkWell(
++          onTap: onTap,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          child: Padding(
++            padding: const EdgeInsets.symmetric(
++              horizontal: AppSpacing.sm,
++              vertical: AppSpacing.sm,
++            ),
++            child: Row(
++              mainAxisAlignment: MainAxisAlignment.center,
++              children: [
++                Icon(icon, size: 18, color: selected ? color : colors.textSecondary),
++                const SizedBox(width: AppSpacing.xs),
++                Flexible(
++                  child: Text(
++                    label,
++                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
++                          color: selected ? color : colors.textSecondary,
++                        ),
++                    overflow: TextOverflow.ellipsis,
++                  ),
++                ),
++              ],
++            ),
+           ),
+         ),
+       ),
+diff --git a/flutter_app/lib/pages/solve/widgets/solve_flow_widget.dart b/flutter_app/lib/pages/solve/widgets/solve_flow_widget.dart
+index e89afb7..b32980b 100644
+--- a/flutter_app/lib/pages/solve/widgets/solve_flow_widget.dart
++++ b/flutter_app/lib/pages/solve/widgets/solve_flow_widget.dart
+@@ -1,32 +1,17 @@
+-import 'dart:async';
+ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import 'package:shared/widgets/md_latex_body.dart';
++import 'package:shared/widgets/app_button.dart';
++
+ import 'cooling_timer.dart';
+ import 'done_banner.dart';
++import 'solve_result_card.dart';
+ 
+ /// 选填解题流程的阶段
++// ignore: unused_element
+ enum SolveStage { cooling, submitting, result, done }
+ 
+-/// 选填共用流程 Widget — 纯受控组件
+-///
+-/// 状态由父级通过 props 控制，无内部持久状态：
+-/// - [showResult]: 是否显示结果条（父级在提交成功后设为 true）
+-/// - [isRevisit]: 是否为回顾模式（父级读取已完成的尝试时设为 true）
++/// 选择题共用流程 Widget — 纯受控组件。
+ class SolveFlowWidget extends StatefulWidget {
+-  final Widget child;
+-  final int cooldownSeconds;
+-  final bool isRevisit;
+-  final bool isRated;
+-  final bool isCorrect;
+-  final bool showResult;
+-  final String? correctAnswer;
+-  final String? explanation;
+-  final Future<void> Function()? onSubmit;
+-  final VoidCallback? onNext;
+-  final VoidCallback? onRate;
+-  final bool submitLoading;
+-
+   const SolveFlowWidget({
+     super.key,
+     required this.child,
+@@ -43,6 +28,19 @@ class SolveFlowWidget extends StatefulWidget {
+     this.submitLoading = false,
+   });
+ 
++  final Widget child;
++  final int cooldownSeconds;
++  final bool isRevisit;
++  final bool isRated;
++  final bool isCorrect;
++  final bool showResult;
++  final String? correctAnswer;
++  final String? explanation;
++  final Future<void> Function()? onSubmit;
++  final VoidCallback? onNext;
++  final VoidCallback? onRate;
++  final bool submitLoading;
++
+   @override
+   State<SolveFlowWidget> createState() => _SolveFlowWidgetState();
+ }
+@@ -60,51 +58,43 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
+     }
+   }
+ 
+-  Future<void> _submit() async {
+-    await widget.onSubmit?.call();
+-  }
+-
+   @override
+   Widget build(BuildContext context) {
+-    final done = widget.isRevisit || (widget.showResult && !widget.submitLoading);
++    final done = widget.isRevisit ||
++        (widget.showResult && !widget.submitLoading);
+ 
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+         widget.child,
+-        const SizedBox(height: 20),
+-        if (!done)
++        if (!done) ...[
++          const SizedBox(height: AppSpacing.lg),
+           CoolingTimer(
+             key: _timerKey,
+             seconds: widget.cooldownSeconds,
+-            child: FractionallySizedBox(
+-              widthFactor: 1,
+-              child: SizedBox(
+-                height: 44,
+-                child: ElevatedButton(
+-                  onPressed: widget.submitLoading ? null : _submit,
+-                  child: widget.submitLoading
+-                      ? const SizedBox(
+-                          height: 20, width: 20,
+-                          child: CircularProgressIndicator(
+-                            strokeWidth: 2, color: Colors.white,
+-                          ),
+-                        )
+-                      : const Text('提交答案'),
+-                ),
+-              ),
++            child: AppButton(
++              label: '提交答案',
++              icon: Icons.send_rounded,
++              fullWidth: true,
++              isLoading: widget.submitLoading,
++              onPressed: widget.submitLoading || widget.onSubmit == null
++                  ? null
++                  : () {
++                      widget.onSubmit!.call();
++                    },
+             ),
+           ),
++        ],
+         if (widget.showResult || widget.isRevisit) ...[
+-          const SizedBox(height: 16),
+-          _ResultBanner(
++          const SizedBox(height: AppSpacing.lg),
++          SolveResultCard(
+             isCorrect: widget.isCorrect,
+             correctAnswer: widget.correctAnswer,
+             explanation: widget.explanation,
+           ),
+         ],
+         if (done) ...[
+-          const SizedBox(height: 16),
++          const SizedBox(height: AppSpacing.md),
+           DoneBanner(
+             isRated: widget.isRated,
+             onNext: widget.onNext,
+@@ -115,52 +105,3 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
+     );
+   }
+ }
+-
+-class _ResultBanner extends StatelessWidget {
+-  final bool isCorrect;
+-  final String? correctAnswer;
+-  final String? explanation;
+-
+-  const _ResultBanner({
+-    required this.isCorrect,
+-    this.correctAnswer,
+-    this.explanation,
+-  });
+-
+-  @override
+-  Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    final color = isCorrect ? colors.success : colors.error;
+-    return Container(
+-      padding: const EdgeInsets.all(16),
+-      decoration: BoxDecoration(
+-        color: color.withValues(alpha:0.08),
+-        borderRadius: BorderRadius.circular(12),
+-        border: Border.all(color: color.withValues(alpha:0.3)),
+-      ),
+-      child: Column(
+-        crossAxisAlignment: CrossAxisAlignment.start,
+-        children: [
+-          Row(children: [
+-            Icon(isCorrect ? Icons.check_circle : Icons.cancel,
+-              color: color, size: 20),
+-            const SizedBox(width: 8),
+-            Text(isCorrect ? '回答正确' : '回答错误',
+-              style: TextStyle(
+-                fontSize: 16, fontWeight: FontWeight.w600, color: color,
+-              ),
+-            ),
+-          ]),
+-          if (correctAnswer != null && !isCorrect) ...[
+-            const SizedBox(height: 8),
+-            MdLatexBody('正确答案：$correctAnswer'),
+-          ],
+-          if (explanation != null && explanation!.isNotEmpty) ...[
+-            const SizedBox(height: 8),
+-            MdLatexBody(explanation!),
+-          ],
+-        ],
+-      ),
+-    );
+-  }
+-}
+diff --git a/flutter_app/lib/pages/solve/widgets/solve_question_surface.dart b/flutter_app/lib/pages/solve/widgets/solve_question_surface.dart
+new file mode 100644
+index 0000000..04129fc
+--- /dev/null
++++ b/flutter_app/lib/pages/solve/widgets/solve_question_surface.dart
+@@ -0,0 +1,313 @@
++import 'package:flutter/material.dart';
++import 'package:shared/theme/app_theme.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_status_badge.dart';
++import 'package:shared/widgets/md_latex_body.dart';
++import 'package:shared/widgets/question_image.dart';
++
++/// 做题页统一题目容器。
++///
++/// 负责题目信息、回顾状态、知识标签、题干与图片的视觉层级，
++/// 选择题、填空题和解答题在此基础上追加各自的交互内容。
++class SolveQuestionSurface extends StatelessWidget {
++  const SolveQuestionSurface({
++    super.key,
++    required this.stem,
++    required this.questionTypeLabel,
++    this.number,
++    this.title,
++    this.attemptSelector,
++    this.isReviewMode = false,
++    this.conceptTags = const [],
++    this.imagePaths = const [],
++    this.footer,
++  });
++
++  final String stem;
++  final String questionTypeLabel;
++  final String? number;
++  final String? title;
++  final Widget? attemptSelector;
++  final bool isReviewMode;
++  final List<String> conceptTags;
++  final List<String> imagePaths;
++  final Widget? footer;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++    final hasNumber = number != null && number!.trim().isNotEmpty;
++    final hasTitle = title != null && title!.trim().isNotEmpty;
++
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Wrap(
++            spacing: AppSpacing.xs,
++            runSpacing: AppSpacing.xs,
++            crossAxisAlignment: WrapCrossAlignment.center,
++            children: [
++              if (hasNumber)
++                Text(
++                  '第 ${number!.trim()} 题',
++                  style: textTheme.titleMedium,
++                ),
++              AppStatusBadge(
++                label: questionTypeLabel,
++                tone: AppStatusTone.primary,
++                compact: true,
++              ),
++              if (attemptSelector != null) attemptSelector!,
++            ],
++          ),
++          if (hasTitle) ...[
++            const SizedBox(height: AppSpacing.xs),
++            Text(
++              title!.trim(),
++              style: textTheme.bodySmall?.copyWith(
++                color: colors.textSecondary,
++              ),
++            ),
++          ],
++          if (isReviewMode) ...[
++            const SizedBox(height: AppSpacing.md),
++            _ReviewBanner(),
++          ],
++          if (conceptTags.isNotEmpty) ...[
++            const SizedBox(height: AppSpacing.md),
++            Wrap(
++              spacing: AppSpacing.xs,
++              runSpacing: AppSpacing.xs,
++              children: conceptTags
++                  .map(
++                    (tag) => AppStatusBadge(
++                      label: tag,
++                      tone: AppStatusTone.neutral,
++                      icon: Icons.sell_outlined,
++                      compact: true,
++                    ),
++                  )
++                  .toList(),
++            ),
++          ],
++          const SizedBox(height: AppSpacing.lg),
++          Semantics(
++            header: true,
++            child: MdLatexBody(stem, fontSize: 16),
++          ),
++          if (imagePaths.isNotEmpty) ...[
++            const SizedBox(height: AppSpacing.md),
++            ...imagePaths.map(
++              (path) => Padding(
++                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
++                child: QuestionImage(relativePath: path),
++              ),
++            ),
++          ],
++          if (footer != null) ...[
++            const SizedBox(height: AppSpacing.lg),
++            footer!,
++          ],
++        ],
++      ),
++    );
++  }
++}
++
++class _ReviewBanner extends StatelessWidget {
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    return Container(
++      padding: const EdgeInsets.symmetric(
++        horizontal: AppSpacing.md,
++        vertical: AppSpacing.sm,
++      ),
++      decoration: BoxDecoration(
++        color: colors.infoContainer,
++        borderRadius: BorderRadius.circular(AppRadius.medium),
++        border: Border.all(color: colors.primaryBorder),
++      ),
++      child: Row(
++        children: [
++          Icon(Icons.history_rounded, size: 18, color: colors.onInfoContainer),
++          const SizedBox(width: AppSpacing.xs),
++          Expanded(
++            child: Text(
++              '回顾模式 · 当前记录仅供浏览，不会修改历史答案',
++              style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                    color: colors.onInfoContainer,
++                  ),
++            ),
++          ),
++        ],
++      ),
++    );
++  }
++}
++
++enum SolveOptionState { idle, selected, correct, incorrect, disabled }
++
++/// 统一答案选项。
++///
++/// 同时通过图标、文字与颜色表达状态，避免只依赖红绿色。
++class SolveAnswerOption extends StatelessWidget {
++  const SolveAnswerOption({
++    super.key,
++    required this.label,
++    required this.content,
++    required this.state,
++    this.onTap,
++  });
++
++  final String label;
++  final String content;
++  final SolveOptionState state;
++  final VoidCallback? onTap;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final scheme = _resolveScheme(colors);
++    final enabled = onTap != null && state != SolveOptionState.disabled;
++
++    return Semantics(
++      button: true,
++      enabled: enabled,
++      selected: state == SolveOptionState.selected,
++      label: '选项 $label',
++      value: switch (state) {
++        SolveOptionState.correct => '正确答案',
++        SolveOptionState.incorrect => '回答错误',
++        SolveOptionState.selected => '已选择',
++        SolveOptionState.disabled => '不可选择',
++        SolveOptionState.idle => '未选择',
++      },
++      child: AnimatedContainer(
++        duration: AppMotion.fast,
++        curve: AppMotion.emphasizedCurve,
++        decoration: BoxDecoration(
++          color: scheme.background,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          border: Border.all(
++            color: scheme.border,
++            width: state == SolveOptionState.idle ? 1 : 1.5,
++          ),
++        ),
++        child: InkWell(
++          onTap: enabled ? onTap : null,
++          borderRadius: BorderRadius.circular(AppRadius.medium),
++          child: Padding(
++            padding: const EdgeInsets.all(AppSpacing.md),
++            child: Row(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [
++                AnimatedContainer(
++                  duration: AppMotion.fast,
++                  width: 32,
++                  height: 32,
++                  decoration: BoxDecoration(
++                    color: scheme.indicatorBackground,
++                    shape: BoxShape.circle,
++                    border: Border.all(color: scheme.indicatorBorder),
++                  ),
++                  child: Center(
++                    child: switch (state) {
++                      SolveOptionState.correct => Icon(
++                          Icons.check_rounded,
++                          size: 18,
++                          color: scheme.indicatorForeground,
++                        ),
++                      SolveOptionState.incorrect => Icon(
++                          Icons.close_rounded,
++                          size: 18,
++                          color: scheme.indicatorForeground,
++                        ),
++                      _ => Text(
++                          label,
++                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
++                                color: scheme.indicatorForeground,
++                              ),
++                        ),
++                    },
++                  ),
++                ),
++                const SizedBox(width: AppSpacing.sm),
++                Expanded(
++                  child: Padding(
++                    padding: const EdgeInsets.only(top: 3),
++                    child: MdLatexBody(content, fontSize: 15),
++                  ),
++                ),
++                if (state == SolveOptionState.selected) ...[
++                  const SizedBox(width: AppSpacing.xs),
++                  Icon(Icons.check_circle_outline_rounded,
++                      size: 20, color: colors.primary),
++                ],
++              ],
++            ),
++          ),
++        ),
++      ),
++    );
++  }
++
++  _OptionScheme _resolveScheme(AppSemanticColors colors) {
++    return switch (state) {
++      SolveOptionState.selected => _OptionScheme(
++          background: colors.primaryContainer,
++          border: colors.primary,
++          indicatorBackground: colors.primary,
++          indicatorBorder: colors.primary,
++          indicatorForeground: colors.onPrimary,
++        ),
++      SolveOptionState.correct => _OptionScheme(
++          background: colors.successContainer,
++          border: colors.success,
++          indicatorBackground: colors.success,
++          indicatorBorder: colors.success,
++          indicatorForeground: colors.onSuccess,
++        ),
++      SolveOptionState.incorrect => _OptionScheme(
++          background: colors.errorContainer,
++          border: colors.error,
++          indicatorBackground: colors.error,
++          indicatorBorder: colors.error,
++          indicatorForeground: colors.onError,
++        ),
++      SolveOptionState.disabled => _OptionScheme(
++          background: colors.disabledBackground,
++          border: colors.border,
++          indicatorBackground: colors.surfaceSubtle,
++          indicatorBorder: colors.border,
++          indicatorForeground: colors.disabledForeground,
++        ),
++      SolveOptionState.idle => _OptionScheme(
++          background: colors.surface,
++          border: colors.border,
++          indicatorBackground: colors.surfaceSubtle,
++          indicatorBorder: colors.border,
++          indicatorForeground: colors.textSecondary,
++        ),
++    };
++  }
++}
++
++class _OptionScheme {
++  const _OptionScheme({
++    required this.background,
++    required this.border,
++    required this.indicatorBackground,
++    required this.indicatorBorder,
++    required this.indicatorForeground,
++  });
++
++  final Color background;
++  final Color border;
++  final Color indicatorBackground;
++  final Color indicatorBorder;
++  final Color indicatorForeground;
++}
+diff --git a/flutter_app/lib/pages/solve/widgets/solve_result_card.dart b/flutter_app/lib/pages/solve/widgets/solve_result_card.dart
+new file mode 100644
+index 0000000..653fe48
+--- /dev/null
++++ b/flutter_app/lib/pages/solve/widgets/solve_result_card.dart
+@@ -0,0 +1,199 @@
++import 'package:flutter/material.dart';
++import 'package:shared/theme/app_theme.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_status_badge.dart';
++import 'package:shared/widgets/md_latex_body.dart';
++
++/// 判题结果卡。
++class SolveResultCard extends StatelessWidget {
++  const SolveResultCard({
++    super.key,
++    required this.isCorrect,
++    this.correctAnswer,
++    this.explanation,
++  });
++
++  final bool isCorrect;
++  final String? correctAnswer;
++  final String? explanation;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final tone = isCorrect ? AppStatusTone.success : AppStatusTone.error;
++    final foreground = isCorrect
++        ? colors.onSuccessContainer
++        : colors.onErrorContainer;
++    final background = isCorrect
++        ? colors.successContainer
++        : colors.errorContainer;
++    final border = isCorrect ? colors.success : colors.error;
++
++    return AppCard(
++      padding: EdgeInsets.zero,
++      child: Container(
++        padding: const EdgeInsets.all(AppSpacing.lg),
++        decoration: BoxDecoration(
++          color: background,
++          borderRadius: BorderRadius.circular(AppRadius.large),
++          border: Border.all(color: border),
++        ),
++        child: Column(
++          crossAxisAlignment: CrossAxisAlignment.stretch,
++          children: [
++            Row(
++              children: [
++                AppStatusBadge(
++                  label: isCorrect ? '回答正确' : '回答错误',
++                  tone: tone,
++                  icon: isCorrect ? AppIcons.success : AppIcons.error,
++                ),
++                const Spacer(),
++                Text(
++                  isCorrect ? '做得很好' : '看看正确答案和解析',
++                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                        color: foreground,
++                      ),
++                ),
++              ],
++            ),
++            if (!isCorrect && correctAnswer != null && correctAnswer!.isNotEmpty) ...[
++              const SizedBox(height: AppSpacing.lg),
++              _ContentSection(
++                title: '正确答案',
++                icon: Icons.task_alt_rounded,
++                foreground: foreground,
++                child: MdLatexBody(correctAnswer!, fontSize: 17),
++              ),
++            ],
++            if (explanation != null && explanation!.trim().isNotEmpty) ...[
++              const SizedBox(height: AppSpacing.md),
++              _ContentSection(
++                title: '答案解析',
++                icon: Icons.menu_book_rounded,
++                foreground: foreground,
++                child: MdLatexBody(explanation!, fontSize: 15),
++              ),
++            ],
++          ],
++        ),
++      ),
++    );
++  }
++}
++
++/// 揭示型题目的答案卡。
++class SolveAnswerRevealCard extends StatelessWidget {
++  const SolveAnswerRevealCard({
++    super.key,
++    required this.answer,
++    this.explanation,
++  });
++
++  final String answer;
++  final String? explanation;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.stretch,
++      children: [
++        AppCard(
++          selected: true,
++          padding: const EdgeInsets.all(AppSpacing.lg),
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.stretch,
++            children: [
++              const Align(
++                alignment: Alignment.centerLeft,
++                child: AppStatusBadge(
++                  label: '正确答案',
++                  tone: AppStatusTone.primary,
++                  icon: Icons.task_alt_rounded,
++                ),
++              ),
++              const SizedBox(height: AppSpacing.lg),
++              Container(
++                padding: const EdgeInsets.all(AppSpacing.md),
++                decoration: BoxDecoration(
++                  color: colors.surface,
++                  borderRadius: BorderRadius.circular(AppRadius.medium),
++                  border: Border.all(color: colors.primaryBorder),
++                ),
++                child: MdLatexBody(answer, fontSize: 19),
++              ),
++            ],
++          ),
++        ),
++        if (explanation != null && explanation!.trim().isNotEmpty) ...[
++          const SizedBox(height: AppSpacing.md),
++          AppCard(
++            padding: const EdgeInsets.all(AppSpacing.lg),
++            child: Column(
++              crossAxisAlignment: CrossAxisAlignment.stretch,
++              children: [
++                Row(
++                  children: [
++                    Icon(Icons.menu_book_rounded,
++                        size: 20, color: colors.primary),
++                    const SizedBox(width: AppSpacing.xs),
++                    Text('答案解析', style: Theme.of(context).textTheme.titleMedium),
++                  ],
++                ),
++                const SizedBox(height: AppSpacing.md),
++                MdLatexBody(explanation!, fontSize: 15),
++              ],
++            ),
++          ),
++        ],
++      ],
++    );
++  }
++}
++
++class _ContentSection extends StatelessWidget {
++  const _ContentSection({
++    required this.title,
++    required this.icon,
++    required this.foreground,
++    required this.child,
++  });
++
++  final String title;
++  final IconData icon;
++  final Color foreground;
++  final Widget child;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    return Container(
++      padding: const EdgeInsets.all(AppSpacing.md),
++      decoration: BoxDecoration(
++        color: colors.surface.withValues(alpha: 0.78),
++        borderRadius: BorderRadius.circular(AppRadius.medium),
++        border: Border.all(color: colors.border),
++      ),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Row(
++            children: [
++              Icon(icon, size: 18, color: foreground),
++              const SizedBox(width: AppSpacing.xs),
++              Text(
++                title,
++                style: Theme.of(context).textTheme.titleSmall?.copyWith(
++                      color: foreground,
++                    ),
++              ),
++            ],
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          child,
++        ],
++      ),
++    );
++  }
++}
+diff --git a/flutter_app/lib/pages/solve/widgets/solve_reveal_widget.dart b/flutter_app/lib/pages/solve/widgets/solve_reveal_widget.dart
+index 670943d..10b037b 100644
+--- a/flutter_app/lib/pages/solve/widgets/solve_reveal_widget.dart
++++ b/flutter_app/lib/pages/solve/widgets/solve_reveal_widget.dart
+@@ -1,50 +1,14 @@
+ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import 'package:shared/widgets/md_latex_body.dart';
++import 'package:shared/widgets/app_button.dart';
++
+ import 'cooling_timer.dart';
+ import 'done_banner.dart';
++import 'solve_result_card.dart';
+ 
+-/// 填空题专用揭示流程 Widget — 纯受控组件
+-///
+-/// 交互序列：冷却 → 查看答案 → 显示正确答案 → (自评反馈) → 🎉 已完成
+-/// 与 SolveFlowWidget（选择题提交→判对错）完全独立。
+-///
+-/// 状态由父级通过 [revealed] prop 控制，无内部持久状态。
++/// 填空题专用揭示流程 Widget — 纯受控组件。
+ class SolveRevealWidget extends StatefulWidget {
+-  /// 冷却秒数
+-  final int cooldownSeconds;
+-
+-  /// 正确答案文本
+-  final String? answerValue;
+-
+-  /// 解析内容（LaTeX 可选）
+-  final String? explanation;
+-
+-  /// 是否为回顾模式（复访时跳过冷却，直接展示结果）
+-  final bool isRevisit;
+-
+-  /// 是否已揭示答案（由父级控制）
+-  final bool revealed;
+-
+-  /// 下一题回调
+-  final VoidCallback? onNext;
+-
+-  /// 评分回调
+-  final VoidCallback? onRate;
+-
+-  /// 揭示回调（用户点击「查看答案」时触发，父级在此设 revealed=true）
+-  final VoidCallback? onReveal;
+-
+-  /// 自评反馈（揭示答案后、已完成之前展示）
+-  final Widget? feedbackWidget;
+-
+-  /// 自评反馈结果（反馈提交后、DoneBanner 出现前展示，与 DoneBanner 同时可见）
+-  final Widget? feedbackResult;
+-
+-  /// 展示题库的内容 widget（stem / 选项等）
+-  final Widget child;
+-
+-  SolveRevealWidget({
++  const SolveRevealWidget({
+     super.key,
+     this.cooldownSeconds = 10,
+     this.answerValue,
+@@ -59,6 +23,18 @@ class SolveRevealWidget extends StatefulWidget {
+     required this.child,
+   });
+ 
++  final int cooldownSeconds;
++  final String? answerValue;
++  final String? explanation;
++  final bool isRevisit;
++  final bool revealed;
++  final VoidCallback? onNext;
++  final VoidCallback? onRate;
++  final VoidCallback? onReveal;
++  final Widget? feedbackWidget;
++  final Widget? feedbackResult;
++  final Widget child;
++
+   @override
+   State<SolveRevealWidget> createState() => _SolveRevealWidgetState();
+ }
+@@ -76,98 +52,48 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
+     }
+   }
+ 
+-  void _reveal() {
+-      final colors = context.colors;
+-    widget.onReveal?.call();
+-  }
+-
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    // answerShown: 回顾模式 || 已揭示
+     final answerShown = widget.isRevisit || widget.revealed;
+-    // done: 已过自评阶段（feedbackWidget 消失），显示 DoneBanner
+     final done = answerShown && widget.feedbackWidget == null;
+ 
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.stretch,
+       children: [
+         widget.child,
+-        SizedBox(height: 20),
+-        if (!answerShown)
++        if (!answerShown) ...[
++          const SizedBox(height: AppSpacing.lg),
+           CoolingTimer(
+             key: _timerKey,
+             seconds: widget.cooldownSeconds,
+-            label: '可查看',
+-            child: FractionallySizedBox(
+-              widthFactor: 1,
+-              child: SizedBox(
+-                height: 44,
+-                child: ElevatedButton(
+-                  onPressed: _reveal,
+-                  child: Text('查看答案'),
+-                ),
+-              ),
++            label: '可查看答案',
++            child: AppButton(
++              label: '查看答案',
++              icon: Icons.visibility_rounded,
++              fullWidth: true,
++              onPressed: widget.onReveal,
+             ),
+           ),
++        ],
+         if (answerShown) ...[
+-          SizedBox(height: 16),
+-          // 答案卡
+-          Container(
+-            padding: EdgeInsets.all(16),
+-            decoration: BoxDecoration(
+-              color: colors.primaryContainer.withValues(alpha: 0.2),
+-              borderRadius: BorderRadius.circular(12),
+-              border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
+-            ),
+-            child: Column(
+-              crossAxisAlignment: CrossAxisAlignment.stretch,
+-              children: [
+-                Container(
+-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+-                  decoration: BoxDecoration(
+-                    color: colors.primaryContainer,
+-                    borderRadius: BorderRadius.circular(20),
+-                  ),
+-                  child: Text('正确答案',
+-                    textAlign: TextAlign.center,
+-                    style: TextStyle(
+-                      fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary,
+-                    ),
+-                  ),
+-                ),
+-                if (widget.answerValue != null) ...[
+-                  SizedBox(height: 12),
+-                  MdLatexBody(widget.answerValue!, fontSize: 20),
+-                ],
+-              ],
+-            ),
++          const SizedBox(height: AppSpacing.lg),
++          SolveAnswerRevealCard(
++            answer: widget.answerValue?.trim().isNotEmpty == true
++                ? widget.answerValue!
++                : '暂无标准答案',
++            explanation: widget.explanation,
+           ),
+-          // 解析卡
+-          if (widget.explanation != null && widget.explanation!.isNotEmpty) ...[
+-            SizedBox(height: 12),
+-            Container(
+-              padding: EdgeInsets.all(16),
+-              decoration: BoxDecoration(
+-                color: colors.surface,
+-                borderRadius: BorderRadius.circular(12),
+-                border: Border.all(color: colors.border),
+-              ),
+-              child: MdLatexBody(widget.explanation!),
+-            ),
+-          ],
+-          // 自评区
+           if (widget.revealed && widget.feedbackWidget != null) ...[
+-            SizedBox(height: 12),
++            const SizedBox(height: AppSpacing.md),
+             widget.feedbackWidget!,
+           ],
+           if (widget.revealed && widget.feedbackResult != null) ...[
+-            SizedBox(height: 12),
++            const SizedBox(height: AppSpacing.md),
+             widget.feedbackResult!,
+           ],
+         ],
+         if (done) ...[
+-          SizedBox(height: 16),
++          const SizedBox(height: AppSpacing.md),
+           DoneBanner(
+             onNext: widget.onNext,
+             onRate: widget.onRate,
+diff --git a/flutter_app/lib/pages/solve/widgets/step_card_widget.dart b/flutter_app/lib/pages/solve/widgets/step_card_widget.dart
+index 2e18def..ca27164 100644
+--- a/flutter_app/lib/pages/solve/widgets/step_card_widget.dart
++++ b/flutter_app/lib/pages/solve/widgets/step_card_widget.dart
+@@ -1,29 +1,24 @@
+ import 'dart:convert';
++
+ import 'package:flutter/material.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import '../../../domain/progress_repository.dart' as progress;
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import 'package:shared/widgets/md_latex_body.dart';
++
+ import '../../../data/daos/progress_dao.dart';
+ import '../../../data/daos/question_dao.dart';
+ import '../../../data/database/database_provider.dart';
+ import '../../../data/sync/sync_manager.dart';
+ import '../../../data/sync/sync_types.dart';
++import '../../../domain/progress_repository.dart' as progress;
+ import 'cooling_timer.dart';
+ import 'feedback_buttons.dart';
+ import 'knowledge_card_dialog.dart';
+ 
+-/// 解答步骤卡
++/// 解答题的单步学习卡。
+ class StepCardWidget extends StatefulWidget {
+-  final progress.Step step;
+-  final int stepIndex;
+-  final int totalSteps;
+-  final int cooldownSeconds;
+-  final bool isRevisit;
+-  final progress.StepSolveRecord? existingRecord;
+-  final ValueChanged<FeedbackType>? onFeedback;
+-  final int? questionId;
+-  final int? submissionDetailId;
+-
+   const StepCardWidget({
+     super.key,
+     required this.step,
+@@ -37,6 +32,16 @@ class StepCardWidget extends StatefulWidget {
+     this.submissionDetailId,
+   });
+ 
++  final progress.Step step;
++  final int stepIndex;
++  final int totalSteps;
++  final int cooldownSeconds;
++  final bool isRevisit;
++  final progress.StepSolveRecord? existingRecord;
++  final ValueChanged<FeedbackType>? onFeedback;
++  final int? questionId;
++  final int? submissionDetailId;
++
+   @override
+   State<StepCardWidget> createState() => _StepCardWidgetState();
+ }
+@@ -67,27 +72,27 @@ class _StepCardWidgetState extends State<StepCardWidget> {
+   }
+ 
+   FeedbackType? _parseFeedback(String type) {
+-    switch (type) {
+-      case 'full_correct': return FeedbackType.fullCorrect;
+-      case 'partial_correct': return FeedbackType.partialCorrect;
+-      case 'wrong': return FeedbackType.wrong;
+-      default: return null;
+-    }
++    return switch (type) {
++      'full_correct' => FeedbackType.fullCorrect,
++      'partial_correct' => FeedbackType.partialCorrect,
++      'wrong' => FeedbackType.wrong,
++      _ => null,
++    };
+   }
+ 
+   void _toggleExpand() {
+-      final colors = context.colors;
+     if (!_expanded) setState(() => _expanded = true);
+   }
+ 
+   void _onFeedback(FeedbackType type) {
+-      final colors = context.colors;
+-    setState(() { _feedbackGiven = true; _feedbackType = type; });
++    setState(() {
++      _feedbackGiven = true;
++      _feedbackType = type;
++    });
+     widget.onFeedback?.call(type);
+   }
+ 
+   Future<void> _showKnowledgeCard(BuildContext context, String tag) async {
+-      final colors = context.colors;
+     final dao = QuestionDao(DatabaseProvider());
+     final card = await dao.getKnowledgeCardByTitle(tag);
+     if (!context.mounted) return;
+@@ -96,7 +101,6 @@ class _StepCardWidgetState extends State<StepCardWidget> {
+       title: tag,
+       content: card?.content ?? '知识卡片：$tag',
+     );
+-    // 如果用户选择了反馈，保存到数据库
+     if (feedback != null && context.mounted) {
+       final pDao = ProgressDao(DatabaseProvider());
+       final submissionDetailId = widget.submissionDetailId ?? 0;
+@@ -109,7 +113,6 @@ class _StepCardWidgetState extends State<StepCardWidget> {
+             cardTitle: tag,
+             cardStatus: feedback,
+           );
+-          // 入同步队列
+           try {
+             await SyncManager().enqueue(
+               entityType: SyncEntityType.cardFeedback,
+@@ -130,89 +133,165 @@ class _StepCardWidgetState extends State<StepCardWidget> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+-    return Container(
+-      margin: const EdgeInsets.only(bottom: 12),
+-      padding: const EdgeInsets.all(14),
+-      decoration: BoxDecoration(
+-        color: colors.surface,
+-        borderRadius: BorderRadius.circular(12),
+-        border: _expanded ? Border.all(color: colors.primary.withValues(alpha:0.3)) : null,
+-      ),
++    final colors = context.colors;
++    final progressValue = widget.totalSteps <= 0
++        ? 0.0
++        : (widget.stepIndex + 1) / widget.totalSteps;
++
++    return AppCard(
++      selected: _expanded,
++      padding: const EdgeInsets.all(AppSpacing.lg),
+       child: Column(
+-        crossAxisAlignment: CrossAxisAlignment.start,
++        crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+-          // 步骤标题 + 知识标签
+-          Row(children: [
+-            Container(
+-              width: 28, height: 28,
+-              decoration: BoxDecoration(
+-                color: _feedbackGiven ? colors.primary : colors.primaryContainer,
+-                borderRadius: BorderRadius.circular(14),
+-              ),
+-              child: Center(child: Text('${widget.stepIndex + 1}',
+-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+-                  color: _feedbackGiven ? Colors.white : colors.primary),
+-              )),
+-            ),
+-            const SizedBox(width: 10),
+-            Expanded(child: Text(widget.step.title,
+-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.textPrimary),
+-            )),
+-            ...widget.step.cardTitles.take(2).map((tag) => Padding(
+-              padding: const EdgeInsets.only(left: 4),
+-              child: GestureDetector(
+-                onTap: () => _showKnowledgeCard(context, tag),
+-                child: Container(
+-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+-                  decoration: BoxDecoration(
+-                    color: colors.primaryContainer,
+-                    borderRadius: BorderRadius.circular(6),
+-                  ),
+-                  child: Text(tag.length > 6 ? '${tag.substring(0, 6)}…' : tag,
+-                    style: TextStyle(fontSize: 11, color: colors.primary),
++          Row(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Container(
++                width: 40,
++                height: 40,
++                decoration: BoxDecoration(
++                  color: _feedbackGiven
++                      ? colors.successContainer
++                      : colors.primaryContainer,
++                  shape: BoxShape.circle,
++                  border: Border.all(
++                    color: _feedbackGiven ? colors.success : colors.primaryBorder,
+                   ),
+                 ),
++                child: Center(
++                  child: _feedbackGiven
++                      ? Icon(Icons.check_rounded,
++                          size: 22, color: colors.success)
++                      : Text(
++                          '${widget.stepIndex + 1}',
++                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
++                                color: colors.primary,
++                              ),
++                        ),
++                ),
++              ),
++              const SizedBox(width: AppSpacing.sm),
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      widget.step.title.isEmpty
++                          ? '第 ${widget.stepIndex + 1} 步'
++                          : widget.step.title,
++                      style: Theme.of(context).textTheme.titleMedium,
++                    ),
++                    const SizedBox(height: AppSpacing.xxs),
++                    Text(
++                      '步骤 ${widget.stepIndex + 1} / ${widget.totalSteps}',
++                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                            color: colors.textSecondary,
++                          ),
++                    ),
++                  ],
++                ),
+               ),
+-            )),
+-          ]),
+-          const SizedBox(height: 10),
+-          if (!_expanded && !_feedbackGiven)
++              if (_feedbackGiven)
++                const AppStatusBadge(
++                  label: '已完成',
++                  tone: AppStatusTone.success,
++                  compact: true,
++                ),
++            ],
++          ),
++          const SizedBox(height: AppSpacing.md),
++          ClipRRect(
++            borderRadius: BorderRadius.circular(AppRadius.pill),
++            child: LinearProgressIndicator(
++              minHeight: 5,
++              value: progressValue.clamp(0.0, 1.0).toDouble(),
++              backgroundColor: colors.surfaceSubtle,
++              color: _feedbackGiven ? colors.success : colors.primary,
++            ),
++          ),
++          if (widget.step.cardTitles.isNotEmpty) ...[
++            const SizedBox(height: AppSpacing.md),
++            Wrap(
++              spacing: AppSpacing.xs,
++              runSpacing: AppSpacing.xs,
++              children: widget.step.cardTitles
++                  .map(
++                    (tag) => ActionChip(
++                      avatar: const Icon(Icons.lightbulb_outline_rounded, size: 16),
++                      label: Text(tag),
++                      onPressed: () => _showKnowledgeCard(context, tag),
++                    ),
++                  )
++                  .toList(),
++            ),
++          ],
++          if (!_expanded && !_feedbackGiven) ...[
++            const SizedBox(height: AppSpacing.lg),
++            Text(
++              '先独立思考本步骤，倒计时结束后再展开解析。',
++              style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                    color: colors.textSecondary,
++                  ),
++              textAlign: TextAlign.center,
++            ),
++            const SizedBox(height: AppSpacing.sm),
+             CoolingTimer(
+               key: _timerKey,
+               seconds: widget.cooldownSeconds,
+-              child: ElevatedButton.icon(
++              label: '可查看解析',
++              child: AppButton(
++                label: '查看本步解析',
++                icon: Icons.visibility_rounded,
++                fullWidth: true,
+                 onPressed: _toggleExpand,
+-                icon: const Icon(Icons.arrow_forward, size: 16),
+-                label: Text(isLast ? '查看解析' : '下一步'),
+-                style: ElevatedButton.styleFrom(minimumSize: const Size(140, 38)),
+               ),
+             ),
++          ],
+           if (_expanded) ...[
+-            const SizedBox(height: 10),
++            const SizedBox(height: AppSpacing.lg),
+             Container(
+-              width: double.infinity, padding: const EdgeInsets.all(12),
+-              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(8)),
+-              child: MdLatexBody(widget.step.analysis, fontSize: 14),
+-            ),
+-            const SizedBox(height: 12),
+-            if (!_feedbackGiven)
+-              FeedbackButtons(onChanged: _onFeedback)
+-            else if (widget.isRevisit)
+-              FeedbackButtons(selected: _feedbackType)
+-            else
+-              FeedbackButtons(selected: _feedbackType, onChanged: _onFeedback),
+-            if (_feedbackGiven && isLast)
+-              Padding(
+-                padding: const EdgeInsets.only(top: 8),
+-                child: Row(children: [
+-                  const Text('✅', style: TextStyle(fontSize: 16)),
+-                  SizedBox(width: 6),
+-                  Text('该题全部步骤已完成',
+-                    style: TextStyle(fontSize: 13, color: colors.success, fontWeight: FontWeight.w500),
++              width: double.infinity,
++              padding: const EdgeInsets.all(AppSpacing.lg),
++              decoration: BoxDecoration(
++                color: colors.surfaceSubtle,
++                borderRadius: BorderRadius.circular(AppRadius.medium),
++                border: Border.all(color: colors.border),
++              ),
++              child: Column(
++                crossAxisAlignment: CrossAxisAlignment.stretch,
++                children: [
++                  Row(
++                    children: [
++                      Icon(Icons.menu_book_rounded,
++                          size: 20, color: colors.primary),
++                      const SizedBox(width: AppSpacing.xs),
++                      Text('步骤解析',
++                          style: Theme.of(context).textTheme.titleSmall),
++                    ],
+                   ),
+-                ]),
++                  const SizedBox(height: AppSpacing.md),
++                  MdLatexBody(widget.step.analysis, fontSize: 15),
++                ],
++              ),
++            ),
++            const SizedBox(height: AppSpacing.lg),
++            FeedbackButtons(
++              selected: _feedbackType,
++              onChanged: widget.isRevisit && _feedbackGiven
++                  ? null
++                  : _onFeedback,
++            ),
++            if (_feedbackGiven && isLast) ...[
++              const SizedBox(height: AppSpacing.md),
++              const Center(
++                child: AppStatusBadge(
++                  label: '全部步骤已完成',
++                  tone: AppStatusTone.success,
++                  icon: Icons.celebration_rounded,
++                ),
+               ),
++            ],
+           ],
+         ],
+       ),

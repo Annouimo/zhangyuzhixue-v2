@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../widgets/pop_back_guard.dart';
 import '../router.dart';
-import 'package:shared/theme/app_theme.dart';
+import 'package:shared/shared.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
-import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import 'package:shared/widgets/md_latex_body.dart';
 import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {
@@ -68,7 +64,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
         _loading = false;
       });
       AuditLogger.instance.page('LectureContentPage', {'hasContent': _content != null});
-    } catch (e) { OperationLog.instance.error('lecture_content_page_load', e); 
+    } catch (e) { OperationLog.instance.error('lecture_content_page_load', e);
       AuditLogger.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
@@ -148,52 +144,129 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildBody() {
-      final colors = context.colors;
-    if (_loading) return LoadingIndicator(message: '加载讲义…');
+    if (_loading) return const LoadingIndicator(message: '加载讲义…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
     final page = _currentPage;
     if (page == null || page.blocks.isEmpty) {
-      return Center(child: Text('讲义内容为空'));
+      return EmptyPlaceholder(
+        icon: Icons.menu_book_outlined,
+        message: '这页讲义暂时没有内容',
+      );
     }
 
     final blocks = page.blocks;
     final cardRefs = page.cardRefs;
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(AppSizes.baseSpacing),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: AppSizes.maxContentWidth,
-        ),
+    final progress = _totalBlocks > 0
+        ? (_displayRevealedCount / _totalBlocks).clamp(0.0, 1.0)
+        : 0.0;
+
+    return AppContentContainer(
+      maxWidth: AppContentWidth.reading,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // blocks[0] 始终可见
-            MdLatexBody(blocks[0], fontSize: 15),
-            // blocks[1..N] 逐步展开
-            for (int i = 1; i < blocks.length; i++)
-              _buildRevealBlock(i, blocks[i]),
-            // 知识标签
+            Row(
+              children: [
+                AppStatusBadge(
+                  label: '第 ${_pageIndex + 1} / ${_parsed!.totalPages} 页',
+                  tone: AppStatusTone.info,
+                  icon: Icons.menu_book_outlined,
+                  compact: true,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                AppStatusBadge(
+                  label: '已展开 $_displayRevealedCount / $_totalBlocks 段',
+                  tone: _hasUnrevealed
+                      ? AppStatusTone.neutral
+                      : AppStatusTone.success,
+                  icon: _hasUnrevealed
+                      ? Icons.unfold_more_rounded
+                      : Icons.check_circle_outline_rounded,
+                  compact: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 7,
+                backgroundColor: context.colors.surfaceSubtle,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppCard(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  MdLatexBody(blocks[0], fontSize: 16),
+                  for (int index = 1; index < blocks.length; index++)
+                    _buildRevealBlock(index, blocks[index]),
+                  if (_hasUnrevealed) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: context.colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.touch_app_outlined,
+                              size: 18,
+                              color: context.colors.primary,
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Expanded(
+                              child: Text(
+                                '使用下方“继续展开”逐段阅读，先思考再查看下一部分。',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: context.colors.onPrimaryContainer,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             if (cardRefs.isNotEmpty) ...[
-              SizedBox(height: 20),
-              Divider(height: 1),
-              SizedBox(height: 12),
-              Text(
-                '相关知识',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textSecondary,
+              const SizedBox(height: AppSpacing.lg),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppSectionHeader(
+                      title: '相关知识卡片',
+                      subtitle: '点击标签可快速查看本页涉及的概念。',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: AppSpacing.xs,
+                      children: cardRefs
+                          .map((ref) => _buildKnowledgeChip(ref))
+                          .toList(),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: cardRefs.map((ref) => _buildKnowledgeChip(ref)).toList(),
-              ),
             ],
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
       ),
@@ -201,37 +274,39 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Widget _buildKnowledgeChip(KnownCardRef ref) {
-      final colors = context.colors;
     return ActionChip(
-      avatar: Icon(Icons.lightbulb_outline, size: 16, color: colors.primary),
-      label: Text(ref.title, style: TextStyle(fontSize: 13)),
+      avatar: Icon(
+        Icons.lightbulb_outline_rounded,
+        size: 17,
+        color: context.colors.primary,
+      ),
+      label: Text(ref.title),
       onPressed: () => KnowledgeCardDialog.show(
         context,
         title: ref.title,
         content: ref.content,
       ),
-      backgroundColor: colors.primaryContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      side: BorderSide.none,
-      padding: EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
   Widget _buildRevealBlock(int index, String content) {
     final visible = _revealedSet.contains(index);
-    return AnimatedCrossFade(
-      firstChild: SizedBox.shrink(),
-      secondChild: Padding(
-        padding: EdgeInsets.only(top: 12),
-        child: MdLatexBody(content, fontSize: 15),
-      ),
-      crossFadeState: visible
-          ? CrossFadeState.showSecond
-          : CrossFadeState.showFirst,
-      duration: Duration(milliseconds: 200),
+    return AnimatedSize(
+      duration: AppMotion.standard,
+      curve: AppMotion.emphasizedCurve,
+      child: visible
+          ? Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Divider(color: context.colors.divider),
+                  const SizedBox(height: AppSpacing.md),
+                  MdLatexBody(content, fontSize: 16),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 }
-

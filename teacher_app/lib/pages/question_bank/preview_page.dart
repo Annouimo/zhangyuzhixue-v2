@@ -54,7 +54,6 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
   }
 
   void _remove(int id) {
-      final colors = context.colors;
     widget.onRemove(id);
     setState(() {
       _details.remove(id);
@@ -64,7 +63,6 @@ class _QuestionPreviewPageState extends State<QuestionPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return Scaffold(
       appBar: AppBar(
         title: Text('预览（${_questionIds.length} 题）'),

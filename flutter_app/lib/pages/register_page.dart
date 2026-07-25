@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_auth_layout.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../domain/auth_repository.dart';
@@ -53,7 +56,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-      final colors = context.colors;
     if (!_formKey.currentState!.validate()) return;
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -75,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('注册成功，请登录'),
-          backgroundColor: colors.success,
+          backgroundColor: context.colors.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -93,7 +95,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String _extractErrorMessage(Object e) {
-      final colors = context.colors;
     // 优先从服务端响应体提取真实错误描述
     if (e is DioException && e.response?.data is Map) {
       final serverMsg = (e.response!.data as Map)["message"];
@@ -113,11 +114,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showError(String message) {
-      final colors = context.colors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: colors.error,
+        backgroundColor: context.colors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -125,220 +125,199 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('注册'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
-        ),
+    final colors = context.colors;
+    return AppAuthLayout(
+      title: '创建学生账号',
+      subtitle: '使用有效邀请码注册，完成后即可登录并设置学习偏好。',
+      leading: IconButton(
+        tooltip: '返回登录',
+        icon: const Icon(Icons.arrow_back_ios),
+        onPressed: () => context.pop(),
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSizes.baseSpacing),
-            child: ConstrainedBox(
-              constraints:
-                  const BoxConstraints(maxWidth: AppSizes.maxContentWidth),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _inviteCodeController,
+              decoration: const InputDecoration(
+                labelText: '邀请码',
+                hintText: '输入管理员提供的邀请码',
+                prefixIcon: Icon(Icons.key_outlined),
+              ),
+              textInputAction: TextInputAction.next,
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? '请输入邀请码'
+                  : null,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final twoColumns = constraints.maxWidth >= 420;
+                final username = TextFormField(
+                  controller: _usernameController,
+                  decoration: const InputDecoration(
+                    labelText: '用户名',
+                    hintText: '至少 3 个字符',
+                    prefixIcon: Icon(Icons.person_outline_rounded),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.username],
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) return '请输入用户名';
+                    if (value.trim().length < 3) return '用户名至少 3 个字符';
+                    return null;
+                  },
+                );
+                final realName = TextFormField(
+                  controller: _realNameController,
+                  decoration: const InputDecoration(
+                    labelText: '姓名',
+                    hintText: '输入真实姓名',
+                    prefixIcon: Icon(Icons.badge_outlined),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? '请输入姓名'
+                      : null,
+                );
+                if (!twoColumns) {
+                  return Column(
+                    children: [username, const SizedBox(height: AppSpacing.md), realName],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '使用邀请码注册',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      '需要邀请码才能注册，请联系管理员获取',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 邀请码
-                    TextFormField(
-                      controller: _inviteCodeController,
-                      decoration: const InputDecoration(
-                        labelText: '邀请码',
-                        hintText: '输入邀请码',
-                        prefixIcon: Icon(Icons.vpn_key_outlined),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? '请输入邀请码' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 用户名
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(
-                        labelText: '用户名',
-                        hintText: '输入用户名',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return '请输入用户名';
-                        if (v.trim().length < 3) return '用户名至少 3 个字符';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 姓名
-                    TextFormField(
-                      controller: _realNameController,
-                      decoration: const InputDecoration(
-                        labelText: '姓名',
-                        hintText: '输入真实姓名',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? '请输入姓名' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 手机号
-                    TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: '手机号',
-                        hintText: '输入手机号',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return '请输入手机号';
-                        if (!RegExp(r'^1\d{10}$').hasMatch(v.trim())) {
-                          return '请输入正确的手机号';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 高考年份
-                    DropdownButtonFormField<String>(
-                      initialValue: _gaokaoYear,
-                      decoration: const InputDecoration(
-                        labelText: '高考年份',
-                        prefixIcon: Icon(Icons.calendar_today_outlined),
-                      ),
-                      items: ['2025', '2026', '2027', '2028'].map((y) => DropdownMenuItem(
-                        value: y,
-                        child: Text('$y 年'),
-                      )).toList(),
-                      onChanged: (v) {
-                        if (v != null) setState(() => _gaokaoYear = v);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 密码
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        labelText: '密码',
-                        hintText: '至少 6 位',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(
-                              () => _obscurePassword = !_obscurePassword),
-                        ),
-                      ),
-                      obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return '请输入密码';
-                        if (v.length < 6) return '密码至少 6 位';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 确认密码
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        labelText: '确认密码',
-                        hintText: '再次输入密码',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirm
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () =>
-                              setState(() => _obscureConfirm = !_obscureConfirm),
-                        ),
-                      ),
-                      obscureText: _obscureConfirm,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _register(),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return '请确认密码';
-                        if (v != _passwordController.text) return '两次密码不一致';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 提交按钮
-                    ElevatedButton(
-                      onPressed: _loading ? null : _register,
-                      child: _loading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('注册'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 返回登录
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '已有账号？',
-                          style: TextStyle(color: colors.textSecondary),
-                        ),
-                        TextButton(
-                          onPressed: () => context.pop(),
-                          child: const Text('返回登录'),
-                        ),
-                      ],
-                    ),
+                    Expanded(child: username),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(child: realName),
                   ],
+                );
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _phoneController,
+              decoration: const InputDecoration(
+                labelText: '手机号',
+                hintText: '用于账号联系',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.telephoneNumber],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return '请输入手机号';
+                if (!RegExp(r'^1\d{10}$').hasMatch(value.trim())) return '请输入有效手机号';
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            DropdownButtonFormField<String>(
+              value: _gaokaoYear,
+              decoration: const InputDecoration(
+                labelText: '高考年份',
+                prefixIcon: Icon(Icons.calendar_month_outlined),
+              ),
+              items: ['2025', '2026', '2027', '2028']
+                  .map((year) => DropdownMenuItem(
+                        value: year,
+                        child: Text('$year 年'),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _gaokaoYear = value);
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: '密码',
+                hintText: '至少 6 位',
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
+                suffixIcon: IconButton(
+                  tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(
+                    () => _obscurePassword = !_obscurePassword,
+                  ),
                 ),
               ),
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              validator: (value) {
+                if (value == null || value.isEmpty) return '请输入密码';
+                if (value.length < 6) return '密码至少 6 位';
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextFormField(
+              controller: _confirmPasswordController,
+              decoration: InputDecoration(
+                labelText: '确认密码',
+                hintText: '再次输入密码',
+                prefixIcon: const Icon(Icons.lock_reset_outlined),
+                suffixIcon: IconButton(
+                  tooltip: _obscureConfirm ? '显示密码' : '隐藏密码',
+                  icon: Icon(
+                    _obscureConfirm
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () => setState(
+                    () => _obscureConfirm = !_obscureConfirm,
+                  ),
+                ),
+              ),
+              obscureText: _obscureConfirm,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _register(),
+              validator: (value) {
+                if (value == null || value.isEmpty) return '请确认密码';
+                if (value != _passwordController.text) return '两次密码不一致';
+                return null;
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            AppButton(
+              label: '完成注册',
+              icon: Icons.person_add_alt_1_rounded,
+              onPressed: _loading ? null : _register,
+              isLoading: _loading,
+              fullWidth: true,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '注册即表示你同意按学校或机构要求使用本学习系统。',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+      footer: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '已有账号？',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colors.textSecondary,
             ),
           ),
-        ),
+          TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
+        ],
       ),
     );
   }
 }
-

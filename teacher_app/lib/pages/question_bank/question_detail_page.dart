@@ -38,14 +38,12 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
 
   @override
   void initState() {
-      final colors = context.colors;
     super.initState();
     _selected = widget.initiallySelected;
     _load();
   }
 
   Future<void> _load() async {
-      final colors = context.colors;
     setState(() { _loading = true; _error = null; });
     try {
       final detail = await widget.repo.getQuestionDetail(widget.questionId);
@@ -217,7 +215,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   void _showKnowledgeCard(db.KnowledgeCardRow kc) {
-      final colors = context.colors;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -296,7 +293,6 @@ class _QuestionDetailPageState extends State<QuestionDetailPage> {
   }
 
   List<String> _parseImagePaths(String imagesJson) {
-      final colors = context.colors;
     try {
       final decoded = JsonDecoder().convert(imagesJson);
       return (decoded as List)

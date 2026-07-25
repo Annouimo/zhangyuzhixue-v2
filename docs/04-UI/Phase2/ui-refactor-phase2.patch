@@ -1,0 +1,1851 @@
+diff --git a/flutter_app/lib/pages/index_page.dart b/flutter_app/lib/pages/index_page.dart
+index 1f41946..c75e471 100644
+--- a/flutter_app/lib/pages/index_page.dart
++++ b/flutter_app/lib/pages/index_page.dart
+@@ -1,7 +1,6 @@
+ import 'dart:math';
+ import 'dart:convert';
+ import 'package:flutter/material.dart';
+-import 'package:go_router/go_router.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:drift/drift.dart' hide Column;
+ import 'router.dart';
+@@ -9,6 +8,10 @@ import 'package:shared/theme/app_theme.dart';
+ import 'package:shared/widgets/loading_indicator.dart';
+ import 'package:shared/widgets/error_placeholder.dart';
+ import 'package:shared/widgets/app_toast.dart';
++import 'package:shared/widgets/app_button.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import '../widgets/level_up_dialog.dart';
+ import '../widgets/achievement_unlock_dialog.dart';
+ import '../domain/achievement_repository.dart';
+@@ -214,7 +217,6 @@ class IndexPageState extends State<IndexPage> {
+           await achieveRepo.getCategories();
+           final newUnlocks = achieveRepo.lastNewUnlocks;
+           if (newUnlocks != null && newUnlocks.isNotEmpty && mounted) {
+-              final colors = context.colors;
+             await AppPrefs().setLastKnownUnlockCount(
+               prevCount + newUnlocks.length,
+             );
+@@ -242,9 +244,8 @@ class IndexPageState extends State<IndexPage> {
+   }
+ 
+   Future<void> _doCheckin() async {
+-      final colors = context.colors;
++    final colors = context.colors;
+     if (_checkedIn || _submitting) {
+-        final colors = context.colors;
+       if (_checkedIn) AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
+       return;
+     }
+@@ -281,7 +282,6 @@ class IndexPageState extends State<IndexPage> {
+         );
+       } catch (_) {}
+       setState(() {
+-          final colors = context.colors;
+         _streakDays = streak;
+         _checkedIn = true;
+         _submitting = false;
+@@ -295,22 +295,19 @@ class IndexPageState extends State<IndexPage> {
+       // 签到后重新检测等级（积分可能触发升级）
+       final oldLevel = AppPrefs().lastKnownLevel;
+       if (oldLevel > 0) {
+-          final colors = context.colors;
+         try {
+           final newLevel = await _repo.currentLevel();
+           if (newLevel > oldLevel && mounted) {
+-              final colors = context.colors;
+             await AppPrefs().setLastKnownLevel(newLevel);
+             final pctl = await _repo.levelPercentile();
+             if (mounted) {
+-                final colors = context.colors;
+               showLevelUpDialog(context, oldLevel: oldLevel, newLevel: newLevel, percentile: pctl);
+             }
+           }
+         } catch (_) {}
+       }
+     } catch (e) {
+-      _submitting = false;
++      if (mounted) setState(() => _submitting = false);
+       OperationLog.instance.error('IndexPage._doCheckin', e); 
+       AuditLogger.instance.error('IndexPage._doCheckin', e);
+       if (!mounted) return;
+@@ -323,234 +320,349 @@ class IndexPageState extends State<IndexPage> {
+ 
+   @override
+   Widget build(BuildContext context) {
+-      final colors = context.colors;
+     return Scaffold(
+       appBar: AppBar(title: const Text('首页')),
+       body: _loading
+-          ? const LoadingIndicator()
++          ? const LoadingIndicator(message: '正在整理今天的学习计划…')
+           : _error != null
+               ? ErrorPlaceholder(message: _error!, onRetry: _load)
+-              : SingleChildScrollView(
+-              padding: const EdgeInsets.all(16),
+-              child: Column(
+-                children: [
+-                  // 欢迎语卡片
+-                  _buildWelcomeCard(),
+-                  // 新手提示卡片（前 3 次）
+-                  if (_showWelcomeHint) _buildWelcomeHint(),
+-                  const SizedBox(height: 12),
+-                  // 快速练习
+-                  _buildQuickStart(),
+-                  // 待办作业
+-                  _buildPendingHomework(),
+-                  const SizedBox(height: 8),
+-                  // 讲义入口
+-                  _buildLectureEntry(),
+-                  const SizedBox(height: 12),
+-                  // 签到/任务卡片
+-                  _buildCheckinCard(),
+-                  const SizedBox(height: 8),
+-                  // 同步状态行
+-                  _buildSyncStatus(),
+-                ],
+-              ),
+-            ),
++              : AppContentContainer(
++                  maxWidth: AppContentWidth.dashboard,
++                  child: SingleChildScrollView(
++                    padding: const EdgeInsets.only(
++                      top: AppSpacing.sm,
++                      bottom: AppSpacing.xl,
++                    ),
++                    child: LayoutBuilder(
++                      builder: (context, constraints) {
++                        return _buildDashboard(constraints.maxWidth);
++                      },
++                    ),
++                  ),
++                ),
++    );
++  }
++
++  Widget _buildDashboard(double width) {
++    final useTwoColumns = width >= AppBreakpoints.medium;
++
++    return Column(
++      crossAxisAlignment: CrossAxisAlignment.start,
++      children: [
++        _buildHero(compact: width < AppBreakpoints.compact),
++        if (_showWelcomeHint) ...[
++          const SizedBox(height: AppSpacing.sm),
++          _buildWelcomeHint(),
++        ],
++        const SizedBox(height: AppSpacing.lg),
++        const AppSectionHeader(
++          title: '今日概览',
++          subtitle: '用几个关键数字快速了解当前学习状态',
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        _buildOverviewGrid(width),
++        const SizedBox(height: AppSpacing.lg),
++        if (useTwoColumns)
++          Row(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Expanded(flex: 5, child: _buildLearningResources()),
++              const SizedBox(width: AppSpacing.md),
++              Expanded(flex: 6, child: _buildCheckinCard()),
++            ],
++          )
++        else ...[
++          _buildLearningResources(),
++          const SizedBox(height: AppSpacing.md),
++          _buildCheckinCard(),
++        ],
++        const SizedBox(height: AppSpacing.md),
++        _buildSyncStatus(),
++      ],
+     );
+   }
+ 
+-  Widget _buildWelcomeCard() {
+-      final colors = context.colors;
++  Widget _buildHero({required bool compact}) {
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++
++    final copy = Column(
++      crossAxisAlignment: CrossAxisAlignment.start,
++      children: [
++        AppStatusBadge(
++          label: _todayTotal > 0 ? '今日已练 $_todayTotal 题' : '今天，从一道题开始',
++          tone: AppStatusTone.primary,
++          icon: Icons.bolt_rounded,
++          compact: true,
++        ),
++        const SizedBox(height: AppSpacing.sm),
++        Text(
++          _welcomeText,
++          style: textTheme.headlineSmall?.copyWith(
++            color: colors.onPrimaryContainer,
++          ),
++        ),
++        const SizedBox(height: AppSpacing.xs),
++        Text(
++          _pendingCount > 0
++              ? '你还有 $_pendingCount 项作业待完成，也可以先用一道快速练习进入状态。'
++              : '今日待办已清爽，可以继续巩固薄弱知识点。',
++          style: textTheme.bodyMedium?.copyWith(
++            color: colors.textSecondary,
++          ),
++        ),
++      ],
++    );
++
++    final action = AppButton(
++      label: '开始快速练习',
++      icon: Icons.play_arrow_rounded,
++      onPressed: _startQuickPractice,
++      fullWidth: compact,
++    );
++
+     return Container(
+       width: double.infinity,
+-      padding: const EdgeInsets.all(20),
++      padding: const EdgeInsets.all(AppSpacing.lg),
+       decoration: BoxDecoration(
+         color: colors.primaryContainer,
+-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
++        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
++        border: Border.all(color: colors.primaryBorder),
+       ),
+-      child: Column(
+-        children: [
+-          Text(
+-            _welcomeText,
+-            textAlign: TextAlign.center,
+-            style: TextStyle(
+-              fontSize: 16,
+-              fontWeight: FontWeight.w600,
+-              color: colors.primary,
+-              height: 1.6,
++      child: compact
++          ? Column(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [
++                copy,
++                const SizedBox(height: AppSpacing.lg),
++                action,
++              ],
++            )
++          : Row(
++              children: [
++                Container(
++                  width: 64,
++                  height: 64,
++                  decoration: BoxDecoration(
++                    color: colors.primary,
++                    borderRadius: BorderRadius.circular(AppRadius.large),
++                  ),
++                  child: Icon(
++                    Icons.school_rounded,
++                    size: 32,
++                    color: Theme.of(context).colorScheme.onPrimary,
++                  ),
++                ),
++                const SizedBox(width: AppSpacing.lg),
++                Expanded(child: copy),
++                const SizedBox(width: AppSpacing.lg),
++                action,
++              ],
+             ),
+-          ),
+-          SizedBox(height: 6),
+-          Text(
+-            '每天一句，保持节奏',
+-            style: TextStyle(fontSize: 11, color: colors.textSecondary),
+-          ),
+-        ],
+-      ),
+     );
+   }
+ 
+-  Widget _buildPendingHomework() {
+-      final colors = context.colors;
+-    return InkWell(
+-      onTap: () => RouterUtils.push(context,AppRoutes.homeworkList),
+-      borderRadius: BorderRadius.circular(12),
+-      child: Container(
+-        width: double.infinity,
+-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+-        decoration: BoxDecoration(
+-          color: colors.surface,
+-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+-        ),
+-        child: Row(
+-          children: [
+-            Icon(Icons.assignment, size: 20, color: colors.primary),
+-            const SizedBox(width: 12),
+-            Expanded(
+-              child: Column(
+-                crossAxisAlignment: CrossAxisAlignment.start,
+-                children: [
+-                  const Text('待办作业',
+-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+-                  ),
+-                  Text(
+-                    '$_pendingCount 项未完成',
+-                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+-                  ),
+-                ],
+-              ),
+-            ),
+-            Icon(Icons.chevron_right, color: colors.textSecondary),
+-          ],
+-        ),
++  Widget _buildOverviewGrid(double width) {
++    final colors = context.colors;
++    final accuracy = _todayTotal == 0
++        ? 0
++        : ((_todayCorrect / _todayTotal) * 100).round();
++    final columns = width < 360 ? 1 : width >= AppBreakpoints.medium ? 4 : 2;
++    final gap = AppSpacing.sm;
++    final itemWidth = (width - gap * (columns - 1)) / columns;
++
++    final items = [
++      _DashboardMetric(
++        icon: Icons.assignment_outlined,
++        label: '待办作业',
++        value: '$_pendingCount',
++        caption: _pendingCount == 0 ? '全部完成' : '项待处理',
++        foreground: _pendingCount == 0 ? colors.success : colors.primary,
++        background: _pendingCount == 0
++            ? colors.successContainer
++            : colors.primaryContainer,
++      ),
++      _DashboardMetric(
++        icon: Icons.edit_note_rounded,
++        label: '今日练习',
++        value: '$_todayTotal',
++        caption: '题已作答',
++        foreground: colors.primary,
++        background: colors.primaryContainer,
++      ),
++      _DashboardMetric(
++        icon: Icons.track_changes_rounded,
++        label: '今日正确率',
++        value: '$accuracy%',
++        caption: _todayTotal == 0 ? '完成练习后生成' : '$_todayCorrect 题正确',
++        foreground: accuracy >= 80 ? colors.success : colors.recommendation,
++        background: accuracy >= 80
++            ? colors.successContainer
++            : colors.recommendationContainer,
+       ),
++      _DashboardMetric(
++        icon: Icons.workspace_premium_outlined,
++        label: '当前等级',
++        value: 'Lv.$_currentLevel',
++        caption: '今日 +${formatAmount(_todayEarned)} 学习积分',
++        foreground: colors.recommendation,
++        background: colors.recommendationContainer,
++      ),
++    ];
++
++    return Wrap(
++      spacing: gap,
++      runSpacing: gap,
++      children: items
++          .map((item) => SizedBox(width: itemWidth, child: item))
++          .toList(),
+     );
+   }
+ 
+-  Widget _buildLectureEntry() {
+-      final colors = context.colors;
+-    return InkWell(
+-      onTap: () => RouterUtils.push(context,AppRoutes.lectureCourses),
+-      borderRadius: BorderRadius.circular(12),
+-      child: Container(
+-        width: double.infinity,
+-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+-        decoration: BoxDecoration(
+-          color: colors.surface,
+-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+-        ),
+-        child: Row(
+-          children: [
+-            Icon(Icons.menu_book, size: 20, color: colors.primary),
+-            const SizedBox(width: 12),
+-            Expanded(
+-              child: Column(
+-                crossAxisAlignment: CrossAxisAlignment.start,
+-                children: [
+-                  const Text('讲义',
+-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+-                  ),
+-                  Text('浏览课程与讲义内容',
+-                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
++  Widget _buildLearningResources() {
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.start,
++        children: [
++          const AppSectionHeader(
++            title: '学习入口',
++            subtitle: '按任务推进，或随时查阅课程讲义',
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          _HomeActionTile(
++            icon: Icons.assignment_outlined,
++            title: '待办作业',
++            subtitle: _pendingCount == 0
++                ? '今天没有未完成作业'
++                : '还有 $_pendingCount 项任务等待完成',
++            onTap: () => RouterUtils.push(context, AppRoutes.homeworkList),
++            trailing: _pendingCount > 0
++                ? AppStatusBadge(
++                    label: '$_pendingCount 项',
++                    tone: AppStatusTone.warning,
++                    compact: true,
++                  )
++                : const AppStatusBadge(
++                    label: '已完成',
++                    tone: AppStatusTone.success,
++                    compact: true,
+                   ),
+-                ],
+-              ),
+-            ),
+-            Icon(Icons.chevron_right, color: colors.textSecondary),
+-          ],
+-        ),
++          ),
++          const Divider(height: AppSpacing.lg),
++          _HomeActionTile(
++            icon: Icons.menu_book_outlined,
++            title: '课程讲义',
++            subtitle: '浏览章节、知识点与配套内容',
++            onTap: () => RouterUtils.push(context, AppRoutes.lectureCourses),
++          ),
++        ],
+       ),
+     );
+   }
+ 
+   Widget _buildCheckinCard() {
+-      final colors = context.colors;
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
+     final todayReward = UserRepository.todayRewardText(_streakDays);
+     final nextReward = UserRepository.nextRewardText(_streakDays);
+     final progress = (_streakDays % 7) / 7.0;
+     final tasks = UserRepository.computeTodayTasks(_todayTotal, _todayCorrect);
+ 
+-    return Container(
+-      width: double.infinity,
+-      padding: const EdgeInsets.all(16),
+-      decoration: BoxDecoration(
+-        color: colors.surface,
+-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+-      ),
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.lg),
+       child: Column(
++        crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+-          // 签到行
+-          Row(
+-            children: [
+-              Icon(Icons.local_fire_department, size: 20, color: colors.primary),
+-              const SizedBox(width: 4),
+-              Text(
+-                '已连续签到 $_streakDays 天',
+-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+-              ),
+-              const Spacer(),
+-              SizedBox(
+-                height: 32,
+-                width: 80,
+-                child: ElevatedButton(
+-                  onPressed: _doCheckin,
+-                  style: ElevatedButton.styleFrom(
+-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+-                    textStyle: const TextStyle(fontSize: 12),
+-                  ),
+-                  child: Text(_checkedIn ? '已签到' : '签到'),
+-                ),
+-              ),
+-            ],
++          AppSectionHeader(
++            title: '连续学习',
++            subtitle: '完成签到和每日任务，保持稳定节奏',
++            action: AppButton(
++              label: _checkedIn ? '已签到' : '签到',
++              icon: _checkedIn ? Icons.check_rounded : Icons.local_fire_department,
++              onPressed: _checkedIn ? null : _doCheckin,
++              isLoading: _submitting,
++              variant: _checkedIn
++                  ? AppButtonVariant.secondary
++                  : AppButtonVariant.primary,
++            ),
+           ),
+-          const SizedBox(height: 8),
+-          // 奖励行
++          const SizedBox(height: AppSpacing.md),
+           Row(
+             children: [
+-              Text('今日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+-              Text('+$todayReward',
+-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
++              Container(
++                width: 48,
++                height: 48,
++                decoration: BoxDecoration(
++                  color: colors.recommendationContainer,
++                  borderRadius: BorderRadius.circular(AppRadius.medium),
++                ),
++                child: Icon(
++                  Icons.local_fire_department_rounded,
++                  color: colors.recommendation,
++                ),
+               ),
+-              const Spacer(),
+-              Text('明日奖励 ', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+-              Text('+$nextReward',
+-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary),
++              const SizedBox(width: AppSpacing.sm),
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      '已连续学习 $_streakDays 天',
++                      style: textTheme.titleMedium,
++                    ),
++                    const SizedBox(height: AppSpacing.xxs),
++                    Text(
++                      '今日奖励 +$todayReward · 明日可得 +$nextReward',
++                      style: textTheme.bodySmall?.copyWith(
++                        color: colors.textSecondary,
++                      ),
++                    ),
++                  ],
++                ),
+               ),
+             ],
+           ),
+-          const SizedBox(height: 6),
+-          // 进度条
++          const SizedBox(height: AppSpacing.sm),
+           ClipRRect(
+-            borderRadius: BorderRadius.circular(2),
+-            child: LinearProgressIndicator(
+-              value: progress,
+-              minHeight: 4,
+-              backgroundColor: colors.border,
+-              valueColor: AlwaysStoppedAnimation(colors.primary),
+-            ),
++            borderRadius: BorderRadius.circular(AppRadius.pill),
++            child: LinearProgressIndicator(value: progress, minHeight: 8),
+           ),
+-          const SizedBox(height: 2),
+-          // 进度标签
++          const SizedBox(height: AppSpacing.xs),
+           Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: [
+-              Text('第1天',
+-                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
+-              Text('第7天 🎯',
+-                style: TextStyle(fontSize: 10, color: colors.textSecondary)),
++              Text('本周第 ${(_streakDays % 7) + 1} 天', style: textTheme.bodySmall),
++              Text('7 天阶段目标', style: textTheme.bodySmall),
+             ],
+           ),
+-          const Divider(height: 20),
+-          // 任务列表
+-          ...tasks.map((t) => _buildTaskItem(t.done, t.label, t.rewardText, inProgress: t.inProgress)),
+-          // 等级进度行
+-          const Divider(height: 12),
+-          Row(
+-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
++          const Divider(height: AppSpacing.xl),
++          Text('每日任务', style: textTheme.titleMedium),
++          const SizedBox(height: AppSpacing.xs),
++          ...tasks.map(
++            (task) => _buildTaskItem(
++              task.done,
++              task.label,
++              task.rewardText,
++              inProgress: task.inProgress,
++            ),
++          ),
++          const Divider(height: AppSpacing.xl),
++          Wrap(
++            spacing: AppSpacing.sm,
++            runSpacing: AppSpacing.xs,
++            alignment: WrapAlignment.spaceBetween,
+             children: [
+-              Text('🏅 Lv.$_currentLevel → 升级还需 ${_levelProgress.split('/').firstOrNull ?? ''}',
+-                style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+-              Text('今日学习积分 +${formatAmount(_todayEarned)}',
+-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.primary)),
++              Text(
++                'Lv.$_currentLevel · 升级进度 $_levelProgress',
++                style: textTheme.bodySmall?.copyWith(
++                  color: colors.textSecondary,
++                ),
++              ),
++              Text(
++                '今日学习积分 +${formatAmount(_todayEarned)}',
++                style: textTheme.labelMedium?.copyWith(color: colors.primary),
++              ),
+             ],
+           ),
+         ],
+@@ -558,35 +670,44 @@ class IndexPageState extends State<IndexPage> {
+     );
+   }
+ 
+-  Widget _buildTaskItem(bool done, String label, String points, {bool inProgress = false}) {
+-      final colors = context.colors;
++  Widget _buildTaskItem(
++    bool done,
++    String label,
++    String points, {
++    bool inProgress = false,
++  }) {
++    final colors = context.colors;
+     final icon = done
+-        ? Icon(Icons.check_circle, size: 18, color: colors.success)
+-        : (inProgress
+-            ? Icon(Icons.hourglass_empty, size: 18, color: colors.warning)
+-            : Icon(Icons.circle_outlined, size: 18, color: colors.textSecondary));
++        ? Icons.check_circle_rounded
++        : inProgress
++            ? Icons.timelapse_rounded
++            : Icons.radio_button_unchecked_rounded;
++    final iconColor = done
++        ? colors.success
++        : inProgress
++            ? colors.warning
++            : colors.textMuted;
++
+     return Padding(
+-      padding: const EdgeInsets.symmetric(vertical: 3),
++      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+       child: Row(
+         children: [
+-          icon,
+-          const SizedBox(width: 8),
++          Icon(icon, size: 20, color: iconColor),
++          const SizedBox(width: AppSpacing.xs),
+           Expanded(
+             child: Text(
+               label,
+-              style: TextStyle(
+-                fontSize: 13,
+-                color: done ? colors.textSecondary : colors.textPrimary,
+-                decoration: done ? TextDecoration.lineThrough : null,
+-              ),
++              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
++                    color: done ? colors.textSecondary : colors.textPrimary,
++                    decoration: done ? TextDecoration.lineThrough : null,
++                  ),
+             ),
+           ),
+-          Text('+$points',
+-            style: TextStyle(
+-              fontSize: 12,
+-              fontWeight: FontWeight.w500,
+-              color: done ? colors.textSecondary : colors.primary,
+-            ),
++          Text(
++            '+$points',
++            style: Theme.of(context).textTheme.labelMedium?.copyWith(
++                  color: done ? colors.textMuted : colors.primary,
++                ),
+           ),
+         ],
+       ),
+@@ -594,162 +715,267 @@ class IndexPageState extends State<IndexPage> {
+   }
+ 
+   Widget _buildSyncStatus() {
+-      final colors = context.colors;
++    final colors = context.colors;
+     final online = ConnectivityMonitor().isOnline;
+-    IconData icon;
+-    String text;
++    late final IconData icon;
++    late final String text;
++    late final Color foreground;
++    late final Color background;
++    late final Color border;
+     VoidCallback? onTap;
+ 
+     if (!online) {
+-        final colors = context.colors;
+-      icon = Icons.cloud_off;
+-      text = '当前离线，数据将在联网后同步';
++      icon = Icons.cloud_off_outlined;
++      text = '当前离线，数据将在联网后自动同步';
++      foreground = colors.onRecommendationContainer;
++      background = colors.recommendationContainer;
++      border = colors.recommendation;
+     } else if (_syncPendingCount > 0) {
+-      icon = Icons.sync_problem;
+-      text = '$_syncPendingCount 条数据待同步';
+-      onTap = () => RouterUtils.push(context,AppRoutes.syncQueue);
++      icon = Icons.sync_problem_rounded;
++      text = '$_syncPendingCount 条学习数据等待同步';
++      foreground = colors.onWarningContainer;
++      background = colors.warningContainer;
++      border = colors.warning;
++      onTap = () => RouterUtils.push(context, AppRoutes.syncQueue);
+     } else {
+-      icon = Icons.cloud_done;
+-      text = '全部已同步';
++      icon = Icons.cloud_done_outlined;
++      text = '学习数据已全部同步';
++      foreground = colors.onSuccessContainer;
++      background = colors.successContainer;
++      border = colors.success;
+     }
+ 
+-    return InkWell(
+-      onTap: onTap,
+-      borderRadius: BorderRadius.circular(8),
+-      child: Container(
+-        width: double.infinity,
+-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+-        decoration: BoxDecoration(
+-          color: !online
+-              ? colors.recommendation.withValues(alpha: 0.08)
+-              : _syncPendingCount > 0
+-                  ? colors.warning.withValues(alpha: 0.08)
+-                  : colors.success.withValues(alpha: 0.08),
+-          borderRadius: BorderRadius.circular(8),
+-        ),
+-        child: Row(
+-          children: [
+-            Icon(icon, size: 16,
+-              color: !online
+-                  ? colors.recommendation
+-                  : _syncPendingCount > 0
+-                      ? colors.warning
+-                      : colors.success,
+-            ),
+-            const SizedBox(width: 8),
+-            Expanded(
+-              child: Text(text,
+-                style: TextStyle(
+-                  fontSize: 12,
+-                  color: !online
+-                      ? colors.recommendation
+-                      : _syncPendingCount > 0
+-                          ? colors.warning
+-                          : colors.success,
++    return Material(
++      color: background,
++      shape: RoundedRectangleBorder(
++        borderRadius: BorderRadius.circular(AppRadius.medium),
++        side: BorderSide(color: border.withValues(alpha: 0.55)),
++      ),
++      clipBehavior: Clip.antiAlias,
++      child: InkWell(
++        onTap: onTap,
++        child: Padding(
++          padding: const EdgeInsets.symmetric(
++            horizontal: AppSpacing.md,
++            vertical: AppSpacing.sm,
++          ),
++          child: Row(
++            children: [
++              Icon(icon, size: 20, color: foreground),
++              const SizedBox(width: AppSpacing.xs),
++              Expanded(
++                child: Text(
++                  text,
++                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
++                        color: foreground,
++                        fontWeight: FontWeight.w600,
++                      ),
+                 ),
+               ),
+-            ),
+-            if (onTap != null)
+-              Icon(Icons.chevron_right, size: 16, color: colors.textSecondary),
+-          ],
+-        ),
+-      ),
+-    );
+-  }
+-
+-
+-  /// 快速练习 — 随机做一道题
+-  Widget _buildQuickStart() {
+-      final colors = context.colors;
+-    return Container(
+-      width: double.infinity,
+-      margin: const EdgeInsets.only(bottom: 12),
+-      child: ElevatedButton.icon(
+-        onPressed: _startQuickPractice,
+-        icon: const Icon(Icons.play_arrow_rounded),
+-        label: const Text('🚀 快速练习 — 随机做一道题'),
+-        style: ElevatedButton.styleFrom(
+-          padding: const EdgeInsets.symmetric(vertical: 14),
+-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
++              if (onTap != null)
++                Icon(AppIcons.chevronRight, size: 20, color: foreground),
++            ],
++          ),
+         ),
+       ),
+     );
+   }
+ 
+   Future<void> _startQuickPractice() async {
+-      final colors = context.colors;
+     try {
+       final dao = QuestionDao(DatabaseProvider());
+-      var q = await dao.getRandomByType(preferredType: 'choice');
+-      q ??= await dao.getRandomByType(preferredType: 'fill');
+-      q ??= await dao.getRandomByType();
+-      if (q == null || !mounted) {
+-          final colors = context.colors;
+-        AppToast.show(context, icon: Icons.info, message: '题库暂无数据');
++      var question = await dao.getRandomByType(preferredType: 'choice');
++      question ??= await dao.getRandomByType(preferredType: 'fill');
++      question ??= await dao.getRandomByType();
++      if (question == null || !mounted) {
++        AppToast.show(context, icon: Icons.info_outline, message: '题库暂无数据');
+         return;
+       }
+-      await SolveRouteHelper.navigateTo(context, q.id, q.questionType);
+-    } catch (e) { OperationLog.instance.error('index_page_load', e); 
+-      AuditLogger.instance.error('IndexPage._startQuickPractice', e);
++      await SolveRouteHelper.navigateTo(
++        context,
++        question.id,
++        question.questionType,
++      );
++    } catch (error) {
++      OperationLog.instance.error('index_page_quick_practice', error);
++      AuditLogger.instance.error('IndexPage._startQuickPractice', error);
+       if (!mounted) return;
+-      AppToast.show(context, icon: Icons.warning, message: '加载失败，请稍后重试');
++      AppToast.show(context, icon: Icons.warning_amber_rounded, message: '加载失败，请稍后重试');
+     }
+   }
+ 
+-  /// 新手提示引导卡片
+   Widget _buildWelcomeHint() {
+-      final colors = context.colors;
+-    return Container(
+-      width: double.infinity,
+-      margin: const EdgeInsets.only(top: 12, bottom: 4),
+-      padding: const EdgeInsets.all(16),
+-      decoration: BoxDecoration(
+-        color: colors.primaryContainer,
+-        borderRadius: BorderRadius.circular(12),
+-        border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+-      ),
++    final colors = context.colors;
++
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.md),
+       child: Column(
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+           Row(
+             children: [
+-              Icon(Icons.lightbulb_outline, size: 18, color: colors.primary),
+-              SizedBox(width: 6),
+-              Text('欢迎来到章鱼智学',
+-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.primary),
++              Container(
++                width: 36,
++                height: 36,
++                decoration: BoxDecoration(
++                  color: colors.infoContainer,
++                  borderRadius: BorderRadius.circular(AppRadius.small),
++                ),
++                child: Icon(Icons.lightbulb_outline_rounded, color: colors.info),
++              ),
++              const SizedBox(width: AppSpacing.sm),
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text('第一次使用？从这里开始', style: Theme.of(context).textTheme.titleMedium),
++                    Text(
++                      '快速练习、讲义、推荐和组卷构成主要学习路径。',
++                      style: Theme.of(context).textTheme.bodySmall,
++                    ),
++                  ],
++                ),
+               ),
+-              const Spacer(),
+-              GestureDetector(
+-                onTap: () => setState(() => _showWelcomeHint = false),
+-                child: Icon(Icons.close, size: 16, color: colors.textSecondary),
++              IconButton(
++                tooltip: '关闭提示',
++                onPressed: () => setState(() => _showWelcomeHint = false),
++                icon: const Icon(Icons.close_rounded),
+               ),
+             ],
+           ),
+-          const SizedBox(height: 10),
+-          _hintItem(Icons.play_arrow, '🚀 快速练习 — 直接随机做一道题'),
+-          const SizedBox(height: 6),
+-          _hintItem(Icons.menu_book, '📖 讲义 — 浏览课程知识点'),
+-          const SizedBox(height: 6),
+-          _hintItem(Icons.auto_awesome, '🧠 推荐 — 智能推送适合你的题目'),
+-          const SizedBox(height: 6),
+-          _hintItem(Icons.description, '📝 组卷 — 自己组卷或使用他人试卷'),
++          const SizedBox(height: AppSpacing.sm),
++          const Wrap(
++            spacing: AppSpacing.xs,
++            runSpacing: AppSpacing.xs,
++            children: [
++              AppStatusBadge(label: '快速练习', tone: AppStatusTone.primary, compact: true),
++              AppStatusBadge(label: '课程讲义', tone: AppStatusTone.info, compact: true),
++              AppStatusBadge(label: '智能推荐', tone: AppStatusTone.recommendation, compact: true),
++              AppStatusBadge(label: '自主组卷', tone: AppStatusTone.neutral, compact: true),
++            ],
++          ),
+         ],
+       ),
+     );
+   }
++}
+ 
+-  Widget _hintItem(IconData icon, String text) {
+-      final colors = context.colors;
+-    return Row(
+-      children: [
+-        Icon(icon, size: 14, color: colors.primary),
+-        const SizedBox(width: 8),
+-        Expanded(
+-          child: Text(text, style: TextStyle(fontSize: 13, color: colors.textPrimary)),
+-        ),
+-      ],
++class _DashboardMetric extends StatelessWidget {
++  const _DashboardMetric({
++    required this.icon,
++    required this.label,
++    required this.value,
++    required this.caption,
++    required this.foreground,
++    required this.background,
++  });
++
++  final IconData icon;
++  final String label;
++  final String value;
++  final String caption;
++  final Color foreground;
++  final Color background;
++
++  @override
++  Widget build(BuildContext context) {
++    final textTheme = Theme.of(context).textTheme;
++
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.md),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.start,
++        children: [
++          Container(
++            width: 40,
++            height: 40,
++            decoration: BoxDecoration(
++              color: background,
++              borderRadius: BorderRadius.circular(AppRadius.medium),
++            ),
++            child: Icon(icon, size: 22, color: foreground),
++          ),
++          const SizedBox(height: AppSpacing.sm),
++          Text(label, style: textTheme.bodySmall),
++          const SizedBox(height: AppSpacing.xxs),
++          Text(value, style: textTheme.titleLarge?.copyWith(color: foreground)),
++          const SizedBox(height: AppSpacing.xxs),
++          Text(
++            caption,
++            maxLines: 1,
++            overflow: TextOverflow.ellipsis,
++            style: textTheme.labelSmall,
++          ),
++        ],
++      ),
+     );
+   }
+ }
+ 
++class _HomeActionTile extends StatelessWidget {
++  const _HomeActionTile({
++    required this.icon,
++    required this.title,
++    required this.subtitle,
++    required this.onTap,
++    this.trailing,
++  });
++
++  final IconData icon;
++  final String title;
++  final String subtitle;
++  final VoidCallback onTap;
++  final Widget? trailing;
++
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++
++    return Material(
++      color: Colors.transparent,
++      borderRadius: BorderRadius.circular(AppRadius.medium),
++      clipBehavior: Clip.antiAlias,
++      child: InkWell(
++        onTap: onTap,
++        child: Padding(
++          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
++          child: Row(
++            children: [
++              Container(
++                width: 44,
++                height: 44,
++                decoration: BoxDecoration(
++                  color: colors.primaryContainer,
++                  borderRadius: BorderRadius.circular(AppRadius.medium),
++                ),
++                child: Icon(icon, color: colors.primary),
++              ),
++              const SizedBox(width: AppSpacing.sm),
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(title, style: textTheme.titleMedium),
++                    const SizedBox(height: AppSpacing.xxs),
++                    Text(
++                      subtitle,
++                      style: textTheme.bodySmall?.copyWith(
++                        color: colors.textSecondary,
++                      ),
++                    ),
++                  ],
++                ),
++              ),
++              if (trailing != null) ...[
++                const SizedBox(width: AppSpacing.xs),
++                trailing!,
++              ] else
++                Icon(AppIcons.chevronRight, color: colors.textMuted),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+diff --git a/flutter_app/lib/pages/recommend_page.dart b/flutter_app/lib/pages/recommend_page.dart
+index 0b880a9..4a7bd80 100644
+--- a/flutter_app/lib/pages/recommend_page.dart
++++ b/flutter_app/lib/pages/recommend_page.dart
+@@ -1,21 +1,26 @@
+ import 'package:flutter/material.dart';
++import 'package:shared/debug/audit_logger.dart';
++import 'package:shared/debug/operation_log.dart';
+ import 'package:shared/theme/app_theme.dart';
+-import '../../data/daos/progress_dao.dart';
+-import '../../data/daos/question_dao.dart';
+-import '../../data/database/database_provider.dart';
+-import '../../domain/recommend_repository.dart';
+-import '../../domain/question_repository.dart';
+-import 'package:shared/widgets/loading_indicator.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_page_layout.dart';
++import 'package:shared/widgets/app_status_badge.dart';
+ import 'package:shared/widgets/empty_placeholder.dart';
+ import 'package:shared/widgets/error_placeholder.dart';
++import 'package:shared/widgets/loading_indicator.dart';
++
++import '../data/daos/progress_dao.dart';
++import '../data/daos/question_dao.dart';
++import '../data/database/database_provider.dart';
++import '../domain/question_repository.dart';
++import '../domain/recommend_repository.dart';
+ import 'widgets/recommend_card.dart';
+-import 'package:shared/debug/audit_logger.dart';
+-import 'package:shared/debug/operation_log.dart';
+ 
+ /// 推荐页（双模式：智能推荐 / 偏好推荐）
+ class RecommendPage extends StatefulWidget {
++  const RecommendPage({super.key, this.recommendRepository});
++
+   final RecommendRepository? recommendRepository;
+-  RecommendPage({super.key, this.recommendRepository});
+ 
+   @override
+   State<RecommendPage> createState() => RecommendPageState();
+@@ -30,27 +35,20 @@ class RecommendPageState extends State<RecommendPage> {
+   List<RecommendPreset> _presets = [];
+   int _selectedPresetIndex = -1;
+ 
+-  /// 切换到偏好推荐模式：若未选中预设，自动选中第一个
+-  void _switchToPresetMode() {
+-    if (_presets.isEmpty) return;
+-    final idx = _selectedPresetIndex >= 0 ? _selectedPresetIndex : 0;
+-    _switchToPreset(idx);
+-  }
+-
+-  /// 每次操作时新鲜创建 Repository，确保拿到 DatabaseProvider 最新连接引用
+   void _initRepo() {
+-    _repo = widget.recommendRepository ?? RecommendRepository(
+-      QuestionDao(DatabaseProvider()), ProgressDao(DatabaseProvider()),
+-    );
++    _repo = widget.recommendRepository ??
++        RecommendRepository(
++          QuestionDao(DatabaseProvider()),
++          ProgressDao(DatabaseProvider()),
++        );
+   }
+ 
+-  /// 供 MainShell 切 Tab 时调用：静默刷新全部数据（不显示 loading 指示器）
++  /// 供 MainShell 切换 Tab 时调用：静默刷新，不打断用户阅读。
+   void refresh() {
+     _initRepo();
+     _loadSilent();
+   }
+ 
+-  /// 静默加载（不设 _loading = true，避免切 Tab 时闪 loading 指示器）
+   Future<void> _loadSilent() async {
+     _initRepo();
+     try {
+@@ -59,13 +57,12 @@ class RecommendPageState extends State<RecommendPage> {
+       if (!mounted) return;
+       setState(() {
+         _presets = presets;
+-        if (!_preferSmart) return; // 偏好模式下不覆盖题目列表
++        if (!_preferSmart) return;
+         _questions = smart;
+-        if (smart.isEmpty && presets.isNotEmpty) { _preferSmart = false; }
+-        else { _preferSmart = true; }
++        _preferSmart = smart.isNotEmpty || presets.isEmpty;
+       });
+     } catch (_) {
+-      // 静默失败不影响已有数据
++      // 静默刷新失败时保留已有内容。
+     }
+   }
+ 
+@@ -77,7 +74,10 @@ class RecommendPageState extends State<RecommendPage> {
+ 
+   Future<void> _load() async {
+     _initRepo();
+-    setState(() { _loading = true; _error = null; });
++    setState(() {
++      _loading = true;
++      _error = null;
++    });
+     try {
+       final presets = await _repo.getPresets();
+       final smart = await _repo.getSmartList();
+@@ -85,112 +85,211 @@ class RecommendPageState extends State<RecommendPage> {
+       setState(() {
+         _presets = presets;
+         _questions = smart;
+-        // 默认策略：做题<5且有偏好→偏好推荐，否则智能推荐
+-        if (smart.isEmpty && presets.isNotEmpty) { _preferSmart = false; }
+-        else { _preferSmart = true; }
++        _preferSmart = smart.isNotEmpty || presets.isEmpty;
+         _loading = false;
+       });
+-      AuditLogger.instance.page('RecommendPage', {'presetCount': _presets.length, 'smartCount': _questions?.length, 'preferSmart': _preferSmart});
+-    } catch (e) { OperationLog.instance.error('recommend_page_load', e); 
+-      AuditLogger.instance.error('RecommendPage._load', e);
+-      OperationLog.instance.error('RecommendPage._load', e);
++      AuditLogger.instance.page('RecommendPage', {
++        'presetCount': _presets.length,
++        'smartCount': _questions?.length,
++        'preferSmart': _preferSmart,
++      });
++    } catch (error) {
++      OperationLog.instance.error('RecommendPage._load', error);
++      AuditLogger.instance.error('RecommendPage._load', error);
+       if (!mounted) return;
+-      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
++      setState(() {
++        _error = '加载失败，请稍后重试';
++        _loading = false;
++      });
+     }
+   }
+ 
+   Future<void> _switchToSmart() async {
+     _initRepo();
+-    setState(() { _loading = true; _preferSmart = true; });
++    setState(() {
++      _loading = true;
++      _error = null;
++      _preferSmart = true;
++    });
+     try {
+-      final qs = await _repo.getSmartList();
++      final questions = await _repo.getSmartList();
++      if (!mounted) return;
++      setState(() {
++        _questions = questions;
++        _loading = false;
++      });
++    } catch (error) {
++      OperationLog.instance.error('RecommendPage._switchToSmart', error);
++      AuditLogger.instance.error('RecommendPage._switchToSmart', error);
+       if (!mounted) return;
+-      setState(() { _questions = qs; _loading = false; });
+-    } catch (e) { OperationLog.instance.error('recommend_page_load', e);  AuditLogger.instance.error('RecommendPage._switchToSmart', e); OperationLog.instance.error('RecommendPage._switchToSmart', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
++      setState(() {
++        _error = '加载失败，请稍后重试';
++        _loading = false;
++      });
++    }
++  }
++
++  void _switchToPresetMode() {
++    if (_presets.isEmpty) return;
++    final index = _selectedPresetIndex >= 0 ? _selectedPresetIndex : 0;
++    _switchToPreset(index);
+   }
+ 
+   Future<void> _switchToPreset(int index) async {
+     if (index < 0 || index >= _presets.length) return;
+     _initRepo();
+-    setState(() { _loading = true; _preferSmart = false; _selectedPresetIndex = index; });
++    setState(() {
++      _loading = true;
++      _error = null;
++      _preferSmart = false;
++      _selectedPresetIndex = index;
++    });
+     try {
+-      final presetId = _presets[index].id;
+-      final qs = await _repo.getPresetQuestions(presetId);
++      final presetQuestions = await _repo.getPresetQuestions(_presets[index].id);
+       if (!mounted) return;
+-      setState(() { _questions = qs.map((p) => RecommendedQuestion(
+-        id: p.id, title: p.title, questionType: p.questionType,
+-        difficulty: p.difficulty, recommendReason: '偏好推荐', status: p.status,
+-      )).toList(); _loading = false; });
+-    } catch (e) { OperationLog.instance.error('recommend_page_load', e);  AuditLogger.instance.error('RecommendPage._switchToPreset', e); OperationLog.instance.error('RecommendPage._switchToPreset', e); if (!mounted) return; setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
++      setState(() {
++        _questions = presetQuestions
++            .map(
++              (question) => RecommendedQuestion(
++                id: question.id,
++                title: question.title,
++                questionType: question.questionType,
++                difficulty: question.difficulty,
++                recommendReason: '符合“${_presets[index].name}”学习偏好',
++                status: question.status,
++              ),
++            )
++            .toList();
++        _loading = false;
++      });
++    } catch (error) {
++      OperationLog.instance.error('RecommendPage._switchToPreset', error);
++      AuditLogger.instance.error('RecommendPage._switchToPreset', error);
++      if (!mounted) return;
++      setState(() {
++        _error = '加载失败，请稍后重试';
++        _loading = false;
++      });
++    }
+   }
+ 
+   @override
+-  Widget build(BuildContext context) => Scaffold(
+-    appBar: AppBar(title: Text('题目推荐')),
+-    body: _buildBody(),
+-  );
++  Widget build(BuildContext context) {
++    return Scaffold(
++      appBar: AppBar(
++        title: const Text('题目推荐'),
++        actions: [
++          IconButton(
++            tooltip: '刷新推荐',
++            onPressed: _load,
++            icon: const Icon(AppIcons.refresh),
++          ),
++          const SizedBox(width: AppSpacing.xs),
++        ],
++      ),
++      body: _buildBody(),
++    );
++  }
+ 
+   Widget _buildBody() {
+-    if (_loading) return LoadingIndicator(message: '生成推荐…');
+-    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
+-    return Column(
+-      children: [
+-        _buildModePills(),
+-        if (_preferSmart)
+-          Padding(
+-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+-            child: Text('根据你的做题记录和薄弱项智能推送',
+-              style: TextStyle(fontSize: 13, color: context.colors.textSecondary),
++    if (_loading) {
++      return const LoadingIndicator(message: '正在生成适合你的练习…');
++    }
++    if (_error != null) {
++      return ErrorPlaceholder(message: _error!, onRetry: _load);
++    }
++
++    return AppContentContainer(
++      maxWidth: AppContentWidth.standard,
++      child: Padding(
++        padding: const EdgeInsets.only(
++          top: AppSpacing.sm,
++          bottom: AppSpacing.sm,
++        ),
++        child: Column(
++          crossAxisAlignment: CrossAxisAlignment.stretch,
++          children: [
++            _buildIntroCard(),
++            const SizedBox(height: AppSpacing.md),
++            _RecommendationModeSelector(
++              smartSelected: _preferSmart,
++              presetEnabled: _presets.isNotEmpty,
++              onSmartTap: _preferSmart ? null : _switchToSmart,
++              onPresetTap: !_preferSmart ? null : _switchToPresetMode,
+             ),
+-          ),
+-        if (!_preferSmart)
+-          _buildPresetSelector(),
+-        Expanded(
+-          child: _questions == null || _questions!.isEmpty
+-              ? (!_preferSmart && _selectedPresetIndex == -1
+-                  ? EmptyPlaceholder(icon: Icons.playlist_add, message: '请先选择一个学习偏好开始推荐')
+-                  : EmptyPlaceholder(icon: Icons.auto_awesome, message: '暂时没有智能推荐 🧠 去首页试试快速练习吧'))
+-              : RefreshIndicator(
+-                  onRefresh: _load,
+-                  child: ListView.separated(
+-                    padding: const EdgeInsets.all(AppSizes.baseSpacing),
+-                    itemCount: _questions!.length,
+-                    separatorBuilder: (_, _) => SizedBox(height: 8),
+-                    itemBuilder: (ctx, i) {
+-                      final q = _questions![i];
+-                      return RecommendCard(
+-                        title: q.title,
+-                        questionType: q.questionType,
+-                        difficulty: q.difficulty,
+-                        reason: q.recommendReason,
+-                        status: q.status,
+-                        onTap: () => SolveRouteHelper.navigateTo(context, q.id, q.questionType),
+-                      );
+-                    },
+-                  ),
+-                ),
++            if (!_preferSmart) ...[
++              const SizedBox(height: AppSpacing.sm),
++              _buildPresetSelector(),
++            ],
++            const SizedBox(height: AppSpacing.lg),
++            AppSectionHeader(
++              title: _preferSmart ? '智能推荐题目' : '偏好推荐题目',
++              subtitle: _preferSmart
++                  ? '结合做题记录与薄弱知识点动态生成'
++                  : '根据选定的学习范围筛选题目',
++              action: AppStatusBadge(
++                label: '${_questions?.length ?? 0} 题',
++                tone: AppStatusTone.neutral,
++                compact: true,
++              ),
++            ),
++            const SizedBox(height: AppSpacing.sm),
++            Expanded(child: _buildQuestionList()),
++          ],
+         ),
+-      ],
++      ),
+     );
+   }
+ 
+-  Widget _buildModePills() {
++  Widget _buildIntroCard() {
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++
+     return Container(
+-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing, vertical: 8),
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      decoration: BoxDecoration(
++        color: colors.recommendationContainer,
++        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
++        border: Border.all(color: colors.recommendation),
++      ),
+       child: Row(
++        crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+-          _PillButton(
+-            selected: _preferSmart,
+-            label: '智能推荐',
+-            icon: Icons.auto_awesome,
+-            onPressed: _switchToSmart,
++          Container(
++            width: 52,
++            height: 52,
++            decoration: BoxDecoration(
++              color: colors.recommendation,
++              borderRadius: BorderRadius.circular(AppRadius.large),
++            ),
++            child: Icon(
++              Icons.auto_awesome_rounded,
++              color: colors.onRecommendation,
++              size: 28,
++            ),
+           ),
+-          SizedBox(width: 8),
+-          _PillButton(
+-            selected: !_preferSmart,
+-            label: '偏好推荐',
+-            icon: Icons.list,
+-            onPressed: _presets.isNotEmpty ? _switchToPresetMode : null,
++          const SizedBox(width: AppSpacing.md),
++          Expanded(
++            child: Column(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [
++                Text(
++                  '把下一步练习交给推荐系统',
++                  style: textTheme.titleLarge?.copyWith(
++                    color: colors.onRecommendationContainer,
++                  ),
++                ),
++                const SizedBox(height: AppSpacing.xs),
++                Text(
++                  _preferSmart
++                      ? '优先补足薄弱知识点，并兼顾题型与难度。'
++                      : '使用你保存的学习偏好，快速生成一组针对性练习。',
++                  style: textTheme.bodyMedium?.copyWith(
++                    color: colors.onRecommendationContainer,
++                  ),
++                ),
++              ],
++            ),
+           ),
+         ],
+       ),
+@@ -198,92 +297,192 @@ class RecommendPageState extends State<RecommendPage> {
+   }
+ 
+   Widget _buildPresetSelector() {
+-    return Padding(
+-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.baseSpacing),
+-      child: Card(
+-        margin: EdgeInsets.zero,
+-        child: Padding(
+-          padding: const EdgeInsets.all(12),
+-          child: Column(
+-            crossAxisAlignment: CrossAxisAlignment.start,
+-            children: [
+-              Text(
+-                '选择学习偏好',
+-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+-              ),
+-              SizedBox(height: 6),
+-              DropdownButton<int>(
+-                value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
+-                isExpanded: true,
+-                underline: SizedBox(),
+-                hint: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary)),
+-                items: [
+-                  DropdownMenuItem(value: -1, child: Text('请选择...', style: TextStyle(fontSize: 14, color: context.colors.textSecondary))),
+-                  ...List.generate(_presets.length, (i) => DropdownMenuItem(
+-                    value: i,
+-                    child: Text(_presets[i].name, style: TextStyle(fontSize: 14)),
+-                  )),
+-                ],
+-                onChanged: (value) {
+-                  if (value != null && value >= 0) _switchToPreset(value);
+-                },
+-              ),
+-            ],
++    return AppCard(
++      padding: const EdgeInsets.all(AppSpacing.md),
++      child: DropdownButtonFormField<int>(
++        value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
++        isExpanded: true,
++        decoration: const InputDecoration(
++          labelText: '学习偏好',
++          prefixIcon: Icon(Icons.tune_rounded),
++          helperText: '选择后会按偏好条件重新生成题目',
++        ),
++        hint: const Text('请选择一个学习偏好'),
++        items: List.generate(
++          _presets.length,
++          (index) => DropdownMenuItem<int>(
++            value: index,
++            child: Text(_presets[index].name),
+           ),
+         ),
++        onChanged: (value) {
++          if (value != null) _switchToPreset(value);
++        },
+       ),
+     );
+   }
+-}
+ 
+-class _PillButton extends StatelessWidget {
+-  final bool selected;
+-  final String label;
+-  final IconData? icon;
+-  final VoidCallback? onPressed;
++  Widget _buildQuestionList() {
++    final questions = _questions ?? const <RecommendedQuestion>[];
++    if (questions.isEmpty) {
++      final needsPresetSelection = !_preferSmart && _selectedPresetIndex < 0;
++      return EmptyPlaceholder(
++        icon: _preferSmart
++            ? Icons.auto_awesome_outlined
++            : Icons.playlist_add_outlined,
++        message: _preferSmart
++            ? '暂时没有智能推荐，先完成几道练习积累学习记录'
++            : needsPresetSelection
++                ? '请先选择一个学习偏好开始推荐'
++                : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
++      );
++    }
+ 
+-  const _PillButton({
+-    required this.selected,
+-    required this.label,
+-    this.icon,
+-    this.onPressed,
++    return RefreshIndicator(
++      onRefresh: _load,
++      child: ListView.separated(
++        physics: const AlwaysScrollableScrollPhysics(),
++        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
++        itemCount: questions.length,
++        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
++        itemBuilder: (context, index) {
++          final question = questions[index];
++          return RecommendCard(
++            title: question.title,
++            questionType: question.questionType,
++            difficulty: question.difficulty,
++            reason: question.recommendReason,
++            status: question.status,
++            onTap: () => SolveRouteHelper.navigateTo(
++              context,
++              question.id,
++              question.questionType,
++            ),
++          );
++        },
++      ),
++    );
++  }
++}
++
++class _RecommendationModeSelector extends StatelessWidget {
++  const _RecommendationModeSelector({
++    required this.smartSelected,
++    required this.presetEnabled,
++    required this.onSmartTap,
++    required this.onPresetTap,
+   });
+ 
++  final bool smartSelected;
++  final bool presetEnabled;
++  final VoidCallback? onSmartTap;
++  final VoidCallback? onPresetTap;
++
+   @override
+   Widget build(BuildContext context) {
+-    return GestureDetector(
+-      onTap: onPressed,
+-      child: Container(
+-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+-        decoration: BoxDecoration(
+-          color: selected ? context.colors.primary : context.colors.surface,
+-          borderRadius: BorderRadius.circular(20),
+-          border: Border.all(
+-            color: selected ? context.colors.primary : context.colors.border,
++    final colors = context.colors;
++
++    return Container(
++      padding: const EdgeInsets.all(AppSpacing.xxs),
++      decoration: BoxDecoration(
++        color: colors.surfaceSubtle,
++        borderRadius: BorderRadius.circular(AppRadius.large),
++        border: Border.all(color: colors.border),
++      ),
++      child: Row(
++        children: [
++          Expanded(
++            child: _ModeOption(
++              label: '智能推荐',
++              subtitle: '根据学习记录',
++              icon: Icons.auto_awesome_outlined,
++              selected: smartSelected,
++              onTap: onSmartTap,
++            ),
+           ),
+-        ),
+-        child: Row(
+-          mainAxisSize: MainAxisSize.min,
+-          children: [
+-            if (icon != null) ...[
+-              Icon(icon, size: 16, color: selected ? Colors.white : context.colors.textSecondary),
+-              SizedBox(width: 4),
+-            ],
+-            Text(
+-              label,
+-              style: TextStyle(
+-                fontSize: 13,
+-                fontWeight: FontWeight.w500,
+-                color: selected ? Colors.white : context.colors.textSecondary,
+-              ),
++          const SizedBox(width: AppSpacing.xxs),
++          Expanded(
++            child: _ModeOption(
++              label: '偏好推荐',
++              subtitle: presetEnabled ? '根据保存偏好' : '暂无可用偏好',
++              icon: Icons.tune_rounded,
++              selected: !smartSelected,
++              enabled: presetEnabled,
++              onTap: onPresetTap,
+             ),
+-          ],
+-        ),
++          ),
++        ],
+       ),
+     );
+   }
+ }
+ 
++class _ModeOption extends StatelessWidget {
++  const _ModeOption({
++    required this.label,
++    required this.subtitle,
++    required this.icon,
++    required this.selected,
++    required this.onTap,
++    this.enabled = true,
++  });
+ 
++  final String label;
++  final String subtitle;
++  final IconData icon;
++  final bool selected;
++  final bool enabled;
++  final VoidCallback? onTap;
+ 
++  @override
++  Widget build(BuildContext context) {
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++    final foreground = !enabled
++        ? colors.disabledForeground
++        : selected
++            ? colors.onPrimaryContainer
++            : colors.textSecondary;
+ 
++    return Material(
++      color: selected ? colors.primaryContainer : Colors.transparent,
++      borderRadius: BorderRadius.circular(AppRadius.medium),
++      clipBehavior: Clip.antiAlias,
++      child: InkWell(
++        onTap: enabled ? onTap : null,
++        child: Padding(
++          padding: const EdgeInsets.symmetric(
++            horizontal: AppSpacing.sm,
++            vertical: AppSpacing.sm,
++          ),
++          child: Row(
++            mainAxisAlignment: MainAxisAlignment.center,
++            children: [
++              Icon(icon, size: 20, color: foreground),
++              const SizedBox(width: AppSpacing.xs),
++              Flexible(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      label,
++                      maxLines: 1,
++                      overflow: TextOverflow.ellipsis,
++                      style: textTheme.labelLarge?.copyWith(color: foreground),
++                    ),
++                    Text(
++                      subtitle,
++                      maxLines: 1,
++                      overflow: TextOverflow.ellipsis,
++                      style: textTheme.labelSmall?.copyWith(color: foreground),
++                    ),
++                  ],
++                ),
++              ),
++            ],
++          ),
++        ),
++      ),
++    );
++  }
++}
+diff --git a/flutter_app/lib/pages/widgets/recommend_card.dart b/flutter_app/lib/pages/widgets/recommend_card.dart
+index ea49659..c8bd1c5 100644
+--- a/flutter_app/lib/pages/widgets/recommend_card.dart
++++ b/flutter_app/lib/pages/widgets/recommend_card.dart
+@@ -1,37 +1,125 @@
+ import 'package:flutter/material.dart';
+-import 'package:shared/widgets/question_card.dart';
++import 'package:shared/theme/app_theme.dart';
++import 'package:shared/widgets/app_card.dart';
++import 'package:shared/widgets/app_status_badge.dart';
++import 'package:shared/widgets/md_latex_body.dart';
+ 
+-/// 推荐卡片 — 委托给全局共享的 QuestionCard
++/// 推荐页专用题目卡片。
+ ///
+-/// 在推荐页和偏好推荐页复用。
++/// 强化推荐原因和“开始练习”行动，避免与普通题库列表使用完全相同的视觉层级。
+ class RecommendCard extends StatelessWidget {
+-  final String title;
+-  final String questionType;
+-  final double difficulty;
+-  final String reason;
+-  final String? status;
+-  final VoidCallback onTap;
+-
+   const RecommendCard({
+     super.key,
+     required this.title,
+     required this.questionType,
+     required this.difficulty,
+     required this.reason,
+-    this.status,
+     required this.onTap,
++    this.status,
+   });
+ 
++  final String title;
++  final String questionType;
++  final double difficulty;
++  final String reason;
++  final String? status;
++  final VoidCallback onTap;
++
+   @override
+   Widget build(BuildContext context) {
+-    return QuestionCard(
+-      questionId: 0,  // recommend 不需要 questionId，导航由 onTap 处理
+-      title: title,
+-      questionType: questionType,
+-      difficulty: difficulty,
+-      status: status,
+-      reason: (reason == '偏好推荐') ? null : reason,
++    final colors = context.colors;
++    final textTheme = Theme.of(context).textTheme;
++
++    return AppCard(
+       onTap: onTap,
++      padding: const EdgeInsets.all(AppSpacing.lg),
++      semanticLabel: '推荐题目：$title',
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.start,
++        children: [
++          Wrap(
++            spacing: AppSpacing.xs,
++            runSpacing: AppSpacing.xs,
++            children: [
++              AppStatusBadge(
++                label: QuestionTypeLabels.of(questionType),
++                tone: AppStatusTone.primary,
++                compact: true,
++              ),
++              AppStatusBadge(
++                label: DifficultySegments.diffNameFor(difficulty),
++                tone: AppStatusTone.warning,
++                icon: Icons.signal_cellular_alt_rounded,
++                compact: true,
++              ),
++              if (status != null) _buildStatusBadge(status!),
++            ],
++          ),
++          const SizedBox(height: AppSpacing.md),
++          MdLatexBody(title, fontSize: 15),
++          const SizedBox(height: AppSpacing.md),
++          Container(
++            width: double.infinity,
++            padding: const EdgeInsets.all(AppSpacing.sm),
++            decoration: BoxDecoration(
++              color: colors.recommendationContainer,
++              borderRadius: BorderRadius.circular(AppRadius.medium),
++            ),
++            child: Row(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [
++                Icon(
++                  Icons.auto_awesome_rounded,
++                  size: 18,
++                  color: colors.onRecommendationContainer,
++                ),
++                const SizedBox(width: AppSpacing.xs),
++                Expanded(
++                  child: Text(
++                    reason.isEmpty ? '推荐原因：适合你当前的学习进度' : '推荐原因：$reason',
++                    style: textTheme.bodySmall?.copyWith(
++                      color: colors.onRecommendationContainer,
++                      fontWeight: FontWeight.w600,
++                    ),
++                  ),
++                ),
++              ],
++            ),
++          ),
++          const SizedBox(height: AppSpacing.md),
++          Row(
++            mainAxisAlignment: MainAxisAlignment.end,
++            children: [
++              Text(
++                status == 'in_progress' ? '继续作答' : '开始练习',
++                style: textTheme.labelLarge?.copyWith(color: colors.primary),
++              ),
++              const SizedBox(width: AppSpacing.xxs),
++              Icon(AppIcons.chevronRight, size: 20, color: colors.primary),
++            ],
++          ),
++        ],
++      ),
+     );
+   }
++
++  Widget _buildStatusBadge(String value) {
++    return switch (value) {
++      'completed' => const AppStatusBadge(
++          label: '已完成',
++          tone: AppStatusTone.success,
++          compact: true,
++        ),
++      'in_progress' => const AppStatusBadge(
++          label: '进行中',
++          tone: AppStatusTone.warning,
++          compact: true,
++        ),
++      _ => const AppStatusBadge(
++          label: '未作答',
++          tone: AppStatusTone.neutral,
++          compact: true,
++        ),
++    };
++  }
+ }
