@@ -14,6 +14,15 @@ abstract final class AppSpacing {
   static const double xxl = 48;
 }
 
+/// 页面级响应式留白。
+///
+/// 手机保持紧凑，进入中等及以上宽度后增加呼吸感；组件内部间距仍使用
+/// [AppSpacing]，避免把页面留白与卡片密度混为一谈。
+abstract final class AppPagePadding {
+  static double horizontalFor(double width) =>
+      width >= AppBreakpoints.medium ? AppSpacing.lg : AppSpacing.md;
+}
+
 /// 章鱼智学 V1.0 圆角令牌
 abstract final class AppRadius {
   static const double none = 0;

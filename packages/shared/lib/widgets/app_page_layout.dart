@@ -42,17 +42,22 @@ class AppContentContainer extends StatelessWidget {
       AppContentLayout.solving => AppContentWidth.solving,
     };
 
-    final content = Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: w),
-        child: Padding(
-          padding: padding ?? EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
+    final content = LayoutBuilder(
+      builder: (context, constraints) {
+        final pagePadding = EdgeInsets.symmetric(
+          horizontal: AppPagePadding.horizontalFor(constraints.maxWidth),
+        );
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: w),
+            child: Padding(
+              padding: padding ?? pagePadding,
+              child: child,
+            ),
           ),
-          child: child,
-        ),
-      ),
+        );
+      },
     );
 
     if (useSafeArea) {
@@ -160,25 +165,35 @@ class AppSectionHeader extends StatelessWidget {
           else if (trailing != null)
             trailing!
           else if (actionLabel != null && onActionTap != null)
-            GestureDetector(
-              onTap: onActionTap,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    actionLabel!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
+            Semantics(
+              button: true,
+              child: InkWell(
+                onTap: onActionTap,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
                   ),
-                  const SizedBox(width: 2),
-                  Icon(
-                    AppIcons.chevronRight,
-                    size: 16,
-                    color: colors.primary,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        actionLabel!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: 16,
+                        color: colors.primary,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
         ],

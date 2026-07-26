@@ -47,32 +47,45 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final isClickable = onTap != null;
-
-    final decoration = BoxDecoration(
-      color: colors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      border: Border.all(
-        color: selected
-            ? colors.primary
-            : (borderColor ?? colors.border),
+    final radius = BorderRadius.circular(AppRadius.lg);
+    final shape = RoundedRectangleBorder(
+      borderRadius: radius,
+      side: BorderSide(
+        color: selected ? colors.primary : (borderColor ?? colors.border),
         width: selected ? 1.5 : 1,
       ),
-      boxShadow: elevated ? AppShadows.level1 : null,
     );
 
-    final card = Container(
-      margin: margin,
-      decoration: decoration,
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+    Widget content = Material(
+      color: colors.surface,
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
+      child: isClickable
+          ? InkWell(
+              onTap: onTap,
+              borderRadius: radius,
+              child: Padding(padding: padding, child: child),
+            )
+          : Padding(padding: padding, child: child),
     );
+
+    if (elevated) {
+      content = DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: AppShadows.level1,
+        ),
+        child: content,
+      );
+    }
+
+    final card = Container(margin: margin, child: content);
 
     if (!isClickable) {
       if (semanticLabel != null) {
         return Semantics(
           label: semanticLabel,
+          excludeSemantics: true,
           child: card,
         );
       }
@@ -81,10 +94,11 @@ class AppCard extends StatelessWidget {
 
     return Semantics(
       label: semanticLabel,
-      child: GestureDetector(
-        onTap: onTap,
-        child: card,
-      ),
+      button: true,
+      focusable: true,
+      onTap: onTap,
+      excludeSemantics: semanticLabel != null,
+      child: card,
     );
   }
 }
