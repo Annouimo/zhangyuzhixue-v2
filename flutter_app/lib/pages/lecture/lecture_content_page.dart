@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/pop_back_guard.dart';
-import '../router.dart';
 import 'package:shared/shared.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -39,9 +38,12 @@ class _LectureContentPageState extends State<LectureContentPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.lectureRepository ??
+    _repo =
+        widget.lectureRepository ??
         LectureRepository(LectureDao(DatabaseProvider()));
-    _pageIndex = widget.initialPage > 1 ? widget.initialPage - 1 : 0; // 1-based → 0-based
+    _pageIndex = widget.initialPage > 1
+        ? widget.initialPage - 1
+        : 0; // 1-based → 0-based
     _load();
   }
 
@@ -63,8 +65,11 @@ class _LectureContentPageState extends State<LectureContentPage> {
         }
         _loading = false;
       });
-      AuditLogger.instance.page('LectureContentPage', {'hasContent': _content != null});
-    } catch (e) { OperationLog.instance.error('lecture_content_page_load', e);
+      AuditLogger.instance.page('LectureContentPage', {
+        'hasContent': _content != null,
+      });
+    } catch (e) {
+      OperationLog.instance.error('lecture_content_page_load', e);
       AuditLogger.instance.error('LectureContentPage._load', e);
       if (!mounted) return;
       setState(() {
@@ -81,6 +86,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
 
   int get _totalBlocks => _currentPage?.blocks.length ?? 0;
   int get _revealedCount => _revealedSet.length;
+
   /// 展示用展开数：含始终可见的 blocks[0]
   int get _displayRevealedCount => _revealedCount + 1;
 
@@ -104,7 +110,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
   void _onNext() {
     if (_hasUnrevealed) {
       setState(() {
-        final next = _revealedCount + 1; // blocks[0] visible, blocks[1..N] revealed
+        final next =
+            _revealedCount + 1; // blocks[0] visible, blocks[1..N] revealed
         _revealedSet.add(next);
       });
     } else if (_pageIndex < (_parsed?.totalPages ?? 1) - 1) {
@@ -123,24 +130,23 @@ class _LectureContentPageState extends State<LectureContentPage> {
         if (await _popGuard.consume(context, 'lecture_content')) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_content?.title ?? '讲义内容'),
-        ),
+        appBar: AppBar(title: Text(_content?.title ?? '讲义内容')),
         body: Column(
           children: [
-          Expanded(child: _buildBody()),
-          if (_parsed != null && _parsed!.pages.isNotEmpty)
-            LecturePagerWidget(
-              currentPage: _pageIndex + 1,
-              totalPages: _parsed!.totalPages,
-              revealedCount: _displayRevealedCount,
-              totalBlocks: _totalBlocks,
-              onPrev: _onPrev,
-              onNext: _onNext,
-            ),
-        ],
+            Expanded(child: _buildBody()),
+            if (_parsed != null && _parsed!.pages.isNotEmpty)
+              LecturePagerWidget(
+                currentPage: _pageIndex + 1,
+                totalPages: _parsed!.totalPages,
+                revealedCount: _displayRevealedCount,
+                totalBlocks: _totalBlocks,
+                onPrev: _onPrev,
+                onNext: _onNext,
+              ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildBody() {
@@ -228,9 +234,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
                             Expanded(
                               child: Text(
                                 '使用下方“继续展开”逐段阅读，先思考再查看下一部分。',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: context.colors.onPrimaryContainer,
                                     ),

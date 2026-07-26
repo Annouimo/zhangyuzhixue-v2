@@ -382,12 +382,14 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       warningContainer: warningContainer ?? this.warningContainer,
       errorContainer: errorContainer ?? this.errorContainer,
       infoContainer: infoContainer ?? this.infoContainer,
-      recommendationContainer: recommendationContainer ?? this.recommendationContainer,
+      recommendationContainer:
+          recommendationContainer ?? this.recommendationContainer,
       onSuccessContainer: onSuccessContainer ?? this.onSuccessContainer,
       onWarningContainer: onWarningContainer ?? this.onWarningContainer,
       onErrorContainer: onErrorContainer ?? this.onErrorContainer,
       onInfoContainer: onInfoContainer ?? this.onInfoContainer,
-      onRecommendationContainer: onRecommendationContainer ?? this.onRecommendationContainer,
+      onRecommendationContainer:
+          onRecommendationContainer ?? this.onRecommendationContainer,
       heatmapLevel1: heatmapLevel1 ?? this.heatmapLevel1,
       heatmapLevel2: heatmapLevel2 ?? this.heatmapLevel2,
       heatmapLevel3: heatmapLevel3 ?? this.heatmapLevel3,
@@ -398,7 +400,11 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
   AppSemanticColors lerp(AppSemanticColors other, double t) {
     return AppSemanticColors(
       primary: Color.lerp(primary, other.primary, t)!,
-      primaryContainer: Color.lerp(primaryContainer, other.primaryContainer, t)!,
+      primaryContainer: Color.lerp(
+        primaryContainer,
+        other.primaryContainer,
+        t,
+      )!,
       background: Color.lerp(background, other.background, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       surfaceSubtle: Color.lerp(surfaceSubtle, other.surfaceSubtle, t)!,
@@ -406,13 +412,25 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       textInverse: Color.lerp(textInverse, other.textInverse, t)!,
-      primaryOnContainer: Color.lerp(primaryOnContainer, other.primaryOnContainer, t)!,
+      primaryOnContainer: Color.lerp(
+        primaryOnContainer,
+        other.primaryOnContainer,
+        t,
+      )!,
       primaryBorder: Color.lerp(primaryBorder, other.primaryBorder, t)!,
       border: Color.lerp(border, other.border, t)!,
       borderStrong: Color.lerp(borderStrong, other.borderStrong, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
-      disabledBackground: Color.lerp(disabledBackground, other.disabledBackground, t)!,
-      disabledForeground: Color.lerp(disabledForeground, other.disabledForeground, t)!,
+      disabledBackground: Color.lerp(
+        disabledBackground,
+        other.disabledBackground,
+        t,
+      )!,
+      disabledForeground: Color.lerp(
+        disabledForeground,
+        other.disabledForeground,
+        t,
+      )!,
       focusRing: Color.lerp(focusRing, other.focusRing, t)!,
       scrim: Color.lerp(scrim, other.scrim, t)!,
       mediaSurface: Color.lerp(mediaSurface, other.mediaSurface, t)!,
@@ -422,16 +440,44 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       error: Color.lerp(error, other.error, t)!,
       info: Color.lerp(info, other.info, t)!,
       recommendation: Color.lerp(recommendation, other.recommendation, t)!,
-      successContainer: Color.lerp(successContainer, other.successContainer, t)!,
-      warningContainer: Color.lerp(warningContainer, other.warningContainer, t)!,
+      successContainer: Color.lerp(
+        successContainer,
+        other.successContainer,
+        t,
+      )!,
+      warningContainer: Color.lerp(
+        warningContainer,
+        other.warningContainer,
+        t,
+      )!,
       errorContainer: Color.lerp(errorContainer, other.errorContainer, t)!,
       infoContainer: Color.lerp(infoContainer, other.infoContainer, t)!,
-      recommendationContainer: Color.lerp(recommendationContainer, other.recommendationContainer, t)!,
-      onSuccessContainer: Color.lerp(onSuccessContainer, other.onSuccessContainer, t)!,
-      onWarningContainer: Color.lerp(onWarningContainer, other.onWarningContainer, t)!,
-      onErrorContainer: Color.lerp(onErrorContainer, other.onErrorContainer, t)!,
+      recommendationContainer: Color.lerp(
+        recommendationContainer,
+        other.recommendationContainer,
+        t,
+      )!,
+      onSuccessContainer: Color.lerp(
+        onSuccessContainer,
+        other.onSuccessContainer,
+        t,
+      )!,
+      onWarningContainer: Color.lerp(
+        onWarningContainer,
+        other.onWarningContainer,
+        t,
+      )!,
+      onErrorContainer: Color.lerp(
+        onErrorContainer,
+        other.onErrorContainer,
+        t,
+      )!,
       onInfoContainer: Color.lerp(onInfoContainer, other.onInfoContainer, t)!,
-      onRecommendationContainer: Color.lerp(onRecommendationContainer, other.onRecommendationContainer, t)!,
+      onRecommendationContainer: Color.lerp(
+        onRecommendationContainer,
+        other.onRecommendationContainer,
+        t,
+      )!,
       heatmapLevel1: Color.lerp(heatmapLevel1, other.heatmapLevel1, t)!,
       heatmapLevel2: Color.lerp(heatmapLevel2, other.heatmapLevel2, t)!,
       heatmapLevel3: Color.lerp(heatmapLevel3, other.heatmapLevel3, t)!,
@@ -465,13 +511,19 @@ abstract final class DifficultySegments {
   static const List<double> calcBreaks = [0.0, 2.0, 4.0, 6.0, 8.0, 10.0];
   static const List<String> calcLabels = ['少量', '较少', '适中', '较多', '繁琐'];
 
-  static String nameFor(double value, {required List<double> breaks, required List<String> labels}) {
+  static String nameFor(
+    double value, {
+    required List<double> breaks,
+    required List<String> labels,
+  }) {
     final idx = breaks.lastIndexWhere((b) => value >= b);
     return labels[idx.clamp(0, labels.length - 1)];
   }
 
-  static String diffNameFor(double value) => nameFor(value, breaks: diffBreaks, labels: diffLabels);
-  static String calcNameFor(double value) => nameFor(value, breaks: calcBreaks, labels: calcLabels);
+  static String diffNameFor(double value) =>
+      nameFor(value, breaks: diffBreaks, labels: diffLabels);
+  static String calcNameFor(double value) =>
+      nameFor(value, breaks: calcBreaks, labels: calcLabels);
 }
 
 /// 应用主题
@@ -483,40 +535,40 @@ class AppTheme {
   ];
 
   static ThemeData get light => _buildTheme(
-        brightness: Brightness.light,
-        colors: AppSemanticColors.light,
-        colorScheme: ColorScheme.light(
-          primary: AppColors.primary,
-          onPrimary: AppColors.textInverse,
-          primaryContainer: AppColors.primaryContainer,
-          onPrimaryContainer: AppColors.primaryOnContainer,
-          secondary: AppColors.info,
-          surface: AppColors.surface,
-          onSurface: AppColors.textPrimary,
-          error: AppColors.error,
-          onError: AppColors.textInverse,
-          outline: AppColors.border,
-          outlineVariant: AppColors.divider,
-        ),
-      );
+    brightness: Brightness.light,
+    colors: AppSemanticColors.light,
+    colorScheme: ColorScheme.light(
+      primary: AppColors.primary,
+      onPrimary: AppColors.textInverse,
+      primaryContainer: AppColors.primaryContainer,
+      onPrimaryContainer: AppColors.primaryOnContainer,
+      secondary: AppColors.info,
+      surface: AppColors.surface,
+      onSurface: AppColors.textPrimary,
+      error: AppColors.error,
+      onError: AppColors.textInverse,
+      outline: AppColors.border,
+      outlineVariant: AppColors.divider,
+    ),
+  );
 
   static ThemeData get dark => _buildTheme(
-        brightness: Brightness.dark,
-        colors: AppSemanticColors.dark,
-        colorScheme: ColorScheme.dark(
-          primary: AppColorsDark.primary,
-          onPrimary: AppColorsDark.textInverse,
-          primaryContainer: AppColorsDark.primaryContainer,
-          onPrimaryContainer: AppColorsDark.primaryOnContainer,
-          secondary: AppColorsDark.info,
-          surface: AppColorsDark.surface,
-          onSurface: AppColorsDark.textPrimary,
-          error: AppColorsDark.error,
-          onError: AppColorsDark.textInverse,
-          outline: AppColorsDark.border,
-          outlineVariant: AppColorsDark.divider,
-        ),
-      );
+    brightness: Brightness.dark,
+    colors: AppSemanticColors.dark,
+    colorScheme: ColorScheme.dark(
+      primary: AppColorsDark.primary,
+      onPrimary: AppColorsDark.textInverse,
+      primaryContainer: AppColorsDark.primaryContainer,
+      onPrimaryContainer: AppColorsDark.primaryOnContainer,
+      secondary: AppColorsDark.info,
+      surface: AppColorsDark.surface,
+      onSurface: AppColorsDark.textPrimary,
+      error: AppColorsDark.error,
+      onError: AppColorsDark.textInverse,
+      outline: AppColorsDark.border,
+      outlineVariant: AppColorsDark.divider,
+    ),
+  );
 
   static ThemeData _buildTheme({
     required Brightness brightness,
@@ -554,10 +606,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -568,10 +617,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -582,25 +628,17 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           side: BorderSide(color: colors.primaryBorder),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colors.primary,
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          foregroundColor: colors.textSecondary,
-        ),
+        style: IconButton.styleFrom(foregroundColor: colors.textSecondary),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -707,9 +745,7 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         titleTextStyle: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w400,
@@ -732,7 +768,8 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) return colors.primary;
-          if (states.contains(WidgetState.disabled)) return colors.disabledBackground;
+          if (states.contains(WidgetState.disabled))
+            return colors.disabledBackground;
           return Colors.transparent;
         }),
         checkColor: WidgetStateProperty.resolveWith((states) {
@@ -756,7 +793,8 @@ class AppTheme {
           return colors.textMuted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return colors.primaryContainer;
+          if (states.contains(WidgetState.selected))
+            return colors.primaryContainer;
           return colors.disabledBackground;
         }),
       ),
@@ -798,5 +836,11 @@ class AppTheme {
 
 /// BuildContext 快捷取色
 extension ThemeColors on BuildContext {
-  AppSemanticColors get colors => Theme.of(this).extension<AppSemanticColors>()!;
+  AppSemanticColors get colors {
+    final theme = Theme.of(this);
+    return theme.extension<AppSemanticColors>() ??
+        (theme.brightness == Brightness.dark
+            ? AppSemanticColors.dark
+            : AppSemanticColors.light);
+  }
 }

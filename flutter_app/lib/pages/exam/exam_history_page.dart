@@ -29,7 +29,8 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -50,10 +51,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              '删除',
-              style: TextStyle(color: context.colors.error),
-            ),
+            child: Text('删除', style: TextStyle(color: context.colors.error)),
           ),
         ],
       ),
@@ -74,99 +72,95 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('我的组卷')),
-        body: AsyncLoadWidget<List<ExamSummary>>(
-          key: _loadKey,
-          onLoad: _repo.getMyExams,
-          emptyWidget: EmptyPlaceholder(
-            icon: Icons.description_outlined,
-            message: '还没有创建过试卷，先从智能组卷开始吧',
-          ),
-          builder: (ctx, list) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AuditLogger.instance.page(
-                'ExamHistoryPage',
-                {'total': list.length},
-              );
-            });
-            return AppContentContainer(
-              maxWidth: AppContentWidth.standard,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                itemCount: list.length + 1,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (ctx, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: AppSectionHeader(
-                        title: '共 ${list.length} 份试卷',
-                        subtitle: '可以切换公开状态、下载 PDF、查看答案或删除。',
-                      ),
-                    );
-                  }
-                  final exam = list[index - 1];
-                  return PaperCard(
-                    title: exam.name,
-                    subtitle: '创建于 ${_formatTime(exam.createdAt)}',
-                    trailingWidget: AppStatusBadge(
-                      label: exam.isPublic ? '公开' : '私密',
-                      tone: exam.isPublic
-                          ? AppStatusTone.success
-                          : AppStatusTone.neutral,
-                      icon: exam.isPublic ? Icons.public : Icons.lock_outline,
-                      compact: true,
+    appBar: AppBar(title: const Text('我的组卷')),
+    body: AsyncLoadWidget<List<ExamSummary>>(
+      contentIsScrollable: true,
+      key: _loadKey,
+      onLoad: _repo.getMyExams,
+      emptyWidget: EmptyPlaceholder(
+        icon: Icons.description_outlined,
+        message: '还没有创建过试卷，先从智能组卷开始吧',
+      ),
+      builder: (ctx, list) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          AuditLogger.instance.page('ExamHistoryPage', {'total': list.length});
+        });
+        return AppContentContainer(
+          maxWidth: AppContentWidth.standard,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            itemCount: list.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (ctx, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: AppSectionHeader(
+                    title: '共 ${list.length} 份试卷',
+                    subtitle: '可以切换公开状态、下载 PDF、查看答案或删除。',
+                  ),
+                );
+              }
+              final exam = list[index - 1];
+              return PaperCard(
+                title: exam.name,
+                subtitle: '创建于 ${_formatTime(exam.createdAt)}',
+                trailingWidget: AppStatusBadge(
+                  label: exam.isPublic ? '公开' : '私密',
+                  tone: exam.isPublic
+                      ? AppStatusTone.success
+                      : AppStatusTone.neutral,
+                  icon: exam.isPublic ? Icons.public : Icons.lock_outline,
+                  compact: true,
+                ),
+                onTap: () => RouterUtils.push(
+                  context,
+                  '${AppRoutes.examQuicklook}?id=${exam.id}',
+                ),
+                actions: [
+                  ActionChipWidget(
+                    icon: exam.isPublic ? Icons.lock_outline : Icons.public,
+                    label: exam.isPublic ? '设为私密' : '公开分享',
+                    onTap: () async {
+                      await _repo.togglePublic(exam.id);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('公开状态已更新')),
+                        );
+                      }
+                      _loadKey.currentState?.refresh();
+                    },
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.picture_as_pdf_outlined,
+                    label: '下载 PDF',
+                    onTap: () => PdfHelper.downloadPdf(
+                      sourceId: exam.id,
+                      sourceType: 'paper',
+                      context: context,
                     ),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.fact_check_outlined,
+                    iconColor: context.colors.success,
+                    label: '快速对答案',
                     onTap: () => RouterUtils.push(
                       context,
-                      '${AppRoutes.examQuicklook}?id=${exam.id}',
+                      '${AppRoutes.answerSheet}?id=${exam.id}',
                     ),
-                    actions: [
-                      ActionChipWidget(
-                        icon: exam.isPublic ? Icons.lock_outline : Icons.public,
-                        label: exam.isPublic ? '设为私密' : '公开分享',
-                        onTap: () async {
-                          await _repo.togglePublic(exam.id);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('公开状态已更新')),
-                            );
-                          }
-                          _loadKey.currentState?.refresh();
-                        },
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.picture_as_pdf_outlined,
-                        label: '下载 PDF',
-                        onTap: () => PdfHelper.downloadPdf(
-                          sourceId: exam.id,
-                          sourceType: 'paper',
-                          context: context,
-                        ),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.fact_check_outlined,
-                        iconColor: context.colors.success,
-                        label: '快速对答案',
-                        onTap: () => RouterUtils.push(
-                          context,
-                          '${AppRoutes.answerSheet}?id=${exam.id}',
-                        ),
-                      ),
-                      ActionChipWidget(
-                        icon: AppIcons.delete,
-                        iconColor: context.colors.error,
-                        label: '删除',
-                        onTap: () => _deleteExam(exam.id),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      );
-
+                  ),
+                  ActionChipWidget(
+                    icon: AppIcons.delete,
+                    iconColor: context.colors.error,
+                    label: '删除',
+                    onTap: () => _deleteExam(exam.id),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    ),
+  );
 }

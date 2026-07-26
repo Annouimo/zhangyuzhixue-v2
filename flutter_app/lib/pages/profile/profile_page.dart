@@ -69,17 +69,29 @@ class ProfilePageState extends State<ProfilePage> {
 
   /// 每次 _load 时新鲜创建 Repository，确保拿到 DatabaseProvider 的最新连接引用
   void _initRepos() {
-    _repo = widget.userRepository ?? UserRepository(
-      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
-    );
-    _prefRepo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
-    _statsRepo = widget.statisticsRepository ?? StatisticsRepository(
-      StatisticsDao(DatabaseProvider()),
-      questionDao: QuestionDao(DatabaseProvider()),
-    );
-    _achieveRepo = widget.achievementRepository ?? AchievementRepository(
-      AchievementDao(DatabaseProvider()), QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.userRepository ??
+        UserRepository(
+          UserDao(DatabaseProvider()),
+          UserApi(ApiClient()),
+          QuestionDao(DatabaseProvider()),
+        );
+    _prefRepo =
+        widget.preferenceRepository ??
+        PreferenceRepository(PreferenceDao(DatabaseProvider()));
+    _statsRepo =
+        widget.statisticsRepository ??
+        StatisticsRepository(
+          StatisticsDao(DatabaseProvider()),
+          questionDao: QuestionDao(DatabaseProvider()),
+        );
+    _achieveRepo =
+        widget.achievementRepository ??
+        AchievementRepository(
+          AchievementDao(DatabaseProvider()),
+          QuestionDao(DatabaseProvider()),
+          ExamDao(DatabaseProvider()),
+        );
   }
 
   Future<void> _load() async {
@@ -97,7 +109,14 @@ class ProfilePageState extends State<ProfilePage> {
       ]);
       if (!mounted) return;
       final info = results[0] as UserInfo;
-      final ps = results[5] as ({double earned, double bonus, double spent, double available});
+      final ps =
+          results[5]
+              as ({
+                double earned,
+                double bonus,
+                double spent,
+                double available,
+              });
       _earnedPoints = ps.earned;
       _availablePoints = ps.available;
       _currentLevel = results[6] as int;
@@ -120,12 +139,22 @@ class ProfilePageState extends State<ProfilePage> {
         _answerHistoryCount = results[3] as int;
         _achievementUnlocked = results[4] as int;
         _syncSubtitle = syncSubtitle;
+        _loading = false;
+      });
+      AuditLogger.instance.page('ProfilePage', {
+        'name': _info?.name,
+        'gaokaoYear': _info?.gaokaoYear,
+        'avatar': _info?.avatar,
+      });
+    } catch (e) {
+      OperationLog.instance.error('profile_page_load', e);
+      AuditLogger.instance.error('ProfilePage._load', e);
+      if (mounted) {
+        setState(() {
+          _error = '加载失败，请稍后重试';
           _loading = false;
         });
-        AuditLogger.instance.page('ProfilePage', {'name': _info?.name, 'gaokaoYear': _info?.gaokaoYear, 'avatar': _info?.avatar});
-    } catch (e) { OperationLog.instance.error('profile_page_load', e);
-      AuditLogger.instance.error('ProfilePage._load', e);
-      if (mounted) { setState(() { _error = '加载失败，请稍后重试'; _loading = false; }); }
+      }
     }
   }
 
@@ -146,10 +175,13 @@ class ProfilePageState extends State<ProfilePage> {
       setState(() {
         _info = _info != null
             ? UserInfo(
-                id: _info!.id, name: _info!.name,
-                realName: _info!.realName, studentId: _info!.studentId,
+                id: _info!.id,
+                name: _info!.name,
+                realName: _info!.realName,
+                studentId: _info!.studentId,
                 avatar: avatarUrl,
-                school: _info!.school, gaokaoYear: _info!.gaokaoYear,
+                school: _info!.school,
+                gaokaoYear: _info!.gaokaoYear,
                 phone: _info!.phone,
               )
             : null;
@@ -157,26 +189,36 @@ class ProfilePageState extends State<ProfilePage> {
       });
       // 上传成功后写回本地 user.db
       if (_info != null) {
-        await _repo.saveProfile(UserInfo(
-          id: _info!.id, name: _info!.name,
-          realName: _info!.realName,
-          avatar: avatarUrl,
-          gaokaoYear: _info!.gaokaoYear,
-          phone: _info!.phone,
-        ));
+        await _repo.saveProfile(
+          UserInfo(
+            id: _info!.id,
+            name: _info!.name,
+            realName: _info!.realName,
+            avatar: avatarUrl,
+            gaokaoYear: _info!.gaokaoYear,
+            phone: _info!.phone,
+          ),
+        );
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text('头像更新成功'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
-    } catch (e) { OperationLog.instance.error('profile_page_load', e);
+    } catch (e) {
+      OperationLog.instance.error('profile_page_load', e);
       AuditLogger.instance.error('ProfilePage._pickAndUploadAvatar', e);
       if (!mounted) return;
       setState(() => _uploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('头像上传失败: $e'), behavior: SnackBarBehavior.floating,
-          backgroundColor: context.colors.error),
+        SnackBar(
+          content: Text('头像上传失败: $e'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: context.colors.error,
+        ),
       );
     }
   }
@@ -191,12 +233,18 @@ class ProfilePageState extends State<ProfilePage> {
             ListTile(
               leading: Icon(Icons.camera_alt),
               title: Text('拍照'),
-              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.camera); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAndUploadAvatar(ImageSource.camera);
+              },
             ),
             ListTile(
               leading: Icon(Icons.photo_library),
               title: Text('从相册选择'),
-              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.gallery); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAndUploadAvatar(ImageSource.gallery);
+              },
             ),
           ],
         ),
@@ -220,7 +268,10 @@ class ProfilePageState extends State<ProfilePage> {
         title: Text('退出登录'),
         content: Text(msg),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('取消'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('退出', style: TextStyle(color: context.colors.error)),
@@ -233,39 +284,41 @@ class ProfilePageState extends State<ProfilePage> {
       await AuthRepository(AuthApi(ApiClient())).logout();
       if (!mounted) return;
       context.go(AppRoutes.login);
-    } catch (e) { OperationLog.instance.error('profile_page_load', e);
+    } catch (e) {
+      OperationLog.instance.error('profile_page_load', e);
       AuditLogger.instance.error('ProfilePage._logout', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('退出失败: $e'), backgroundColor: context.colors.error),
+        SnackBar(
+          content: Text('退出失败: $e'),
+          backgroundColor: context.colors.error,
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('我的')),
-        body: _loading
-            ? const LoadingIndicator(message: '加载个人信息…')
-            : _error != null
-                ? ErrorPlaceholder(message: _error!, onRetry: _load)
-                : AppContentContainer(
-                    maxWidth: AppContentWidth.dashboard,
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
-                      ),
-                      children: [
-                        _buildUserHeader(),
-                        const SizedBox(height: AppSpacing.lg),
-                        _buildGrowthOverview(),
-                        const SizedBox(height: AppSpacing.xl),
-                        _buildMenuEntries(context),
-                        const SizedBox(height: AppSpacing.xl),
-                      ],
-                    ),
-                  ),
-      );
+    appBar: AppBar(title: const Text('我的')),
+    body: _loading
+        ? const LoadingIndicator(message: '加载个人信息…')
+        : _error != null
+        ? ErrorPlaceholder(message: _error!, onRetry: _load)
+        : AppContentContainer(
+            maxWidth: AppContentWidth.dashboard,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              children: [
+                _buildUserHeader(),
+                const SizedBox(height: AppSpacing.lg),
+                _buildGrowthOverview(),
+                const SizedBox(height: AppSpacing.xl),
+                _buildMenuEntries(context),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
+          ),
+  );
 
   Widget _buildUserHeader() {
     final info = _info;
@@ -278,7 +331,7 @@ class ProfilePageState extends State<ProfilePage> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < AppBreakpoints.compact;
+          final compact = constraints.maxWidth < AppBreakpoints.medium;
           final avatar = Stack(
             clipBehavior: Clip.none,
             children: [
@@ -289,15 +342,15 @@ class ProfilePageState extends State<ProfilePage> {
                   backgroundColor: colors.primaryContainer,
                   backgroundImage:
                       info?.avatar != null && info!.avatar!.isNotEmpty
-                          ? CachedNetworkImageProvider(info.avatar!)
-                          : null,
+                      ? CachedNetworkImageProvider(info.avatar!)
+                      : null,
                   child: info?.avatar == null || info!.avatar!.isEmpty
                       ? Text(
                           info?.realName?.isNotEmpty == true
                               ? info!.realName![0]
                               : displayName.isNotEmpty
-                                  ? displayName[0]
-                                  : '?',
+                              ? displayName[0]
+                              : '?',
                           style: textTheme.headlineSmall?.copyWith(
                             color: colors.primary,
                           ),
@@ -432,9 +485,7 @@ class ProfilePageState extends State<ProfilePage> {
       ),
       AppMetricCard(
         label: '可用积分',
-        value: _availablePoints == null
-            ? '—'
-            : formatAmount(_availablePoints!),
+        value: _availablePoints == null ? '—' : formatAmount(_availablePoints!),
         icon: Icons.toll_rounded,
         tone: AppStatusTone.recommendation,
       ),
@@ -457,18 +508,15 @@ class ProfilePageState extends State<ProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const AppSectionHeader(
-          title: '成长概览',
-          subtitle: '学习数据与积分会在同步后自动更新。',
-        ),
+        const AppSectionHeader(title: '成长概览', subtitle: '学习数据与积分会在同步后自动更新。'),
         const SizedBox(height: AppSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
             final columns = constraints.maxWidth >= AppBreakpoints.expanded
                 ? 4
                 : constraints.maxWidth >= AppBreakpoints.compact
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             const gap = AppSpacing.sm;
             final width = columns == 1
                 ? constraints.maxWidth
@@ -492,8 +540,8 @@ class ProfilePageState extends State<ProfilePage> {
         : '管理推荐范围与难度';
     final statisticsSubtitle =
         (_statsTotalQuestions != null && _statsAccuracy != null)
-            ? '共 $_statsTotalQuestions 题 · 正确率 ${_statsAccuracy!.toStringAsFixed(0)}%'
-            : '查看学习趋势和题型分布';
+        ? '共 $_statsTotalQuestions 题 · 正确率 ${_statsAccuracy!.toStringAsFixed(0)}%'
+        : '查看学习趋势和题型分布';
     final historySubtitle = _answerHistoryCount != null
         ? '共 $_answerHistoryCount 题'
         : '回顾近期做题记录';
@@ -513,10 +561,8 @@ class ProfilePageState extends State<ProfilePage> {
             icon: Icons.tune_rounded,
             title: '学习偏好',
             subtitle: preferenceSubtitle,
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profilePreferences,
-            ),
+            onTap: () =>
+                RouterUtils.push(context, AppRoutes.profilePreferences),
           ),
           _ProfileEntry(
             icon: Icons.insights_rounded,
@@ -528,10 +574,7 @@ class ProfilePageState extends State<ProfilePage> {
             icon: Icons.history_rounded,
             title: '做题历史',
             subtitle: historySubtitle,
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profileHistory,
-            ),
+            onTap: () => RouterUtils.push(context, AppRoutes.profileHistory),
           ),
         ],
       ),
@@ -543,10 +586,8 @@ class ProfilePageState extends State<ProfilePage> {
             icon: Icons.emoji_events_outlined,
             title: '成就',
             subtitle: achievementSubtitle,
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profileAchievements,
-            ),
+            onTap: () =>
+                RouterUtils.push(context, AppRoutes.profileAchievements),
           ),
           _ProfileEntry(
             icon: Icons.trending_up_rounded,
@@ -554,19 +595,13 @@ class ProfilePageState extends State<ProfilePage> {
             subtitle: _currentLevel != null
                 ? '当前 Lv.$_currentLevel'
                 : '查看等级规则与升级进度',
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profileLevel,
-            ),
+            onTap: () => RouterUtils.push(context, AppRoutes.profileLevel),
           ),
           _ProfileEntry(
             icon: Icons.toll_rounded,
             title: '积分流水',
             subtitle: pointsSubtitle,
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profilePoints,
-            ),
+            onTap: () => RouterUtils.push(context, AppRoutes.profilePoints),
           ),
         ],
       ),
@@ -587,10 +622,7 @@ class ProfilePageState extends State<ProfilePage> {
             icon: Icons.info_outline_rounded,
             title: '关于章鱼智学',
             subtitle: '版本、隐私与开源许可',
-            onTap: () => RouterUtils.push(
-              context,
-              AppRoutes.profileAbout,
-            ),
+            onTap: () => RouterUtils.push(context, AppRoutes.profileAbout),
           ),
           _ProfileEntry(
             icon: Icons.logout_rounded,
@@ -667,27 +699,26 @@ class _ProfileSectionCard extends StatelessWidget {
     final colors = context.colors;
     return AppCard(
       padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: AppSectionHeader(
-              title: section.title,
-              subtitle: section.subtitle,
-            ),
-          ),
-          Divider(height: 1, color: colors.divider),
-          for (var index = 0; index < section.entries.length; index++) ...[
-            _ProfileEntryTile(entry: section.entries[index]),
-            if (index < section.entries.length - 1)
-              Divider(
-                height: 1,
-                indent: 64,
-                color: colors.divider,
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: AppSectionHeader(
+                title: section.title,
+                subtitle: section.subtitle,
               ),
+            ),
+            Divider(height: 1, color: colors.divider),
+            for (var index = 0; index < section.entries.length; index++) ...[
+              _ProfileEntryTile(entry: section.entries[index]),
+              if (index < section.entries.length - 1)
+                Divider(height: 1, indent: 64, color: colors.divider),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -725,8 +756,8 @@ class _ProfileEntryTile extends StatelessWidget {
       title: Text(
         entry.title,
         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: entry.tone == AppStatusTone.error ? colors.error : null,
-            ),
+          color: entry.tone == AppStatusTone.error ? colors.error : null,
+        ),
       ),
       subtitle: Text(entry.subtitle),
       trailing: Icon(AppIcons.chevronRight, color: colors.textMuted),

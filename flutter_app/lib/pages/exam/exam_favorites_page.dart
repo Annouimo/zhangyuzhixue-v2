@@ -29,7 +29,8 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -64,86 +65,82 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('我的收藏')),
-        body: AsyncLoadWidget<List<FavoriteExamSummary>>(
-          key: _loadKey,
-          onLoad: _repo.getFavorites,
-          emptyWidget: EmptyPlaceholder(
-            icon: Icons.bookmark_outline_rounded,
-            message: '还没有收藏试卷，可以去发现页看看',
-          ),
-          builder: (ctx, list) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AuditLogger.instance.page(
-                'ExamFavoritesPage',
-                {'total': list.length},
-              );
-            });
-            return AppContentContainer(
-              maxWidth: AppContentWidth.standard,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                itemCount: list.length + 1,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (ctx, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: AppSectionHeader(
-                        title: '已收藏 ${list.length} 份',
-                        subtitle: '收藏的公开试卷会集中保存在这里。',
-                      ),
-                    );
-                  }
-                  final exam = list[index - 1];
-                  return PaperCard(
-                    title: exam.name,
-                    subtitle: exam.authorInfo.isNotEmpty
-                        ? exam.authorInfo
-                        : exam.summary,
+    appBar: AppBar(title: const Text('我的收藏')),
+    body: AsyncLoadWidget<List<FavoriteExamSummary>>(
+      contentIsScrollable: true,
+      key: _loadKey,
+      onLoad: _repo.getFavorites,
+      emptyWidget: EmptyPlaceholder(
+        icon: Icons.bookmark_outline_rounded,
+        message: '还没有收藏试卷，可以去发现页看看',
+      ),
+      builder: (ctx, list) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          AuditLogger.instance.page('ExamFavoritesPage', {
+            'total': list.length,
+          });
+        });
+        return AppContentContainer(
+          maxWidth: AppContentWidth.standard,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            itemCount: list.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (ctx, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: AppSectionHeader(
+                    title: '已收藏 ${list.length} 份',
+                    subtitle: '收藏的公开试卷会集中保存在这里。',
+                  ),
+                );
+              }
+              final exam = list[index - 1];
+              return PaperCard(
+                title: exam.name,
+                subtitle: exam.authorInfo.isNotEmpty
+                    ? exam.authorInfo
+                    : exam.summary,
+                onTap: () => RouterUtils.push(
+                  context,
+                  '${AppRoutes.examQuicklookOther}?id=${exam.id}',
+                ),
+                actions: [
+                  ActionChipWidget(
+                    icon: exam.isLiked ? AppIcons.likeSelected : AppIcons.like,
+                    label: exam.isLiked ? '已点赞' : '点赞',
+                    active: exam.isLiked,
+                    onTap: () => _toggleLike(exam.id),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.bookmark_remove_outlined,
+                    label: '取消收藏',
+                    onTap: () => _removeCollect(exam.id),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.picture_as_pdf_outlined,
+                    label: '下载 PDF',
+                    onTap: () => PdfHelper.downloadPdf(
+                      sourceId: exam.id,
+                      sourceType: 'paper',
+                      context: context,
+                    ),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.visibility_outlined,
+                    label: '查看试卷',
                     onTap: () => RouterUtils.push(
                       context,
                       '${AppRoutes.examQuicklookOther}?id=${exam.id}',
                     ),
-                    actions: [
-                      ActionChipWidget(
-                        icon: exam.isLiked
-                            ? AppIcons.likeSelected
-                            : AppIcons.like,
-                        label: exam.isLiked ? '已点赞' : '点赞',
-                        active: exam.isLiked,
-                        onTap: () => _toggleLike(exam.id),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.bookmark_remove_outlined,
-                        label: '取消收藏',
-                        onTap: () => _removeCollect(exam.id),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.picture_as_pdf_outlined,
-                        label: '下载 PDF',
-                        onTap: () => PdfHelper.downloadPdf(
-                          sourceId: exam.id,
-                          sourceType: 'paper',
-                          context: context,
-                        ),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.visibility_outlined,
-                        label: '查看试卷',
-                        onTap: () => RouterUtils.push(
-                          context,
-                          '${AppRoutes.examQuicklookOther}?id=${exam.id}',
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      );
-
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    ),
+  );
 }

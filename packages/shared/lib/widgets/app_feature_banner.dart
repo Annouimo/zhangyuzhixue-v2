@@ -44,7 +44,7 @@ class AppFeatureBanner extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final compact = constraints.maxWidth < AppBreakpoints.compact;
+            final compact = constraints.maxWidth < AppBreakpoints.medium;
             final copy = Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

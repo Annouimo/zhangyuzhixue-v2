@@ -23,31 +23,43 @@ class PointSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           children: [
-            _item('学习积分', earned, colors.primary),
-            _item('赠送积分', bonus, colors.warning),
-            _item('消耗积分', spent, colors.error),
-            _item('可用积分', available, colors.primary),
+            _item(context, '学习积分', earned, colors.primary),
+            _item(context, '赠送积分', bonus, colors.warning),
+            _item(context, '消耗积分', spent, colors.error),
+            _item(context, '可用积分', available, colors.primary),
           ],
         ),
       ),
     );
   }
 
-  Widget _item(String label, double value, Color color) {
+  Widget _item(BuildContext context, String label, double value, Color color) {
+    final textTheme = Theme.of(context).textTheme;
     return Expanded(
       child: Column(
         children: [
-          Text(formatAmount(value),
-            style: TextStyle(fontSize: valueFontSize, fontWeight: FontWeight.w700, color: color)),
+          Text(
+            formatAmount(value),
+            style: TextStyle(
+              fontSize: valueFontSize,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: textTheme.labelSmall?.copyWith(
+              color: context.colors.textSecondary,
+            ),
+          ),
         ],
       ),
     );

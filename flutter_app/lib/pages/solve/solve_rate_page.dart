@@ -248,6 +248,7 @@ class _SolveRatePageState extends State<SolveRatePage> {
                                   label: '修改评分',
                                   icon: Icons.edit_outlined,
                                   variant: AppButtonVariant.text,
+                                  fullWidth: false,
                                   onPressed: () =>
                                       setState(() => _submitted = false),
                                 ),

@@ -34,7 +34,8 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.preferenceRepository ??
+    _repo =
+        widget.preferenceRepository ??
         PreferenceRepository(PreferenceDao(DatabaseProvider()));
   }
 
@@ -73,9 +74,9 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       OperationLog.instance.error('preference_list_page_delete', error);
       AuditLogger.instance.error('PreferenceListPage._delete', error);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('删除失败，已恢复列表')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('删除失败，已恢复列表')));
       _loadKey.currentState?.refresh();
     }
   }
@@ -92,7 +93,13 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('学习偏好')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openEditor(),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('新建偏好'),
+      ),
       body: AsyncLoadWidget<List<PreferenceSummary>>(
+        contentIsScrollable: true,
         key: _loadKey,
         onLoad: _repo.getList,
         loadingMessage: '正在加载学习偏好…',
@@ -120,6 +127,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                     label: '新建偏好',
                     icon: Icons.add_rounded,
                     onPressed: () => _openEditor(),
+                    expanded: false,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -143,7 +151,9 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                           height: 44,
                           decoration: BoxDecoration(
                             color: context.colors.primaryContainer,
-                            borderRadius: BorderRadius.circular(AppRadius.medium),
+                            borderRadius: BorderRadius.circular(
+                              AppRadius.medium,
+                            ),
                           ),
                           child: Icon(
                             Icons.bookmark_outline_rounded,
@@ -160,7 +170,9 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                   Expanded(
                                     child: Text(
                                       preference.name,
-                                      style: Theme.of(context).textTheme.titleMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
                                     ),
                                   ),
                                   const AppStatusBadge(
@@ -175,7 +187,8 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                 preference.summary,
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
                                       color: context.colors.textSecondary,
                                     ),
                               ),
@@ -184,15 +197,22 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                 children: [
                                   TextButton.icon(
                                     onPressed: () => _openEditor(preference.id),
-                                    icon: const Icon(Icons.edit_outlined, size: 18),
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      size: 18,
+                                    ),
                                     label: const Text('编辑'),
                                   ),
                                   TextButton.icon(
-                                    onPressed: () => _delete(preference.id, index),
+                                    onPressed: () =>
+                                        _delete(preference.id, index),
                                     style: TextButton.styleFrom(
                                       foregroundColor: context.colors.error,
                                     ),
-                                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      size: 18,
+                                    ),
                                     label: const Text('删除'),
                                   ),
                                 ],

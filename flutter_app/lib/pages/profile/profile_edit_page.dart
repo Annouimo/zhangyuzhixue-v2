@@ -22,7 +22,8 @@ class ProfileEditPage extends StatefulWidget {
   final UserRepository? userRepository;
   const ProfileEditPage({super.key, this.userRepository});
 
-  @override State<ProfileEditPage> createState() => _ProfileEditPageState();
+  @override
+  State<ProfileEditPage> createState() => _ProfileEditPageState();
 }
 
 class _ProfileEditPageState extends State<ProfileEditPage> {
@@ -40,9 +41,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.userRepository ?? UserRepository(
-      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.userRepository ??
+        UserRepository(
+          UserDao(DatabaseProvider()),
+          UserApi(ApiClient()),
+          QuestionDao(DatabaseProvider()),
+        );
     _load();
   }
 
@@ -57,7 +62,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         _gaokaoYear = info.gaokaoYear;
         _loading = false;
       });
-      AuditLogger.instance.page('ProfileEditPage', {'name': _nameCtrl.text, 'gaokaoYear': _gaokaoYear, 'loading': _loading});
+      AuditLogger.instance.page('ProfileEditPage', {
+        'name': _nameCtrl.text,
+        'gaokaoYear': _gaokaoYear,
+        'loading': _loading,
+      });
     } catch (e) {
       AuditLogger.instance.error('ProfileEditPage._load', e);
       OperationLog.instance.error('ProfileEditPage._load', e);
@@ -69,14 +78,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
     if (_info == null || _saving) return;
     setState(() => _saving = true);
     try {
-      await _repo.saveProfile(UserInfo(
-        id: _info!.id,
-        name: _info!.name,
-        realName: _nameCtrl.text,
-        avatar: _avatarUrl,
-        gaokaoYear: _gaokaoYear,
-        phone: _info!.phone,
-      ));
+      await _repo.saveProfile(
+        UserInfo(
+          id: _info!.id,
+          name: _info!.name,
+          realName: _nameCtrl.text,
+          avatar: _avatarUrl,
+          gaokaoYear: _gaokaoYear,
+          phone: _info!.phone,
+        ),
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -102,27 +113,39 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   Future<void> _pickAndUploadAvatar(ImageSource source) async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
-      source: source, maxWidth: 1024, maxHeight: 1024, imageQuality: 85,
+      source: source,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
     );
     if (picked == null || !mounted) return;
     setState(() => _uploading = true);
     try {
       final url = await _repo.uploadAvatar(picked.path);
       if (!mounted) return;
-      setState(() { _avatarUrl = url; _uploading = false; });
+      setState(() {
+        _avatarUrl = url;
+        _uploading = false;
+      });
       // 上传成功后写回本地 user.db，保证离开再回来也能显示新头像
       if (_info != null) {
-        await _repo.saveProfile(UserInfo(
-          id: _info!.id, name: _info!.name,
-          realName: _info!.realName,
-          avatar: url,
-          gaokaoYear: _gaokaoYear,
-          phone: _info!.phone,
-        ));
+        await _repo.saveProfile(
+          UserInfo(
+            id: _info!.id,
+            name: _info!.name,
+            realName: _info!.realName,
+            avatar: url,
+            gaokaoYear: _gaokaoYear,
+            phone: _info!.phone,
+          ),
+        );
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('头像更新成功'), behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('头像更新成功'),
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
@@ -131,7 +154,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       if (mounted) {
         setState(() => _uploading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('头像上传失败: $e'), behavior: SnackBarBehavior.floating, backgroundColor: context.colors.error),
+          SnackBar(
+            content: Text('头像上传失败: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: context.colors.error,
+          ),
         );
       }
     }
@@ -147,12 +174,18 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('拍照'),
-              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.camera); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAndUploadAvatar(ImageSource.camera);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('从相册选择'),
-              onTap: () { Navigator.pop(ctx); _pickAndUploadAvatar(ImageSource.gallery); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickAndUploadAvatar(ImageSource.gallery);
+              },
             ),
           ],
         ),
@@ -161,7 +194,10 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   @override
-  void dispose() { _nameCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,12 +219,17 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                   const SizedBox(height: AppSpacing.lg),
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= AppBreakpoints.medium;
+                      final wide =
+                          constraints.maxWidth >= AppBreakpoints.medium;
                       final avatar = _buildAvatarCard();
                       final form = _buildProfileForm();
                       if (!wide) {
                         return Column(
-                          children: [avatar, const SizedBox(height: AppSpacing.lg), form],
+                          children: [
+                            avatar,
+                            const SizedBox(height: AppSpacing.lg),
+                            form,
+                          ],
                         );
                       }
                       return Row(
@@ -229,10 +270,15 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               CircleAvatar(
                 radius: 52,
                 backgroundColor: colors.surfaceSubtle,
-                backgroundImage:
-                    _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+                backgroundImage: _avatarUrl == null
+                    ? null
+                    : NetworkImage(_avatarUrl!),
                 child: _avatarUrl == null
-                    ? Icon(Icons.person_rounded, size: 44, color: colors.textMuted)
+                    ? Icon(
+                        Icons.person_rounded,
+                        size: 44,
+                        color: colors.textMuted,
+                      )
                     : null,
               ),
               Container(
@@ -251,7 +297,11 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
                           color: colors.onPrimary,
                         ),
                       )
-                    : Icon(Icons.camera_alt_rounded, size: 18, color: colors.onPrimary),
+                    : Icon(
+                        Icons.camera_alt_rounded,
+                        size: 18,
+                        color: colors.onPrimary,
+                      ),
               ),
             ],
           ),
@@ -260,9 +310,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           const SizedBox(height: AppSpacing.xxs),
           Text(
             '点击选择拍照或相册图片',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -275,10 +325,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppSectionHeader(
-            title: '基本信息',
-            subtitle: '可编辑字段会同步到你的学生端资料。',
-          ),
+          const AppSectionHeader(title: '基本信息', subtitle: '可编辑字段会同步到你的学生端资料。'),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _nameCtrl,
@@ -290,16 +337,16 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
           ),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
-            value: _gaokaoYear,
+            initialValue: _gaokaoYear,
             decoration: const InputDecoration(
               labelText: '高考年份',
               prefixIcon: Icon(Icons.calendar_month_outlined),
             ),
             items: _gaokaoYears
-                .map((year) => DropdownMenuItem(
-                      value: year,
-                      child: Text('$year 年'),
-                    ))
+                .map(
+                  (year) =>
+                      DropdownMenuItem(value: year, child: Text('$year 年')),
+                )
                 .toList(),
             onChanged: (value) => setState(() => _gaokaoYear = value),
           ),
@@ -344,9 +391,9 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       ),
       child: Text(
         value,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: context.colors.textSecondary,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: context.colors.textSecondary),
       ),
     );
   }

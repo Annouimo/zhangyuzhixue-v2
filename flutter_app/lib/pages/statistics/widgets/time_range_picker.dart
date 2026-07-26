@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared/shared.dart';
 
 /// 时间范围选择器。
 class TimeRangePicker extends StatelessWidget {

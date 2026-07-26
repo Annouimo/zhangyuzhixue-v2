@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/helpers/pdf_helper.dart';
 
 /// PDF 引导弹窗
@@ -15,56 +17,64 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
     barrierDismissible: false,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setState) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.description, size: 24, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('准备打印试卷',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Icon(
+              Icons.description_outlined,
+              size: 24,
+              color: ctx.colors.primary,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text('准备打印试卷', style: Theme.of(ctx).textTheme.titleLarge),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('试卷已生成，请在浏览器中完成打印：',
-                style: TextStyle(fontSize: 14)),
-            const SizedBox(height: 16),
-            const Text('电脑用户：',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              '试卷已生成，请在浏览器中完成打印：',
+              style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text('电脑用户：', style: Theme.of(ctx).textTheme.titleSmall),
             const Padding(
               padding: EdgeInsets.only(left: 16),
               child: Text('按 Ctrl+P 打开打印对话框\n选择「另存为 PDF」或直接打印'),
             ),
-            const SizedBox(height: 12),
-            const Text('手机用户：',
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const SizedBox(height: AppSpacing.sm),
+            Text('手机用户：', style: Theme.of(ctx).textTheme.titleSmall),
             const Padding(
               padding: EdgeInsets.only(left: 16),
               child: Text('点击浏览器菜单 (⋮) → 分享 → 打印 → 选择「保存为 PDF」'),
             ),
-            const SizedBox(height: 12),
-            const Text('纸张选择 A4，取消页眉页脚 ✓',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '纸张选择 A4，取消页眉页脚',
+              style: Theme.of(
+                ctx,
+              ).textTheme.bodySmall?.copyWith(color: ctx.colors.textMuted),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Checkbox(
                   value: dontShowAgain,
                   onChanged: (v) => setState(() => dontShowAgain = v ?? false),
                 ),
-                const Text('不再提示', style: TextStyle(fontSize: 13)),
+                Text('不再提示', style: Theme.of(ctx).textTheme.bodySmall),
               ],
             ),
           ],
         ),
         actions: [
-          TextButton(
+          AppButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('取消'),
+            label: '取消',
+            type: AppButtonType.text,
+            expanded: false,
           ),
-          ElevatedButton(
+          AppButton(
             onPressed: () async {
               if (dontShowAgain) {
                 final prefs = await SharedPreferences.getInstance();
@@ -72,7 +82,8 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
               }
               if (ctx.mounted) Navigator.of(ctx).pop(true);
             },
-            child: const Text('打开浏览器'),
+            label: '打开浏览器',
+            expanded: false,
           ),
         ],
       ),

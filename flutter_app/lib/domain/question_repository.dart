@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:drift/drift.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/progress_dao.dart';
@@ -9,7 +8,6 @@ import '../data/database/database_provider.dart';
 import '../data/database/app_database.dart' as app_db;
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
-
 
 /// 题目详情
 class QuestionDetail {
@@ -67,10 +65,14 @@ class SolveAttempt {
 class SolveRouteHelper {
   static String pageName(String questionType) {
     switch (questionType) {
-      case 'choice': return AppRoutes.solveChoice;
-      case 'fill': return AppRoutes.solveFill;
-      case 'solution': return AppRoutes.solveMap;
-      default: return AppRoutes.solveMap;
+      case 'choice':
+        return AppRoutes.solveChoice;
+      case 'fill':
+        return AppRoutes.solveFill;
+      case 'solution':
+        return AppRoutes.solveMap;
+      default:
+        return AppRoutes.solveMap;
     }
   }
 
@@ -97,9 +99,12 @@ class SolveRouteHelper {
     }
     final page = pageName(questionType);
     if (!context.mounted) return;
-    RouterUtils.push(context,'$page?id=$questionId'
-        '${mode != 'first' ? '&mode=$mode' : ''}'
-        '${attemptId != null ? '&attemptId=$attemptId' : ''}');
+    RouterUtils.push(
+      context,
+      '$page?id=$questionId'
+      '${mode != 'first' ? '&mode=$mode' : ''}'
+      '${attemptId != null ? '&attemptId=$attemptId' : ''}',
+    );
   }
 }
 
@@ -179,14 +184,18 @@ class QuestionRepository {
 
   Future<List<SolveAttempt>> getAttempts(int questionId) async {
     final rows = await _progressDao.getAttempts(questionId);
-    return rows.map((r) => SolveAttempt(
-      id: r.id,
-      questionId: r.questionId,
-      attemptNumber: r.attemptNumber,
-      createdAt: DateTime.parse(r.createdAt),
-      isCompleted: r.status == 'completed',
-      isStarted: r.status != 'pending' && r.status != 'new',
-    )).toList();
+    return rows
+        .map(
+          (r) => SolveAttempt(
+            id: r.id,
+            questionId: r.questionId,
+            attemptNumber: r.attemptNumber,
+            createdAt: DateTime.parse(r.createdAt),
+            isCompleted: r.status == 'completed',
+            isStarted: r.status != 'pending' && r.status != 'new',
+          ),
+        )
+        .toList();
   }
 
   Future<int?> nextQuestion(int currentId) async {
@@ -198,7 +207,8 @@ class QuestionRepository {
   }
 
   /// 保存作答记录到 user.db
-  Future<void> saveAttempt(int questionId, {
+  Future<void> saveAttempt(
+    int questionId, {
     required String answerText,
     required bool isCorrect,
   }) async {
@@ -220,13 +230,15 @@ class QuestionRepository {
           operation: SyncOperationType.upsert,
           localId: latest.id,
           payload: jsonEncode({
-            'details': [{
-              'question_id': questionId,
-              'attempt_number': latest.attemptNumber,
-              'status': 'completed',
-              'answer_text': answerText,
-              'is_correct': isCorrect ? 1 : 0,
-            }],
+            'details': [
+              {
+                'question_id': questionId,
+                'attempt_number': latest.attemptNumber,
+                'status': 'completed',
+                'answer_text': answerText,
+                'is_correct': isCorrect ? 1 : 0,
+              },
+            ],
           }),
         );
       } catch (_) {
@@ -239,15 +251,17 @@ class QuestionRepository {
         final question = await _dao.getById(questionId);
         final difficulty = question?.difficulty ?? 0.0;
         final amount = difficulty.floor() / 10.0; // 难度 floor 0~10，除以10得 0~1.0 分
-        final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
-          app_db.PointsTransactionsCompanion(
-            amount: Value(amount),
-            source: const Value('PRACTICE_REWARD'),
-            transactionType: const Value('EARN'),
-            createdAt: Value(now),
-            description: const Value('做题奖励'),
-          ),
-        );
+        final newId = await db.appDb
+            .into(db.appDb.pointsTransactions)
+            .insert(
+              app_db.PointsTransactionsCompanion(
+                amount: Value(amount),
+                source: const Value('PRACTICE_REWARD'),
+                transactionType: const Value('EARN'),
+                createdAt: Value(now),
+                description: const Value('做题奖励'),
+              ),
+            );
         // 入同步队列
         try {
           await SyncManager().enqueue(
@@ -270,10 +284,12 @@ class QuestionRepository {
   List<String> _parseImages(String? raw) {
     if (raw == null || raw.isEmpty) return [];
     try {
-      return (jsonDecode(raw) as List).cast<String>().map((p) => p.replaceAll('\\', '/')).toList();
+      return (jsonDecode(raw) as List)
+          .cast<String>()
+          .map((p) => p.replaceAll('\\', '/'))
+          .toList();
     } catch (_) {
       return [];
     }
   }
 }
-

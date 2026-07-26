@@ -38,7 +38,8 @@ class RecommendPageState extends State<RecommendPage> {
   int _selectedPresetIndex = -1;
 
   void _initRepo() {
-    _repo = widget.recommendRepository ??
+    _repo =
+        widget.recommendRepository ??
         RecommendRepository(
           QuestionDao(DatabaseProvider()),
           ProgressDao(DatabaseProvider()),
@@ -147,7 +148,9 @@ class RecommendPageState extends State<RecommendPage> {
       _selectedPresetIndex = index;
     });
     try {
-      final presetQuestions = await _repo.getPresetQuestions(_presets[index].id);
+      final presetQuestions = await _repo.getPresetQuestions(
+        _presets[index].id,
+      );
       if (!mounted) return;
       setState(() {
         _questions = presetQuestions
@@ -226,9 +229,7 @@ class RecommendPageState extends State<RecommendPage> {
             const SizedBox(height: AppSpacing.lg),
             AppSectionHeader(
               title: _preferSmart ? '智能推荐题目' : '偏好推荐题目',
-              subtitle: _preferSmart
-                  ? '结合做题记录与薄弱知识点动态生成'
-                  : '根据选定的学习范围筛选题目',
+              subtitle: _preferSmart ? '结合做题记录与薄弱知识点动态生成' : '根据选定的学习范围筛选题目',
               action: AppStatusBadge(
                 label: '${_questions?.length ?? 0} 题',
                 tone: AppStatusTone.neutral,
@@ -302,7 +303,7 @@ class RecommendPageState extends State<RecommendPage> {
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: DropdownButtonFormField<int>(
-        value: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
+        initialValue: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
         isExpanded: true,
         decoration: const InputDecoration(
           labelText: '学习偏好',
@@ -335,8 +336,8 @@ class RecommendPageState extends State<RecommendPage> {
         message: _preferSmart
             ? '暂时没有智能推荐，先完成几道练习积累学习记录'
             : needsPresetSelection
-                ? '请先选择一个学习偏好开始推荐'
-                : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
+            ? '请先选择一个学习偏好开始推荐'
+            : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
       );
     }
 
@@ -443,8 +444,8 @@ class _ModeOption extends StatelessWidget {
     final foreground = !enabled
         ? colors.disabledForeground
         : selected
-            ? colors.onPrimaryContainer
-            : colors.textSecondary;
+        ? colors.onPrimaryContainer
+        : colors.textSecondary;
 
     return Material(
       color: selected ? colors.primaryContainer : Colors.transparent,

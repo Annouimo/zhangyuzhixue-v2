@@ -83,9 +83,13 @@ class IndexPageState extends State<IndexPage> {
   void initState() {
     super.initState();
     _welcomeText = _welcomeMessages[Random().nextInt(_welcomeMessages.length)];
-    _repo = widget.userRepository ?? UserRepository(
-      UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.userRepository ??
+        UserRepository(
+          UserDao(DatabaseProvider()),
+          UserApi(ApiClient()),
+          QuestionDao(DatabaseProvider()),
+        );
     _load();
   }
 
@@ -143,25 +147,36 @@ class IndexPageState extends State<IndexPage> {
         _syncPendingCount = syncPending;
         _loading = false;
       });
-      AuditLogger.instance.page('IndexPage', {'streakDays': _streakDays, 'pendingCount': _pendingCount, 'checkedIn': _checkedIn, 'level': _currentLevel});
+      AuditLogger.instance.page('IndexPage', {
+        'streakDays': _streakDays,
+        'pendingCount': _pendingCount,
+        'checkedIn': _checkedIn,
+        'level': _currentLevel,
+      });
 
       // 任务奖励检测（UI 已显示后再异步执行，不阻塞首屏）
       Future.microtask(() async {
         try {
-          final tasks = UserRepository.computeTodayTasks(stats.total, stats.correct);
+          final tasks = UserRepository.computeTodayTasks(
+            stats.total,
+            stats.correct,
+          );
           for (var i = 0; i < tasks.length; i++) {
-            if (tasks[i].done && prefs.getString('task_reward_${i}_date') != today) {
+            if (tasks[i].done &&
+                prefs.getString('task_reward_${i}_date') != today) {
               await prefs.setString('task_reward_${i}_date', today);
               final now = DateTime.now().toIso8601String();
-              final newId = await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
-                app_db.PointsTransactionsCompanion(
-                  amount: Value(tasks[i].reward),
-                  source: const Value('TASK_REWARD'),
-                  transactionType: const Value('EARN'),
-                  createdAt: Value(now),
-                  description: Value('完成任务: ${tasks[i].label}'),
-                ),
-              );
+              final newId = await DatabaseProvider().appDb
+                  .into(DatabaseProvider().appDb.pointsTransactions)
+                  .insert(
+                    app_db.PointsTransactionsCompanion(
+                      amount: Value(tasks[i].reward),
+                      source: const Value('TASK_REWARD'),
+                      transactionType: const Value('EARN'),
+                      createdAt: Value(now),
+                      description: Value('完成任务: ${tasks[i].label}'),
+                    ),
+                  );
               try {
                 await SyncManager().enqueue(
                   entityType: SyncEntityType.pointsTransaction,
@@ -177,12 +192,20 @@ class IndexPageState extends State<IndexPage> {
                 );
               } catch (_) {}
               if (!mounted) return;
-              AppToast.show(context, icon: Icons.task_alt, message: '${tasks[i].label} 完成！+${tasks[i].reward} 赠送积分');
+              AppToast.show(
+                context,
+                icon: Icons.task_alt,
+                message: '${tasks[i].label} 完成！+${tasks[i].reward} 赠送积分',
+              );
             }
           }
           // 全部任务完成提示
           if (mounted && tasks.every((t) => t.done)) {
-            AppToast.show(context, icon: Icons.celebration, message: '🎉 全部每日任务已完成！今日额外 +1.0 赠送积分');
+            AppToast.show(
+              context,
+              icon: Icons.celebration,
+              message: '🎉 全部每日任务已完成！今日额外 +1.0 赠送积分',
+            );
           }
         } catch (_) {}
       });
@@ -195,11 +218,21 @@ class IndexPageState extends State<IndexPage> {
         try {
           final pctl = await _repo.levelPercentile();
           if (mounted) {
-            showLevelUpDialog(context, oldLevel: oldLevel, newLevel: _currentLevel, percentile: pctl);
+            showLevelUpDialog(
+              context,
+              oldLevel: oldLevel,
+              newLevel: _currentLevel,
+              percentile: pctl,
+            );
           }
         } catch (_) {
           if (mounted) {
-            showLevelUpDialog(context, oldLevel: oldLevel, newLevel: _currentLevel, percentile: 0);
+            showLevelUpDialog(
+              context,
+              oldLevel: oldLevel,
+              newLevel: _currentLevel,
+              percentile: 0,
+            );
           }
         }
       } else if (_currentLevel > 0 && AppPrefs().lastKnownLevel == 0) {
@@ -238,17 +271,21 @@ class IndexPageState extends State<IndexPage> {
         } catch (_) {}
       }
     } catch (e) {
-      OperationLog.instance.error('IndexPage._load', e); 
+      OperationLog.instance.error('IndexPage._load', e);
       AuditLogger.instance.error('IndexPage._load', e);
       if (!mounted) return;
-      setState(() { _error = '加载失败'; _loading = false; });
+      setState(() {
+        _error = '加载失败';
+        _loading = false;
+      });
     }
   }
 
   Future<void> _doCheckin() async {
     final colors = context.colors;
     if (_checkedIn || _submitting) {
-      if (_checkedIn) AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
+      if (_checkedIn)
+        AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
       return;
     }
     setState(() => _submitting = true);
@@ -263,34 +300,41 @@ class IndexPageState extends State<IndexPage> {
 
       // 写入本地登录日志，供下次启动推算连续天数
       final now = DateTime.now();
-      final loginDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-      await AchievementDao(DatabaseProvider()).insertLoginLog(
-        loginDate: loginDate,
-        createdAt: now.toIso8601String(),
-      );
+      final loginDate =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      await AchievementDao(
+        DatabaseProvider(),
+      ).insertLoginLog(loginDate: loginDate, createdAt: now.toIso8601String());
 
       if (!mounted) return;
       // 在本地创建签到积分流水（服务端已创建，本地镜像）
       try {
         final now = DateTime.now();
-        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
-          app_db.PointsTransactionsCompanion(
-            amount: Value(points),
-            source: const Value('LOGIN_BONUS'),
-            transactionType: const Value('EARN'),
-            createdAt: Value(now.toIso8601String()),
-            description: Value('第$streak天签到奖励'),
-          ),
-        );
+        await DatabaseProvider().appDb
+            .into(DatabaseProvider().appDb.pointsTransactions)
+            .insert(
+              app_db.PointsTransactionsCompanion(
+                amount: Value(points),
+                source: const Value('LOGIN_BONUS'),
+                transactionType: const Value('EARN'),
+                createdAt: Value(now.toIso8601String()),
+                description: Value('第$streak天签到奖励'),
+              ),
+            );
       } catch (_) {}
       setState(() {
         _streakDays = streak;
         _checkedIn = true;
         _submitting = false;
       });
-      OperationLog.instance.action('checkin', 'ok +$points pts, streak=$streak');
-      AppToast.show(context,
-        icon: Icons.local_fire_department, message: '签到成功！连续第 $streak 天 · +$points 赠送积分',
+      OperationLog.instance.action(
+        'checkin',
+        'ok +$points pts, streak=$streak',
+      );
+      AppToast.show(
+        context,
+        icon: Icons.local_fire_department,
+        message: '签到成功！连续第 $streak 天 · +$points 赠送积分',
         backgroundColor: colors.success,
       );
 
@@ -303,18 +347,25 @@ class IndexPageState extends State<IndexPage> {
             await AppPrefs().setLastKnownLevel(newLevel);
             final pctl = await _repo.levelPercentile();
             if (mounted) {
-              showLevelUpDialog(context, oldLevel: oldLevel, newLevel: newLevel, percentile: pctl);
+              showLevelUpDialog(
+                context,
+                oldLevel: oldLevel,
+                newLevel: newLevel,
+                percentile: pctl,
+              );
             }
           }
         } catch (_) {}
       }
     } catch (e) {
       if (mounted) setState(() => _submitting = false);
-      OperationLog.instance.error('IndexPage._doCheckin', e); 
+      OperationLog.instance.error('IndexPage._doCheckin', e);
       AuditLogger.instance.error('IndexPage._doCheckin', e);
       if (!mounted) return;
-      AppToast.show(context,
-        icon: Icons.warning, message: '签到失败，请检查网络',
+      AppToast.show(
+        context,
+        icon: Icons.warning,
+        message: '签到失败，请检查网络',
         backgroundColor: colors.error,
       );
     }
@@ -327,21 +378,21 @@ class IndexPageState extends State<IndexPage> {
       body: _loading
           ? const LoadingIndicator(message: '正在整理今天的学习计划…')
           : _error != null
-              ? ErrorPlaceholder(message: _error!, onRetry: _load)
-              : AppContentContainer(
-                  maxWidth: AppContentWidth.dashboard,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(
-                      top: AppSpacing.sm,
-                      bottom: AppSpacing.xl,
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return _buildDashboard(constraints.maxWidth);
-                      },
-                    ),
-                  ),
+          ? ErrorPlaceholder(message: _error!, onRetry: _load)
+          : AppContentContainer(
+              maxWidth: AppContentWidth.dashboard,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.sm,
+                  bottom: AppSpacing.xl,
                 ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return _buildDashboard(constraints.maxWidth);
+                  },
+                ),
+              ),
+            ),
     );
   }
 
@@ -351,16 +402,13 @@ class IndexPageState extends State<IndexPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHero(compact: width < AppBreakpoints.compact),
+        _buildHero(compact: width < AppBreakpoints.medium),
         if (_showWelcomeHint) ...[
           const SizedBox(height: AppSpacing.sm),
           _buildWelcomeHint(),
         ],
         const SizedBox(height: AppSpacing.lg),
-        const AppSectionHeader(
-          title: '今日概览',
-          subtitle: '用几个关键数字快速了解当前学习状态',
-        ),
+        const AppSectionHeader(title: '今日概览', subtitle: '用几个关键数字快速了解当前学习状态'),
         const SizedBox(height: AppSpacing.sm),
         _buildOverviewGrid(width),
         const SizedBox(height: AppSpacing.lg),
@@ -409,9 +457,7 @@ class IndexPageState extends State<IndexPage> {
           _pendingCount > 0
               ? '你还有 $_pendingCount 项作业待完成，也可以先用一道快速练习进入状态。'
               : '今日待办已清爽，可以继续巩固薄弱知识点。',
-          style: textTheme.bodyMedium?.copyWith(
-            color: colors.textSecondary,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
         ),
       ],
     );
@@ -469,7 +515,11 @@ class IndexPageState extends State<IndexPage> {
     final accuracy = _todayTotal == 0
         ? 0
         : ((_todayCorrect / _todayTotal) * 100).round();
-    final columns = width < 360 ? 1 : width >= AppBreakpoints.medium ? 4 : 2;
+    final columns = width < 360
+        ? 1
+        : width >= AppBreakpoints.medium
+        ? 4
+        : 2;
     final gap = AppSpacing.sm;
     final itemWidth = (width - gap * (columns - 1)) / columns;
 
@@ -527,10 +577,7 @@ class IndexPageState extends State<IndexPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppSectionHeader(
-            title: '学习入口',
-            subtitle: '按任务推进，或随时查阅课程讲义',
-          ),
+          const AppSectionHeader(title: '学习入口', subtitle: '按任务推进，或随时查阅课程讲义'),
           const SizedBox(height: AppSpacing.sm),
           _HomeActionTile(
             icon: Icons.assignment_outlined,
@@ -581,7 +628,9 @@ class IndexPageState extends State<IndexPage> {
             subtitle: '完成签到和每日任务，保持稳定节奏',
             action: AppButton(
               label: _checkedIn ? '已签到' : '签到',
-              icon: _checkedIn ? Icons.check_rounded : Icons.local_fire_department,
+              icon: _checkedIn
+                  ? Icons.check_rounded
+                  : Icons.local_fire_department,
               onPressed: _checkedIn ? null : _doCheckin,
               isLoading: _submitting,
               fullWidth: false,
@@ -610,10 +659,7 @@ class IndexPageState extends State<IndexPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '已连续学习 $_streakDays 天',
-                      style: textTheme.titleMedium,
-                    ),
+                    Text('已连续学习 $_streakDays 天', style: textTheme.titleMedium),
                     const SizedBox(height: AppSpacing.xxs),
                     Text(
                       '今日奖励 +$todayReward · 明日可得 +$nextReward',
@@ -635,7 +681,10 @@ class IndexPageState extends State<IndexPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('本周第 ${(_streakDays % 7) + 1} 天', style: textTheme.bodySmall),
+              Text(
+                '本周第 ${(_streakDays % 7) + 1} 天',
+                style: textTheme.bodySmall,
+              ),
               Text('7 天阶段目标', style: textTheme.bodySmall),
             ],
           ),
@@ -683,13 +732,13 @@ class IndexPageState extends State<IndexPage> {
     final icon = done
         ? Icons.check_circle_rounded
         : inProgress
-            ? Icons.timelapse_rounded
-            : Icons.radio_button_unchecked_rounded;
+        ? Icons.timelapse_rounded
+        : Icons.radio_button_unchecked_rounded;
     final iconColor = done
         ? colors.success
         : inProgress
-            ? colors.warning
-            : colors.textMuted;
+        ? colors.warning
+        : colors.textMuted;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
@@ -701,16 +750,16 @@ class IndexPageState extends State<IndexPage> {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: done ? colors.textSecondary : colors.textPrimary,
-                    decoration: done ? TextDecoration.lineThrough : null,
-                  ),
+                color: done ? colors.textSecondary : colors.textPrimary,
+                decoration: done ? TextDecoration.lineThrough : null,
+              ),
             ),
           ),
           Text(
             '+$points',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: done ? colors.textMuted : colors.primary,
-                ),
+              color: done ? colors.textMuted : colors.primary,
+            ),
           ),
         ],
       ),
@@ -770,9 +819,9 @@ class IndexPageState extends State<IndexPage> {
                 child: Text(
                   text,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: foreground,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               if (onTap != null)
@@ -803,7 +852,11 @@ class IndexPageState extends State<IndexPage> {
       OperationLog.instance.error('index_page_quick_practice', error);
       AuditLogger.instance.error('IndexPage._startQuickPractice', error);
       if (!mounted) return;
-      AppToast.show(context, icon: Icons.warning_amber_rounded, message: '加载失败，请稍后重试');
+      AppToast.show(
+        context,
+        icon: Icons.warning_amber_rounded,
+        message: '加载失败，请稍后重试',
+      );
     }
   }
 
@@ -824,14 +877,20 @@ class IndexPageState extends State<IndexPage> {
                   color: colors.infoContainer,
                   borderRadius: BorderRadius.circular(AppRadius.small),
                 ),
-                child: Icon(Icons.lightbulb_outline_rounded, color: colors.info),
+                child: Icon(
+                  Icons.lightbulb_outline_rounded,
+                  color: colors.info,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('第一次使用？从这里开始', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      '第一次使用？从这里开始',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     Text(
                       '快速练习、讲义、推荐和组卷构成主要学习路径。',
                       style: Theme.of(context).textTheme.bodySmall,
@@ -851,10 +910,26 @@ class IndexPageState extends State<IndexPage> {
             spacing: AppSpacing.xs,
             runSpacing: AppSpacing.xs,
             children: [
-              AppStatusBadge(label: '快速练习', tone: AppStatusTone.primary, compact: true),
-              AppStatusBadge(label: '课程讲义', tone: AppStatusTone.info, compact: true),
-              AppStatusBadge(label: '智能推荐', tone: AppStatusTone.recommendation, compact: true),
-              AppStatusBadge(label: '自主组卷', tone: AppStatusTone.neutral, compact: true),
+              AppStatusBadge(
+                label: '快速练习',
+                tone: AppStatusTone.primary,
+                compact: true,
+              ),
+              AppStatusBadge(
+                label: '课程讲义',
+                tone: AppStatusTone.info,
+                compact: true,
+              ),
+              AppStatusBadge(
+                label: '智能推荐',
+                tone: AppStatusTone.recommendation,
+                compact: true,
+              ),
+              AppStatusBadge(
+                label: '自主组卷',
+                tone: AppStatusTone.neutral,
+                compact: true,
+              ),
             ],
           ),
         ],

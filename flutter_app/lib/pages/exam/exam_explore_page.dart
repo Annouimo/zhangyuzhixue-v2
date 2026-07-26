@@ -37,7 +37,8 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -77,8 +78,9 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
           authorInfo: old.authorInfo,
           summary: old.summary,
           likeCount: old.likeCount,
-          collectCount:
-              old.isCollected ? old.collectCount - 1 : old.collectCount + 1,
+          collectCount: old.isCollected
+              ? old.collectCount - 1
+              : old.collectCount + 1,
           createdAt: old.createdAt,
           isLiked: old.isLiked,
           isCollected: !old.isCollected,
@@ -100,8 +102,9 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
         break;
       case 'diff':
         sorted.sort(
-          (a, b) => (b.likeCount + b.collectCount)
-              .compareTo(a.likeCount + a.collectCount),
+          (a, b) => (b.likeCount + b.collectCount).compareTo(
+            a.likeCount + a.collectCount,
+          ),
         );
         break;
       default:
@@ -112,123 +115,119 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('发现组卷')),
-        body: AsyncLoadWidget<List<ExploreExamSummary>>(
-          key: _loadKey,
-          onLoad: _repo.getExploreList,
-          emptyWidget: EmptyPlaceholder(
-            icon: Icons.explore_outlined,
-            message: '暂时没有公开试卷，可以先创建并分享一份',
-          ),
-          builder: (ctx, list) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              AuditLogger.instance.page(
-                'ExamExplorePage',
-                {'totalPapers': list.length},
-              );
-            });
-            final sorted = _sorted(list);
-            return AppContentContainer(
-              maxWidth: AppContentWidth.standard,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                itemCount: sorted.length + 1,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.sm),
-                itemBuilder: (ctx, index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AppSectionHeader(
-                            title: '公开试卷',
-                            subtitle: '发现其他同学分享的内容，收藏后可以随时查看。',
-                            action: IconButton(
-                              tooltip: '刷新',
-                              onPressed: () =>
-                                  _loadKey.currentState?.refresh(),
-                              icon: const Icon(AppIcons.refresh),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SegmentedButton<String>(
-                              segments: _sortOptions
-                                  .map(
-                                    (option) => ButtonSegment<String>(
-                                      value: option.$1,
-                                      label: Text(option.$2),
-                                    ),
-                                  )
-                                  .toList(),
-                              selected: {_sortBy},
-                              showSelectedIcon: false,
-                              onSelectionChanged: (value) {
-                                setState(() => _sortBy = value.first);
-                              },
-                            ),
-                          ),
-                        ],
+    appBar: AppBar(title: const Text('发现组卷')),
+    body: AsyncLoadWidget<List<ExploreExamSummary>>(
+      key: _loadKey,
+      onLoad: _repo.getExploreList,
+      contentIsScrollable: true,
+      emptyWidget: EmptyPlaceholder(
+        icon: Icons.explore_outlined,
+        message: '暂时没有公开试卷，可以先创建并分享一份',
+      ),
+      builder: (ctx, list) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          AuditLogger.instance.page('ExamExplorePage', {
+            'totalPapers': list.length,
+          });
+        });
+        final sorted = _sorted(list);
+        return AppContentContainer(
+          maxWidth: AppContentWidth.standard,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            itemCount: sorted.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+            itemBuilder: (ctx, index) {
+              if (index == 0) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppSectionHeader(
+                        title: '公开试卷',
+                        subtitle: '发现其他同学分享的内容，收藏后可以随时查看。',
+                        action: IconButton(
+                          tooltip: '刷新',
+                          onPressed: () => _loadKey.currentState?.refresh(),
+                          icon: const Icon(AppIcons.refresh),
+                        ),
                       ),
-                    );
-                  }
+                      const SizedBox(height: AppSpacing.md),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SegmentedButton<String>(
+                          segments: _sortOptions
+                              .map(
+                                (option) => ButtonSegment<String>(
+                                  value: option.$1,
+                                  label: Text(option.$2),
+                                ),
+                              )
+                              .toList(),
+                          selected: {_sortBy},
+                          showSelectedIcon: false,
+                          onSelectionChanged: (value) {
+                            setState(() => _sortBy = value.first);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-                  final exam = sorted[index - 1];
-                  final subtitle = exam.summary.isNotEmpty
-                      ? exam.summary
-                      : '${exam.likeCount} 赞 · ${exam.collectCount} 收藏';
-                  return PaperCard(
-                    title: exam.name,
-                    subtitle: exam.authorInfo.isNotEmpty
-                        ? '${exam.authorInfo} · $subtitle'
-                        : subtitle,
+              final exam = sorted[index - 1];
+              final subtitle = exam.summary.isNotEmpty
+                  ? exam.summary
+                  : '${exam.likeCount} 赞 · ${exam.collectCount} 收藏';
+              return PaperCard(
+                title: exam.name,
+                subtitle: exam.authorInfo.isNotEmpty
+                    ? '${exam.authorInfo} · $subtitle'
+                    : subtitle,
+                onTap: () => RouterUtils.push(
+                  context,
+                  '${AppRoutes.examQuicklookOther}?id=${exam.id}',
+                ),
+                actions: [
+                  ActionChipWidget(
+                    icon: exam.isLiked ? AppIcons.likeSelected : AppIcons.like,
+                    label: '${exam.likeCount}',
+                    active: exam.isLiked,
+                    onTap: () => _toggleLike(exam.id),
+                  ),
+                  ActionChipWidget(
+                    icon: exam.isCollected
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_outline_rounded,
+                    label: '${exam.collectCount}',
+                    active: exam.isCollected,
+                    onTap: () => _toggleCollect(exam.id),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.picture_as_pdf_outlined,
+                    label: '下载 PDF',
+                    onTap: () => PdfHelper.downloadPdf(
+                      sourceId: exam.id,
+                      sourceType: 'paper',
+                      context: context,
+                    ),
+                  ),
+                  ActionChipWidget(
+                    icon: Icons.visibility_outlined,
+                    label: '查看试卷',
                     onTap: () => RouterUtils.push(
                       context,
                       '${AppRoutes.examQuicklookOther}?id=${exam.id}',
                     ),
-                    actions: [
-                      ActionChipWidget(
-                        icon: exam.isLiked
-                            ? AppIcons.likeSelected
-                            : AppIcons.like,
-                        label: '${exam.likeCount}',
-                        active: exam.isLiked,
-                        onTap: () => _toggleLike(exam.id),
-                      ),
-                      ActionChipWidget(
-                        icon: exam.isCollected
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_outline_rounded,
-                        label: '${exam.collectCount}',
-                        active: exam.isCollected,
-                        onTap: () => _toggleCollect(exam.id),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.picture_as_pdf_outlined,
-                        label: '下载 PDF',
-                        onTap: () => PdfHelper.downloadPdf(
-                          sourceId: exam.id,
-                          sourceType: 'paper',
-                          context: context,
-                        ),
-                      ),
-                      ActionChipWidget(
-                        icon: Icons.visibility_outlined,
-                        label: '查看试卷',
-                        onTap: () => RouterUtils.push(
-                          context,
-                          '${AppRoutes.examQuicklookOther}?id=${exam.id}',
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      );
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    ),
+  );
 }

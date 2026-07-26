@@ -9,11 +9,7 @@ import '../router.dart';
 
 /// 快速答案表。
 class AnswerSheetPage extends StatefulWidget {
-  AnswerSheetPage({
-    super.key,
-    required this.examId,
-    this.examRepository,
-  });
+  AnswerSheetPage({super.key, required this.examId, this.examRepository});
 
   final int examId;
   final ExamRepository? examRepository;
@@ -33,7 +29,8 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -56,10 +53,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
         _totalCount = preview.totalCount;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'AnswerSheetPage',
-        {'total': _answers?.length},
-      );
+      AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
     } catch (error) {
       OperationLog.instance.error('answer_sheet_page_load', error);
       AuditLogger.instance.error('AnswerSheetPage._load', error);
@@ -73,9 +67,9 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('快速对答案')),
-        body: _buildBody(),
-      );
+    appBar: AppBar(title: const Text('快速对答案')),
+    body: _buildBody(),
+  );
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载答案…');
@@ -150,7 +144,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
     return AppCard(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final compact = constraints.maxWidth < AppBreakpoints.compact;
+          final compact = constraints.maxWidth < AppBreakpoints.medium;
           final heading = Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -164,9 +158,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
                 alignment: Alignment.center,
                 child: Text(
                   '$index',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: colors.primary,
-                  ),
+                  style: textTheme.titleSmall?.copyWith(color: colors.primary),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -176,10 +168,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
                   children: [
                     Text(answer.title, style: textTheme.titleSmall),
                     const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      answer.questionType,
-                      style: textTheme.bodySmall,
-                    ),
+                    Text(answer.questionType, style: textTheme.bodySmall),
                   ],
                 ),
               ),

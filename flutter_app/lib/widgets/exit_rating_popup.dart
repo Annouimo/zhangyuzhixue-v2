@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
+import 'package:shared/widgets/app_button.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -76,17 +78,18 @@ Future<bool> submitExitRating({
     // 赠送积分
     final now = DateTime.now().toIso8601String();
     final provider = dbProvider ?? DatabaseProvider();
-    final cfg = config ??
-        ExitRatingConfig(SystemConfigDao(provider));
+    final cfg = config ?? ExitRatingConfig(SystemConfigDao(provider));
     final pts = await cfg.rewardPoints;
-    final newId = await provider.appDb.into(provider.appDb.pointsTransactions).insert(
-      app_db.PointsTransactionsCompanion(
-        amount: Value(pts),
-        source: const Value('REVIEW_REWARD'),
-        transactionType: const Value('EARN'),
-        createdAt: Value(now),
-      ),
-    );
+    final newId = await provider.appDb
+        .into(provider.appDb.pointsTransactions)
+        .insert(
+          app_db.PointsTransactionsCompanion(
+            amount: Value(pts),
+            source: const Value('REVIEW_REWARD'),
+            transactionType: const Value('EARN'),
+            createdAt: Value(now),
+          ),
+        );
     // 入同步队列
     try {
       await SyncManager().enqueue(
@@ -120,8 +123,7 @@ Future<bool> showExitRatingIfNeeded(
   DateTime entryTime, {
   ExitRatingConfig? config,
 }) async {
-  final cfg = config ??
-      ExitRatingConfig(SystemConfigDao(DatabaseProvider()));
+  final cfg = config ?? ExitRatingConfig(SystemConfigDao(DatabaseProvider()));
 
   if (!await shouldShowExitRating(pageUrl, entryTime, cfg)) return false;
 
@@ -143,14 +145,14 @@ Future<bool> showExitRatingIfNeeded(
       if (ok) {
         final pts = await cfg.rewardPoints;
         if (!context.mounted) return false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('感谢评价！+$pts积分')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('感谢评价！+$pts积分')));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('提交失败，请重试'),
-            backgroundColor: AppColors.error,
+          SnackBar(
+            content: const Text('提交失败，请重试'),
+            backgroundColor: context.colors.error,
           ),
         );
       }
@@ -206,18 +208,22 @@ class _ExitRatingPopupState extends State<ExitRatingPopup> {
   Widget build(BuildContext context) {
     final rp = _cachedReward ?? 5;
     return AlertDialog(
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Row(
+      title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.celebration, size: 24, color: AppColors.primary),
-          SizedBox(width: 8),
-          Text('感觉怎么样？', textAlign: TextAlign.center),
+          Icon(
+            Icons.rate_review_outlined,
+            size: 24,
+            color: context.colors.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          const Text('感觉怎么样？', textAlign: TextAlign.center),
         ],
       ),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: List.generate(5, (i) {
               final selected = _selectedScore == i + 1;
@@ -227,63 +233,54 @@ class _ExitRatingPopupState extends State<ExitRatingPopup> {
                     : () => setState(() => _selectedScore = i + 1),
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  opacity:
-                      _selectedScore == null || selected ? 1.0 : 0.35,
-                  child: Text(_emojis[i],
-                      style:
-                          TextStyle(fontSize: selected ? 36 : 28)),
+                  opacity: _selectedScore == null || selected ? 1.0 : 0.35,
+                  child: Text(
+                    _emojis[i],
+                    style: TextStyle(fontSize: selected ? 36 : 28),
+                  ),
                 ),
               );
-            })),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _feedbackController,
-          maxLines: 3,
-          enabled: !_submitting,
-          decoration: const InputDecoration(
-            hintText: '说说你的想法...',
-            border: OutlineInputBorder(),
-            isDense: true,
+            }),
           ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed:
-                _submitting || _selectedScore == null ? null : _onSubmit,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _feedbackController,
+            maxLines: 3,
+            enabled: !_submitting,
+            decoration: const InputDecoration(
+              hintText: '说说你的想法...',
+              border: OutlineInputBorder(),
+              isDense: true,
             ),
-            child: _submitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
-                : Text('提交反馈 (+$rp积分)'),
           ),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed:
-              _submitting ? null : () => Navigator.of(context).pop(),
-          child: const Text('跳过',
-              style: TextStyle(color: AppColors.textSecondary)),
-        ),
-      ]),
+          const SizedBox(height: AppSpacing.lg),
+          AppButton(
+            onPressed: _submitting || _selectedScore == null ? null : _onSubmit,
+            label: '提交反馈 (+$rp积分)',
+            loading: _submitting,
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _submitting ? null : () => Navigator.of(context).pop(),
+            child: Text(
+              '跳过',
+              style: TextStyle(color: context.colors.textSecondary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _onSubmit() async {
     setState(() => _submitting = true);
-    Navigator.of(context).pop(ExitRatingResult(
-      score: _selectedScore!,
-      feedback: _feedbackController.text.trim().isEmpty
-          ? null
-          : _feedbackController.text.trim(),
-    ));
+    Navigator.of(context).pop(
+      ExitRatingResult(
+        score: _selectedScore!,
+        feedback: _feedbackController.text.trim().isEmpty
+            ? null
+            : _feedbackController.text.trim(),
+      ),
+    );
   }
 }

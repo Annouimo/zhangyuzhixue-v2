@@ -38,6 +38,9 @@ class AsyncLoadWidget<T> extends StatefulWidget {
   /// 首屏是否显示 loading 指示器（默认 true）
   final bool showLoadingOnInit;
 
+  /// builder 返回的内容内部是否已经包含滚动视图。
+  final bool contentIsScrollable;
+
   /// 错误提示文案（默认 "加载失败，请稍后重试"）
   final String errorMessage;
 
@@ -52,6 +55,7 @@ class AsyncLoadWidget<T> extends StatefulWidget {
     this.emptyWidgetBuilder,
     this.pullToRefresh = true,
     this.showLoadingOnInit = true,
+    this.contentIsScrollable = false,
     this.errorMessage = '加载失败，请稍后重试',
     this.loadingMessage,
   });
@@ -133,10 +137,7 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
     }
 
     if (_error != null) {
-      return ErrorPlaceholder(
-        message: _error!,
-        onRetry: _load,
-      );
+      return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
 
     // 空状态处理
@@ -157,11 +158,10 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
       // 需要让 RefreshIndicator 能滚动，所以必须包裹可滚动的 child
       // 如果 builder 已经返回了 Scrollable，直接包 RefreshIndicator
       // 否则包一层 SingleChildScrollView
-      if (content is Scrollable || _isScrollView(content)) {
-        return RefreshIndicator(
-          onRefresh: _load,
-          child: content,
-        );
+      if (widget.contentIsScrollable ||
+          content is Scrollable ||
+          _isScrollView(content)) {
+        return RefreshIndicator(onRefresh: _load, child: content);
       }
       return RefreshIndicator(
         onRefresh: _load,

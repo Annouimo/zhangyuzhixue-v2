@@ -62,14 +62,16 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _loading = true);
 
     try {
-      await _authRepo.register(RegisterRequest(
-        inviteCode: _inviteCodeController.text.trim(),
-        username: _usernameController.text.trim(),
-        realName: _realNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        gaokaoYear: _gaokaoYear,
-        password: _passwordController.text,
-      ));
+      await _authRepo.register(
+        RegisterRequest(
+          inviteCode: _inviteCodeController.text.trim(),
+          username: _usernameController.text.trim(),
+          realName: _realNameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          gaokaoYear: _gaokaoYear,
+          password: _passwordController.text,
+        ),
+      );
 
       if (!mounted) return;
 
@@ -89,7 +91,11 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
-      if (mounted) setState(() { _loading = false; _submitting = false; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _submitting = false;
+        });
       AuditLogger.instance.page('RegisterPage', {'saving': _loading});
     }
   }
@@ -147,9 +153,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 prefixIcon: Icon(Icons.key_outlined),
               ),
               textInputAction: TextInputAction.next,
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? '请输入邀请码'
-                  : null,
+              validator: (value) =>
+                  value == null || value.trim().isEmpty ? '请输入邀请码' : null,
             ),
             const SizedBox(height: AppSpacing.md),
             LayoutBuilder(
@@ -178,13 +183,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                   textInputAction: TextInputAction.next,
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? '请输入姓名'
-                      : null,
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? '请输入姓名' : null,
                 );
                 if (!twoColumns) {
                   return Column(
-                    children: [username, const SizedBox(height: AppSpacing.md), realName],
+                    children: [
+                      username,
+                      const SizedBox(height: AppSpacing.md),
+                      realName,
+                    ],
                   );
                 }
                 return Row(
@@ -210,22 +218,23 @@ class _RegisterPageState extends State<RegisterPage> {
               autofillHints: const [AutofillHints.telephoneNumber],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return '请输入手机号';
-                if (!RegExp(r'^1\d{10}$').hasMatch(value.trim())) return '请输入有效手机号';
+                if (!RegExp(r'^1\d{10}$').hasMatch(value.trim()))
+                  return '请输入有效手机号';
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.md),
             DropdownButtonFormField<String>(
-              value: _gaokaoYear,
+              initialValue: _gaokaoYear,
               decoration: const InputDecoration(
                 labelText: '高考年份',
                 prefixIcon: Icon(Icons.calendar_month_outlined),
               ),
               items: ['2025', '2026', '2027', '2028']
-                  .map((year) => DropdownMenuItem(
-                        value: year,
-                        child: Text('$year 年'),
-                      ))
+                  .map(
+                    (year) =>
+                        DropdownMenuItem(value: year, child: Text('$year 年')),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) setState(() => _gaokaoYear = value);
@@ -245,9 +254,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                   ),
-                  onPressed: () => setState(
-                    () => _obscurePassword = !_obscurePassword,
-                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               obscureText: _obscurePassword,
@@ -273,9 +281,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                   ),
-                  onPressed: () => setState(
-                    () => _obscureConfirm = !_obscureConfirm,
-                  ),
+                  onPressed: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
                 ),
               ),
               obscureText: _obscureConfirm,
@@ -299,9 +306,9 @@ class _RegisterPageState extends State<RegisterPage> {
             Text(
               '注册即表示你同意按学校或机构要求使用本学习系统。',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colors.textMuted,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
             ),
           ],
         ),
@@ -311,9 +318,9 @@ class _RegisterPageState extends State<RegisterPage> {
         children: [
           Text(
             '已有账号？',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
           ),
           TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
         ],

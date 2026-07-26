@@ -7,7 +7,11 @@ class HeatmapChart extends StatelessWidget {
   final int rangeDays;
   final List<DailyRecord> records;
 
-  const HeatmapChart({super.key, required this.rangeDays, required this.records});
+  const HeatmapChart({
+    super.key,
+    required this.rangeDays,
+    required this.records,
+  });
 
   int _actualDataDays() {
     if (records.isEmpty) return rangeDays > 0 ? rangeDays : 365;
@@ -31,6 +35,8 @@ class HeatmapChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
     final map = {for (final r in records) r.date: r.level};
     final countMap = {for (final r in records) r.date: r.count};
     final now = DateTime.now();
@@ -40,13 +46,13 @@ class HeatmapChart extends StatelessWidget {
 
     Widget chart;
     if (mode == 'bar') {
-      chart = _buildBar(displayDays, now, map);
+      chart = _buildBar(displayDays, now, map, colors);
     } else if (mode == 'weeks') {
-      chart = _buildWeekCalendar(displayDays, now, map);
+      chart = _buildWeekCalendar(displayDays, now, map, colors);
     } else if (mode == 'weekly') {
-      chart = _buildWeeklyGrid(displayDays, now, map, countMap);
+      chart = _buildWeeklyGrid(displayDays, now, map, countMap, colors);
     } else {
-      chart = _buildMonthlyGrid(displayDays, now, map, countMap);
+      chart = _buildMonthlyGrid(displayDays, now, map, countMap, colors);
     }
 
     return Card(
@@ -57,24 +63,54 @@ class HeatmapChart extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Text('做题热力图', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('做题热力图', style: textTheme.titleMedium),
                 const Spacer(),
-                Text(_rangeHint(), style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                Text(
+                  _rangeHint(),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colors.textMuted,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
-            SizedBox(height: mode == 'bar' ? (displayDays + 1) * 20.0 : 160, child: chart),
+            SizedBox(
+              height: mode == 'bar' ? (displayDays + 1) * 20.0 : 160,
+              child: chart,
+            ),
             const SizedBox(height: 8),
-            Row(children: [
-              ...List.generate(4, (i) => Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Container(width: 12, height: 12, decoration: BoxDecoration(color: _color(i), borderRadius: BorderRadius.circular(2))),
-              )),
-              const SizedBox(width: 4),
-              const Text('少', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-              const Spacer(),
-              const Text('多', style: TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-            ]),
+            Row(
+              children: [
+                ...List.generate(
+                  4,
+                  (i) => Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: _color(i, colors),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '少',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '多',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -82,23 +118,44 @@ class HeatmapChart extends StatelessWidget {
   }
 
   // ── 水平条形图（≤14天） ──
-  Widget _buildBar(int days, DateTime now, Map<String, int> map) {
+  Widget _buildBar(
+    int days,
+    DateTime now,
+    Map<String, int> map,
+    AppSemanticColors colors,
+  ) {
     return SizedBox(
       height: (days + 1) * 20.0,
       child: ListView.builder(
         itemCount: days,
         itemBuilder: (_, i) {
           final d = now.subtract(Duration(days: days - 1 - i));
-          final key = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+          final key =
+              '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
           final lv = map[key] ?? 0;
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 1),
-            child: Row(children: [
-              SizedBox(width: 70, child: Text('${d.month}/${d.day}', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary))),
-              const SizedBox(width: 4),
-              Expanded(child: Container(height: 16, decoration: BoxDecoration(
-                color: _color(lv), borderRadius: BorderRadius.circular(2)))),
-            ]),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 70,
+                  child: Text(
+                    '${d.month}/${d.day}',
+                    style: TextStyle(fontSize: 10, color: colors.textSecondary),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Container(
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: _color(lv, colors),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -106,14 +163,20 @@ class HeatmapChart extends StatelessWidget {
   }
 
   // ── 7行周历（15~90天） ──
-  Widget _buildWeekCalendar(int days, DateTime now, Map<String, int> map) {
+  Widget _buildWeekCalendar(
+    int days,
+    DateTime now,
+    Map<String, int> map,
+    AppSemanticColors colors,
+  ) {
     final start = now.subtract(Duration(days: days - 1));
     final monday = _getMonday(start);
     // Build date map
     final dMap = <String, int>{};
     for (var i = 0; i < days; i++) {
       final d = start.add(Duration(days: i));
-      final key = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+      final key =
+          '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
       dMap[key] = map[key] ?? 0;
     }
 
@@ -136,11 +199,20 @@ class HeatmapChart extends StatelessWidget {
           Column(
             children: [
               const SizedBox(height: 14, width: 22), // 列头占位
-              ...dayLabels.skip(1).map((lbl) => Container(
-                width: 22, height: 14, alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 2),
-                child: Text(lbl, style: const TextStyle(fontSize: 8, color: AppColors.textMuted)),
-              )),
+              ...dayLabels
+                  .skip(1)
+                  .map(
+                    (lbl) => Container(
+                      width: 22,
+                      height: 14,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 2),
+                      child: Text(
+                        lbl,
+                        style: TextStyle(fontSize: 8, color: colors.textMuted),
+                      ),
+                    ),
+                  ),
             ],
           ),
           // 每周列
@@ -152,16 +224,24 @@ class HeatmapChart extends StatelessWidget {
                 children: [
                   SizedBox(
                     height: 14,
-                    child: Text(colHeader, style: const TextStyle(fontSize: 7, color: AppColors.textMuted)),
+                    child: Text(
+                      colHeader,
+                      style: TextStyle(fontSize: 7, color: colors.textMuted),
+                    ),
                   ),
                   ...List.generate(7, (wd) {
                     final d = weekStart.add(Duration(days: wd));
-                    final key = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+                    final key =
+                        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
                     final lv = dMap[key] ?? 0;
                     return Container(
-                      width: 12, height: 12, margin: const EdgeInsets.all(1),
+                      width: 12,
+                      height: 12,
+                      margin: const EdgeInsets.all(1),
                       decoration: BoxDecoration(
-                        color: d.isAfter(now) ? Colors.transparent : _color(lv),
+                        color: d.isAfter(now)
+                            ? Colors.transparent
+                            : _color(lv, colors),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     );
@@ -176,7 +256,13 @@ class HeatmapChart extends StatelessWidget {
   }
 
   // ── 周格（91~730天） ──
-  Widget _buildWeeklyGrid(int days, DateTime now, Map<String, int> map, Map<String, int> countMap) {
+  Widget _buildWeeklyGrid(
+    int days,
+    DateTime now,
+    Map<String, int> map,
+    Map<String, int> countMap,
+    AppSemanticColors colors,
+  ) {
     final start = now.subtract(Duration(days: days - 1));
     // Group by ISO week
     final weekData = <String, int>{};
@@ -190,7 +276,9 @@ class HeatmapChart extends StatelessWidget {
       weekData[key] = (weekData[key] ?? 0) + (countMap[_dateKey(d)] ?? 0);
     }
 
-    final maxVal = weekData.values.isEmpty ? 0 : weekData.values.reduce((a, b) => a > b ? a : b);
+    final maxVal = weekData.values.isEmpty
+        ? 0
+        : weekData.values.reduce((a, b) => a > b ? a : b);
 
     return SingleChildScrollView(
       child: Wrap(
@@ -202,15 +290,29 @@ class HeatmapChart extends StatelessWidget {
             width: 48,
             padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
             decoration: BoxDecoration(
-              color: _color(lv),
+              color: _color(lv, colors),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Column(
               children: [
-                Text('${e.value}', style: TextStyle(fontSize: 11, fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
-                  color: lv >= 2 ? Colors.white : AppColors.textPrimary)),
+                Text(
+                  '${e.value}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
+                    color: lv >= 2 ? colors.textInverse : colors.textPrimary,
+                  ),
+                ),
                 if (weekLabels.containsKey(e.key))
-                  Text(weekLabels[e.key]!, style: TextStyle(fontSize: 8, color: lv >= 2 ? Colors.white70 : AppColors.textMuted)),
+                  Text(
+                    weekLabels[e.key]!,
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: lv >= 2
+                          ? colors.textInverse.withValues(alpha: 0.75)
+                          : colors.textMuted,
+                    ),
+                  ),
               ],
             ),
           );
@@ -220,7 +322,13 @@ class HeatmapChart extends StatelessWidget {
   }
 
   // ── 月格（>730天） ──
-  Widget _buildMonthlyGrid(int days, DateTime now, Map<String, int> map, Map<String, int> countMap) {
+  Widget _buildMonthlyGrid(
+    int days,
+    DateTime now,
+    Map<String, int> map,
+    Map<String, int> countMap,
+    AppSemanticColors colors,
+  ) {
     final start = now.subtract(Duration(days: days - 1));
     // Group by month
     final monthData = <String, int>{};
@@ -232,7 +340,9 @@ class HeatmapChart extends StatelessWidget {
       monthLabels[key] = '${d.month}月';
     }
 
-    final maxVal = monthData.values.isEmpty ? 0 : monthData.values.reduce((a, b) => a > b ? a : b);
+    final maxVal = monthData.values.isEmpty
+        ? 0
+        : monthData.values.reduce((a, b) => a > b ? a : b);
 
     return SingleChildScrollView(
       child: Wrap(
@@ -244,15 +354,29 @@ class HeatmapChart extends StatelessWidget {
             width: 56,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: _color(lv),
+              color: _color(lv, colors),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Column(
               children: [
-                Text('${e.value}', style: TextStyle(fontSize: 13, fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
-                  color: lv >= 2 ? Colors.white : AppColors.textPrimary)),
+                Text(
+                  '${e.value}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
+                    color: lv >= 2 ? colors.textInverse : colors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(monthLabels[e.key] ?? '', style: TextStyle(fontSize: 9, color: lv >= 2 ? Colors.white70 : AppColors.textMuted)),
+                Text(
+                  monthLabels[e.key] ?? '',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: lv >= 2
+                        ? colors.textInverse.withValues(alpha: 0.75)
+                        : colors.textMuted,
+                  ),
+                ),
               ],
             ),
           );
@@ -263,7 +387,8 @@ class HeatmapChart extends StatelessWidget {
 
   // ── 工具方法 ──
 
-  String _dateKey(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  String _dateKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   DateTime _getMonday(DateTime d) {
     final weekday = d.weekday; // 1=Mon, 7=Sun
@@ -288,7 +413,8 @@ class HeatmapChart extends StatelessWidget {
 
   String _rangeHint() {
     final labels = {7: '近7天', 30: '近一月', 90: '近三月', 365: '近一年'};
-    final label = labels[rangeDays] ?? (rangeDays > 0 ? '近$rangeDays天' : '全部时段');
+    final label =
+        labels[rangeDays] ?? (rangeDays > 0 ? '近$rangeDays天' : '全部时段');
     final modeText = switch (_mode(_actualDataDays())) {
       'bar' => '按天',
       'weeks' => '按天',
@@ -298,12 +424,12 @@ class HeatmapChart extends StatelessWidget {
     return '$label · $modeText（${_actualDataDays()}天）';
   }
 
-  Color _color(int level) {
+  Color _color(int level, AppSemanticColors colors) {
     return switch (level) {
-      1 => AppColors.heatmapLevel1,
-      2 => AppColors.heatmapLevel2,
-      3 => AppColors.heatmapLevel3,
-      _ => AppColors.surfaceSubtle,
+      1 => colors.heatmapLevel1,
+      2 => colors.heatmapLevel2,
+      3 => colors.heatmapLevel3,
+      _ => colors.surfaceSubtle,
     };
   }
 }

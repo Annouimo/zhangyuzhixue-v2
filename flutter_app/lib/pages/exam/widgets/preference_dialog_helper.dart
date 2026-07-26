@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared/theme/app_theme.dart';
 import '../../../domain/preference_repository.dart';
 import 'package:shared/widgets/filter_panel.dart';
 
@@ -55,11 +54,17 @@ PreferenceFilter buildPreferenceFilter(FilterPanelState filterState) {
 }
 
 /// 选择已保存的学习偏好弹窗
-Future<int?> showLoadPreferenceDialog(BuildContext context, List<PreferenceSummary> presets) async {
+Future<int?> showLoadPreferenceDialog(
+  BuildContext context,
+  List<PreferenceSummary> presets,
+) async {
   if (presets.isEmpty) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('暂无保存的学习偏好'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('暂无保存的学习偏好'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
     return null;
@@ -68,19 +73,29 @@ Future<int?> showLoadPreferenceDialog(BuildContext context, List<PreferenceSumma
     context: context,
     builder: (ctx) => SimpleDialog(
       title: const Text('选择学习偏好'),
-      children: presets.map((p) => SimpleDialogOption(
-          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (ctx.mounted) Navigator.of(ctx).pop(p.id);
-          }),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-              if (p.summary.isNotEmpty)
-                Text(p.summary, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-            ],
-          ),
-        )).toList(),
+      children: presets
+          .map(
+            (p) => SimpleDialogOption(
+              onPressed: () =>
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (ctx.mounted) Navigator.of(ctx).pop(p.id);
+                  }),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(p.name, style: Theme.of(ctx).textTheme.titleSmall),
+                  if (p.summary.isNotEmpty)
+                    Text(
+                      p.summary,
+                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     ),
   );
   return selected;

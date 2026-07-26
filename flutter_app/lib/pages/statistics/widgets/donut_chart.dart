@@ -9,11 +9,13 @@ class DonutChart extends StatelessWidget {
 
   const DonutChart({super.key, required this.data});
 
-  static const _colors = [AppColors.primary, AppColors.success, AppColors.warning];
   static const _labels = ['选择题', '填空题', '解答题'];
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final chartColors = [colors.primary, colors.success, colors.warning];
+    final textTheme = Theme.of(context).textTheme;
     final counts = [data.choiceCount, data.fillCount, data.solutionCount];
     final pcts = [data.choicePercent, data.fillPercent, data.solutionPercent];
 
@@ -23,20 +25,39 @@ class DonutChart extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('题型分布', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            Text('题型分布', style: textTheme.titleMedium),
             const SizedBox(height: 12),
             if (data.total == 0)
-              SizedBox(height: 120, child: Center(child: Text('暂无数据', style: TextStyle(fontSize: 13, color: AppColors.textSecondary))))
+              SizedBox(
+                height: 120,
+                child: Center(
+                  child: Text(
+                    '暂无数据',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
+                ),
+              )
             else
               Row(
                 children: [
                   SizedBox(
-                    width: 100, height: 100,
+                    width: 100,
+                    height: 100,
                     child: Stack(
                       children: [
-                        CustomPaint(painter: _DonutPainter(pcts, _colors), size: const Size(100, 100)),
+                        CustomPaint(
+                          painter: _DonutPainter(pcts, chartColors),
+                          size: const Size(100, 100),
+                        ),
                         Center(
-                          child: Text('${data.total}题', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                          child: Text(
+                            '${data.total}题',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: colors.primary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -44,17 +65,42 @@ class DonutChart extends StatelessWidget {
                   const SizedBox(width: 24),
                   Expanded(
                     child: Column(
-                      children: List.generate(3, (i) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(children: [
-                          Container(width: 10, height: 10, decoration: BoxDecoration(color: _colors[i], shape: BoxShape.circle)),
-                          const SizedBox(width: 6),
-                          Expanded(child: Text(_labels[i], style: const TextStyle(fontSize: 13))),
-                          Text('${counts[i]} 题', style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-                          const SizedBox(width: 8),
-                          Text('${pcts[i].toStringAsFixed(0)}%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                        ]),
-                      )),
+                      children: List.generate(
+                        3,
+                        (i) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: chartColors[i],
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _labels[i],
+                                  style: textTheme.bodySmall,
+                                ),
+                              ),
+                              Text(
+                                '${counts[i]} 题',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${pcts[i].toStringAsFixed(0)}%',
+                                style: textTheme.labelLarge,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -76,7 +122,9 @@ class _DonutPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = math.min(size.width, size.height) / 2 - 8;
     final rect = Rect.fromCircle(center: center, radius: radius);
-    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = 20;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 20;
     double start = -math.pi / 2;
     for (int i = 0; i < values.length; i++) {
       final sweep = values[i] / 100 * 2 * math.pi;

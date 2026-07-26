@@ -21,7 +21,8 @@ class SyncQueuePage extends StatefulWidget {
   final SyncRepository? syncRepository;
   const SyncQueuePage({super.key, this.syncRepository});
 
-  @override State<SyncQueuePage> createState() => _SyncQueuePageState();
+  @override
+  State<SyncQueuePage> createState() => _SyncQueuePageState();
 }
 
 class _SyncQueuePageState extends State<SyncQueuePage> {
@@ -34,22 +35,34 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.syncRepository ?? SyncRepository(SyncQueueDao(DatabaseProvider()));
+    _repo =
+        widget.syncRepository ??
+        SyncRepository(SyncQueueDao(DatabaseProvider()));
     _load();
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final items = await _repo.getQueue();
       if (!mounted) return;
-      setState(() { _items = items; _loading = false; });
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
       AuditLogger.instance.page('SyncQueuePage', {'pending': _items?.length});
-    } catch (e) { OperationLog.instance.error('sync_queue_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('sync_queue_page_load', e);
       AuditLogger.instance.error('SyncQueuePage._load', e);
       OperationLog.instance.error('SyncQueuePage._load', e);
       if (!mounted) return;
-      setState(() { _error = '加载失败，请稍后重试'; _loading = false; });
+      setState(() {
+        _error = '加载失败，请稍后重试';
+        _loading = false;
+      });
     }
   }
 
@@ -61,7 +74,10 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('已重置失败项，将在下次同步时重试'), behavior: SnackBarBehavior.floating),
+        SnackBar(
+          content: Text('已重置失败项，将在下次同步时重试'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } catch (_) {}
     if (!mounted) return;
@@ -70,11 +86,16 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'pending': return '等待同步';
-      case 'inProgress': return '同步中…';
-      case 'failed': return '同步失败';
-      case 'permanentFailure': return '已放弃';
-      default: return status;
+      case 'pending':
+        return '等待同步';
+      case 'inProgress':
+        return '同步中…';
+      case 'failed':
+        return '同步失败';
+      case 'permanentFailure':
+        return '已放弃';
+      default:
+        return status;
     }
   }
 
@@ -90,8 +111,11 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
 
   @override
   Widget build(BuildContext context) {
-    final retryableCount = _items
-            ?.where((item) => item.status == 'pending' || item.status == 'failed')
+    final retryableCount =
+        _items
+            ?.where(
+              (item) => item.status == 'pending' || item.status == 'failed',
+            )
             .length ??
         0;
     return Scaffold(
@@ -140,6 +164,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
               onPressed: retryableCount == 0 || _retrying ? null : _onRetryAll,
               isLoading: _retrying,
               variant: AppButtonVariant.secondary,
+              expanded: false,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -149,8 +174,8 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
           ),
           const SizedBox(height: AppSpacing.md),
           ...items.map((item) {
-            final failed = item.status == 'failed' ||
-                item.status == 'permanentFailure';
+            final failed =
+                item.status == 'failed' || item.status == 'permanentFailure';
             return AppCard(
               margin: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: Row(
@@ -197,7 +222,8 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
                           item.errorMessage ?? item.timeAgo,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: failed
                                     ? context.colors.error
                                     : context.colors.textSecondary,
