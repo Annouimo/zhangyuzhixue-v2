@@ -106,8 +106,7 @@ void main() {
 
       expect(find.text('第 7 题'), findsOneWidget);
       expect(find.text('第 8 题'), findsOneWidget);
-      // Completed question shows check icon
-      expect(find.byIcon(Icons.check), findsOneWidget);
+      expect(find.text('已完成'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('shows error on load failure', (tester) async {

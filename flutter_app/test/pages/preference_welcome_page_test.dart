@@ -81,15 +81,15 @@ void main() {
     testWidgets('欢迎 Dialog 展示 🎉 + 跳过按钮', (tester) async {
       await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
       await tester.pumpAndSettle();
-      expect(find.text('欢迎加入章鱼智学！'), findsOneWidget);
-      expect(find.textContaining('开始设置学习偏好'), findsOneWidget);
+      expect(find.text('欢迎加入章鱼智学'), findsOneWidget);
+      expect(find.text('开始设置'), findsOneWidget);
       expect(find.text('跳过'), findsOneWidget);
     });
 
     testWidgets('点击开始设置 → 偏好表单', (tester) async {
       await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('开始设置学习偏好'));
+      await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
       expect(find.byType(TextField), findsOneWidget);
       expect(find.textContaining('保存偏好'), findsOneWidget);
@@ -98,7 +98,7 @@ void main() {
     testWidgets('保存后偏好列表应有记录', (tester) async {
       await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('开始设置学习偏好'));
+      await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
       await tester.tap(find.textContaining('保存偏好'));
       await tester.pumpAndSettle();

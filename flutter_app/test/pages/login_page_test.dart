@@ -64,7 +64,7 @@ void main() {
       );
 
       expect(find.text('章鱼智学'), findsOneWidget);
-      expect(find.text('📚 登录'), findsOneWidget);
+      expect(find.text('欢迎回来'), findsOneWidget);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('密码'), findsOneWidget);
       expect(find.text('登录'), findsOneWidget);
@@ -149,7 +149,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp.router(routerConfig: router),
       );
-      expect(find.text('📚 登录'), findsOneWidget);
+      expect(find.text('欢迎回来'), findsOneWidget);
 
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.first, 'testuser');
@@ -163,7 +163,7 @@ void main() {
 
       // 登录成功 → 导航到主页
       expect(find.text('主页'), findsOneWidget);
-      expect(find.text('📚 登录'), findsNothing);
+      expect(find.text('欢迎回来'), findsNothing);
     });
   });
 }

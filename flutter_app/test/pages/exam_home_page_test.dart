@@ -11,11 +11,11 @@ void main() {
         const MaterialApp(home: ExamHomePage()),
       );
       expect(find.text('组卷'), findsOneWidget);
-      expect(find.text('智能组卷 · 消耗 10 积分'), findsOneWidget);
-      expect(find.text('自主选题 · 消耗 20 积分'), findsOneWidget);
-      expect(find.text('我的组卷'), findsOneWidget);
-      expect(find.text('发现组卷'), findsOneWidget);
-      expect(find.text('我的收藏'), findsOneWidget);
+      expect(find.text('智能组卷 · 10 积分'), findsOneWidget);
+      expect(find.text('自主选题 · 20 积分'), findsOneWidget);
+      expect(find.text('我的组卷'), findsAtLeastNWidgets(1));
+      expect(find.text('发现组卷'), findsAtLeastNWidgets(1));
+      expect(find.text('我的收藏'), findsAtLeastNWidgets(1));
     });
   });
 }

@@ -75,9 +75,9 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('代数'), findsOneWidget);
-      expect(find.text('共 5 讲'), findsOneWidget);
+      expect(find.textContaining('共 5 讲'), findsOneWidget);
       expect(find.text('几何'), findsOneWidget);
-      expect(find.text('共 3 讲'), findsOneWidget);
+      expect(find.textContaining('共 3 讲'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no courses', (tester) async {
@@ -93,7 +93,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无讲义内容，后续会上线更多课程 📖'), findsOneWidget);
+      expect(find.text('暂时没有讲义内容，后续会陆续上线'), findsOneWidget);
     });
 
     testWidgets('shows error and retry button on failure', (tester) async {
@@ -151,7 +151,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show the chapters page (which has empty state)
-      expect(find.text('暂无章节内容'), findsOneWidget);
+      expect(find.text('这门课程暂时没有章节内容'), findsOneWidget);
     });
   });
 }

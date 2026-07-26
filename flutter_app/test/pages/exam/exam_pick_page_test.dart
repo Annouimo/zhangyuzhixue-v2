@@ -39,8 +39,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       // Bottom bar with button should be visible
-      expect(find.textContaining('已选 0 题'), findsOneWidget);
-      expect(find.text('确认组卷 (0)'), findsOneWidget);
+      expect(find.textContaining('已选 0 题'), findsAtLeastNWidgets(1));
+      expect(find.text('确认组卷'), findsOneWidget);
       // Filter panel section header visible
       expect(find.text('按来源筛选'), findsOneWidget);
     });

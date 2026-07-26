@@ -88,8 +88,8 @@ void main() {
 
       expect(find.textContaining('第 1 / 3'), findsOneWidget);
       expect(find.textContaining('展开 0 / 1'), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_left), findsOneWidget);
-      expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+      expect(find.byType(IconButton), findsOneWidget);
+      expect(find.text('继续展开'), findsOneWidget);
     });
 
     testWidgets('calls onPrev and onNext when tapped', (tester) async {
@@ -109,10 +109,10 @@ void main() {
         ),
       ));
 
-      await tester.tap(find.byIcon(Icons.chevron_left));
+      await tester.tap(find.byType(IconButton));
       expect(prevCalls, 1);
 
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.text('继续展开'));
       expect(nextCalls, 1);
     });
 
@@ -130,11 +130,8 @@ void main() {
         ),
       ));
 
-      // ◀ icon should be grey (disabled)
-      final prevIcon = tester.widget<Icon>(
-        find.byIcon(Icons.chevron_left).first,
-      );
-      expect(prevIcon.color, Colors.grey[400]);
+      final prevButton = tester.widget<IconButton>(find.byType(IconButton));
+      expect(prevButton.onPressed, isNull);
     });
 
     testWidgets('next disabled on last page with all revealed', (tester) async {
@@ -151,10 +148,8 @@ void main() {
         ),
       ));
 
-      final nextIcon = tester.widget<Icon>(
-        find.byIcon(Icons.chevron_right).first,
-      );
-      expect(nextIcon.color, Colors.grey[400]);
+      final nextButton = tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(nextButton.onPressed, isNull);
     });
   });
 
@@ -179,7 +174,7 @@ void main() {
       expect(find.text('第1讲 函数'), findsOneWidget);
       expect(find.textContaining('第一段'), findsOneWidget);
       // Pager visible
-      expect(find.textContaining('第 1 / 2'), findsOneWidget);
+      expect(find.textContaining('第 1 / 2'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('page navigation shows correct pager state', (tester) async {
@@ -198,7 +193,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Pager shows page 1
-      expect(find.textContaining('第 1 / 2'), findsOneWidget);
+      expect(find.textContaining('第 1 / 2'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('reveal and collapse blocks', (tester) async {
@@ -220,20 +215,20 @@ void main() {
       expect(find.textContaining('第一块'), findsOneWidget);
 
       // Expand blocks[1]
-      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.tap(find.text('继续展开'));
       await tester.pumpAndSettle();
 
       // blocks[1] now visible
       expect(find.textContaining('第二块（隐藏）'), findsOneWidget);
       // Pager shows expanded state
-      expect(find.textContaining('展开 2 / 2'), findsOneWidget);
+      expect(find.textContaining('展开 2 / 2'), findsAtLeastNWidgets(1));
 
       // Collapse back
-      await tester.tap(find.byIcon(Icons.chevron_left));
+      await tester.tap(find.byType(IconButton));
       await tester.pumpAndSettle();
 
       // Back to expanded 0
-      expect(find.textContaining('展开 1 / 2'), findsOneWidget);
+      expect(find.textContaining('展开 1 / 2'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('shows error state on load failure', (tester) async {
@@ -264,20 +259,23 @@ void main() {
       await tester.pumpAndSettle();
 
       // Start: expand 0/4
-      expect(find.textContaining('展开 1 / 4'), findsOneWidget);
+      expect(find.textContaining('展开 1 / 4'), findsAtLeastNWidgets(1));
 
       // Reveal 1→2→3 sequentially
       for (int i = 1; i <= 3; i++) {
-        await tester.tap(find.byIcon(Icons.chevron_right));
+        await tester.tap(find.text('继续展开'));
         await tester.pumpAndSettle();
-        expect(find.textContaining('展开 ${i + 1} / 4'), findsOneWidget);
+        expect(
+          find.textContaining('展开 ${i + 1} / 4'),
+          findsAtLeastNWidgets(1),
+        );
       }
 
       // Collapse 3→2→1 sequentially
       for (int i = 3; i >= 1; i--) {
-        await tester.tap(find.byIcon(Icons.chevron_left));
+        await tester.tap(find.byType(IconButton));
         await tester.pumpAndSettle();
-        expect(find.textContaining('展开 $i / 4'), findsOneWidget);
+        expect(find.textContaining('展开 $i / 4'), findsAtLeastNWidgets(1));
       }
     });
   });

@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: ProfileEditPage(userRepository: _MockRepo())));
     await tester.pumpAndSettle();
     // 头像区域
-    expect(find.text('点击相机图标更换头像（建议 200×200 以内）'), findsOneWidget);
+    expect(find.text('点击选择拍照或相册图片'), findsOneWidget);
     // 基本信息分组标题
     expect(find.text('基本信息'), findsOneWidget);
     // 可编辑字段
@@ -54,8 +54,8 @@ void main() {
     expect(find.text('真实姓名'), findsOneWidget);
     expect(find.text('学号'), findsOneWidget);
     expect(find.text('手机号'), findsOneWidget);
-    // 提示文案
-    expect(find.textContaining('不可修改'), findsNWidgets(2));
+    // 只读字段的统一说明
+    expect(find.textContaining('由管理员维护'), findsOneWidget);
     // 加载的数据 — 出现在昵称TextField + 真实姓名只读区
     expect(find.text('张三'), findsNWidgets(2));
     expect(find.text('2026001'), findsOneWidget);

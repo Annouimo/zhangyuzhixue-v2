@@ -6,7 +6,7 @@ import 'package:shared/widgets/empty_placeholder.dart';
 import '../test_setup.dart';
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   group('LoadingIndicator', () {
     testWidgets('renders loading spinner', (tester) async {
       await tester.pumpWidget(
@@ -50,7 +50,9 @@ void main() {
       expect(find.text('重试'), findsOneWidget);
     });
 
-    testWidgets('does not render retry button when onRetry is null', (tester) async {
+    testWidgets('does not render retry button when onRetry is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(body: ErrorPlaceholder(message: '出错了')),
@@ -64,7 +66,7 @@ void main() {
   group('EmptyPlaceholder', () {
     testWidgets('renders empty message', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(body: EmptyPlaceholder(message: '暂无数据')),
         ),
       );

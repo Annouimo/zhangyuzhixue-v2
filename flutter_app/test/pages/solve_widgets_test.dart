@@ -49,7 +49,7 @@ void main() {
       ));
       key.currentState?.start();
       await tester.pump();
-      expect(find.textContaining('还剩'), findsOneWidget);
+      expect(find.textContaining('还需'), findsOneWidget);
     });
 
     testWidgets('resets correctly', (tester) async {
@@ -75,9 +75,9 @@ void main() {
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(body: FeedbackButtons()),
       ));
-      expect(find.textContaining('全对'), findsOneWidget);
-      expect(find.textContaining('部分对'), findsOneWidget);
-      expect(find.textContaining('不对'), findsOneWidget);
+      expect(find.text('完全掌握'), findsOneWidget);
+      expect(find.text('部分掌握'), findsOneWidget);
+      expect(find.text('还没掌握'), findsOneWidget);
     });
 
     testWidgets('highlights selected option', (tester) async {
@@ -85,7 +85,7 @@ void main() {
         home: Scaffold(body: FeedbackButtons(selected: FeedbackType.fullCorrect)),
       ));
       // 全对被选中
-      expect(find.textContaining('全对'), findsOneWidget);
+      expect(find.text('完全掌握'), findsOneWidget);
     });
 
     testWidgets('calls onChanged when tapped', (tester) async {
@@ -95,10 +95,10 @@ void main() {
           onChanged: (t) => result = t,
         )),
       ));
-      await tester.tap(find.textContaining('全对'));
+      await tester.tap(find.text('完全掌握'));
       expect(result, FeedbackType.fullCorrect);
 
-      await tester.tap(find.textContaining('不对'));
+      await tester.tap(find.text('还没掌握'));
       expect(result, FeedbackType.wrong);
     });
   });
@@ -187,7 +187,7 @@ void main() {
         )),
       ));
       // 初始状态：显示"下一步"按钮（不是最后一步）
-      expect(find.text('下一步'), findsOneWidget);
+      expect(find.text('查看本步解析'), findsOneWidget);
       // 知识标签显示
       expect(find.text('列方程'), findsOneWidget);
     });
@@ -201,13 +201,13 @@ void main() {
           isRevisit: true,
         )),
       ));
-      await tester.tap(find.text('下一步'));
+      await tester.tap(find.text('查看本步解析'));
       await tester.pump();
 
       // 解析内容出现（MdLatexBody 渲染），确认反馈按钮可见
-      expect(find.textContaining('全对'), findsOneWidget);
-      expect(find.textContaining('部分对'), findsOneWidget);
-      expect(find.textContaining('不对'), findsOneWidget);
+      expect(find.text('完全掌握'), findsOneWidget);
+      expect(find.text('部分掌握'), findsOneWidget);
+      expect(find.text('还没掌握'), findsOneWidget);
     });
 
     testWidgets('feedback buttons appear after expand', (tester) async {
@@ -219,13 +219,13 @@ void main() {
           isRevisit: true,
         )),
       ));
-      await tester.tap(find.text('下一步'));
+      await tester.tap(find.text('查看本步解析'));
       await tester.pump();
 
       // 三种反馈按钮可见
-      expect(find.textContaining('全对'), findsOneWidget);
-      expect(find.textContaining('部分对'), findsOneWidget);
-      expect(find.textContaining('不对'), findsOneWidget);
+      expect(find.text('完全掌握'), findsOneWidget);
+      expect(find.text('部分掌握'), findsOneWidget);
+      expect(find.text('还没掌握'), findsOneWidget);
     });
 
     testWidgets('last step shows done banner after feedback', (tester) async {
@@ -238,13 +238,13 @@ void main() {
         )),
       ));
       // 最后一步按钮文字为"查看解析"
-      expect(find.text('查看解析'), findsOneWidget);
-      await tester.tap(find.text('查看解析'));
+      expect(find.text('查看本步解析'), findsOneWidget);
+      await tester.tap(find.text('查看本步解析'));
       await tester.pump();
-      await tester.tap(find.textContaining('全对'));
+      await tester.tap(find.text('完全掌握'));
       await tester.pump();
       // 完成提示出现
-      expect(find.text('该题全部步骤已完成'), findsOneWidget);
+      expect(find.text('全部步骤已完成'), findsOneWidget);
     });
   });
 }

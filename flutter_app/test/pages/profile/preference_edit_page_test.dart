@@ -40,7 +40,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('新建偏好'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.text('保存'), findsOneWidget);
+      await tester.drag(find.byType(ListView), const Offset(0, -1200));
+      await tester.pumpAndSettle();
+      expect(find.text('创建偏好'), findsOneWidget);
     });
 
     testWidgets('shows no loading indicator in create mode', (tester) async {

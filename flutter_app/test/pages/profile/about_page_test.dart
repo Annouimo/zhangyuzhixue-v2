@@ -6,14 +6,14 @@ import 'package:flutter_app/data/prefs/app_prefs.dart';
 import '../../test_setup.dart';
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   testWidgets('AboutPage renders version and links', (tester) async {
     SharedPreferences.setMockInitialValues({});
     await AppPrefs().init();
-    await tester.pumpWidget(MaterialApp(home: const AboutPage()));
+    await tester.pumpWidget(MaterialApp(home: AboutPage()));
     await tester.pump();
     expect(find.text('关于'), findsOneWidget);
-    expect(find.text('版本 1.0.0-alpha.2+1'), findsOneWidget);
+    expect(find.text('版本 1.0.0'), findsOneWidget);
     expect(find.text('用户协议'), findsOneWidget);
     expect(find.text('隐私政策'), findsOneWidget);
   });

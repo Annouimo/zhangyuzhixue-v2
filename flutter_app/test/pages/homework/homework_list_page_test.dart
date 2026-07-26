@@ -79,7 +79,7 @@ void main() {
 
       expect(find.text('第一次函数作业'), findsOneWidget);
       expect(find.text('代数'), findsOneWidget);
-      expect(find.text('2/10'), findsOneWidget);
+      expect(find.text('2 / 10'), findsOneWidget);
     });
 
     testWidgets('shows empty state', (tester) async {
@@ -95,7 +95,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无待办作业 🤔 可以先刷刷题或看看讲义'), findsOneWidget);
+      expect(find.text('当前没有待办作业，可以先练题或阅读讲义'), findsOneWidget);
     });
 
     testWidgets('shows error and retry', (tester) async {
@@ -147,8 +147,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap the assignment card via its card widget
-      await tester.tap(find.byType(InkWell).first);
+      await tester.tap(find.text('作业'));
       await tester.pumpAndSettle();
 
       expect(find.text('DetailPage'), findsOneWidget);

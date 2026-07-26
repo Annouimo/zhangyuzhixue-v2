@@ -39,7 +39,7 @@ Future<void> _fillAllFields(
 
 /// Helper: 点击注册按钮（先确保可见）
 Future<void> _tapRegister(WidgetTester tester) async {
-  final btn = find.widgetWithText(ElevatedButton, '注册');
+  final btn = find.text('完成注册');
   await tester.ensureVisible(btn);
   await tester.pumpAndSettle();
   await tester.tap(btn);
@@ -54,7 +54,7 @@ void main() {
         const MaterialApp(home: RegisterPage()),
       );
 
-      expect(find.text('使用邀请码注册'), findsOneWidget);
+      expect(find.text('创建学生账号'), findsOneWidget);
       expect(find.text('邀请码'), findsOneWidget);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('姓名'), findsOneWidget);
@@ -62,7 +62,7 @@ void main() {
       expect(find.text('高考年份'), findsOneWidget);
       expect(find.text('密码'), findsOneWidget);
       expect(find.text('确认密码'), findsOneWidget);
-      expect(find.text('注册'), findsAtLeast(1));
+      expect(find.text('完成注册'), findsOneWidget);
       expect(find.text('返回登录'), findsOneWidget);
     });
 
@@ -94,7 +94,7 @@ void main() {
       await _fillAllFields(tester, phone: '12345');
       await _tapRegister(tester);
 
-      expect(find.text('请输入正确的手机号'), findsOneWidget);
+      expect(find.text('请输入有效手机号'), findsOneWidget);
     });
 
     testWidgets('validates password confirmation match', (tester) async {
@@ -151,7 +151,7 @@ void main() {
       // 先进注册页
       await tester.tap(find.text('去注册'));
       await tester.pumpAndSettle();
-      expect(find.text('使用邀请码注册'), findsOneWidget);
+      expect(find.text('创建学生账号'), findsOneWidget);
 
       await _fillAllFields(tester);
       await _tapRegister(tester);

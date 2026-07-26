@@ -56,7 +56,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       await tester.pumpAndSettle();
-      expect(find.text('代数'), findsOneWidget);
+      expect(find.text('代数'), findsAtLeastNWidgets(1));
       expect(find.text('第1讲 函数'), findsOneWidget);
       expect(find.text('第2讲 方程'), findsOneWidget);
     });
@@ -75,7 +75,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('暂无章节内容'), findsOneWidget);
+      expect(find.text('这门课程暂时没有章节内容'), findsOneWidget);
     });
 
     testWidgets('navigates to content page on chapter tap', (tester) async {

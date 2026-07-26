@@ -9,7 +9,7 @@ import 'package:flutter_app/data/database/database_provider.dart';
 import '../test_setup.dart';
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   late db.AppDatabase database;
   late SyncQueueDao dao;
   late SyncRepository repo;
@@ -29,13 +29,23 @@ void main() {
     });
 
     test('hasFailed true after markFailed', () async {
-      final id = await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      final id = await dao.enqueue(
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
       await dao.markFailed(id);
       expect(await dao.hasFailed(), true);
     });
 
     test('resetFailed restores pending', () async {
-      final id = await dao.enqueue(entityType: 'submission', operationType: 'upsert', entityId: 1, payload: '{}');
+      final id = await dao.enqueue(
+        entityType: 'submission',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
       await dao.markFailed(id);
       // 验证有失败
       expect(await dao.hasFailed(), true);
@@ -57,11 +67,16 @@ void main() {
         MaterialApp(home: SyncQueuePage(syncRepository: repo)),
       );
       await tester.pumpAndSettle();
-      expect(find.text('全部已同步'), findsOneWidget);
+      expect(find.text('你的学习记录、答题进度和个人设置已经安全保存。'), findsOneWidget);
     });
 
     testWidgets('shows pending items', (tester) async {
-      await dao.enqueue(entityType: 'question_rating', operationType: 'upsert', entityId: 1, payload: '{}');
+      await dao.enqueue(
+        entityType: 'question_rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
       await tester.pumpWidget(
         MaterialApp(home: SyncQueuePage(syncRepository: repo)),
       );
@@ -71,7 +86,12 @@ void main() {
     });
 
     testWidgets('shows failed items with retry count', (tester) async {
-      final id = await dao.enqueue(entityType: 'submission', operationType: 'upsert', entityId: 1, payload: '{}');
+      final id = await dao.enqueue(
+        entityType: 'submission',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
       await dao.markFailed(id);
       await tester.pumpWidget(
         MaterialApp(home: SyncQueuePage(syncRepository: repo)),

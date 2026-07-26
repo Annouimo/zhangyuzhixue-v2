@@ -18,9 +18,9 @@ void main() {
         home: SolveRatePage(questionId: 1, ratingRepository: _MockRatingRepo()),
       ));
       await tester.pumpAndSettle();
-      expect(find.text('难度'), findsOneWidget);
+      expect(find.text('理解难度'), findsOneWidget);
       expect(find.text('计算量'), findsOneWidget);
-      expect(find.text('优雅度'), findsOneWidget);
+      expect(find.text('解法优雅度'), findsOneWidget);
     });
     testWidgets('can submit rating', (tester) async {
       await tester.pumpWidget(MaterialApp(
@@ -31,7 +31,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.textContaining('提交评分'));
       await tester.pump();
-      expect(find.text('已评分'), findsOneWidget);
+      expect(find.text('评分已提交'), findsOneWidget);
       expect(find.text('修改评分'), findsOneWidget);
     });
   });

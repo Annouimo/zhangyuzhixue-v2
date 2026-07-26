@@ -46,7 +46,7 @@ void main() {
     testWidgets('shows empty state', (tester) async {
       await tester.pumpWidget(MaterialApp(home: AnswerSheetPage(examId: 1, examRepository: _MockAnswerRepo())));
       await tester.pumpAndSettle();
-      expect(find.text('暂无答案'), findsOneWidget);
+      expect(find.text('这份试卷暂时没有可展示的答案'), findsOneWidget);
     });
   });
 }

@@ -25,24 +25,18 @@ void main() {
 
   group('SolveMapPage', () {
     testWidgets('renders loading state initially', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('AppBar title shows 解题地图', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+    testWidgets('AppBar title shows 解题步骤', (tester) async {
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
-      expect(find.text('解题地图'), findsOneWidget);
+      expect(find.text('解题步骤'), findsOneWidget);
     });
 
     testWidgets('shows fresh welcome view when no attempts', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
 
       // Empty DB = no sub-questions = no step data
@@ -50,9 +44,7 @@ void main() {
     });
 
     testWidgets('renders back and rate buttons', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
 
       // Back and rate buttons in map footer (fresh view has no map, but buttons not shown)
@@ -62,20 +54,20 @@ void main() {
       expect(find.text('评分'), findsNothing);
     });
 
-    testWidgets('shows step indicator in fresh view description', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+    testWidgets('shows step indicator in fresh view description', (
+      tester,
+    ) async {
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
 
       // Empty DB = no sub-questions = no step data
       expect(find.text('暂无步骤数据'), findsOneWidget);
     });
 
-    testWidgets('attempt selector renders single badge when no attempts', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+    testWidgets('attempt selector renders single badge when no attempts', (
+      tester,
+    ) async {
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
 
       // Empty DB = no sub-questions = no step data
@@ -83,9 +75,7 @@ void main() {
     });
 
     testWidgets('fresh view start button has play icon', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1)),
-      );
+      await tester.pumpWidget(MaterialApp(home: SolveMapPage(questionId: 1)));
       await tester.pumpAndSettle();
 
       // Empty DB = no sub-questions = no step data, no start button
@@ -94,7 +84,7 @@ void main() {
 
     testWidgets('mode param determines review mode', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: SolveMapPage(questionId: 1, mode: 'review')),
+        MaterialApp(home: SolveMapPage(questionId: 1, mode: 'review')),
       );
       await tester.pumpAndSettle();
 

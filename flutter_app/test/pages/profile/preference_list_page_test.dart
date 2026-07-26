@@ -8,7 +8,7 @@ class _MockPreferenceRepository implements PreferenceRepository {
   final List<PreferenceSummary> _results;
 
   _MockPreferenceRepository({List<PreferenceSummary>? results})
-      : _results = results ?? [];
+    : _results = results ?? [];
 
   @override
   Future<List<PreferenceSummary>> getList() async => _results;
@@ -20,8 +20,10 @@ class _MockPreferenceRepository implements PreferenceRepository {
   Future<int> getCount() async => _results.length;
 
   @override
-  Future<PreferenceEditData> getEdit(int id) async =>
-      const PreferenceEditData(name: '', filter: PreferenceFilter(years: [], regions: [], conceptTags: []));
+  Future<PreferenceEditData> getEdit(int id) async => const PreferenceEditData(
+    name: '',
+    filter: PreferenceFilter(years: [], regions: [], conceptTags: []),
+  );
 
   @override
   Future<int> save({
@@ -32,14 +34,12 @@ class _MockPreferenceRepository implements PreferenceRepository {
 }
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   group('PreferenceListPage', () {
     testWidgets('renders loading state initially', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -47,19 +47,15 @@ void main() {
     testWidgets('renders app bar with correct title', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
-      expect(find.text('学习偏好管理'), findsOneWidget);
+      expect(find.text('学习偏好'), findsOneWidget);
     });
 
     testWidgets('renders FAB with correct label', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       expect(find.text('新建偏好'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsOneWidget);
@@ -68,22 +64,24 @@ void main() {
     testWidgets('shows empty placeholder when no preferences', (tester) async {
       final repo = _MockPreferenceRepository(results: []);
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       await tester.pumpAndSettle();
-      expect(find.text('还没有设置学习偏好，点击右上角 + 新建'), findsOneWidget);
+      expect(find.text('还没有学习偏好。创建一组筛选条件后，推荐页会更了解你想练习的内容。'), findsOneWidget);
     });
 
     testWidgets('renders preference list after loading', (tester) async {
-      final repo = _MockPreferenceRepository(results: [
-        const PreferenceSummary(id: 1, name: '测试偏好', summary: '2025 · 导数 · 难度 2-8'),
-      ]);
+      final repo = _MockPreferenceRepository(
+        results: [
+          const PreferenceSummary(
+            id: 1,
+            name: '测试偏好',
+            summary: '2025 · 导数 · 难度 2-8',
+          ),
+        ],
+      );
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       await tester.pumpAndSettle();
       expect(find.text('测试偏好'), findsOneWidget);
