@@ -39,7 +39,8 @@ import '../domain/question_repository.dart';
 /// 首页（匹配 HTML 原型 index.html — 看板式布局）
 class IndexPage extends StatefulWidget {
   final UserRepository? userRepository;
-  const IndexPage({super.key, this.userRepository});
+  final Future<int> Function()? streakLoader;
+  const IndexPage({super.key, this.userRepository, this.streakLoader});
 
   @override
   State<IndexPage> createState() => IndexPageState();
@@ -62,16 +63,12 @@ class IndexPageState extends State<IndexPage> {
   bool _showWelcomeHint = false;
 
   static const List<String> _welcomeMessages = [
-    '每一次练习，都在为高考蓄力 💪',
-    '一天一道好题，高考水到渠成 📚',
-    '数学没有捷径，但每一步都算数 ✨',
-    '欢迎回来，继续你的数学之旅 🌟',
-    '又见面啦，今天状态怎么样？🤔',
-    '今天的目标：搞懂一个薄弱知识点 🎯',
-    '坐下来，打开一道题，就是最好的开始 ✏️',
-    '别想太多，先做一道看看 👀',
-    '解出一道难题的快感，试过就知道 😎',
-    '数学是思维的体操，一起动起来吧 🏃',
+    '每一次练习，都在为高考积累确定性',
+    '一天一道好题，把进步落到今天',
+    '数学没有捷径，但每一步都算数',
+    '欢迎回来，继续今天的数学学习',
+    '先完成一小步，再进入更好的状态',
+    '今天，弄懂一个薄弱知识点',
   ];
 
   late final String _welcomeText;
@@ -119,8 +116,8 @@ class IndexPageState extends State<IndexPage> {
       }
 
       // 通过 AchievementDao 从登录日志推算连续签到天数
-      final dao = AchievementDao(DatabaseProvider());
-      final streak = await dao.getLoginStreak();
+      final streak = await (widget.streakLoader?.call() ??
+          AchievementDao(DatabaseProvider()).getLoginStreak());
 
       // 并行加载 4 项独立数据（Future.wait 替代串行 await）
       final results = await Future.wait([
@@ -408,24 +405,29 @@ class IndexPageState extends State<IndexPage> {
           _buildWelcomeHint(),
         ],
         const SizedBox(height: AppSpacing.lg),
-        const AppSectionHeader(title: '今日概览', subtitle: '用几个关键数字快速了解当前学习状态'),
-        const SizedBox(height: AppSpacing.sm),
-        _buildOverviewGrid(width),
-        const SizedBox(height: AppSpacing.lg),
         if (useTwoColumns)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 5, child: _buildLearningResources()),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(flex: 6, child: _buildCheckinCard()),
-            ],
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(flex: 5, child: _buildLearningResources()),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(flex: 6, child: _buildCheckinCard()),
+              ],
+            ),
           )
         else ...[
           _buildLearningResources(),
           const SizedBox(height: AppSpacing.md),
           _buildCheckinCard(),
         ],
+        const SizedBox(height: AppSpacing.lg),
+        const AppSectionHeader(
+          title: '今日进度',
+          subtitle: '回顾练习、正确率与学习积分',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _buildOverviewGrid(width),
         const SizedBox(height: AppSpacing.md),
         _buildSyncStatus(),
       ],
@@ -539,26 +541,28 @@ class IndexPageState extends State<IndexPage> {
         label: '今日练习',
         value: '$_todayTotal',
         caption: '题已作答',
-        foreground: colors.primary,
-        background: colors.primaryContainer,
+        foreground: colors.textSecondary,
+        background: colors.surfaceSubtle,
       ),
       _DashboardMetric(
         icon: Icons.track_changes_rounded,
         label: '今日正确率',
         value: '$accuracy%',
         caption: _todayTotal == 0 ? '完成练习后生成' : '$_todayCorrect 题正确',
-        foreground: accuracy >= 80 ? colors.success : colors.recommendation,
+        foreground: accuracy >= 80 && _todayTotal > 0
+            ? colors.success
+            : colors.textSecondary,
         background: accuracy >= 80
             ? colors.successContainer
-            : colors.recommendationContainer,
+            : colors.surfaceSubtle,
       ),
       _DashboardMetric(
         icon: Icons.workspace_premium_outlined,
         label: '当前等级',
         value: 'Lv.$_currentLevel',
         caption: '今日 +${formatAmount(_todayEarned)} 学习积分',
-        foreground: colors.recommendation,
-        background: colors.recommendationContainer,
+        foreground: colors.textSecondary,
+        background: colors.surfaceSubtle,
       ),
     ];
 
@@ -573,6 +577,7 @@ class IndexPageState extends State<IndexPage> {
 
   Widget _buildLearningResources() {
     return AppCard(
+      key: const Key('home-learning-resources'),
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -619,6 +624,7 @@ class IndexPageState extends State<IndexPage> {
     final tasks = UserRepository.computeTodayTasks(_todayTotal, _todayCorrect);
 
     return AppCard(
+      key: const Key('home-learning-streak'),
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -636,7 +642,7 @@ class IndexPageState extends State<IndexPage> {
               fullWidth: false,
               variant: _checkedIn
                   ? AppButtonVariant.secondary
-                  : AppButtonVariant.primary,
+                  : AppButtonVariant.outlined,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -906,31 +912,11 @@ class IndexPageState extends State<IndexPage> {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          const Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              AppStatusBadge(
-                label: '快速练习',
-                tone: AppStatusTone.primary,
-                compact: true,
-              ),
-              AppStatusBadge(
-                label: '课程讲义',
-                tone: AppStatusTone.info,
-                compact: true,
-              ),
-              AppStatusBadge(
-                label: '智能推荐',
-                tone: AppStatusTone.recommendation,
-                compact: true,
-              ),
-              AppStatusBadge(
-                label: '自主组卷',
-                tone: AppStatusTone.neutral,
-                compact: true,
-              ),
-            ],
+          Text(
+            '建议先完成一道快速练习；有明确任务时，从待办作业继续。',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.textSecondary,
+                ),
           ),
         ],
       ),

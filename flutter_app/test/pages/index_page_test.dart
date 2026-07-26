@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_app/domain/user_repository.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/pages/index_page.dart';
+import 'package:shared/shared.dart';
+import '../support/ui_test_harness.dart';
 import '../test_setup.dart';
 
 class _MockUserRepo implements UserRepository {
@@ -67,5 +70,48 @@ void main() {
 
       expect(find.text('加载失败'), findsOneWidget);
     });
+
+    for (final viewport in [UiTestViewport.mobile, UiTestViewport.desktop]) {
+      testWidgets('${viewport.name} keeps actions ahead of progress data', (
+        tester,
+      ) async {
+        SharedPreferences.setMockInitialValues({});
+        await AppPrefs().init();
+        await pumpUiScenario(
+          tester,
+          IndexPage(
+            userRepository: _MockUserRepo(),
+            streakLoader: () async => 0,
+          ),
+          viewport: viewport,
+          theme: viewport == UiTestViewport.mobile
+              ? UiTestTheme.light
+              : UiTestTheme.dark,
+        );
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(find.text('开始快速练习'), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.text('学习入口')).dy,
+          lessThan(tester.getTopLeft(find.text('今日进度')).dy),
+        );
+
+        final checkinButton = tester.widget<AppButton>(
+          find.widgetWithText(AppButton, '签到'),
+        );
+        expect(checkinButton.variant, AppButtonVariant.outlined);
+
+        final learningCard = find.byKey(
+          const Key('home-learning-resources'),
+        );
+        final streakCard = find.byKey(const Key('home-learning-streak'));
+        if (viewport == UiTestViewport.desktop) {
+          expect(
+            tester.getSize(learningCard).height,
+            tester.getSize(streakCard).height,
+          );
+        }
+      });
+    }
   });
 }
