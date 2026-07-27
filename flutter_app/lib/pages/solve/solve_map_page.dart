@@ -179,11 +179,12 @@ class _SolveMapPageState extends State<SolveMapPage> {
       OperationLog.instance.action('solve_map_page_load', 'T8 catch: $e');
       OperationLog.instance.error('solve_map_page_load', e);
       AuditLogger.instance.error('SolveMapPage._load', e);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _error = e.toString();
         });
+      }
     }
   }
 

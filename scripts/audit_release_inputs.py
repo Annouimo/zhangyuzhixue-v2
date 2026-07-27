@@ -127,6 +127,19 @@ def main() -> int:
         if student_version != teacher_version:
             errors.append(f"client versions differ: student={student_version}, teacher={teacher_version}")
 
+        version_name, build_number = student_version.split("+", 1)
+        major, minor, _patch = version_name.split(".")
+        expected_msix_version = f"{major}.{minor}.{build_number}.0"
+        msix_version = field(
+            student_pubspec,
+            r"^\s*msix_version:\s*(\S+)",
+            "student MSIX version",
+        )
+        if msix_version != expected_msix_version:
+            errors.append(
+                f"student MSIX version mismatch: expected={expected_msix_version}, actual={msix_version}"
+            )
+
         installer_values: dict[str, tuple[str, str, str]] = {}
         for name in ("student", "teacher"):
             text = (root / f"docs/07-工作流/build_script_{name}.iss").read_text(encoding="utf-8")

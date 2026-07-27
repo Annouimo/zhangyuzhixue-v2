@@ -136,11 +136,13 @@ $studentDir = Join-Path $repoRoot 'flutter_app'
 $teacherDir = Join-Path $repoRoot 'teacher_app'
 $serverDir = Join-Path $repoRoot 'server'
 $pytestCacheDir = Join-Path $repoRoot '.hermes\tmp\pytest-cache'
+$pytestBaseTemp = Join-Path $repoRoot '.hermes\tmp\pytest-temp'
 $results = [ordered]@{}
 
 function Invoke-ServerSuite {
     New-Item -ItemType Directory -Force -Path (Join-Path $serverDir 'staticfiles') | Out-Null
     New-Item -ItemType Directory -Force -Path $pytestCacheDir | Out-Null
+    New-Item -ItemType Directory -Force -Path $pytestBaseTemp | Out-Null
 
     $options = @{
         Name = 'server-flake8'
@@ -165,7 +167,11 @@ function Invoke-ServerSuite {
     $options = @{
         Name = 'server-pytest'
         FilePath = $PythonPath
-        Arguments = @('-m', 'pytest', '-v', '--tb=short', '-o', "cache_dir=$pytestCacheDir")
+        Arguments = @(
+            '-m', 'pytest', '-v', '--tb=short',
+            '-o', "cache_dir=$pytestCacheDir",
+            '--basetemp', $pytestBaseTemp
+        )
         WorkingDirectory = $serverDir
         TimeoutMinutes = 10
     }

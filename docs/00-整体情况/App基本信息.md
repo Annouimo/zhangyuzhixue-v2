@@ -23,6 +23,7 @@
 | **Windows - 窗口标题** | `章鱼智学` | `windows/runner/main.cpp` 中 `window.Create()` 的参数。任务栏和窗口标题栏显示的名称 |
 | **Windows - 安装包名** | `章鱼智学-1.1.0-beta.3-windows.exe` | 发布物文件名 |
 | **Windows - MSIX 标识** | `Annouimo.526026C9DD952` | 微软商店安装标识 |
+| **Windows - MSIX 包版本** | `1.1.3.0` | 对应 `1.1.0+3`；第四段为商店保留值 `0` |
 | **Windows - 显示名称** | `章鱼智学` | MSIX 开始菜单/任务栏显示 |
 
 ### 版本号详解

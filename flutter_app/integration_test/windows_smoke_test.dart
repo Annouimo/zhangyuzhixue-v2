@@ -33,7 +33,7 @@ void main() {
     expect(find.text('请输入用户名'), findsOneWidget);
     expect(find.text('请输入密码'), findsOneWidget);
 
-    final registerLink = find.text('使用邀请码注册');
+    final registerLink = find.text('注册账号');
     await tester.ensureVisible(registerLink);
     await tester.tap(registerLink);
     await tester.pumpAndSettle();
