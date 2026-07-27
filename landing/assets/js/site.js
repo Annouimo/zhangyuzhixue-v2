@@ -84,6 +84,15 @@
             </div>
           </div>
           <div>
+            <h4>关注圆明智学</h4>
+            <div class="footer-links">
+              <a href="${config.media?.bilibili || "https://b23.tv/64D6X7S"}" target="_blank" rel="noopener noreferrer">哔哩哔哩</a>
+              <a href="${config.media?.xiaohongshu || "https://xhslink.cn/m/7yhO5z9sbjR"}" target="_blank" rel="noopener noreferrer">小红书</a>
+              <a href="${config.media?.douyin || "https://v.douyin.com/BZl4YGhfE0E/"}" target="_blank" rel="noopener noreferrer">抖音</a>
+              <button class="text-link" type="button" data-open-channels>微信视频号</button>
+            </div>
+          </div>
+          <div>
             <h4>联系方式</h4>
             <div class="footer-links">
               <a href="${config.phoneHref || "tel:18500794866"}">电话：${config.phoneDisplay || "18500794866"}</a>

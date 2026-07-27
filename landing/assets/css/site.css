@@ -1187,7 +1187,7 @@ h4 {
   display: grid;
   padding: 58px 0 38px;
   gap: 40px;
-  grid-template-columns: 1.25fr repeat(3, minmax(130px, .55fr));
+  grid-template-columns: 1.35fr repeat(4, minmax(110px, .5fr));
 }
 
 .site-footer h3,
