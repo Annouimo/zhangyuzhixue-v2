@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:shared/domain/models.dart';
 import 'package:shared/theme/app_theme.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
@@ -20,7 +19,7 @@ import 'preview_page.dart';
 /// 题库浏览选题页
 class QuestionBankPage extends StatefulWidget {
   final QuestionRepository? questionRepository;
-  QuestionBankPage({super.key, this.questionRepository});
+  const QuestionBankPage({super.key, this.questionRepository});
 
   @override
   State<QuestionBankPage> createState() => _QuestionBankPageState();

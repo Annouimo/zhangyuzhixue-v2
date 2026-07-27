@@ -27,7 +27,12 @@ class ExamAutoPage extends StatefulWidget {
   final ExamRepository? examRepository;
   final PreferenceRepository? preferenceRepository;
   final UserRepository? userRepository;
-  const ExamAutoPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
+  const ExamAutoPage({
+    super.key,
+    this.examRepository,
+    this.preferenceRepository,
+    this.userRepository,
+  });
 
   @override
   State<ExamAutoPage> createState() => _ExamAutoPageState();
@@ -36,7 +41,8 @@ class ExamAutoPage extends StatefulWidget {
 class _ExamAutoPageState extends State<ExamAutoPage> {
   late final ExamRepository _repo;
   final _filterKey = GlobalKey<FilterPanelState>();
-  late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
+  late final PreferenceRepository _prefRepo =
+      widget.preferenceRepository ??
       PreferenceRepository(PreferenceDao(DatabaseProvider()));
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
@@ -45,19 +51,29 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   double _targetDifficulty = 5;
   bool _generating = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
-  Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
+  Set<String> _selectedTypes = {},
+      _selectedExamTypes = {},
+      _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   PoolStats? _poolStats;
 
-  late final UserRepository _userRepo = widget.userRepository ??
-      UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()));
+  late final UserRepository _userRepo =
+      widget.userRepository ??
+      UserRepository(
+        UserDao(DatabaseProvider()),
+        UserApi(ApiClient()),
+        QuestionDao(DatabaseProvider()),
+      );
 
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ?? ExamRepository(
-      QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.examRepository ??
+        ExamRepository(
+          QuestionDao(DatabaseProvider()),
+          ExamDao(DatabaseProvider()),
+        );
     _loadFilterOptions();
   }
 
@@ -71,23 +87,43 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     try {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
-      setState(() { _filterOpts = opts; _loadingOpts = false; });
-      AuditLogger.instance.page('ExamAutoPage', {'count': _choiceCount, 'difficulty': _targetDifficulty});
+      setState(() {
+        _filterOpts = opts;
+        _loadingOpts = false;
+      });
+      AuditLogger.instance.page('ExamAutoPage', {
+        'count': _choiceCount,
+        'difficulty': _targetDifficulty,
+      });
       _updatePoolStats();
-    } catch (e) { AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e); OperationLog.instance.error('ExamAutoPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+    } catch (e) {
+      AuditLogger.instance.error('ExamAutoPage._loadFilterOptions', e);
+      OperationLog.instance.error('ExamAutoPage._loadFilterOptions', e);
+      if (mounted) {
+        setState(() {
+          _loadingOpts = false;
+        });
+      }
+    }
   }
 
   /// 保存当前筛选条件为学习偏好
   Future<void> _savePreference() async {
     final state = _filterKey.currentState;
     if (state == null) return;
-    if (!context.mounted) return;
+    if (!mounted) return;
     final name = await showSavePreferenceDialog(context);
     if (name == null || name.trim().isEmpty) return;
-    await _prefRepo.save(name: name.trim(), filter: buildPreferenceFilter(state));
-    if (context.mounted) {
+    await _prefRepo.save(
+      name: name.trim(),
+      filter: buildPreferenceFilter(state),
+    );
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('偏好已保存'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -97,7 +133,7 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     final state = _filterKey.currentState;
     if (state == null) return;
     final presets = await _prefRepo.getList();
-    if (!context.mounted) return;
+    if (!mounted) return;
     final selected = await showLoadPreferenceDialog(context, presets);
     if (selected == null) return;
     final editData = await _prefRepo.getEdit(selected);
@@ -120,12 +156,25 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
+        name: _nameController.text,
+        choiceCount: 0,
+        fillCount: 0,
+        solutionCount: 0,
+        targetDifficulty: 0,
+        years: _years.toList(),
+        regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(),
         knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty
+            ? _selectedExamTypes.toList()
+            : null,
+        questionTypes: _selectedTypes.isNotEmpty
+            ? _selectedTypes.toList()
+            : null,
       );
       final stats = await _repo.getPoolStats(filters);
       if (mounted) setState(() => _poolStats = stats);
@@ -151,27 +200,41 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
     setState(() => _generating = true);
     try {
       final filters = SearchFilters(
-        name: _nameController.text, choiceCount: _choiceCount, fillCount: _fillCount,
-        solutionCount: _solutionCount, targetDifficulty: _targetDifficulty,
-        years: _years.toList(), regions: _regions.toList(),
-        conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+        name: _nameController.text,
+        choiceCount: _choiceCount,
+        fillCount: _fillCount,
+        solutionCount: _solutionCount,
+        targetDifficulty: _targetDifficulty,
+        years: _years.toList(),
+        regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(),
+        knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty
+            ? _selectedExamTypes.toList()
+            : null,
+        questionTypes: _selectedTypes.isNotEmpty
+            ? _selectedTypes.toList()
+            : null,
       );
       final paperId = await _repo.confirm(filters);
       // 扣分
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();
-      final pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
-        app_db.PointsTransactionsCompanion(
-          amount: const Value(-_kAutoPaperCost * 1.0),
-          source: const Value('PAPER_PURCHASE'),
-          transactionType: const Value('SPEND'),
-          createdAt: Value(now),
-          description: const Value('智能组卷'),
-        ),
-      );
+      final pointId = await db.appDb
+          .into(db.appDb.pointsTransactions)
+          .insert(
+            app_db.PointsTransactionsCompanion(
+              amount: const Value(-_kAutoPaperCost * 1.0),
+              source: const Value('PAPER_PURCHASE'),
+              transactionType: const Value('SPEND'),
+              createdAt: Value(now),
+              description: const Value('智能组卷'),
+            ),
+          );
       // 入同步队列
       try {
         await SyncManager().enqueue(
@@ -191,8 +254,16 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       OperationLog.instance.action('exam_auto', 'created paperId=$paperId');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: const Text('组卷成功！'), behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(label: '查看', onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=$paperId')),
+          SnackBar(
+            content: const Text('组卷成功！'),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: '查看',
+              onPressed: () => RouterUtils.push(
+                context,
+                '${AppRoutes.examQuicklook}?id=$paperId',
+              ),
+            ),
           ),
         );
       }
@@ -201,14 +272,21 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
       OperationLog.instance.error('ExamAutoPage._confirm', e);
       if (mounted && context.mounted) {
         if (e is InsufficientPoolException) {
-          await showShortfallDialog(context, type: e.type, needed: e.needed, available: e.available);
+          await showShortfallDialog(
+            context,
+            type: e.type,
+            needed: e.needed,
+            available: e.available,
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
           );
         }
       }
-    } finally { if (mounted) setState(() => _generating = false); }
+    } finally {
+      if (mounted) setState(() => _generating = false);
+    }
   }
 
   @override
@@ -225,7 +303,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                   child: AppContentContainer(
                     maxWidth: AppContentWidth.standard,
                     child: ListView(
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                      ),
                       children: [
                         AppFeatureBanner(
                           eyebrow: '智能配题',
@@ -277,7 +357,8 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                             conceptTagTree: _filterOpts!.conceptTagTree,
                             examTypeOptions: _filterOpts!.examTypes,
                             knowledgeCardOptions: _filterOpts!.knowledgeCards,
-                            knowledgeCardGroups: _filterOpts!.knowledgeCardGroups,
+                            knowledgeCardGroups:
+                                _filterOpts!.knowledgeCardGroups,
                             onSavePreference: _savePreference,
                             onLoadPreference: _loadPreference,
                             onChanged: (state) async {
@@ -312,9 +393,15 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                                   spacing: AppSpacing.xs,
                                   runSpacing: AppSpacing.xs,
                                   children: [
-                                    _statChip('选择题', _poolStats!.availableChoice),
+                                    _statChip(
+                                      '选择题',
+                                      _poolStats!.availableChoice,
+                                    ),
                                     _statChip('填空题', _poolStats!.availableFill),
-                                    _statChip('解答题', _poolStats!.availableSolution),
+                                    _statChip(
+                                      '解答题',
+                                      _poolStats!.availableSolution,
+                                    ),
                                   ],
                                 ),
                               ],
@@ -336,7 +423,8 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                                 '选择题',
                                 _choiceCount,
                                 (value) => _choiceCount = value,
-                                availableCount: _poolStats?.availableChoice ?? 0,
+                                availableCount:
+                                    _poolStats?.availableChoice ?? 0,
                               ),
                               _countStepper(
                                 '填空题',
@@ -348,7 +436,8 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                                 '解答题',
                                 _solutionCount,
                                 (value) => _solutionCount = value,
-                                availableCount: _poolStats?.availableSolution ?? 0,
+                                availableCount:
+                                    _poolStats?.availableSolution ?? 0,
                               ),
                               const Divider(height: AppSpacing.xl),
                               Text(
@@ -448,11 +537,11 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
   }
 
   Widget _statChip(String label, int count) => AppStatusBadge(
-        label: '$label $count',
-        tone: count > 0 ? AppStatusTone.info : AppStatusTone.neutral,
-        icon: Icons.inventory_2_outlined,
-        compact: true,
-      );
+    label: '$label $count',
+    tone: count > 0 ? AppStatusTone.info : AppStatusTone.neutral,
+    icon: Icons.inventory_2_outlined,
+    compact: true,
+  );
 
   Widget _countStepper(
     String label,
@@ -490,9 +579,9 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
             child: Text(
               '$count',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colors.primary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: colors.primary),
             ),
           ),
           IconButton.filledTonal(

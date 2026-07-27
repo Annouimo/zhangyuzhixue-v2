@@ -13,7 +13,7 @@ import 'widgets/paper_card.dart';
 
 /// 我的组卷列表。
 class ExamHistoryPage extends StatefulWidget {
-  ExamHistoryPage({super.key, this.examRepository});
+  const ExamHistoryPage({super.key, this.examRepository});
 
   final ExamRepository? examRepository;
 

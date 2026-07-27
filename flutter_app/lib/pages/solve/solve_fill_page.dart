@@ -62,10 +62,12 @@ class _SolveFillPageState extends State<SolveFillPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.questionRepository ?? QuestionRepository(
-      QuestionDao(DatabaseProvider()),
-      ProgressDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.questionRepository ??
+        QuestionRepository(
+          QuestionDao(DatabaseProvider()),
+          ProgressDao(DatabaseProvider()),
+        );
     _load();
     _loadCooldown();
   }
@@ -76,7 +78,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
       final sec = await dao.getInt('solve_cooldown_fill', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_fill_page_load', e);
       AuditLogger.instance.error('SolveFillPage._loadCooldown', e);
     }
   }
@@ -85,14 +88,23 @@ class _SolveFillPageState extends State<SolveFillPage> {
     try {
       OperationLog.instance.action('solve_fill_page_load', 'T1 start');
       final detail = await _repo.getDetail(widget.questionId);
-      OperationLog.instance.action('solve_fill_page_load', 'T2 after getDetail');
+      OperationLog.instance.action(
+        'solve_fill_page_load',
+        'T2 after getDetail',
+      );
       var attempts = await _repo.getAttempts(widget.questionId);
-      OperationLog.instance.action('solve_fill_page_load', 'T3 after getAttempts (${attempts.length})');
+      OperationLog.instance.action(
+        'solve_fill_page_load',
+        'T3 after getAttempts (${attempts.length})',
+      );
 
       // 首次访问且未指定存档时，自动创建
       if (attempts.isEmpty && widget.mode != 'review') {
         await _repo.startSolve(widget.questionId);
-        OperationLog.instance.action('solve_fill_page_load', 'T4 after startSolve');
+        OperationLog.instance.action(
+          'solve_fill_page_load',
+          'T4 after startSolve',
+        );
         attempts = await _repo.getAttempts(widget.questionId);
       }
 
@@ -117,22 +129,31 @@ class _SolveFillPageState extends State<SolveFillPage> {
       OperationLog.instance.action('solve_fill_page_load', 'T6 catch: $e');
       OperationLog.instance.error('solve_fill_page_load', e);
       AuditLogger.instance.error('SolveFillPage._load', e);
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 
   String _typeLabel(String type) {
     switch (type) {
-      case 'choice': return '选择';
-      case 'fill': return '填空';
-      case 'solution': return '解答';
-      default: return type;
+      case 'choice':
+        return '选择';
+      case 'fill':
+        return '填空';
+      case 'solution':
+        return '解答';
+      default:
+        return type;
     }
   }
 
   /// 存档选择器
   Widget _buildAttemptSelector() {
-      final colors = context.colors;
+    final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
@@ -146,7 +167,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(label,
+        child: Text(
+          label,
           style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
@@ -161,26 +183,33 @@ class _SolveFillPageState extends State<SolveFillPage> {
       offset: const Offset(0, 28),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       itemBuilder: (context) => [
-        ..._attempts.map((a) => PopupMenuItem<Object>(
-          value: a,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('第 ${a.attemptNumber} 次作答',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
-                  color: a.id == _currentAttempt?.id ? colors.primary : colors.textPrimary,
+        ..._attempts.map(
+          (a) => PopupMenuItem<Object>(
+            value: a,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '第 ${a.attemptNumber} 次作答',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: a.id == _currentAttempt?.id
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    color: a.id == _currentAttempt?.id
+                        ? colors.primary
+                        : colors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
-                style: TextStyle(fontSize: 11, color: colors.textSecondary),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
+                  style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -191,9 +220,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-              style: TextStyle(fontSize: 11, color: colors.primary),
-            ),
+            Text(label, style: TextStyle(fontSize: 11, color: colors.primary)),
             Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
@@ -222,7 +249,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _feedbackGiven = false;
         _feedbackCorrect = false;
       });
-    } catch (e) { OperationLog.instance.error('solve_fill_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_fill_page_load', e);
       AuditLogger.instance.error('SolveFillPage._createNewAttempt', e);
     }
   }
@@ -239,7 +267,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
         _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
       });
     }
-    OperationLog.instance.action('solve_fill', 'revealed qid=${widget.questionId}');
+    OperationLog.instance.action(
+      'solve_fill',
+      'revealed qid=${widget.questionId}',
+    );
   }
 
   /// 用户自评后保存记录
@@ -277,9 +308,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '请根据完整推导过程自评，而不只是最终结果。',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -356,7 +387,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (await _popGuard.consume(context, 'solve_fill')) context.pop();
+        final shouldPop = await _popGuard.consume(context, 'solve_fill');
+        if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('填空题')),
@@ -378,8 +410,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
                   feedbackWidget: !_feedbackGiven && !_isReviewMode
                       ? _buildFeedbackButtons()
                       : null,
-                  feedbackResult:
-                      _feedbackGiven ? _buildFeedbackResult() : null,
+                  feedbackResult: _feedbackGiven
+                      ? _buildFeedbackResult()
+                      : null,
                   onNext: widget.nextQuestionId != null
                       ? () {
                           SolveRouteHelper.navigateTo(
@@ -435,9 +468,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
           Expanded(
             child: Text(
               _feedbackCorrect ? '这道题已经掌握，可以继续下一题。' : '建议结合解析再梳理一遍关键步骤。',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
             ),
           ),
         ],
@@ -448,10 +481,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   Widget _buildContent() {
     final detail = _detail;
     if (detail == null) {
-      return ErrorPlaceholder(
-        message: '题目数据不存在',
-        onRetry: _load,
-      );
+      return ErrorPlaceholder(message: '题目数据不存在', onRetry: _load);
     }
 
     return SolveQuestionSurface(
@@ -483,8 +513,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
               child: Text(
                 '请先独立完成推导或计算。阅读时间结束后，再查看标准答案并进行自评。',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.colors.textSecondary,
-                    ),
+                  color: context.colors.textSecondary,
+                ),
               ),
             ),
           ],
@@ -492,5 +522,4 @@ class _SolveFillPageState extends State<SolveFillPage> {
       ),
     );
   }
-
 }

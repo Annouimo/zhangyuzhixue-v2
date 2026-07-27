@@ -8,7 +8,7 @@ import '../router.dart';
 
 /// 讲义章节目录。
 class LectureChaptersPage extends StatefulWidget {
-  LectureChaptersPage({
+  const LectureChaptersPage({
     super.key,
     required this.courseId,
     this.lectureRepository,

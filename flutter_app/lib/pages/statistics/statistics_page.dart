@@ -13,7 +13,7 @@ import 'widgets/trend_chart.dart';
 
 /// 学习统计页。
 class StatisticsPage extends StatefulWidget {
-  StatisticsPage({super.key, this.statisticsRepository});
+  const StatisticsPage({super.key, this.statisticsRepository});
 
   final StatisticsRepository? statisticsRepository;
 

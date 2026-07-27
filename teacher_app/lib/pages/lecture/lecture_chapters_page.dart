@@ -15,7 +15,7 @@ class LectureChaptersPage extends StatefulWidget {
   final int courseId;
   final LectureRepository? lectureRepository;
 
-  LectureChaptersPage({
+  const LectureChaptersPage({
     super.key,
     required this.courseId,
     this.lectureRepository,
@@ -113,7 +113,7 @@ class _ChapterCard extends StatelessWidget {
   final int index;
   final VoidCallback onTap;
 
-  _ChapterCard({
+  const _ChapterCard({
     required this.title,
     required this.index,
     required this.onTap,

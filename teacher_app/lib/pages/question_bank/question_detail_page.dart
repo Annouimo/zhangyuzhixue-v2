@@ -19,7 +19,7 @@ class QuestionDetailPage extends StatefulWidget {
   final QuestionRepository repo;
   final bool initiallySelected;
 
-  QuestionDetailPage({
+  const QuestionDetailPage({
     super.key,
     required this.questionId,
     required this.repo,

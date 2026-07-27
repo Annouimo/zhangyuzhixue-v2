@@ -13,7 +13,7 @@ import 'widgets/paper_card.dart';
 
 /// 我的收藏。
 class ExamFavoritesPage extends StatefulWidget {
-  ExamFavoritesPage({super.key, this.examRepository});
+  const ExamFavoritesPage({super.key, this.examRepository});
 
   final ExamRepository? examRepository;
 

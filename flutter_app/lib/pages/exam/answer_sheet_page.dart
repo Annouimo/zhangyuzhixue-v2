@@ -9,7 +9,7 @@ import '../router.dart';
 
 /// 快速答案表。
 class AnswerSheetPage extends StatefulWidget {
-  AnswerSheetPage({super.key, required this.examId, this.examRepository});
+  const AnswerSheetPage({super.key, required this.examId, this.examRepository});
 
   final int examId;
   final ExamRepository? examRepository;

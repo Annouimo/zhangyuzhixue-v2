@@ -28,7 +28,12 @@ class ExamPickPage extends StatefulWidget {
   final ExamRepository? examRepository;
   final PreferenceRepository? preferenceRepository;
   final UserRepository? userRepository;
-  ExamPickPage({super.key, this.examRepository, this.preferenceRepository, this.userRepository});
+  const ExamPickPage({
+    super.key,
+    this.examRepository,
+    this.preferenceRepository,
+    this.userRepository,
+  });
 
   @override
   State<ExamPickPage> createState() => _ExamPickPageState();
@@ -37,10 +42,16 @@ class ExamPickPage extends StatefulWidget {
 class _ExamPickPageState extends State<ExamPickPage> {
   late final ExamRepository _repo;
   final _filterKey = GlobalKey<FilterPanelState>();
-  late final PreferenceRepository _prefRepo = widget.preferenceRepository ??
+  late final PreferenceRepository _prefRepo =
+      widget.preferenceRepository ??
       PreferenceRepository(PreferenceDao(DatabaseProvider()));
-  late final UserRepository _userRepo = widget.userRepository ??
-      UserRepository(UserDao(DatabaseProvider()), UserApi(ApiClient()), QuestionDao(DatabaseProvider()));
+  late final UserRepository _userRepo =
+      widget.userRepository ??
+      UserRepository(
+        UserDao(DatabaseProvider()),
+        UserApi(ApiClient()),
+        QuestionDao(DatabaseProvider()),
+      );
   FilterOptions? _filterOpts;
   bool _loadingOpts = true;
   List<SearchQuestion>? _questions;
@@ -49,7 +60,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
   final _nameController = TextEditingController(text: '自主选题卷');
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
-  Set<String> _selectedTypes = {}, _selectedExamTypes = {}, _selectedKnowledgeCards = {};
+  Set<String> _selectedTypes = {},
+      _selectedExamTypes = {},
+      _selectedKnowledgeCards = {};
   double _diffMin = 0, _diffMax = 10, _calcMin = 0, _calcMax = 10;
   Timer? _debouncedSearch;
   PoolStats? _poolStats;
@@ -57,7 +70,12 @@ class _ExamPickPageState extends State<ExamPickPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ?? ExamRepository(QuestionDao(DatabaseProvider()), ExamDao(DatabaseProvider()));
+    _repo =
+        widget.examRepository ??
+        ExamRepository(
+          QuestionDao(DatabaseProvider()),
+          ExamDao(DatabaseProvider()),
+        );
     _loadFilterOptions();
   }
 
@@ -72,35 +90,66 @@ class _ExamPickPageState extends State<ExamPickPage> {
     try {
       final opts = await _repo.getFilterOptions();
       if (!mounted) return;
-      setState(() { _filterOpts = opts; _loadingOpts = false; });
-      AuditLogger.instance.page('ExamPickPage', {'totalCount': _questions?.length});
-    } catch (e) { AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e); OperationLog.instance.error('ExamPickPage._loadFilterOptions', e); if (mounted) setState(() { _loadingOpts = false; }); }
+      setState(() {
+        _filterOpts = opts;
+        _loadingOpts = false;
+      });
+      AuditLogger.instance.page('ExamPickPage', {
+        'totalCount': _questions?.length,
+      });
+    } catch (e) {
+      AuditLogger.instance.error('ExamPickPage._loadFilterOptions', e);
+      OperationLog.instance.error('ExamPickPage._loadFilterOptions', e);
+      if (mounted) {
+        setState(() {
+          _loadingOpts = false;
+        });
+      }
+    }
   }
 
   Future<void> _updatePoolStats() async {
     try {
       final filters = SearchFilters(
-        name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(),
+        name: _nameController.text,
+        choiceCount: 0,
+        fillCount: 0,
+        solutionCount: 0,
+        targetDifficulty: 0,
+        years: _years.toList(),
+        regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(),
         knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty
+            ? _selectedExamTypes.toList()
+            : null,
+        questionTypes: _selectedTypes.isNotEmpty
+            ? _selectedTypes.toList()
+            : null,
       );
       final stats = await _repo.getPoolStats(filters);
       if (mounted) setState(() => _poolStats = stats);
-    } catch (e) { AuditLogger.instance.error('ExamPickPage._updatePoolStats', e); }
+    } catch (e) {
+      AuditLogger.instance.error('ExamPickPage._updatePoolStats', e);
+    }
   }
 
   /// 保存当前筛选条件为学习偏好
   Future<void> _savePreference() async {
     final state = _filterKey.currentState;
     if (state == null) return;
-    if (!context.mounted) return;
+    if (!mounted) return;
     final name = await showSavePreferenceDialog(context);
     if (name == null || name.trim().isEmpty) return;
-    await _prefRepo.save(name: name.trim(), filter: buildPreferenceFilter(state));
-    if (context.mounted) {
+    await _prefRepo.save(
+      name: name.trim(),
+      filter: buildPreferenceFilter(state),
+    );
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('偏好已保存'), behavior: SnackBarBehavior.floating),
       );
@@ -112,7 +161,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     final state = _filterKey.currentState;
     if (state == null) return;
     final presets = await _prefRepo.getList();
-    if (!context.mounted) return;
+    if (!mounted) return;
     final selected = await showLoadPreferenceDialog(context, presets);
     if (selected == null) return;
     final editData = await _prefRepo.getEdit(selected);
@@ -135,18 +184,40 @@ class _ExamPickPageState extends State<ExamPickPage> {
   Future<void> _search() async {
     setState(() => _loadingQ = true);
     try {
-      final filters = SearchFilters(name: _nameController.text, choiceCount: 0, fillCount: 0, solutionCount: 0, targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(), conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+      final filters = SearchFilters(
+        name: _nameController.text,
+        choiceCount: 0,
+        fillCount: 0,
+        solutionCount: 0,
+        targetDifficulty: 0,
+        years: _years.toList(),
+        regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(),
+        knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty
+            ? _selectedExamTypes.toList()
+            : null,
+        questionTypes: _selectedTypes.isNotEmpty
+            ? _selectedTypes.toList()
+            : null,
       );
       final qs = await _repo.getFilteredQuestions(filters);
       if (!mounted) return;
-      setState(() { _questions = qs; _loadingQ = false; });
+      setState(() {
+        _questions = qs;
+        _loadingQ = false;
+      });
       _selectedIds.retainAll(qs.map((q) => q.id).toList());
       _updatePoolStats();
-    } catch (e) { AuditLogger.instance.error('ExamPickPage._search', e); OperationLog.instance.error('ExamPickPage._search', e); if (mounted) setState(() => _loadingQ = false); }
+    } catch (e) {
+      AuditLogger.instance.error('ExamPickPage._search', e);
+      OperationLog.instance.error('ExamPickPage._search', e);
+      if (mounted) setState(() => _loadingQ = false);
+    }
   }
 
   Future<void> _save() async {
@@ -173,25 +244,38 @@ class _ExamPickPageState extends State<ExamPickPage> {
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();
       // 1. 扣分
-      pointId = await db.appDb.into(db.appDb.pointsTransactions).insert(
-        app_db.PointsTransactionsCompanion(
-          amount: Value(-_kPickPaperCost * 1.0),
-          source: Value('PAPER_PURCHASE'),
-          transactionType: Value('SPEND'),
-          createdAt: Value(now),
-          description: Value('自主选题'),
-        ),
-      );
+      pointId = await db.appDb
+          .into(db.appDb.pointsTransactions)
+          .insert(
+            app_db.PointsTransactionsCompanion(
+              amount: Value(-_kPickPaperCost * 1.0),
+              source: Value('PAPER_PURCHASE'),
+              transactionType: Value('SPEND'),
+              createdAt: Value(now),
+              description: Value('自主选题'),
+            ),
+          );
       // 2. 组卷
       final filters = SearchFilters(
         name: _nameController.text,
-        choiceCount: 0, fillCount: 0, solutionCount: 0,
+        choiceCount: 0,
+        fillCount: 0,
+        solutionCount: 0,
         targetDifficulty: 0,
-        years: _years.toList(), regions: _regions.toList(),
-        conceptTags: _conceptTags.toList(), knowledgeCards: _selectedKnowledgeCards.toList(),
-        diffMin: _diffMin, diffMax: _diffMax, calcMin: _calcMin, calcMax: _calcMax,
-        examTypes: _selectedExamTypes.isNotEmpty ? _selectedExamTypes.toList() : null,
-        questionTypes: _selectedTypes.isNotEmpty ? _selectedTypes.toList() : null,
+        years: _years.toList(),
+        regions: _regions.toList(),
+        conceptTags: _conceptTags.toList(),
+        knowledgeCards: _selectedKnowledgeCards.toList(),
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        examTypes: _selectedExamTypes.isNotEmpty
+            ? _selectedExamTypes.toList()
+            : null,
+        questionTypes: _selectedTypes.isNotEmpty
+            ? _selectedTypes.toList()
+            : null,
         selectedIds: _selectedIds.toList(),
       );
       final paperId = await _repo.confirm(filters);
@@ -222,7 +306,10 @@ class _ExamPickPageState extends State<ExamPickPage> {
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: '查看',
-              onPressed: () => RouterUtils.push(context,'${AppRoutes.examQuicklook}?id=$paperId'),
+              onPressed: () => RouterUtils.push(
+                context,
+                '${AppRoutes.examQuicklook}?id=$paperId',
+              ),
             ),
           ),
         );
@@ -233,18 +320,25 @@ class _ExamPickPageState extends State<ExamPickPage> {
       if (pointId != null) {
         try {
           final pid = pointId;
-          await (DatabaseProvider().appDb.delete(DatabaseProvider().appDb.pointsTransactions)
-            ..where((t) => t.id.equals(pid))).go();
+          await (DatabaseProvider().appDb.delete(
+            DatabaseProvider().appDb.pointsTransactions,
+          )..where((t) => t.id.equals(pid))).go();
         } catch (_) {}
       }
       AuditLogger.instance.error('ExamPickPage._save', e);
       OperationLog.instance.error('ExamPickPage._save', e);
       if (mounted && context.mounted) {
         if (e is InsufficientPoolException) {
-          await showShortfallDialog(context, type: e.type, needed: e.needed, available: e.available);
+          await showShortfallDialog(
+            context,
+            type: e.type,
+            needed: e.needed,
+            available: e.available,
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating));
+            SnackBar(content: Text('$e'), behavior: SnackBarBehavior.floating),
+          );
         }
       }
       setState(() => _saving = false);
@@ -253,22 +347,22 @@ class _ExamPickPageState extends State<ExamPickPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('自主选题')),
-        body: _loadingOpts
-            ? const LoadingIndicator(message: '加载题库条件…')
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: AppContentContainer(
-                      maxWidth: AppContentWidth.standard,
-                      child: _buildScrollContent(),
-                    ),
-                  ),
-                  _buildBottomAction(),
-                ],
+    appBar: AppBar(title: const Text('自主选题')),
+    body: _loadingOpts
+        ? const LoadingIndicator(message: '加载题库条件…')
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: AppContentContainer(
+                  maxWidth: AppContentWidth.standard,
+                  child: _buildScrollContent(),
+                ),
               ),
-      );
+              _buildBottomAction(),
+            ],
+          ),
+  );
 
   Widget _buildBottomAction() {
     final colors = context.colors;
@@ -398,10 +492,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
         ),
       ),
       const SizedBox(height: AppSpacing.lg),
-      const AppSectionHeader(
-        title: '试卷信息与筛选',
-        subtitle: '修改条件后会自动重新搜索。',
-      ),
+      const AppSectionHeader(title: '试卷信息与筛选', subtitle: '修改条件后会自动重新搜索。'),
       const SizedBox(height: AppSpacing.sm),
       nameField,
       if (filterPanel != null) ...[
@@ -498,9 +589,9 @@ class _ExamPickPageState extends State<ExamPickPage> {
   }
 
   Widget _statChip(String label, int count) => AppStatusBadge(
-        label: '$label $count',
-        tone: count > 0 ? AppStatusTone.info : AppStatusTone.neutral,
-        icon: Icons.inventory_2_outlined,
-        compact: true,
-      );
+    label: '$label $count',
+    tone: count > 0 ? AppStatusTone.info : AppStatusTone.neutral,
+    icon: Icons.inventory_2_outlined,
+    compact: true,
+  );
 }

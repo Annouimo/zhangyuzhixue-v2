@@ -14,7 +14,7 @@ class LectureContentPage extends StatefulWidget {
   final String chapterTitle;
   final LectureRepository repo;
 
-  LectureContentPage({
+  const LectureContentPage({
     super.key,
     required this.chapterId,
     required this.chapterTitle,

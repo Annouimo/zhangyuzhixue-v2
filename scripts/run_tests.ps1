@@ -111,6 +111,27 @@ function Invoke-FlutterSuite {
     return Invoke-TestProcess @processOptions
 }
 
+function Invoke-FlutterAnalyze {
+    param(
+        [string]$Name,
+        [string]$WorkingDirectory
+    )
+
+    if (-not $FlutterPath -or -not (Test-Path $FlutterPath)) {
+        throw 'Flutter was not found. Pass -FlutterPath or add Flutter to PATH.'
+    }
+
+    $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
+    $processOptions = @{
+        Name = $Name
+        FilePath = $FlutterPath
+        Arguments = @('--no-version-check', 'analyze')
+        WorkingDirectory = $WorkingDirectory
+        TimeoutMinutes = 10
+    }
+    return Invoke-TestProcess @processOptions
+}
+
 $studentDir = Join-Path $repoRoot 'flutter_app'
 $teacherDir = Join-Path $repoRoot 'teacher_app'
 $serverDir = Join-Path $repoRoot 'server'
@@ -221,22 +242,28 @@ try {
             $results.StudentGolden = Invoke-FlutterSuite @options
         }
         'Student' {
-            $options = @{
-                Name = 'student'
-                WorkingDirectory = $studentDir
-                TestArguments = @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
-                TimeoutMinutes = 25
+            $results.StudentAnalyze = Invoke-FlutterAnalyze -Name 'student-analyze' -WorkingDirectory $studentDir
+            if ($results.StudentAnalyze -eq 0) {
+                $options = @{
+                    Name = 'student'
+                    WorkingDirectory = $studentDir
+                    TestArguments = @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
+                    TimeoutMinutes = 25
+                }
+                $results.Student = Invoke-FlutterSuite @options
             }
-            $results.Student = Invoke-FlutterSuite @options
         }
         'Teacher' {
-            $options = @{
-                Name = 'teacher'
-                WorkingDirectory = $teacherDir
-                TestArguments = @('--reporter', 'expanded', '--timeout', '2m')
-                TimeoutMinutes = 10
+            $results.TeacherAnalyze = Invoke-FlutterAnalyze -Name 'teacher-analyze' -WorkingDirectory $teacherDir
+            if ($results.TeacherAnalyze -eq 0) {
+                $options = @{
+                    Name = 'teacher'
+                    WorkingDirectory = $teacherDir
+                    TestArguments = @('--reporter', 'expanded', '--timeout', '2m')
+                    TimeoutMinutes = 10
+                }
+                $results.Teacher = Invoke-FlutterSuite @options
             }
-            $results.Teacher = Invoke-FlutterSuite @options
         }
         'Server' {
             $results.Server = Invoke-ServerSuite
@@ -251,8 +278,14 @@ try {
             $results.E2E = Invoke-FlutterSuite @options
         }
         'All' {
-            $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
-            $results.Teacher = Invoke-FlutterSuite -Name 'teacher' -WorkingDirectory $teacherDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 10
+            $results.StudentAnalyze = Invoke-FlutterAnalyze -Name 'student-analyze' -WorkingDirectory $studentDir
+            if ($results.StudentAnalyze -eq 0) {
+                $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
+            }
+            $results.TeacherAnalyze = Invoke-FlutterAnalyze -Name 'teacher-analyze' -WorkingDirectory $teacherDir
+            if ($results.TeacherAnalyze -eq 0) {
+                $results.Teacher = Invoke-FlutterSuite -Name 'teacher' -WorkingDirectory $teacherDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 10
+            }
             $results.Server = Invoke-ServerSuite
         }
     }

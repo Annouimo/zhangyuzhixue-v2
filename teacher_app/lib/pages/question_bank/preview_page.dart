@@ -16,7 +16,7 @@ class QuestionPreviewPage extends StatefulWidget {
   final QuestionRepository repo;
   final ValueChanged<int> onRemove;
 
-  QuestionPreviewPage({
+  const QuestionPreviewPage({
     super.key,
     required this.questionIds,
     required this.repo,

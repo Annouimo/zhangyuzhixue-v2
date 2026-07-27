@@ -223,6 +223,30 @@ class _LoginPageState extends State<LoginPage> {
     return AppAuthLayout(
       title: '欢迎回来',
       subtitle: '登录后继续你的个性化数学学习计划。',
+      footer: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '还没有账号？',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              TextButton(
+                onPressed: () => RouterUtils.push(context, AppRoutes.register),
+                child: const Text('使用邀请码注册'),
+              ),
+            ],
+          ),
+          TextButton.icon(
+            onPressed: _exportLog,
+            icon: const Icon(Icons.description_outlined, size: 18),
+            label: const Text('导出运行日志'),
+          ),
+        ],
+      ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -309,30 +333,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
-      ),
-      footer: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '还没有账号？',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-              TextButton(
-                onPressed: () => RouterUtils.push(context, AppRoutes.register),
-                child: const Text('使用邀请码注册'),
-              ),
-            ],
-          ),
-          TextButton.icon(
-            onPressed: _exportLog,
-            icon: const Icon(Icons.description_outlined, size: 18),
-            label: const Text('导出运行日志'),
-          ),
-        ],
       ),
     );
   }

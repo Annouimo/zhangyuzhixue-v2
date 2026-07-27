@@ -162,7 +162,7 @@ class _MainShellState extends State<MainShell> {
       width: 38,
       height: 38,
       filterQuality: FilterQuality.high,
-      errorBuilder: (_, __, ___) => const SizedBox(
+      errorBuilder: (_, _, _) => const SizedBox(
         width: 38,
         height: 38,
         child: Icon(Icons.auto_awesome, size: 28),

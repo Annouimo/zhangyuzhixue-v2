@@ -14,7 +14,7 @@ import 'package:shared/debug/operation_log.dart';
 class LectureCoursesPage extends StatefulWidget {
   final LectureRepository? lectureRepository;
 
-  LectureCoursesPage({super.key, this.lectureRepository});
+  const LectureCoursesPage({super.key, this.lectureRepository});
 
   @override
   State<LectureCoursesPage> createState() => _LectureCoursesPageState();
@@ -104,7 +104,7 @@ class _CourseCard extends StatelessWidget {
   final int chapterCount;
   final VoidCallback onTap;
 
-  _CourseCard({
+  const _CourseCard({
     required this.name,
     required this.chapterCount,
     required this.onTap,

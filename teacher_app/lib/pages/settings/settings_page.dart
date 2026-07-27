@@ -37,7 +37,8 @@ class SettingsPageState extends State<SettingsPage> {
     _localQbank = prefs.getInt('qbank_version') ?? 0;
     _localCourses = prefs.getInt('courses_version') ?? 0;
     setState(() {
-      _serverUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
+      _serverUrl =
+          prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
     });
 
     // 后台检查服务器版本
@@ -63,7 +64,9 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<void> _onUpdate(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    final baseUrl = prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
+    if (!mounted) return;
+    final baseUrl =
+        prefs.getString('server_url') ?? 'https://zhangyuzhixue.zhtec123.com';
     final label = type == 'qbank' ? '题库' : '课程';
     if (type == 'qbank') setState(() => _updatingQbank = true);
     if (type == 'courses') setState(() => _updatingCourses = true);
@@ -75,8 +78,10 @@ class SettingsPageState extends State<SettingsPage> {
         final results = await manager.checkAll();
         final info = results.firstWhere((r) => r.type == type);
         await manager.downloadAndReplace(
-          type: type, url: info.downloadUrl ?? '',
-          expectedChecksum: info.checksum ?? '', newVersion: info.serverVersion,
+          type: type,
+          url: info.downloadUrl ?? '',
+          expectedChecksum: info.checksum ?? '',
+          newVersion: info.serverVersion,
           onProgress: onProgress,
         );
       },
@@ -86,6 +91,7 @@ class SettingsPageState extends State<SettingsPage> {
 
     if (!mounted) return;
     final prefs2 = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       if (type == 'qbank') {
         _localQbank = prefs2.getInt('qbank_version') ?? _localQbank;
@@ -116,8 +122,14 @@ class SettingsPageState extends State<SettingsPage> {
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          ElevatedButton(onPressed: () => Navigator.pop(ctx, controller.text), child: const Text('保存')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('保存'),
+          ),
         ],
       ),
     );
@@ -141,7 +153,10 @@ class SettingsPageState extends State<SettingsPage> {
             ListTile(
               leading: Icon(Icons.dns, color: colors.primary),
               title: const Text('服务器地址', style: TextStyle(fontSize: 15)),
-              subtitle: Text(_serverUrl, style: TextStyle(fontSize: 13, color: colors.textSecondary)),
+              subtitle: Text(
+                _serverUrl,
+                style: TextStyle(fontSize: 13, color: colors.textSecondary),
+              ),
               trailing: Icon(Icons.edit, size: 16, color: colors.textMuted),
               onTap: _editServerUrl,
             ),
@@ -182,14 +197,18 @@ class SettingsPageState extends State<SettingsPage> {
               leading: const Icon(Icons.description_outlined),
               title: const Text('用户协议', style: TextStyle(fontSize: 15)),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html')),
+              onTap: () => launchUrl(
+                Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html'),
+              ),
             ),
             const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('隐私政策', style: TextStyle(fontSize: 15)),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html')),
+              onTap: () => launchUrl(
+                Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html'),
+              ),
             ),
           ]),
           const SizedBox(height: 24),
@@ -203,8 +222,13 @@ class SettingsPageState extends State<SettingsPage> {
     final colors = context.colors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 8, 0, 4),
-      child: Text(title,
-        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: colors.textSecondary,
+        ),
       ),
     );
   }
@@ -230,13 +254,13 @@ class SettingsPageState extends State<SettingsPage> {
     final statusText = !_versionLoaded
         ? 'v$local'
         : hasUpdate
-            ? 'v$local → v$server 可用'
-            : 'v$local (最新)';
+        ? 'v$local → v$server 可用'
+        : 'v$local (最新)';
     final statusColor = !_versionLoaded
         ? colors.textSecondary
         : hasUpdate
-            ? colors.warning
-            : colors.success;
+        ? colors.warning
+        : colors.success;
 
     return ListTile(
       leading: Icon(icon, color: colors.primary),
@@ -251,7 +275,10 @@ class SettingsPageState extends State<SettingsPage> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.warning,
                 side: BorderSide(color: colors.warning),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 textStyle: const TextStyle(fontSize: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -274,7 +301,10 @@ class SettingsPageState extends State<SettingsPage> {
     return ListTile(
       leading: Icon(icon, color: colors.textSecondary),
       title: Text(title, style: const TextStyle(fontSize: 15)),
-      trailing: Text(value, style: TextStyle(fontSize: 14, color: colors.textSecondary)),
+      trailing: Text(
+        value,
+        style: TextStyle(fontSize: 14, color: colors.textSecondary),
+      ),
       dense: true,
     );
   }
@@ -299,10 +329,10 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<void> _exportLog() async {
     final msg = switch (await OperationLog.instance.exportToShare()) {
-      ExportResult.success        => '已打开分享面板',
-      ExportResult.fileNotFound   => '暂无日志数据',
-      ExportResult.notReady       => '日志已导出到 Downloads 文件夹',
-      ExportResult.savedToFolder  => '日志已导出到 Downloads 文件夹',
+      ExportResult.success => '已打开分享面板',
+      ExportResult.fileNotFound => '暂无日志数据',
+      ExportResult.notReady => '日志已导出到 Downloads 文件夹',
+      ExportResult.savedToFolder => '日志已导出到 Downloads 文件夹',
     };
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -310,4 +340,3 @@ class SettingsPageState extends State<SettingsPage> {
     );
   }
 }
-

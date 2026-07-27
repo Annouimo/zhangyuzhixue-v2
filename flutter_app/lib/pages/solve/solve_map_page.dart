@@ -22,7 +22,7 @@ class SolveMapPage extends StatefulWidget {
   final String? mode;
   final int? attemptId;
 
-  SolveMapPage({
+  const SolveMapPage({
     super.key,
     required this.questionId,
     this.mode,

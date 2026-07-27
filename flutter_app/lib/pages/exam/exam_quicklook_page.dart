@@ -36,7 +36,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -56,10 +57,9 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         _preview = preview;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'ExamQuicklookPage',
-        {'hasPreview': _preview != null},
-      );
+      AuditLogger.instance.page('ExamQuicklookPage', {
+        'hasPreview': _preview != null,
+      });
     } catch (error) {
       OperationLog.instance.error('exam_quicklook_page_load', error);
       AuditLogger.instance.error('ExamQuicklookPage._load', error);
@@ -76,7 +76,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (await _popGuard.consume(context, 'exam_quicklook')) context.pop();
+        final shouldPop = await _popGuard.consume(context, 'exam_quicklook');
+        if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -110,19 +111,14 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
                           ? Icons.lock_outline
                           : Icons.public,
                     ),
-                    title: Text(
-                      _preview?.isPublic == true ? '设为私密' : '公开分享',
-                    ),
+                    title: Text(_preview?.isPublic == true ? '设为私密' : '公开分享'),
                   ),
                 ),
                 PopupMenuItem<String>(
                   value: 'delete',
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      AppIcons.delete,
-                      color: context.colors.error,
-                    ),
+                    leading: Icon(AppIcons.delete, color: context.colors.error),
                     title: Text(
                       '删除试卷',
                       style: TextStyle(color: context.colors.error),
@@ -141,9 +137,9 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   Future<void> _togglePublic() async {
     await _repo.togglePublic(widget.examId);
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('公开状态已更新')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('公开状态已更新')));
       _load();
     }
   }
@@ -169,7 +165,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     );
     if (confirmed != true) return;
     await _repo.deleteExam(widget.examId);
-    if (context.mounted) safePop(context);
+    if (mounted) safePop(context);
   }
 
   Widget _buildBody() {

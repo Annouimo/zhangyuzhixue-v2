@@ -37,7 +37,7 @@ void setTokenProvider(TokenProvider p) => _tokenProvider = p;
 RefreshTokenProvider _refreshTokenProvider = () => null;
 void setRefreshTokenProvider(RefreshTokenProvider p) => _refreshTokenProvider = p;
 
-OnTokenRefreshed _onTokenRefreshed = (_, __) async {};
+OnTokenRefreshed _onTokenRefreshed = (_, _) async {};
 void setOnTokenRefreshed(OnTokenRefreshed cb) => _onTokenRefreshed = cb;
 
 OnRefreshFailed _onRefreshFailed = () {};

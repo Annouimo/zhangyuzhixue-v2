@@ -72,8 +72,8 @@ class _AboutPageState extends State<AboutPage> {
 
     // 取 pull 日期和 upload 日期中最新者
     final dates = <DateTime>[
-      if (pullDate != null) pullDate,
-      if (uploadDate != null) uploadDate,
+      ?pullDate,
+      ?uploadDate,
     ];
 
     if (mounted) {
@@ -113,11 +113,12 @@ class _AboutPageState extends State<AboutPage> {
         setState(() => _versionLoaded = true);
       }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _versionLoaded = true;
           _versionError = true;
         });
+      }
     }
 
     if (mounted) setState(() {});

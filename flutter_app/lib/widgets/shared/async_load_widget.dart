@@ -47,7 +47,7 @@ class AsyncLoadWidget<T> extends StatefulWidget {
   /// 加载中提示文案
   final String? loadingMessage;
 
-  AsyncLoadWidget({
+  const AsyncLoadWidget({
     super.key,
     required this.onLoad,
     required this.builder,

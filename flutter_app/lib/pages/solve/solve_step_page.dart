@@ -23,9 +23,12 @@ import '../../widgets/pop_back_guard.dart';
 
 String _feedbackToStatus(FeedbackType type) {
   switch (type) {
-    case FeedbackType.fullCorrect: return 'full_correct';
-    case FeedbackType.partialCorrect: return 'partial_correct';
-    case FeedbackType.wrong: return 'wrong';
+    case FeedbackType.fullCorrect:
+      return 'full_correct';
+    case FeedbackType.partialCorrect:
+      return 'partial_correct';
+    case FeedbackType.wrong:
+      return 'wrong';
   }
 }
 
@@ -67,7 +70,11 @@ class _SolveStepPageState extends State<SolveStepPage> {
   progress.StepSolveRecord? _existingRecord;
 
   @override
-  void initState() { super.initState(); _load(); _loadCooldown(); }
+  void initState() {
+    super.initState();
+    _load();
+    _loadCooldown();
+  }
 
   Future<void> _loadCooldown() async {
     try {
@@ -75,7 +82,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
       final sec = await dao.getInt('solve_cooldown_step', 5);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) { OperationLog.instance.error('solve_step_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_step_page_load', e);
       AuditLogger.instance.error('SolveStepPage._loadCooldown', e);
     }
   }
@@ -92,7 +100,9 @@ class _SolveStepPageState extends State<SolveStepPage> {
     try {
       final s = await _repo.getSolveState(widget.questionId);
       QuestionDetail? detail;
-      try { detail = await qRepo.getDetail(widget.questionId); } catch (_) {}
+      try {
+        detail = await qRepo.getDetail(widget.questionId);
+      } catch (_) {}
 
       // 解析存档信息
       int? attemptNumber;
@@ -110,10 +120,14 @@ class _SolveStepPageState extends State<SolveStepPage> {
           submissionDetailId = match.first.id;
           // 查询历史步骤反馈
           final feedbacks = await dao.getStepFeedbacks(match.first.id);
-          final stepFeedback = feedbacks.where((f) =>
-              f.stepNumber == widget.stepIndex + 1 &&
-              f.subQuestionIndex == widget.subQuestionIndex &&
-              f.methodId == widget.methodIndex).toList();
+          final stepFeedback = feedbacks
+              .where(
+                (f) =>
+                    f.stepNumber == widget.stepIndex + 1 &&
+                    f.subQuestionIndex == widget.subQuestionIndex &&
+                    f.methodId == widget.methodIndex,
+              )
+              .toList();
           if (stepFeedback.isNotEmpty) {
             isRevisit = true;
             existingRecord = progress.StepSolveRecord(
@@ -136,20 +150,30 @@ class _SolveStepPageState extends State<SolveStepPage> {
         _loading = false;
       });
       AuditLogger.instance.page('SolveStepPage', {
-        'stepCount': _currentMethodStepCount, 'currentStep': widget.stepIndex,
+        'stepCount': _currentMethodStepCount,
+        'currentStep': widget.stepIndex,
         'isRevisit': _isRevisit,
       });
-    } catch (e) { OperationLog.instance.error('solve_step_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_step_page_load', e);
       AuditLogger.instance.error('SolveStepPage._load', e);
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 
   int get _currentMethodStepCount {
     if (_state == null || _state!.subQuestions.isEmpty) return 0;
     try {
-      return _state!.subQuestions[widget.subQuestionIndex]
-          .solutions[widget.methodIndex].steps.length;
+      return _state!
+          .subQuestions[widget.subQuestionIndex]
+          .solutions[widget.methodIndex]
+          .steps
+          .length;
     } catch (_) {
       return 0;
     }
@@ -159,9 +183,11 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   void _goNextStep() {
     if (_isLastStep) return;
-    final buf = StringBuffer('/solve/step?id=${widget.questionId}'
-        '&subQ=${widget.subQuestionIndex}'
-        '&method=${widget.methodIndex}&step=${widget.stepIndex + 1}');
+    final buf = StringBuffer(
+      '/solve/step?id=${widget.questionId}'
+      '&subQ=${widget.subQuestionIndex}'
+      '&method=${widget.methodIndex}&step=${widget.stepIndex + 1}',
+    );
     if (_currentSubmissionDetailId != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
     }
@@ -196,7 +222,10 @@ class _SolveStepPageState extends State<SolveStepPage> {
 
   progress.Step? _currentStep() {
     try {
-      return _state!.subQuestions[widget.subQuestionIndex].solutions[widget.methodIndex].steps[widget.stepIndex];
+      return _state!
+          .subQuestions[widget.subQuestionIndex]
+          .solutions[widget.methodIndex]
+          .steps[widget.stepIndex];
     } catch (_) {
       return null;
     }
@@ -227,104 +256,96 @@ class _SolveStepPageState extends State<SolveStepPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (await _popGuard.consume(context, 'solve_step')) context.pop();
+        final shouldPop = await _popGuard.consume(context, 'solve_step');
+        if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('逐步解析')),
         body: _loading
             ? const LoadingIndicator(message: '正在加载解题步骤')
             : _error != null
-                ? ErrorPlaceholder(
-                    message: '步骤加载失败，请检查后重试',
-                    onRetry: () {
-                      setState(() {
-                        _error = null;
-                        _loading = true;
-                      });
-                      _load();
-                    },
-                  )
-                : step == null
-                    ? const ErrorPlaceholder(message: '步骤数据不存在')
-                    : AppContentContainer(
-                        maxWidth: AppContentWidth.reading,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                        ),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.lg,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              AppCard(
-                                padding: const EdgeInsets.all(AppSpacing.md),
-                                child: Row(
-                                  children: [
-                                    const AppStatusBadge(
-                                      label: '当前步骤',
-                                      tone: AppStatusTone.primary,
-                                      icon: Icons.route_rounded,
-                                      compact: true,
+            ? ErrorPlaceholder(
+                message: '步骤加载失败，请检查后重试',
+                onRetry: () {
+                  setState(() {
+                    _error = null;
+                    _loading = true;
+                  });
+                  _load();
+                },
+              )
+            : step == null
+            ? const ErrorPlaceholder(message: '步骤数据不存在')
+            : AppContentContainer(
+                maxWidth: AppContentWidth.reading,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppCard(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Row(
+                          children: [
+                            const AppStatusBadge(
+                              label: '当前步骤',
+                              tone: AppStatusTone.primary,
+                              icon: Icons.route_rounded,
+                              compact: true,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                _buildContextLabel(),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: context.colors.textSecondary,
                                     ),
-                                    const SizedBox(width: AppSpacing.sm),
-                                    Expanded(
-                                      child: Text(
-                                        _buildContextLabel(),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: context.colors.textSecondary,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               ),
-                              if (_detail != null &&
-                                  _detail!.stem.trim().isNotEmpty) ...[
-                                const SizedBox(height: AppSpacing.md),
-                                SolveQuestionSurface(
-                                  number: _detail!.number,
-                                  title: _detail!.title,
-                                  questionTypeLabel: '解答题',
-                                  isReviewMode: _isRevisit,
-                                  conceptTags: _detail!.conceptTags,
-                                  stem: _detail!.stem,
-                                  imagePaths: _detail!.images,
-                                ),
-                              ],
-                              const SizedBox(height: AppSpacing.md),
-                              StepCardWidget(
-                                cooldownSeconds: _coolDownSec,
-                                step: step,
-                                stepIndex: widget.stepIndex,
-                                totalSteps: _currentMethodStepCount,
-                                isRevisit: _isRevisit,
-                                existingRecord: _existingRecord,
-                                questionId: widget.questionId,
-                                submissionDetailId:
-                                    _currentSubmissionDetailId,
-                                onFeedback: _onFeedback,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AppButton(
-                                label: '返回解题地图',
-                                icon: Icons.map_outlined,
-                                variant: AppButtonVariant.secondary,
-                                fullWidth: true,
-                                onPressed: () => context.pop(),
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                      if (_detail != null &&
+                          _detail!.stem.trim().isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        SolveQuestionSurface(
+                          number: _detail!.number,
+                          title: _detail!.title,
+                          questionTypeLabel: '解答题',
+                          isReviewMode: _isRevisit,
+                          conceptTags: _detail!.conceptTags,
+                          stem: _detail!.stem,
+                          imagePaths: _detail!.images,
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.md),
+                      StepCardWidget(
+                        cooldownSeconds: _coolDownSec,
+                        step: step,
+                        stepIndex: widget.stepIndex,
+                        totalSteps: _currentMethodStepCount,
+                        isRevisit: _isRevisit,
+                        existingRecord: _existingRecord,
+                        questionId: widget.questionId,
+                        submissionDetailId: _currentSubmissionDetailId,
+                        onFeedback: _onFeedback,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppButton(
+                        label: '返回解题地图',
+                        icon: Icons.map_outlined,
+                        variant: AppButtonVariant.secondary,
+                        fullWidth: true,
+                        onPressed: () => context.pop(),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
-
 }
-

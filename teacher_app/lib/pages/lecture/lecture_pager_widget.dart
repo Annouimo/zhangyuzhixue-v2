@@ -14,7 +14,7 @@ class LecturePagerWidget extends StatelessWidget {
   final VoidCallback? onPrev;
   final VoidCallback? onNext;
 
-  LecturePagerWidget({
+  const LecturePagerWidget({
     super.key,
     required this.currentPage,
     required this.totalPages,

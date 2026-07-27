@@ -116,8 +116,9 @@ class IndexPageState extends State<IndexPage> {
       }
 
       // 通过 AchievementDao 从登录日志推算连续签到天数
-      final streak = await (widget.streakLoader?.call() ??
-          AchievementDao(DatabaseProvider()).getLoginStreak());
+      final streak =
+          await (widget.streakLoader?.call() ??
+              AchievementDao(DatabaseProvider()).getLoginStreak());
 
       // 并行加载 4 项独立数据（Future.wait 替代串行 await）
       final results = await Future.wait([
@@ -252,6 +253,7 @@ class IndexPageState extends State<IndexPage> {
             await AppPrefs().setLastKnownUnlockCount(
               prevCount + newUnlocks.length,
             );
+            if (!mounted) return;
             showAchievementUnlockDialog(context, achievement: newUnlocks.last);
           }
         } catch (_) {}
@@ -281,8 +283,9 @@ class IndexPageState extends State<IndexPage> {
   Future<void> _doCheckin() async {
     final colors = context.colors;
     if (_checkedIn || _submitting) {
-      if (_checkedIn)
+      if (_checkedIn) {
         AppToast.show(context, icon: Icons.info_outline, message: '今天已签到');
+      }
       return;
     }
     setState(() => _submitting = true);
@@ -319,6 +322,7 @@ class IndexPageState extends State<IndexPage> {
               ),
             );
       } catch (_) {}
+      if (!mounted) return;
       setState(() {
         _streakDays = streak;
         _checkedIn = true;
@@ -422,10 +426,7 @@ class IndexPageState extends State<IndexPage> {
           _buildCheckinCard(),
         ],
         const SizedBox(height: AppSpacing.lg),
-        const AppSectionHeader(
-          title: '今日进度',
-          subtitle: '回顾练习、正确率与学习积分',
-        ),
+        const AppSectionHeader(title: '今日进度', subtitle: '回顾练习、正确率与学习积分'),
         const SizedBox(height: AppSpacing.sm),
         _buildOverviewGrid(width),
         const SizedBox(height: AppSpacing.md),
@@ -845,7 +846,8 @@ class IndexPageState extends State<IndexPage> {
       var question = await dao.getRandomByType(preferredType: 'choice');
       question ??= await dao.getRandomByType(preferredType: 'fill');
       question ??= await dao.getRandomByType();
-      if (question == null || !mounted) {
+      if (!mounted) return;
+      if (question == null) {
         AppToast.show(context, icon: Icons.info_outline, message: '题库暂无数据');
         return;
       }
@@ -914,9 +916,9 @@ class IndexPageState extends State<IndexPage> {
           const SizedBox(height: AppSpacing.sm),
           Text(
             '建议先完成一道快速练习；有明确任务时，从待办作业继续。',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
           ),
         ],
       ),

@@ -58,10 +58,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.questionRepository ?? QuestionRepository(
-      QuestionDao(DatabaseProvider()),
-      ProgressDao(DatabaseProvider()),
-    );
+    _repo =
+        widget.questionRepository ??
+        QuestionRepository(
+          QuestionDao(DatabaseProvider()),
+          ProgressDao(DatabaseProvider()),
+        );
     _load();
     _loadCooldown();
   }
@@ -72,7 +74,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       final sec = await dao.getInt('solve_cooldown_choice', 10);
       if (!mounted) return;
       setState(() => _coolDownSec = sec);
-    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_choice_page_load', e);
       AuditLogger.instance.error('SolveChoicePage._loadCooldown', e);
     }
   }
@@ -82,7 +85,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     if (attempt.isCompleted) {
       final dao = ProgressDao(DatabaseProvider());
       final rows = await dao.getAttempts(widget.questionId);
-      final match = rows.where((r) => r.attemptNumber == attempt.attemptNumber).toList();
+      final match = rows
+          .where((r) => r.attemptNumber == attempt.attemptNumber)
+          .toList();
       if (match.isNotEmpty && mounted) {
         setState(() {
           _selected = match.first.answerText;
@@ -105,14 +110,23 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     try {
       OperationLog.instance.action('solve_choice_page_load', 'T1 start');
       final detail = await _repo.getDetail(widget.questionId);
-      OperationLog.instance.action('solve_choice_page_load', 'T2 after getDetail');
+      OperationLog.instance.action(
+        'solve_choice_page_load',
+        'T2 after getDetail',
+      );
       var attempts = await _repo.getAttempts(widget.questionId);
-      OperationLog.instance.action('solve_choice_page_load', 'T3 after getAttempts (${attempts.length})');
+      OperationLog.instance.action(
+        'solve_choice_page_load',
+        'T3 after getAttempts (${attempts.length})',
+      );
 
       // 首次访问且未指定回顾模式时，自动创建存档
       if (attempts.isEmpty && widget.mode != 'review') {
         await _repo.startSolve(widget.questionId);
-        OperationLog.instance.action('solve_choice_page_load', 'T4 after startSolve');
+        OperationLog.instance.action(
+          'solve_choice_page_load',
+          'T4 after startSolve',
+        );
         attempts = await _repo.getAttempts(widget.questionId);
       }
 
@@ -132,13 +146,21 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       if (latest != null) {
         await _restoreAttemptState(latest);
       }
-      AuditLogger.instance.page('SolveChoicePage', {'qid': widget.questionId, 'optionsCount': _detail?.options?.length});
+      AuditLogger.instance.page('SolveChoicePage', {
+        'qid': widget.questionId,
+        'optionsCount': _detail?.options?.length,
+      });
       OperationLog.instance.action('solve_choice_page_load', 'T5 complete');
     } catch (e) {
       OperationLog.instance.action('solve_choice_page_load', 'T6 catch: $e');
       OperationLog.instance.error('solve_choice_page_load', e);
       AuditLogger.instance.error('SolveChoicePage._load', e);
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
+      }
     }
   }
 
@@ -152,7 +174,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         isCorrect: _selected == _detail?.answer,
       );
       if (!mounted) return;
-      OperationLog.instance.action('solve_choice', 'submitted qid=${widget.questionId}');
+      OperationLog.instance.action(
+        'solve_choice',
+        'submitted qid=${widget.questionId}',
+      );
       setState(() {
         _submitted = true;
         _isCorrect = _selected == _detail?.answer;
@@ -167,10 +192,14 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   String _typeLabel(String type) {
     switch (type) {
-      case 'choice': return '选择';
-      case 'fill': return '填空';
-      case 'solution': return '解答';
-      default: return type;
+      case 'choice':
+        return '选择';
+      case 'fill':
+        return '填空';
+      case 'solution':
+        return '解答';
+      default:
+        return type;
     }
   }
 
@@ -201,7 +230,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (await _popGuard.consume(context, 'solve_choice')) context.pop();
+        final shouldPop = await _popGuard.consume(context, 'solve_choice');
+        if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('选择题')),
@@ -261,7 +291,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
 
   /// 构建作答次数选择器
   Widget _buildAttemptSelector() {
-      final colors = context.colors;
+    final colors = context.colors;
     if (_attempts.isEmpty) return const SizedBox.shrink();
 
     final label = _currentAttempt != null
@@ -275,7 +305,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(label,
+        child: Text(
+          label,
           style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
@@ -290,26 +321,33 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       offset: const Offset(0, 28),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       itemBuilder: (context) => [
-        ..._attempts.map((a) => PopupMenuItem<Object>(
-          value: a,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('第 ${a.attemptNumber} 次作答',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: a.id == _currentAttempt?.id ? FontWeight.w600 : FontWeight.normal,
-                  color: a.id == _currentAttempt?.id ? colors.primary : colors.textPrimary,
+        ..._attempts.map(
+          (a) => PopupMenuItem<Object>(
+            value: a,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '第 ${a.attemptNumber} 次作答',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: a.id == _currentAttempt?.id
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    color: a.id == _currentAttempt?.id
+                        ? colors.primary
+                        : colors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
-                style: TextStyle(fontSize: 11, color: colors.textSecondary),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  a.isCompleted ? '回顾' : (a.isStarted ? '进行中' : '未开始'),
+                  style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -320,9 +358,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-              style: TextStyle(fontSize: 11, color: colors.primary),
-            ),
+            Text(label, style: TextStyle(fontSize: 11, color: colors.primary)),
             Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
@@ -352,7 +388,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         _isCorrect = false;
         _showResult = false;
       });
-    } catch (e) { OperationLog.instance.error('solve_choice_page_load', e); 
+    } catch (e) {
+      OperationLog.instance.error('solve_choice_page_load', e);
       AuditLogger.instance.error('SolveChoicePage._createNewAttempt', e);
     }
   }
@@ -360,14 +397,11 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   Widget _buildContent() {
     final detail = _detail;
     if (detail == null) {
-      return ErrorPlaceholder(
-        message: '题目数据不存在',
-        onRetry: _load,
-      );
+      return ErrorPlaceholder(message: '题目数据不存在', onRetry: _load);
     }
 
-    final options = detail.options?.entries.toList() ??
-        const <MapEntry<String, String>>[];
+    final options =
+        detail.options?.entries.toList() ?? const <MapEntry<String, String>>[];
     return SolveQuestionSurface(
       number: detail.number,
       title: detail.title,
@@ -394,8 +428,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                   ? null
                   : () => setState(() => _selected = options[i].key),
             ),
-            if (i != options.length - 1)
-              const SizedBox(height: AppSpacing.sm),
+            if (i != options.length - 1) const SizedBox(height: AppSpacing.sm),
           ],
         ],
       ),
@@ -412,5 +445,4 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     if (_submitted) return SolveOptionState.disabled;
     return SolveOptionState.idle;
   }
-
 }

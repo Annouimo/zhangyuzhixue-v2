@@ -91,11 +91,12 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _submitting = false;
         });
+      }
       AuditLogger.instance.page('RegisterPage', {'saving': _loading});
     }
   }
@@ -139,6 +140,18 @@ class _RegisterPageState extends State<RegisterPage> {
         tooltip: '返回登录',
         icon: const Icon(Icons.arrow_back_ios),
         onPressed: () => context.pop(),
+      ),
+      footer: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '已有账号？',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
+          ),
+          TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
+        ],
       ),
       child: Form(
         key: _formKey,
@@ -218,8 +231,9 @@ class _RegisterPageState extends State<RegisterPage> {
               autofillHints: const [AutofillHints.telephoneNumber],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return '请输入手机号';
-                if (!RegExp(r'^1\d{10}$').hasMatch(value.trim()))
+                if (!RegExp(r'^1\d{10}$').hasMatch(value.trim())) {
                   return '请输入有效手机号';
+                }
                 return null;
               },
             ),
@@ -312,18 +326,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ],
         ),
-      ),
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '已有账号？',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
-          ),
-          TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
-        ],
       ),
     );
   }

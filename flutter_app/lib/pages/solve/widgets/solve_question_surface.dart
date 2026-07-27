@@ -61,7 +61,7 @@ class SolveQuestionSurface extends StatelessWidget {
                 tone: AppStatusTone.primary,
                 compact: true,
               ),
-              if (attemptSelector != null) attemptSelector!,
+              ?attemptSelector,
             ],
           ),
           if (hasTitle) ...[

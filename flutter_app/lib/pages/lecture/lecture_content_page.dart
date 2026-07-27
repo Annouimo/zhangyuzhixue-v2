@@ -14,7 +14,7 @@ class LectureContentPage extends StatefulWidget {
   final int initialPage;
   final LectureRepository? lectureRepository;
 
-  LectureContentPage({
+  const LectureContentPage({
     super.key,
     required this.chapterId,
     this.initialPage = 1,
@@ -127,7 +127,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
-        if (await _popGuard.consume(context, 'lecture_content')) context.pop();
+        final shouldPop = await _popGuard.consume(context, 'lecture_content');
+        if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
         appBar: AppBar(title: Text(_content?.title ?? '讲义内容')),

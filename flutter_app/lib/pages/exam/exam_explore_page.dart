@@ -13,7 +13,7 @@ import 'widgets/paper_card.dart';
 
 /// 发现公开组卷。
 class ExamExplorePage extends StatefulWidget {
-  ExamExplorePage({super.key, this.examRepository});
+  const ExamExplorePage({super.key, this.examRepository});
 
   final ExamRepository? examRepository;
 

@@ -54,6 +54,9 @@ if [[ -n "$(git status --porcelain -- server)" ]]; then
     git status --short -- server
     exit 1
 fi
+RELEASE_COMMIT="$(git rev-parse HEAD)"
+REMOTE_REF="refs/heads/$BRANCH"
+echo "  Commit: $RELEASE_COMMIT"
 
 # 1. 部署前检查（不读取密钥值）
 echo ""
@@ -79,10 +82,28 @@ else
     exit 1
 fi
 if $DRY_RUN; then
-    echo "  [DRY-RUN] git push $REMOTE $BRANCH"
+    echo "  [DRY-RUN] git push $REMOTE $RELEASE_COMMIT:$REMOTE_REF"
 else
+    remote_commit="$(git ls-remote --exit-code "$REMOTE" "$REMOTE_REF" \
+        | awk '{print $1}')"
+    if [[ -z "$remote_commit" ]] || \
+       ! git merge-base --is-ancestor "$remote_commit" "$RELEASE_COMMIT"; then
+        echo "❌ 生产 ref 不是目标 commit 的祖先，拒绝发布"
+        echo "   production: ${remote_commit:-missing}"
+        echo "   release:    $RELEASE_COMMIT"
+        exit 1
+    fi
     GIT_SSH_COMMAND="ssh -o BatchMode=yes -i $SSH_KEY" \
-        git push "$REMOTE" "$BRANCH"
+        git push "$REMOTE" "$RELEASE_COMMIT:$REMOTE_REF"
+
+    deployed_commit="$(git ls-remote --exit-code "$REMOTE" "$REMOTE_REF" \
+        | awk '{print $1}')"
+    if [[ "$deployed_commit" != "$RELEASE_COMMIT" ]]; then
+        echo "❌ 生产 ref 未停留在目标 commit，发布可能已回滚"
+        echo "   expected: $RELEASE_COMMIT"
+        echo "   actual:   $deployed_commit"
+        exit 1
+    fi
 fi
 
 # 3. SSH 执行验证

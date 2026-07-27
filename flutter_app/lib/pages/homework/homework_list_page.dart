@@ -12,7 +12,7 @@ import 'widgets/assignment_card.dart';
 
 /// 待办作业列表。
 class HomeworkListPage extends StatefulWidget {
-  HomeworkListPage({super.key, this.assignmentRepository});
+  const HomeworkListPage({super.key, this.assignmentRepository});
 
   final AssignmentRepository? assignmentRepository;
 

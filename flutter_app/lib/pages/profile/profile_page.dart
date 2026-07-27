@@ -27,7 +27,7 @@ class ProfilePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final StatisticsRepository? statisticsRepository;
   final AchievementRepository? achievementRepository;
-  ProfilePage({
+  const ProfilePage({
     super.key,
     this.userRepository,
     this.preferenceRepository,
@@ -262,6 +262,7 @@ class ProfilePageState extends State<ProfilePage> {
     final msg = pendingCount > 0
         ? '确定要退出当前账号吗？\n有 $pendingCount 条数据尚未同步，退出后将丢失。建议先同步再退出。'
         : '确定要退出当前账号吗？';
+    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
