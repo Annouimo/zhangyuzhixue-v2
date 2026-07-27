@@ -1,0 +1,7 @@
+tags:
+  smoke:
+    timeout: 2m
+  golden:
+    timeout: 2m
+  integration:
+    timeout: 5m

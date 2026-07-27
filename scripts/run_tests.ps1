@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
@@ -125,13 +125,39 @@ function Invoke-ServerSuite {
 try {
     switch ($Suite) {
         'Quick' {
+            $smokeTests = @(
+                'test/data/api/api_client_test.dart',
+                'test/data/database/database_provider_test.dart',
+                'test/data/sync/sync_pusher_test.dart',
+                'test/pages/login_page_test.dart',
+                'test/support/ui_test_harness_test.dart',
+                'test/widget_test.dart'
+            )
             $options = @{
                 Name = 'student-quick'
                 WorkingDirectory = $studentDir
-                TestArguments = @('test/support/ui_test_harness_test.dart', '--reporter', 'expanded', '--timeout', '2m')
+                TestArguments = $smokeTests + @('--tags', 'smoke', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
                 TimeoutMinutes = 5
             }
             $results.StudentQuick = Invoke-FlutterSuite @options
+        }
+        'StudentData' {
+            $options = @{
+                Name = 'student-data'
+                WorkingDirectory = $studentDir
+                TestArguments = @('test/data', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
+                TimeoutMinutes = 15
+            }
+            $results.StudentData = Invoke-FlutterSuite @options
+        }
+        'StudentUi' {
+            $options = @{
+                Name = 'student-ui'
+                WorkingDirectory = $studentDir
+                TestArguments = @('test/pages', 'test/widgets', 'test/support', 'test/widget_test.dart', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
+                TimeoutMinutes = 20
+            }
+            $results.StudentUi = Invoke-FlutterSuite @options
         }
         'Student' {
             $options = @{
