@@ -16,6 +16,7 @@ from interactions.models import (
     SubmissionDetail,
 )
 from qbank.models import BaseQuestion
+from system.models import PointsTransaction, SystemConfig
 
 
 @pytest.fixture
@@ -385,6 +386,43 @@ class TestSyncMixedBatch:
 
 
 class TestSyncEdgeCases:
+
+    def test_rating_reward_is_granted_once_with_server_amount(
+        self, auth_client, student_user, sample_question,
+    ):
+        QuestionRating.objects.create(
+            student=student_user.student,
+            question=sample_question,
+            difficulty_score=5,
+            calculation_score=5,
+            elegance_score=5,
+        )
+        SystemConfig.objects.update_or_create(
+            key='question_rating_reward',
+            defaults={'value': '0.3'},
+        )
+        for local_id in (100, 101):
+            resp = auth_client.post(reverse('sync-push'), {
+                'batch': [{
+                    'entity_type': 'points_transaction',
+                    'local_id': local_id,
+                    'data': {
+                        'amount': 999,
+                        'source': 'RATING_REWARD',
+                        'source_object_id': sample_question.pk,
+                        'transaction_type': 'EARN',
+                    },
+                }],
+            }, format='json')
+            assert resp.status_code == 200
+
+        rewards = PointsTransaction.objects.filter(
+            student=student_user.student,
+            source='RATING_REWARD',
+            source_object_id=sample_question.pk,
+        )
+        assert rewards.count() == 1
+        assert rewards.get().amount == pytest.approx(0.3)
 
     def test_empty_batch(self, auth_client):
         """空 batch：拒绝处理"""

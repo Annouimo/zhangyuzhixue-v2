@@ -66,6 +66,7 @@ class RatingRepository {
     required double calculation,
     required double elegance,
   }) async {
+    final isFirstRating = await _dao.getRating(questionId) == null;
     await _dao.upsertRating(
       questionId: questionId,
       difficultyScore: difficulty.round(),
@@ -86,23 +87,30 @@ class RatingRepository {
         }),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'rating', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'rating',
+        'error': '$e',
+      });
     }
-    // 赠送积分
+    // 每道题仅首次评价赠送积分，后续修改只更新评价内容。
+    if (!isFirstRating) return;
     try {
       final cfg = SystemConfigDao(DatabaseProvider());
       final pts = await cfg.getDouble('question_rating_reward', 0.3);
       final now = DateTime.now().toIso8601String();
       final db = DatabaseProvider();
-      final newId = await db.appDb.into(db.appDb.pointsTransactions).insert(
-        app_db.PointsTransactionsCompanion(
-          amount: Value(pts),
-          source: const Value('RATING_REWARD'),
-          transactionType: const Value('EARN'),
-          createdAt: Value(now),
-          description: const Value('题目评价奖励'),
-        ),
-      );
+      final newId = await db.appDb
+          .into(db.appDb.pointsTransactions)
+          .insert(
+            app_db.PointsTransactionsCompanion(
+              amount: Value(pts),
+              source: const Value('RATING_REWARD'),
+              transactionType: const Value('EARN'),
+              sourceObjectId: Value(questionId),
+              createdAt: Value(now),
+              description: const Value('题目评价奖励'),
+            ),
+          );
       // 入同步队列
       try {
         await SyncManager().enqueue(
@@ -113,6 +121,7 @@ class RatingRepository {
             'amount': pts,
             'source': 'RATING_REWARD',
             'transaction_type': 'EARN',
+            'source_object_id': questionId,
             'description': '题目评价奖励',
             'created_at': now,
           }),

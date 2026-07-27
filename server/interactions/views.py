@@ -283,14 +283,41 @@ class SyncPushView(APIView):
             created_at = timezone.now()
 
         local_id = data.get('_local_id')
+        source = data.get('source', '')
+        source_object_id = data.get('source_object_id')
+        amount = data.get('amount', 0)
+        if source == 'RATING_REWARD':
+            from system.models import SystemConfig
+
+            if source_object_id is None:
+                raise ValueError('题目评价奖励缺少题目 ID')
+            if not QuestionRating.objects.filter(
+                student=student,
+                question_id=source_object_id,
+            ).exists():
+                raise ValueError('尚未提交该题评价')
+            existing = PointsTransaction.objects.filter(
+                student=student,
+                source='RATING_REWARD',
+                source_object_id=source_object_id,
+            ).first()
+            if existing is not None:
+                return existing
+            config = SystemConfig.objects.filter(
+                key='question_rating_reward',
+            ).first()
+            try:
+                amount = float(config.value) if config else 0.3
+            except (TypeError, ValueError):
+                amount = 0.3
         pt, _ = PointsTransaction.objects.update_or_create(
             student=student,
             client_id=local_id,
             defaults={
-                'amount': data.get('amount', 0),
+                'amount': amount,
                 'transaction_type': data.get('transaction_type', 'EARN'),
-                'source': data.get('source', ''),
-                'source_object_id': data.get('source_object_id'),
+                'source': source,
+                'source_object_id': source_object_id,
                 'description': data.get('description', ''),
                 'created_at': created_at,
             },

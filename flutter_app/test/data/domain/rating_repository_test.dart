@@ -36,11 +36,36 @@ void main() {
     });
 
     test('submitRating then getRating returns user values', () async {
-      await repo.submitRating(questionId: 1, difficulty: 3, calculation: 5, elegance: 4);
+      await repo.submitRating(
+        questionId: 1,
+        difficulty: 3,
+        calculation: 5,
+        elegance: 4,
+      );
       final r = await repo.getRating(1);
       expect(r.userDifficulty, 3.0);
       expect(r.userCalculation, 5.0);
       expect(r.userElegance, 4.0);
+    });
+
+    test('editing a rating does not grant points again', () async {
+      await repo.submitRating(
+        questionId: 1,
+        difficulty: 3,
+        calculation: 5,
+        elegance: 4,
+      );
+      await repo.submitRating(
+        questionId: 1,
+        difficulty: 4,
+        calculation: 4,
+        elegance: 5,
+      );
+
+      final rewards = await database.select(database.pointsTransactions).get();
+      expect(rewards, hasLength(1));
+      expect(rewards.single.source, 'RATING_REWARD');
+      expect(rewards.single.sourceObjectId, 1);
     });
   });
 }

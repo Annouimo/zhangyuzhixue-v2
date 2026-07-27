@@ -134,6 +134,16 @@ class PointsTransaction(models.Model):
         verbose_name = '积分流水'
         verbose_name_plural = '积分流水'
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'source', 'source_object_id'],
+                condition=models.Q(
+                    source='RATING_REWARD',
+                    source_object_id__isnull=False,
+                ),
+                name='uq_rating_reward_per_student_question',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.get_source_display()} {self.amount:+.1f} ({self.student})'
