@@ -580,6 +580,7 @@ class ExamRepository {
   Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
     final engine = _ExamGenerator(_questionDao, _examDao);
     final paperId = await engine.confirm(filters, allowShortfall: allowShortfall);
+    final paperQuestions = await _examDao.getQuestions(paperId);
     // 入同步队列
     try {
       await SyncManager().enqueue(
@@ -588,9 +589,7 @@ class ExamRepository {
         localId: paperId,
         payload: jsonEncode({
           'title': filters.name.isNotEmpty ? filters.name : '智能组卷',
-          'questions': filters.selectedIds.isNotEmpty
-              ? filters.selectedIds
-              : [],
+          'questions': paperQuestions.map((item) => item.questionId).toList(),
         }),
       );
     } catch (e) {

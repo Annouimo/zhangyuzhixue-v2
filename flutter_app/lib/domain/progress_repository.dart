@@ -362,13 +362,34 @@ class ProgressRepository {
       if (!allResolved) return;
 
       await _dao.updateAttemptStatus(detail.id, 'completed');
+      try {
+        await SyncManager().enqueue(
+          entityType: SyncEntityType.submission,
+          operation: SyncOperationType.upsert,
+          localId: detail.id,
+          payload: jsonEncode({
+            'details': [
+              {
+                'question_id': questionId,
+                'attempt_number': attemptNumber,
+                'status': 'completed',
+              },
+            ],
+          }),
+        );
+      } catch (e) {
+        AuditLogger.instance.sync('enqueue_error', {
+          'type': 'submission',
+          'error': '$e',
+        });
+      }
       // 发放做题积分（amount > 0 才发）
       final now = DateTime.now().toIso8601String();
       final question = await _questionDao.getById(questionId);
       final difficulty = question?.difficulty ?? 0.0;
       final amount = difficulty.floor() / 10.0;
       if (amount > 0) {
-        await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
+        final pointsId = await DatabaseProvider().appDb.into(DatabaseProvider().appDb.pointsTransactions).insert(
           db.PointsTransactionsCompanion(
             amount: Value(amount),
             source: const Value('PRACTICE_REWARD'),
@@ -377,6 +398,25 @@ class ProgressRepository {
             description: const Value('做题奖励'),
           ),
         );
+        try {
+          await SyncManager().enqueue(
+            entityType: SyncEntityType.pointsTransaction,
+            operation: SyncOperationType.upsert,
+            localId: pointsId,
+            payload: jsonEncode({
+              'amount': amount,
+              'source': 'PRACTICE_REWARD',
+              'transaction_type': 'EARN',
+              'description': '做题奖励',
+              'created_at': now,
+            }),
+          );
+        } catch (e) {
+          AuditLogger.instance.sync('enqueue_error', {
+            'type': 'pointsTransaction',
+            'error': '$e',
+          });
+        }
       }
       AuditLogger.instance.dao('submitStepFeedback.complete',
           amount.toInt(), {'questionId': questionId, 'attemptNumber': attemptNumber});

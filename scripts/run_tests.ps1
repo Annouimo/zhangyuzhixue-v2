@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
@@ -158,6 +158,15 @@ try {
                 TimeoutMinutes = 20
             }
             $results.StudentUi = Invoke-FlutterSuite @options
+        }
+        'StudentIntegration' {
+            $options = @{
+                Name = 'student-integration'
+                WorkingDirectory = $studentDir
+                TestArguments = @('test/data/integration', '--tags', 'integration', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
+                TimeoutMinutes = 10
+            }
+            $results.StudentIntegration = Invoke-FlutterSuite @options
         }
         'Student' {
             $options = @{
