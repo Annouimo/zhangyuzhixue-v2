@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Server', 'E2E', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
@@ -133,7 +133,6 @@ function Invoke-FlutterAnalyze {
 }
 
 $studentDir = Join-Path $repoRoot 'flutter_app'
-$teacherDir = Join-Path $repoRoot 'teacher_app'
 $serverDir = Join-Path $repoRoot 'server'
 $pytestCacheDir = Join-Path $repoRoot '.hermes\tmp\pytest-cache'
 $pytestBaseTemp = Join-Path $repoRoot '.hermes\tmp\pytest-temp'
@@ -259,18 +258,6 @@ try {
                 $results.Student = Invoke-FlutterSuite @options
             }
         }
-        'Teacher' {
-            $results.TeacherAnalyze = Invoke-FlutterAnalyze -Name 'teacher-analyze' -WorkingDirectory $teacherDir
-            if ($results.TeacherAnalyze -eq 0) {
-                $options = @{
-                    Name = 'teacher'
-                    WorkingDirectory = $teacherDir
-                    TestArguments = @('--reporter', 'expanded', '--timeout', '2m')
-                    TimeoutMinutes = 10
-                }
-                $results.Teacher = Invoke-FlutterSuite @options
-            }
-        }
         'Server' {
             $results.Server = Invoke-ServerSuite
         }
@@ -287,10 +274,6 @@ try {
             $results.StudentAnalyze = Invoke-FlutterAnalyze -Name 'student-analyze' -WorkingDirectory $studentDir
             if ($results.StudentAnalyze -eq 0) {
                 $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
-            }
-            $results.TeacherAnalyze = Invoke-FlutterAnalyze -Name 'teacher-analyze' -WorkingDirectory $teacherDir
-            if ($results.TeacherAnalyze -eq 0) {
-                $results.Teacher = Invoke-FlutterSuite -Name 'teacher' -WorkingDirectory $teacherDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 10
             }
             $results.Server = Invoke-ServerSuite
         }

@@ -10,16 +10,8 @@ def register_all():
     from auditlog.registry import auditlog as auditlog_registry
     from django.contrib.auth.models import User
 
-    from accounts.models import InvitationCode, Student, Teacher
-    from courses.models import (
-        Assignment,
-        AssignmentQuestion,
-        ClassCourse,
-        ClassCourseAssignment,
-        ClassGroup,
-        Course,
-        Document,
-    )
+    from accounts.models import InvitationCode, Student
+    from courses.models import Course, Document
     from qbank.models import (
         BaseQuestion,
         ChoiceExt,
@@ -35,7 +27,6 @@ def register_all():
     # 说明见 docs/03-服务端/服务端架构.md §6.2
 
     auditlog_registry.register(Student)
-    auditlog_registry.register(Teacher)
     auditlog_registry.register(InvitationCode)
     auditlog_registry.register(BaseQuestion)
     auditlog_registry.register(ChoiceExt)
@@ -45,11 +36,6 @@ def register_all():
     auditlog_registry.register(KnowledgeCard)
     auditlog_registry.register(ConceptTag)
     auditlog_registry.register(Course)
-    auditlog_registry.register(ClassGroup)
-    auditlog_registry.register(ClassCourse)
-    auditlog_registry.register(Assignment)
-    auditlog_registry.register(AssignmentQuestion)
-    auditlog_registry.register(ClassCourseAssignment)
     auditlog_registry.register(Document)
     auditlog_registry.register(DbVersion)
     auditlog_registry.register(User)

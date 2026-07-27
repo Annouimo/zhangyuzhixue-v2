@@ -5,18 +5,17 @@ from .models import (
     InvitationCode,
     RegistrationConsent,
     Student,
-    Teacher,
     UserLoginLog,
 )
 
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'class_group', 'student_id',
+    list_display = ['id', 'user', 'student_id',
                     'school', 'gaokao_year', 'created_at']
-    list_select_related = ['user', 'class_group']
+    list_select_related = ['user']
     search_fields = ['user__username', 'student_id', 'school']
-    list_filter = ['account_status', 'class_group', 'gaokao_year']
+    list_filter = ['account_status', 'gaokao_year']
 
 
 @admin.register(AccountDeletionRequest)
@@ -41,13 +40,6 @@ class RegistrationConsentAdmin(admin.ModelAdmin):
     readonly_fields = [
         'user', 'terms_version', 'privacy_version', 'source', 'accepted_at',
     ]
-
-
-@admin.register(Teacher)
-class TeacherAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'created_at']
-    list_select_related = ['user']
-    search_fields = ['user__username']
 
 
 @admin.register(InvitationCode)

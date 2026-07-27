@@ -208,7 +208,4 @@ if __name__ == "__main__":
     print("=== 学生端 (flutter_app) ===")
     _generate_for_app(master, "student", r"D:\\Hermes\\zhangyuzhixue_app_v2\\flutter_app")
     
-    print("\n=== 教师端 (teacher_app) ===")
-    _generate_for_app(master, "teacher", r"D:\\Hermes\\zhangyuzhixue_app_v2\\teacher_app")
-    
     print("\n✅ 全部图标已生成！")

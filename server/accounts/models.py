@@ -4,22 +4,6 @@ from django.db import models
 from accounts.utils import encode_lcg, get_student_id_template
 
 
-class Teacher(models.Model):
-    """教师 - OneToOne 关联 Django User"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                related_name='teacher')
-    name = models.CharField('显示名称', max_length=128, default='',
-                            blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name = '教师'
-        verbose_name_plural = '教师'
-
-    def __str__(self):
-        return f'教师: {self.name or self.user.username}'
-
-
 class Student(models.Model):
     """学生 - OneToOne 关联 Django User"""
     class AccountStatus(models.TextChoices):
@@ -29,10 +13,6 @@ class Student(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='student')
-    class_group = models.ForeignKey(
-        'courses.ClassGroup', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='students'
-    )
     student_id = models.CharField(
         '学号', max_length=64,
         unique=True,             # 不允许重复
@@ -108,10 +88,6 @@ class AccountDeletionRequest(models.Model):
 
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='deletion_request',
-    )
-    previous_class_group = models.ForeignKey(
-        'courses.ClassGroup', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='+',
     )
     status = models.CharField(
         '状态', max_length=16,

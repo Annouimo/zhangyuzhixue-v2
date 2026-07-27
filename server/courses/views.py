@@ -1,10 +1,10 @@
-﻿"""讲义 API — 课程列表/章节目录/讲义内容"""
+"""讲义 API — 课程列表/章节目录/讲义内容"""
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from courses.models import ClassCourse, Course, Document
+from courses.models import Course, Document
 
 
 def _ok(data=None, message='ok'):
@@ -17,19 +17,8 @@ def _ok(data=None, message='ok'):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def lecture_courses_list(request):
-    """课程列表 — 学生见自己班级的，教师见全部"""
-    user = request.user
-
-    if hasattr(user, 'teacher'):
-        # 教师可见全部课程
-        courses = Course.objects.all()
-    elif hasattr(user, 'student') and user.student.class_group_id:
-        class_courses = ClassCourse.objects.filter(
-            class_group_id=user.student.class_group_id
-        ).select_related('course')
-        courses = [cc.course for cc in class_courses]
-    else:
-        courses = []
+    """讲义系列对所有已登录用户开放。"""
+    courses = Course.objects.all().order_by('id')
 
     data = [
         {'id': c.id, 'name': c.name, 'description': c.description}

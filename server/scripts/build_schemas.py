@@ -112,38 +112,6 @@ ASSETS_TABLES = {
         'source': 'relation',
     },
 
-    'course': {
-        'columns': [
-            ('id', 'INTEGER PRIMARY KEY'),
-            ('name', 'TEXT NOT NULL'),
-            ('description', 'TEXT'),
-        ],
-        'source_model': 'courses.Course',
-        'transform': 'direct',
-    },
-
-    'assignment': {
-        'columns': [
-            ('id', 'INTEGER PRIMARY KEY'),
-            ('title', 'TEXT NOT NULL'),
-            ('description', 'TEXT'),
-            ('course_id', 'INTEGER'),
-        ],
-        'source_model': 'courses.Assignment',
-        'transform': 'direct',
-    },
-
-    'assignment_question': {
-        'columns': [
-            ('id', 'INTEGER PRIMARY KEY'),
-            ('assignment_id', 'INTEGER NOT NULL'),
-            ('question_id', 'INTEGER NOT NULL'),
-            ('sort_order', 'INTEGER NOT NULL'),
-        ],
-        'source_model': 'courses.AssignmentQuestion',
-        'transform': 'direct',
-    },
-
     'achievement_def': {
         'columns': [
             ('id', 'INTEGER PRIMARY KEY'),
@@ -229,27 +197,6 @@ COURSES_TABLES = {
         'transform': 'lecture_transform',
     },
 
-    'assignment': {
-        'columns': [
-            ('id', 'INTEGER PRIMARY KEY'),
-            ('title', 'TEXT NOT NULL'),
-            ('description', 'TEXT'),
-            ('course_id', 'INTEGER'),
-        ],
-        'source_model': 'courses.Assignment',
-        'transform': 'direct',
-    },
-
-    'assignment_question': {
-        'columns': [
-            ('id', 'INTEGER PRIMARY KEY'),
-            ('assignment_id', 'INTEGER NOT NULL'),
-            ('question_id', 'INTEGER NOT NULL'),
-            ('sort_order', 'INTEGER NOT NULL'),
-        ],
-        'source_model': 'courses.AssignmentQuestion',
-        'transform': 'direct',
-    },
 }
 
 # 所有 schema 定义的列名集合，供 copy_data_direct 过滤 Django 字段用

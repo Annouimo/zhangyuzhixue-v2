@@ -452,10 +452,10 @@ class TestSyncPullUserDB:
         assert resp.status_code == 401
 
     def test_non_student_pull(self, api_client, db):
-        """教师/无student用户 → 40003"""
+        """无 Student 资料的普通用户 → 40003"""
         from django.contrib.auth.models import User
         from rest_framework_simplejwt.tokens import RefreshToken
-        user = User.objects.create_user('teacher', password='test123')
+        user = User.objects.create_user('plain_user', password='test123')
         refresh = RefreshToken.for_user(user)
         api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
         resp = api_client.get(reverse('sync-user-pull'))

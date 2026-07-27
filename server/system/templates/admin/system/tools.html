@@ -139,20 +139,11 @@
     {% csrf_token %}
     <input type="hidden" name="action" value="grant_points">
     <div class="form-row">
-      <label>班级筛选：</label>
-      <select id="class-group-filter" onchange="filterStudents()">
-        <option value="">全部班级</option>
-        {% for cg in class_groups %}
-        <option value="{{ cg.id }}">{{ cg.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="form-row">
       <label>学生：</label>
       <select name="student_id" id="student-select" required>
         <option value="">— 请选择学生 —</option>
         {% for s in students %}
-        <option value="{{ s.id }}" data-class-group-id="{{ s.class_group_id|default:'' }}">
+        <option value="{{ s.id }}">
           {{ s.user.username }}{% if s.student_id %}（{{ s.student_id }}）{% endif %}
         </option>
         {% endfor %}
@@ -172,22 +163,5 @@
     <button type="submit" class="tool-btn tool-btn-warning">🎁 赠送积分</button>
   </form>
 </div>
-
-<script>
-function filterStudents() {
-  const classGroupId = document.getElementById('class-group-filter').value;
-  const studentSelect = document.getElementById('student-select');
-  for (const option of studentSelect.options) {
-    if (!option.value) continue;
-    const cgId = option.getAttribute('data-class-group-id');
-    option.style.display = (!classGroupId || cgId === classGroupId) ? '' : 'none';
-  }
-  const selected = studentSelect.selectedOptions[0];
-  if (selected && !selected.value) return;
-  if (selected && selected.style.display === 'none') {
-    studentSelect.value = '';
-  }
-}
-</script>
 
 {% endblock %}

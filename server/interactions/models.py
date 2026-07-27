@@ -11,10 +11,6 @@ class StudentSubmission(models.Model):
         Student, on_delete=models.CASCADE,
         related_name='submissions'
     )
-    assignment = models.ForeignKey(
-        'courses.Assignment', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='submissions'
-    )
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 

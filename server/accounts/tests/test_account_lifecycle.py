@@ -8,24 +8,21 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import AccountDeletionRequest, Student, Teacher
-from courses.models import ClassGroup
+from accounts.models import AccountDeletionRequest, Student
 
 
 @pytest.fixture
 def account(db):
-    group = ClassGroup.objects.create(name='测试班')
     user = User.objects.create_user(
         'delete_me', password='test-password-123', first_name='测试学生',
     )
     student = Student.objects.create(
         user=user,
-        class_group=group,
         school='测试学校',
         phone='13800000000',
         gaokao_year=2027,
     )
-    return user, student, group
+    return user, student
 
 
 def authenticated_client(user):
@@ -38,7 +35,7 @@ def authenticated_client(user):
 @pytest.mark.django_db
 class TestAccountDeletion:
     def test_request_requires_current_password(self, account):
-        user, _, _ = account
+        user, _ = account
         response = authenticated_client(user).post(
             reverse('account-deletion'),
             {'current_password': 'wrong-password'},
@@ -49,7 +46,7 @@ class TestAccountDeletion:
         assert user.is_active is True
 
     def test_request_disables_and_hides_account(self, account):
-        user, student, group = account
+        user, student = account
         client = authenticated_client(user)
         response = client.post(
             reverse('account-deletion'),
@@ -62,16 +59,14 @@ class TestAccountDeletion:
         student.refresh_from_db()
         deletion_request = AccountDeletionRequest.objects.get(user=user)
         assert user.is_active is False
-        assert student.class_group is None
         assert student.account_status == Student.AccountStatus.PENDING_DELETION
-        assert deletion_request.previous_class_group == group
         assert deletion_request.scheduled_for > timezone.now()
 
         blocked = client.get(reverse('user-me'))
         assert blocked.status_code == 401
 
-    def test_cancel_restores_account_and_class(self, account):
-        user, student, group = account
+    def test_cancel_restores_account(self, account):
+        user, student = account
         authenticated_client(user).post(
             reverse('account-deletion'),
             {'current_password': 'test-password-123'},
@@ -88,12 +83,11 @@ class TestAccountDeletion:
         student.refresh_from_db()
         deletion_request = AccountDeletionRequest.objects.get(user=user)
         assert user.is_active is True
-        assert student.class_group == group
         assert student.account_status == Student.AccountStatus.ACTIVE
         assert deletion_request.status == AccountDeletionRequest.Status.CANCELLED
 
     def test_due_request_is_irreversibly_anonymized(self, account):
-        user, student, _ = account
+        user, student = account
         original_user_id = user.pk
         authenticated_client(user).post(
             reverse('account-deletion'),
@@ -118,30 +112,11 @@ class TestAccountDeletion:
         assert student.account_status == Student.AccountStatus.ANONYMIZED
         assert deletion_request.status == AccountDeletionRequest.Status.ANONYMIZED
 
-    def test_teacher_cannot_open_pending_student(self, account):
-        user, student, _ = account
-        authenticated_client(user).post(
-            reverse('account-deletion'),
-            {'current_password': 'test-password-123'},
-            format='json',
-        )
-        teacher_user = User.objects.create_user('teacher', password='teacher-pass')
-        Teacher.objects.create(user=teacher_user)
-        teacher_client = authenticated_client(teacher_user)
-
-        listing = teacher_client.get(reverse('teacher-student-list'))
-        detail = teacher_client.get(
-            reverse('teacher-student-detail', kwargs={'id': student.pk}),
-        )
-        assert listing.status_code == 200
-        assert listing.data['data'] == []
-        assert detail.status_code == 404
-
 
 @pytest.mark.django_db
 class TestPasswordChange:
     def test_change_password_revokes_existing_token(self, account):
-        user, _, _ = account
+        user, _ = account
         client = authenticated_client(user)
         response = client.post(
             reverse('password-change'),
@@ -161,7 +136,7 @@ class TestPasswordChange:
         assert login.status_code == 200
 
     def test_change_password_rejects_wrong_current_password(self, account):
-        user, _, _ = account
+        user, _ = account
         response = authenticated_client(user).post(
             reverse('password-change'),
             {

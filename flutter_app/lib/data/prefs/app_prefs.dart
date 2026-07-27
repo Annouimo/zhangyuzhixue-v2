@@ -9,13 +9,10 @@ abstract final class PrefKeys {
   static const refreshToken = 'app_refresh_token';
   static const qbankVersion = 'app_qbank_version';
   static const coursesVersion = 'app_courses_version';
-  static const accessibleCourses = 'app_accessible_courses';
   static const lastUpdatePrompt = 'app_last_update_prompt';
   static const ratingCooldownPrefix = 'app_rating_cooldown_';
   static const firstLaunchComplete = 'app_first_launch';
   static const lastSyncTime = 'app_last_sync_time';
-  static const pendingHomeworkCount = 'app_pending_homework_count';
-  static const pendingAssignments = 'app_pending_assignments';  // JSON 缓存
   static const levelPercentile = 'app_level_percentile';
   static const userVersion = 'app_user_version';
   static const lastKnownLevel = 'app_last_known_level';
@@ -79,38 +76,6 @@ class AppPrefs {
     return v;
   }
   Future<bool> setCoursesVersion(int v) => p.setInt(PrefKeys.coursesVersion, v);
-
-  // ── 可访问课程缓存 ──
-
-  List<int> get accessibleCourseIds {
-    final raw = p.getString(PrefKeys.accessibleCourses);
-    AuditLogger.instance.prefs('accessibleCourseIds', raw);
-    if (raw == null) return [];
-    try {
-      return (raw.split(',')).map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toList();
-    } catch (e) {
-      AuditLogger.instance.error('AppPrefs.accessibleCourseIds', e);
-      return [];
-    }
-  }
-
-  Future<bool> setAccessibleCourseIds(List<int> ids) =>
-      p.setString(PrefKeys.accessibleCourses, ids.join(','));
-
-  // ── 待办作业计数 ──
-
-  int get pendingHomeworkCount {
-    final v = p.getInt(PrefKeys.pendingHomeworkCount) ?? 0;
-    AuditLogger.instance.prefs(PrefKeys.pendingHomeworkCount, v);
-    return v;
-  }
-  Future<bool> setPendingHomeworkCount(int v) => p.setInt(PrefKeys.pendingHomeworkCount, v);
-
-  // ── 待办作业列表缓存（JSON，用于秒开） ──
-
-  String? get pendingAssignmentsJson => p.getString(PrefKeys.pendingAssignments);
-  Future<bool> setPendingAssignmentsJson(String json) =>
-      p.setString(PrefKeys.pendingAssignments, json);
 
   // ── 等级百分位缓存 ──
 

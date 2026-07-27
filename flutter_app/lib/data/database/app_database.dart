@@ -18,7 +18,6 @@ class UserProfiles extends Table {
   TextColumn? get avatar => text().nullable()();
   TextColumn? get school => text().nullable()();
   TextColumn? get gaokaoYear => text().nullable()();
-  IntColumn? get classGroupId => integer().nullable()();
   TextColumn? get phone => text().nullable()();
   TextColumn? get updatedAt => text().nullable()();
 
@@ -73,7 +72,6 @@ class Submissions extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn? get serverId => integer().nullable()();
   IntColumn get studentId => integer()();
-  IntColumn? get assignmentId => integer().nullable()();
   TextColumn get createdAt => text()();
   TextColumn get updatedAt => text()();
 }
@@ -251,7 +249,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
   // ⚠️ 与 server/interactions/sync_views.py 的 USER_DB_SCHEMA 双轨演进。
   // 服务端 USER_DB_SCHEMA 建表 + _dump_* 写入列必须与此 schema 对齐。
   // 修改任一端时必须同步修改另一端。

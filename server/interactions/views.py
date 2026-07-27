@@ -117,7 +117,6 @@ class SyncPushView(APIView):
         # 创建提交头
         submission = StudentSubmission.objects.create(
             student=student,
-            assignment_id=data.get('assignment_id'),
         )
         detail_cache[submission.pk] = []
 

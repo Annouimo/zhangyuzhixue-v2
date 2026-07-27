@@ -73,7 +73,7 @@ def _err(code, detail, http_status=400):
 #   - 服务端: USER_DB_SCHEMA (此文件) + _dump_* 函数
 #   - 客户端: AppDatabase (app_database.dart) schemaVersion + MigrationStrategy
 # 修改任一端时必须同时修改另一端。
-USER_DB_SCHEMA_VERSION = 1
+USER_DB_SCHEMA_VERSION = 2
 
 USER_DB_SCHEMA = """
 CREATE TABLE IF NOT EXISTS user_profile (
@@ -84,7 +84,6 @@ CREATE TABLE IF NOT EXISTS user_profile (
     avatar TEXT,
     school TEXT,
     gaokao_year TEXT,
-    class_group_id INTEGER,
     phone TEXT,
     updated_at TEXT
 );
@@ -119,7 +118,6 @@ CREATE TABLE IF NOT EXISTS submission (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id INTEGER,
     student_id INTEGER NOT NULL,
-    assignment_id INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -242,8 +240,8 @@ def _dump_user_profile(conn, student):
     conn.execute(
         'INSERT OR REPLACE INTO user_profile '
         '(id, name, real_name, student_id, avatar, school, '
-        'gaokao_year, class_group_id, phone, updated_at) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'gaokao_year, phone, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
             user.pk,
             user.username,
@@ -252,7 +250,6 @@ def _dump_user_profile(conn, student):
             student.avatar or None,
             student.school or None,
             str(student.gaokao_year) if student.gaokao_year else None,
-            student.class_group_id,
             student.phone or None,
             _fmt_dt(student.updated_at),
         ],
@@ -319,10 +316,10 @@ def _dump_submissions(conn, student):
     for sub in submissions:
         conn.execute(
             'INSERT INTO submission '
-            '(id, server_id, student_id, assignment_id, created_at, updated_at) '
-            'VALUES (?, ?, ?, ?, ?, ?)',
+            '(id, server_id, student_id, created_at, updated_at) '
+            'VALUES (?, ?, ?, ?, ?)',
             [
-                sub.pk, sub.pk, student.pk, sub.assignment_id,
+                sub.pk, sub.pk, student.pk,
                 _fmt_dt(sub.created_at), _fmt_dt(sub.updated_at),
             ],
         )

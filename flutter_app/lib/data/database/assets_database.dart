@@ -103,35 +103,6 @@ class QuestionKnowledgeCards extends Table {
   IntColumn get knowledgeCardId => integer()();
 }
 
-@DataClassName('CourseRow')
-class Courses extends Table {
-  @override
-  String get tableName => 'course';
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
-  TextColumn? get description => text().nullable()();
-}
-
-@DataClassName('AssignmentRow')
-class Assignments extends Table {
-  @override
-  String get tableName => 'assignment';
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get title => text()();
-  TextColumn? get description => text().nullable()();
-  IntColumn? get courseId => integer().nullable()();
-}
-
-@DataClassName('AssignmentQuestionRow')
-class AssignmentQuestions extends Table {
-  @override
-  String get tableName => 'assignment_question';
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get assignmentId => integer()();
-  IntColumn get questionId => integer()();
-  IntColumn get sortOrder => integer()();
-}
-
 @DataClassName('AchievementDefRow')
 class AchievementDefs extends Table {
   @override
@@ -197,9 +168,6 @@ class Meta extends Table {
   KnowledgeCards,
   QuestionConceptTags,
   QuestionKnowledgeCards,
-  Courses,
-  Assignments,
-  AssignmentQuestions,
   AchievementDefs,
   LevelConfigs,
   SystemConfigs,

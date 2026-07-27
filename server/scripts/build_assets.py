@@ -71,8 +71,7 @@ def main():
         os.path.dirname(os.path.abspath(__file__)),
         '..', 'static', 'questions', 'images')
     targets = []
-    for rel in ['..', 'flutter_app', 'assets', 'questions', 'images'], \
-               ['..', 'teacher_app', 'assets', 'questions', 'images']:
+    for rel in [['..', 'flutter_app', 'assets', 'questions', 'images']]:
         target = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             *rel)
@@ -93,8 +92,7 @@ def main():
                     flat_name = rel.replace('\\', '/').replace('/', '_')
                     shutil.copy2(os.path.join(root, f), os.path.join(flutter_assets, flat_name))
                     total_count += 1
-            label = 'teacher' if 'teacher' in flutter_assets else 'student'
-            print(f'  {label}: {total_count} 张配图')
+            print(f'  student: {total_count} 张配图')
         print(f'✅ 配图同步完成')
 
 

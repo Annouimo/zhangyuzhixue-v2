@@ -13,17 +13,15 @@ def admin_user(db):
 
 @pytest.fixture
 def test_data(db):
-    """创建测试数据：班级、学生"""
-    from courses.models import ClassGroup
+    """创建测试学生。"""
     from accounts.models import Student
-    cg = ClassGroup.objects.create(name='高三1班')
     user = User.objects.create_user(
         'teststudent', 'test@test.com', 'pass123'
     )
     student = Student.objects.create(
-        user=user, class_group=cg, student_id='XS-000001'
+        user=user, student_id='XS-000001'
     )
-    return {'class_group': cg, 'student': student}
+    return {'student': student}
 
 
 class TestAdminTools:

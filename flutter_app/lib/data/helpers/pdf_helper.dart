@@ -122,7 +122,7 @@ class PdfHelper {
 
   /// 完整 PDF 下载/打印流程
   ///
-  /// [sourceType] 'paper'（默认）| 'assignment'
+  /// [sourceType] 当前固定为 'paper'
   /// [context] 可选，提供时若引导未关闭则弹出引导弹窗
   ///
   /// 使用方示例：

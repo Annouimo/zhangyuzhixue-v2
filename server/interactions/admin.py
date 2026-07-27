@@ -1,4 +1,4 @@
-﻿from django.contrib import admin
+from django.contrib import admin
 
 from .models import (
     CardFeedback, CustomPaper, CustomPaperQuestion, PageSatisfactionFeedback,
@@ -15,8 +15,8 @@ class SubmissionDetailInline(admin.TabularInline):
 
 @admin.register(StudentSubmission)
 class StudentSubmissionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'student', 'assignment', 'created_at', 'updated_at']
-    list_select_related = ['student', 'assignment']
+    list_display = ['id', 'student', 'created_at', 'updated_at']
+    list_select_related = ['student']
     list_filter = ['created_at']
     inlines = [SubmissionDetailInline]
 

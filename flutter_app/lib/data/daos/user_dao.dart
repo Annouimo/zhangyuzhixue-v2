@@ -24,7 +24,6 @@ class UserDao {
     String? school,
     String? gaokaoYear,
     String? phone,
-    int? classGroupId,
   }) async {
     final now = DateTime.now().toIso8601String();
     final existing = await (_db.select(_db.userProfiles)
@@ -35,8 +34,7 @@ class UserDao {
         name: Value(name), realName: Value(realName),
         studentId: Value(studentId), avatar: Value(avatar),
         school: Value(school), gaokaoYear: Value(gaokaoYear),
-        phone: Value(phone),
-        classGroupId: Value(classGroupId), updatedAt: Value(now),
+        phone: Value(phone), updatedAt: Value(now),
       ));
     } else {
       await _db.into(_db.userProfiles).insert(db.UserProfilesCompanion(
@@ -44,7 +42,6 @@ class UserDao {
         realName: Value(realName), studentId: Value(studentId),
         avatar: Value(avatar), school: Value(school),
         gaokaoYear: Value(gaokaoYear), phone: Value(phone),
-        classGroupId: Value(classGroupId),
         updatedAt: Value(now),
       ));
     }

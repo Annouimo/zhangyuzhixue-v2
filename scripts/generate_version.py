@@ -97,7 +97,7 @@ def update_iss_file(iss_path: Path, release: dict[str, str]) -> bool:
         return False
     if n > 1:
         print(f'WARN: found {n} MyAppVersion definitions in {iss_path}; updated all')
-    output_name = '章鱼智学-教师端' if 'teacher' in iss_path.name else '章鱼智学'
+    output_name = '章鱼智学'
     new_text = re.sub(
         r'^OutputBaseFilename=.*$',
         f'OutputBaseFilename={output_name}-{release_label}-windows',
@@ -113,7 +113,6 @@ def update_iss_file(iss_path: Path, release: dict[str, str]) -> bool:
 ISSUES_DIR = Path(__file__).resolve().parent.parent / 'docs' / '07-工作流'
 APP_ISS_MAP = {
     'flutter_app': ISSUES_DIR / 'build_script_student.iss',
-    'teacher_app': ISSUES_DIR / 'build_script_teacher.iss',
 }
 
 if __name__ == '__main__':
@@ -122,19 +121,13 @@ if __name__ == '__main__':
 
     # 以 flutter_app 版本为基准更新 shared 包
     release = read_release(root / 'flutter_app')
-    teacher_release = read_release(root / 'teacher_app')
-    if release is None or teacher_release is None:
-        ok = False
-    elif release != teacher_release:
-        print('ERROR: student and teacher release versions differ', file=sys.stderr)
-        print(f'   student={release}', file=sys.stderr)
-        print(f'   teacher={teacher_release}', file=sys.stderr)
+    if release is None:
         ok = False
     else:
         if not update_shared_app_version(root, release):
             ok = False
         # 同步 .iss 文件（Windows Installer）
-        for name in ('flutter_app', 'teacher_app'):
+        for name in ('flutter_app',):
             iss = APP_ISS_MAP.get(name)
             if iss and not update_iss_file(iss, release):
                 ok = False

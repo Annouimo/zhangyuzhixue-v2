@@ -1,7 +1,6 @@
 /// 章鱼智学 v2 - 共享组件库
 ///
-/// 学生端 (flutter_app) 和 教师端 (teacher_app) 共用。
-/// 两端通过 pubspec.yaml 的 `shared: path: ../packages/shared` 引用。
+/// 学生端通过 pubspec.yaml 的 `shared: path: ../packages/shared` 引用。
 
 // ── 主题 ──
 export 'theme/app_theme.dart';

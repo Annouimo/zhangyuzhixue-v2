@@ -104,28 +104,22 @@ def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
 
-    database_pairs = {
-        "qbank": (root / "flutter_app/assets/db/assets.db", root / "teacher_app/assets/db/assets.db"),
-        "courses": (root / "flutter_app/assets/db/courses.db", root / "teacher_app/assets/db/courses.db"),
+    databases = {
+        "qbank": root / "flutter_app/assets/db/assets.db",
+        "courses": root / "flutter_app/assets/db/courses.db",
     }
     local: dict[str, DatabaseInfo] = {}
-    for db_type, paths in database_pairs.items():
+    for db_type, path in databases.items():
         try:
-            student, teacher = map(inspect_database, paths)
-            local[db_type] = student
-            if student.sha256 != teacher.sha256:
-                errors.append(f"{db_type}: student and teacher bundled databases differ")
-            print(f"LOCAL {db_type} schema={student.schema_version} data={student.data_version} sha256={student.sha256}")
+            database = inspect_database(path)
+            local[db_type] = database
+            print(f"LOCAL {db_type} schema={database.schema_version} data={database.data_version} sha256={database.sha256}")
         except (OSError, sqlite3.Error, ValueError) as error:
             errors.append(str(error))
 
     try:
         student_pubspec = (root / "flutter_app/pubspec.yaml").read_text(encoding="utf-8")
-        teacher_pubspec = (root / "teacher_app/pubspec.yaml").read_text(encoding="utf-8")
         student_version = field(student_pubspec, r"^version:\s*(\S+)", "student version")
-        teacher_version = field(teacher_pubspec, r"^version:\s*(\S+)", "teacher version")
-        if student_version != teacher_version:
-            errors.append(f"client versions differ: student={student_version}, teacher={teacher_version}")
 
         version_name, build_number = student_version.split("+", 1)
         major, minor, _patch = version_name.split(".")
@@ -140,20 +134,12 @@ def main() -> int:
                 f"student MSIX version mismatch: expected={expected_msix_version}, actual={msix_version}"
             )
 
-        installer_values: dict[str, tuple[str, str, str]] = {}
-        for name in ("student", "teacher"):
-            text = (root / f"docs/07-工作流/build_script_{name}.iss").read_text(encoding="utf-8")
-            installer_values[name] = (
-                field(text, r"^AppId=\{\{([^}]+)\}", f"{name} AppId"),
-                field(text, r"^DefaultDirName=(.+)$", f"{name} install directory"),
-                field(text, r"^OutputDir=(.+)$", f"{name} output directory"),
-            )
-        for index, label in enumerate(("AppId", "install directory", "output directory")):
-            if installer_values["student"][index].casefold() == installer_values["teacher"][index].casefold():
-                errors.append(f"Windows installers share the same {label}")
-        for name, values in installer_values.items():
-            if "\\build\\windows\\" in values[2].casefold():
-                errors.append(f"{name}: installer output is mixed into the Flutter build tree")
+        installer = (root / "docs/07-工作流/build_script_student.iss").read_text(encoding="utf-8")
+        output_directory = field(
+            installer, r"^OutputDir=(.+)$", "student output directory",
+        )
+        if "\\build\\windows\\" in output_directory.casefold():
+            errors.append("student: installer output is mixed into the Flutter build tree")
     except (OSError, ValueError) as error:
         errors.append(str(error))
 

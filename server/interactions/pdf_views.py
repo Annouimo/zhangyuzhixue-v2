@@ -14,7 +14,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
-from courses.models import Assignment, AssignmentQuestion
 from qbank.models import ChoiceExt, SubQuestion
 from accounts.throttles import PdfTokenRateThrottle
 
@@ -79,16 +78,6 @@ def pdf_request_token(request):
         paper = get_object_or_404(CustomPaper, id=source_id)
         if paper.student_id != student.pk and not paper.is_public:
             return _err(40301, '无权访问该试卷')
-    elif source_type == 'assignment':
-        assignment = get_object_or_404(Assignment, id=source_id)
-        if not student.class_group_id:
-            return _err(40301, '无权访问该作业')
-        has_access = assignment.class_course_assignments.filter(
-            class_course__class_group_id=student.class_group_id,
-            is_active=True,
-        ).exists()
-        if not has_access:
-            return _err(40301, '无权访问该作业')
     else:
         return _err(40201, '无效的 source_type')
 
@@ -290,24 +279,14 @@ def pdf_view(request):
         return HttpResponseForbidden('用户不存在')
 
     # 查题目
-    if source_type == 'assignment':
-        try:
-            assignment = Assignment.objects.get(id=source_id)
-        except Assignment.DoesNotExist:
-            return HttpResponseNotFound('作业不存在')
-        title = assignment.title
-        qs = AssignmentQuestion.objects.filter(
-            assignment_id=source_id
-        ).order_by('sort_order').select_related('question')
-    else:
-        try:
-            paper = CustomPaper.objects.get(id=source_id)
-        except CustomPaper.DoesNotExist:
-            return HttpResponseNotFound('试卷不存在')
-        title = paper.title
-        qs = CustomPaperQuestion.objects.filter(
-            paper=paper
-        ).order_by('sort_order').select_related('question')
+    try:
+        paper = CustomPaper.objects.get(id=source_id)
+    except CustomPaper.DoesNotExist:
+        return HttpResponseNotFound('试卷不存在')
+    title = paper.title
+    qs = CustomPaperQuestion.objects.filter(
+        paper=paper
+    ).order_by('sort_order').select_related('question')
 
     sections = _build_sections(qs)
 

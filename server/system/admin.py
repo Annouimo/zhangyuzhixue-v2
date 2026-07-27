@@ -139,7 +139,6 @@ class ToolsView(View):
     def _get_context(self, request):
         """准备模板上下文"""
         from accounts.models import InvitationCode, Student
-        from courses.models import ClassGroup
         from interactions.models import SubmissionDetail, StudentSubmission
         from accounts.models import UserLoginLog
         from django.utils import timezone as tz
@@ -148,10 +147,7 @@ class ToolsView(View):
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
             'courses_version': DbVersion.objects.filter(db_type='courses').first(),
             'invitation_codes': InvitationCode.objects.all().order_by('-created_at')[:50],
-            'class_groups': ClassGroup.objects.all().order_by('name'),
-            'students': Student.objects.select_related('user', 'class_group').order_by(
-                'class_group__name', 'user__username'
-            ),
+            'students': Student.objects.select_related('user').order_by('user__username'),
             'has_error': False,
             'messages': [],
             'now': timezone.now(),

@@ -8,7 +8,6 @@ import django; django.setup()
 from django.contrib.auth.models import User
 from django.utils import timezone
 from accounts.models import Student
-from courses.models import Assignment
 from interactions.models import StudentSubmission
 from system.models import PointsTransaction
 
@@ -34,11 +33,9 @@ existing = StudentSubmission.objects.filter(student=student).count()
 if existing > 0:
     print(f'Skipping submissions: {existing} already exist')
 else:
-    assignments = list(Assignment.objects.all())
     for i in range(20):
         StudentSubmission.objects.create(
             student=student,
-            assignment=assignments[i % len(assignments)] if assignments else None,
         )
     print(f'Created 20 submissions')
 

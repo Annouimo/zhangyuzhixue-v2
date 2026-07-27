@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from accounts.models import Teacher
 from courses.models import Course, Document
 
 
@@ -14,16 +13,14 @@ def api_client():
 
 
 @pytest.fixture
-def teacher_user(db):
-    user = User.objects.create_user('lecteacher', password='test123')
-    Teacher.objects.create(user=user)
-    return user
+def student_user(db):
+    return User.objects.create_user('lecturestudent', password='test123')
 
 
 @pytest.fixture
-def auth_client(api_client, teacher_user):
+def auth_client(api_client, student_user):
     from rest_framework_simplejwt.tokens import RefreshToken
-    refresh = RefreshToken.for_user(teacher_user)
+    refresh = RefreshToken.for_user(student_user)
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
     return api_client
 
@@ -47,12 +44,12 @@ def sample_documents(db, sample_course):
 class TestLectureCourses:
     """课程列表 API 测试"""
 
-    def test_teacher_sees_no_courses_anymore(self, auth_client):
-        """教师不再通过学生端 API 看讲义，返回空列表"""
+    def test_authenticated_user_sees_all_courses(self, auth_client, sample_course):
+        """讲义不再按班级或角色限制。"""
         resp = auth_client.get(reverse('lecture-courses'))
         assert resp.status_code == 200
         assert resp.data['code'] == 0
-        assert len(resp.data['data']) == 0
+        assert [item['id'] for item in resp.data['data']] == [sample_course.id]
 
 
 class TestLectureChapters:

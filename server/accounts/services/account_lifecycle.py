@@ -35,7 +35,6 @@ def request_account_deletion(user, current_password):
     deletion_request, _ = AccountDeletionRequest.objects.update_or_create(
         user=locked_user,
         defaults={
-            'previous_class_group': student.class_group,
             'status': AccountDeletionRequest.Status.PENDING,
             'requested_at': now,
             'scheduled_for': now + timedelta(days=DELETION_COOLDOWN_DAYS),
@@ -44,8 +43,7 @@ def request_account_deletion(user, current_password):
         },
     )
     student.account_status = Student.AccountStatus.PENDING_DELETION
-    student.class_group = None
-    student.save(update_fields=['account_status', 'class_group', 'updated_at'])
+    student.save(update_fields=['account_status', 'updated_at'])
     locked_user.is_active = False
     locked_user.save(update_fields=['is_active'])
     return deletion_request
@@ -74,8 +72,7 @@ def cancel_account_deletion(username, password):
 
     student = Student.objects.select_for_update().get(user=user)
     student.account_status = Student.AccountStatus.ACTIVE
-    student.class_group = deletion_request.previous_class_group
-    student.save(update_fields=['account_status', 'class_group', 'updated_at'])
+    student.save(update_fields=['account_status', 'updated_at'])
     user.is_active = True
     user.save(update_fields=['is_active'])
     deletion_request.status = AccountDeletionRequest.Status.CANCELLED
@@ -125,16 +122,14 @@ def anonymize_account(deletion_request):
     student.phone = ''
     student.gaokao_year = None
     student.avatar = ''
-    student.class_group = None
     student.account_status = Student.AccountStatus.ANONYMIZED
     student.save()
 
     InvitationCode.objects.filter(used_by=user).update(used_by=None)
     deletion_request.status = AccountDeletionRequest.Status.ANONYMIZED
     deletion_request.anonymized_at = timezone.now()
-    deletion_request.previous_class_group = None
     deletion_request.save(update_fields=[
-        'status', 'anonymized_at', 'previous_class_group',
+        'status', 'anonymized_at',
     ])
     return True
 

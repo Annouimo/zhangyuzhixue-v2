@@ -9,11 +9,11 @@ import 'package:shared/widgets/empty_placeholder.dart';
 ///
 /// 用法：
 /// ```dart
-/// AsyncLoadWidget<List<AssignmentSummary>>(
+/// AsyncLoadWidget<List<Item>>(
 ///   onLoad: () => _repo.getPending(),
 ///   builder: (ctx, list) => ListView.builder(
 ///     itemCount: list.length,
-///     itemBuilder: (_, i) => AssignmentCard(...),
+///     itemBuilder: (_, i) => ItemTile(...),
 ///   ),
 ///   emptyWidget: EmptyPlaceholder(icon: Icons.assignment, message: '暂无'),
 /// )

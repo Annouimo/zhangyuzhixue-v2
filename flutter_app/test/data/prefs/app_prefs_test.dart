@@ -34,15 +34,6 @@ void main() {
       expect(AppPrefs().coursesVersion, 3);
     });
 
-    test('accessibleCourseIds defaults to empty', () async {
-      expect(AppPrefs().accessibleCourseIds, isEmpty);
-    });
-
-    test('accessibleCourseIds read/write', () async {
-      await AppPrefs().setAccessibleCourseIds([1, 2, 3]);
-      expect(AppPrefs().accessibleCourseIds, [1, 2, 3]);
-    });
-
     test('clearAll clears everything', () async {
       await AppPrefs().setAccessToken('tok');
       await AppPrefs().setQbankVersion(5);

@@ -11,8 +11,6 @@ import 'solve/solve_step_page.dart';
 import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
-import 'homework/homework_detail_page.dart';
-import 'homework/homework_list_page.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'exam/exam_auto_page.dart';
 import 'exam/exam_pick_page.dart';
@@ -48,8 +46,6 @@ abstract final class AppRoutes {
   static const solveRate = '/solve/rate';
   static const lectureChapters = '/lecture/chapters';
   static const lectureContent = '/lecture/content';
-  static const homeworkDetail = '/homework/detail';
-  static const homeworkList = '/homework/list';
   static const lectureCourses = '/lecture/courses';
   static const examAuto = '/exam/auto';
   static const examPick = '/exam/pick';
@@ -198,20 +194,6 @@ final GoRouter appRouter = GoRouter(
           initialPage: _intParam(state.uri.queryParameters, 'page') ?? 1,
         );
       },
-    ),
-    GoRoute(
-      path: AppRoutes.homeworkDetail,
-      name: 'homework-detail',
-      builder: (_, state) {
-        return HomeworkDetailPage(
-          assignmentId: _intParam(state.uri.queryParameters, 'id') ?? 0,
-        );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.homeworkList,
-      name: 'homework-list',
-      builder: (_, _) => HomeworkListPage(),
     ),
     GoRoute(
       path: AppRoutes.lectureCourses,

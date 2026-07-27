@@ -15,7 +15,6 @@ urlpatterns = [
     path('avatar/', views.avatar_upload_view, name='user-avatar'),
     path('checkin/', views.checkin_view, name='user-checkin'),
     path('level-percentile/', views.level_percentile_view, name='user-level-percentile'),
-    path('pending-assignments/', views.pending_assignments_view, name='user-pending-assignments'),
     path('deletion/', views.account_deletion_view, name='account-deletion'),
     path('password/', views.password_change_view, name='password-change'),
 ]

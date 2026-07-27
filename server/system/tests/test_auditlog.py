@@ -3,16 +3,8 @@
 from auditlog.registry import auditlog as auditlog_registry
 from django.contrib.auth.models import User
 
-from accounts.models import InvitationCode, Student, Teacher
-from courses.models import (
-    Assignment,
-    AssignmentQuestion,
-    ClassCourse,
-    ClassCourseAssignment,
-    ClassGroup,
-    Course,
-    Document,
-)
+from accounts.models import InvitationCode, Student
+from courses.models import Course, Document
 from qbank.models import (
     BaseQuestion,
     ChoiceExt,
@@ -28,13 +20,11 @@ from system.models import DbVersion
 # ── 应审计模型名单 ────────────────────────────────────────────
 
 EXPECTED_REGISTERED = [
-    Student, Teacher, InvitationCode,
+    Student, InvitationCode,
     BaseQuestion, ChoiceExt, SubQuestion,
     SolutionMethod, SolutionStep,
     KnowledgeCard, ConceptTag,
-    Course, ClassGroup, ClassCourse,
-    Assignment, AssignmentQuestion, ClassCourseAssignment,
-    Document,
+    Course, Document,
     DbVersion,
     User,
 ]
@@ -62,10 +52,10 @@ class TestAuditlogRegistration:
             assert model in reg_set, f'{model_name} 未注册到 auditlog'
 
     def test_registered_count(self):
-        """注册的模型数量符合预期（19 个）"""
+        """注册的模型数量符合预期。"""
         registered = list(auditlog_registry.get_models())
-        assert len(registered) >= 19, (
-            f'预期至少 19 个模型，实际 {len(registered)}'
+        assert len(registered) >= len(EXPECTED_REGISTERED), (
+            f'预期至少 {len(EXPECTED_REGISTERED)} 个模型，实际 {len(registered)}'
         )
 
     def test_unregistered_interactions_models(self):

@@ -49,36 +49,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  teacher:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.44'
-          channel: 'stable'
-          cache: true
-      - name: flutter pub get
-        working-directory: teacher_app
-        run: flutter pub get
-      - name: dart analyze
-        working-directory: teacher_app
-        run: dart analyze
-      - name: flutter test
-        working-directory: teacher_app
-        run: |
-          mkdir -p build/test-results
-          flutter test --file-reporter=json:build/test-results/teacher.json
-      - name: Upload teacher test results
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: teacher-test-results
-          path: teacher_app/build/test-results/teacher.json
-          if-no-files-found: ignore
-          retention-days: 14
-
   django:
     runs-on: ubuntu-22.04
     timeout-minutes: 20

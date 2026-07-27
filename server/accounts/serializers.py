@@ -76,7 +76,6 @@ class UserSerializer(serializers.ModelSerializer):
     real_name = serializers.SerializerMethodField()
     role = serializers.SerializerMethodField()
     student_id = serializers.SerializerMethodField()
-    class_group_id = serializers.SerializerMethodField()
     school = serializers.SerializerMethodField()
     gaokao_year = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
@@ -86,7 +85,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'real_name', 'role', 'student_id',
-            'class_group_id', 'school', 'gaokao_year', 'avatar', 'phone',
+            'school', 'gaokao_year', 'avatar', 'phone',
         ]
 
     def get_real_name(self, obj) -> str:
@@ -95,18 +94,11 @@ class UserSerializer(serializers.ModelSerializer):
     def get_role(self, obj) -> str:
         if hasattr(obj, 'student'):
             return 'student'
-        if hasattr(obj, 'teacher'):
-            return 'teacher'
         return 'admin'
 
     def get_student_id(self, obj) -> str | None:
         if hasattr(obj, 'student'):
             return obj.student.student_id
-        return None
-
-    def get_class_group_id(self, obj) -> int | None:
-        if hasattr(obj, 'student') and hasattr(obj.student, 'class_group_id'):
-            return obj.student.class_group_id
         return None
 
     def get_school(self, obj) -> str | None:

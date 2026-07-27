@@ -127,7 +127,7 @@ def validate(root: Path) -> list[str]:
         content = robots.read_text(encoding="utf-8")
         if "Sitemap: https://zhangyuzhixue.top/sitemap.xml" not in content:
             issues.append("robots.txt: production sitemap declaration is missing")
-        for private_path in ("/internal.html", "/teacher/"):
+        for private_path in ("/internal.html",):
             if f"Disallow: {private_path}" not in content:
                 issues.append(f"robots.txt: missing Disallow for {private_path}")
 

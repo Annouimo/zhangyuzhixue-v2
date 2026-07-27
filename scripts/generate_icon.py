@@ -20,7 +20,6 @@ SPLASH_SOURCE = ROOT / 'docs/00-整体情况/logo_mark_reverse_2048.png'
 ANDROID_SIZES = {'mipmap-mdpi': 48, 'mipmap-hdpi': 72, 'mipmap-xhdpi': 96,
                  'mipmap-xxhdpi': 144, 'mipmap-xxxhdpi': 192}
 ANDROID_MIPMAP = 'android/app/src/main/res'
-TEACHER_MIPMAP = 'android/app/src/main/res'
 
 # Windows ICO
 ICO_SIZES = [16, 32, 48, 256]
@@ -72,7 +71,7 @@ def process():
     square = _load_square()
     print(f'✂️ 正方形: {square.size}')
 
-    apps = ['flutter_app', 'teacher_app']
+    apps = ['flutter_app']
 
     for app in apps:
         mipmap_base = ROOT / app / ANDROID_MIPMAP

@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
     [switch]$Build,
-    [switch]$IncludeTeacher,
     [switch]$AllowDirty
 )
 
@@ -23,7 +22,7 @@ function Invoke-CheckedCommand {
 
 Write-Host "Windows client release"
 Write-Host "  Mode: $(if ($Build) { 'BUILD' } else { 'DRY-RUN' })"
-Write-Host "  Apps: student$(if ($IncludeTeacher) { ' + teacher' } else { '' })"
+Write-Host "  App: student"
 
 Push-Location $repoRoot
 try {
@@ -33,9 +32,6 @@ try {
         "scripts/audit_release_inputs.py", "scripts/build_windows_release.ps1",
         "docs/07-工作流/build_script_student.iss"
     )
-    if ($IncludeTeacher) {
-        $releasePaths += @("teacher_app", "docs/07-工作流/build_script_teacher.iss")
-    }
     $dirty = & git -c safe.directory=D:/Hermes/zhangyuzhixue_app_v2 status --porcelain -- @releasePaths
     if ($LASTEXITCODE -ne 0) { throw "Unable to inspect release Git status" }
     if ($dirty -and -not $AllowDirty) {
@@ -55,10 +51,6 @@ try {
     Invoke-CheckedCommand "python" @("scripts\generate_version.py")
     Invoke-CheckedCommand $flutter @("--no-version-check", "build", "windows", "--release") (Join-Path $repoRoot "flutter_app")
     Invoke-CheckedCommand $iscc @((Join-Path $repoRoot "docs\07-工作流\build_script_student.iss"))
-    if ($IncludeTeacher) {
-        Invoke-CheckedCommand $flutter @("--no-version-check", "build", "windows", "--release") (Join-Path $repoRoot "teacher_app")
-        Invoke-CheckedCommand $iscc @((Join-Path $repoRoot "docs\07-工作流\build_script_teacher.iss"))
-    }
     Invoke-CheckedCommand "python" @("scripts\create_release_manifest.py", "--output", (Join-Path $distRoot "release-manifest.json"))
     Write-Host "Release artifacts: $distRoot"
 }

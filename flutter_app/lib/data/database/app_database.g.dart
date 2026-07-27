@@ -78,17 +78,6 @@ class $UserProfilesTable extends UserProfiles
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _classGroupIdMeta = const VerificationMeta(
-    'classGroupId',
-  );
-  @override
-  late final GeneratedColumn<int> classGroupId = GeneratedColumn<int>(
-    'class_group_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
   @override
   late final GeneratedColumn<String> phone = GeneratedColumn<String>(
@@ -118,7 +107,6 @@ class $UserProfilesTable extends UserProfiles
     avatar,
     school,
     gaokaoYear,
-    classGroupId,
     phone,
     updatedAt,
   ];
@@ -175,15 +163,6 @@ class $UserProfilesTable extends UserProfiles
         gaokaoYear.isAcceptableOrUnknown(data['gaokao_year']!, _gaokaoYearMeta),
       );
     }
-    if (data.containsKey('class_group_id')) {
-      context.handle(
-        _classGroupIdMeta,
-        classGroupId.isAcceptableOrUnknown(
-          data['class_group_id']!,
-          _classGroupIdMeta,
-        ),
-      );
-    }
     if (data.containsKey('phone')) {
       context.handle(
         _phoneMeta,
@@ -233,10 +212,6 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}gaokao_year'],
       ),
-      classGroupId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}class_group_id'],
-      ),
       phone: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}phone'],
@@ -262,7 +237,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
   final String? avatar;
   final String? school;
   final String? gaokaoYear;
-  final int? classGroupId;
   final String? phone;
   final String? updatedAt;
   const UserProfileRow({
@@ -273,7 +247,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     this.avatar,
     this.school,
     this.gaokaoYear,
-    this.classGroupId,
     this.phone,
     this.updatedAt,
   });
@@ -296,9 +269,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     }
     if (!nullToAbsent || gaokaoYear != null) {
       map['gaokao_year'] = Variable<String>(gaokaoYear);
-    }
-    if (!nullToAbsent || classGroupId != null) {
-      map['class_group_id'] = Variable<int>(classGroupId);
     }
     if (!nullToAbsent || phone != null) {
       map['phone'] = Variable<String>(phone);
@@ -328,9 +298,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       gaokaoYear: gaokaoYear == null && nullToAbsent
           ? const Value.absent()
           : Value(gaokaoYear),
-      classGroupId: classGroupId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(classGroupId),
       phone: phone == null && nullToAbsent
           ? const Value.absent()
           : Value(phone),
@@ -353,7 +320,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       avatar: serializer.fromJson<String?>(json['avatar']),
       school: serializer.fromJson<String?>(json['school']),
       gaokaoYear: serializer.fromJson<String?>(json['gaokaoYear']),
-      classGroupId: serializer.fromJson<int?>(json['classGroupId']),
       phone: serializer.fromJson<String?>(json['phone']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
@@ -369,7 +335,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       'avatar': serializer.toJson<String?>(avatar),
       'school': serializer.toJson<String?>(school),
       'gaokaoYear': serializer.toJson<String?>(gaokaoYear),
-      'classGroupId': serializer.toJson<int?>(classGroupId),
       'phone': serializer.toJson<String?>(phone),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
@@ -383,7 +348,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     Value<String?> avatar = const Value.absent(),
     Value<String?> school = const Value.absent(),
     Value<String?> gaokaoYear = const Value.absent(),
-    Value<int?> classGroupId = const Value.absent(),
     Value<String?> phone = const Value.absent(),
     Value<String?> updatedAt = const Value.absent(),
   }) => UserProfileRow(
@@ -394,7 +358,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     avatar: avatar.present ? avatar.value : this.avatar,
     school: school.present ? school.value : this.school,
     gaokaoYear: gaokaoYear.present ? gaokaoYear.value : this.gaokaoYear,
-    classGroupId: classGroupId.present ? classGroupId.value : this.classGroupId,
     phone: phone.present ? phone.value : this.phone,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
@@ -409,9 +372,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
       gaokaoYear: data.gaokaoYear.present
           ? data.gaokaoYear.value
           : this.gaokaoYear,
-      classGroupId: data.classGroupId.present
-          ? data.classGroupId.value
-          : this.classGroupId,
       phone: data.phone.present ? data.phone.value : this.phone,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -427,7 +387,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
           ..write('avatar: $avatar, ')
           ..write('school: $school, ')
           ..write('gaokaoYear: $gaokaoYear, ')
-          ..write('classGroupId: $classGroupId, ')
           ..write('phone: $phone, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -443,7 +402,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
     avatar,
     school,
     gaokaoYear,
-    classGroupId,
     phone,
     updatedAt,
   );
@@ -458,7 +416,6 @@ class UserProfileRow extends DataClass implements Insertable<UserProfileRow> {
           other.avatar == this.avatar &&
           other.school == this.school &&
           other.gaokaoYear == this.gaokaoYear &&
-          other.classGroupId == this.classGroupId &&
           other.phone == this.phone &&
           other.updatedAt == this.updatedAt);
 }
@@ -471,7 +428,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
   final Value<String?> avatar;
   final Value<String?> school;
   final Value<String?> gaokaoYear;
-  final Value<int?> classGroupId;
   final Value<String?> phone;
   final Value<String?> updatedAt;
   const UserProfilesCompanion({
@@ -482,7 +438,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     this.avatar = const Value.absent(),
     this.school = const Value.absent(),
     this.gaokaoYear = const Value.absent(),
-    this.classGroupId = const Value.absent(),
     this.phone = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -494,7 +449,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     this.avatar = const Value.absent(),
     this.school = const Value.absent(),
     this.gaokaoYear = const Value.absent(),
-    this.classGroupId = const Value.absent(),
     this.phone = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : name = Value(name);
@@ -506,7 +460,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     Expression<String>? avatar,
     Expression<String>? school,
     Expression<String>? gaokaoYear,
-    Expression<int>? classGroupId,
     Expression<String>? phone,
     Expression<String>? updatedAt,
   }) {
@@ -518,7 +471,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
       if (avatar != null) 'avatar': avatar,
       if (school != null) 'school': school,
       if (gaokaoYear != null) 'gaokao_year': gaokaoYear,
-      if (classGroupId != null) 'class_group_id': classGroupId,
       if (phone != null) 'phone': phone,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -532,7 +484,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     Value<String?>? avatar,
     Value<String?>? school,
     Value<String?>? gaokaoYear,
-    Value<int?>? classGroupId,
     Value<String?>? phone,
     Value<String?>? updatedAt,
   }) {
@@ -544,7 +495,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
       avatar: avatar ?? this.avatar,
       school: school ?? this.school,
       gaokaoYear: gaokaoYear ?? this.gaokaoYear,
-      classGroupId: classGroupId ?? this.classGroupId,
       phone: phone ?? this.phone,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -574,9 +524,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
     if (gaokaoYear.present) {
       map['gaokao_year'] = Variable<String>(gaokaoYear.value);
     }
-    if (classGroupId.present) {
-      map['class_group_id'] = Variable<int>(classGroupId.value);
-    }
     if (phone.present) {
       map['phone'] = Variable<String>(phone.value);
     }
@@ -596,7 +543,6 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileRow> {
           ..write('avatar: $avatar, ')
           ..write('school: $school, ')
           ..write('gaokaoYear: $gaokaoYear, ')
-          ..write('classGroupId: $classGroupId, ')
           ..write('phone: $phone, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1832,17 +1778,6 @@ class $SubmissionsTable extends Submissions
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _assignmentIdMeta = const VerificationMeta(
-    'assignmentId',
-  );
-  @override
-  late final GeneratedColumn<int> assignmentId = GeneratedColumn<int>(
-    'assignment_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1870,7 +1805,6 @@ class $SubmissionsTable extends Submissions
     id,
     serverId,
     studentId,
-    assignmentId,
     createdAt,
     updatedAt,
   ];
@@ -1902,15 +1836,6 @@ class $SubmissionsTable extends Submissions
       );
     } else if (isInserting) {
       context.missing(_studentIdMeta);
-    }
-    if (data.containsKey('assignment_id')) {
-      context.handle(
-        _assignmentIdMeta,
-        assignmentId.isAcceptableOrUnknown(
-          data['assignment_id']!,
-          _assignmentIdMeta,
-        ),
-      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -1949,10 +1874,6 @@ class $SubmissionsTable extends Submissions
         DriftSqlType.int,
         data['${effectivePrefix}student_id'],
       )!,
-      assignmentId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}assignment_id'],
-      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}created_at'],
@@ -1974,14 +1895,12 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
   final int id;
   final int? serverId;
   final int studentId;
-  final int? assignmentId;
   final String createdAt;
   final String updatedAt;
   const SubmissionRow({
     required this.id,
     this.serverId,
     required this.studentId,
-    this.assignmentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1993,9 +1912,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
       map['server_id'] = Variable<int>(serverId);
     }
     map['student_id'] = Variable<int>(studentId);
-    if (!nullToAbsent || assignmentId != null) {
-      map['assignment_id'] = Variable<int>(assignmentId);
-    }
     map['created_at'] = Variable<String>(createdAt);
     map['updated_at'] = Variable<String>(updatedAt);
     return map;
@@ -2008,9 +1924,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
           ? const Value.absent()
           : Value(serverId),
       studentId: Value(studentId),
-      assignmentId: assignmentId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(assignmentId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -2025,7 +1938,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
       id: serializer.fromJson<int>(json['id']),
       serverId: serializer.fromJson<int?>(json['serverId']),
       studentId: serializer.fromJson<int>(json['studentId']),
-      assignmentId: serializer.fromJson<int?>(json['assignmentId']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
       updatedAt: serializer.fromJson<String>(json['updatedAt']),
     );
@@ -2037,7 +1949,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
       'id': serializer.toJson<int>(id),
       'serverId': serializer.toJson<int?>(serverId),
       'studentId': serializer.toJson<int>(studentId),
-      'assignmentId': serializer.toJson<int?>(assignmentId),
       'createdAt': serializer.toJson<String>(createdAt),
       'updatedAt': serializer.toJson<String>(updatedAt),
     };
@@ -2047,14 +1958,12 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
     int? id,
     Value<int?> serverId = const Value.absent(),
     int? studentId,
-    Value<int?> assignmentId = const Value.absent(),
     String? createdAt,
     String? updatedAt,
   }) => SubmissionRow(
     id: id ?? this.id,
     serverId: serverId.present ? serverId.value : this.serverId,
     studentId: studentId ?? this.studentId,
-    assignmentId: assignmentId.present ? assignmentId.value : this.assignmentId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -2063,9 +1972,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
       id: data.id.present ? data.id.value : this.id,
       serverId: data.serverId.present ? data.serverId.value : this.serverId,
       studentId: data.studentId.present ? data.studentId.value : this.studentId,
-      assignmentId: data.assignmentId.present
-          ? data.assignmentId.value
-          : this.assignmentId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -2077,7 +1983,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
           ..write('id: $id, ')
           ..write('serverId: $serverId, ')
           ..write('studentId: $studentId, ')
-          ..write('assignmentId: $assignmentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2086,7 +1991,7 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
 
   @override
   int get hashCode =>
-      Object.hash(id, serverId, studentId, assignmentId, createdAt, updatedAt);
+      Object.hash(id, serverId, studentId, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2094,7 +1999,6 @@ class SubmissionRow extends DataClass implements Insertable<SubmissionRow> {
           other.id == this.id &&
           other.serverId == this.serverId &&
           other.studentId == this.studentId &&
-          other.assignmentId == this.assignmentId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -2103,14 +2007,12 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
   final Value<int> id;
   final Value<int?> serverId;
   final Value<int> studentId;
-  final Value<int?> assignmentId;
   final Value<String> createdAt;
   final Value<String> updatedAt;
   const SubmissionsCompanion({
     this.id = const Value.absent(),
     this.serverId = const Value.absent(),
     this.studentId = const Value.absent(),
-    this.assignmentId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -2118,7 +2020,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
     this.id = const Value.absent(),
     this.serverId = const Value.absent(),
     required int studentId,
-    this.assignmentId = const Value.absent(),
     required String createdAt,
     required String updatedAt,
   }) : studentId = Value(studentId),
@@ -2128,7 +2029,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
     Expression<int>? id,
     Expression<int>? serverId,
     Expression<int>? studentId,
-    Expression<int>? assignmentId,
     Expression<String>? createdAt,
     Expression<String>? updatedAt,
   }) {
@@ -2136,7 +2036,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
       if (id != null) 'id': id,
       if (serverId != null) 'server_id': serverId,
       if (studentId != null) 'student_id': studentId,
-      if (assignmentId != null) 'assignment_id': assignmentId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -2146,7 +2045,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
     Value<int>? id,
     Value<int?>? serverId,
     Value<int>? studentId,
-    Value<int?>? assignmentId,
     Value<String>? createdAt,
     Value<String>? updatedAt,
   }) {
@@ -2154,7 +2052,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
       id: id ?? this.id,
       serverId: serverId ?? this.serverId,
       studentId: studentId ?? this.studentId,
-      assignmentId: assignmentId ?? this.assignmentId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -2172,9 +2069,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
     if (studentId.present) {
       map['student_id'] = Variable<int>(studentId.value);
     }
-    if (assignmentId.present) {
-      map['assignment_id'] = Variable<int>(assignmentId.value);
-    }
     if (createdAt.present) {
       map['created_at'] = Variable<String>(createdAt.value);
     }
@@ -2190,7 +2084,6 @@ class SubmissionsCompanion extends UpdateCompanion<SubmissionRow> {
           ..write('id: $id, ')
           ..write('serverId: $serverId, ')
           ..write('studentId: $studentId, ')
-          ..write('assignmentId: $assignmentId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -7013,7 +6906,6 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
       Value<String?> avatar,
       Value<String?> school,
       Value<String?> gaokaoYear,
-      Value<int?> classGroupId,
       Value<String?> phone,
       Value<String?> updatedAt,
     });
@@ -7026,7 +6918,6 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
       Value<String?> avatar,
       Value<String?> school,
       Value<String?> gaokaoYear,
-      Value<int?> classGroupId,
       Value<String?> phone,
       Value<String?> updatedAt,
     });
@@ -7072,11 +6963,6 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get gaokaoYear => $composableBuilder(
     column: $table.gaokaoYear,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get classGroupId => $composableBuilder(
-    column: $table.classGroupId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7135,11 +7021,6 @@ class $$UserProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get classGroupId => $composableBuilder(
-    column: $table.classGroupId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get phone => $composableBuilder(
     column: $table.phone,
     builder: (column) => ColumnOrderings(column),
@@ -7180,11 +7061,6 @@ class $$UserProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get gaokaoYear => $composableBuilder(
     column: $table.gaokaoYear,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get classGroupId => $composableBuilder(
-    column: $table.classGroupId,
     builder: (column) => column,
   );
 
@@ -7233,7 +7109,6 @@ class $$UserProfilesTableTableManager
                 Value<String?> avatar = const Value.absent(),
                 Value<String?> school = const Value.absent(),
                 Value<String?> gaokaoYear = const Value.absent(),
-                Value<int?> classGroupId = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => UserProfilesCompanion(
@@ -7244,7 +7119,6 @@ class $$UserProfilesTableTableManager
                 avatar: avatar,
                 school: school,
                 gaokaoYear: gaokaoYear,
-                classGroupId: classGroupId,
                 phone: phone,
                 updatedAt: updatedAt,
               ),
@@ -7257,7 +7131,6 @@ class $$UserProfilesTableTableManager
                 Value<String?> avatar = const Value.absent(),
                 Value<String?> school = const Value.absent(),
                 Value<String?> gaokaoYear = const Value.absent(),
-                Value<int?> classGroupId = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> updatedAt = const Value.absent(),
               }) => UserProfilesCompanion.insert(
@@ -7268,7 +7141,6 @@ class $$UserProfilesTableTableManager
                 avatar: avatar,
                 school: school,
                 gaokaoYear: gaokaoYear,
-                classGroupId: classGroupId,
                 phone: phone,
                 updatedAt: updatedAt,
               ),
@@ -7963,7 +7835,6 @@ typedef $$SubmissionsTableCreateCompanionBuilder =
       Value<int> id,
       Value<int?> serverId,
       required int studentId,
-      Value<int?> assignmentId,
       required String createdAt,
       required String updatedAt,
     });
@@ -7972,7 +7843,6 @@ typedef $$SubmissionsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<int?> serverId,
       Value<int> studentId,
-      Value<int?> assignmentId,
       Value<String> createdAt,
       Value<String> updatedAt,
     });
@@ -7998,11 +7868,6 @@ class $$SubmissionsTableFilterComposer
 
   ColumnFilters<int> get studentId => $composableBuilder(
     column: $table.studentId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get assignmentId => $composableBuilder(
-    column: $table.assignmentId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8041,11 +7906,6 @@ class $$SubmissionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get assignmentId => $composableBuilder(
-    column: $table.assignmentId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8074,11 +7934,6 @@ class $$SubmissionsTableAnnotationComposer
 
   GeneratedColumn<int> get studentId =>
       $composableBuilder(column: $table.studentId, builder: (column) => column);
-
-  GeneratedColumn<int> get assignmentId => $composableBuilder(
-    column: $table.assignmentId,
-    builder: (column) => column,
-  );
 
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8121,14 +7976,12 @@ class $$SubmissionsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int?> serverId = const Value.absent(),
                 Value<int> studentId = const Value.absent(),
-                Value<int?> assignmentId = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
                 Value<String> updatedAt = const Value.absent(),
               }) => SubmissionsCompanion(
                 id: id,
                 serverId: serverId,
                 studentId: studentId,
-                assignmentId: assignmentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -8137,14 +7990,12 @@ class $$SubmissionsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int?> serverId = const Value.absent(),
                 required int studentId,
-                Value<int?> assignmentId = const Value.absent(),
                 required String createdAt,
                 required String updatedAt,
               }) => SubmissionsCompanion.insert(
                 id: id,
                 serverId: serverId,
                 studentId: studentId,
-                assignmentId: assignmentId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),

@@ -43,11 +43,8 @@
     <li class="nav-section"><a href="#s1">一、常用管理操作</a>
       <ul class="nav-sub">
         <li><a href="#s1-1">学生管理</a></li>
-        <li><a href="#s1-2">教师管理</a></li>
         <li><a href="#s1-3">邀请码管理</a></li>
-        <li><a href="#s1-4">班级管理</a></li>
         <li><a href="#s1-5">课程与讲义</a></li>
-        <li><a href="#s1-6">作业管理</a></li>
         <li><a href="#s1-7">题库</a></li>
       </ul>
     </li>
@@ -87,16 +84,7 @@
 <ul>
   <li><strong>创建学生：</strong>先确保该用户已注册（通过 App 用邀请码注册），在 Admin 中找到相应用户，加上 Student 关联。建议用"邀请码 → 注册"流程，不建议在 Admin 手动创建 Student。</li>
   <li><strong>学号：</strong>系统会自动生成，不要手动填写。格式为 <code>XS-XXXXXX</code>（前缀 + LCG 混淆数字）。生成规则见系统配置 <code>student_id_template</code>。</li>
-  <li><strong>归属班级：</strong>在 Student 记录的 <code>class_group</code> 字段中选择。</li>
   <li><strong>删除学生：</strong>删除 Student 不会删除关联的 User。如需彻底删除，需分别删除 Student 和 User 两条记录。</li>
-</ul>
-
-<h3 id="s1-2">教师管理</h3>
-<ul>
-  <li><strong>创建教师：</strong>先创建 Django User（<code>/admin/auth/user/add/</code>），然后创建 Teacher 记录关联该 User。建议邮箱和用户名保持一致。</li>
-  <li><strong>权限：</strong>教师账号默认是普通 User，需要在 User 记录中勾选 <code>staff status</code>（职员状态）才能登录 Admin。</li>
-  <li><strong>教师端登录：</strong>教师通过着陆页的"教师登录"进入 SPA，使用用户名 + 密码登录。</li>
-  <li><strong>注意：</strong>一个教师账号只有一个 Teacher 关联，不可复用。</li>
 </ul>
 
 <h3 id="s1-3">邀请码管理</h3>
@@ -107,28 +95,11 @@
   <li>列表中已使用的行为灰色显示，过期行有标记。</li>
 </ul>
 
-<h3 id="s1-4">班级管理</h3>
-<ul>
-  <li>先创建班级（<code>ClassGroup</code>），再通过「班级-课程」绑定（<code>ClassCourse</code>）关联课程和起止时间。</li>
-  <li>一个班级可以绑定多个课程（不同学期或不同科目）。</li>
-  <li>将学生分配到班级：编辑 Student 记录，选择 <code>class_group</code>。</li>
-  <li>删除班级前需先解绑所有学生和课程绑定。</li>
-</ul>
-
 <h3 id="s1-5">课程与讲义</h3>
 <ul>
-  <li><strong>课程：</strong>只需填写名称和描述，创建后绑定到班级。</li>
+  <li><strong>讲义系列：</strong>填写名称和描述，用于组织一组相关讲义。</li>
   <li><strong>讲义：</strong>每个课程可以有多个讲义。讲次标识 <code>chapter</code> 固定两位数字，如 <code>01</code>、<code>02</code>。<code>md_content</code> 为完整 Markdown 内容，支持 LaTeX 公式（<code>$$...$$</code>）。</li>
   <li>讲义更新后，需要重新「构建讲义资产」才能推送到 App（见系统工具章节）。</li>
-</ul>
-
-<h3 id="s1-6">作业管理</h3>
-<ul>
-  <li><strong>创建作业：</strong>填写标题、描述，关联课程。通过 Inline 选择题目（按顺序）。</li>
-  <li><strong>发布作业：</strong>在「班级-课程-作业」表中创建记录，绑定已创建的作业到某个班级课程，设置截止时间。只有在这里发布后，学生 App 才能看到该作业。</li>
-  <li><strong>截止时间：</strong>超过截止时间后学生不能再提交作答。不设截止时间 = 长期有效。</li>
-  <li><strong>取消发布：</strong>将 <code>is_active</code> 设为 false，学生端即不可见。</li>
-  <li>教师端 Web 也可以发作业（通过发布页面），本质是调后端 API 创建同样的数据。</li>
 </ul>
 
 <h3 id="s1-7">题库</h3>
@@ -263,7 +234,7 @@
 
 <h3 id="s4-3">JSON 数据推送</h3>
 <ul>
-  <li><strong>用途：</strong>将业务数据（学生、教师、作业、提交记录等）以 JSON 格式推送到 Gitee 私有仓库，作为异地数据保险。</li>
+  <li><strong>用途：</strong>将业务数据（学生、讲义、提交记录等）以 JSON 格式推送到 Gitee 私有仓库，作为异地数据保险。</li>
   <li><strong>频率：</strong>每天 04:10 自动执行。</li>
   <li><strong>推送内容：</strong>业务数据为 JSON 明文；密码字段保存为哈希值（单向，不可还原）。</li>
   <li><strong>推送仓库：</strong><code>zhangyuzhixue-v2-data</code>（独立仓库，与代码仓库分离）。</li>

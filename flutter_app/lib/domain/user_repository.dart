@@ -149,7 +149,7 @@ class UserRepository {
   Future<void> _refreshProfileFromApi() async {
     try {
       final remote = await _api.getInfo();
-      // 读当前本地缓存，保住 API 不返回的字段（school、phone、classGroupId）
+      // 读当前本地缓存，保住 API 不返回的字段（school、phone）
       final local = await _dao.getProfile();
       await _dao.saveProfile(
         id: remote['id'] as int,
@@ -160,7 +160,6 @@ class UserRepository {
         school: local?.school,
         gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
         phone: local?.phone,
-        classGroupId: local?.classGroupId,
       );
       AuditLogger.instance.sync('refreshProfile',
           {'id': remote['id'], 'name': remote['username']});

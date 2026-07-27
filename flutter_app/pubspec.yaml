@@ -15,7 +15,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Shared component library (student + teacher)
+  # Shared component library
   shared:
     path: ../packages/shared
 

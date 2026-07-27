@@ -435,8 +435,6 @@ def main():
         'flutter_app/lib/pages',
         'flutter_app/lib/widgets',
         'packages/shared/lib/widgets',
-        'teacher_app/lib/pages',
-        'teacher_app/lib/widgets',
     ]
     
     base_dir = 'D:\\Hermes\\zhangyuzhixue_app_v2'

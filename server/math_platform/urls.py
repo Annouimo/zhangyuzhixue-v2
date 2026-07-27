@@ -15,7 +15,6 @@ api_v1 = [
     path('user/', include('accounts.urls')),
     path('interactions/', include('interactions.urls')),
     path('lectures/', include('courses.urls')),
-    path('teacher/', include('courses.teacher_urls')),
 
     # sync: version check + push
     path('sync/', include('system.urls')),

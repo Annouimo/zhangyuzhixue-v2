@@ -11,12 +11,10 @@ class ProgressDao {
 
   Future<int> createSubmission({
     required int studentId,
-    int? assignmentId,
   }) async {
     final now = DateTime.now().toIso8601String();
     return _db.into(_db.submissions).insert(db.SubmissionsCompanion(
       studentId: Value(studentId),
-      assignmentId: Value(assignmentId),
       createdAt: Value(now),
       updatedAt: Value(now),
     ));

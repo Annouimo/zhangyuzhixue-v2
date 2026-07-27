@@ -36,26 +36,6 @@ class LectureContents extends Table {
   TextColumn? get updatedAt => text().nullable()();
 }
 
-@DataClassName('AssignmentRow')
-class Assignments extends Table {
-  @override
-  String get tableName => 'assignment';
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get title => text()();
-  TextColumn? get description => text().nullable()();
-  IntColumn? get courseId => integer().nullable()();
-}
-
-@DataClassName('AssignmentQuestionRow')
-class AssignmentQuestions extends Table {
-  @override
-  String get tableName => 'assignment_question';
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get assignmentId => integer()();
-  IntColumn get questionId => integer()();
-  IntColumn get sortOrder => integer()();
-}
-
 /// 构建元数据（表名已是单数，与设计文档一致）
 @DataClassName('MetaRow')
 class Meta extends Table {
@@ -73,8 +53,6 @@ class Meta extends Table {
   Courses,
   Chapters,
   LectureContents,
-  Assignments,
-  AssignmentQuestions,
   Meta,
 ])
 class CoursesDatabase extends _$CoursesDatabase {

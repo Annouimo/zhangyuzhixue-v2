@@ -15,15 +15,13 @@ django.setup()
 from django.contrib.auth.models import User  # noqa: E402
 from django.utils import timezone  # noqa: E402
 
-from accounts.models import InvitationCode, Student, Teacher  # noqa: E402
+from accounts.models import InvitationCode, Student  # noqa: E402
 
 # ── 配置 ──────────────────────────────────────────────────────
 
 USERS = [
     {'username': 'admin', 'password': 'admin123', 'role': 'admin',
      'real_name': '管理员'},
-    {'username': 'teacher1', 'password': 'test123', 'role': 'teacher',
-     'real_name': '李明老师'},
     {'username': 'student1', 'password': 'test123', 'role': 'student',
      'real_name': '张三', 'gaokao_year': 2026},
     {'username': 'student2', 'password': 'test123', 'role': 'student',
@@ -51,9 +49,7 @@ def create_users():
                 username=u['username'], password=u['password'])
             user.first_name = u['real_name']
             user.save()
-            if u['role'] == 'teacher':
-                Teacher.objects.create(user=user)
-            elif u['role'] == 'student':
+            if u['role'] == 'student':
                 Student.objects.create(user=user, gaokao_year=u.get('gaokao_year'))
         print('  OK', u['username'], '(' + u['real_name'] + ')')
 

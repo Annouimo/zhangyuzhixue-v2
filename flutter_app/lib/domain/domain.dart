@@ -1,7 +1,6 @@
 export 'auth_repository.dart';
 export 'preference_repository.dart';
 export 'sync_repository.dart';
-export 'assignment_repository.dart';
 export 'lecture_repository.dart';
 export 'rating_repository.dart';
 export 'achievement_repository.dart';

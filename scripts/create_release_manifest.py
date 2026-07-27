@@ -76,7 +76,6 @@ def main() -> int:
         "created_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": commit,
         "student_release": release_info(root / "flutter_app/pubspec.yaml"),
-        "teacher_release": release_info(root / "teacher_app/pubspec.yaml"),
         "bundled_databases": {
             "qbank": database_info(root / "flutter_app/assets/db/assets.db"),
             "courses": database_info(root / "flutter_app/assets/db/courses.db"),

@@ -12,7 +12,6 @@ class TestAssetsTables:
             'solution_method', 'solution_step',
             'concept_tag', 'knowledge_card',
             'question_concept_tag', 'question_knowledge_card',
-            'course', 'assignment', 'assignment_question',
             'achievement_def', 'level_config',
         ]
         for name in required:
@@ -34,9 +33,9 @@ class TestAssetsTables:
             pks = [c for c in cols if 'PRIMARY KEY' in c[1].upper()]
             assert pks, f'{name} 缺少 PRIMARY KEY'
 
-    def test_all_tables_14(self):
-        """assets.db 应有 15 个表"""
-        assert len(ASSETS_TABLES) == 15
+    def test_all_tables_12(self):
+        """assets.db 应有 12 个表"""
+        assert len(ASSETS_TABLES) == 12
 
     def test_each_table_has_valid_transform(self):
         """每个表必须有 transform 或 source"""
@@ -75,14 +74,13 @@ class TestLectureTables:
         """必须包含讲义核心表"""
         required = [
             'course', 'chapter', 'lecture_content',
-            'assignment', 'assignment_question',
         ]
         for name in required:
             assert name in COURSES_TABLES, f'缺少表: {name}'
 
-    def test_all_tables_5(self):
-        """lectures.db 应有 5 个表"""
-        assert len(COURSES_TABLES) == 5
+    def test_all_tables_3(self):
+        """lectures.db 应有 3 个表"""
+        assert len(COURSES_TABLES) == 3
 
     def test_chapter_is_generated(self):
         """chapter 表 source 应为 generate"""

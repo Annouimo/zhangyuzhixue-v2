@@ -1,5 +1,5 @@
 """
-构建 courses.db（课程+讲义+作业数据）
+构建 courses.db（讲义数据）
 
 用法：
     python scripts/build_courses.py          # 构建+更新版本号
@@ -43,7 +43,7 @@ def main():
         version_info = bump_version(version_info)
 
     print('=' * 50)
-    print('构建 courses.db (课程+讲义+作业数据)')
+    print('构建 courses.db (讲义数据)')
     print(f'  Schema v{version_info["schema_version"]}')
     print(f'  Data   v{version_info["data_version"]}')
     if test_mode:
