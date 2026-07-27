@@ -66,7 +66,7 @@
         <div class="container site-footer__main">
           <div class="site-footer__brand">
             <h3>${config.siteName || "章鱼智学"}</h3>
-            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件、学习社群与公益讲座免费开放；系统课程为付费教学服务，详情请通过微信咨询。</p>
+            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件、学习社群与公益讲座免费开放；系统课程第一节课免费试听，详情请添加微信了解。</p>
           </div>
           <div>
             <h4>产品与服务</h4>
@@ -113,6 +113,9 @@
           <h2 id="wechat-title">添加微信了解详情</h2>
           <p class="muted">微信：<strong>${config.wechatName || "章鱼宝宝"}</strong></p>
           ${config.wechatId ? `<p class="muted" style="margin-top:0">微信号：<strong>${config.wechatId}</strong> · 备注「章鱼智学」</p>` : ""}
+          <div class="note" style="text-align:left;margin-top:16px">
+            可咨询：软件下载、学习社群、公益讲座、课程试听与个性化学习支持。添加时可备注关注方向、所在年级和主要问题；无需提供身份证号、住址等敏感信息。
+          </div>
           <div class="modal__qr">
             <img src="${config.wechatQr || "assets/images/qr-wechat-placeholder.svg"}" alt="微信二维码">
           </div>
@@ -173,10 +176,31 @@
   const nav = document.querySelector(".nav");
   const menuToggle = document.querySelector(".menu-toggle");
   if (nav && menuToggle) {
+    const closeNav = () => {
+      nav.classList.remove("is-open");
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "展开导航");
+    };
+
     menuToggle.addEventListener("click", () => {
       const open = nav.classList.toggle("is-open");
       menuToggle.setAttribute("aria-expanded", String(open));
       menuToggle.setAttribute("aria-label", open ? "收起导航" : "展开导航");
+    });
+
+    nav.querySelectorAll("a").forEach(link => link.addEventListener("click", closeNav));
+
+    document.addEventListener("click", event => {
+      if (!nav.classList.contains("is-open")) return;
+      if (nav.contains(event.target) || menuToggle.contains(event.target)) return;
+      closeNav();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && nav.classList.contains("is-open")) {
+        closeNav();
+        menuToggle.focus();
+      }
     });
   }
 
@@ -211,7 +235,22 @@
   });
 
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && modal?.classList.contains("is-open")) closeModal();
+    if (!modal?.classList.contains("is-open")) return;
+    if (event.key === "Escape") closeModal();
+    if (event.key === "Tab") {
+      const focusable = [...modal.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')]
+        .filter(element => !element.hasAttribute("disabled"));
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
   });
 
   function platformLabel(platform) {

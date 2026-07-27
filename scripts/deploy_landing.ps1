@@ -59,7 +59,8 @@ Push-Location $repoRoot
 try {
     Invoke-CheckedCommand "python" @("scripts\audit_landing.py", "landing")
 
-    $dirtyLanding = & git -c safe.directory=D:/Hermes/zhangyuzhixue_app_v2 status --porcelain -- landing
+    $releasePaths = $releaseFiles | ForEach-Object { "landing/$_" }
+    $dirtyLanding = & git -c safe.directory=D:/Hermes/zhangyuzhixue_app_v2 status --porcelain -- @releasePaths
     if ($LASTEXITCODE -ne 0) {
         throw "Unable to inspect Landing Git status"
     }

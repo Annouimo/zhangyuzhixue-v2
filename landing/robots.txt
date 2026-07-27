@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /internal.html
+Disallow: /teacher/
+
+Sitemap: https://zhangyuzhixue.top/sitemap.xml
