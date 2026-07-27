@@ -3,6 +3,7 @@ import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
 
 /// 渲染 Markdown + LaTeX 数学公式的组件
 ///
@@ -202,12 +203,17 @@ class _SafeMath extends StatelessWidget {
       );
     }
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: m,
-        ),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: Center(child: m),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 
 /// 知识卡片弹层
@@ -7,7 +8,7 @@ class KnowledgeCardDialog extends StatelessWidget {
   final String cardTitle;
   final String cardContent;
 
-  KnowledgeCardDialog({
+  const KnowledgeCardDialog({
     super.key,
     required this.cardTitle,
     required this.cardContent,
@@ -29,79 +30,92 @@ class KnowledgeCardDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
+    final viewport = MediaQuery.sizeOf(context);
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(AppRadius.large),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.lightbulb_outline,
-                    color: colors.primary, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    cardTitle,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
+      child: ConstrainedBox(
+        key: const Key('knowledge-card-surface'),
+        constraints: BoxConstraints(
+          maxWidth: AppContentWidth.reading,
+          maxHeight: viewport.height * 0.8,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.lightbulb_outline,
+                      color: colors.primary, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      cardTitle,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  IconButton(
+                    tooltip: '关闭知识卡片',
+                    icon: const Icon(Icons.close, size: 20),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const Divider(height: AppSpacing.lg),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: MdLatexBody(cardContent, fontSize: 15),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, size: 18),
-                  onPressed: () => Navigator.of(context).pop(),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(),
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            Divider(height: 1),
-            SizedBox(height: 12),
-            SingleChildScrollView(
-              child: MdLatexBody(cardContent, fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            // 卡片掌握度反馈
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _feedbackChip(context, '完全掌握', colors.success),
-                SizedBox(width: 8),
-                _feedbackChip(context, '了解', colors.warning),
-                SizedBox(width: 8),
-                _feedbackChip(context, '不理解', colors.error),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                '这张知识卡你掌握得怎么样？',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: colors.textSecondary,
+                    ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  _feedbackChip(context, '完全掌握', colors.success),
+                  _feedbackChip(context, '了解', colors.warning),
+                  _feedbackChip(context, '不理解', colors.error),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _feedbackChip(BuildContext context, String label, Color color) {
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pop(label),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Text(label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: color,
+    return Material(
+      color: color.withValues(alpha: 0.10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).pop(label),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: color,
+                ),
           ),
         ),
       ),

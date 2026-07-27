@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/lecture_repository.dart';
 import 'package:flutter_app/pages/lecture/lecture_content_page.dart';
 import 'package:flutter_app/pages/lecture/lecture_pager_widget.dart';
+import 'package:shared/theme/app_theme.dart';
 import '../../test_setup.dart';
 
 /// Mock LectureRepository for content
@@ -63,9 +64,10 @@ class _FailingContentRepo implements LectureRepository {
 }
 
 Widget _wrapApp(Widget child) {
-  return MediaQuery(
-    data: const MediaQueryData(size: Size(400, 800)),
-    child: MaterialApp(home: child),
+  return MaterialApp(
+    theme: AppTheme.light,
+    darkTheme: AppTheme.dark,
+    home: child,
   );
 }
 

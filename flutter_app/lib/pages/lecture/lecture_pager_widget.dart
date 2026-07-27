@@ -73,6 +73,9 @@ class LecturePagerWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, AppControlSize.md),
+                  ),
                   onPressed: _canNext ? onNext : null,
                   icon: Icon(
                     revealing
