@@ -22,6 +22,13 @@ window.SITE_CONFIG = {
 
   wechatQr: "assets/images/wechat-qr.png",
 
+  media: {
+    name: "圆明智学",
+    bilibili: "https://b23.tv/64D6X7S",
+    xiaohongshu: "https://xhslink.cn/m/7yhO5z9sbjR",
+    douyin: "https://v.douyin.com/BZl4YGhfE0E/"
+  },
+
   downloads: {
     android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.0.0-beta1/app-release.apk",
     ios: "https://testflight.apple.com/join/tg29y4wF",

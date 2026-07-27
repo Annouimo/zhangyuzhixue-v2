@@ -15,10 +15,7 @@ from urllib.parse import urlsplit
 PUBLIC_PAGES = {
     "index.html",
     "software.html",
-    "courses.html",
-    "course-derivative.html",
-    "course-geometry.html",
-    "course-innovation.html",
+    "media.html",
     "team.html",
     "about.html",
     "privacy.html",
@@ -118,6 +115,12 @@ def validate(root: Path) -> list[str]:
             ET.parse(sitemap)
         except ET.ParseError as error:
             issues.append(f"invalid sitemap.xml: {error}")
+        content = sitemap.read_text(encoding="utf-8")
+        if "https://zhangyuzhixue.top/media.html" not in content:
+            issues.append("sitemap.xml: media page is missing")
+        for retired in ("courses.html", "course-derivative.html", "course-geometry.html", "course-innovation.html"):
+            if f"https://zhangyuzhixue.top/{retired}" in content:
+                issues.append(f"sitemap.xml: retired page is still listed: {retired}")
 
     robots = root / "robots.txt"
     if robots.is_file():

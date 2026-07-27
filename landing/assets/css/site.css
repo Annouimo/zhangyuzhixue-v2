@@ -141,7 +141,7 @@ h2,
 h3,
 h4 {
   line-height: 1.24;
-  letter-spacing: -.025em;
+  letter-spacing: 0;
 }
 
 h1 {
@@ -475,7 +475,7 @@ h4 {
 
 .hero {
   position: relative;
-  min-height: 710px;
+  min-height: 620px;
   overflow: hidden;
   background:
     radial-gradient(circle at 12% 15%, rgba(20,184,207,.16), transparent 22%),
@@ -501,7 +501,7 @@ h4 {
   position: relative;
   z-index: 2;
   display: grid;
-  min-height: 710px;
+  min-height: 620px;
   align-items: center;
   gap: 72px;
   grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr);
@@ -510,6 +510,8 @@ h4 {
 .hero__copy {
   padding: 72px 0;
 }
+
+.hero__copy h1 { font-size: 58px; }
 
 .hero__copy .lead {
   margin-bottom: 30px;
@@ -1338,6 +1340,26 @@ h4 {
   border-radius: 10px;
 }
 
+.modal__dialog--compact { max-width: 460px; }
+.modal__dialog h2 {
+  max-width: calc(100% - 36px);
+  font-size: 34px;
+  line-height: 1.2;
+}
+.copy-value {
+  margin: 20px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--primary);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+.social-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.social-link__platform { font-size: 13px; color: var(--text-muted); }
+
 .toast {
   position: fixed;
   z-index: 3000;
@@ -1918,11 +1940,11 @@ h3 {
 }
 
 h1 {
-  letter-spacing: -.045em;
+  letter-spacing: 0;
 }
 
 h2 {
-  letter-spacing: -.03em;
+  letter-spacing: 0;
 }
 
 .section {
@@ -2392,13 +2414,32 @@ body {
   }
 
   .hero-visual {
-    min-height: 500px;
+    height: 120px;
+    min-height: 120px;
+    overflow: hidden;
   }
 
   .hero .hero-visual .device--mobile,
   .hero .hero-visual.device-mode-desktop .device--mobile,
   .hero .hero-visual.device-mode-mobile .device--mobile {
-    width: min(72vw, 230px);
+    width: min(40vw, 140px);
+  }
+
+  .hero__copy {
+    padding: 28px 0 10px;
+  }
+
+  .hero__copy h1 {
+    font-size: 40px;
+    line-height: 1.12;
+  }
+
+  .hero__copy .lead {
+    margin-bottom: 18px;
+  }
+
+  .modal__dialog h2 {
+    font-size: 28px;
   }
 
   .home-entry .card {

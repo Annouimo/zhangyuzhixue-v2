@@ -21,6 +21,7 @@ $remoteManifest = "/tmp/zhangyuzhixue-landing-$timestamp.SHA256SUMS"
 $releaseFiles = @(
     "index.html",
     "software.html",
+    "media.html",
     "courses.html",
     "course-derivative.html",
     "course-geometry.html",

@@ -13,14 +13,13 @@
   const navItems = [
     ["index.html", "首页", "home"],
     ["software.html", "免费软件", "software"],
-    ["courses.html", "系统课程", "courses"],
+    ["media.html", "圆明智学", "media"],
     ["team.html", "团队介绍", "team"],
     ["about.html", "关于我们", "about"]
   ];
 
   function activeClass(key) {
     if (page === key) return " is-active";
-    if (page.startsWith("course-") && key === "courses") return " is-active";
     return "";
   }
 
@@ -46,7 +45,7 @@
 
           <div class="header-actions">
             <a class="button button--ghost" href="software.html">下载软件</a>
-            <button class="button button--primary" type="button" data-open-wechat>微信了解课程</button>
+            <button class="button button--primary" type="button" data-open-wechat>咨询服务</button>
             <button class="menu-toggle" type="button" aria-label="展开导航" aria-controls="site-nav" aria-expanded="false">
               ${icons.menu}
             </button>
@@ -66,14 +65,15 @@
         <div class="container site-footer__main">
           <div class="site-footer__brand">
             <h3>${config.siteName || "章鱼智学"}</h3>
-            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件、学习社群与公益讲座免费开放；系统课程第一节课免费试听，详情请添加微信了解。</p>
+            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件与圆明智学视频内容免费开放，专业咨询与高端私人定制按实际需求提供。</p>
           </div>
           <div>
             <h4>产品与服务</h4>
             <div class="footer-links">
               <a href="software.html">免费软件</a>
-              <a href="courses.html">系统课程</a>
-              <a href="course-innovation.html">创新题课程</a>
+              <a href="media.html">圆明智学视频</a>
+              <button class="text-link" type="button" data-open-wechat>专业咨询</button>
+              <button class="text-link" type="button" data-open-wechat>私人定制</button>
             </div>
           </div>
           <div>
@@ -109,17 +109,34 @@
       <div class="modal" id="wechat-modal" role="dialog" aria-modal="true" aria-labelledby="wechat-title" aria-hidden="true">
         <div class="modal__dialog">
           <button class="modal__close" type="button" aria-label="关闭微信二维码">${icons.close}</button>
-          <p class="eyebrow">课程、试听与软件问题</p>
-          <h2 id="wechat-title">添加微信了解详情</h2>
+          <p class="eyebrow">专业咨询与私人定制</p>
+          <h2 id="wechat-title">联系章鱼智学</h2>
           <p class="muted">微信：<strong>${config.wechatName || "章鱼宝宝"}</strong></p>
           ${config.wechatId ? `<p class="muted" style="margin-top:0">微信号：<strong>${config.wechatId}</strong> · 备注「章鱼智学」</p>` : ""}
           <div class="note" style="text-align:left;margin-top:16px">
-            可咨询：软件下载、学习社群、公益讲座、课程试听与个性化学习支持。添加时可备注关注方向、所在年级和主要问题；无需提供身份证号、住址等敏感信息。
+            可咨询学习问题分析、学习路径建议、针对性答疑，以及一对一或团队多对一私人定制。添加时可备注所在年级和主要问题；无需提供身份证号、住址等敏感信息。
           </div>
           <div class="modal__qr">
             <img src="${config.wechatQr || "assets/images/qr-wechat-placeholder.svg"}" alt="微信二维码">
           </div>
           <a class="button button--secondary button--block" href="${config.phoneHref || "tel:18500794866"}">电话联系：${config.phoneDisplay || "18500794866"}</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function channelsModalHTML() {
+    const name = config.media?.name || "圆明智学";
+    return `
+      <div class="modal" id="channels-modal" role="dialog" aria-modal="true" aria-labelledby="channels-title" aria-hidden="true">
+        <div class="modal__dialog modal__dialog--compact">
+          <button class="modal__close" type="button" aria-label="关闭视频号提示">${icons.close}</button>
+          <p class="eyebrow">微信视频号</p>
+          <h2 id="channels-title">搜索“${name}”</h2>
+          <p class="muted">账号名称已自动复制。请在微信视频号中粘贴搜索。</p>
+          <div class="copy-value">${name}</div>
+          <button class="button button--primary button--block" type="button" data-copy-channels>再次复制账号名称</button>
+          <button class="button button--secondary button--block" type="button" data-open-wechat data-close-channels>查看微信二维码</button>
         </div>
       </div>
     `;
@@ -141,6 +158,7 @@
 
       <div class="toast" role="status" aria-live="polite"></div>
       ${modalHTML()}
+      ${channelsModalHTML()}
     `;
   }
 
@@ -234,7 +252,69 @@
     if (event.target === modal) closeModal();
   });
 
+  const channelsModal = document.getElementById("channels-modal");
+  const channelsClose = channelsModal?.querySelector(".modal__close");
+  const channelsName = config.media?.name || "圆明智学";
+
+  function fallbackCopy(value) {
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    const copied = document.execCommand("copy");
+    input.remove();
+    return copied;
+  }
+
+  async function copyText(value) {
+    let copied = false;
+    try {
+      copied = fallbackCopy(value);
+    } catch (_) {}
+    if (!navigator.clipboard?.writeText) return copied;
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch (_) {}
+    return copied;
+  }
+
+  async function openChannelsModal() {
+    if (!channelsModal) return;
+    lastFocused = document.activeElement;
+    channelsModal.classList.add("is-open");
+    channelsModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    channelsClose?.focus();
+    const copied = await copyText(channelsName);
+    showToast(copied ? `已复制：${channelsName}` : `请搜索：${channelsName}`);
+  }
+
+  function closeChannelsModal() {
+    if (!channelsModal) return;
+    channelsModal.classList.remove("is-open");
+    channelsModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+    lastFocused?.focus?.();
+  }
+
+  document.querySelectorAll("[data-open-channels]").forEach(button => button.addEventListener("click", openChannelsModal));
+  document.querySelectorAll("[data-copy-channels]").forEach(button => button.addEventListener("click", async () => {
+    const copied = await copyText(channelsName);
+    showToast(copied ? `已复制：${channelsName}` : `请搜索：${channelsName}`);
+  }));
+  channelsClose?.addEventListener("click", closeChannelsModal);
+  channelsModal?.addEventListener("click", event => { if (event.target === channelsModal) closeChannelsModal(); });
+  document.querySelectorAll("[data-close-channels]").forEach(button => button.addEventListener("click", closeChannelsModal));
+
   document.addEventListener("keydown", event => {
+    if (channelsModal?.classList.contains("is-open") && event.key === "Escape") {
+      closeChannelsModal();
+      return;
+    }
     if (!modal?.classList.contains("is-open")) return;
     if (event.key === "Escape") closeModal();
     if (event.key === "Tab") {

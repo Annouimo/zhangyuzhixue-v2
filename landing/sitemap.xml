@@ -2,10 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://zhangyuzhixue.top/</loc><priority>1.0</priority></url>
   <url><loc>https://zhangyuzhixue.top/software.html</loc><priority>0.9</priority></url>
-  <url><loc>https://zhangyuzhixue.top/courses.html</loc><priority>0.9</priority></url>
-  <url><loc>https://zhangyuzhixue.top/course-derivative.html</loc><priority>0.7</priority></url>
-  <url><loc>https://zhangyuzhixue.top/course-geometry.html</loc><priority>0.7</priority></url>
-  <url><loc>https://zhangyuzhixue.top/course-innovation.html</loc><priority>0.7</priority></url>
+  <url><loc>https://zhangyuzhixue.top/media.html</loc><priority>0.9</priority></url>
   <url><loc>https://zhangyuzhixue.top/team.html</loc><priority>0.6</priority></url>
   <url><loc>https://zhangyuzhixue.top/about.html</loc><priority>0.6</priority></url>
   <url><loc>https://zhangyuzhixue.top/privacy.html</loc><priority>0.2</priority></url>
