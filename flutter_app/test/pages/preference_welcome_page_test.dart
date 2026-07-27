@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
@@ -14,21 +13,17 @@ import 'package:flutter_app/data/database/database_provider.dart';
 import '../test_setup.dart';
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   late udb.AppDatabase uDb;
   late adb.AssetsDatabase aDb;
   late PreferenceDao dao;
   late QuestionDao qDao;
   late PreferenceRepository repo;
-  late Directory tempDir;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await SharedPreferences.getInstance();
     await AppPrefs().init();
-    tempDir = Directory.systemTemp.createTempSync('pref_test_');
-    await DatabaseProvider().initWithPath(tempDir.path);
-
     uDb = udb.AppDatabase(NativeDatabase.memory());
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     DatabaseProvider().setAppDbForTesting(uDb);
@@ -39,16 +34,7 @@ void main() {
   });
 
   tearDown(() async {
-    uDb.close();
-    aDb.close();
     await DatabaseProvider().reset();
-    try {
-      if (await tempDir.exists()) {
-        await tempDir.delete(recursive: true);
-      }
-    } catch (_) {
-      // Windows temp file lock — 不影响测试结果
-    }
   });
 
   group('引导触发', () {
@@ -57,17 +43,33 @@ void main() {
     });
 
     test('保存偏好后 count=1 → 引导应跳过', () async {
-      await repo.save(name: '我的偏好', filter: PreferenceFilter(years: ['2026'], regions: ['北京'], conceptTags: []));
+      await repo.save(
+        name: '我的偏好',
+        filter: PreferenceFilter(
+          years: ['2026'],
+          regions: ['北京'],
+          conceptTags: [],
+        ),
+      );
       expect(await repo.getCount(), 1);
     });
   });
 
   group('PreferenceFilter 补全字段', () {
     test('save/load 含 types/难度/计算量', () async {
-      await repo.save(name: '完整', filter: PreferenceFilter(
-        years: ['2026'], regions: ['北京'], conceptTags: ['函数'],
-        types: ['choice'], diffMin: 3, diffMax: 7, calcMin: 2, calcMax: 8,
-      ));
+      await repo.save(
+        name: '完整',
+        filter: PreferenceFilter(
+          years: ['2026'],
+          regions: ['北京'],
+          conceptTags: ['函数'],
+          types: ['choice'],
+          diffMin: 3,
+          diffMax: 7,
+          calcMin: 2,
+          calcMax: 8,
+        ),
+      );
       final list = await repo.getList();
       expect(list.length, 1);
       final loaded = await repo.getEdit(list.first.id);
@@ -79,7 +81,14 @@ void main() {
 
   group('PreferenceWelcomePage', () {
     testWidgets('欢迎 Dialog 展示 🎉 + 跳过按钮', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PreferenceWelcomePage(
+            preferenceRepository: repo,
+            questionDao: qDao,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('欢迎加入章鱼智学'), findsOneWidget);
       expect(find.text('开始设置'), findsOneWidget);
@@ -87,7 +96,14 @@ void main() {
     });
 
     testWidgets('点击开始设置 → 偏好表单', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PreferenceWelcomePage(
+            preferenceRepository: repo,
+            questionDao: qDao,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
@@ -96,7 +112,14 @@ void main() {
     });
 
     testWidgets('保存后偏好列表应有记录', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: PreferenceWelcomePage(preferenceRepository: repo, questionDao: qDao)));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PreferenceWelcomePage(
+            preferenceRepository: repo,
+            questionDao: qDao,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();

@@ -137,7 +137,7 @@ try {
             $options = @{
                 Name = 'student'
                 WorkingDirectory = $studentDir
-                TestArguments = @('--reporter', 'expanded', '--timeout', '2m')
+                TestArguments = @('--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
                 TimeoutMinutes = 25
             }
             $results.Student = Invoke-FlutterSuite @options
@@ -164,7 +164,7 @@ try {
             $results.E2E = Invoke-FlutterSuite @options
         }
         'All' {
-            $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 25
+            $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
             $results.Teacher = Invoke-FlutterSuite -Name 'teacher' -WorkingDirectory $teacherDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 10
             $results.Server = Invoke-ServerSuite
         }

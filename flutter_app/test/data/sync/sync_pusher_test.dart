@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
@@ -14,6 +15,7 @@ class MockPushAdapter implements HttpClientAdapter {
   int callCount = 0;
   Map<int, int> serverIds = {};
   bool throwOnPush = false;
+  final List<Object?> requestBodies = [];
 
   @override
   Future<ResponseBody> fetch(
@@ -22,18 +24,22 @@ class MockPushAdapter implements HttpClientAdapter {
     Future<dynamic>? cancelFuture,
   ) async {
     callCount++;
+    requestBodies.add(options.data);
     if (throwOnPush) {
       throw DioException(requestOptions: options, message: '模拟网络错误');
     }
     return ResponseBody.fromString(
-      '{"code":0,"data":{"server_ids":${_serverIdsJson()}}}', 200,
-      headers: {'content-type': ['application/json']},
+      jsonEncode({
+        'code': 0,
+        'data': {
+          'server_ids': serverIds.map((key, value) => MapEntry('$key', value)),
+        },
+      }),
+      200,
+      headers: {
+        'content-type': ['application/json'],
+      },
     );
-  }
-
-  String _serverIdsJson() {
-    if (serverIds.isEmpty) return '{}';
-    return serverIds.map((k, v) => MapEntry('"$k"', v)).toString();
   }
 
   @override
@@ -61,7 +67,7 @@ void main() {
   });
 
   tearDown(() async {
-    await database.close();
+    await DatabaseProvider().reset();
   });
 
   group('SyncPusher.pushAll', () {
@@ -73,7 +79,10 @@ void main() {
 
     test('pushes single item successfully', () async {
       await dao.enqueue(
-        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{"score":5}',
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{"score":5}',
       );
       adapter.serverIds = {1: 101};
 
@@ -82,14 +91,20 @@ void main() {
       expect(result.failCount, 0);
       expect(adapter.callCount, 1);
 
-      // 验证队列已清理
-      expect(await dao.isEmpty(), isTrue);
+      expect(await dao.getPendingCount(), 0);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.status, 'done');
+      expect(rows.single.serverId, 101);
     });
 
     test('pushes batch of multiple items', () async {
       for (var i = 1; i <= 3; i++) {
         await dao.enqueue(
-          entityType: 'rating', operationType: 'upsert', entityId: i, payload: '{"score":$i}',
+          entityType: 'rating',
+          operationType: 'upsert',
+          entityId: i,
+          payload: '{"score":$i}',
         );
       }
       adapter.serverIds = {1: 101, 2: 102, 3: 103};
@@ -97,15 +112,24 @@ void main() {
       final result = await pusher.pushAll();
       expect(result.successCount, 3);
       expect(result.failCount, 0);
-      expect(await dao.isEmpty(), isTrue);
+      expect(await dao.getPendingCount(), 0);
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows.map((row) => row.status), everyElement('done'));
+      expect(rows.map((row) => row.serverId), [101, 102, 103]);
     });
 
     test('item without serverId is counted as fail', () async {
       await dao.enqueue(
-        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{"score":5}',
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{"score":5}',
       );
       await dao.enqueue(
-        entityType: 'rating', operationType: 'upsert', entityId: 2, payload: '{"score":3}',
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 2,
+        payload: '{"score":3}',
       );
       // Only item 1 gets a server_id
       adapter.serverIds = {1: 101};
@@ -113,11 +137,22 @@ void main() {
       final result = await pusher.pushAll();
       expect(result.successCount, 1);
       expect(result.failCount, 1);
+      expect(adapter.callCount, 1);
+
+      final rows = await database.select(database.syncQueue).get();
+      expect(rows[0].status, 'done');
+      expect(rows[0].serverId, 101);
+      expect(rows[1].status, 'failed');
+      expect(rows[1].retryCount, 1);
+      expect(rows[1].errorMessage, 'Server response missing server_id');
     });
 
     test('network error marks all as failed', () async {
       await dao.enqueue(
-        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}',
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
       );
       adapter.throwOnPush = true;
 
@@ -128,7 +163,10 @@ void main() {
 
     test('marks expired retries as permanentFailure', () async {
       await dao.enqueue(
-        entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}',
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
       );
       adapter.throwOnPush = true;
 
@@ -145,13 +183,23 @@ void main() {
 
     test('send correct entity_type and data fields', () async {
       await dao.enqueue(
-        entityType: 'step_feedback', operationType: 'upsert', entityId: 42,
+        entityType: 'step_feedback',
+        operationType: 'upsert',
+        entityId: 42,
         payload: '{"step_number":1,"status":"correct"}',
       );
       adapter.serverIds = {42: 201};
 
       await pusher.pushAll();
       expect(adapter.callCount, 1);
+      final body = adapter.requestBodies.single! as Map<String, dynamic>;
+      final batch = body['batch']! as List<dynamic>;
+      expect(batch, hasLength(1));
+      expect(batch.single, {
+        'entity_type': 'step_feedback',
+        'local_id': 42,
+        'data': {'step_number': 1, 'status': 'correct'},
+      });
     });
   });
 

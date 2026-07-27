@@ -7,6 +7,7 @@ import 'package:drift/drift.dart';
 import '../database/database_provider.dart';
 import '../database/app_database.dart' as db;
 import 'package:shared/debug/audit_logger.dart';
+
 /// 推送结果汇总
 class PushSummary {
   final int successCount;
@@ -58,40 +59,52 @@ class SyncPusher {
         await _dao.markInProgress(entry.id);
       }
 
-      final items = batch.map((e) => <String, dynamic>{
-        'entity_type': e.entityType,
-        'local_id': e.entityId,
-        'data': jsonDecode(e.payload),
-      }).toList();
+      final items = batch
+          .map(
+            (e) => <String, dynamic>{
+              'entity_type': e.entityType,
+              'local_id': e.entityId,
+              'data': jsonDecode(e.payload),
+            },
+          )
+          .toList();
 
       try {
         final result = await _api.pushBatch(items);
         batchesPushed++;
+        var hasIncompleteResponse = false;
         // 逐条查 server_ids 映射：有的→成功，没有的→失败
         for (final entry in batch) {
           final sid = result.serverIds[entry.entityId];
+          if (sid == null) {
+            await _dao.markFailed(
+              entry.id,
+              errorMessage: 'Server response missing server_id',
+            );
+            fail++;
+            hasIncompleteResponse = true;
+            continue;
+          }
+
           await _dao.markSuccess(entry.id, serverId: sid);
           // 写回 server_id 到实体表
-          if (sid != null) {
-            try {
-              final db_ = DatabaseProvider();
-              if (entry.entityType == 'submission') {
-                await (db_.appDb.update(db_.appDb.submissionDetails)
-                  ..where((t) => t.id.equals(entry.entityId)))
+          try {
+            final db_ = DatabaseProvider();
+            if (entry.entityType == 'submission') {
+              await (db_.appDb.update(db_.appDb.submissionDetails)
+                    ..where((t) => t.id.equals(entry.entityId)))
                   .write(db.SubmissionDetailsCompanion(serverId: Value(sid)));
-              } else if (entry.entityType == 'custom_paper') {
-                await (db_.appDb.update(db_.appDb.customPapers)
-                  ..where((t) => t.id.equals(entry.entityId)))
+            } else if (entry.entityType == 'custom_paper') {
+              await (db_.appDb.update(db_.appDb.customPapers)
+                    ..where((t) => t.id.equals(entry.entityId)))
                   .write(db.CustomPapersCompanion(serverId: Value(sid)));
-              }
-            } catch (_) {}
-          }
-          if (sid != null) {
-            success++;
-          } else {
-            fail++;
-          }
+            }
+          } catch (_) {}
+          success++;
         }
+        // A successful HTTP response with missing IDs is incomplete. Leave the
+        // affected items retryable, but do not retry them in a tight loop.
+        if (hasIncompleteResponse) break;
       } catch (e) {
         AuditLogger.instance.error('SyncPusher.pushAll', e);
         for (final entry in batch) {
@@ -112,8 +125,16 @@ class SyncPusher {
     await _dao.markPermanentFailures(maxRetries);
     await _dao.cleanup();
 
-    AuditLogger.instance.sync('push', {'success': success, 'fail': fail, 'batchSize': batchSize});
+    AuditLogger.instance.sync('push', {
+      'success': success,
+      'fail': fail,
+      'batchSize': batchSize,
+    });
 
-    return PushSummary(successCount: success, failCount: fail, batchesPushed: batchesPushed);
+    return PushSummary(
+      successCount: success,
+      failCount: fail,
+      batchesPushed: batchesPushed,
+    );
   }
 }
