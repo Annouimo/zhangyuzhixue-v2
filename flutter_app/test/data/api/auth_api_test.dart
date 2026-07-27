@@ -22,8 +22,13 @@ class _MockAdapter implements HttpClientAdapter {
     if (handler != null) {
       return handler(options);
     }
-    return ResponseBody.fromString('{"code":0,"data":{}}', 200,
-        headers: {'content-type': ['application/json']});
+    return ResponseBody.fromString(
+      '{"code":0,"data":{}}',
+      200,
+      headers: {
+        'content-type': ['application/json'],
+      },
+    );
   }
 
   @override
@@ -47,14 +52,16 @@ void main() {
         return ResponseBody.fromString(
           '{"code":0,"data":{"access":"acc123","refresh":"ref456","user":{"id":1,"name":"test","role":"student"}}}',
           200,
-          headers: {'content-type': ['application/json']},
+          headers: {
+            'content-type': ['application/json'],
+          },
         );
       });
 
       final api = AuthApi(client);
-      final result = await api.login(LoginRequest(
-        username: 'test', password: 'pass', appType: 'student',
-      ));
+      final result = await api.login(
+        LoginRequest(username: 'test', password: 'pass', appType: 'student'),
+      );
 
       expect(result.accessToken, 'acc123');
       expect(result.refreshToken, 'ref456');
@@ -65,29 +72,43 @@ void main() {
       var requestBody = <String, dynamic>{};
       adapter.on('POST', '/auth/register/', (opts) {
         requestBody = opts.data as Map<String, dynamic>;
-        return ResponseBody.fromString('{"code":0,"data":null}', 200,
-            headers: {'content-type': ['application/json']});
+        return ResponseBody.fromString(
+          '{"code":0,"data":null}',
+          200,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        );
       });
 
       final api = AuthApi(client);
-      await api.register(RegisterRequest(
-        inviteCode: 'ABC123',
-        username: 'newuser',
-        realName: '小明',
-        phone: '13800138000',
-        gaokaoYear: '2026',
-        password: 'pass123',
-      ));
+      await api.register(
+        RegisterRequest(
+          inviteCode: 'ABC123',
+          username: 'newuser',
+          realName: '小明',
+          phone: '13800138000',
+          gaokaoYear: '2026',
+          password: 'pass123',
+          acceptedTerms: true,
+          acceptedPrivacy: true,
+        ),
+      );
 
       expect(requestBody['invitation_code'], 'ABC123');
       expect(requestBody['username'], 'newuser');
+      expect(requestBody['accepted_terms'], isTrue);
+      expect(requestBody['accepted_privacy'], isTrue);
     });
 
     test('refresh returns new access token', () async {
       adapter.on('POST', '/auth/refresh/', (_) {
         return ResponseBody.fromString(
-          '{"code":0,"data":{"access":"new_acc_789"}}', 200,
-          headers: {'content-type': ['application/json']},
+          '{"code":0,"data":{"access":"new_acc_789"}}',
+          200,
+          headers: {
+            'content-type': ['application/json'],
+          },
         );
       });
 

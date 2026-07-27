@@ -12,6 +12,8 @@ import '../../data/daos/achievement_dao.dart';
 import '../../data/daos/statistics_dao.dart';
 import '../../data/daos/exam_dao.dart';
 import '../../data/database/database_provider.dart';
+import '../../data/prefs/app_prefs.dart';
+import '../../data/sync/sync_manager.dart';
 import '../../domain/user_repository.dart';
 import '../../domain/auth_repository.dart';
 import '../../domain/preference_repository.dart';
@@ -258,11 +260,11 @@ class ProfilePageState extends State<ProfilePage> {
     try {
       pendingCount = await SyncQueueDao(DatabaseProvider()).getPendingCount();
     } catch (_) {}
+    if (!mounted) return;
 
     final msg = pendingCount > 0
         ? '确定要退出当前账号吗？\n有 $pendingCount 条数据尚未同步，退出后将丢失。建议先同步再退出。'
         : '确定要退出当前账号吗？';
-    if (!mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -292,6 +294,163 @@ class ProfilePageState extends State<ProfilePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('退出失败: $e'),
+          backgroundColor: context.colors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _requestAccountDeletion() async {
+    int pendingCount = 0;
+    try {
+      pendingCount = await SyncQueueDao(DatabaseProvider()).getPendingCount();
+    } catch (_) {}
+    if (!mounted) return;
+    if (pendingCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('还有 $pendingCount 条数据未同步，请先完成同步再注销账号'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: context.colors.warning,
+        ),
+      );
+      return;
+    }
+
+    final passwordController = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('注销账号'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('提交后账号会立即停用并退出班级。7 天内可在登录页撤销；到期后身份信息将不可恢复地匿名化。'),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: '当前密码',
+                prefixIcon: Icon(Icons.lock_outline_rounded),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = passwordController.text;
+              if (value.isNotEmpty) Navigator.pop(ctx, value);
+            },
+            child: const Text('确认注销'),
+          ),
+        ],
+      ),
+    );
+    passwordController.dispose();
+    if (password == null || !mounted) return;
+
+    try {
+      await AuthRepository(
+        AuthApi(ApiClient()),
+      ).requestAccountDeletion(password);
+      await SyncManager().onLogout();
+      await DatabaseProvider().clearUserDb();
+      await AppPrefs().clearAll();
+      if (!mounted) return;
+      context.go(AppRoutes.login);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('账号已停用，7 天内可在登录页撤销注销')));
+    } catch (e) {
+      AuditLogger.instance.error('ProfilePage._requestAccountDeletion', e);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('注销申请失败: $e'),
+          backgroundColor: context.colors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _changePassword() async {
+    final currentController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmationController = TextEditingController();
+    final values = await showDialog<(String, String)>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('修改密码'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: '当前密码'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: newController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: '新密码（至少 8 位）'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: confirmationController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: '再次输入新密码'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final current = currentController.text;
+              final newPassword = newController.text;
+              if (current.isEmpty || newPassword.length < 8) return;
+              if (newPassword != confirmationController.text) return;
+              Navigator.pop(ctx, (current, newPassword));
+            },
+            child: const Text('修改密码'),
+          ),
+        ],
+      ),
+    );
+    currentController.dispose();
+    newController.dispose();
+    confirmationController.dispose();
+    if (values == null || !mounted) return;
+
+    try {
+      await AuthRepository(
+        AuthApi(ApiClient()),
+      ).changePassword(currentPassword: values.$1, newPassword: values.$2);
+      await SyncManager().onLogout();
+      await AppPrefs().clearAll();
+      if (!mounted) return;
+      context.go(AppRoutes.login);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('密码已修改，请使用新密码登录')));
+    } catch (e) {
+      AuditLogger.instance.error('ProfilePage._changePassword', e);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('修改密码失败: $e'),
           backgroundColor: context.colors.error,
         ),
       );
@@ -624,6 +783,19 @@ class ProfilePageState extends State<ProfilePage> {
             title: '关于章鱼智学',
             subtitle: '版本、隐私与开源许可',
             onTap: () => RouterUtils.push(context, AppRoutes.profileAbout),
+          ),
+          _ProfileEntry(
+            icon: Icons.password_rounded,
+            title: '修改密码',
+            subtitle: '验证当前密码后设置新密码',
+            onTap: _changePassword,
+          ),
+          _ProfileEntry(
+            icon: Icons.person_off_outlined,
+            title: '注销账号',
+            subtitle: '立即停用，7 天后匿名化身份信息',
+            tone: AppStatusTone.error,
+            onTap: _requestAccountDeletion,
           ),
           _ProfileEntry(
             icon: Icons.logout_rounded,

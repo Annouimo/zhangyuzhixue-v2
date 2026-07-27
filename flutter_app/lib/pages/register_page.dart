@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_auth_layout.dart';
@@ -35,6 +36,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _submitting = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _acceptedAgreements = false;
 
   late final AuthRepository _authRepo;
 
@@ -70,6 +72,8 @@ class _RegisterPageState extends State<RegisterPage> {
           phone: _phoneController.text.trim(),
           gaokaoYear: _gaokaoYear,
           password: _passwordController.text,
+          acceptedTerms: _acceptedAgreements,
+          acceptedPrivacy: _acceptedAgreements,
         ),
       );
 
@@ -130,6 +134,13 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  Future<void> _openAgreement(String path) async {
+    final uri = Uri.parse('https://zhangyuzhixue.top/$path');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      _showError('无法打开页面，请稍后重试');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -141,18 +152,8 @@ class _RegisterPageState extends State<RegisterPage> {
         icon: const Icon(Icons.arrow_back_ios),
         onPressed: () => context.pop(),
       ),
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '已有账号？',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
-          ),
-          TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
-        ],
-      ),
+      // AppAuthLayout keeps the form before its optional footer for readability.
+      // ignore: sort_child_properties_last
       child: Form(
         key: _formKey,
         child: Column(
@@ -308,24 +309,51 @@ class _RegisterPageState extends State<RegisterPage> {
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
+            CheckboxListTile(
+              value: _acceptedAgreements,
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (value) =>
+                  setState(() => _acceptedAgreements = value ?? false),
+              title: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  const Text('我已阅读并同意'),
+                  TextButton(
+                    onPressed: () => _openAgreement('terms.html'),
+                    child: const Text('用户协议'),
+                  ),
+                  const Text('和'),
+                  TextButton(
+                    onPressed: () => _openAgreement('privacy.html'),
+                    child: const Text('隐私政策'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             AppButton(
               label: '完成注册',
               icon: Icons.person_add_alt_1_rounded,
-              onPressed: _loading ? null : _register,
+              onPressed: _loading || !_acceptedAgreements ? null : _register,
               isLoading: _loading,
               fullWidth: true,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '注册即表示你同意按学校或机构要求使用本学习系统。',
-              textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: colors.textMuted),
-            ),
           ],
         ),
+      ),
+      footer: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '已有账号？',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
+          ),
+          TextButton(onPressed: () => context.pop(), child: const Text('返回登录')),
+        ],
       ),
     );
   }

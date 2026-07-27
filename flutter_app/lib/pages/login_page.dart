@@ -25,11 +25,7 @@ class LoginPage extends StatefulWidget {
   final AuthRepository? authRepository;
   final PreferenceRepository? preferenceRepository;
 
-  const LoginPage({
-    super.key,
-    this.authRepository,
-    this.preferenceRepository,
-  });
+  const LoginPage({super.key, this.authRepository, this.preferenceRepository});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -60,18 +56,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-      final colors = context.colors;
+    final colors = context.colors;
     if (!_formKey.currentState!.validate()) return;
     if (_submitting) return;
     setState(() => _submitting = true);
     setState(() => _loading = true);
 
     try {
-      final result = await _authRepo.login(LoginRequest(
-        username: _usernameController.text.trim(),
-        password: _passwordController.text,
-        appType: 'student',
-      ));
+      final result = await _authRepo.login(
+        LoginRequest(
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+          appType: 'student',
+        ),
+      );
 
       // 保存 token
       await AppPrefs().setAccessToken(result.accessToken);
@@ -80,9 +78,11 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       // 同步用户数据（展示进度弹窗）
-      final syncOk = await showSyncProgress(context, (onProgress) async {
-        await SyncManager().onLogin(onProgress: onProgress);
-      },
+      final syncOk = await showSyncProgress(
+        context,
+        (onProgress) async {
+          await SyncManager().onLogin(onProgress: onProgress);
+        },
         title: '恢复数据',
         message: '正在从服务器恢复你的学习记录…',
       );
@@ -137,16 +137,21 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
     } finally {
-      if (mounted) setState(() { _loading = false; _submitting = false; });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _submitting = false;
+        });
+      }
       AuditLogger.instance.page('LoginPage', {'loading': _loading});
     }
   }
 
   Future<bool> _checkPreferences() async {
     try {
-      _prefRepo ??= widget.preferenceRepository ?? PreferenceRepository(
-        PreferenceDao(DatabaseProvider()),
-      );
+      _prefRepo ??=
+          widget.preferenceRepository ??
+          PreferenceRepository(PreferenceDao(DatabaseProvider()));
       final count = await _prefRepo!.getCount();
       return count > 0;
     } catch (e) {
@@ -217,6 +222,69 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  Future<void> _cancelAccountDeletion() async {
+    final usernameController = TextEditingController(
+      text: _usernameController.text.trim(),
+    );
+    final passwordController = TextEditingController();
+    final credentials = await showDialog<(String, String)>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('撤销账号注销'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('冷静期内可使用原用户名和密码恢复账号。'),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(labelText: '原用户名'),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: '原密码'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final username = usernameController.text.trim();
+              final password = passwordController.text;
+              if (username.isNotEmpty && password.isNotEmpty) {
+                Navigator.pop(ctx, (username, password));
+              }
+            },
+            child: const Text('恢复账号'),
+          ),
+        ],
+      ),
+    );
+    usernameController.dispose();
+    passwordController.dispose();
+    if (credentials == null || !mounted) return;
+    try {
+      await _authRepo.cancelAccountDeletion(
+        username: credentials.$1,
+        password: credentials.$2,
+      );
+      if (!mounted) return;
+      _usernameController.text = credentials.$1;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('账号已恢复，请重新登录')));
+    } catch (e) {
+      if (!mounted) return;
+      _showError(_extractErrorMessage(e));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -230,15 +298,19 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Text(
                 '还没有账号？',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colors.textSecondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               ),
               TextButton(
                 onPressed: () => RouterUtils.push(context, AppRoutes.register),
                 child: const Text('使用邀请码注册'),
               ),
             ],
+          ),
+          TextButton(
+            onPressed: _cancelAccountDeletion,
+            child: const Text('撤销账号注销'),
           ),
           TextButton.icon(
             onPressed: _exportLog,
@@ -261,9 +333,8 @@ class _LoginPageState extends State<LoginPage> {
               ),
               textInputAction: TextInputAction.next,
               autofillHints: const [AutofillHints.username],
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? '请输入用户名'
-                  : null,
+              validator: (value) =>
+                  value == null || value.trim().isEmpty ? '请输入用户名' : null,
             ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
@@ -279,18 +350,16 @@ class _LoginPageState extends State<LoginPage> {
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
                   ),
-                  onPressed: () => setState(
-                    () => _obscurePassword = !_obscurePassword,
-                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
               autofillHints: const [AutofillHints.password],
               onFieldSubmitted: (_) => _login(),
-              validator: (value) => value == null || value.isEmpty
-                  ? '请输入密码'
-                  : null,
+              validator: (value) =>
+                  value == null || value.isEmpty ? '请输入密码' : null,
             ),
             const SizedBox(height: AppSpacing.xs),
             Align(
@@ -319,7 +388,11 @@ class _LoginPageState extends State<LoginPage> {
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Row(
                   children: [
-                    Icon(Icons.shield_outlined, size: 18, color: colors.primary),
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 18,
+                      color: colors.primary,
+                    ),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
@@ -339,10 +412,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _exportLog() async {
     final msg = switch (await OperationLog.instance.exportToShare()) {
-      ExportResult.success        => '已打开分享面板',
-      ExportResult.fileNotFound   => '暂无日志数据',
-      ExportResult.notReady       => '日志已导出到 Downloads 文件夹',
-      ExportResult.savedToFolder  => '日志已导出到 Downloads 文件夹',
+      ExportResult.success => '已打开分享面板',
+      ExportResult.fileNotFound => '暂无日志数据',
+      ExportResult.notReady => '日志已导出到 Downloads 文件夹',
+      ExportResult.savedToFolder => '日志已导出到 Downloads 文件夹',
     };
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

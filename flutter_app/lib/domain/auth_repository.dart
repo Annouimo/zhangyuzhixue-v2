@@ -11,7 +11,24 @@ class AuthRepository {
 
   Future<void> register(RegisterRequest data) => _api.register(data);
 
-  Future<RefreshResult> refresh(String refreshToken) => _api.refresh(refreshToken);
+  Future<RefreshResult> refresh(String refreshToken) =>
+      _api.refresh(refreshToken);
+
+  Future<DateTime> requestAccountDeletion(String currentPassword) =>
+      _api.requestAccountDeletion(currentPassword);
+
+  Future<void> cancelAccountDeletion({
+    required String username,
+    required String password,
+  }) => _api.cancelAccountDeletion(username: username, password: password);
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _api.changePassword(
+    currentPassword: currentPassword,
+    newPassword: newPassword,
+  );
 
   Future<void> logout() async {
     await SyncManager().onLogout();
