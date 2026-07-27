@@ -14,6 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_DIR="$(cd "$PROJECT_DIR/.." && pwd)"
 REMOTE="server"
 BRANCH="master"
 SSH_HOST="root@82.157.115.219"
@@ -43,6 +44,17 @@ echo "  分支: $REMOTE/$BRANCH"
 echo "  模式: $($DRY_RUN && echo 'DRY-RUN' || echo '正式')"
 echo ""
 
+cd "$REPO_DIR"
+if [[ "$(git branch --show-current)" != "$BRANCH" ]]; then
+    echo "❌ 生产部署必须从 $BRANCH 分支执行"
+    exit 1
+fi
+if [[ -n "$(git status --porcelain -- server)" ]]; then
+    echo "❌ server/ 存在未提交改动，拒绝部署"
+    git status --short -- server
+    exit 1
+fi
+
 # 1. 部署前检查（不读取密钥值）
 echo ""
 echo "┌─ 部署前检查"
@@ -50,9 +62,10 @@ if $DRY_RUN; then
     echo "  [DRY-RUN] 检查远程 .env、服务和 Git hook"
 else
     "${SSH[@]}" "test -f '$DEPLOY_DIR/server/.env' && \
+        test -x '$DEPLOY_DIR.git/hooks/pre-receive' && \
         test -x '$DEPLOY_DIR.git/hooks/post-receive' && \
         systemctl is-active --quiet zhangyuzhixue-web"
-    echo "✅ 远程环境、部署 hook 和服务正常"
+    echo "✅ 远程环境、部署 hooks 和服务正常"
 fi
 
 # 2. 推送代码
@@ -94,9 +107,29 @@ else
             http://127.0.0.1:8001/admin/ || true
         systemctl is-active --quiet zhangyuzhixue-web
 
+        echo "  ▶ Nginx 配置"
+        nginx -t
+
+        echo "  ▶ 数据库完整性"
+        python - <<'PY'
+import sqlite3
+
+connection = sqlite3.connect("file:db.sqlite3?mode=ro", uri=True)
+integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
+foreign_keys = connection.execute("PRAGMA foreign_key_check").fetchall()
+connection.close()
+if integrity != "ok" or foreign_keys:
+    raise SystemExit(
+        f"Database validation failed: integrity={integrity}, "
+        f"foreign_key_violations={len(foreign_keys)}"
+    )
+print("Database validation passed.")
+PY
+
         echo ""
         echo "✅ 部署验证完成"
 REMOTE_CHECKS
+    python "$REPO_DIR/scripts/smoke_production.py"
 fi
 
 echo ""

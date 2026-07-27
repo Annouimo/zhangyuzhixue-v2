@@ -1,0 +1,25 @@
+#!/bin/bash
+# Install as /opt/zhangyuzhixue-v2.git/hooks/pre-receive.
+# Reject branch deletion and non-fast-forward production updates.
+
+set -euo pipefail
+
+BARE_REPO="/opt/zhangyuzhixue-v2.git"
+BRANCH="refs/heads/master"
+ZERO="0000000000000000000000000000000000000000"
+
+while read -r old_rev new_rev ref_name; do
+    if [[ "$ref_name" != "$BRANCH" ]]; then
+        echo "Rejecting $ref_name; production accepts master only." >&2
+        exit 1
+    fi
+    if [[ "$new_rev" == "$ZERO" ]]; then
+        echo "Rejecting deletion of production master." >&2
+        exit 1
+    fi
+    if [[ "$old_rev" != "$ZERO" ]] && \
+       ! git --git-dir="$BARE_REPO" merge-base --is-ancestor "$old_rev" "$new_rev"; then
+        echo "Rejecting non-fast-forward production update." >&2
+        exit 1
+    fi
+done
