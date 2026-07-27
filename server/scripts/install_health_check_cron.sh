@@ -9,7 +9,7 @@ LOG_DIR="/var/log/zhangyuzhixue"
 LOG_FILE="$LOG_DIR/health-check.log"
 LOCK_FILE="/var/lock/zhangyuzhixue-health-check.lock"
 
-test -x "$CHECK_SCRIPT"
+test -f "$CHECK_SCRIPT"
 install -d -o root -g root -m 755 "$LOG_DIR"
 touch "$LOG_FILE" "$LOCK_FILE"
 chown root:root "$LOG_FILE" "$LOCK_FILE"
