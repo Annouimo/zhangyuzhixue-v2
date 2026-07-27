@@ -269,23 +269,33 @@ def rollback(args: argparse.Namespace) -> int:
     from django.utils.dateparse import parse_datetime
     from system.models import DbVersion
 
-    with release_lock(args.lock_file), transaction.atomic():
-        version = DbVersion.objects.select_for_update().get(db_type=metadata["db_type"])
-        previous = metadata["previous"]
-        for field, value in previous.items():
-            if field == "built_at" and value:
-                value = parse_datetime(value)
-            setattr(version, field, value)
-        version.save()
-        saved_bundle = backup_dir / destination.name
-        if metadata["destination_existed"]:
-            if not saved_bundle.is_file():
-                raise ValueError("rollback bundle is missing")
-            stage = destination.parent / f".{destination.name}.{args.release_id}.rollback"
-            shutil.copy2(saved_bundle, stage)
-            os.replace(stage, destination)
-        else:
-            destination.unlink(missing_ok=True)
+    with release_lock(args.lock_file):
+        with transaction.atomic():
+            version = DbVersion.objects.select_for_update().get(
+                db_type=metadata["db_type"]
+            )
+            previous = metadata["previous"]
+            for field, value in previous.items():
+                if field == "built_at" and value:
+                    value = parse_datetime(value)
+                setattr(version, field, value)
+            version.save()
+            saved_bundle = backup_dir / destination.name
+            if metadata["destination_existed"]:
+                if not saved_bundle.is_file():
+                    raise ValueError("rollback bundle is missing")
+                stage = destination.parent / f".{destination.name}.{args.release_id}.rollback"
+                shutil.copy2(saved_bundle, stage)
+                os.replace(stage, destination)
+            else:
+                destination.unlink(missing_ok=True)
+        with (args.backup_root.resolve() / "releases.log").open(
+            "a", encoding="utf-8"
+        ) as log:
+            log.write(
+                f'{datetime.now(timezone.utc).isoformat()} rollback={args.release_id} '
+                f'type={metadata["db_type"]} data={previous["data_version"]}\n'
+            )
     print(f"ROLLED_BACK={args.release_id}")
     return 0
 
