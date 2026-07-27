@@ -1,11 +1,11 @@
 name: teacher_app
 description: "个性定制高考数学智能学习系统 - 教师端"
 publish_to: 'none'
-version: 1.0.0+2
+version: 1.1.0+3
 
 # The teacher app is internal-only but follows the student app build baseline.
 release_channel: beta
-release_iteration: 2
+release_iteration: 3
 
 environment:
   sdk: ^3.12.2

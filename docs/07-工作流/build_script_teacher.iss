@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "章鱼智学-教师端"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "ZhangYuZhiXue, Inc."
 #define MyAppURL "https://zhangyuzhixue.top/"
 #define MyAppExeName "teacher_app.exe"
@@ -36,7 +36,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=D:\Hermes\zhangyuzhixue_app_v2\dist\windows\teacher
-OutputBaseFilename=章鱼智学-教师端-1.0.0-beta.2-windows
+OutputBaseFilename=章鱼智学-教师端-1.1.0-beta.3-windows
 SolidCompression=yes
 WizardStyle=modern dynamic
 

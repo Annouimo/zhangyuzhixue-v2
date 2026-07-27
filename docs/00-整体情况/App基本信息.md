@@ -13,24 +13,24 @@
 | **项目名** | `flutter_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - Flutter 学生端` | pubspec.yaml 描述字段 |
-| **平台版本** | `1.0.0+2` | iOS/Android 兼容的纯数字版本 + 构建号 |
-| **发布标识** | `1.0.0-beta.2` | 对外标识为「公测版 Beta 2」 |
+| **平台版本** | `1.1.0+3` | iOS/Android 兼容的纯数字版本 + 构建号 |
+| **发布标识** | `1.1.0-beta.3` | 对外标识为「公测版 Beta 3」 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.student` | Google Play / 各应用商店区分应用的唯一 ID。**发布后不可更改**，否则视为新应用 |
 | **Android - 显示名称** | `章鱼智学` | `AndroidManifest.xml` 中 `android:label`，桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.student` | App Store 区分应用唯一 ID，与 Android applicationId 对应但独立维护 |
 | **iOS - 显示名称** | `章鱼智学` | `Info.plist` 中 `CFBundleDisplayName`，桌面图标下方文字 |
 | **iOS - 内部名称** | `章鱼智学` | `Info.plist` 中 `CFBundleName`，系统内部使用 |
 | **Windows - 窗口标题** | `章鱼智学` | `windows/runner/main.cpp` 中 `window.Create()` 的参数。任务栏和窗口标题栏显示的名称 |
-| **Windows - 安装包名** | `章鱼智学-1.0.0-beta.2-windows.exe` | 发布物文件名 |
+| **Windows - 安装包名** | `章鱼智学-1.1.0-beta.3-windows.exe` | 发布物文件名 |
 | **Windows - MSIX 标识** | `Annouimo.526026C9DD952` | 微软商店安装标识 |
 | **Windows - 显示名称** | `章鱼智学` | MSIX 开始菜单/任务栏显示 |
 
 ### 版本号详解
 
-`1.0.0+2` 拆解：
+`1.1.0+3` 拆解：
 
 ```
- 1 . 0 . 0 + 2
+ 1 . 1 . 0 + 3
  │   │   │   │
  │   │   │   └── 构建号 (build number)
  │   │   │    │           Android: versionCode，Google Play 据此判断哪个包更新
@@ -53,15 +53,15 @@
 ```
 
 公测渠道不再写入平台版本号，而由 `pubspec.yaml` 中的
-`release_channel: beta` 和 `release_iteration: 2` 独立表示。这样 iOS 保持
-三段纯数字版本，用户界面仍显示 `1.0.0（公测版 Beta 2）`。
+`release_channel: beta` 和 `release_iteration: 3` 独立表示。这样 iOS 保持
+三段纯数字版本，用户界面仍显示 `1.1.0（公测版 Beta 3）`。
 
 **变更规则：**
 
 | 场景 | 改哪段 | 示例 |
 |------|--------|------|
-| 修了个 bug，重新发版 | 升 build 和公测轮次 | `1.0.0+2 / beta.2` → `1.0.0+3 / beta.3` |
-| 增加了小功能 | 升次版本和 build | `1.0.0+3` → `1.1.0+4` |
+| 修了个 bug，重新发版 | 升 build 和公测轮次 | `1.1.0+3 / beta.3` → `1.1.0+4 / beta.4` |
+| 增加了小功能 | 升次版本和 build | `1.1.0+3` → `1.2.0+4` |
 | 进入发布候选 | 改发布渠道 | `release_channel: beta` → `release_channel: rc` |
 | 正式发版 | 改发布渠道 | `release_channel: rc` → `release_channel: release` |
 | 重大架构变更 | 升 major | `1.0.0+6` → `2.0.0+1` |
@@ -72,13 +72,13 @@
 
 | 平台 | 字段 | 文件 |
 |------|------|------|
-| 单源定义 | `version: 1.0.0+2` | `pubspec.yaml` |
-| Android versionName | `1.0.0` | `pubspec.yaml` → `versionName` |
-| Android versionCode | `2` | `pubspec.yaml` → `versionCode` |
+| 单源定义 | `version: 1.1.0+3` | `pubspec.yaml` |
+| Android versionName | `1.1.0` | `pubspec.yaml` → `versionName` |
+| Android versionCode | `3` | `pubspec.yaml` → `versionCode` |
 | iOS Short Version | `$(FLUTTER_BUILD_NAME)` | `ios/Runner/Info.plist`（自动读取） |
 | iOS Build Version | `$(FLUTTER_BUILD_NUMBER)` | `ios/Runner/Info.plist`（自动读取） |
 
-> ⚠️ `ios/Flutter/Generated.xcconfig` 中的 `FLUTTER_BUILD_NAME=1.0.0` 和 `FLUTTER_BUILD_NUMBER=1` 是在 `flutter pub get` 时从 pubspec.yaml 解析后自动生成的。如果修改了 pubspec.yaml 的版本号，重新 `flutter pub get` 会自动更新这里。
+> ⚠️ `ios/Flutter/Generated.xcconfig` 中的 `FLUTTER_BUILD_NAME=1.1.0` 和 `FLUTTER_BUILD_NUMBER=3` 是在 `flutter pub get` 时从 pubspec.yaml 解析后自动生成的。如果修改了 pubspec.yaml 的版本号，重新 `flutter pub get` 会自动更新这里。
 
 ---
 
@@ -89,7 +89,7 @@
 | **项目名** | `teacher_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学 · 教师端` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - 教师端（题库浏览 + 讲义阅读 + 选题导出）` | pubspec.yaml 描述字段 |
-| **版本** | `1.0.0+2` | 与学生端保持相同构建基线 |
+| **版本** | `1.1.0+3` | 与学生端保持相同构建基线 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.teacher` | 与学生端不同 |
 | **Android - 显示名称** | `章鱼智学 · 教师端` | 桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.teacher` | 与学生端不同 |

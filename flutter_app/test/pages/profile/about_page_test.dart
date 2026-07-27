@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: AboutPage()));
     await tester.pump();
     expect(find.text('关于'), findsOneWidget);
-    expect(find.text('版本 1.0.0（公测版 Beta 2）'), findsOneWidget);
+    expect(find.text('版本 1.1.0（公测版 Beta 3）'), findsOneWidget);
     expect(find.text('用户协议'), findsOneWidget);
     expect(find.text('隐私政策'), findsOneWidget);
   });
