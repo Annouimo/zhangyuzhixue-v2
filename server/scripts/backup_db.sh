@@ -15,8 +15,18 @@ RETENTION_DAYS=30
 
 mkdir -p "$BACKUP_DIR"
 
-# 1. 备份 SQLite 主库（gzip 压缩）
-cp "$PROJECT_DIR/db.sqlite3" "$BACKUP_DIR/db.$DATE.sqlite3"
+# 1. 使用 SQLite 在线备份 API，确保 WAL 中的已提交事务也被包含。
+"$PROJECT_DIR/../venv/bin/python" -c '
+import sqlite3
+import sys
+
+source = sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True)
+target = sqlite3.connect(sys.argv[2])
+with target:
+    source.backup(target)
+target.close()
+source.close()
+' "$PROJECT_DIR/db.sqlite3" "$BACKUP_DIR/db.$DATE.sqlite3"
 gzip -f "$BACKUP_DIR/db.$DATE.sqlite3"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] db backup: $(ls -lh "$BACKUP_DIR/db.$DATE.sqlite3.gz" | awk '{print $5}')"
 
