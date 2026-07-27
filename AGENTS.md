@@ -96,3 +96,45 @@ D:\Programs\flutter\bin\flutter.bat --no-version-check build windows --debug
 # Server tests with writable caches and Flutter suites in serial order
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite Server
 ```
+
+## Production Deployment Baseline
+
+- Production server: `root@82.157.115.219`. The old server address
+  `81.70.243.63` is retired and must not be used for deployment or audit
+  scripts.
+- The local Git remote named `server` points to
+  `ssh://root@82.157.115.219/opt/zhangyuzhixue-v2.git`. Use the existing
+  Windows key `C:\Users\Annouimo\.ssh\id_rsa` through a narrowly scoped
+  `GIT_SSH_COMMAND` when the sandbox cannot access the key automatically.
+- The production worktree is `/opt/zhangyuzhixue-v2`; its bare repository is
+  `/opt/zhangyuzhixue-v2.git`. The service is
+  `zhangyuzhixue-web.service`, Gunicorn listens on `127.0.0.1:8001`, and nginx
+  terminates TLS and proxies to that port.
+- The supported deployment path is `git push server master`. Never use
+  `--force` or delete the production branch. The post-receive hook backs up the
+  SQLite database, checks out only `server/`, runs migrations and collectstatic,
+  restarts Gunicorn, and restores the previous code/database on failure.
+- The hook intentionally does not deploy `landing/`, Flutter artifacts, or
+  other work-in-progress files. Those require a separately reviewed release
+  commit and deployment procedure.
+- Production `server/.env` exists only on the server. Never create, print, or
+  upload it from the local workspace. Required non-secret settings include
+  `ENVIRONMENT=production`, `DEBUG=False`, `SECURE_SSL_REDIRECT=False`, and
+  `SECURE_HSTS_SECONDS=3600`; verify secret presence/length without printing
+  values.
+- Before any production mutation, perform read-only checks and verify a recent
+  backup. SQLite backups must use the Online Backup API because the database
+  runs in WAL mode. Backups are stored under
+  `/var/backups/zhangyuzhixue-v2/db/`; pre-deploy snapshots are under
+  `/var/backups/zhangyuzhixue-v2/pre-deploy/`.
+- Ubuntu cron jobs run database backup at 04:00, data export at 04:10, and
+  deleted-account anonymization at 04:20. The anonymization command is
+  `python manage.py anonymize_deleted_accounts`.
+- For migration or data-repair changes, first run the migration against a copy
+  of the production database in a fixed `/tmp` shadow directory and check both
+  `PRAGMA integrity_check` and `PRAGMA foreign_key_check`. Do not hand-edit
+  production SQLite data when a reversible Django migration is possible.
+- A successful deployment must verify the Gunicorn service, local port 8001,
+  both public HTTPS domains, applied migrations, and database foreign-key
+  integrity. Expected remaining `check --deploy` warnings are the deliberate
+  proxy/HSTS policy choices and existing OpenAPI schema warnings.
