@@ -1,4 +1,4 @@
-"""认证 API 测试 — 登录/登出/刷新"""
+"""认证 API 的注册、登录、登出与刷新测试。"""
 import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
