@@ -68,7 +68,9 @@ msix_config:
   publisher_display_name: Annouimo
   publisher: "CN=4B0BC5E2-DDB8-4E00-8A70-1D231234C993"
   identity_name: Annouimo.526026C9DD952
-  logo_path: windows/runner/resources/app_icon.ico
+  # Use the high-resolution PNG as the source for MSIX scale/targetsize assets.
+  # The runner ICO tops out at 256 px and becomes blurry on high-DPI devices.
+  logo_path: ../docs/00-整体情况/icon_final_1024.png
   store: true
   install_certificate: false
 

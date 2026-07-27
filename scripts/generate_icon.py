@@ -147,7 +147,13 @@ def process():
         for name, px in WINDOWS_TILES:
             _save(tile_dir / name, square, px, f'{app}: windows/tiles/{name}')
         for name, w, h in WIDE_TILES:
-            img = square.resize((w, h), Image.LANCZOS)
+            # Keep the square logo's aspect ratio and center it on the wide
+            # canvas. Stretching it directly to 310x150 distorts the mark.
+            fitted = square.copy()
+            fitted.thumbnail((w, h), Image.LANCZOS)
+            img = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+            offset = ((w - fitted.width) // 2, (h - fitted.height) // 2)
+            img.alpha_composite(fitted, dest=offset)
             img.save(tile_dir / name)
             print(f'✅ {app}: windows/tiles/{name}')
 
