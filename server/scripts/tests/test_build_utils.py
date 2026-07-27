@@ -109,6 +109,36 @@ class TestCopyDirect:
         count = conn.execute('SELECT COUNT(*) FROM question').fetchone()[0]
         assert count == BaseQuestion.objects.count()
 
+    def test_copy_direct_rejects_legacy_fill_blank(self, db, db_and_conn):
+        BaseQuestion.objects.create(
+            question_type='fill',
+            stem=r'解集为\\_\\_\\_\\_\\_\\_\\_.',
+        )
+
+        with pytest.raises(ValueError, match='legacy answer blank'):
+            copy_direct(
+                db_and_conn,
+                ASSETS_TABLES,
+                'question',
+                'qbank.BaseQuestion',
+            )
+
+    def test_copy_direct_rejects_unwrapped_latex_fill_blank(
+        self, db, db_and_conn
+    ):
+        BaseQuestion.objects.create(
+            question_type='fill',
+            stem=r'定义域是\underline{\hspace{2cm}}',
+        )
+
+        with pytest.raises(ValueError, match='legacy answer blank'):
+            copy_direct(
+                db_and_conn,
+                ASSETS_TABLES,
+                'question',
+                'qbank.BaseQuestion',
+            )
+
 
 # ── copy_m2m ────────────────────────────────────────────────
 
@@ -212,6 +242,48 @@ class TestWriteChapters:
                 'SELECT COUNT(*) FROM lecture_content'
             ).fetchone()[0]
             assert count == 3
+        finally:
+            conn.close()
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_lecture_content_rejects_math_wrapped_as_inline_code(
+            self, db, course_with_docs):
+        from courses.models import Document
+
+        document = Document.objects.first()
+        document.md_content = r'集合为 `\{a, b, c\}`'
+        document.save(update_fields=['md_content'])
+        schema = {
+            'chapter': COURSES_TABLES['chapter'],
+            'lecture_content': COURSES_TABLES['lecture_content'],
+        }
+        conn, path = create_db(schema)
+        try:
+            chapters = write_chapters(conn, COURSES_TABLES)
+            with pytest.raises(ValueError, match='inline code'):
+                write_lecture_content(conn, COURSES_TABLES, chapters)
+        finally:
+            conn.close()
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_lecture_content_rejects_empty_markdown(
+            self, db, course_with_docs):
+        from courses.models import Document
+
+        document = Document.objects.first()
+        document.md_content = '   '
+        document.save(update_fields=['md_content'])
+        schema = {
+            'chapter': COURSES_TABLES['chapter'],
+            'lecture_content': COURSES_TABLES['lecture_content'],
+        }
+        conn, path = create_db(schema)
+        try:
+            chapters = write_chapters(conn, COURSES_TABLES)
+            with pytest.raises(ValueError, match='empty markdown'):
+                write_lecture_content(conn, COURSES_TABLES, chapters)
         finally:
             conn.close()
             if os.path.exists(path):

@@ -233,6 +233,28 @@ void main() {
       expect(find.textContaining('展开 1 / 2'), findsAtLeastNWidgets(1));
     });
 
+    testWidgets('renders lecture set notation as math instead of inline code', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrapApp(
+        LectureContentPage(
+          chapterId: 1,
+          lectureRepository: _MockContentRepo(
+            content: LectureContent(
+              chapterId: 1,
+              title: '集合',
+              mdContent: r'集合的表示法：$\{a, b, c\}$、$\{x \mid P(x)\}$',
+            ),
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining(r'\{'), findsNothing);
+      expect(find.textContaining(r'\mid'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('shows error state on load failure', (tester) async {
       await tester.pumpWidget(_wrapApp(
         LectureContentPage(

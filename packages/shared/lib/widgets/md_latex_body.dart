@@ -15,23 +15,20 @@ class MdLatexBody extends StatelessWidget {
   final String data;
   final double fontSize;
 
-  MdLatexBody(
-    this.data, {
-    super.key,
-    this.fontSize = 14,
-  });
+  MdLatexBody(this.data, {super.key, this.fontSize = 14});
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     if (data.isEmpty) return SizedBox.shrink();
 
     return MarkdownBody(
       data: data,
       selectable: false,
       blockSyntaxes: [_BlockMathSyntax()],
-      inlineSyntaxes: [_InlineLatexSyntax()],
+      inlineSyntaxes: [_AnswerBlankSyntax(), _InlineLatexSyntax()],
       builders: {
+        'answer_blank': _AnswerBlankBuilder(),
         'latex_inline': _InlineLatexBuilder(),
         'math_block': _BlockMathBuilder(),
       },
@@ -63,10 +60,7 @@ class MdLatexBody extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: colors.textPrimary,
         ),
-        em: TextStyle(
-          fontStyle: FontStyle.normal,
-          color: colors.textSecondary,
-        ),
+        em: TextStyle(fontStyle: FontStyle.normal, color: colors.textSecondary),
         code: TextStyle(
           fontSize: fontSize - 1,
           backgroundColor: colors.surfaceSubtle,
@@ -81,15 +75,65 @@ class MdLatexBody extends StatelessWidget {
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        listBullet: TextStyle(
-          fontSize: fontSize,
-          color: colors.textSecondary,
-        ),
+        listBullet: TextStyle(fontSize: fontSize, color: colors.textSecondary),
         horizontalRuleDecoration: BoxDecoration(
           border: Border(top: BorderSide(color: colors.border)),
         ),
       ),
     );
+  }
+}
+
+// ─── 填空题答题空格 ───
+
+/// 纯空白下划线不是数学公式。将题库中的
+/// `$\underline{\hspace{2cm}}$` 保持为行内答题位，避免公式盒子居中。
+class _AnswerBlankSyntax extends md.InlineSyntax {
+  _AnswerBlankSyntax()
+    : super(r'\$\\underline\{\\hspace\{([0-9.]+)(cm|em|pt)\}\}\$');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    parser.addNode(md.Element.text('answer_blank', '${match[1]}${match[2]}'));
+    return true;
+  }
+}
+
+class _AnswerBlankBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    final fontSize = preferredStyle?.fontSize ?? 14;
+    final width = _blankWidth(element.textContent, fontSize);
+    return Semantics(
+      label: '答题空格',
+      child: Container(
+        width: width,
+        height: fontSize * 1.25,
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: preferredStyle?.color ?? Colors.black,
+              width: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  double _blankWidth(String value, double fontSize) {
+    final match = RegExp(r'^([0-9.]+)(cm|em|pt)$').firstMatch(value);
+    final amount = double.tryParse(match?.group(1) ?? '') ?? 2;
+    switch (match?.group(2)) {
+      case 'em':
+        return amount * fontSize;
+      case 'pt':
+        return amount * 96 / 72;
+      case 'cm':
+      default:
+        return amount * 96 / 2.54;
+    }
   }
 }
 
@@ -161,9 +205,7 @@ class _BlockMathBuilder extends MarkdownElementBuilder {
     return _SafeMath(
       tex: element.textContent,
       mathStyle: MathStyle.display,
-      textStyle: TextStyle(
-        fontSize: (preferredStyle?.fontSize ?? 14) * 1.2,
-      ),
+      textStyle: TextStyle(fontSize: (preferredStyle?.fontSize ?? 14) * 1.2),
     );
   }
 }
@@ -174,17 +216,21 @@ class _SafeMath extends StatelessWidget {
   final String tex;
   final MathStyle mathStyle;
   final TextStyle? textStyle;
-  _SafeMath({required this.tex, this.mathStyle = MathStyle.text, this.textStyle});
+  _SafeMath({
+    required this.tex,
+    this.mathStyle = MathStyle.text,
+    this.textStyle,
+  });
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     // flutter_math_fork's Math.build crashes on effectiveTextStyle.color!
     // when color is null (e.g. inside Markdown table header cells).
     final safeStyle = textStyle?.color != null
         ? textStyle
         : (textStyle?.copyWith(color: colors.textPrimary) ??
-            TextStyle(color: colors.textPrimary));
+              TextStyle(color: colors.textPrimary));
     final m = Math.tex(
       tex,
       mathStyle: mathStyle,

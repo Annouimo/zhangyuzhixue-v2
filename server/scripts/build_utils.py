@@ -12,6 +12,7 @@ import os
 import sqlite3
 import tempfile
 import time
+import re
 from hashlib import sha256
 
 
@@ -98,6 +99,23 @@ def _serialize(v):
     return v
 
 
+_LEGACY_ANSWER_BLANK = re.compile(
+    r'\$?(?:\\{1,2}_){3,}|\$?(?<!\\)_{3,}|'
+    r'(?<!\$)\\underline\{\\hspace\{[0-9.]+(?:cm|em|pt)\}\}(?!\$)'
+)
+
+
+def _validate_question_stem(question):
+    if getattr(question, 'question_type', None) != 'fill':
+        return
+    stem = getattr(question, 'stem', '')
+    if _LEGACY_ANSWER_BLANK.search(stem):
+        raise ValueError(
+            f'fill question {question.pk} contains a legacy answer blank; '
+            'use $\\underline{\\hspace{2cm}}$'
+        )
+
+
 def copy_direct(conn, schema, table_name, source_model, filter_kwargs=None):
     """direct 转换：字段名一致的直接复制"""
     from django.apps import apps
@@ -110,6 +128,8 @@ def copy_direct(conn, schema, table_name, source_model, filter_kwargs=None):
 
     rows = []
     for obj in qs.iterator():
+        if source_model == 'qbank.BaseQuestion':
+            _validate_question_stem(obj)
         row = {}
         for c in cols:
             if c == 'id':
@@ -228,6 +248,24 @@ def write_chapters(conn, schema):
     return rows  # 供 lecture_content 使用
 
 
+def _validate_lecture_markdown(title, content):
+    """Reject lecture content that cannot render as intended in the app."""
+    import re
+
+    if not content.strip():
+        raise ValueError(f'Lecture "{title}" has empty markdown content')
+
+    inline_code_math = re.search(
+        r'`[^`\n]*(?:\\[A-Za-z{]|[_^])[^`\n]*`',
+        content,
+    )
+    if inline_code_math:
+        raise ValueError(
+            f'Lecture "{title}" contains math wrapped as inline code: '
+            f'{inline_code_math.group(0)}'
+        )
+
+
 def write_lecture_content(conn, schema, chapters):
     """lecture_transform: Document → lecture_content"""
     from courses.models import Document
@@ -248,6 +286,7 @@ def write_lecture_content(conn, schema, chapters):
         ch_id = ch_map.get((doc.course_id, ch_idx))
         if ch_id is None:
             continue
+        _validate_lecture_markdown(doc.title, doc.md_content)
         rows.append({
             'chapter_id': ch_id,
             'title': doc.title,
