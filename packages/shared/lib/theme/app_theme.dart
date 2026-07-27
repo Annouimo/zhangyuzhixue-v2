@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'app_tokens.dart';
 
 /// 品牌色 — 来自已定稿 App 图标（不与交互色共享）
@@ -578,6 +579,9 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
+      fontFamily: defaultTargetPlatform == TargetPlatform.windows
+          ? 'Microsoft YaHei UI'
+          : null,
       fontFamilyFallback: _fontFamilyFallback,
       colorScheme: colorScheme,
       extensions: [colors],

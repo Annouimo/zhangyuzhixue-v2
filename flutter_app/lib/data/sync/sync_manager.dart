@@ -36,7 +36,11 @@ class SyncManager {
   /// 上次版本检查是否因网络/连接错误失败。若不为 null 则包含错误原因。
   String? lastCheckError;
 
-  Future<void> init(SyncQueueDao queueDao, SyncApi api, DatabaseProvider dbProvider) async {
+  Future<void> init(
+    SyncQueueDao queueDao,
+    SyncApi api,
+    DatabaseProvider dbProvider,
+  ) async {
     if (_initialized) return;
     _queueDao = queueDao;
     _api = api;
@@ -85,21 +89,25 @@ class SyncManager {
     _ensureRetryTimer();
     await pushNow();
     try {
-      final results = await _updateManager!.checkAll();
-      _pendingUpdates = results.where((s) =>
-        s.forceUpdate || UpdateManager.shouldShowBanner(
-          localVersion: s.localVersion,
-          serverVersion: s.serverVersion,
-        )
-      ).toList();
-      lastCheckError = null;
-      return List.unmodifiable(_pendingUpdates);
+      return await checkUpdates();
     } catch (e) {
       AuditLogger.instance.error('SyncManager.onAppStart', e);
       lastCheckError = '版本检查失败: $e';
       _pendingUpdates = [];
       return [];
     }
+  }
+
+  /// 检查并登记可执行的数据更新。
+  ///
+  /// 启动流程和关于页必须共用此入口，避免界面显示了更新但执行器没有
+  /// 对应的下载元数据。
+  Future<List<UpdateSummary>> checkUpdates() async {
+    _ensureInitialized();
+    final results = await _updateManager!.checkAll();
+    _pendingUpdates = results.where((s) => s.hasUpdate).toList();
+    lastCheckError = null;
+    return List.unmodifiable(results);
   }
 
   /// 执行指定类型的数据库更新（下载 → 校验 → 替换）
@@ -136,6 +144,9 @@ class SyncManager {
       throw StateError('No pending update for type: $type');
     }
     final summary = pending.first;
+    if (!summary.canDownload) {
+      throw StateError('$type update metadata is incomplete');
+    }
     await _updateManager!.downloadAndReplace(
       type: type,
       url: summary.downloadUrl!,
@@ -175,7 +186,10 @@ class SyncManager {
   /// 首次 enqueue 或 onAppStart 时调用，可重入。
   void _ensureRetryTimer() {
     if (_retryTimer != null) return;
-    _retryTimer = Timer.periodic(const Duration(seconds: 30), (_) => _onTimerTick());
+    _retryTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _onTimerTick(),
+    );
     AuditLogger.instance.sync('retry_timer', {'action': 'started'});
   }
 
@@ -209,9 +223,7 @@ class SyncManager {
   }
 
   /// 登录后调用：推送积压 → 备份当前 user.db → 拉取并替换 → 成功后清理备份
-  Future<void> onLogin({
-    void Function(double progress)? onProgress,
-  }) async {
+  Future<void> onLogin({void Function(double progress)? onProgress}) async {
     try {
       final summary = await pushNow();
       final info = await _api!.fetchUserPullInfo();
@@ -268,14 +280,11 @@ class SyncManager {
   }
 
   /// 手动强制拉取（关于页按钮用）
-  Future<void> forcePull({
-    void Function(double progress)? onProgress,
-  }) async {
+  Future<void> forcePull({void Function(double progress)? onProgress}) async {
     _ensureInitialized();
     try {
       await pushNow();
-    } catch (_) {
-    }
+    } catch (_) {}
     final info = await _api!.fetchUserPullInfo();
 
     await _dbProvider!.backupUserDb(_currentUserIdentity);

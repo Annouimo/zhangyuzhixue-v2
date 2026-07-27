@@ -130,7 +130,7 @@ void _processUpdates(List<UpdateSummary> updates) {
 
   // 先处理强制更新（优先于 banner）
   for (final summary in updates) {
-    if (summary.forceUpdate) {
+    if (summary.forceUpdate && summary.canDownload) {
       _showForcedUpdateDialog(ctx, summary);
       return; // 一次只处理一个强制更新，完成后再处理下一个
     }
@@ -138,10 +138,11 @@ void _processUpdates(List<UpdateSummary> updates) {
 
   // 非强制更新 → 显示 banner
   for (final summary in updates) {
-    if (UpdateManager.shouldShowBanner(
-      localVersion: summary.localVersion,
-      serverVersion: summary.serverVersion,
-    )) {
+    if (summary.canDownload &&
+        UpdateManager.shouldShowBanner(
+          localVersion: summary.localVersion,
+          serverVersion: summary.serverVersion,
+        )) {
       _showUpdateBanner(ctx, summary);
     }
   }

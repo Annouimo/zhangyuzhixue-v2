@@ -36,6 +36,8 @@ class _AboutPageState extends State<AboutPage> {
   bool _updatingQbank = false;
   bool _updatingCourses = false;
   bool _updatingUser = false;
+  bool _qbankDownloadReady = false;
+  bool _coursesDownloadReady = false;
 
   @override
   void initState() {
@@ -45,9 +47,16 @@ class _AboutPageState extends State<AboutPage> {
 
   Future<void> _load() async {
     final prefs = AppPrefs();
-    _localQbank = prefs.qbankVersion;
-    _localCourses = prefs.coursesVersion;
     _localUser = prefs.userVersion;
+    try {
+      _localQbank = await DatabaseProvider().dataVersion('qbank');
+      _localCourses = await DatabaseProvider().dataVersion('courses');
+    } catch (e) {
+      // 数据库是权威来源；仅在数据库尚未就绪的测试/异常环境回退缓存。
+      _localQbank = prefs.qbankVersion;
+      _localCourses = prefs.coursesVersion;
+      AuditLogger.instance.error('AboutPage._loadLocalVersions', e);
+    }
 
     final ts = prefs.lastSyncTime;
     if (ts != null) OperationLog.instance.action('about_lastSync', ts);
@@ -98,13 +107,19 @@ class _AboutPageState extends State<AboutPage> {
 
     // 后台检查服务器版本
     try {
-      final mgr = SyncManager().updateManager;
-      if (mgr != null) {
-        final results = await mgr.checkAll();
+      final mgr = SyncManager();
+      if (mgr.updateManager != null) {
+        final results = await mgr.checkUpdates();
         if (!mounted) return;
         for (final r in results) {
-          if (r.type == 'qbank') _serverQbank = r.serverVersion;
-          if (r.type == 'courses') _serverCourses = r.serverVersion;
+          if (r.type == 'qbank') {
+            _serverQbank = r.serverVersion;
+            _qbankDownloadReady = r.canDownload;
+          }
+          if (r.type == 'courses') {
+            _serverCourses = r.serverVersion;
+            _coursesDownloadReady = r.canDownload;
+          }
           if (r.type == 'user') _serverUser = r.serverVersion;
         }
         setState(() => _versionLoaded = true);
@@ -130,7 +145,7 @@ class _AboutPageState extends State<AboutPage> {
     if (type == 'courses') setState(() => _updatingCourses = true);
     if (type == 'user') setState(() => _updatingUser = true);
 
-    await showSyncProgress(
+    final ok = await showSyncProgress(
       context,
       (onProgress) async {
         await SyncManager().runUpdate(type, onProgress: onProgress);
@@ -141,13 +156,19 @@ class _AboutPageState extends State<AboutPage> {
 
     if (!mounted) return;
     final prefs = AppPrefs();
+    var qbankVersion = _localQbank;
+    var coursesVersion = _localCourses;
+    try {
+      qbankVersion = await DatabaseProvider().dataVersion('qbank');
+      coursesVersion = await DatabaseProvider().dataVersion('courses');
+    } catch (_) {}
     setState(() {
       if (type == 'qbank') {
-        _localQbank = prefs.qbankVersion;
+        _localQbank = qbankVersion;
         _updatingQbank = false;
       }
       if (type == 'courses') {
-        _localCourses = prefs.coursesVersion;
+        _localCourses = coursesVersion;
         _updatingCourses = false;
       }
       if (type == 'user') {
@@ -155,6 +176,7 @@ class _AboutPageState extends State<AboutPage> {
         _updatingUser = false;
       }
     });
+    if (ok) await _load();
   }
 
   @override
@@ -165,16 +187,17 @@ class _AboutPageState extends State<AboutPage> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 32),
+            SizedBox(height: 24),
             // ── 品牌标识 ──
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: context.colors.primaryContainer,
-              child: Icon(
-                Icons.school,
-                size: 32,
-                color: context.colors.primary,
+            Container(
+              width: 72,
+              height: 72,
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: context.colors.primaryContainer,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
+              child: Image.asset('assets/logo_mark.png'),
             ),
             SizedBox(height: 10),
             Text('章鱼智学', style: Theme.of(context).textTheme.headlineSmall),
@@ -187,6 +210,9 @@ class _AboutPageState extends State<AboutPage> {
             ),
             SizedBox(height: 28),
 
+            _buildSectionLabel('数据与同步'),
+            SizedBox(height: 8),
+
             // ── 数据版本卡片 ──
             _buildSectionCard([
               _buildVersionTile(
@@ -195,6 +221,7 @@ class _AboutPageState extends State<AboutPage> {
                 local: _localQbank,
                 server: _serverQbank,
                 updating: _updatingQbank,
+                downloadReady: _qbankDownloadReady,
                 onUpdate: () => _onUpdate('qbank'),
               ),
               Divider(height: 1, indent: 48),
@@ -204,6 +231,7 @@ class _AboutPageState extends State<AboutPage> {
                 local: _localCourses,
                 server: _serverCourses,
                 updating: _updatingCourses,
+                downloadReady: _coursesDownloadReady,
                 onUpdate: () => _onUpdate('courses'),
               ),
               Divider(height: 1, indent: 48),
@@ -212,6 +240,8 @@ class _AboutPageState extends State<AboutPage> {
             SizedBox(height: 12),
 
             // ── 法律信息 ──
+            _buildSectionLabel('应用与支持'),
+            SizedBox(height: 8),
             _buildSectionCard([
               ListTile(
                 leading: Icon(Icons.description_outlined),
@@ -237,7 +267,28 @@ class _AboutPageState extends State<AboutPage> {
                 trailing: Icon(Icons.chevron_right),
                 onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.top/')),
               ),
+              Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.description_outlined),
+                title: Text('开源许可证'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: '章鱼智学',
+                  applicationVersion: appVersion,
+                ),
+              ),
+              Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.bug_report_outlined),
+                title: Text('导出运行日志'),
+                subtitle: Text('用于问题诊断，不包含账号密码'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: _exportLog,
+              ),
             ]),
+
+            SizedBox(height: 24),
 
             Text(
               '© ${DateTime.now().year} 章鱼智学 · 北京',
@@ -252,8 +303,6 @@ class _AboutPageState extends State<AboutPage> {
               ),
             ),
             SizedBox(height: 16),
-            _buildExportLogButton(),
-            SizedBox(height: 8),
           ],
         ),
       ),
@@ -268,12 +317,23 @@ class _AboutPageState extends State<AboutPage> {
     );
   }
 
+  Widget _buildSectionLabel(String label) => Align(
+    alignment: Alignment.centerLeft,
+    child: Text(
+      label,
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(color: context.colors.textSecondary),
+    ),
+  );
+
   Widget _buildVersionTile({
     required IconData icon,
     required String label,
     required int local,
     required int server,
     required bool updating,
+    required bool downloadReady,
     required VoidCallback onUpdate,
   }) {
     if (_versionError) {
@@ -287,15 +347,20 @@ class _AboutPageState extends State<AboutPage> {
         trailing: null,
       );
     }
-    final hasUpdate = server > local;
+    final hasUpdate = _versionLoaded && server > local;
+    final localIsNewer = _versionLoaded && local > server;
     final statusText = !_versionLoaded
-        ? 'v$local'
+        ? '本机 v$local · 正在检查'
         : hasUpdate
-        ? 'v$local → v$server 可用'
-        : 'v$local (最新)';
+        ? downloadReady
+              ? '本机 v$local · 最新 v$server'
+              : '本机 v$local · 更新暂不可用'
+        : localIsNewer
+        ? '本机 v$local · 服务器 v$server（本机较新）'
+        : '本机 v$local · 已是最新';
     final statusColor = !_versionLoaded
         ? context.colors.textSecondary
-        : hasUpdate
+        : hasUpdate && downloadReady
         ? context.colors.warning
         : context.colors.success;
 
@@ -306,7 +371,7 @@ class _AboutPageState extends State<AboutPage> {
         statusText,
         style: TextStyle(fontSize: 12, color: statusColor),
       ),
-      trailing: hasUpdate
+      trailing: hasUpdate && downloadReady
           ? ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 80),
               child: AppButton(
@@ -351,16 +416,6 @@ class _AboutPageState extends State<AboutPage> {
               expanded: false,
             )
           : Icon(Icons.check_circle, size: 20, color: context.colors.success),
-    );
-  }
-
-  /// ── 导出日志按钮 ──
-  Widget _buildExportLogButton() {
-    return AppButton(
-      onPressed: _exportLog,
-      label: '导出运行日志',
-      icon: Icons.bug_report_outlined,
-      type: AppButtonType.outlined,
     );
   }
 

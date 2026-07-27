@@ -29,6 +29,18 @@ class UpdateSummary {
     this.sizeBytes,
     this.message,
   });
+
+  bool get hasUpdate => serverVersion > localVersion;
+
+  bool get canDownload =>
+      hasUpdate &&
+      downloadUrl != null &&
+      downloadUrl!.trim().isNotEmpty &&
+      checksum != null &&
+      checksum!.trim().isNotEmpty &&
+      (sizeBytes ?? 0) > 0;
+
+  bool get localIsNewer => localVersion > serverVersion;
 }
 
 /// 更新管理器：版本检查 + .db.gz 下载/校验/替换
@@ -97,6 +109,18 @@ class UpdateManager {
     int newVersion = 0,
     void Function(double progress)? onProgress,
   }) async {
+    if (type != 'user') {
+      if (newVersion <= 0) {
+        throw ArgumentError.value(newVersion, 'newVersion', 'Must be positive');
+      }
+      final currentVersion = await _dbProvider.dataVersion(type);
+      if (newVersion <= currentVersion) {
+        throw StateError(
+          'Refusing to replace $type v$currentVersion with v$newVersion',
+        );
+      }
+    }
+
     final tempDir = await getTemporaryDirectory();
     final gzPath = '${tempDir.path}/${type}_temp.db.gz';
 
