@@ -5,6 +5,26 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def repair_legacy_foreign_keys(apps, schema_editor):
+    """Apply the SET_NULL/CASCADE outcomes missed by historical SQLite data."""
+    User = apps.get_model('auth', 'User')
+    InvitationCode = apps.get_model('accounts', 'InvitationCode')
+    ClassCourse = apps.get_model('courses', 'ClassCourse')
+    ClassCourseAssignment = apps.get_model(
+        'courses', 'ClassCourseAssignment',
+    )
+
+    valid_class_courses = ClassCourse.objects.values('pk')
+    ClassCourseAssignment.objects.exclude(
+        class_course_id__in=valid_class_courses,
+    ).delete()
+
+    valid_users = User.objects.values('pk')
+    InvitationCode.objects.filter(
+        used_by_id__isnull=False,
+    ).exclude(used_by_id__in=valid_users).update(used_by_id=None)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -14,6 +34,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            repair_legacy_foreign_keys,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.AddField(
             model_name='student',
             name='account_status',

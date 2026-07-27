@@ -28,10 +28,15 @@ while read -r old_rev new_rev ref_name; do
         if [[ $exit_code -eq 0 ]]; then
             return
         fi
+        trap - EXIT
+        set +e
         echo "Deploy failed; restoring previous code and database."
         if [[ "$old_rev" != "0000000000000000000000000000000000000000" ]]; then
+            cd "$DEPLOY_DIR"
             git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
                 checkout -f "$old_rev" -- server
+            git --git-dir="$BARE_REPO" update-ref \
+                "$ref_name" "$old_rev" "$new_rev"
         fi
         gunzip -c "$backup_file.gz" > "$DEPLOY_DIR/server/db.sqlite3"
         chown -R ubuntu:ubuntu "$DEPLOY_DIR/server"
@@ -40,6 +45,7 @@ while read -r old_rev new_rev ref_name; do
     }
     trap rollback EXIT
 
+    cd "$DEPLOY_DIR"
     git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
         checkout -f "$new_rev" -- server
     cd "$DEPLOY_DIR/server"
