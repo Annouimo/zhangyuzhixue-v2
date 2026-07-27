@@ -3,6 +3,7 @@
 from .models import (
     AccountDeletionRequest,
     InvitationCode,
+    RegistrationConsent,
     Student,
     Teacher,
     UserLoginLog,
@@ -27,6 +28,18 @@ class AccountDeletionRequestAdmin(admin.ModelAdmin):
     search_fields = ['user__username']
     readonly_fields = [
         'requested_at', 'scheduled_for', 'cancelled_at', 'anonymized_at',
+    ]
+
+
+@admin.register(RegistrationConsent)
+class RegistrationConsentAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'terms_version', 'privacy_version', 'source', 'accepted_at',
+    ]
+    list_select_related = ['user']
+    search_fields = ['user__username']
+    readonly_fields = [
+        'user', 'terms_version', 'privacy_version', 'source', 'accepted_at',
     ]
 
 

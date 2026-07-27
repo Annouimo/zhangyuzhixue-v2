@@ -125,6 +125,26 @@ class AccountDeletionRequest(models.Model):
         return f'{self.user_id}: {self.status}'
 
 
+class RegistrationConsent(models.Model):
+    """注册时形成的协议与隐私政策同意记录。"""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='registration_consents',
+    )
+    terms_version = models.CharField('用户协议版本', max_length=32)
+    privacy_version = models.CharField('隐私政策版本', max_length=32)
+    source = models.CharField('来源', max_length=32, default='student_app')
+    accepted_at = models.DateTimeField('同意时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '注册协议同意记录'
+        verbose_name_plural = '注册协议同意记录'
+        ordering = ['-accepted_at']
+
+    def __str__(self):
+        return f'{self.user_id}: {self.terms_version}/{self.privacy_version}'
+
+
 class UserLoginLog(models.Model):
     """登录轨迹 - 每天一条"""
     student = models.ForeignKey(Student, on_delete=models.CASCADE,

@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Q, Sum
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
@@ -10,7 +11,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 
 from system.models import LevelConfig
-from accounts.models import AccountDeletionRequest, InvitationCode, Student, UserLoginLog
+from accounts.models import (
+    AccountDeletionRequest,
+    InvitationCode,
+    RegistrationConsent,
+    Student,
+    UserLoginLog,
+)
 from accounts.serializers import (
     AccountDeletionCancelSerializer,
     AccountDeletionSerializer,
@@ -68,35 +75,49 @@ def register_view(request):
 
     data = serializer.validated_data
 
-    user = User.objects.create_user(
-        username=data['username'],
-        password=data['password'],
-    )
-    user.first_name = data.get('real_name', '')
-    user.save()
-
-    student = Student.objects.create(
-        user=user,
-        school=data.get('school', ''),
-        phone=data.get('phone', ''),
-        gaokao_year=data.get('gaokao_year'),
-    )
-
-    code = InvitationCode.objects.get(code=data['invitation_code'])
-    code.is_used = True
-    code.used_by = user
     from django.utils import timezone
-    code.used_at = timezone.now()
-    code.save()
+    now = timezone.now()
+    with transaction.atomic():
+        code = InvitationCode.objects.select_for_update().get(
+            code=data['invitation_code'],
+        )
+        if code.is_used:
+            return _err(40101, '邀请码已被使用')
+        if code.expires_at and code.expires_at < now:
+            return _err(40101, '邀请码已过期')
 
-    # 赠送注册积分
-    PointsTransaction.objects.create(
-        student=student,
-        amount=10.0,
-        transaction_type='EARN',
-        source='SIGNUP_BONUS',
-        description='新用户注册赠送',
-    )
+        user = User.objects.create_user(
+            username=data['username'],
+            password=data['password'],
+        )
+        user.first_name = data.get('real_name', '')
+        user.save(update_fields=['first_name'])
+
+        student = Student.objects.create(
+            user=user,
+            school=data.get('school', ''),
+            phone=data.get('phone', ''),
+            gaokao_year=data.get('gaokao_year'),
+        )
+        updated = InvitationCode.objects.filter(
+            pk=code.pk, is_used=False,
+        ).update(is_used=True, used_by=user, used_at=now)
+        if updated != 1:
+            transaction.set_rollback(True)
+            return _err(40101, '邀请码已被使用')
+
+        RegistrationConsent.objects.create(
+            user=user,
+            terms_version='2026-07-27',
+            privacy_version='2026-07-27',
+        )
+        PointsTransaction.objects.create(
+            student=student,
+            amount=10.0,
+            transaction_type='EARN',
+            source='SIGNUP_BONUS',
+            description='新用户注册赠送',
+        )
 
     return _ok(message='注册成功，请登录')
 

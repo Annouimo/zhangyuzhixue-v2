@@ -13,6 +13,13 @@ class RegisterSerializer(serializers.Serializer):
     real_name = serializers.CharField(max_length=64)
     phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
     gaokao_year = serializers.IntegerField(required=False, allow_null=True)
+    accepted_terms = serializers.BooleanField()
+    accepted_privacy = serializers.BooleanField()
+
+    def validate(self, attrs):
+        if not attrs['accepted_terms'] or not attrs['accepted_privacy']:
+            raise serializers.ValidationError('请先阅读并同意用户协议和隐私政策')
+        return attrs
 
     def validate_invitation_code(self, value):
         try:
