@@ -27,6 +27,7 @@ class SolveFlowWidget extends StatefulWidget {
     this.onRate,
     this.onFinish,
     this.submitLoading = false,
+    this.nextLabel = '下一题',
   });
 
   final Widget child;
@@ -42,6 +43,7 @@ class SolveFlowWidget extends StatefulWidget {
   final VoidCallback? onRate;
   final VoidCallback? onFinish;
   final bool submitLoading;
+  final String nextLabel;
 
   @override
   State<SolveFlowWidget> createState() => _SolveFlowWidgetState();
@@ -62,8 +64,8 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final done = widget.isRevisit ||
-        (widget.showResult && !widget.submitLoading);
+    final done =
+        widget.isRevisit || (widget.showResult && !widget.submitLoading);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,6 +104,7 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
             onNext: widget.onNext,
             onRate: widget.onRate,
             onFinish: widget.onFinish,
+            nextLabel: widget.nextLabel,
           ),
         ],
       ],

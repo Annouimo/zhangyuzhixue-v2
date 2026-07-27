@@ -22,6 +22,7 @@ class SolveRevealWidget extends StatefulWidget {
     this.feedbackWidget,
     this.feedbackResult,
     required this.child,
+    this.nextLabel = '下一题',
   });
 
   final int cooldownSeconds;
@@ -36,6 +37,7 @@ class SolveRevealWidget extends StatefulWidget {
   final Widget? feedbackWidget;
   final Widget? feedbackResult;
   final Widget child;
+  final String nextLabel;
 
   @override
   State<SolveRevealWidget> createState() => _SolveRevealWidgetState();
@@ -100,6 +102,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
             onNext: widget.onNext,
             onRate: widget.onRate,
             onFinish: widget.onFinish,
+            nextLabel: widget.nextLabel,
           ),
         ],
       ],

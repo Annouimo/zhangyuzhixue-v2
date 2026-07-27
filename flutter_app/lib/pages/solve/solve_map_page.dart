@@ -22,6 +22,7 @@ class SolveMapPage extends StatefulWidget {
   final String? mode;
   final int? attemptId;
   final List<int> sequence;
+  final List<int> quickPracticeSeen;
 
   const SolveMapPage({
     super.key,
@@ -29,6 +30,7 @@ class SolveMapPage extends StatefulWidget {
     this.mode,
     this.attemptId,
     this.sequence = const [],
+    this.quickPracticeSeen = const [],
   });
 
   @override
@@ -625,15 +627,17 @@ class _SolveMapPageState extends State<SolveMapPage> {
                   onPressed: () =>
                       context.push('/solve/rate?id=${widget.questionId}'),
                 ),
-                if (_nextQuestionId != null)
+                if (_nextQuestionId != null || _isQuickPractice)
                   AppButton(
-                    label: '下一题',
+                    label: _isQuickPractice ? '再来一题' : '下一题',
                     icon: Icons.arrow_forward_rounded,
-                    onPressed: () => SolveRouteHelper.navigateToNext(
-                      context,
-                      _nextQuestionId!,
-                      widget.sequence,
-                    ),
+                    onPressed: _isQuickPractice
+                        ? _continueQuickPractice
+                        : () => SolveRouteHelper.navigateToNext(
+                            context,
+                            _nextQuestionId!,
+                            widget.sequence,
+                          ),
                   ),
               ];
 
@@ -671,6 +675,21 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return index >= 0 && index + 1 < widget.sequence.length
         ? widget.sequence[index + 1]
         : null;
+  }
+
+  bool get _isQuickPractice => widget.quickPracticeSeen.isNotEmpty;
+
+  Future<void> _continueQuickPractice() async {
+    final navigated = await SolveRouteHelper.navigateToNextQuickPractice(
+      context,
+      widget.quickPracticeSeen,
+    );
+    if (!navigated && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('本轮题目已全部完成')));
+      context.pop();
+    }
   }
 
   Future<void> _onRetry() async {

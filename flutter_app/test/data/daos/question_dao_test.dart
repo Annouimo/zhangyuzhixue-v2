@@ -28,16 +28,20 @@ void main() {
     double calculation = 5.0,
     String stem = '题目正文',
   }) async {
-    return database.into(database.questions).insert(db.QuestionsCompanion(
-      year: Value(year),
-      examType: Value(examType),
-      region: Value(region),
-      number: Value(number),
-      questionType: Value(questionType),
-      difficulty: Value(difficulty),
-      calculation: Value(calculation),
-      stem: Value(stem),
-    ));
+    return database
+        .into(database.questions)
+        .insert(
+          db.QuestionsCompanion(
+            year: Value(year),
+            examType: Value(examType),
+            region: Value(region),
+            number: Value(number),
+            questionType: Value(questionType),
+            difficulty: Value(difficulty),
+            calculation: Value(calculation),
+            stem: Value(stem),
+          ),
+        );
   }
 
   group('QuestionDao', () {
@@ -59,6 +63,26 @@ void main() {
       final all = await dao.getAll();
       expect(all.length, 2);
     });
+
+    test('getRandomExcluding skips seen questions and respects type', () async {
+      final seenId = await insertQuestion(questionType: 'choice');
+      final expectedId = await insertQuestion(questionType: 'choice');
+      await insertQuestion(questionType: 'fill');
+
+      final result = await dao.getRandomExcluding({
+        seenId,
+      }, preferredType: 'choice');
+
+      expect(result?.id, expectedId);
+    });
+
+    test(
+      'getRandomExcluding returns null when all candidates were seen',
+      () async {
+        final id = await insertQuestion();
+        expect(await dao.getRandomExcluding({id}), isNull);
+      },
+    );
 
     test('getByIds returns matching questions', () async {
       final id1 = await insertQuestion();
@@ -139,12 +163,24 @@ void main() {
 
     test('getSubQuestions returns sorted', () async {
       final qId = await insertQuestion();
-      await database.into(database.subQuestions).insert(db.SubQuestionsCompanion(
-        questionId: Value(qId), sortOrder: Value(2), answer: Value('A'),
-      ));
-      await database.into(database.subQuestions).insert(db.SubQuestionsCompanion(
-        questionId: Value(qId), sortOrder: Value(1), answer: Value('B'),
-      ));
+      await database
+          .into(database.subQuestions)
+          .insert(
+            db.SubQuestionsCompanion(
+              questionId: Value(qId),
+              sortOrder: Value(2),
+              answer: Value('A'),
+            ),
+          );
+      await database
+          .into(database.subQuestions)
+          .insert(
+            db.SubQuestionsCompanion(
+              questionId: Value(qId),
+              sortOrder: Value(1),
+              answer: Value('B'),
+            ),
+          );
       final subs = await dao.getSubQuestions(qId);
       expect(subs.length, 2);
       expect(subs[0].sortOrder, 1);
@@ -153,9 +189,14 @@ void main() {
 
     test('getChoiceExt returns correct options', () async {
       final qId = await insertQuestion();
-      await database.into(database.choiceExt).insert(db.ChoiceExtCompanion(
-        questionId: Value(qId), options: Value('{"A":"x>1"}'),
-      ));
+      await database
+          .into(database.choiceExt)
+          .insert(
+            db.ChoiceExtCompanion(
+              questionId: Value(qId),
+              options: Value('{"A":"x>1"}'),
+            ),
+          );
       final ext = await dao.getChoiceExt(qId);
       expect(ext, isNotNull);
       expect(ext!.options, contains('x>1'));
@@ -166,8 +207,12 @@ void main() {
     });
 
     test('getAllConceptTags returns all tags', () async {
-      await database.into(database.conceptTags).insert(db.ConceptTagsCompanion(name: Value('函数')));
-      await database.into(database.conceptTags).insert(db.ConceptTagsCompanion(name: Value('三角')));
+      await database
+          .into(database.conceptTags)
+          .insert(db.ConceptTagsCompanion(name: Value('函数')));
+      await database
+          .into(database.conceptTags)
+          .insert(db.ConceptTagsCompanion(name: Value('三角')));
       expect((await dao.getAllConceptTags()).length, 2);
     });
   });

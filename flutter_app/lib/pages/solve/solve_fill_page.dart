@@ -27,6 +27,7 @@ class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
   final List<int> sequence;
+  final List<int> quickPracticeSeen;
   final QuestionRepository? questionRepository;
   final String? mode;
   final int? attemptId;
@@ -36,6 +37,7 @@ class SolveFillPage extends StatefulWidget {
     required this.questionId,
     this.nextQuestionId,
     this.sequence = const [],
+    this.quickPracticeSeen = const [],
     this.questionRepository,
     this.mode,
     this.attemptId,
@@ -415,7 +417,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
                   feedbackResult: _feedbackGiven
                       ? _buildFeedbackResult()
                       : null,
-                  onNext: _nextQuestionId != null
+                  onNext: _isQuickPractice
+                      ? _continueQuickPractice
+                      : _nextQuestionId != null
                       ? () {
                           SolveRouteHelper.navigateToNext(
                             context,
@@ -424,10 +428,11 @@ class _SolveFillPageState extends State<SolveFillPage> {
                           );
                         }
                       : null,
+                  nextLabel: _isQuickPractice ? '再来一题' : '下一题',
                   onRate: () async {
                     await context.push('/solve/rate?id=${widget.questionId}');
                   },
-                  onFinish: _nextQuestionId == null
+                  onFinish: !_isQuickPractice && _nextQuestionId == null
                       ? () => context.pop()
                       : null,
                   child: _buildContent(),
@@ -457,6 +462,21 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return widget.sequence[index + 1];
     }
     return widget.nextQuestionId;
+  }
+
+  bool get _isQuickPractice => widget.quickPracticeSeen.isNotEmpty;
+
+  Future<void> _continueQuickPractice() async {
+    final navigated = await SolveRouteHelper.navigateToNextQuickPractice(
+      context,
+      widget.quickPracticeSeen,
+    );
+    if (!navigated && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('本轮题目已全部完成')));
+      context.pop();
+    }
   }
 
   Widget _buildFeedbackResult() {

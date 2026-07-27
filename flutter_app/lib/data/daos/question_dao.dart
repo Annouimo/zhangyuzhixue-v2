@@ -344,6 +344,23 @@ class QuestionDao {
     return rows.isEmpty ? null : rows.first;
   }
 
+  /// 从未在本轮出现的题目中随机抽取一道。
+  Future<db.QuestionRow?> getRandomExcluding(
+    Set<int> excludedIds, {
+    String? preferredType,
+  }) async {
+    final q = _db.select(_db.questions);
+    if (preferredType != null) {
+      q.where((t) => t.questionType.equals(preferredType));
+    }
+    if (excludedIds.isNotEmpty) {
+      q.where((t) => t.id.isNotIn(excludedIds));
+    }
+    final rows = await q.get();
+    if (rows.isEmpty) return null;
+    return rows[Random().nextInt(rows.length)];
+  }
+
   Future<db.ChoiceExtRow?> getChoiceExt(int questionId) async {
     final q = _db.select(_db.choiceExt)
       ..where((t) => t.questionId.equals(questionId));

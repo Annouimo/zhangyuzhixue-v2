@@ -13,12 +13,14 @@ class DoneBanner extends StatelessWidget {
     this.onNext,
     this.onRate,
     this.onFinish,
+    this.nextLabel = '下一题',
   });
 
   final bool isRated;
   final VoidCallback? onNext;
   final VoidCallback? onRate;
   final VoidCallback? onFinish;
+  final String nextLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +52,10 @@ class DoneBanner extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                onNext != null
-                    ? '作答结果已经保存，可以继续完成下一题。'
-                    : '作答结果已经保存，可以返回继续学习。',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                onNext != null ? '作答结果已经保存，可以继续完成下一题。' : '作答结果已经保存，可以返回继续学习。',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
               ),
             ],
           );
@@ -75,7 +75,7 @@ class DoneBanner extends StatelessWidget {
                 ),
               if (onNext != null)
                 AppButton(
-                  label: '下一题',
+                  label: nextLabel,
                   icon: Icons.arrow_forward_rounded,
                   fullWidth: false,
                   onPressed: onNext,
@@ -106,8 +106,7 @@ class DoneBanner extends StatelessWidget {
           return Row(
             children: [
               Expanded(child: message),
-              if (onRate != null || onNext != null || onFinish != null)
-                actions,
+              if (onRate != null || onNext != null || onFinish != null) actions,
             ],
           );
         },

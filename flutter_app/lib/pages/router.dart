@@ -87,6 +87,13 @@ List<int> _sequenceParam(Map<String, String> params) =>
         .whereType<int>()
         .toList(growable: false);
 
+List<int> _quickPracticeParam(Map<String, String> params) =>
+    (params['quickPractice'] ?? '')
+        .split(',')
+        .map(int.tryParse)
+        .whereType<int>()
+        .toList(growable: false);
+
 /// 路由配置
 final GlobalKey<NavigatorState> routerNavigatorKey =
     GlobalKey<NavigatorState>();
@@ -118,6 +125,7 @@ final GoRouter appRouter = GoRouter(
           questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
           nextQuestionId: _intParam(state.uri.queryParameters, 'next'),
           sequence: _sequenceParam(state.uri.queryParameters),
+          quickPracticeSeen: _quickPracticeParam(state.uri.queryParameters),
           mode: state.uri.queryParameters['mode'],
           attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
         );
@@ -131,6 +139,7 @@ final GoRouter appRouter = GoRouter(
           questionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
           nextQuestionId: _intParam(state.uri.queryParameters, 'next'),
           sequence: _sequenceParam(state.uri.queryParameters),
+          quickPracticeSeen: _quickPracticeParam(state.uri.queryParameters),
           mode: state.uri.queryParameters['mode'],
           attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
         );
@@ -145,6 +154,7 @@ final GoRouter appRouter = GoRouter(
           mode: state.uri.queryParameters['mode'],
           attemptId: _intParam(state.uri.queryParameters, 'attemptId'),
           sequence: _sequenceParam(state.uri.queryParameters),
+          quickPracticeSeen: _quickPracticeParam(state.uri.queryParameters),
         );
       },
     ),

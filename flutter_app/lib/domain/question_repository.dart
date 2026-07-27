@@ -82,6 +82,7 @@ class SolveRouteHelper {
     int questionId,
     String questionType, {
     List<int> sequence = const [],
+    List<int> quickPracticeSeen = const [],
   }) async {
     final repo = QuestionRepository(
       QuestionDao(DatabaseProvider()),
@@ -102,14 +103,40 @@ class SolveRouteHelper {
     final sequenceParam = sequence.length > 1
         ? '&sequence=${sequence.join(',')}'
         : '';
+    final quickPracticeParam = quickPracticeSeen.isNotEmpty
+        ? '&quickPractice=${quickPracticeSeen.join(',')}'
+        : '';
     if (!context.mounted) return;
     RouterUtils.push(
       context,
       '$page?id=$questionId'
       '${mode != 'first' ? '&mode=$mode' : ''}'
       '${attemptId != null ? '&attemptId=$attemptId' : ''}'
-      '$sequenceParam',
+      '$sequenceParam'
+      '$quickPracticeParam',
     );
+  }
+
+  static Future<bool> navigateToNextQuickPractice(
+    BuildContext context,
+    List<int> seenIds,
+  ) async {
+    final dao = QuestionDao(DatabaseProvider());
+    final excluded = seenIds.toSet();
+    var question = await dao.getRandomExcluding(
+      excluded,
+      preferredType: 'choice',
+    );
+    question ??= await dao.getRandomExcluding(excluded, preferredType: 'fill');
+    question ??= await dao.getRandomExcluding(excluded);
+    if (question == null || !context.mounted) return false;
+    await navigateTo(
+      context,
+      question.id,
+      question.questionType,
+      quickPracticeSeen: [...seenIds, question.id],
+    );
+    return true;
   }
 
   static Future<void> navigateToNext(

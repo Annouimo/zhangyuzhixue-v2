@@ -791,6 +791,7 @@ class IndexPageState extends State<IndexPage> {
         context,
         question.id,
         question.questionType,
+        quickPracticeSeen: [question.id],
       );
     } catch (error) {
       OperationLog.instance.error('index_page_quick_practice', error);
