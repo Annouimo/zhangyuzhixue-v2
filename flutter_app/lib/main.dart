@@ -9,7 +9,8 @@ import 'package:flutter_app/data/network/connectivity_monitor.dart';
 import 'package:flutter_app/data/prefs/app_prefs.dart';
 import 'package:flutter_app/data/daos/sync_queue_dao.dart';
 import 'package:flutter_app/data/sync/sync_manager.dart';
-import 'package:flutter_app/pages/router.dart' show appRouter, routerNavigatorKey;
+import 'package:flutter_app/pages/router.dart'
+    show appRouter, routerNavigatorKey;
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/constants/app_version.dart';
@@ -22,8 +23,16 @@ void main() async {
 
   // 全局运行时错误捕获
   FlutterError.onError = (details) {
-    AuditLogger.instance.error('FlutterError', details.exception, details.stack);
-    OperationLog.instance.error('FlutterError', details.exception, details.stack);
+    AuditLogger.instance.error(
+      'FlutterError',
+      details.exception,
+      details.stack,
+    );
+    OperationLog.instance.error(
+      'FlutterError',
+      details.exception,
+      details.stack,
+    );
     FlutterError.presentError(details);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -79,7 +88,9 @@ void main() async {
 
   // 检查是否有未同步的积压数据
   try {
-    final pendingCount = await SyncQueueDao(DatabaseProvider()).getPendingCount();
+    final pendingCount = await SyncQueueDao(
+      DatabaseProvider(),
+    ).getPendingCount();
     if (pendingCount > 0 && updates.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showPendingSyncBanner(pendingCount);
@@ -137,7 +148,9 @@ void _processUpdates(List<UpdateSummary> updates) {
 }
 
 void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
-  final label = summary.type == 'qbank' ? '题库' : (summary.type == 'courses' ? '课程' : '学习记录');
+  final label = summary.type == 'qbank'
+      ? '题库'
+      : (summary.type == 'courses' ? '内容数据' : '学习记录');
 
   showDialog(
     context: context,
@@ -188,7 +201,11 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
   );
 }
 
-Future<void> _startUpdate(BuildContext context, UpdateSummary summary, String label) async {
+Future<void> _startUpdate(
+  BuildContext context,
+  UpdateSummary summary,
+  String label,
+) async {
   // 关闭当前确认弹窗
   Navigator.of(context).pop();
 
@@ -203,7 +220,8 @@ Future<void> _startUpdate(BuildContext context, UpdateSummary summary, String la
   );
   // 更新成功后显示 Toast
   if (ok && context.mounted) {
-    AppToast.show(context,
+    AppToast.show(
+      context,
       icon: Icons.check_circle,
       message: '$label更新完成',
       backgroundColor: context.colors.success,
@@ -212,7 +230,9 @@ Future<void> _startUpdate(BuildContext context, UpdateSummary summary, String la
 }
 
 void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
-  final label = summary.type == 'qbank' ? '题库' : (summary.type == 'courses' ? '课程' : '学习记录');
+  final label = summary.type == 'qbank'
+      ? '题库'
+      : (summary.type == 'courses' ? '内容数据' : '学习记录');
 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

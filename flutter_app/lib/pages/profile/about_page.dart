@@ -14,7 +14,7 @@ import 'package:shared/constants/app_version.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 关于页 — 数据版本（题库/课程/用户数据）+ 法律信息
+/// 关于页 — 数据版本（题库/内容/用户数据）+ 法律信息
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
 
@@ -71,10 +71,7 @@ class _AboutPageState extends State<AboutPage> {
     }
 
     // 取 pull 日期和 upload 日期中最新者
-    final dates = <DateTime>[
-      ?pullDate,
-      ?uploadDate,
-    ];
+    final dates = <DateTime>[?pullDate, ?uploadDate];
 
     if (mounted) {
       if (dates.isNotEmpty) {
@@ -126,7 +123,9 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _onUpdate(String type) async {
-    final label = type == 'qbank' ? '题库' : (type == 'courses' ? '课程' : '学习记录');
+    final label = type == 'qbank'
+        ? '题库'
+        : (type == 'courses' ? '内容数据' : '学习记录');
     if (type == 'qbank') setState(() => _updatingQbank = true);
     if (type == 'courses') setState(() => _updatingCourses = true);
     if (type == 'user') setState(() => _updatingUser = true);
@@ -201,7 +200,7 @@ class _AboutPageState extends State<AboutPage> {
               Divider(height: 1, indent: 48),
               _buildVersionTile(
                 icon: Icons.article,
-                label: '课程',
+                label: '内容数据',
                 local: _localCourses,
                 server: _serverCourses,
                 updating: _updatingCourses,

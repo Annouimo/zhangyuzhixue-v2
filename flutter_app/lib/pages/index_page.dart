@@ -49,7 +49,6 @@ class IndexPage extends StatefulWidget {
 class IndexPageState extends State<IndexPage> {
   late final UserRepository _repo;
   bool _loading = true;
-  int _pendingCount = 0;
   int _streakDays = 0;
   bool _checkedIn = false;
   bool _submitting = false;
@@ -106,8 +105,6 @@ class IndexPageState extends State<IndexPage> {
       }
 
       final checkedIn = prefs.getBool('checked_in_today') ?? false;
-      final pending = AppPrefs().pendingHomeworkCount;
-
       // 新手提示：前 3 次打开显示引导卡片
       final hintCount = prefs.getInt('welcome_hint_count') ?? 0;
       if (hintCount < 3) {
@@ -134,7 +131,6 @@ class IndexPageState extends State<IndexPage> {
 
       if (!mounted) return;
       setState(() {
-        _pendingCount = pending;
         _streakDays = streak;
         _checkedIn = checkedIn;
         _levelProgress = lvData.progress;
@@ -147,7 +143,6 @@ class IndexPageState extends State<IndexPage> {
       });
       AuditLogger.instance.page('IndexPage', {
         'streakDays': _streakDays,
-        'pendingCount': _pendingCount,
         'checkedIn': _checkedIn,
         'level': _currentLevel,
       });
@@ -398,8 +393,6 @@ class IndexPageState extends State<IndexPage> {
   }
 
   Widget _buildDashboard(double width) {
-    final useTwoColumns = width >= AppBreakpoints.medium;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -409,22 +402,7 @@ class IndexPageState extends State<IndexPage> {
           _buildWelcomeHint(),
         ],
         const SizedBox(height: AppSpacing.lg),
-        if (useTwoColumns)
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(flex: 5, child: _buildLearningResources()),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(flex: 6, child: _buildCheckinCard()),
-              ],
-            ),
-          )
-        else ...[
-          _buildLearningResources(),
-          const SizedBox(height: AppSpacing.md),
-          _buildCheckinCard(),
-        ],
+        _buildCheckinCard(),
         const SizedBox(height: AppSpacing.lg),
         const AppSectionHeader(title: '今日进度', subtitle: '回顾练习、正确率与学习积分'),
         const SizedBox(height: AppSpacing.sm),
@@ -457,9 +435,7 @@ class IndexPageState extends State<IndexPage> {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          _pendingCount > 0
-              ? '你还有 $_pendingCount 项作业待完成，也可以先用一道快速练习进入状态。'
-              : '今日待办已清爽，可以继续巩固薄弱知识点。',
+          '从一道快速练习开始，或继续巩固薄弱知识点。',
           style: textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
         ),
       ],
@@ -528,14 +504,14 @@ class IndexPageState extends State<IndexPage> {
 
     final items = [
       _DashboardMetric(
-        icon: Icons.assignment_outlined,
-        label: '待办作业',
-        value: '$_pendingCount',
-        caption: _pendingCount == 0 ? '全部完成' : '项待处理',
-        foreground: _pendingCount == 0 ? colors.success : colors.primary,
-        background: _pendingCount == 0
-            ? colors.successContainer
-            : colors.primaryContainer,
+        icon: Icons.local_fire_department_outlined,
+        label: '连续学习',
+        value: '$_streakDays',
+        caption: '天',
+        foreground: _streakDays > 0 ? colors.primary : colors.textSecondary,
+        background: _streakDays > 0
+            ? colors.primaryContainer
+            : colors.surfaceSubtle,
       ),
       _DashboardMetric(
         icon: Icons.edit_note_rounded,
@@ -573,46 +549,6 @@ class IndexPageState extends State<IndexPage> {
       children: items
           .map((item) => SizedBox(width: itemWidth, child: item))
           .toList(),
-    );
-  }
-
-  Widget _buildLearningResources() {
-    return AppCard(
-      key: const Key('home-learning-resources'),
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const AppSectionHeader(title: '学习入口', subtitle: '按任务推进，或随时查阅课程讲义'),
-          const SizedBox(height: AppSpacing.sm),
-          _HomeActionTile(
-            icon: Icons.assignment_outlined,
-            title: '待办作业',
-            subtitle: _pendingCount == 0
-                ? '今天没有未完成作业'
-                : '还有 $_pendingCount 项任务等待完成',
-            onTap: () => RouterUtils.push(context, AppRoutes.homeworkList),
-            trailing: _pendingCount > 0
-                ? AppStatusBadge(
-                    label: '$_pendingCount 项',
-                    tone: AppStatusTone.warning,
-                    compact: true,
-                  )
-                : const AppStatusBadge(
-                    label: '已完成',
-                    tone: AppStatusTone.success,
-                    compact: true,
-                  ),
-          ),
-          const Divider(height: AppSpacing.lg),
-          _HomeActionTile(
-            icon: Icons.menu_book_outlined,
-            title: '课程讲义',
-            subtitle: '浏览章节、知识点与配套内容',
-            onTap: () => RouterUtils.push(context, AppRoutes.lectureCourses),
-          ),
-        ],
-      ),
     );
   }
 
@@ -900,7 +836,7 @@ class IndexPageState extends State<IndexPage> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(
-                      '快速练习、讲义、推荐和组卷构成主要学习路径。',
+                      '快速练习、推荐和组卷构成主要学习路径。',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -915,7 +851,7 @@ class IndexPageState extends State<IndexPage> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '建议先完成一道快速练习；有明确任务时，从待办作业继续。',
+            '建议先完成一道快速练习，再根据学习反馈巩固薄弱知识点。',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
@@ -973,74 +909,6 @@ class _DashboardMetric extends StatelessWidget {
             style: textTheme.labelSmall,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HomeActionTile extends StatelessWidget {
-  const _HomeActionTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.trailing,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.medium),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                ),
-                child: Icon(icon, color: colors.primary),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: AppSpacing.xs),
-                trailing!,
-              ] else
-                Icon(AppIcons.chevronRight, color: colors.textMuted),
-            ],
-          ),
-        ),
       ),
     );
   }
