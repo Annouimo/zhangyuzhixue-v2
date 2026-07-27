@@ -2,7 +2,7 @@
 
 > 本文档记录所有 App 的基本身份信息（名称、包名、版本等）。这两个 App 互不依赖，可独立构建和发布。
 >
-> 更新日期：2026-07-16
+> 更新日期：2026-07-27
 
 ---
 
@@ -13,36 +13,30 @@
 | **项目名** | `flutter_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - Flutter 学生端` | pubspec.yaml 描述字段 |
-| **版本** | `1.0.0-alpha.2+1` | 见下方版本号说明 |
+| **平台版本** | `1.0.0+2` | iOS/Android 兼容的纯数字版本 + 构建号 |
+| **发布标识** | `1.0.0-beta.2` | 对外标识为「公测版 Beta 2」 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.student` | Google Play / 各应用商店区分应用的唯一 ID。**发布后不可更改**，否则视为新应用 |
 | **Android - 显示名称** | `章鱼智学` | `AndroidManifest.xml` 中 `android:label`，桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.student` | App Store 区分应用唯一 ID，与 Android applicationId 对应但独立维护 |
 | **iOS - 显示名称** | `章鱼智学` | `Info.plist` 中 `CFBundleDisplayName`，桌面图标下方文字 |
 | **iOS - 内部名称** | `章鱼智学` | `Info.plist` 中 `CFBundleName`，系统内部使用 |
 | **Windows - 窗口标题** | `章鱼智学` | `windows/runner/main.cpp` 中 `window.Create()` 的参数。任务栏和窗口标题栏显示的名称 |
-| **Windows - 安装包名** | `章鱼智学-alpha1.exe` | 发布物文件名 |
+| **Windows - 安装包名** | `章鱼智学-1.0.0-beta.2-windows.exe` | 发布物文件名 |
 | **Windows - MSIX 标识** | `Annouimo.526026C9DD952` | 微软商店安装标识 |
 | **Windows - 显示名称** | `章鱼智学` | MSIX 开始菜单/任务栏显示 |
 
 ### 版本号详解
 
-`1.0.0-alpha.2+1` 拆解：
+`1.0.0+2` 拆解：
 
 ```
- 1 . 0 . 0 -alpha . 1 + 1
- │   │   │    │       │
- │   │   │    │       └── 构建号 (build number)
+ 1 . 0 . 0 + 2
+ │   │   │   │
+ │   │   │   └── 构建号 (build number)
  │   │   │    │           Android: versionCode，Google Play 据此判断哪个包更新
  │   │   │    │           iOS: CFBundleVersion
  │   │   │    │           纯数字，每次发布递增，不要重复
- │   │   │    │           不展示给用户看
- │   │   │    │
- │   │   │    └────── 预发布标识 (pre-release)
- │   │   │               alpha  → 内部测试阶段
- │   │   │               beta   → 公开测试阶段
- │   │   │               rc     → 发布候选 (release candidate)
- │   │   │               后缀 .1, .2, .3... 表示第几次迭代
- │   │   │               正式发布时删除此段
+ │   │   │               不展示给用户看
  │   │   │
  │   │   └─────────────────── 补丁号 (patch)
  │   │                        修复 bug 时递增
@@ -58,14 +52,18 @@
                               重写核心交互流程
 ```
 
+公测渠道不再写入平台版本号，而由 `pubspec.yaml` 中的
+`release_channel: beta` 和 `release_iteration: 2` 独立表示。这样 iOS 保持
+三段纯数字版本，用户界面仍显示 `1.0.0（公测版 Beta 2）`。
+
 **变更规则：**
 
 | 场景 | 改哪段 | 示例 |
 |------|--------|------|
-| 修了个 bug，重新发版 | 只升 build | `1.0.0-alpha.1+1` → `1.0.0-alpha.1+2` |
-| 增加了小功能 | 升 pre-release 补丁 | `1.0.0-alpha.1+1` → `1.0.0-alpha.2+1` |
-| 进入公开测试 | 改 pre-release 标识 | `1.0.0-alpha.2+1` → `1.0.0-beta.1+1` |
-| 正式发版 | 去掉 pre-release | `1.0.0-beta.3+5` → `1.0.0+6` |
+| 修了个 bug，重新发版 | 升 build 和公测轮次 | `1.0.0+2 / beta.2` → `1.0.0+3 / beta.3` |
+| 增加了小功能 | 升次版本和 build | `1.0.0+3` → `1.1.0+4` |
+| 进入发布候选 | 改发布渠道 | `release_channel: beta` → `release_channel: rc` |
+| 正式发版 | 改发布渠道 | `release_channel: rc` → `release_channel: release` |
 | 重大架构变更 | 升 major | `1.0.0+6` → `2.0.0+1` |
 
 **自动生成：** `lib/constants/app_version.dart` 由 `scripts/generate_version.py` 从 `pubspec.yaml` 读取生成。不要手动编辑该文件。
@@ -74,9 +72,9 @@
 
 | 平台 | 字段 | 文件 |
 |------|------|------|
-| 单源定义 | `version: 1.0.0-alpha.1+1` | `pubspec.yaml` |
-| Android versionName | `1.0.0-alpha.1` | `pubspec.yaml` → `CFBundleShortVersionString` |
-| Android versionCode | `1` | `pubspec.yaml` → `CFBundleVersion` |
+| 单源定义 | `version: 1.0.0+2` | `pubspec.yaml` |
+| Android versionName | `1.0.0` | `pubspec.yaml` → `versionName` |
+| Android versionCode | `2` | `pubspec.yaml` → `versionCode` |
 | iOS Short Version | `$(FLUTTER_BUILD_NAME)` | `ios/Runner/Info.plist`（自动读取） |
 | iOS Build Version | `$(FLUTTER_BUILD_NUMBER)` | `ios/Runner/Info.plist`（自动读取） |
 
@@ -91,7 +89,7 @@
 | **项目名** | `teacher_app` | Dart 包名，仅内部使用 |
 | **应用名** | `章鱼智学 · 教师端` | 用户看到的名称 |
 | **应用描述** | `章鱼智学 v2 - 教师端（题库浏览 + 讲义阅读 + 选题导出）` | pubspec.yaml 描述字段 |
-| **版本** | `1.0.0-alpha.2+1` | 与学生端同步发布 |
+| **版本** | `1.0.0+2` | 与学生端保持相同构建基线 |
 | **Android - 包名 (applicationId)** | `com.zhangyuzhixue.teacher` | 与学生端不同 |
 | **Android - 显示名称** | `章鱼智学 · 教师端` | 桌面图标下方文字 |
 | **iOS - Bundle ID** | `com.zhangyuzhixue.teacher` | 与学生端不同 |
@@ -101,7 +99,8 @@
 | **Windows - MSIX 标识** | `com.zhangyuzhixue.teacher` | 安装标识，不可更改 |
 | **Windows - 窗口标题** | `章鱼智学 · 教师端` | `windows/runner/main.cpp` 中 `window.Create()` 的参数 |
 
-> 教师端版本号格式与学生端完全一致，同步发布，版本号始终保持相同。
+> 教师端仅供当前 3 名教师内部使用，不做公开分发。它与学生端保持
+> 相同的代码构建基线，但不作为学生端公测发布的阻断项。
 
 ---
 
@@ -126,7 +125,7 @@
 | **服务端根域名** | `https://zhangyuzhixue.zhtec123.com` | 用于构建 PDF URL 等 |
 | **公网着陆页** | `https://zhangyuzhixue.top` | `landing/index.html`，Cloudflare Tunnel → nginx 直出 |
 | **内测下载页** | `https://zhangyuzhixue.top/internal.html` | 无公开入口 |
-| **API 服务器** | 腾讯云轻量应用服务器, 81.70.243.63 | 2C2G |
+| **API 服务器** | 腾讯云轻量应用服务器, 82.157.115.219 | 2C2G |
 | **TLS** | API 域名：Let's Encrypt（nginx）；旧域名：Cloudflare Tunnel |
 
 ---
@@ -136,7 +135,7 @@
 修改任何基本信息时，需同步更新以下所有位置：
 
 ```
-修改 pubspec.yaml 版本号
+修改两端 pubspec.yaml 的版本号、release_channel 和 release_iteration
   → 重新运行 python scripts/generate_version.py    (更新两端 app_version.dart)
   → flutter pub get                                 (更新 iOS Generated.xcconfig)
   → 更新 landing/internal.html 中的版本号文案和下载链接

@@ -1,0 +1,67 @@
+#!/bin/bash
+# Install as /opt/zhangyuzhixue-v2.git/hooks/post-receive.
+# Only server/ is deployed so in-progress landing changes are not overwritten.
+
+set -euo pipefail
+
+DEPLOY_DIR="/opt/zhangyuzhixue-v2"
+BARE_REPO="/opt/zhangyuzhixue-v2.git"
+BACKUP_DIR="/var/backups/zhangyuzhixue-v2/pre-deploy"
+SERVICE="zhangyuzhixue-web"
+BRANCH="refs/heads/master"
+
+while read -r old_rev new_rev ref_name; do
+    if [[ "$ref_name" != "$BRANCH" ]]; then
+        echo "Ignoring $ref_name; production deploys master only."
+        continue
+    fi
+
+    timestamp=$(date '+%Y%m%d-%H%M%S')
+    backup_file="$BACKUP_DIR/db.$timestamp.sqlite3"
+    mkdir -p "$BACKUP_DIR"
+    cp "$DEPLOY_DIR/server/db.sqlite3" "$backup_file"
+    gzip "$backup_file"
+    echo "Database backup: $backup_file.gz"
+
+    rollback() {
+        exit_code=$?
+        if [[ $exit_code -eq 0 ]]; then
+            return
+        fi
+        echo "Deploy failed; restoring previous code and database."
+        if [[ "$old_rev" != "0000000000000000000000000000000000000000" ]]; then
+            git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
+                checkout -f "$old_rev" -- server
+        fi
+        gunzip -c "$backup_file.gz" > "$DEPLOY_DIR/server/db.sqlite3"
+        chown -R ubuntu:ubuntu "$DEPLOY_DIR/server"
+        systemctl restart "$SERVICE"
+        exit "$exit_code"
+    }
+    trap rollback EXIT
+
+    git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
+        checkout -f "$new_rev" -- server
+    cd "$DEPLOY_DIR/server"
+    source ../venv/bin/activate
+    pip install -q -r requirements.txt
+    python manage.py migrate --noinput
+    python manage.py collectstatic --noinput
+    chown -R ubuntu:ubuntu "$DEPLOY_DIR/server"
+    systemctl restart "$SERVICE"
+
+    for _ in {1..20}; do
+        if curl -s -o /dev/null http://127.0.0.1:8001/admin/; then
+            break
+        fi
+        sleep 1
+    done
+    systemctl is-active --quiet "$SERVICE"
+    login_status=$(curl -s -o /dev/null -w '%{http_code}' \
+        http://127.0.0.1:8001/api/v1/auth/login/)
+    [[ "$login_status" == "405" ]]
+
+    find "$BACKUP_DIR" -name 'db.*.sqlite3.gz' -mtime +30 -delete
+    trap - EXIT
+    echo "Deployment completed: $new_rev"
+done
