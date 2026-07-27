@@ -9,6 +9,10 @@ source_repo="$drill_dir/source"
 deploy_dir="$drill_dir/deploy"
 backup_file="$drill_dir/db.sqlite3.gz"
 db_file="$deploy_dir/server/db.sqlite3"
+venv_root="$deploy_dir/venvs"
+venv_link="$deploy_dir/venv"
+old_venv="$venv_root/old"
+new_venv="$venv_root/new"
 
 cleanup() {
     rm -rf -- "$drill_dir"
@@ -51,6 +55,10 @@ connection.close()
 PY
 old_db_hash="$(sha256sum "$db_file" | cut -d' ' -f1)"
 gzip -c "$db_file" > "$backup_file"
+mkdir -p "$old_venv/bin"
+printf '#!/bin/sh\n' > "$old_venv/bin/python"
+chmod 755 "$old_venv/bin/python"
+ln -s "$old_venv" "$venv_link"
 git --git-dir="$bare_repo" update-ref \
     refs/heads/master "$old_rev" "$new_rev"
 
@@ -77,6 +85,9 @@ PY
 }
 
 for failure_stage in dependency migration health; do
+    mkdir -p "$new_venv/bin"
+    printf '#!/bin/sh\n' > "$new_venv/bin/python"
+    chmod 755 "$new_venv/bin/python"
     git --git-dir="$bare_repo" update-ref \
         refs/heads/master "$new_rev" "$old_rev"
 
@@ -94,6 +105,9 @@ connection.execute("CREATE TABLE failed_release (id INTEGER PRIMARY KEY)")
 connection.commit()
 connection.close()
 PY
+        replacement="$venv_root/.next"
+        ln -s "$new_venv" "$replacement"
+        mv -Tf "$replacement" "$venv_link"
     fi
 
     set +e
@@ -103,12 +117,18 @@ PY
             exit_code=$?
             trap - EXIT
             set +e
+            if [[ "$(readlink -f "$venv_link")" == "$new_venv" ]]; then
+                replacement="$venv_root/.rollback"
+                ln -s "$old_venv" "$replacement"
+                mv -Tf "$replacement" "$venv_link"
+            fi
             git --git-dir="$bare_repo" --work-tree="$deploy_dir" \
                 checkout -f "$old_rev" -- server
             git --git-dir="$bare_repo" update-ref \
                 refs/heads/master "$old_rev" "$new_rev"
             rm -f -- "$db_file-wal" "$db_file-shm"
             gunzip -c "$backup_file" > "$db_file"
+            rm -rf -- "$new_venv"
             exit "$exit_code"
         }
         trap rollback EXIT
@@ -126,6 +146,8 @@ PY
     test "$(cat "$deploy_dir/server/version.txt")" = "old"
     test -f "$deploy_dir/server/removed-in-new.txt"
     test "$(sha256sum "$db_file" | cut -d' ' -f1)" = "$old_db_hash"
+    test "$(readlink -f "$venv_link")" = "$old_venv"
+    test ! -e "$new_venv"
     validate_database
     echo "Backend rollback stage passed: $failure_stage"
 done
