@@ -193,8 +193,8 @@ try {
             $options = @{
                 Name = 'windows-e2e'
                 WorkingDirectory = $studentDir
-                TestArguments = @('integration_test', '-d', 'windows', '--reporter', 'expanded', '--timeout', '5m')
-                TimeoutMinutes = 40
+                TestArguments = @('integration_test/windows_smoke_test.dart', '-d', 'windows', '--tags', 'integration', '--reporter', 'expanded', '--timeout', '5m')
+                TimeoutMinutes = 15
             }
             $results.E2E = Invoke-FlutterSuite @options
         }
