@@ -237,20 +237,47 @@ class _SolveRatePageState extends State<SolveRatePage> {
                         if (_submitted)
                           AppCard(
                             padding: const EdgeInsets.all(AppSpacing.md),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                const AppStatusBadge(
-                                  label: '评分已提交',
-                                  tone: AppStatusTone.success,
+                                const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: AppStatusBadge(
+                                    label: '评分已提交',
+                                    tone: AppStatusTone.success,
+                                    icon: Icons.check_circle_rounded,
+                                  ),
                                 ),
-                                const Spacer(),
-                                AppButton(
-                                  label: '修改评分',
-                                  icon: Icons.edit_outlined,
-                                  variant: AppButtonVariant.text,
-                                  fullWidth: false,
-                                  onPressed: () =>
-                                      setState(() => _submitted = false),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  '你的反馈已保存，可以返回继续学习。',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(color: colors.textSecondary),
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Wrap(
+                                  alignment: WrapAlignment.end,
+                                  spacing: AppSpacing.xs,
+                                  runSpacing: AppSpacing.xs,
+                                  children: [
+                                    AppButton(
+                                      label: '修改评分',
+                                      icon: Icons.edit_outlined,
+                                      variant: AppButtonVariant.text,
+                                      fullWidth: false,
+                                      onPressed: () => setState(
+                                        () => _submitted = false,
+                                      ),
+                                    ),
+                                    AppButton(
+                                      label: '完成并返回',
+                                      icon: Icons.check_rounded,
+                                      fullWidth: false,
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),

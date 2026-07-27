@@ -17,6 +17,7 @@ class SolveRevealWidget extends StatefulWidget {
     this.revealed = false,
     this.onNext,
     this.onRate,
+    this.onFinish,
     this.onReveal,
     this.feedbackWidget,
     this.feedbackResult,
@@ -30,6 +31,7 @@ class SolveRevealWidget extends StatefulWidget {
   final bool revealed;
   final VoidCallback? onNext;
   final VoidCallback? onRate;
+  final VoidCallback? onFinish;
   final VoidCallback? onReveal;
   final Widget? feedbackWidget;
   final Widget? feedbackResult;
@@ -97,6 +99,7 @@ class _SolveRevealWidgetState extends State<SolveRevealWidget> {
           DoneBanner(
             onNext: widget.onNext,
             onRate: widget.onRate,
+            onFinish: widget.onFinish,
           ),
         ],
       ],

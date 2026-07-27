@@ -25,6 +25,7 @@ class SolveFlowWidget extends StatefulWidget {
     this.onSubmit,
     this.onNext,
     this.onRate,
+    this.onFinish,
     this.submitLoading = false,
   });
 
@@ -39,6 +40,7 @@ class SolveFlowWidget extends StatefulWidget {
   final Future<void> Function()? onSubmit;
   final VoidCallback? onNext;
   final VoidCallback? onRate;
+  final VoidCallback? onFinish;
   final bool submitLoading;
 
   @override
@@ -99,6 +101,7 @@ class _SolveFlowWidgetState extends State<SolveFlowWidget> {
             isRated: widget.isRated,
             onNext: widget.onNext,
             onRate: widget.onRate,
+            onFinish: widget.onFinish,
           ),
         ],
       ],

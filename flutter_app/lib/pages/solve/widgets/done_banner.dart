@@ -12,11 +12,13 @@ class DoneBanner extends StatelessWidget {
     this.isRated = false,
     this.onNext,
     this.onRate,
+    this.onFinish,
   });
 
   final bool isRated;
   final VoidCallback? onNext;
   final VoidCallback? onRate;
+  final VoidCallback? onFinish;
 
   @override
   Widget build(BuildContext context) {
@@ -26,25 +28,35 @@ class DoneBanner extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 520;
-          final message = Row(
-            mainAxisSize: MainAxisSize.min,
+          final message = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppStatusBadge(
-                label: '本题已完成',
-                tone: AppStatusTone.success,
-                icon: Icons.celebration_rounded,
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  const AppStatusBadge(
+                    label: '本题已完成',
+                    tone: AppStatusTone.success,
+                    icon: Icons.check_circle_rounded,
+                  ),
+                  if (isRated)
+                    const AppStatusBadge(
+                      label: '已评分',
+                      tone: AppStatusTone.recommendation,
+                      icon: Icons.star_rounded,
+                    ),
+                ],
               ),
-              if (isRated) ...[
-                const SizedBox(width: AppSpacing.xs),
-                Icon(Icons.star_rounded, size: 18, color: colors.warning),
-                const SizedBox(width: AppSpacing.xxs),
-                Text(
-                  '已评分',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: colors.warning,
-                      ),
-                ),
-              ],
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                onNext != null
+                    ? '作答结果已经保存，可以继续完成下一题。'
+                    : '作答结果已经保存，可以返回继续学习。',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.textSecondary,
+                    ),
+              ),
             ],
           );
 
@@ -68,6 +80,13 @@ class DoneBanner extends StatelessWidget {
                   fullWidth: false,
                   onPressed: onNext,
                 ),
+              if (onNext == null && onFinish != null)
+                AppButton(
+                  label: '完成并返回',
+                  icon: Icons.check_rounded,
+                  fullWidth: false,
+                  onPressed: onFinish,
+                ),
             ],
           );
 
@@ -76,7 +95,7 @@ class DoneBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 message,
-                if (onRate != null || onNext != null) ...[
+                if (onRate != null || onNext != null || onFinish != null) ...[
                   const SizedBox(height: AppSpacing.md),
                   actions,
                 ],
@@ -87,7 +106,8 @@ class DoneBanner extends StatelessWidget {
           return Row(
             children: [
               Expanded(child: message),
-              if (onRate != null || onNext != null) actions,
+              if (onRate != null || onNext != null || onFinish != null)
+                actions,
             ],
           );
         },

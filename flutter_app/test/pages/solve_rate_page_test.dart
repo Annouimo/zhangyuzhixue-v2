@@ -33,6 +33,8 @@ void main() {
       await tester.pump();
       expect(find.text('评分已提交'), findsOneWidget);
       expect(find.text('修改评分'), findsOneWidget);
+      expect(find.text('你的反馈已保存，可以返回继续学习。'), findsOneWidget);
+      expect(find.text('完成并返回'), findsOneWidget);
     });
   });
 }

@@ -392,6 +392,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
                   onRate: () async {
                     await context.push('/solve/rate?id=${widget.questionId}');
                   },
+                  onFinish: widget.nextQuestionId == null
+                      ? () => context.pop()
+                      : null,
                   child: _buildContent(),
                 ),
                 if (_attempts.isNotEmpty) ...[
@@ -491,4 +494,3 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
 }
-

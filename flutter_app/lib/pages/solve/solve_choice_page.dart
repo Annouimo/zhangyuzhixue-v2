@@ -235,6 +235,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                     await context.push('/solve/rate?id=${widget.questionId}');
                     _load();
                   },
+                  onFinish: widget.nextQuestionId == null
+                      ? () => context.pop()
+                      : null,
                   child: _buildContent(),
                 ),
                 if (_attempts.isNotEmpty) ...[
