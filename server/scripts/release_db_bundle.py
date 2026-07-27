@@ -176,7 +176,7 @@ def install(args: argparse.Namespace) -> int:
     validate_against_manifest(bundle, manifest)
     setup_django(project_root)
     from django.db import transaction
-    from django.utils import timezone
+    from django.utils import timezone as django_timezone
     from system.models import DbVersion
 
     release_id = args.release_id
@@ -228,23 +228,29 @@ def install(args: argparse.Namespace) -> int:
                 current.download_url = f'/media/db/{manifest["filename"]}'
                 current.force_update = args.force_update
                 current.message = args.message
-                current.built_at = timezone.now()
+                current.built_at = django_timezone.now()
                 current.save()
+            with (backup_root / "releases.log").open("a", encoding="utf-8") as log:
+                log.write(
+                    f'{datetime.now(timezone.utc).isoformat()} release={release_id} '
+                    f'type={manifest["db_type"]} data={manifest["data_version"]} '
+                    f'sha256={manifest["sha256"]} commit={manifest["git_commit"]}\n'
+                )
         except Exception:
             stage.unlink(missing_ok=True)
             backup = backup_dir / destination.name
             if backup.exists():
-                os.replace(backup, destination)
+                shutil.copy2(backup, destination)
             elif destination.exists():
                 destination.unlink()
+            with transaction.atomic():
+                current = DbVersion.objects.select_for_update().get(
+                    db_type=manifest["db_type"]
+                )
+                for field, value in metadata["previous"].items():
+                    setattr(current, field, value)
+                current.save()
             raise
-
-        with (backup_root / "releases.log").open("a", encoding="utf-8") as log:
-            log.write(
-                f'{datetime.now(timezone.utc).isoformat()} release={release_id} '
-                f'type={manifest["db_type"]} data={manifest["data_version"]} '
-                f'sha256={manifest["sha256"]} commit={manifest["git_commit"]}\n'
-            )
     print(f"RELEASE_ID={release_id}")
     print(f"BACKUP={backup_dir}")
     return 0
