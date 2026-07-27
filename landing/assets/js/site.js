@@ -12,7 +12,7 @@
 
   const navItems = [
     ["index.html", "首页", "home"],
-    ["software.html", "免费软件", "software"],
+    ["software.html", "软件下载", "software"],
     ["media.html", "圆明智学", "media"],
     ["team.html", "团队介绍", "team"],
     ["about.html", "关于我们", "about"]
@@ -65,15 +65,15 @@
         <div class="container site-footer__main">
           <div class="site-footer__brand">
             <h3>${config.siteName || "章鱼智学"}</h3>
-            <p>${config.slogan || "专注高考数学，让学习更高效"}。软件与圆明智学视频内容免费开放，专业咨询与高端私人定制按实际需求提供。</p>
+            <p>${config.slogan || "围绕高考数学，系统改进学习过程"}。通过软件、公开内容、学习咨询与个性化学习支持连接不同学习环节。</p>
           </div>
           <div>
             <h4>产品与服务</h4>
             <div class="footer-links">
-              <a href="software.html">免费软件</a>
+              <a href="software.html">软件下载</a>
               <a href="media.html">圆明智学视频</a>
-              <button class="text-link" type="button" data-open-wechat>专业咨询</button>
-              <button class="text-link" type="button" data-open-wechat>私人定制</button>
+              <button class="text-link" type="button" data-open-wechat>学习咨询</button>
+              <button class="text-link" type="button" data-open-wechat>个性化学习支持</button>
             </div>
           </div>
           <div>
@@ -118,12 +118,12 @@
       <div class="modal" id="wechat-modal" role="dialog" aria-modal="true" aria-labelledby="wechat-title" aria-hidden="true">
         <div class="modal__dialog">
           <button class="modal__close" type="button" aria-label="关闭微信二维码">${icons.close}</button>
-          <p class="eyebrow">专业咨询与私人定制</p>
+          <p class="eyebrow">学习咨询与个性化学习支持</p>
           <h2 id="wechat-title">联系章鱼智学</h2>
           <p class="muted">微信：<strong>${config.wechatName || "章鱼宝宝"}</strong></p>
           ${config.wechatId ? `<p class="muted" style="margin-top:0">微信号：<strong>${config.wechatId}</strong> · 备注「章鱼智学」</p>` : ""}
           <div class="note" style="text-align:left;margin-top:16px">
-            可咨询学习问题分析、学习路径建议、针对性答疑，以及一对一或团队多对一私人定制。添加时可备注所在年级和主要问题；无需提供身份证号、住址等敏感信息。
+            可咨询具体学习问题、学习路径和针对性答疑，也可了解一对一或团队多对一学习支持。添加时可备注所在年级和主要问题；无需提供身份证号、住址等敏感信息。
           </div>
           <div class="modal__qr">
             <img src="${config.wechatQr || "assets/images/qr-wechat-placeholder.svg"}" alt="微信二维码">

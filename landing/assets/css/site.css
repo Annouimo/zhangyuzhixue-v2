@@ -360,6 +360,42 @@ h4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.culture-group + .culture-group {
+  margin-top: 32px;
+}
+
+.culture-group__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.culture-group__head h3,
+.culture-group__head p {
+  margin: 0;
+}
+
+.culture-group__head p {
+  margin-top: 4px;
+}
+
+.culture-group__mark {
+  display: grid;
+  min-width: 64px;
+  height: 40px;
+  padding: 0 12px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-weight: 850;
+}
+
+.culture-group__mark--cyan {
+  background: var(--color-cyan);
+}
+
 .card--accent {
   background:
     radial-gradient(circle at 90% 10%, rgba(20,184,207,.16), transparent 34%),

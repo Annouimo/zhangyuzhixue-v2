@@ -12,8 +12,8 @@
 window.SITE_CONFIG = {
   siteName: "章鱼智学",
   siteTagline: "个性化高考数学智能学习系统",
-  slogan: "专注高考数学，让学习更高效",
-  secondarySlogan: "数据驱动学习，持续优化提升",
+  slogan: "围绕高考数学，系统改进学习过程",
+  secondarySlogan: "连接知识体系、学习规划与过程记录",
 
   phoneDisplay: "18500794866",
   phoneHref: "tel:18500794866",
