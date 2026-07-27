@@ -116,15 +116,28 @@ manifest='$remoteManifest'
 deploy_root='$remoteRoot/landing'
 release_id='$timestamp'
 backup_root='$remoteRoot/backups'
+lock_file='/var/lock/zhangyuzhixue-landing-deploy.lock'
 stage="/tmp/zhangyuzhixue-landing-stage-$timestamp"
 backup="`$backup_root/landing-$timestamp.tar.gz"
 backup_created=false
+
+exec 9>"`$lock_file"
+if ! flock -n 9; then
+    echo 'Another Landing deployment is already running.' >&2
+    exit 1
+fi
+
+validate_deploy_root() {
+    test "`$deploy_root" = '$remoteRoot/landing'
+}
 
 rollback() {
     exit_code=`$?
     trap - ERR
     if `$backup_created; then
         echo "Landing deployment failed; restoring `$backup" >&2
+        validate_deploy_root
+        rm -rf -- "`$deploy_root"
         tar -xzf "`$backup" -C '$remoteRoot'
         nginx -t
     fi
@@ -184,7 +197,13 @@ echo "BACKUP=`$backup"
         $restoreScript = @"
 set -euo pipefail
 backup='$remoteRoot/backups/landing-$timestamp.tar.gz'
+deploy_root='$remoteRoot/landing'
+lock_file='/var/lock/zhangyuzhixue-landing-deploy.lock'
+exec 9>"`$lock_file"
+flock 9
 test -f "`$backup"
+test "`$deploy_root" = '$remoteRoot/landing'
+rm -rf -- "`$deploy_root"
 tar -xzf "`$backup" -C '$remoteRoot'
 nginx -t
 echo "Landing restored from `$backup"

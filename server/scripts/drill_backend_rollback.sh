@@ -36,7 +36,7 @@ git -C "$source_repo" push --quiet "$bare_repo" HEAD:refs/heads/master
 
 mkdir -p "$deploy_dir"
 git --git-dir="$bare_repo" --work-tree="$deploy_dir" \
-    checkout -f "$new_rev" -- server
+    checkout -f "$old_rev" -- server
 
 python3 - "$db_file" <<'PY'
 import sqlite3
@@ -51,49 +51,11 @@ connection.close()
 PY
 old_db_hash="$(sha256sum "$db_file" | cut -d' ' -f1)"
 gzip -c "$db_file" > "$backup_file"
+git --git-dir="$bare_repo" update-ref \
+    refs/heads/master "$old_rev" "$new_rev"
 
-python3 - "$db_file" <<'PY'
-import sqlite3
-import sys
-
-connection = sqlite3.connect(sys.argv[1])
-connection.execute("CREATE TABLE failed_release (id INTEGER PRIMARY KEY)")
-connection.commit()
-connection.close()
-PY
-
-set +e
-(
-    set -e
-    rollback() {
-        exit_code=$?
-        trap - EXIT
-        set +e
-        git --git-dir="$bare_repo" --work-tree="$deploy_dir" \
-            checkout -f "$old_rev" -- server
-        git --git-dir="$bare_repo" update-ref \
-            refs/heads/master "$old_rev" "$new_rev"
-        rm -f -- "$db_file-wal" "$db_file-shm"
-        gunzip -c "$backup_file" > "$db_file"
-        exit "$exit_code"
-    }
-    trap rollback EXIT
-    false
-)
-failure_status=$?
-set -e
-
-if [[ $failure_status -eq 0 ]]; then
-    echo "Failure injection unexpectedly succeeded" >&2
-    exit 1
-fi
-
-test "$(git --git-dir="$bare_repo" rev-parse refs/heads/master)" = "$old_rev"
-test "$(cat "$deploy_dir/server/version.txt")" = "old"
-test -f "$deploy_dir/server/removed-in-new.txt"
-test "$(sha256sum "$db_file" | cut -d' ' -f1)" = "$old_db_hash"
-
-python3 - "$db_file" <<'PY'
+validate_database() {
+    python3 - "$db_file" <<'PY'
 import sqlite3
 import sys
 
@@ -112,5 +74,60 @@ if integrity != "ok" or foreign_keys or failed_table:
         f"failed_table={failed_table}"
     )
 PY
+}
 
-echo "Backend rollback drill passed: ref, code, deleted file, and database restored"
+for failure_stage in dependency migration health; do
+    git --git-dir="$bare_repo" update-ref \
+        refs/heads/master "$new_rev" "$old_rev"
+
+    if [[ "$failure_stage" != "dependency" ]]; then
+        git --git-dir="$bare_repo" --work-tree="$deploy_dir" \
+            checkout -f "$new_rev" -- server
+    fi
+    if [[ "$failure_stage" == "health" ]]; then
+        python3 - "$db_file" <<'PY'
+import sqlite3
+import sys
+
+connection = sqlite3.connect(sys.argv[1])
+connection.execute("CREATE TABLE failed_release (id INTEGER PRIMARY KEY)")
+connection.commit()
+connection.close()
+PY
+    fi
+
+    set +e
+    (
+        set -e
+        rollback() {
+            exit_code=$?
+            trap - EXIT
+            set +e
+            git --git-dir="$bare_repo" --work-tree="$deploy_dir" \
+                checkout -f "$old_rev" -- server
+            git --git-dir="$bare_repo" update-ref \
+                refs/heads/master "$old_rev" "$new_rev"
+            rm -f -- "$db_file-wal" "$db_file-shm"
+            gunzip -c "$backup_file" > "$db_file"
+            exit "$exit_code"
+        }
+        trap rollback EXIT
+        false
+    )
+    failure_status=$?
+    set -e
+
+    if [[ $failure_status -eq 0 ]]; then
+        echo "Failure injection unexpectedly succeeded: $failure_stage" >&2
+        exit 1
+    fi
+
+    test "$(git --git-dir="$bare_repo" rev-parse refs/heads/master)" = "$old_rev"
+    test "$(cat "$deploy_dir/server/version.txt")" = "old"
+    test -f "$deploy_dir/server/removed-in-new.txt"
+    test "$(sha256sum "$db_file" | cut -d' ' -f1)" = "$old_db_hash"
+    validate_database
+    echo "Backend rollback stage passed: $failure_stage"
+done
+
+echo "Backend rollback drill passed for all failure stages"

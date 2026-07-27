@@ -11,6 +11,7 @@ SERVICE="zhangyuzhixue-web"
 BRANCH="refs/heads/master"
 DEPLOY_LOG="/var/log/zhangyuzhixue/deployments.log"
 LOCK_FILE="/var/lock/zhangyuzhixue-deploy.lock"
+WHEEL_CACHE="/var/cache/zhangyuzhixue/wheels"
 
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
@@ -68,6 +69,17 @@ source.close()
     }
     trap rollback EXIT
 
+    echo "Preparing an offline wheelhouse for the target revision."
+    rm -rf "$shadow_dir"
+    mkdir -p "$shadow_dir" "$WHEEL_CACHE/$new_rev"
+    git --git-dir="$BARE_REPO" show \
+        "${new_rev}:server/requirements.txt" \
+        > "$shadow_dir/requirements.txt"
+    "$DEPLOY_DIR/venv/bin/pip" download -q \
+        --only-binary=:all: \
+        --dest "$WHEEL_CACHE/$new_rev" \
+        -r "$shadow_dir/requirements.txt"
+
     cd "$DEPLOY_DIR"
     if [[ "$old_rev" != "0000000000000000000000000000000000000000" ]]; then
         while IFS= read -r removed_path; do
@@ -80,7 +92,9 @@ source.close()
         checkout -f "$new_rev" -- server
     cd "$DEPLOY_DIR/server"
     source ../venv/bin/activate
-    pip install -q -r requirements.txt
+    pip install -q --no-index \
+        --find-links "$WHEEL_CACHE/$new_rev" \
+        -r requirements.txt
 
     echo "Validating migrations against shadow database."
     rm -rf "$shadow_dir"
@@ -135,6 +149,8 @@ PY
     [[ "$login_status" == "405" ]]
 
     find "$BACKUP_DIR" -name 'db.*.sqlite3.gz' -mtime +30 -delete
+    find "$WHEEL_CACHE" -mindepth 1 -maxdepth 1 -type d \
+        -mtime +30 -exec rm -rf -- {} +
     mkdir -p "$(dirname "$DEPLOY_LOG")"
     printf '%s old=%s new=%s backup=%s status=success\n' \
         "$(date --iso-8601=seconds)" "$old_rev" "$new_rev" \
