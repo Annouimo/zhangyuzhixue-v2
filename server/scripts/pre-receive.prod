@@ -7,6 +7,12 @@ set -euo pipefail
 BARE_REPO="/opt/zhangyuzhixue-v2.git"
 BRANCH="refs/heads/master"
 ZERO="0000000000000000000000000000000000000000"
+VENV_LINK="/opt/zhangyuzhixue-v2/venv"
+
+if [[ ! -L "$VENV_LINK" || ! -x "$(readlink -f "$VENV_LINK")/bin/python" ]]; then
+    echo "Rejecting deployment: versioned production venv is not ready." >&2
+    exit 1
+fi
 
 while read -r old_rev new_rev ref_name; do
     if [[ "$ref_name" != "$BRANCH" ]]; then

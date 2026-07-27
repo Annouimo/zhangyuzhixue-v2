@@ -12,6 +12,8 @@ BRANCH="refs/heads/master"
 DEPLOY_LOG="/var/log/zhangyuzhixue/deployments.log"
 LOCK_FILE="/var/lock/zhangyuzhixue-deploy.lock"
 WHEEL_CACHE="/var/cache/zhangyuzhixue/wheels"
+VENV_LINK="$DEPLOY_DIR/venv"
+VENV_ROOT="$DEPLOY_DIR/venvs"
 
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
@@ -28,8 +30,15 @@ while read -r old_rev new_rev ref_name; do
     timestamp=$(date '+%Y%m%d-%H%M%S')
     backup_file="$BACKUP_DIR/db.$timestamp.sqlite3"
     shadow_dir="/tmp/zhangyuzhixue-shadow-$timestamp"
+    release_venv="$VENV_ROOT/$new_rev"
+    previous_venv="$(readlink -f "$VENV_LINK")"
+    venv_switched=false
+    if [[ ! -L "$VENV_LINK" || ! -x "$previous_venv/bin/python" ]]; then
+        echo "Versioned venv layout is not initialized." >&2
+        exit 1
+    fi
     mkdir -p "$BACKUP_DIR"
-    "$DEPLOY_DIR/venv/bin/python" -c '
+    "$previous_venv/bin/python" -c '
 import sqlite3
 import sys
 
@@ -52,6 +61,11 @@ source.close()
         set +e
         echo "Deploy failed; restoring previous code and database."
         rm -rf "$shadow_dir"
+        if $venv_switched; then
+            replacement="$VENV_ROOT/.rollback-$timestamp"
+            ln -s "$previous_venv" "$replacement"
+            mv -Tf "$replacement" "$VENV_LINK"
+        fi
         if [[ "$old_rev" != "0000000000000000000000000000000000000000" ]]; then
             cd "$DEPLOY_DIR"
             git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
@@ -65,6 +79,9 @@ source.close()
         gunzip -c "$backup_file.gz" > "$DEPLOY_DIR/server/db.sqlite3"
         chown -R ubuntu:ubuntu "$DEPLOY_DIR/server"
         systemctl restart "$SERVICE"
+        if [[ "$release_venv" != "$previous_venv" ]]; then
+            rm -rf -- "$release_venv"
+        fi
         exit "$exit_code"
     }
     trap rollback EXIT
@@ -75,9 +92,16 @@ source.close()
     git --git-dir="$BARE_REPO" show \
         "${new_rev}:server/requirements.txt" \
         > "$shadow_dir/requirements.txt"
-    "$DEPLOY_DIR/venv/bin/pip" download -q \
+    "$previous_venv/bin/pip" download -q \
         --only-binary=:all: \
         --dest "$WHEEL_CACHE/$new_rev" \
+        -r "$shadow_dir/requirements.txt"
+
+    echo "Building versioned venv: $release_venv"
+    rm -rf -- "$release_venv"
+    python3 -m venv "$release_venv"
+    "$release_venv/bin/pip" install -q --no-index \
+        --find-links "$WHEEL_CACHE/$new_rev" \
         -r "$shadow_dir/requirements.txt"
 
     cd "$DEPLOY_DIR"
@@ -91,17 +115,14 @@ source.close()
     git --git-dir="$BARE_REPO" --work-tree="$DEPLOY_DIR" \
         checkout -f "$new_rev" -- server
     cd "$DEPLOY_DIR/server"
-    source ../venv/bin/activate
-    pip install -q --no-index \
-        --find-links "$WHEEL_CACHE/$new_rev" \
-        -r requirements.txt
 
     echo "Validating migrations against shadow database."
     rm -rf "$shadow_dir"
     mkdir -p "$shadow_dir"
     gunzip -c "$backup_file.gz" > "$shadow_dir/db.sqlite3"
-    DB_NAME="$shadow_dir/db.sqlite3" python manage.py migrate --noinput
-    python - "$shadow_dir/db.sqlite3" <<'PY'
+    DB_NAME="$shadow_dir/db.sqlite3" \
+        "$release_venv/bin/python" manage.py migrate --noinput
+    "$release_venv/bin/python" - "$shadow_dir/db.sqlite3" <<'PY'
 import sqlite3
 import sys
 
@@ -117,8 +138,8 @@ if integrity != "ok" or foreign_keys:
 print("Shadow database validation passed.")
 PY
 
-    python manage.py migrate --noinput
-    python - "$DEPLOY_DIR/server/db.sqlite3" <<'PY'
+    "$release_venv/bin/python" manage.py migrate --noinput
+    "$release_venv/bin/python" - "$DEPLOY_DIR/server/db.sqlite3" <<'PY'
 import sqlite3
 import sys
 
@@ -133,8 +154,13 @@ if integrity != "ok" or foreign_keys:
     )
 print("Production database validation passed.")
 PY
-    python manage.py collectstatic --noinput
+    "$release_venv/bin/python" manage.py collectstatic --noinput
     chown -R ubuntu:ubuntu "$DEPLOY_DIR/server"
+
+    replacement="$VENV_ROOT/.next-$timestamp"
+    ln -s "$release_venv" "$replacement"
+    mv -Tf "$replacement" "$VENV_LINK"
+    venv_switched=true
     systemctl restart "$SERVICE"
 
     for _ in {1..20}; do
@@ -150,6 +176,9 @@ PY
 
     find "$BACKUP_DIR" -name 'db.*.sqlite3.gz' -mtime +30 -delete
     find "$WHEEL_CACHE" -mindepth 1 -maxdepth 1 -type d \
+        -mtime +30 -exec rm -rf -- {} +
+    find "$VENV_ROOT" -mindepth 1 -maxdepth 1 -type d \
+        ! -path "$release_venv" ! -path "$previous_venv" \
         -mtime +30 -exec rm -rf -- {} +
     mkdir -p "$(dirname "$DEPLOY_LOG")"
     printf '%s old=%s new=%s backup=%s status=success\n' \
