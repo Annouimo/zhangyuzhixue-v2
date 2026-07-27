@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: [ master, develop ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  flutter:
+  student:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -26,10 +34,24 @@ jobs:
         working-directory: flutter_app
         # DatabaseProvider and ApiClient are process-wide singletons. Running
         # test files concurrently causes cross-file database and adapter races.
-        run: flutter test --exclude-tags=golden --concurrency=1
+        run: |
+          mkdir -p build/test-results
+          flutter test --exclude-tags=golden --concurrency=1 --coverage \
+            --file-reporter=json:build/test-results/student.json
+      - name: Upload student test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-test-results
+          path: |
+            flutter_app/build/test-results/student.json
+            flutter_app/coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 14
 
   teacher:
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -45,10 +67,21 @@ jobs:
         run: dart analyze
       - name: flutter test
         working-directory: teacher_app
-        run: flutter test
+        run: |
+          mkdir -p build/test-results
+          flutter test --file-reporter=json:build/test-results/teacher.json
+      - name: Upload teacher test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: teacher-test-results
+          path: teacher_app/build/test-results/teacher.json
+          if-no-files-found: ignore
+          retention-days: 14
 
   django:
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,8 +99,58 @@ jobs:
         run: python3 manage.py makemigrations --check
       - name: Django deploy checks
         working-directory: server
-        continue-on-error: true
         run: python3 manage.py check --deploy
       - name: pytest
         working-directory: server
-        run: python -m pytest -v --tb=short --cov --cov-fail-under=30
+        run: >-
+          python -m pytest -v --tb=short --cov --cov-fail-under=30
+          --cov-report=xml:coverage.xml --junitxml=junit.xml
+      - name: Upload Django test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-test-results
+          path: |
+            server/coverage.xml
+            server/junit.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+  windows-acceptance:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44'
+          channel: 'stable'
+          cache: true
+      - name: flutter pub get
+        working-directory: flutter_app
+        run: flutter pub get
+      - name: Create test result directory
+        working-directory: flutter_app
+        run: New-Item -ItemType Directory -Force build/test-results | Out-Null
+      - name: Golden tests
+        working-directory: flutter_app
+        run: >-
+          flutter test test/golden/student_ui_golden_test.dart
+          --tags golden --concurrency=1
+          --file-reporter=json:build/test-results/golden.json
+      - name: Windows host smoke test
+        working-directory: flutter_app
+        run: >-
+          flutter test integration_test/windows_smoke_test.dart
+          -d windows --tags integration --timeout 5m
+          --file-reporter=json:build/test-results/windows-e2e.json
+      - name: Upload Windows acceptance results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-acceptance-results
+          path: |
+            flutter_app/build/test-results/*.json
+            flutter_app/test/failures/**
+          if-no-files-found: ignore
+          retention-days: 14
