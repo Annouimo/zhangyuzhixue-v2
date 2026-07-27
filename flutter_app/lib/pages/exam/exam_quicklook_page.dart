@@ -241,6 +241,9 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
                 questionId: question.questionId,
                 title: question.title,
                 questionType: question.questionType,
+                sequence: preview.questions
+                    .map((item) => item.questionId)
+                    .toList(growable: false),
               ),
             ),
           ),

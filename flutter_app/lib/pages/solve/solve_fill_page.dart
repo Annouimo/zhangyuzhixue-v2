@@ -26,6 +26,7 @@ import '../../widgets/pop_back_guard.dart';
 class SolveFillPage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
+  final List<int> sequence;
   final QuestionRepository? questionRepository;
   final String? mode;
   final int? attemptId;
@@ -34,6 +35,7 @@ class SolveFillPage extends StatefulWidget {
     super.key,
     required this.questionId,
     this.nextQuestionId,
+    this.sequence = const [],
     this.questionRepository,
     this.mode,
     this.attemptId,
@@ -413,19 +415,19 @@ class _SolveFillPageState extends State<SolveFillPage> {
                   feedbackResult: _feedbackGiven
                       ? _buildFeedbackResult()
                       : null,
-                  onNext: widget.nextQuestionId != null
+                  onNext: _nextQuestionId != null
                       ? () {
-                          SolveRouteHelper.navigateTo(
+                          SolveRouteHelper.navigateToNext(
                             context,
-                            widget.nextQuestionId!,
-                            _detail!.questionType,
+                            _nextQuestionId!,
+                            widget.sequence,
                           );
                         }
                       : null,
                   onRate: () async {
                     await context.push('/solve/rate?id=${widget.questionId}');
                   },
-                  onFinish: widget.nextQuestionId == null
+                  onFinish: _nextQuestionId == null
                       ? () => context.pop()
                       : null,
                   child: _buildContent(),
@@ -447,6 +449,14 @@ class _SolveFillPageState extends State<SolveFillPage> {
         ),
       ),
     );
+  }
+
+  int? get _nextQuestionId {
+    final index = widget.sequence.indexOf(widget.questionId);
+    if (index >= 0 && index + 1 < widget.sequence.length) {
+      return widget.sequence[index + 1];
+    }
+    return widget.nextQuestionId;
   }
 
   Widget _buildFeedbackResult() {

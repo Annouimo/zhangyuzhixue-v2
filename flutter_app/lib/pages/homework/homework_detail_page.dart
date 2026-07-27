@@ -226,13 +226,15 @@ class _HomeworkDetailPageState extends State<HomeworkDetailPage> {
         currentIndex >= 0 && currentIndex + 1 < detail.questions.length
         ? detail.questions[currentIndex + 1].id
         : null;
+    final sequence = detail.questions.map((item) => item.id).join(',');
     if (!mounted) return;
     await RouterUtils.push(
       context,
       '$route?id=${question.id}'
       '${mode != 'first' ? '&mode=$mode' : ''}'
       '${attemptId != null ? '&attemptId=$attemptId' : ''}'
-      '${nextId != null ? '&next=$nextId' : ''}',
+      '${nextId != null ? '&next=$nextId' : ''}'
+      '&sequence=$sequence',
     );
     if (mounted) _load();
   }

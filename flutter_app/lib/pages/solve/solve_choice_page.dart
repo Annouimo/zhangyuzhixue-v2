@@ -21,6 +21,7 @@ import '../../widgets/pop_back_guard.dart';
 class SolveChoicePage extends StatefulWidget {
   final int questionId;
   final int? nextQuestionId;
+  final List<int> sequence;
   final QuestionRepository? questionRepository;
   final String? mode;
   final int? attemptId;
@@ -29,6 +30,7 @@ class SolveChoicePage extends StatefulWidget {
     super.key,
     required this.questionId,
     this.nextQuestionId,
+    this.sequence = const [],
     this.questionRepository,
     this.mode,
     this.attemptId,
@@ -252,12 +254,12 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                   explanation: _detail?.explanation,
                   onSubmit: _selected == null ? null : _submit,
                   submitLoading: _submitting,
-                  onNext: widget.nextQuestionId != null
+                  onNext: _nextQuestionId != null
                       ? () {
-                          SolveRouteHelper.navigateTo(
+                          SolveRouteHelper.navigateToNext(
                             context,
-                            widget.nextQuestionId!,
-                            _detail!.questionType,
+                            _nextQuestionId!,
+                            widget.sequence,
                           );
                         }
                       : null,
@@ -265,7 +267,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                     await context.push('/solve/rate?id=${widget.questionId}');
                     _load();
                   },
-                  onFinish: widget.nextQuestionId == null
+                  onFinish: _nextQuestionId == null
                       ? () => context.pop()
                       : null,
                   child: _buildContent(),
@@ -287,6 +289,14 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
         ),
       ),
     );
+  }
+
+  int? get _nextQuestionId {
+    final index = widget.sequence.indexOf(widget.questionId);
+    if (index >= 0 && index + 1 < widget.sequence.length) {
+      return widget.sequence[index + 1];
+    }
+    return widget.nextQuestionId;
   }
 
   /// 构建作答次数选择器

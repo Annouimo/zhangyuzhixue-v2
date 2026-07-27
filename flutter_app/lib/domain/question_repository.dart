@@ -80,8 +80,9 @@ class SolveRouteHelper {
   static Future<void> navigateTo(
     BuildContext context,
     int questionId,
-    String questionType,
-  ) async {
+    String questionType, {
+    List<int> sequence = const [],
+  }) async {
     final repo = QuestionRepository(
       QuestionDao(DatabaseProvider()),
       ProgressDao(DatabaseProvider()),
@@ -98,12 +99,31 @@ class SolveRouteHelper {
       mode = !last.isCompleted ? 'resume' : 'review';
     }
     final page = pageName(questionType);
+    final sequenceParam = sequence.length > 1
+        ? '&sequence=${sequence.join(',')}'
+        : '';
     if (!context.mounted) return;
     RouterUtils.push(
       context,
       '$page?id=$questionId'
       '${mode != 'first' ? '&mode=$mode' : ''}'
-      '${attemptId != null ? '&attemptId=$attemptId' : ''}',
+      '${attemptId != null ? '&attemptId=$attemptId' : ''}'
+      '$sequenceParam',
+    );
+  }
+
+  static Future<void> navigateToNext(
+    BuildContext context,
+    int questionId,
+    List<int> sequence,
+  ) async {
+    final question = await QuestionDao(DatabaseProvider()).getById(questionId);
+    if (question == null || !context.mounted) return;
+    await navigateTo(
+      context,
+      questionId,
+      question.questionType,
+      sequence: sequence,
     );
   }
 }

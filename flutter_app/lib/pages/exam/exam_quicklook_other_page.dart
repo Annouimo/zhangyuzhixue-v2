@@ -22,8 +22,7 @@ class ExamQuicklookOtherPage extends StatefulWidget {
   final ExamRepository? examRepository;
 
   @override
-  State<ExamQuicklookOtherPage> createState() =>
-      _ExamQuicklookOtherPageState();
+  State<ExamQuicklookOtherPage> createState() => _ExamQuicklookOtherPageState();
 }
 
 class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
@@ -37,7 +36,8 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.examRepository ??
+    _repo =
+        widget.examRepository ??
         ExamRepository(
           QuestionDao(DatabaseProvider()),
           ExamDao(DatabaseProvider()),
@@ -59,10 +59,9 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
         _collected = preview.isCollected;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'ExamQuicklookOtherPage',
-        {'title': _preview?.name},
-      );
+      AuditLogger.instance.page('ExamQuicklookOtherPage', {
+        'title': _preview?.name,
+      });
     } catch (error) {
       OperationLog.instance.error('exam_quicklook_other_page_load', error);
       AuditLogger.instance.error('ExamQuicklookOtherPage._load', error);
@@ -76,30 +75,30 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(_preview?.name ?? '试卷预览'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.fact_check_outlined),
-              tooltip: '快速对答案',
-              onPressed: () => RouterUtils.push(
-                context,
-                '${AppRoutes.answerSheet}?id=${widget.examId}',
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.picture_as_pdf_outlined),
-              tooltip: '下载 PDF',
-              onPressed: () => PdfHelper.downloadPdf(
-                sourceId: widget.examId,
-                sourceType: 'paper',
-                context: context,
-              ),
-            ),
-          ],
+    appBar: AppBar(
+      title: Text(_preview?.name ?? '试卷预览'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.fact_check_outlined),
+          tooltip: '快速对答案',
+          onPressed: () => RouterUtils.push(
+            context,
+            '${AppRoutes.answerSheet}?id=${widget.examId}',
+          ),
         ),
-        body: _buildBody(),
-      );
+        IconButton(
+          icon: const Icon(Icons.picture_as_pdf_outlined),
+          tooltip: '下载 PDF',
+          onPressed: () => PdfHelper.downloadPdf(
+            sourceId: widget.examId,
+            sourceType: 'paper',
+            context: context,
+          ),
+        ),
+      ],
+    ),
+    body: _buildBody(),
+  );
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载试卷预览…');
@@ -174,6 +173,9 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
                 questionId: question.questionId,
                 title: question.title,
                 questionType: question.questionType,
+                sequence: preview.questions
+                    .map((item) => item.questionId)
+                    .toList(growable: false),
               ),
             ),
           ),

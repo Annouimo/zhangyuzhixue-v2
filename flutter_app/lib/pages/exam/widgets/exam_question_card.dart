@@ -9,12 +9,14 @@ class ExamQuestionCard extends StatelessWidget {
   final int questionId;
   final String title;
   final String questionType;
+  final List<int> sequence;
 
   const ExamQuestionCard({
     super.key,
     required this.questionId,
     required this.title,
     required this.questionType,
+    this.sequence = const [],
   });
 
   @override
@@ -23,7 +25,12 @@ class ExamQuestionCard extends StatelessWidget {
       questionId: questionId,
       title: title,
       questionType: questionType,
-      onTap: () => SolveRouteHelper.navigateTo(context, questionId, questionType),
+      onTap: () => SolveRouteHelper.navigateTo(
+        context,
+        questionId,
+        questionType,
+        sequence: sequence,
+      ),
     );
   }
 }

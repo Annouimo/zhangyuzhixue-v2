@@ -207,13 +207,14 @@ class RecommendPageState extends State<RecommendPage> {
 
     return AppContentContainer(
       maxWidth: AppContentWidth.standard,
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: AppSpacing.sm,
-          bottom: AppSpacing.sm,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(
+            top: AppSpacing.sm,
+            bottom: AppSpacing.lg,
+          ),
           children: [
             _buildIntroCard(),
             const SizedBox(height: AppSpacing.md),
@@ -238,7 +239,7 @@ class RecommendPageState extends State<RecommendPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Expanded(child: _buildQuestionList()),
+            ..._buildQuestionList(),
           ],
         ),
       ),
@@ -250,9 +251,7 @@ class RecommendPageState extends State<RecommendPage> {
       eyebrow: _preferSmart ? '基于学习记录' : '基于学习偏好',
       icon: Icons.auto_awesome_outlined,
       title: '把下一步练习交给推荐系统',
-      subtitle: _preferSmart
-          ? '优先补足薄弱知识点，并兼顾题型与难度。'
-          : '使用你保存的学习偏好，生成一组针对性练习。',
+      subtitle: _preferSmart ? '优先补足薄弱知识点，并兼顾题型与难度。' : '使用你保存的学习偏好，生成一组针对性练习。',
     );
   }
 
@@ -282,46 +281,47 @@ class RecommendPageState extends State<RecommendPage> {
     );
   }
 
-  Widget _buildQuestionList() {
+  List<Widget> _buildQuestionList() {
     final questions = _questions ?? const <RecommendedQuestion>[];
     if (questions.isEmpty) {
       final needsPresetSelection = !_preferSmart && _selectedPresetIndex < 0;
-      return EmptyPlaceholder(
-        icon: _preferSmart
-            ? Icons.auto_awesome_outlined
-            : Icons.playlist_add_outlined,
-        message: _preferSmart
-            ? '暂时没有智能推荐，先完成几道练习积累学习记录'
-            : needsPresetSelection
-            ? '请先选择一个学习偏好开始推荐'
-            : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
-      );
+      return [
+        EmptyPlaceholder(
+          icon: _preferSmart
+              ? Icons.auto_awesome_outlined
+              : Icons.playlist_add_outlined,
+          message: _preferSmart
+              ? '暂时没有智能推荐，先完成几道练习积累学习记录'
+              : needsPresetSelection
+              ? '请先选择一个学习偏好开始推荐'
+              : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
+        ),
+      ];
     }
 
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-        itemCount: questions.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final question = questions[index];
-          return RecommendCard(
-            title: question.title,
-            questionType: question.questionType,
-            difficulty: question.difficulty,
-            reason: question.recommendReason,
-            status: question.status,
-            onTap: () => SolveRouteHelper.navigateTo(
+    return [
+      for (var index = 0; index < questions.length; index++) ...[
+        if (index > 0) const SizedBox(height: AppSpacing.sm),
+        RecommendCard(
+          title: questions[index].title,
+          questionType: questions[index].questionType,
+          difficulty: questions[index].difficulty,
+          reason: questions[index].recommendReason,
+          status: questions[index].status,
+          onTap: () {
+            final question = questions[index];
+            SolveRouteHelper.navigateTo(
               context,
               question.id,
               question.questionType,
-            ),
-          );
-        },
-      ),
-    );
+              sequence: questions
+                  .map((item) => item.id)
+                  .toList(growable: false),
+            );
+          },
+        ),
+      ],
+    ];
   }
 }
 

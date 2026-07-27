@@ -21,12 +21,14 @@ class SolveMapPage extends StatefulWidget {
   final int questionId;
   final String? mode;
   final int? attemptId;
+  final List<int> sequence;
 
   const SolveMapPage({
     super.key,
     required this.questionId,
     this.mode,
     this.attemptId,
+    this.sequence = const [],
   });
 
   @override
@@ -69,31 +71,49 @@ class _SolveMapPageState extends State<SolveMapPage> {
     try {
       OperationLog.instance.action('solve_map_page_load', 'T1 start');
       final s = await repo.getSolveState(widget.questionId);
-      OperationLog.instance.action('solve_map_page_load', 'T2 after getSolveState (subQCount=${s.subQuestions.length})');
+      OperationLog.instance.action(
+        'solve_map_page_load',
+        'T2 after getSolveState (subQCount=${s.subQuestions.length})',
+      );
       var attempts = await repo.getAttempts(widget.questionId);
-      OperationLog.instance.action('solve_map_page_load', 'T3 after getAttempts (${attempts.length})');
+      OperationLog.instance.action(
+        'solve_map_page_load',
+        'T3 after getAttempts (${attempts.length})',
+      );
 
       // 加载题目元信息
       QuestionDetail? detail;
       try {
         detail = await qRepo.getDetail(widget.questionId);
-        OperationLog.instance.action('solve_map_page_load', 'T4 after getDetail');
+        OperationLog.instance.action(
+          'solve_map_page_load',
+          'T4 after getDetail',
+        );
       } catch (e) {
-        OperationLog.instance.action('solve_map_page_load', 'T4 getDetail error: $e');
+        OperationLog.instance.action(
+          'solve_map_page_load',
+          'T4 getDetail error: $e',
+        );
       }
 
       // 首次访问自动创建存档
       if (attempts.isEmpty && widget.mode != 'review') {
         await repo.createAttempt(widget.questionId);
-        OperationLog.instance.action('solve_map_page_load', 'T5 after createAttempt');
+        OperationLog.instance.action(
+          'solve_map_page_load',
+          'T5 after createAttempt',
+        );
         attempts = await repo.getAttempts(widget.questionId);
       }
 
       // 判断回顾模式: mode=review 或 attempts.last.completed 且不是最新
       final lastStarted = attempts.isNotEmpty ? attempts.last : null;
-      final review = widget.mode == 'review' ||
-          (lastStarted != null && lastStarted.status == 'completed' &&
-           widget.attemptId != null && widget.attemptId != lastStarted.id);
+      final review =
+          widget.mode == 'review' ||
+          (lastStarted != null &&
+              lastStarted.status == 'completed' &&
+              widget.attemptId != null &&
+              widget.attemptId != lastStarted.id);
 
       // 计算已完成步骤（按当前 attemptId 或最新存档）
       Set<String> doneSteps = {};
@@ -102,23 +122,32 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
       if (attempts.isNotEmpty) {
         final targetAttemptNumber = widget.attemptId != null
-            ? attempts.where((a) => a.id == widget.attemptId).firstOrNull?.attemptNumber
+            ? attempts
+                  .where((a) => a.id == widget.attemptId)
+                  .firstOrNull
+                  ?.attemptNumber
             : attempts.last.attemptNumber;
-        currentAttemptNumber = targetAttemptNumber ?? attempts.last.attemptNumber;
+        currentAttemptNumber =
+            targetAttemptNumber ?? attempts.last.attemptNumber;
         currentSubmissionDetailId = attempts
             .where((a) => a.attemptNumber == currentAttemptNumber)
-            .firstOrNull?.id;
+            .firstOrNull
+            ?.id;
 
         final prevState = await repo.getAttemptState(
-          widget.questionId, currentAttemptNumber,
+          widget.questionId,
+          currentAttemptNumber,
         );
         if (prevState != null) {
           try {
             doneSteps = prevState.subQRecords
-                .expand((sq) => sq.methods.asMap().entries
-                    .expand((mEntry) => mEntry.value.steps
+                .expand(
+                  (sq) => sq.methods.asMap().entries.expand(
+                    (mEntry) => mEntry.value.steps
                         .where((s) => s.feedbackGiven)
-                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
+                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}'),
+                  ),
+                )
                 .toSet();
           } catch (e1) {
             AuditLogger.instance.error('SolveMapPage._load.doneSteps', e1);
@@ -148,14 +177,20 @@ class _SolveMapPageState extends State<SolveMapPage> {
       OperationLog.instance.action('solve_map_page_load', 'T8 catch: $e');
       OperationLog.instance.error('solve_map_page_load', e);
       AuditLogger.instance.error('SolveMapPage._load', e);
-      if (mounted) setState(() { _loading = false; _error = e.toString(); });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
     }
   }
 
   // 入口分流路由构造
   String _buildStepRoute(int subQIndex, int methodIndex, int stepIndex) {
-    final buf = StringBuffer('/solve/step?id=${widget.questionId}'
-        '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex');
+    final buf = StringBuffer(
+      '/solve/step?id=${widget.questionId}'
+      '&subQ=$subQIndex&method=$methodIndex&step=$stepIndex',
+    );
     if (_currentAttemptNumber != null) {
       buf.write('&attemptId=$_currentSubmissionDetailId');
     }
@@ -175,22 +210,22 @@ class _SolveMapPageState extends State<SolveMapPage> {
       body: _loading
           ? const LoadingIndicator(message: '正在整理解题步骤')
           : _error != null
-              ? ErrorPlaceholder(
-                  message: '解题步骤加载失败，请检查后重试',
-                  onRetry: () {
-                    setState(() {
-                      _error = null;
-                      _loading = true;
-                    });
-                    _load();
-                  },
-                )
-              : _buildMapView(),
+          ? ErrorPlaceholder(
+              message: '解题步骤加载失败，请检查后重试',
+              onRetry: () {
+                setState(() {
+                  _error = null;
+                  _loading = true;
+                });
+                _load();
+              },
+            )
+          : _buildMapView(),
     );
   }
 
   Widget _buildAttemptSelector() {
-      final colors = context.colors;
+    final colors = context.colors;
     if (_attempts.isEmpty) return SizedBox.shrink();
 
     final label = _currentAttemptNumber != null
@@ -204,7 +239,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Text(label,
+        child: Text(
+          label,
           style: TextStyle(fontSize: 11, color: colors.primary),
         ),
       );
@@ -219,15 +255,19 @@ class _SolveMapPageState extends State<SolveMapPage> {
             QuestionDao(DatabaseProvider()),
           );
           final prevState = await repo.getAttemptState(
-            widget.questionId, value.attemptNumber,
+            widget.questionId,
+            value.attemptNumber,
           );
           Set<String> doneSteps = {};
           if (prevState != null) {
             doneSteps = prevState.subQRecords
-                .expand((sq) => sq.methods.asMap().entries
-                    .expand((mEntry) => mEntry.value.steps
+                .expand(
+                  (sq) => sq.methods.asMap().entries.expand(
+                    (mEntry) => mEntry.value.steps
                         .where((s) => s.feedbackGiven)
-                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}')))
+                        .map((s) => '${sq.index}_${mEntry.key}_${s.stepOrder}'),
+                  ),
+                )
                 .toSet();
           }
           if (!mounted) return;
@@ -242,26 +282,33 @@ class _SolveMapPageState extends State<SolveMapPage> {
       offset: Offset(0, 28),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       itemBuilder: (context) => [
-        ..._attempts.map((a) => PopupMenuItem<Object>(
-          value: a,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('第 ${a.attemptNumber} 次作答',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: a.attemptNumber == _currentAttemptNumber ? FontWeight.w600 : FontWeight.normal,
-                  color: a.attemptNumber == _currentAttemptNumber ? colors.primary : colors.textPrimary,
+        ..._attempts.map(
+          (a) => PopupMenuItem<Object>(
+            value: a,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '第 ${a.attemptNumber} 次作答',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: a.attemptNumber == _currentAttemptNumber
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                    color: a.attemptNumber == _currentAttemptNumber
+                        ? colors.primary
+                        : colors.textPrimary,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8),
-              Text(
-                a.status == 'completed' ? '回顾' : '进行中',
-                style: TextStyle(fontSize: 11, color: colors.textSecondary),
-              ),
-            ],
+                SizedBox(width: 8),
+                Text(
+                  a.status == 'completed' ? '回顾' : '进行中',
+                  style: TextStyle(fontSize: 11, color: colors.textSecondary),
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -272,9 +319,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(label,
-              style: TextStyle(fontSize: 11, color: colors.primary),
-            ),
+            Text(label, style: TextStyle(fontSize: 11, color: colors.primary)),
             Icon(Icons.expand_more, size: 14, color: colors.primary),
           ],
         ),
@@ -317,8 +362,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
                     Text(
                       _detail!.title,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.textSecondary,
-                          ),
+                        color: colors.textSecondary,
+                      ),
                     ),
                 ],
               ),
@@ -339,9 +384,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '按步骤逐层展开解析，并在每一步完成后进行自评。',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colors.textSecondary,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.md),
           ..._state!.subQuestions.asMap().entries.map((sqEntry) {
@@ -376,10 +421,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
             final (statusLabel, statusTone) = allMethodsFullyDone
                 ? ('完全掌握', AppStatusTone.recommendation)
                 : anyMethodFullyDone
-                    ? ('已完成', AppStatusTone.success)
-                    : hasAnyStepDone
-                        ? ('进行中', AppStatusTone.warning)
-                        : ('待开始', AppStatusTone.neutral);
+                ? ('已完成', AppStatusTone.success)
+                : hasAnyStepDone
+                ? ('进行中', AppStatusTone.warning)
+                : ('待开始', AppStatusTone.neutral);
 
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -422,7 +467,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: colors.surfaceSubtle,
-                            borderRadius: BorderRadius.circular(AppRadius.medium),
+                            borderRadius: BorderRadius.circular(
+                              AppRadius.medium,
+                            ),
                             border: Border.all(color: colors.border),
                           ),
                           child: Column(
@@ -455,9 +502,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                           method.methodName?.isNotEmpty == true
                                               ? method.methodName!
                                               : '标准解法',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall,
                                         ),
                                       ),
                                       Text(
@@ -489,54 +536,60 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                     AppSpacing.md,
                                   ),
                                   child: Column(
-                                    children: method.steps.asMap().entries.map(
-                                      (stepEntry) {
-                                        final stepIndex = stepEntry.key;
-                                        final step = stepEntry.value;
-                                        final stepKey =
-                                            '${sq.index}_${methodIndex}_${step.stepNumber}';
-                                        final isDone =
-                                            _completedSteps.contains(stepKey);
-                                        final locked = !isDone &&
-                                            stepIndex > 0 &&
-                                            method.steps.take(stepIndex).every(
-                                                  (previous) => !_completedSteps
-                                                      .contains(
-                                                    '${sq.index}_${methodIndex}_${previous.stepNumber}',
-                                                  ),
-                                                );
+                                    children: method.steps.asMap().entries.map((
+                                      stepEntry,
+                                    ) {
+                                      final stepIndex = stepEntry.key;
+                                      final step = stepEntry.value;
+                                      final stepKey =
+                                          '${sq.index}_${methodIndex}_${step.stepNumber}';
+                                      final isDone = _completedSteps.contains(
+                                        stepKey,
+                                      );
+                                      final locked =
+                                          !isDone &&
+                                          stepIndex > 0 &&
+                                          method.steps
+                                              .take(stepIndex)
+                                              .every(
+                                                (
+                                                  previous,
+                                                ) => !_completedSteps.contains(
+                                                  '${sq.index}_${methodIndex}_${previous.stepNumber}',
+                                                ),
+                                              );
 
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: AppSpacing.xs,
-                                          ),
-                                          child: _SolveStepTile(
-                                            stepNumber: step.stepNumber,
-                                            label: '第 ${step.stepNumber} 步',
-                                            subtitle: !locked &&
-                                                    step.cardTitles.isNotEmpty
-                                                ? _formatCardLabels(
-                                                    step.cardTitles,
-                                                  )
-                                                : null,
-                                            isDone: isDone,
-                                            isLocked: locked,
-                                            onTap: locked
-                                                ? null
-                                                : () async {
-                                                    await context.push(
-                                                      _buildStepRoute(
-                                                        subQIdx,
-                                                        methodIndex,
-                                                        stepIndex,
-                                                      ),
-                                                    );
-                                                    _load();
-                                                  },
-                                          ),
-                                        );
-                                      },
-                                    ).toList(),
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: AppSpacing.xs,
+                                        ),
+                                        child: _SolveStepTile(
+                                          stepNumber: step.stepNumber,
+                                          label: '第 ${step.stepNumber} 步',
+                                          subtitle:
+                                              !locked &&
+                                                  step.cardTitles.isNotEmpty
+                                              ? _formatCardLabels(
+                                                  step.cardTitles,
+                                                )
+                                              : null,
+                                          isDone: isDone,
+                                          isLocked: locked,
+                                          onTap: locked
+                                              ? null
+                                              : () async {
+                                                  await context.push(
+                                                    _buildStepRoute(
+                                                      subQIdx,
+                                                      methodIndex,
+                                                      stepIndex,
+                                                    ),
+                                                  );
+                                                  _load();
+                                                },
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                             ],
@@ -569,10 +622,19 @@ class _SolveMapPageState extends State<SolveMapPage> {
                 AppButton(
                   label: '给题目评分',
                   icon: Icons.star_outline_rounded,
-                  onPressed: () => context.push(
-                    '/solve/rate?id=${widget.questionId}',
-                  ),
+                  onPressed: () =>
+                      context.push('/solve/rate?id=${widget.questionId}'),
                 ),
+                if (_nextQuestionId != null)
+                  AppButton(
+                    label: '下一题',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () => SolveRouteHelper.navigateToNext(
+                      context,
+                      _nextQuestionId!,
+                      widget.sequence,
+                    ),
+                  ),
               ];
 
               if (compact) {
@@ -602,6 +664,13 @@ class _SolveMapPageState extends State<SolveMapPage> {
         ],
       ),
     );
+  }
+
+  int? get _nextQuestionId {
+    final index = widget.sequence.indexOf(widget.questionId);
+    return index >= 0 && index + 1 < widget.sequence.length
+        ? widget.sequence[index + 1]
+        : null;
   }
 
   Future<void> _onRetry() async {
@@ -637,13 +706,18 @@ class _SolveStepTile extends StatelessWidget {
     final foreground = isDone
         ? colors.success
         : isLocked
-            ? colors.disabledForeground
-            : colors.textPrimary;
+        ? colors.disabledForeground
+        : colors.textPrimary;
 
     return Semantics(
       button: onTap != null,
       enabled: onTap != null,
-      label: '$label${isLocked ? '，未解锁' : isDone ? '，已完成' : ''}',
+      label:
+          '$label${isLocked
+              ? '，未解锁'
+              : isDone
+              ? '，已完成'
+              : ''}',
       child: Material(
         color: colors.surface,
         borderRadius: BorderRadius.circular(AppRadius.medium),
@@ -661,31 +735,35 @@ class _SolveStepTile extends StatelessWidget {
                     color: isDone
                         ? colors.successContainer
                         : isLocked
-                            ? colors.disabledBackground
-                            : colors.primaryContainer,
+                        ? colors.disabledBackground
+                        : colors.primaryContainer,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: isDone
                           ? colors.success
                           : isLocked
-                              ? colors.border
-                              : colors.primaryBorder,
+                          ? colors.border
+                          : colors.primaryBorder,
                     ),
                   ),
                   child: Center(
                     child: isDone
-                        ? Icon(Icons.check_rounded,
-                            size: 18, color: colors.success)
+                        ? Icon(
+                            Icons.check_rounded,
+                            size: 18,
+                            color: colors.success,
+                          )
                         : isLocked
-                            ? Icon(Icons.lock_outline_rounded,
-                                size: 16, color: colors.disabledForeground)
-                            : Text(
-                                '$stepNumber',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(color: colors.primary),
-                              ),
+                        ? Icon(
+                            Icons.lock_outline_rounded,
+                            size: 16,
+                            color: colors.disabledForeground,
+                          )
+                        : Text(
+                            '$stepNumber',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(color: colors.primary),
+                          ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -695,18 +773,15 @@ class _SolveStepTile extends StatelessWidget {
                     children: [
                       Text(
                         label,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(color: foreground),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(color: foreground),
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
                           subtitle!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colors.textSecondary),
                         ),
                       ],
@@ -714,8 +789,10 @@ class _SolveStepTile extends StatelessWidget {
                   ),
                 ),
                 if (!isLocked)
-                  Icon(Icons.chevron_right_rounded,
-                      color: colors.textSecondary),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: colors.textSecondary,
+                  ),
               ],
             ),
           ),
@@ -724,4 +801,3 @@ class _SolveStepTile extends StatelessWidget {
     );
   }
 }
-
