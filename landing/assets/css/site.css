@@ -2531,3 +2531,51 @@ body {
     font-size: 13px;
   }
 }
+
+/* Inner pages follow the denser visual rhythm established on the homepage. */
+body:not([data-page="home"]) .page-hero {
+  min-height: 320px;
+  padding: 84px 0 62px;
+}
+
+body:not([data-page="home"]) .page-hero h1 {
+  font-size: clamp(42px, 5vw, 58px);
+}
+
+body:not([data-page="home"]) .section {
+  padding: 76px 0;
+}
+
+body:not([data-page="home"]) .section__head {
+  margin-bottom: 34px;
+}
+
+@media (max-width: 900px) {
+  body:not([data-page="home"]) .page-hero {
+    min-height: 290px;
+    padding: 66px 0 50px;
+  }
+
+  body:not([data-page="home"]) .section {
+    padding: 68px 0;
+  }
+}
+
+@media (max-width: 620px) {
+  body:not([data-page="home"]) .page-hero {
+    min-height: 250px;
+    padding: 52px 0 40px;
+  }
+
+  body:not([data-page="home"]) .page-hero h1 {
+    font-size: clamp(38px, 12vw, 48px);
+  }
+
+  body:not([data-page="home"]) .section {
+    padding: 56px 0;
+  }
+
+  body:not([data-page="home"]) .section__head {
+    margin-bottom: 28px;
+  }
+}
