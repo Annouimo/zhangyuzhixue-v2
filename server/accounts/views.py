@@ -13,7 +13,6 @@ from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshV
 from system.models import LevelConfig
 from accounts.models import (
     AccountDeletionRequest,
-    InvitationCode,
     RegistrationConsent,
     Student,
     UserLoginLog,
@@ -31,6 +30,7 @@ from accounts.throttles import (
     AccountDeletionCancelRateThrottle,
     AvatarUploadRateThrottle,
     LoginRateThrottle,
+    RegisterDailyRateThrottle,
     RegisterRateThrottle,
     TokenRefreshRateThrottle,
 )
@@ -65,7 +65,7 @@ def _err(code, message, http_status=status.HTTP_400_BAD_REQUEST):
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
-@throttle_classes([RegisterRateThrottle])
+@throttle_classes([RegisterRateThrottle, RegisterDailyRateThrottle])
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
     if not serializer.is_valid():
@@ -75,17 +75,7 @@ def register_view(request):
 
     data = serializer.validated_data
 
-    from django.utils import timezone
-    now = timezone.now()
     with transaction.atomic():
-        code = InvitationCode.objects.select_for_update().get(
-            code=data['invitation_code'],
-        )
-        if code.is_used:
-            return _err(40101, '邀请码已被使用')
-        if code.expires_at and code.expires_at < now:
-            return _err(40101, '邀请码已过期')
-
         user = User.objects.create_user(
             username=data['username'],
             password=data['password'],
@@ -99,13 +89,6 @@ def register_view(request):
             phone=data.get('phone', ''),
             gaokao_year=data.get('gaokao_year'),
         )
-        updated = InvitationCode.objects.filter(
-            pk=code.pk, is_used=False,
-        ).update(is_used=True, used_by=user, used_at=now)
-        if updated != 1:
-            transaction.set_rollback(True)
-            return _err(40101, '邀请码已被使用')
-
         RegistrationConsent.objects.create(
             user=user,
             terms_version='2026-07-27',
@@ -329,7 +312,11 @@ def user_me_view(request):
         return _ok(data=data)
 
     # PATCH
-    serializer = UserUpdateSerializer(data=request.data, partial=True)
+    serializer = UserUpdateSerializer(
+        data=request.data,
+        partial=True,
+        context={'request': request},
+    )
     if not serializer.is_valid():
         first_err = list(serializer.errors.values())[0]
         msg = str(first_err[0]) if isinstance(first_err, list) else str(first_err)

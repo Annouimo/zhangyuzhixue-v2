@@ -2,16 +2,19 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from accounts.models import InvitationCode
+from accounts.models import Student
 
 
 class RegisterSerializer(serializers.Serializer):
     """注册请求校验"""
-    invitation_code = serializers.CharField(max_length=32)
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(min_length=6, max_length=128)
     real_name = serializers.CharField(max_length=64)
-    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    phone = serializers.RegexField(
+        regex=r'^1\d{10}$',
+        max_length=11,
+        error_messages={'invalid': '请输入有效手机号'},
+    )
     gaokao_year = serializers.IntegerField(required=False, allow_null=True)
     accepted_terms = serializers.BooleanField()
     accepted_privacy = serializers.BooleanField()
@@ -21,24 +24,16 @@ class RegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError('请先阅读并同意用户协议和隐私政策')
         return attrs
 
-    def validate_invitation_code(self, value):
-        try:
-            code = InvitationCode.objects.get(code=value)
-        except InvitationCode.DoesNotExist:
-            raise serializers.ValidationError('邀请码无效')
-
-        if code.is_used:
-            raise serializers.ValidationError('邀请码已被使用')
-
-        from django.utils import timezone
-        if code.expires_at and code.expires_at < timezone.now():
-            raise serializers.ValidationError('邀请码已过期')
-
-        return value
-
     def validate_username(self, value):
+        value = value.strip()
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError('用户名已存在')
+        return value
+
+    def validate_phone(self, value):
+        value = value.strip()
+        if Student.objects.filter(phone=value).exists():
+            raise serializers.ValidationError('手机号已注册')
         return value
 
 
@@ -138,6 +133,24 @@ class UserSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.Serializer):
     """用户信息更新"""
     real_name = serializers.CharField(max_length=64, required=False)
-    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    phone = serializers.RegexField(
+        regex=r'^1\d{10}$',
+        max_length=11,
+        required=False,
+        allow_blank=True,
+        error_messages={'invalid': '请输入有效手机号'},
+    )
     gaokao_year = serializers.IntegerField(required=False, allow_null=True)
     school = serializers.CharField(max_length=128, required=False, allow_blank=True)
+
+    def validate_phone(self, value):
+        value = value.strip()
+        if not value:
+            return value
+        query = Student.objects.filter(phone=value)
+        request = self.context.get('request')
+        if request is not None and request.user.is_authenticated:
+            query = query.exclude(user=request.user)
+        if query.exists():
+            raise serializers.ValidationError('手机号已注册')
+        return value

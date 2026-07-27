@@ -46,7 +46,6 @@ class RefreshResult {
 }
 
 class RegisterRequest {
-  final String inviteCode;
   final String username;
   final String realName;
   final String phone;
@@ -56,7 +55,6 @@ class RegisterRequest {
   final bool acceptedPrivacy;
 
   const RegisterRequest({
-    required this.inviteCode,
     required this.username,
     required this.realName,
     required this.phone,
@@ -67,7 +65,6 @@ class RegisterRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'invitation_code': inviteCode,
     'username': username,
     'real_name': realName,
     'phone': phone,

@@ -304,7 +304,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               TextButton(
                 onPressed: () => RouterUtils.push(context, AppRoutes.register),
-                child: const Text('使用邀请码注册'),
+                child: const Text('注册账号'),
               ),
             ],
           ),

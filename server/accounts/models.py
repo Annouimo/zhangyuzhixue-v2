@@ -55,6 +55,13 @@ class Student(models.Model):
     class Meta:
         verbose_name = '学生'
         verbose_name_plural = '学生'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['phone'],
+                condition=~models.Q(phone=''),
+                name='unique_nonempty_student_phone',
+            ),
+        ]
 
     def __str__(self):
         return f'学生: {self.user.username}'

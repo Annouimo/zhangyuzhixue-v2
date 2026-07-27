@@ -24,7 +24,6 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _inviteCodeController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -48,7 +47,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _inviteCodeController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -66,7 +64,6 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       await _authRepo.register(
         RegisterRequest(
-          inviteCode: _inviteCodeController.text.trim(),
           username: _usernameController.text.trim(),
           realName: _realNameController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -114,9 +111,8 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     }
     final msg = e.toString();
-    if (msg.contains('40101')) return '邀请码无效或已使用';
     if (msg.contains('username')) return '用户名已存在';
-    if (msg.contains('invitation_code')) return '邀请码无效或已使用';
+    if (msg.contains('phone')) return '手机号已注册或格式不正确';
     // 网络连接错误（DNS 失败、无网络等）
     if (e is DioException && e.type == DioExceptionType.connectionError) {
       return '网络连接失败，请检查网络';
@@ -146,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final colors = context.colors;
     return AppAuthLayout(
       title: '创建学生账号',
-      subtitle: '使用有效邀请码注册，完成后即可登录并设置学习偏好。',
+      subtitle: '注册完成后即可登录并设置学习偏好。',
       leading: IconButton(
         tooltip: '返回登录',
         icon: const Icon(Icons.arrow_back_ios),
@@ -159,18 +155,6 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextFormField(
-              controller: _inviteCodeController,
-              decoration: const InputDecoration(
-                labelText: '邀请码',
-                hintText: '输入管理员提供的邀请码',
-                prefixIcon: Icon(Icons.key_outlined),
-              ),
-              textInputAction: TextInputAction.next,
-              validator: (value) =>
-                  value == null || value.trim().isEmpty ? '请输入邀请码' : null,
-            ),
-            const SizedBox(height: AppSpacing.md),
             LayoutBuilder(
               builder: (context, constraints) {
                 final twoColumns = constraints.maxWidth >= 420;

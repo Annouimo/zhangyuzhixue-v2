@@ -20,7 +20,6 @@ class _MockAuthRepo extends AuthRepository {
 /// Helper: 填入所有文本字段（高考年份为 dropdown，单独处理）
 Future<void> _fillAllFields(
   WidgetTester tester, {
-  String inviteCode = 'CODE123',
   String username = 'testuser',
   String realName = '张三',
   String phone = '13800138000',
@@ -28,12 +27,11 @@ Future<void> _fillAllFields(
   String confirmPassword = 'password123',
 }) async {
   final fields = find.byType(TextFormField);
-  await tester.enterText(fields.at(0), inviteCode);
-  await tester.enterText(fields.at(1), username);
-  await tester.enterText(fields.at(2), realName);
-  await tester.enterText(fields.at(3), phone);
-  await tester.enterText(fields.at(4), password);
-  await tester.enterText(fields.at(5), confirmPassword);
+  await tester.enterText(fields.at(0), username);
+  await tester.enterText(fields.at(1), realName);
+  await tester.enterText(fields.at(2), phone);
+  await tester.enterText(fields.at(3), password);
+  await tester.enterText(fields.at(4), confirmPassword);
 }
 
 /// Helper: 点击注册按钮（先确保可见）
@@ -59,7 +57,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
       expect(find.text('创建学生账号'), findsOneWidget);
-      expect(find.text('邀请码'), findsOneWidget);
+      expect(find.text('邀请码'), findsNothing);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('姓名'), findsOneWidget);
       expect(find.text('手机号'), findsOneWidget);
@@ -94,7 +92,6 @@ void main() {
       await _acceptAgreements(tester);
       await _tapRegister(tester);
 
-      expect(find.text('请输入邀请码'), findsOneWidget);
       expect(find.text('请输入用户名'), findsOneWidget);
       expect(find.text('请输入姓名'), findsOneWidget);
       expect(find.text('请输入手机号'), findsOneWidget);

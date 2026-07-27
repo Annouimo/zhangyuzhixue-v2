@@ -80,7 +80,6 @@ void main() {
       final repo = AuthRepository(AuthApi(client));
       await repo.register(
         RegisterRequest(
-          inviteCode: 'X',
           username: 'u',
           realName: 'n',
           phone: '138',

@@ -19,7 +19,12 @@ class LoginRateThrottle(_BaseRateThrottle):
 
 class RegisterRateThrottle(_BaseRateThrottle):
     scope = 'auth_register'
-    rate = '10/hour'
+    rate = '5/hour'
+
+
+class RegisterDailyRateThrottle(_BaseRateThrottle):
+    scope = 'auth_register_daily'
+    rate = '20/day'
 
 
 class TokenRefreshRateThrottle(_BaseRateThrottle):

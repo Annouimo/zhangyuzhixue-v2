@@ -15,8 +15,7 @@ import '../test_setup.dart';
 
 class _MockAuthRepo extends AuthRepository {
   final bool shouldSucceed;
-  _MockAuthRepo({this.shouldSucceed = true})
-      : super(AuthApi(ApiClient()));
+  _MockAuthRepo({this.shouldSucceed = true}) : super(AuthApi(ApiClient()));
 
   @override
   Future<LoginResult> login(LoginRequest request) async {
@@ -47,23 +46,24 @@ class _HasPrefs implements PreferenceRepository {
   @override
   Future<List<PreferenceSummary>> getList() async => [];
   @override
-  Future<PreferenceEditData> getEdit(int id) async => throw UnimplementedError();
+  Future<PreferenceEditData> getEdit(int id) async =>
+      throw UnimplementedError();
   @override
-  Future<int> save({required String name, required PreferenceFilter filter, int? existingId}) async => 0;
+  Future<int> save({
+    required String name,
+    required PreferenceFilter filter,
+    int? existingId,
+  }) async => 0;
   @override
   Future<void> delete(int id) async {}
 }
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   group('LoginPage', () {
     testWidgets('renders login form with all elements', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: LoginPage(
-            authRepository: _MockAuthRepo(),
-          ),
-        ),
+        MaterialApp(home: LoginPage(authRepository: _MockAuthRepo())),
       );
 
       expect(find.text('章鱼智学'), findsOneWidget);
@@ -71,16 +71,12 @@ void main() {
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('密码'), findsOneWidget);
       expect(find.text('登录'), findsOneWidget);
-      expect(find.text('使用邀请码注册'), findsOneWidget);
+      expect(find.text('注册账号'), findsOneWidget);
     });
 
     testWidgets('shows validation error on empty fields', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: LoginPage(
-            authRepository: _MockAuthRepo(),
-          ),
-        ),
+        MaterialApp(home: LoginPage(authRepository: _MockAuthRepo())),
       );
 
       await tester.tap(find.text('登录'));
@@ -93,9 +89,7 @@ void main() {
     testWidgets('shows error snackbar on login failure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LoginPage(
-            authRepository: _MockAuthRepo(shouldSucceed: false),
-          ),
+          home: LoginPage(authRepository: _MockAuthRepo(shouldSucceed: false)),
         ),
       );
 
@@ -110,11 +104,7 @@ void main() {
 
     testWidgets('shows generic error on network failure', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: LoginPage(
-            authRepository: _FailingAuthRepo(),
-          ),
-        ),
+        MaterialApp(home: LoginPage(authRepository: _FailingAuthRepo())),
       );
 
       final fields = find.byType(TextFormField);
@@ -142,16 +132,12 @@ void main() {
           ),
           GoRoute(
             path: '/',
-            builder: (_, _) => const Scaffold(
-              body: Center(child: Text('主页')),
-            ),
+            builder: (_, _) => const Scaffold(body: Center(child: Text('主页'))),
           ),
         ],
       );
 
-      await tester.pumpWidget(
-        MaterialApp.router(routerConfig: router),
-      );
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
       expect(find.text('欢迎回来'), findsOneWidget);
 
       final fields = find.byType(TextFormField);

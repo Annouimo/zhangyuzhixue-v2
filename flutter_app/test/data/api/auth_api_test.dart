@@ -84,7 +84,6 @@ void main() {
       final api = AuthApi(client);
       await api.register(
         RegisterRequest(
-          inviteCode: 'ABC123',
           username: 'newuser',
           realName: '小明',
           phone: '13800138000',
@@ -95,7 +94,7 @@ void main() {
         ),
       );
 
-      expect(requestBody['invitation_code'], 'ABC123');
+      expect(requestBody.containsKey('invitation_code'), isFalse);
       expect(requestBody['username'], 'newuser');
       expect(requestBody['accepted_terms'], isTrue);
       expect(requestBody['accepted_privacy'], isTrue);

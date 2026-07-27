@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework.reverse import reverse
 
-from accounts.models import InvitationCode, RegistrationConsent, Student
+from accounts.models import RegistrationConsent, Student
 
 
 @pytest.fixture
@@ -48,12 +48,11 @@ class TestLogin:
 
 class TestRegister:
     def test_registration_requires_explicit_consent(self, db, api_client):
-        InvitationCode.objects.create(code='NO-CONSENT')
         response = api_client.post(reverse('auth-register'), {
-            'invitation_code': 'NO-CONSENT',
             'username': 'newstudent',
             'password': 'test-password-123',
             'real_name': '新学生',
+            'phone': '13800138000',
             'accepted_terms': False,
             'accepted_privacy': True,
         }, format='json')
@@ -61,9 +60,7 @@ class TestRegister:
         assert User.objects.filter(username='newstudent').exists() is False
 
     def test_registration_records_consent(self, db, api_client):
-        invitation = InvitationCode.objects.create(code='CONSENT-OK')
         response = api_client.post(reverse('auth-register'), {
-            'invitation_code': 'CONSENT-OK',
             'username': 'newstudent',
             'password': 'test-password-123',
             'real_name': '新学生',
@@ -77,25 +74,32 @@ class TestRegister:
         consent = RegistrationConsent.objects.get(user=user)
         assert consent.terms_version == '2026-07-27'
         assert consent.privacy_version == '2026-07-27'
-        invitation.refresh_from_db()
-        assert invitation.is_used is True
-        assert invitation.used_by == user
 
-    def test_used_invitation_does_not_create_partial_user(self, db, api_client):
-        owner = User.objects.create_user('owner', password='test-password-123')
-        InvitationCode.objects.create(
-            code='ALREADY-USED', is_used=True, used_by=owner,
-        )
+    def test_registration_requires_phone(self, db, api_client):
         response = api_client.post(reverse('auth-register'), {
-            'invitation_code': 'ALREADY-USED',
-            'username': 'partial-user',
+            'username': 'missing-phone',
             'password': 'test-password-123',
-            'real_name': '不应创建',
+            'real_name': '新学生',
             'accepted_terms': True,
             'accepted_privacy': True,
         }, format='json')
         assert response.status_code == 400
-        assert User.objects.filter(username='partial-user').exists() is False
+        assert User.objects.filter(username='missing-phone').exists() is False
+
+    def test_duplicate_phone_is_rejected(self, db, api_client):
+        owner = User.objects.create_user('owner', password='test-password-123')
+        Student.objects.create(user=owner, phone='13800138000')
+        response = api_client.post(reverse('auth-register'), {
+            'username': 'duplicate-phone',
+            'password': 'test-password-123',
+            'real_name': '新学生',
+            'phone': '13800138000',
+            'accepted_terms': True,
+            'accepted_privacy': True,
+        }, format='json')
+        assert response.status_code == 400
+        assert '手机号已注册' in response.data['message']
+        assert User.objects.filter(username='duplicate-phone').exists() is False
 
 
 class TestLoginErrors:
