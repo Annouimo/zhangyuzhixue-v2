@@ -67,6 +67,7 @@ function Invoke-TestProcess {
         PassThru = $true
     }
     $process = Start-Process @processOptions
+    $null = $process.Handle
 
     if (-not $process.WaitForExit($TimeoutMinutes * 60 * 1000)) {
         try { $process.Kill($true) } catch { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
@@ -76,10 +77,15 @@ function Invoke-TestProcess {
         return 124
     }
 
+    # Flush redirected output and refresh ExitCode after the timed wait.
+    $process.WaitForExit()
+    $process.Refresh()
+    $exitCode = $process.ExitCode
+
     Get-Content $stdoutPath -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
     Get-Content $stderrPath -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
-    Write-Host "[$Name] Exit code: $($process.ExitCode)"
-    return $process.ExitCode
+    Write-Host "[$Name] Exit code: $exitCode"
+    return $exitCode
 }
 
 function Invoke-FlutterSuite {
@@ -114,8 +120,29 @@ $results = [ordered]@{}
 function Invoke-ServerSuite {
     New-Item -ItemType Directory -Force -Path (Join-Path $serverDir 'staticfiles') | Out-Null
     New-Item -ItemType Directory -Force -Path $pytestCacheDir | Out-Null
+
     $options = @{
-        Name = 'server'
+        Name = 'server-flake8'
+        FilePath = $PythonPath
+        Arguments = @('-m', 'flake8', '--config', '.flake8')
+        WorkingDirectory = $serverDir
+        TimeoutMinutes = 5
+    }
+    $exitCode = Invoke-TestProcess @options
+    if ($exitCode -ne 0) { return $exitCode }
+
+    $options = @{
+        Name = 'server-migrations'
+        FilePath = $PythonPath
+        Arguments = @('manage.py', 'makemigrations', '--check')
+        WorkingDirectory = $serverDir
+        TimeoutMinutes = 5
+    }
+    $exitCode = Invoke-TestProcess @options
+    if ($exitCode -ne 0) { return $exitCode }
+
+    $options = @{
+        Name = 'server-pytest'
         FilePath = $PythonPath
         Arguments = @('-m', 'pytest', '-v', '--tb=short', '-o', "cache_dir=$pytestCacheDir")
         WorkingDirectory = $serverDir
