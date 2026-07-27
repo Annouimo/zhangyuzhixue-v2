@@ -37,15 +37,19 @@ class UpdateManager {
   final Dio _downloadClient;
 
   UpdateManager(this._serverUrl, this._dbProvider)
-      : _client = Dio(BaseOptions(
+    : _client = Dio(
+        BaseOptions(
           baseUrl: _normalizeBaseUrl(_serverUrl),
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 30),
-        )),
-        _downloadClient = Dio(BaseOptions(
+        ),
+      ),
+      _downloadClient = Dio(
+        BaseOptions(
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 120),
-        ));
+        ),
+      );
 
   static String _normalizeBaseUrl(String url) {
     if (url.endsWith('/')) return url;
@@ -63,9 +67,14 @@ class UpdateManager {
         results.add(await _checkOne(type));
       } catch (e) {
         // 单个类型检查失败不影响另一个类型
-        results.add(UpdateSummary(
-          type: type, localVersion: 0, serverVersion: 0, forceUpdate: false,
-        ));
+        results.add(
+          UpdateSummary(
+            type: type,
+            localVersion: 0,
+            serverVersion: 0,
+            forceUpdate: false,
+          ),
+        );
       }
     }
     return results;
@@ -83,7 +92,7 @@ class UpdateManager {
     final sizeBytes = data['size_bytes'] as int?;
     final message = data['message'] as String?;
 
-    final localVersion = await _getLocalVersion(type);
+    final localVersion = await _dbProvider.dataVersion(type);
 
     return UpdateSummary(
       type: type,
@@ -99,12 +108,6 @@ class UpdateManager {
       sizeBytes: sizeBytes,
       message: message,
     );
-  }
-
-  Future<int> _getLocalVersion(String type) async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = type == 'qbank' ? 'qbank_version' : 'courses_version';
-    return prefs.getInt(key) ?? 0;
   }
 
   Future<void> _setLocalVersion(String type, int version) async {
@@ -131,17 +134,22 @@ class UpdateManager {
     final dbFile = File(dbPath);
     if (await dbFile.exists()) await dbFile.delete();
 
-    await _downloadClient.download(url, gzPath,
-        onReceiveProgress: (received, total) {
-      if (total > 0 && onProgress != null) onProgress(received / total);
-    });
+    await _downloadClient.download(
+      url,
+      gzPath,
+      onReceiveProgress: (received, total) {
+        if (total > 0 && onProgress != null) onProgress(received / total);
+      },
+    );
 
     final gzBytes = await File(gzPath).readAsBytes();
     final digest = sha256.convert(gzBytes);
 
     if (digest.toString() != expectedChecksum) {
       await File(gzPath).delete();
-      throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
+      throw Exception(
+        'Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}',
+      );
     }
 
     final decompressed = gzip.decode(gzBytes);

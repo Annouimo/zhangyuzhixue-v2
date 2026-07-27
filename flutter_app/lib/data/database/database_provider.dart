@@ -66,15 +66,21 @@ class DatabaseProvider {
   }
 
   Future<void> _openAll(Directory dir) async {
-    _assetsDb = AssetsDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/assets.db'));
-    }));
-    _coursesDb = CoursesDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/courses.db'));
-    }));
-    _appDb = AppDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/user.db'));
-    }));
+    _assetsDb = AssetsDatabase(
+      LazyDatabase(() async {
+        return NativeDatabase(File('${dir.path}/assets.db'));
+      }),
+    );
+    _coursesDb = CoursesDatabase(
+      LazyDatabase(() async {
+        return NativeDatabase(File('${dir.path}/courses.db'));
+      }),
+    );
+    _appDb = AppDatabase(
+      LazyDatabase(() async {
+        return NativeDatabase(File('${dir.path}/user.db'));
+      }),
+    );
     await _appDb!.customStatement('PRAGMA journal_mode=WAL');
   }
 
@@ -126,6 +132,22 @@ class DatabaseProvider {
   CoursesDatabase get coursesDb {
     _ensureInitialized();
     return _coursesDb!;
+  }
+
+  /// Read the version from the database that is actually open on this device.
+  /// SharedPreferences can be empty after a fresh install or restore, so it is
+  /// not authoritative for bundled database versions.
+  Future<int> dataVersion(String type) async {
+    _ensureInitialized();
+    if (type == 'qbank') {
+      final row = await _assetsDb!.select(_assetsDb!.meta).getSingleOrNull();
+      return row?.dataVersion ?? 0;
+    }
+    if (type == 'courses') {
+      final row = await _coursesDb!.select(_coursesDb!.meta).getSingleOrNull();
+      return row?.dataVersion ?? 0;
+    }
+    throw ArgumentError.value(type, 'type', 'Expected qbank or courses');
   }
 
   Future<void> replaceAssetsDb(String newPath) async {

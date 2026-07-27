@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "章鱼智学-教师端"
-#define MyAppVersion "1.0.0-alpha.2+1"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "ZhangYuZhiXue, Inc."
 #define MyAppURL "https://zhangyuzhixue.top/"
 #define MyAppExeName "teacher_app.exe"
@@ -11,7 +11,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{47423FAE-6AB3-419E-8FFC-E80B13F75952}
+AppId={{A31B812C-2C7D-4CA8-AC38-EAA404DA3697}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -19,7 +19,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\zhangyuzhixue
+DefaultDirName={autopf}\zhangyuzhixue-teacher
 UninstallDisplayIcon={app}\{#MyAppExeName}
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
@@ -35,8 +35,8 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=D:\Hermes\zhangyuzhixue_app_v2\teacher_app\build\windows\x64\runner
-OutputBaseFilename=章鱼智学-教师端
+OutputDir=D:\Hermes\zhangyuzhixue_app_v2\dist\windows\teacher
+OutputBaseFilename=章鱼智学-教师端-1.0.0-beta.2-windows
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -58,4 +58,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-

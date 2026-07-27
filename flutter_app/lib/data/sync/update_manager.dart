@@ -7,6 +7,7 @@ import 'package:shared/debug/operation_log.dart';
 import '../database/database_provider.dart';
 import '../prefs/app_prefs.dart';
 import 'package:shared/debug/audit_logger.dart';
+
 /// 版本检查结果
 class UpdateSummary {
   final String type;
@@ -37,10 +38,12 @@ class UpdateManager {
   final Dio _downloadClient;
 
   UpdateManager(this._syncApi, this._dbProvider)
-      : _downloadClient = Dio(BaseOptions(
+    : _downloadClient = Dio(
+        BaseOptions(
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 120),
-        ));
+        ),
+      );
 
   /// 检查 qbank、courses 和 user 版本
   Future<List<UpdateSummary>> checkAll() async {
@@ -55,11 +58,9 @@ class UpdateManager {
   Future<UpdateSummary> _checkOne(String type) async {
     try {
       final status = await _syncApi.checkVersion(type);
-      final localVersion = type == 'qbank'
-          ? AppPrefs().qbankVersion
-          : type == 'courses'
-              ? AppPrefs().coursesVersion
-              : AppPrefs().userVersion;
+      final localVersion = type == 'user'
+          ? AppPrefs().userVersion
+          : await _dbProvider.dataVersion(type);
       return UpdateSummary(
         type: type,
         localVersion: localVersion,
@@ -76,11 +77,9 @@ class UpdateManager {
       );
     } catch (e) {
       AuditLogger.instance.error('UpdateManager._checkOne($type)', e);
-      final localVersion = type == 'qbank'
-          ? AppPrefs().qbankVersion
-          : type == 'courses'
-              ? AppPrefs().coursesVersion
-              : AppPrefs().userVersion;
+      final localVersion = type == 'user'
+          ? AppPrefs().userVersion
+          : await _dbProvider.dataVersion(type);
       return UpdateSummary(
         type: type,
         localVersion: localVersion,
@@ -108,11 +107,14 @@ class UpdateManager {
     final dbFile = File(dbPath);
     if (await dbFile.exists()) await dbFile.delete();
 
-    await _downloadClient.download(url, gzPath,
-        onReceiveProgress: (received, total) {
-      OperationLog.instance.action('download_progress', '$received/$total');
-      if (total > 0 && onProgress != null) onProgress(received / total);
-    });
+    await _downloadClient.download(
+      url,
+      gzPath,
+      onReceiveProgress: (received, total) {
+        OperationLog.instance.action('download_progress', '$received/$total');
+        if (total > 0 && onProgress != null) onProgress(received / total);
+      },
+    );
 
     final gzBytes = await File(gzPath).readAsBytes();
     final digest = sha256.convert(gzBytes);
@@ -120,7 +122,9 @@ class UpdateManager {
     if (digest.toString() != expectedChecksum) {
       await File(gzPath).delete();
       AuditLogger.instance.sync('checksum', {'type': type, 'match': false});
-      throw Exception('Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}');
+      throw Exception(
+        'Checksum mismatch for $type: expected $expectedChecksum, got ${digest.toString()}',
+      );
     }
     AuditLogger.instance.sync('checksum', {'type': type, 'match': true});
 

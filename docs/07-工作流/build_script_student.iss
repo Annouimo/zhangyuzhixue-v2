@@ -35,8 +35,8 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users).
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=D:\Hermes\zhangyuzhixue_app_v2\flutter_app\build\windows\x64\runner
-OutputBaseFilename=章鱼智学
+OutputDir=D:\Hermes\zhangyuzhixue_app_v2\dist\windows\student
+OutputBaseFilename=章鱼智学-1.0.0-beta.2-windows
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -58,4 +58,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-

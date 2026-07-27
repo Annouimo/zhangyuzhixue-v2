@@ -5,11 +5,14 @@
 class AppVersion {
   AppVersion._();
   static const String version = '1.0.0';
-  static const String buildEnv = 'release';
+  static const int buildNumber = 2;
+  static const String releaseChannel = 'beta';
+  static const int releaseIteration = 2;
+  static const String displayVersion = '1.0.0（公测版 Beta 2）';
 }
 
-/// App 版本号字符串（自动生成）
-const appVersion = '1.0.0';
+/// 面向用户显示的版本字符串（自动生成）
+const appVersion = AppVersion.displayVersion;
 
 /// API 基础 URL（支持环境切换）
 const appBaseUrl = String.fromEnvironment('BASE_URL', defaultValue: 'https://zhangyuzhixue.zhtec123.com/api/v1');

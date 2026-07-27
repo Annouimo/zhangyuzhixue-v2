@@ -24,12 +24,16 @@ class DatabaseProvider {
     final dir = await getApplicationSupportDirectory();
     await _ensureDefaultDb(dir, 'assets.db');
     await _ensureDefaultDb(dir, 'courses.db');
-    _assetsDb = AssetsDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/assets.db'));
-    }));
-    _coursesDb = CoursesDatabase(LazyDatabase(() async {
-      return NativeDatabase(File('${dir.path}/courses.db'));
-    }));
+    _assetsDb = AssetsDatabase(
+      LazyDatabase(() async {
+        return NativeDatabase(File('${dir.path}/assets.db'));
+      }),
+    );
+    _coursesDb = CoursesDatabase(
+      LazyDatabase(() async {
+        return NativeDatabase(File('${dir.path}/courses.db'));
+      }),
+    );
     _initialized = true;
   }
 
@@ -49,6 +53,20 @@ class DatabaseProvider {
   CoursesDatabase get coursesDb {
     _ensureInitialized();
     return _coursesDb!;
+  }
+
+  /// The open database is the source of truth for bundled/update versions.
+  Future<int> dataVersion(String type) async {
+    _ensureInitialized();
+    if (type == 'qbank') {
+      final row = await _assetsDb!.select(_assetsDb!.meta).getSingleOrNull();
+      return row?.dataVersion ?? 0;
+    }
+    if (type == 'courses') {
+      final row = await _coursesDb!.select(_coursesDb!.meta).getSingleOrNull();
+      return row?.dataVersion ?? 0;
+    }
+    throw ArgumentError.value(type, 'type', 'Expected qbank or courses');
   }
 
   Future<void> replaceAssetsDb(String newPath) async {
