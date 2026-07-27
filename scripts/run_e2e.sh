@@ -1,4 +1,9 @@
 #!/bin/bash
-# 一键运行 E2E 测试（需要连接模拟器或真机）
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# Non-Windows compatibility entry. Windows acceptance uses run_tests.ps1,
+# which explicitly selects the Windows desktop device.
 cd "$(dirname "$0")/../flutter_app"
-flutter test integration_test/ -v
+flutter --no-version-check test integration_test --reporter expanded --timeout 5m

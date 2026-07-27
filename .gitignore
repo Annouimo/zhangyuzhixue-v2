@@ -4,6 +4,10 @@ docs/07-工作流/landing/images/wechat-qr.jpg
 # Python / Django
 *.pyc
 __pycache__/
+**/.pytest_cache/
+.coverage
+**/.coverage
+coverage.xml
 *.pyo
 *.egg-info/
 dist/
