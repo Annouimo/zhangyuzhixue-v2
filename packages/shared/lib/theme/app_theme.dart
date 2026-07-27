@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'app_tokens.dart';
 
 /// 品牌色 — 来自已定稿 App 图标（不与交互色共享）
@@ -529,6 +530,8 @@ abstract final class DifficultySegments {
 
 /// 应用主题
 class AppTheme {
+  static const fontFamily = 'packages/shared/NotoSansSC';
+
   static const _fontFamilyFallback = [
     'Microsoft YaHei',
     'PingFang SC',
@@ -576,15 +579,17 @@ class AppTheme {
     required AppSemanticColors colors,
     required ColorScheme colorScheme,
   }) {
-    return ThemeData(
+    _ensureFontLicenseRegistered();
+    final baseTheme = ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      fontFamily: defaultTargetPlatform == TargetPlatform.windows
-          ? 'Microsoft YaHei UI'
-          : null,
+      fontFamily: fontFamily,
       fontFamilyFallback: _fontFamilyFallback,
       colorScheme: colorScheme,
       extensions: [colors],
+    );
+
+    return baseTheme.copyWith(
       scaffoldBackgroundColor: colors.background,
       appBarTheme: AppBarTheme(
         backgroundColor: colors.surface,
@@ -681,13 +686,13 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return TextStyle(
+            return baseTheme.textTheme.labelMedium?.copyWith(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: colors.primary,
             );
           }
-          return TextStyle(
+          return baseTheme.textTheme.labelMedium?.copyWith(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: colors.textMuted,
@@ -697,12 +702,12 @@ class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: colors.surface,
         indicatorColor: colors.primaryContainer,
-        selectedLabelTextStyle: TextStyle(
+        selectedLabelTextStyle: baseTheme.textTheme.labelMedium?.copyWith(
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: colors.primary,
         ),
-        unselectedLabelTextStyle: TextStyle(
+        unselectedLabelTextStyle: baseTheme.textTheme.labelMedium?.copyWith(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: colors.textMuted,
@@ -835,6 +840,19 @@ class AppTheme {
       ),
       disabledColor: colors.disabledForeground,
     );
+  }
+
+  static bool _fontLicenseRegistered = false;
+
+  static void _ensureFontLicenseRegistered() {
+    if (_fontLicenseRegistered) return;
+    _fontLicenseRegistered = true;
+    LicenseRegistry.addLicense(() async* {
+      final license = await rootBundle.loadString(
+        'packages/shared/assets/fonts/OFL.txt',
+      );
+      yield LicenseEntryWithLineBreaks(['Noto Sans SC'], license);
+    });
   }
 }
 
