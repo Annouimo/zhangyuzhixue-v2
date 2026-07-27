@@ -8,20 +8,50 @@ from pathlib import Path
 from datetime import timedelta
 
 from decouple import config
+from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.signals import connection_created
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+ENVIRONMENT = config('ENVIRONMENT', default='development').strip().lower()
+IS_PRODUCTION = ENVIRONMENT == 'production'
+
+
+def require_production_value(name, value, *, min_length=1):
+    """Reject missing or placeholder secrets before production starts."""
+    normalized = value.strip()
+    weak_values = {'', 'change-me', 'dev-pdf-key-for-testing'}
+    if normalized in weak_values or len(normalized) < min_length:
+        raise ImproperlyConfigured(
+            f'{name} must be set to a strong production value',
+        )
+    return normalized
+
+
 SECRET_KEY = config(
     'SECRET_KEY',
-    default='JXliDAnEPHiqqhud0fE7drCjVILqOSY85lN01fqUCBGcSPJyub1xQqoCK70zKaok6Cg',
+    default=(
+        '' if IS_PRODUCTION else
+        'JXliDAnEPHiqqhud0fE7drCjVILqOSY85lN01fqUCBGcSPJyub1xQqoCK70zKaok6Cg'
+    ),
 )
-DEBUG = config('DEBUG', default=True, cast=bool)
+if IS_PRODUCTION:
+    SECRET_KEY = require_production_value(
+        'SECRET_KEY', SECRET_KEY, min_length=50,
+    )
+
+DEBUG = config('DEBUG', default=not IS_PRODUCTION, cast=bool)
+if IS_PRODUCTION and DEBUG:
+    raise ImproperlyConfigured('DEBUG must be False in production')
+
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='' if IS_PRODUCTION else 'localhost,127.0.0.1',
     cast=lambda v: [s.strip() for s in v.split(',')],
 )
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host]
+if IS_PRODUCTION and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured('ALLOWED_HOSTS must be set in production')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -160,6 +190,21 @@ REST_FRAMEWORK = {
 # Cloudflare Tunnel terminates TLS at edge, nginx receives HTTP.
 # Tell Django the original scheme was HTTPS via proxy header.
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = config(
+    'SECURE_SSL_REDIRECT', default=False, cast=bool,
+)
+SESSION_COOKIE_SECURE = IS_PRODUCTION
+CSRF_COOKIE_SECURE = IS_PRODUCTION
+SECURE_HSTS_SECONDS = config(
+    'SECURE_HSTS_SECONDS',
+    default=3600 if IS_PRODUCTION else 0,
+    cast=int,
+)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
     default='https://zhangyuzhixue.top,https://zhangyuzhixue.zhtec123.com',
@@ -170,6 +215,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': True,
+    'CHECK_REVOKE_TOKEN': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
@@ -192,5 +238,11 @@ if SENTRY_DSN:
     )
 
 # PDF 签名密钥（生产环境通过环境变量设置）
-PDF_SECRET_KEY = config('PDF_SECRET_KEY', default='dev-pdf-key-for-testing')
-# ⚠️ 生产环境必须通过 .env 设置强密钥，dev 默认值仅用于本地开发
+PDF_SECRET_KEY = config(
+    'PDF_SECRET_KEY',
+    default='' if IS_PRODUCTION else 'dev-pdf-key-for-testing',
+)
+if IS_PRODUCTION:
+    PDF_SECRET_KEY = require_production_value(
+        'PDF_SECRET_KEY', PDF_SECRET_KEY, min_length=32,
+    )

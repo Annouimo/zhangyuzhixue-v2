@@ -22,6 +22,11 @@ class Teacher(models.Model):
 
 class Student(models.Model):
     """学生 - OneToOne 关联 Django User"""
+    class AccountStatus(models.TextChoices):
+        ACTIVE = 'active', '正常'
+        PENDING_DELETION = 'pending_deletion', '待注销'
+        ANONYMIZED = 'anonymized', '已匿名化'
+
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='student')
     class_group = models.ForeignKey(
@@ -38,6 +43,12 @@ class Student(models.Model):
     gaokao_year = models.IntegerField('高考年份', null=True, blank=True)
     avatar = models.URLField('头像URL', max_length=512, blank=True, default='')
     data_version = models.IntegerField('数据版本', default=0)
+    account_status = models.CharField(
+        '账号状态', max_length=24,
+        choices=AccountStatus.choices,
+        default=AccountStatus.ACTIVE,
+        db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -78,6 +89,40 @@ class InvitationCode(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class AccountDeletionRequest(models.Model):
+    """账号注销申请：先禁用，冷静期结束后匿名化。"""
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', '冷静期内'
+        CANCELLED = 'cancelled', '已撤销'
+        ANONYMIZED = 'anonymized', '已匿名化'
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='deletion_request',
+    )
+    previous_class_group = models.ForeignKey(
+        'courses.ClassGroup', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='+',
+    )
+    status = models.CharField(
+        '状态', max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    requested_at = models.DateTimeField('申请时间')
+    scheduled_for = models.DateTimeField('计划匿名化时间', db_index=True)
+    cancelled_at = models.DateTimeField('撤销时间', null=True, blank=True)
+    anonymized_at = models.DateTimeField('匿名化时间', null=True, blank=True)
+
+    class Meta:
+        verbose_name = '账号注销申请'
+        verbose_name_plural = '账号注销申请'
+
+    def __str__(self):
+        return f'{self.user_id}: {self.status}'
 
 
 class UserLoginLog(models.Model):

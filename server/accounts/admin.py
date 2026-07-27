@@ -1,6 +1,12 @@
 ﻿from django.contrib import admin
 
-from .models import InvitationCode, Student, Teacher, UserLoginLog
+from .models import (
+    AccountDeletionRequest,
+    InvitationCode,
+    Student,
+    Teacher,
+    UserLoginLog,
+)
 
 
 @admin.register(Student)
@@ -9,7 +15,19 @@ class StudentAdmin(admin.ModelAdmin):
                     'school', 'gaokao_year', 'created_at']
     list_select_related = ['user', 'class_group']
     search_fields = ['user__username', 'student_id', 'school']
-    list_filter = ['class_group', 'gaokao_year']
+    list_filter = ['account_status', 'class_group', 'gaokao_year']
+
+
+@admin.register(AccountDeletionRequest)
+class AccountDeletionRequestAdmin(admin.ModelAdmin):
+    list_display = [
+        'user', 'status', 'requested_at', 'scheduled_for', 'anonymized_at',
+    ]
+    list_filter = ['status']
+    search_fields = ['user__username']
+    readonly_fields = [
+        'requested_at', 'scheduled_for', 'cancelled_at', 'anonymized_at',
+    ]
 
 
 @admin.register(Teacher)

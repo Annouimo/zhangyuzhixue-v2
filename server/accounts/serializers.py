@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from accounts.models import InvitationCode
@@ -38,6 +39,34 @@ class LoginSerializer(serializers.Serializer):
     """登录请求校验"""
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(max_length=128)
+
+
+class AccountDeletionSerializer(serializers.Serializer):
+    current_password = serializers.CharField(max_length=128, write_only=True)
+
+
+class AccountDeletionCancelSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(max_length=128, write_only=True)
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(max_length=128, write_only=True)
+    new_password = serializers.CharField(
+        min_length=8, max_length=128, write_only=True,
+    )
+
+    def validate_new_password(self, value):
+        validate_password(value, user=self.context['request'].user)
+        return value
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        if not user.check_password(attrs['current_password']):
+            raise serializers.ValidationError({'current_password': '当前密码错误'})
+        if attrs['current_password'] == attrs['new_password']:
+            raise serializers.ValidationError({'new_password': '新密码不能与当前密码相同'})
+        return attrs
 
 
 class UserSerializer(serializers.ModelSerializer):

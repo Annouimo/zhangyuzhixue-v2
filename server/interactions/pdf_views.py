@@ -9,13 +9,14 @@ from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
 from courses.models import Assignment, AssignmentQuestion
 from qbank.models import ChoiceExt, SubQuestion
+from accounts.throttles import PdfTokenRateThrottle
 
 
 def _ok(data=None, message='ok'):
@@ -58,6 +59,7 @@ def _check_sig(sig, source_id, source_type, student_id, expire):
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([PdfTokenRateThrottle])
 def pdf_request_token(request):
     """换取 PDF 访问签名"""
     source_id = request.data.get('source_id')
@@ -129,7 +131,10 @@ def _md_table_to_html(text):
                 result.append(rows[0])
                 continue
             # 构建 HTML table
-            html = ['<table border="0" style="border-collapse:collapse;width:100%;margin:0.5em 0;text-align:center">']
+            html = [
+                '<table border="0" style="border-collapse:collapse;'
+                'width:100%;margin:0.5em 0;text-align:center">',
+            ]
             for ri, row in enumerate(data):
                 cells = [c.strip() for c in row.strip().strip('|').split('|')]
                 tag = 'th' if ri == 0 else 'td'

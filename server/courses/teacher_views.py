@@ -246,7 +246,10 @@ def class_list(request):
 @permission_classes([IsAuthenticated, IsTeacher])
 def student_list(request):
     """学生列表 — 支持 ?search=&class_id= 筛选"""
-    qs = Student.objects.select_related('user', 'class_group')
+    qs = Student.objects.filter(
+        account_status=Student.AccountStatus.ACTIVE,
+        user__is_active=True,
+    ).select_related('user', 'class_group')
     search = request.query_params.get('search', '')
     class_id = request.query_params.get('class_id', '')
     if search:
@@ -277,7 +280,10 @@ def student_list(request):
 def student_detail(request, id):
     """学生详情 — 个人信息 + 概览卡片 + 趋势 + 薄弱知识点"""
     s = get_object_or_404(
-        Student.objects.select_related('user', 'class_group'),
+        Student.objects.filter(
+            account_status=Student.AccountStatus.ACTIVE,
+            user__is_active=True,
+        ).select_related('user', 'class_group'),
         pk=id,
     )
 

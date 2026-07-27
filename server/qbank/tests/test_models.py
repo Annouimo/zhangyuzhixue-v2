@@ -3,8 +3,7 @@ import pytest
 from django.db import IntegrityError
 
 from qbank.models import (
-    BaseQuestion, ChoiceExt, ConceptTag, KnowledgeCard,
-    SolutionMethod, SolutionStep, SubQuestion,
+    BaseQuestion, ConceptTag, KnowledgeCard, SubQuestion,
 )
 
 

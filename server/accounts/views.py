@@ -3,19 +3,34 @@ from django.contrib.auth.models import User
 from django.db.models import Q, Sum
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 
 from system.models import LevelConfig
-from accounts.models import InvitationCode, Student, UserLoginLog
+from accounts.models import AccountDeletionRequest, InvitationCode, Student, UserLoginLog
 from accounts.serializers import (
+    AccountDeletionCancelSerializer,
+    AccountDeletionSerializer,
     LoginSerializer,
+    PasswordChangeSerializer,
     RegisterSerializer,
     UserSerializer,
     UserUpdateSerializer,
+)
+from accounts.throttles import (
+    AccountDeletionCancelRateThrottle,
+    AvatarUploadRateThrottle,
+    LoginRateThrottle,
+    RegisterRateThrottle,
+    TokenRefreshRateThrottle,
+)
+from accounts.services.account_lifecycle import (
+    AccountLifecycleError,
+    cancel_account_deletion,
+    request_account_deletion,
 )
 from system.models import PointsTransaction
 from courses.models import ClassCourseAssignment
@@ -43,6 +58,7 @@ def _err(code, message, http_status=status.HTTP_400_BAD_REQUEST):
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([RegisterRateThrottle])
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
     if not serializer.is_valid():
@@ -94,6 +110,7 @@ def register_view(request):
 )
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
     if not serializer.is_valid():
@@ -146,11 +163,93 @@ def logout_view(request):
     return _ok(message='已登出')
 
 
+# ── 账号注销 ──────────────────────────────────────────────────
+
+
+@extend_schema(
+    request=AccountDeletionSerializer,
+    responses={200: OpenApiResponse(description='账号已禁用，进入 7 天冷静期')},
+)
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def account_deletion_view(request):
+    if request.method == 'GET':
+        deletion_request = AccountDeletionRequest.objects.filter(
+            user=request.user,
+            status=AccountDeletionRequest.Status.PENDING,
+        ).first()
+        return _ok(data={
+            'pending': deletion_request is not None,
+            'scheduled_for': (
+                deletion_request.scheduled_for.isoformat()
+                if deletion_request else None
+            ),
+        })
+
+    serializer = AccountDeletionSerializer(data=request.data)
+    if not serializer.is_valid():
+        return _err(40201, '请输入当前密码')
+    try:
+        deletion_request = request_account_deletion(
+            request.user,
+            serializer.validated_data['current_password'],
+        )
+    except AccountLifecycleError as exc:
+        return _err(40202, str(exc))
+    return _ok(data={
+        'status': deletion_request.status,
+        'scheduled_for': deletion_request.scheduled_for.isoformat(),
+    }, message='账号已禁用，冷静期内可撤销注销')
+
+
+@extend_schema(
+    request=AccountDeletionCancelSerializer,
+    responses={200: OpenApiResponse(description='注销申请已撤销')},
+)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@throttle_classes([AccountDeletionCancelRateThrottle])
+def account_deletion_cancel_view(request):
+    serializer = AccountDeletionCancelSerializer(data=request.data)
+    if not serializer.is_valid():
+        return _err(40203, '请输入用户名和密码')
+    try:
+        cancel_account_deletion(**serializer.validated_data)
+    except AccountLifecycleError as exc:
+        return _err(40204, str(exc))
+    return _ok(message='注销申请已撤销，请重新登录')
+
+
+@extend_schema(
+    request=PasswordChangeSerializer,
+    responses={200: OpenApiResponse(description='密码已修改')},
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def password_change_view(request):
+    serializer = PasswordChangeSerializer(
+        data=request.data,
+        context={'request': request},
+    )
+    if not serializer.is_valid():
+        first_error = next(iter(serializer.errors.values()))
+        if isinstance(first_error, dict):
+            first_error = next(iter(first_error.values()))
+        if isinstance(first_error, list):
+            first_error = first_error[0]
+        return _err(40205, str(first_error))
+    request.user.set_password(serializer.validated_data['new_password'])
+    request.user.save(update_fields=['password'])
+    return _ok(message='密码已修改，请重新登录')
+
+
 # ── Token 刷新 ────────────────────────────────────────────────
 
 
 class TokenRefreshView(BaseTokenRefreshView):
     """刷新 access token — 包裹 simplejwt 响应为 {code, message, data} 格式"""
+
+    throttle_classes = [TokenRefreshRateThrottle]
 
     @extend_schema(
         responses={200: OpenApiResponse(description='刷新 access token')},
@@ -329,6 +428,7 @@ def _calc_checkin_streak(student):
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([AvatarUploadRateThrottle])
 def avatar_upload_view(request):
     """头像上传 — 接受 multipart，resize 200x200 WebP"""
     if not hasattr(request.user, 'student'):
