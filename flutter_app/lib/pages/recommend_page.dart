@@ -7,6 +7,7 @@ import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/loading_indicator.dart';
@@ -245,57 +246,13 @@ class RecommendPageState extends State<RecommendPage> {
   }
 
   Widget _buildIntroCard() {
-    final colors = context.colors;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: colors.recommendationContainer,
-        borderRadius: BorderRadius.circular(AppRadius.extraLarge),
-        border: Border.all(color: colors.recommendation),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: colors.recommendation,
-              borderRadius: BorderRadius.circular(AppRadius.large),
-            ),
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: colors.onRecommendation,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '把下一步练习交给推荐系统',
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colors.onRecommendationContainer,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  _preferSmart
-                      ? '优先补足薄弱知识点，并兼顾题型与难度。'
-                      : '使用你保存的学习偏好，快速生成一组针对性练习。',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colors.onRecommendationContainer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return AppFeatureBanner(
+      eyebrow: _preferSmart ? '基于学习记录' : '基于学习偏好',
+      icon: Icons.auto_awesome_outlined,
+      title: '把下一步练习交给推荐系统',
+      subtitle: _preferSmart
+          ? '优先补足薄弱知识点，并兼顾题型与难度。'
+          : '使用你保存的学习偏好，生成一组针对性练习。',
     );
   }
 
@@ -347,7 +304,7 @@ class RecommendPageState extends State<RecommendPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         itemCount: questions.length,
-        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (context, index) {
           final question = questions[index];
           return RecommendCard(

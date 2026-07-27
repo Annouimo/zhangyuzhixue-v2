@@ -64,8 +64,9 @@ class RecommendCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: colors.recommendationContainer,
+              color: colors.surfaceSubtle,
               borderRadius: BorderRadius.circular(AppRadius.medium),
+              border: Border.all(color: colors.divider),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,15 +74,15 @@ class RecommendCard extends StatelessWidget {
                 Icon(
                   Icons.auto_awesome_rounded,
                   size: 18,
-                  color: colors.onRecommendationContainer,
+                  color: colors.primary,
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: Text(
                     reason.isEmpty ? '推荐原因：适合你当前的学习进度' : '推荐原因：$reason',
                     style: textTheme.bodySmall?.copyWith(
-                      color: colors.onRecommendationContainer,
-                      fontWeight: FontWeight.w600,
+                      color: colors.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
