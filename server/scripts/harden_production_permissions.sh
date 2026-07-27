@@ -16,6 +16,7 @@ require_file() {
 
 require_file "$DEPLOY_DIR/server/.env"
 require_file "$CLOUDFLARED_CONFIG"
+require_file "/etc/systemd/system/cloudflared-zhangyuzhixue.service"
 
 mapfile -t credential_files < <(
     find "$CLOUDFLARED_DIR" -maxdepth 1 -type f -name '*.json' -print
@@ -41,6 +42,8 @@ chown ubuntu:ubuntu "$DEPLOY_DIR/server/.env"
 chmod 600 "$DEPLOY_DIR/server/.env"
 chown root:root "$CLOUDFLARED_CONFIG" "${credential_files[@]}"
 chmod 600 "$CLOUDFLARED_CONFIG" "${credential_files[@]}"
+chown root:root /etc/systemd/system/cloudflared-zhangyuzhixue.service
+chmod 644 /etc/systemd/system/cloudflared-zhangyuzhixue.service
 
 for link in "${private_keys[@]}"; do
     target="$(readlink -f "$link")"
