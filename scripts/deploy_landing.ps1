@@ -81,7 +81,15 @@ try {
         $hash = (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash.ToLowerInvariant()
         "$hash  $relativePath"
     }
-    Set-Content -LiteralPath $manifest -Value $manifestLines -Encoding ascii
+    $manifestText = ($manifestLines -join "`n") + "`n"
+    [System.IO.File]::WriteAllText(
+        $manifest,
+        $manifestText,
+        [System.Text.Encoding]::ASCII
+    )
+    if ([System.IO.File]::ReadAllBytes($manifest) -contains 13) {
+        throw "Manifest contains CR bytes; Linux sha256sum requires LF endings."
+    }
 
     $tarArguments = @("-czf", $archive, "-C", $landingRoot) + $releaseFiles
     Invoke-CheckedCommand "tar" $tarArguments
