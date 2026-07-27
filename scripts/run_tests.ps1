@@ -1,11 +1,13 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Teacher', 'Server', 'E2E', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
 
-    [string]$PythonPath = 'python'
+    [string]$PythonPath = 'python',
+
+    [switch]$UpdateGoldens
 )
 
 $ErrorActionPreference = 'Stop'
@@ -168,11 +170,34 @@ try {
             }
             $results.StudentIntegration = Invoke-FlutterSuite @options
         }
+        'Golden' {
+            $goldenArguments = @(
+                'test/golden/student_ui_golden_test.dart',
+                '--tags', 'golden',
+                '--reporter', 'expanded',
+                '--timeout', '2m',
+                '--concurrency', '1'
+            )
+            if ($UpdateGoldens) {
+                $goldenArguments += '--update-goldens'
+            }
+            $goldenName = 'student-golden'
+            if ($UpdateGoldens) {
+                $goldenName = 'student-golden-update'
+            }
+            $options = @{
+                Name = $goldenName
+                WorkingDirectory = $studentDir
+                TestArguments = $goldenArguments
+                TimeoutMinutes = 10
+            }
+            $results.StudentGolden = Invoke-FlutterSuite @options
+        }
         'Student' {
             $options = @{
                 Name = 'student'
                 WorkingDirectory = $studentDir
-                TestArguments = @('--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
+                TestArguments = @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1')
                 TimeoutMinutes = 25
             }
             $results.Student = Invoke-FlutterSuite @options
@@ -199,7 +224,7 @@ try {
             $results.E2E = Invoke-FlutterSuite @options
         }
         'All' {
-            $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
+            $results.Student = Invoke-FlutterSuite -Name 'student' -WorkingDirectory $studentDir -TestArguments @('--exclude-tags', 'golden', '--reporter', 'expanded', '--timeout', '2m', '--concurrency', '1') -TimeoutMinutes 25
             $results.Teacher = Invoke-FlutterSuite -Name 'teacher' -WorkingDirectory $teacherDir -TestArguments @('--reporter', 'expanded', '--timeout', '2m') -TimeoutMinutes 10
             $results.Server = Invoke-ServerSuite
         }

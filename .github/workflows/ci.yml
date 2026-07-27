@@ -26,7 +26,7 @@ jobs:
         working-directory: flutter_app
         # DatabaseProvider and ApiClient are process-wide singletons. Running
         # test files concurrently causes cross-file database and adapter races.
-        run: flutter test --concurrency=1
+        run: flutter test --exclude-tags=golden --concurrency=1
 
   teacher:
     runs-on: ubuntu-22.04
