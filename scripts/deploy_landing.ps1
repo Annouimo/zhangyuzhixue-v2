@@ -32,6 +32,7 @@ $releaseFiles = @(
     "terms.html",
     "internal.html",
     "assets/css/site.css",
+    "assets/js/config.js",
     "assets/js/site.js",
     "assets/images/share-cover.jpg",
     "robots.txt",
