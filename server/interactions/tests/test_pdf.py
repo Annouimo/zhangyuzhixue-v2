@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 
 from accounts.models import Student
 from interactions.models import CustomPaper
-from interactions.pdf_views import _make_sig, _check_sig
+from interactions.pdf_views import _check_sig, _make_sig, _prepare_images
 
 
 @pytest.fixture
@@ -108,6 +108,22 @@ class TestPdfRequestToken:
     def test_check_sig_wrong_time(self):
         sig = _make_sig(1, 'paper', 42, 1000)
         assert _check_sig(sig, 1, 'paper', 42, 999) is False
+
+    def test_option_grid_image_is_marked_for_pdf_layout(self):
+        images = _prepare_images([
+            'mock1_2023_haidian_q08_options.webp',
+            'mock1_2023_haidian_q10.webp',
+        ])
+        assert images == [
+            {
+                'path': 'mock1_2023_haidian_q08_options.webp',
+                'is_option_grid': True,
+            },
+            {
+                'path': 'mock1_2023_haidian_q10.webp',
+                'is_option_grid': False,
+            },
+        ]
 
 
 class TestPdfView:

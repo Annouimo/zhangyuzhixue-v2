@@ -149,6 +149,19 @@ def _md_table_to_html(text):
     return '\n'.join(result)
 
 
+def _prepare_images(images):
+    if not isinstance(images, list):
+        return []
+    return [
+        {
+            'path': path,
+            'is_option_grid': path.endswith('_options.webp'),
+        }
+        for path in images
+        if isinstance(path, str) and path
+    ]
+
+
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
@@ -203,7 +216,7 @@ def _build_sections(qs):
                 opts = raw
 
         # 图片
-        imgs = q.images if isinstance(q.images, list) else []
+        imgs = _prepare_images(q.images)
 
         # 子题（仅解答题需要拼接）
         full_stem = q.stem or ''

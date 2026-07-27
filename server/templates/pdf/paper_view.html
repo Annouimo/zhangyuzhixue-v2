@@ -63,6 +63,8 @@ body {
 .choice { margin: 0.15em 0; font-size: 10.5pt; }
 .figure { float: right; margin: 0.5em 0 0.5em 1em; }
 .figure img { max-width: 180px; height: auto; }
+.figure.option-grid { float: none; margin: 0.5em auto; text-align: center; }
+.figure.option-grid img { width: 100%; max-width: 420px; }
 .katex { font-size: 1.08em; }
 .katex-display { margin: 0.4em 0; text-align: center; }
 @media print { p { orphans: 3; widows: 3; } }
@@ -88,8 +90,8 @@ body {
       <div class="choice">{{ opt|safe }}</div>
       {% endfor %}
       {% for img in question.images %}
-      <div class="figure">
-        <img src="{% static 'questions/images/' %}{{ img }}" alt="配图">
+      <div class="figure{% if img.is_option_grid %} option-grid{% endif %}">
+        <img src="{% static 'questions/images/' %}{{ img.path }}" alt="配图">
       </div>
       {% endfor %}
     </div>
