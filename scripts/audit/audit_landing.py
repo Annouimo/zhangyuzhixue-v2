@@ -22,6 +22,8 @@ PUBLIC_PAGES = {
     "terms.html",
 }
 
+DYNAMIC_ROUTES = {"/internal/"}
+
 
 class PageParser(HTMLParser):
     def __init__(self) -> None:
@@ -95,6 +97,8 @@ def validate(root: Path) -> list[str]:
                 relative = urlsplit(value).path
                 if not relative:
                     continue
+                if relative in DYNAMIC_ROUTES:
+                    continue
                 target = (path.parent / relative).resolve()
                 if not target.exists():
                     issues.append(f"{path.name}: missing {attr_name} target: {value}")
@@ -127,7 +131,7 @@ def validate(root: Path) -> list[str]:
         content = robots.read_text(encoding="utf-8")
         if "Sitemap: https://zhangyuzhixue.top/sitemap.xml" not in content:
             issues.append("robots.txt: production sitemap declaration is missing")
-        for private_path in ("/internal.html",):
+        for private_path in ("/internal.html", "/internal/"):
             if f"Disallow: {private_path}" not in content:
                 issues.append(f"robots.txt: missing Disallow for {private_path}")
 

@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /internal.html
+Disallow: /internal/
 
 Sitemap: https://zhangyuzhixue.top/sitemap.xml
