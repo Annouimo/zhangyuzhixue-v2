@@ -14,7 +14,7 @@ class PortalStatus(models.TextChoices):
 
 class ProjectProfile(models.Model):
     title = models.CharField('门户标题', max_length=80, default='章鱼智学项目中心')
-    positioning = models.CharField('项目定位', max_length=240)
+    positioning = models.CharField('项目定位', max_length=240, blank=True)
     current_phase = models.CharField('当前阶段', max_length=160, blank=True)
     current_focus = models.TextField('当前重点', blank=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
@@ -72,6 +72,32 @@ class BusinessArea(models.Model):
         return self.name
 
 
+class HandbookSection(models.Model):
+    page = models.ForeignKey(
+        BusinessArea, verbose_name='所属页面', on_delete=models.CASCADE,
+        related_name='sections',
+    )
+    title = models.CharField('章节标题', max_length=100)
+    slug = models.SlugField('章节标识', max_length=50)
+    body = models.TextField('正文', blank=True)
+    is_visible = models.BooleanField('显示', default=True)
+    sort_order = models.PositiveIntegerField('排序', default=0)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        ordering = ('page__sort_order', 'sort_order', 'id')
+        constraints = [
+            models.UniqueConstraint(
+                fields=('page', 'slug'), name='unique_handbook_page_section',
+            ),
+        ]
+        verbose_name = '手册章节'
+        verbose_name_plural = '手册章节'
+
+    def __str__(self):
+        return f'{self.page.name} / {self.title}'
+
+
 class PortalEntry(models.Model):
     class EntryType(models.TextChoices):
         PRODUCT = 'product', '产品'
@@ -84,6 +110,10 @@ class PortalEntry(models.Model):
     area = models.ForeignKey(
         BusinessArea, verbose_name='所属板块', on_delete=models.CASCADE,
         related_name='entries',
+    )
+    section = models.ForeignKey(
+        HandbookSection, verbose_name='所属章节', on_delete=models.SET_NULL,
+        related_name='entries', null=True, blank=True,
     )
     name = models.CharField('名称', max_length=100)
     entry_type = models.CharField(

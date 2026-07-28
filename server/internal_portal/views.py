@@ -1,16 +1,24 @@
 from functools import wraps
 
 from django.contrib.auth import login, logout
+from django.db.models import Count
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from qbank.models import BaseQuestion, ConceptTag, KnowledgeCard
+
 from .forms import PortalAuthenticationForm, has_portal_access
-from .models import BusinessArea, PortalEntry, ProjectProfile, TeamMember
+from .git_history import get_portal_history
+from .models import BusinessArea, ProjectProfile
 
 
-ENTRY_TYPE_ORDER = ('download', 'product', 'media', 'tool', 'document', 'service')
+LEGACY_PAGE_REDIRECTS = {
+    'product': 'software',
+    'technology': 'software',
+    'team': 'overview',
+}
 
 
 def portal_member_required(view_func):
@@ -26,10 +34,14 @@ def portal_member_required(view_func):
     return wrapped
 
 
+def _navigation_pages():
+    return BusinessArea.objects.filter(is_visible=True).exclude(slug='overview')
+
+
 def _shared_context():
     return {
         'profile': ProjectProfile.objects.first(),
-        'navigation_areas': BusinessArea.objects.filter(is_visible=True),
+        'navigation_areas': _navigation_pages(),
     }
 
 
@@ -62,54 +74,55 @@ def logout_view(request):
     return redirect('internal_portal:index')
 
 
-@portal_member_required
-def index(request):
+def _page_context(page):
     context = _shared_context()
-    context['areas'] = (
-        BusinessArea.objects.filter(is_visible=True)
+    context['area'] = page
+    context['sections'] = (
+        page.sections.filter(is_visible=True)
         .prefetch_related('entries')
     )
-    context['members'] = TeamMember.objects.filter(is_active=True)
-    quick_entry_names = (
-        '学生端 Android', '学生端 Windows', '学生端 iOS',
-        'Gitee 主仓库', 'Django 管理后台', '设计文档索引',
-    )
-    quick_entries = PortalEntry.objects.filter(
-        is_visible=True, name__in=quick_entry_names,
-    )
-    quick_entry_map = {entry.name: entry for entry in quick_entries}
-    context['quick_entries'] = [
-        quick_entry_map[name] for name in quick_entry_names
-        if name in quick_entry_map
-    ]
+    return context
+
+
+@portal_member_required
+def index(request):
+    overview = get_object_or_404(BusinessArea, slug='overview', is_visible=True)
+    context = _page_context(overview)
+    context['project_pages'] = _navigation_pages()
+    context['git_history'] = get_portal_history()
     return render(request, 'internal_portal/index.html', context)
 
 
+def _question_overview():
+    questions = BaseQuestion.objects.exclude(year=2099)
+    type_counts = {
+        row['question_type']: row['count']
+        for row in questions.values('question_type').annotate(count=Count('id'))
+    }
+    return (
+        ('题目总数', questions.count()),
+        ('选择题', type_counts.get('choice', 0)),
+        ('填空题', type_counts.get('fill', 0)),
+        ('解答题', type_counts.get('solution', 0)),
+        ('概念标签', ConceptTag.objects.count()),
+        ('知识卡片', KnowledgeCard.objects.count()),
+    )
+
+
 @portal_member_required
-def area_detail(request, slug):
-    context = _shared_context()
-    context['area'] = get_object_or_404(
-        BusinessArea.objects.all(),
-        slug=slug,
-        is_visible=True,
+def page_detail(request, slug):
+    if slug in LEGACY_PAGE_REDIRECTS:
+        target = LEGACY_PAGE_REDIRECTS[slug]
+        if target == 'overview':
+            return redirect('internal_portal:index', permanent=True)
+        return redirect('internal_portal:page-detail', slug=target, permanent=True)
+
+    page = get_object_or_404(
+        BusinessArea.objects.all(), slug=slug, is_visible=True,
     )
-    entries = list(
-        context['area'].entries.filter(is_visible=True)
-    )
-    entry_groups = []
-    for entry_type in ENTRY_TYPE_ORDER:
-        grouped_entries = [
-            entry for entry in entries if entry.entry_type == entry_type
-        ]
-        if grouped_entries:
-            entry_groups.append({
-                'label': grouped_entries[0].get_entry_type_display(),
-                'entries': grouped_entries,
-                'show_status': any(
-                    entry.status != 'active' for entry in grouped_entries
-                ),
-            })
-    context['entry_groups'] = entry_groups
-    if slug == 'team':
-        context['members'] = TeamMember.objects.filter(is_active=True)
-    return render(request, 'internal_portal/area_detail.html', context)
+    if page.slug == 'overview':
+        return redirect('internal_portal:index')
+    context = _page_context(page)
+    if slug == 'software':
+        context['question_overview'] = _question_overview()
+    return render(request, 'internal_portal/page_detail.html', context)

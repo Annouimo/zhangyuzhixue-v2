@@ -5,10 +5,12 @@ from django.urls import reverse
 
 from internal_portal.models import (
     BusinessArea,
+    HandbookSection,
     PortalEntry,
     ProjectProfile,
     TeamMember,
 )
+from qbank.models import BaseQuestion
 
 
 pytestmark = pytest.mark.django_db
@@ -53,13 +55,16 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
 
     response = client.get(reverse('internal_portal:index'))
     assert response.status_code == 200
-    assert '章鱼智学项目中心' in response.content.decode()
+    assert '项目工作手册' in response.content.decode()
+    assert '章鱼智学软件' in response.content.decode()
+    assert '圆明智学自媒体后期' in response.content.decode()
 
     response = client.get(
-        reverse('internal_portal:area-detail', args=['technology']),
+        reverse('internal_portal:page-detail', args=['software']),
     )
     assert response.status_code == 200
     assert 'Gitee 主仓库' in response.content.decode()
+    assert '题库结构' in response.content.decode()
 
 
 def test_logout_requires_post_and_ends_session(client, portal_user):
@@ -94,4 +99,53 @@ def test_portal_models_are_available_in_admin():
     assert ProjectProfile in site._registry
     assert TeamMember in site._registry
     assert BusinessArea in site._registry
+    assert HandbookSection in site._registry
     assert PortalEntry in site._registry
+
+
+def test_handbook_pages_follow_the_confirmed_structure(client, portal_user):
+    client.force_login(portal_user)
+
+    pages = list(
+        BusinessArea.objects.order_by('sort_order').values_list('slug', flat=True)
+    )
+    assert pages == ['overview', 'software', 'website', 'content', 'post-production']
+    assert PortalEntry.objects.get(name='可视化').description == '史谨毓'
+    assert PortalEntry.objects.get(name='系统课程').description == '张誉宝'
+    assert PortalEntry.objects.get(name='经验分享').description == ''
+    assert PortalEntry.objects.get(name='学术交流').description == ''
+
+    post_response = client.get(
+        reverse('internal_portal:page-detail', args=['post-production']),
+    )
+    assert post_response.status_code == 200
+    assert '圆明智学自媒体后期' in post_response.content.decode()
+
+
+def test_question_overview_excludes_test_questions(client, portal_user):
+    BaseQuestion.objects.create(question_type='choice', stem='正式题')
+    BaseQuestion.objects.create(question_type='fill', stem='测试题', year=2099)
+    client.force_login(portal_user)
+
+    response = client.get(
+        reverse('internal_portal:page-detail', args=['software']),
+    )
+    content = response.content.decode()
+
+    assert response.status_code == 200
+    assert '题目总数' in content
+    assert '选择题' in content
+
+
+@pytest.mark.parametrize('old_slug', ['product', 'technology'])
+def test_legacy_page_urls_redirect_to_software(client, portal_user, old_slug):
+    client.force_login(portal_user)
+
+    response = client.get(
+        reverse('internal_portal:page-detail', args=[old_slug]),
+    )
+
+    assert response.status_code == 301
+    assert response.url == reverse(
+        'internal_portal:page-detail', args=['software'],
+    )

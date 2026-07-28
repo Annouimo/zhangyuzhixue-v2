@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=2">
+  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=3">
 </head>
 <body>
   <div class="portal-layout">
@@ -15,13 +15,13 @@
         <span class="brand__mark">章</span>
         <span>
           <strong>章鱼智学</strong>
-          <small>项目中心</small>
+          <small>项目工作手册</small>
         </span>
       </a>
       <nav class="side-nav" aria-label="项目中心导航">
         <a href="{% url 'internal_portal:index' %}"{% if not area %} class="is-active"{% endif %}>总览</a>
         {% for nav_area in navigation_areas %}
-          <a href="{% url 'internal_portal:area-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
+          <a href="{% url 'internal_portal:page-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
         {% endfor %}
       </nav>
       <div class="sidebar__bottom">
@@ -37,14 +37,14 @@
       <header class="mobile-header">
         <a class="mobile-brand" href="{% url 'internal_portal:index' %}">
           <span class="brand__mark">章</span>
-          <strong>项目中心</strong>
+          <strong>项目工作手册</strong>
         </a>
         <details class="mobile-menu">
           <summary>菜单</summary>
           <nav aria-label="手机导航">
             <a href="{% url 'internal_portal:index' %}">总览</a>
             {% for nav_area in navigation_areas %}
-              <a href="{% url 'internal_portal:area-detail' nav_area.slug %}">{{ nav_area.name }}</a>
+              <a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>
             {% endfor %}
             <a href="/">返回官网</a>
             <form method="post" action="{% url 'internal_portal:logout' %}">
@@ -56,8 +56,8 @@
       </header>
 
       <div class="workspace-bar">
-        <span><strong>当前阶段</strong>{{ profile.current_phase|default:'持续建设中' }}</span>
-        <span><strong>最后更新</strong>{{ profile.updated_at|date:'Y-m-d'|default:'待核验' }}</span>
+        <span><strong>内部资料</strong>以当前页面内容为准</span>
+        <span><strong>最后更新</strong>{{ area.updated_at|date:'Y-m-d' }}</span>
       </div>
 
       <main class="main-content">{% block content %}{% endblock %}</main>

@@ -14,6 +14,7 @@ def register_all():
     from courses.models import Course, Document
     from internal_portal.models import (
         BusinessArea,
+        HandbookSection,
         PortalEntry,
         ProjectProfile,
         TeamMember,
@@ -47,5 +48,6 @@ def register_all():
     auditlog_registry.register(ProjectProfile)
     auditlog_registry.register(TeamMember)
     auditlog_registry.register(BusinessArea)
+    auditlog_registry.register(HandbookSection)
     auditlog_registry.register(PortalEntry)
     auditlog_registry.register(User)

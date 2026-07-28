@@ -1,54 +1,39 @@
 {% extends 'internal_portal/base.html' %}
 
+{% block title %}项目工作手册{% endblock %}
+
 {% block content %}
-  <header class="page-title">
-    <h1>{{ profile.title|default:'章鱼智学项目中心' }}</h1>
-    <p>{{ profile.positioning }}</p>
+  <header class="handbook-header">
+    <h1>项目工作手册</h1>
   </header>
 
-  <section class="content-section">
-    <div class="section-title">
-      <h2>业务概览</h2>
-      <span>按业务进入对应资料和服务</span>
-    </div>
-    <div class="data-table business-table">
-      <div class="table-head">
-        <span>业务</span><span>状态</span><span>内容</span><span></span>
-      </div>
-      {% for business_area in areas %}
-        <a class="table-row" href="{% url 'internal_portal:area-detail' business_area.slug %}">
-          <strong>{{ business_area.name }}</strong>
-          <span>{% if business_area.status != 'active' %}<span class="status status--{{ business_area.status }}">{{ business_area.get_status_display }}</span>{% else %}正常{% endif %}</span>
-          <span>{{ business_area.entries.all|length }} 项</span>
-          <span class="row-action">查看 →</span>
-        </a>
-      {% endfor %}
-    </div>
-  </section>
+  {% for section in sections %}
+    <section class="handbook-section" id="{{ section.slug }}">
+      <h2>{{ section.title }}</h2>
 
-  <section class="content-section content-section--compact">
-    <div class="section-title">
-      <h2>常用入口</h2>
-    </div>
-    <div class="quick-links">
-      {% for entry in quick_entries %}
-        <a href="{{ entry.url }}"{% if entry.is_external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ entry.name }} <span aria-hidden="true">↗</span></a>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="content-section content-section--compact">
-    <div class="section-title">
-      <h2>负责人</h2>
-    </div>
-    <div class="data-table responsibility-table">
-      <div class="table-head"><span>成员</span><span>主要职责</span></div>
-      {% for member in members %}
-        <div class="table-row">
-          <strong>{{ member.name }}</strong>
-          <span>{{ member.responsibility|default:'待补充' }}</span>
+      {% if section.slug == 'project-structure' %}
+        <div class="handbook-table project-map">
+          <div class="handbook-table__head"><span>项目组成</span><span>说明</span><span></span></div>
+          {% for page in project_pages %}
+            <a class="handbook-table__row" href="{% url 'internal_portal:page-detail' page.slug %}">
+              <strong>{{ page.name }}</strong><span>{{ page.summary }}</span><span>查看 →</span>
+            </a>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  </section>
+      {% elif section.slug == 'changelog' %}
+        {% if git_history %}
+          <div class="handbook-table changelog-table">
+            <div class="handbook-table__head"><span>日期</span><span>更新内容</span><span>版本</span></div>
+            {% for item in git_history %}
+              <div class="handbook-table__row">
+                <span>{{ item.date }}</span><span>{{ item.subject }}</span><code>{{ item.commit }}</code>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% elif section.body %}
+        <div class="section-copy">{{ section.body|linebreaks }}</div>
+      {% endif %}
+    </section>
+  {% endfor %}
 {% endblock %}
