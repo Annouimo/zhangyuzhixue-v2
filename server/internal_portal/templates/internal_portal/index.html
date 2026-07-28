@@ -1,0 +1,76 @@
+{% extends 'internal_portal/base.html' %}
+
+{% block content %}
+  <section class="overview-band">
+    <div class="shell overview-grid">
+      <div>
+        <p class="eyebrow">项目总览</p>
+        <h1>{{ profile.title|default:'章鱼智学项目中心' }}</h1>
+        <p class="lead">{{ profile.positioning }}</p>
+      </div>
+      <dl class="phase-panel">
+        <div>
+          <dt>当前阶段</dt>
+          <dd>{{ profile.current_phase|default:'持续建设中' }}</dd>
+        </div>
+        <div>
+          <dt>最后核验</dt>
+          <dd>{{ profile.updated_at|date:'Y-m-d'|default:'待核验' }}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="shell section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">业务关系</p>
+        <h2>从内容建设到学习反馈</h2>
+      </div>
+    </div>
+    <div class="business-flow" aria-label="项目业务关系图">
+      <div><strong>题库与讲义</strong><span>学习内容基础</span></div>
+      <span class="flow-arrow" aria-hidden="true">→</span>
+      <div><strong>章鱼智学学生端</strong><span>学习产品与过程记录</span></div>
+      <span class="flow-arrow" aria-hidden="true">→</span>
+      <div><strong>学生学习与反馈</strong><span>验证并推动改进</span></div>
+      <div class="flow-support"><strong>技术与数据</strong><span>客户端、服务端、同步与运维支撑</span></div>
+      <div class="flow-media"><strong>圆明智学</strong><span>可视化视频、免费系统课、学习经验分享</span></div>
+    </div>
+  </section>
+
+  <section class="shell section-block">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">业务板块</p>
+        <h2>选择你关注的部分</h2>
+      </div>
+    </div>
+    <div class="area-grid">
+      {% for business_area in areas %}
+        <a class="area-card" href="{% url 'internal_portal:area-detail' business_area.slug %}">
+          <div class="card-topline">
+            <span class="status status--{{ business_area.status }}">{{ business_area.get_status_display }}</span>
+            <span>{{ business_area.entries.all|length }} 项</span>
+          </div>
+          <h3>{{ business_area.name }}</h3>
+          <p>{{ business_area.summary }}</p>
+          <div class="owners">
+            <span>负责人</span>
+            <strong>{% for owner in business_area.owners.all %}{{ owner.name }}{% if not forloop.last %}、{% endif %}{% empty %}待确认{% endfor %}</strong>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="focus-band">
+    <div class="shell focus-grid">
+      <div>
+        <p class="eyebrow">当前重点</p>
+        <h2>本阶段保持一致的方向</h2>
+      </div>
+      <p>{{ profile.current_focus|linebreaksbr|default:'由项目负责人在管理后台维护。' }}</p>
+    </div>
+  </section>
+{% endblock %}

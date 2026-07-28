@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell topbar__inner">
+      <a class="brand" href="{% url 'internal_portal:index' %}">
+        <span class="brand__mark">章</span>
+        <span>
+          <strong>{{ profile.title|default:'章鱼智学项目中心' }}</strong>
+          <small>团队内部</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="项目中心导航">
+        <a href="{% url 'internal_portal:index' %}"{% if not area %} class="is-active"{% endif %}>总览</a>
+        {% for nav_area in navigation_areas %}
+          <a href="{% url 'internal_portal:area-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
+        {% endfor %}
+      </nav>
+      <form method="post" action="{% url 'internal_portal:logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit" title="退出项目中心">退出</button>
+      </form>
+    </div>
+  </header>
+
+  <main>{% block content %}{% endblock %}</main>
+
+  <footer class="portal-footer">
+    <div class="shell">
+      <span>章鱼智学项目团队内部使用</span>
+      <a href="/">返回官网</a>
+    </div>
+  </footer>
+</body>
+</html>

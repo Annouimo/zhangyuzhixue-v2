@@ -12,6 +12,12 @@ def register_all():
 
     from accounts.models import InvitationCode, Student
     from courses.models import Course, Document
+    from internal_portal.models import (
+        BusinessArea,
+        PortalEntry,
+        ProjectProfile,
+        TeamMember,
+    )
     from qbank.models import (
         BaseQuestion,
         ChoiceExt,
@@ -38,4 +44,8 @@ def register_all():
     auditlog_registry.register(Course)
     auditlog_registry.register(Document)
     auditlog_registry.register(DbVersion)
+    auditlog_registry.register(ProjectProfile)
+    auditlog_registry.register(TeamMember)
+    auditlog_registry.register(BusinessArea)
+    auditlog_registry.register(PortalEntry)
     auditlog_registry.register(User)

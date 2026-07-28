@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'courses',
     'interactions',
     'system',
+    'internal_portal',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,70 @@
+{% extends 'internal_portal/base.html' %}
+
+{% block title %}{{ area.name }} | 章鱼智学项目中心{% endblock %}
+
+{% block content %}
+  <section class="page-heading">
+    <div class="shell page-heading__inner">
+      <div>
+        <p class="eyebrow">业务板块</p>
+        <h1>{{ area.name }}</h1>
+        <p class="lead">{{ area.summary }}</p>
+      </div>
+      <div class="area-meta">
+        <span class="status status--{{ area.status }}">{{ area.get_status_display }}</span>
+        <span>负责人：{% for owner in area.owners.all %}{{ owner.name }}{% if not forloop.last %}、{% endif %}{% empty %}待确认{% endfor %}</span>
+        <span>核验：{{ area.updated_at|date:'Y-m-d' }}</span>
+      </div>
+    </div>
+  </section>
+
+  {% if members %}
+    <section class="shell section-block section-block--compact">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">团队分工</p>
+          <h2>当前负责人</h2>
+        </div>
+      </div>
+      <div class="member-list">
+        {% for member in members %}
+          <div class="member-row">
+            <strong>{{ member.name }}</strong>
+            <span>{{ member.responsibility|default:'职责待补充' }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="shell section-block section-block--compact">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">相关入口</p>
+        <h2>资料与服务</h2>
+      </div>
+    </div>
+    <div class="entry-list">
+      {% for entry in entries %}
+        <article class="entry-row">
+          <div class="entry-main">
+            <div class="entry-labels">
+              <span class="entry-type">{{ entry.get_entry_type_display }}</span>
+              <span class="status status--{{ entry.status }}">{{ entry.get_status_display }}</span>
+            </div>
+            <h3>{{ entry.name }}</h3>
+            <p>{{ entry.description }}</p>
+          </div>
+          <div class="entry-side">
+            <span class="entry-owner">{% for owner in entry.owners.all %}{{ owner.name }}{% if not forloop.last %}、{% endif %}{% empty %}待确认{% endfor %}</span>
+            {% if entry.url %}
+              <a href="{{ entry.url }}"{% if entry.is_external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ entry.link_label }} <span aria-hidden="true">→</span></a>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-state">这个板块暂时没有已核验的入口。</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

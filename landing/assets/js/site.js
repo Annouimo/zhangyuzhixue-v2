@@ -81,6 +81,7 @@
             <div class="footer-links">
               <a href="team.html">团队介绍</a>
               <a href="about.html">关于我们</a>
+              <a href="/internal/">团队入口</a>
             </div>
           </div>
           <div>
