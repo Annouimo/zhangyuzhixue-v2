@@ -67,7 +67,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite
   be performed on this Windows host.
 - Inno Setup is installed outside `PATH` at
   `D:\Programs\Inno Setup 7\ISCC.exe`. Use that exact path for the `.iss` files
-  under `docs\07-工作流`. Packaging commands may need sandbox escalation because
+  under `scripts\release`. Packaging commands may need sandbox escalation because
   the compiler and its temporary paths are outside the workspace. The compiler
   command was verified on 2026-07-27.
 - GitHub CLI (`gh`) is not installed. Use Git directly for local operations. If

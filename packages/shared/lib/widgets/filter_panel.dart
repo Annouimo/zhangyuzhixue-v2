@@ -34,7 +34,7 @@ class FilterState {
   });
 }
 
-/// 筛选面板（智能组卷/自主选题/推荐 三页共用 + 教师端题库排序）
+/// 筛选面板（智能组卷、自主选题和推荐页面共用）
 typedef FilterChangedCallback = void Function(FilterState state);
 
 final _difficultySegments = [
@@ -74,7 +74,7 @@ class FilterPanel extends StatefulWidget {
   final VoidCallback? onLoadPreference;
   final double horizontalMargin;
 
-  /// 是否显示排序选择器（教师端题库需要，学生端不需要）
+  /// 是否显示排序选择器。
   final bool showSort;
 
   const FilterPanel({
@@ -518,7 +518,7 @@ class FilterPanelState extends State<FilterPanel> {
               const SizedBox(height: 4),
             ]),
             const SizedBox(height: 4),
-            // 排序方式（教师端）
+            // 排序方式
             if (widget.showSort) _buildSortRow(),
           ],
         ),

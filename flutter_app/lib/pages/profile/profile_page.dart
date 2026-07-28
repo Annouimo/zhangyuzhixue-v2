@@ -326,7 +326,7 @@ class ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('提交后账号会立即停用并退出班级。7 天内可在登录页撤销；到期后身份信息将不可恢复地匿名化。'),
+            const Text('提交后账号会立即停用。7 天内可在登录页撤销；到期后身份信息将不可恢复地匿名化。'),
             const SizedBox(height: AppSpacing.md),
             TextField(
               controller: passwordController,

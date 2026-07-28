@@ -18,6 +18,7 @@
 - [API 概览](current/api-overview.md)
 - [开发与测试](current/development-and-testing.md)
 - [发布与运维](current/deployment-and-operations.md)
+- [仓库维护规则](current/maintenance-rules.md)
 
 ## 关键决策
 
