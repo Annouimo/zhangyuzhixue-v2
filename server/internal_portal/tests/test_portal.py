@@ -6,6 +6,7 @@ from django.urls import reverse
 from internal_portal.models import (
     BusinessArea,
     HandbookSection,
+    HandbookUpdate,
     PortalEntry,
     ProjectProfile,
     TeamMember,
@@ -100,6 +101,7 @@ def test_portal_models_are_available_in_admin():
     assert TeamMember in site._registry
     assert BusinessArea in site._registry
     assert HandbookSection in site._registry
+    assert HandbookUpdate in site._registry
     assert PortalEntry in site._registry
 
 
@@ -135,6 +137,43 @@ def test_question_overview_excludes_test_questions(client, portal_user):
     assert response.status_code == 200
     assert '题目总数' in content
     assert '选择题' in content
+
+
+def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
+    client, portal_user,
+):
+    client.force_login(portal_user)
+
+    index_response = client.get(reverse('internal_portal:index'))
+    index_content = index_response.content.decode()
+    assert '重构项目工作手册' in index_content
+    assert HandbookUpdate.objects.count() == 1
+
+    software = BusinessArea.objects.get(slug='software')
+    groups = {
+        section.title: set(section.entries.values_list('name', flat=True))
+        for section in software.sections.all()
+        if section.entries.exists()
+    }
+    assert groups['产品与系统资料'] == {'产品边界', '系统架构', '数据架构'}
+    assert groups['开发与运维资料'] == {
+        '开发与测试', '发布与运维', '项目文档索引', '仓库地图',
+    }
+    assert groups['技术与管理入口'] == {
+        'Gitee 主仓库', 'API 文档', 'Django 管理后台',
+    }
+
+    website = BusinessArea.objects.get(slug='website')
+    policies = HandbookSection.objects.get(page=website, title='协议与政策')
+    assert set(policies.entries.values_list('name', flat=True)) == {
+        '隐私政策', '用户协议',
+    }
+
+    response = client.get(
+        reverse('internal_portal:page-detail', args=['software']),
+    )
+    content = response.content.decode()
+    assert content.index('产品与系统资料') < content.index('开发与运维资料')
 
 
 @pytest.mark.parametrize('old_slug', ['product', 'technology'])

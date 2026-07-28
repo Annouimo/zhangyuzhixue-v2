@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     BusinessArea,
     HandbookSection,
+    HandbookUpdate,
     PortalEntry,
     ProjectProfile,
     TeamMember,
@@ -44,6 +45,14 @@ class HandbookSectionAdmin(admin.ModelAdmin):
     list_editable = ('is_visible', 'sort_order')
     list_filter = ('page', 'is_visible')
     search_fields = ('title', 'body')
+
+
+@admin.register(HandbookUpdate)
+class HandbookUpdateAdmin(admin.ModelAdmin):
+    list_display = ('date', 'title', 'sort_order')
+    list_editable = ('sort_order',)
+    date_hierarchy = 'date'
+    search_fields = ('title', 'description')
 
 
 @admin.register(PortalEntry)

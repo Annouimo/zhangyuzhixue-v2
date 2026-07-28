@@ -166,12 +166,19 @@ a.handbook-table__row:hover {
 
 .changelog-table .handbook-table__head,
 .changelog-table .handbook-table__row {
-  grid-template-columns: 88px minmax(240px, 1fr) 70px;
+  grid-template-columns: 88px minmax(180px, 0.7fr) minmax(280px, 1.5fr);
 }
 
 .changelog-table code {
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.subsection-title {
+  margin: 16px 0 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .direction-table .handbook-table__head,
@@ -258,6 +265,10 @@ a.handbook-table__row:hover {
 
   .changelog-table code {
     grid-column: 2;
+  }
+
+  .changelog-table .handbook-table__row > :nth-child(3) {
+    grid-column: 1 / -1;
   }
 
   .stat-grid {

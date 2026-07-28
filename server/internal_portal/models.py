@@ -98,6 +98,21 @@ class HandbookSection(models.Model):
         return f'{self.page.name} / {self.title}'
 
 
+class HandbookUpdate(models.Model):
+    date = models.DateField('更新日期')
+    title = models.CharField('更新内容', max_length=160)
+    description = models.TextField('说明', blank=True)
+    sort_order = models.PositiveIntegerField('同日排序', default=0)
+
+    class Meta:
+        ordering = ('-date', 'sort_order', '-id')
+        verbose_name = '手册更新记录'
+        verbose_name_plural = '手册更新记录'
+
+    def __str__(self):
+        return f'{self.date}: {self.title}'
+
+
 class PortalEntry(models.Model):
     class EntryType(models.TextChoices):
         PRODUCT = 'product', '产品'

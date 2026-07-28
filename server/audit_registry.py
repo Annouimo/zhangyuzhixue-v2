@@ -15,6 +15,7 @@ def register_all():
     from internal_portal.models import (
         BusinessArea,
         HandbookSection,
+        HandbookUpdate,
         PortalEntry,
         ProjectProfile,
         TeamMember,
@@ -49,5 +50,6 @@ def register_all():
     auditlog_registry.register(TeamMember)
     auditlog_registry.register(BusinessArea)
     auditlog_registry.register(HandbookSection)
+    auditlog_registry.register(HandbookUpdate)
     auditlog_registry.register(PortalEntry)
     auditlog_registry.register(User)

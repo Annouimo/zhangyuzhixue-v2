@@ -21,16 +21,17 @@
           {% endfor %}
         </div>
       {% elif section.slug == 'changelog' %}
-        {% if git_history %}
+        {% for group in update_groups %}
+          <h3 class="subsection-title">{{ group.year }} 年</h3>
           <div class="handbook-table changelog-table">
-            <div class="handbook-table__head"><span>日期</span><span>更新内容</span><span>版本</span></div>
-            {% for item in git_history %}
+            <div class="handbook-table__head"><span>日期</span><span>更新内容</span><span>说明</span></div>
+            {% for item in group.items %}
               <div class="handbook-table__row">
-                <span>{{ item.date }}</span><span>{{ item.subject }}</span><code>{{ item.commit }}</code>
+                <span>{{ item.date|date:'Y-m-d' }}</span><strong>{{ item.title }}</strong><span>{{ item.description }}</span>
               </div>
             {% endfor %}
           </div>
-        {% endif %}
+        {% endfor %}
       {% elif section.body %}
         <div class="section-copy">{{ section.body|linebreaks }}</div>
       {% endif %}

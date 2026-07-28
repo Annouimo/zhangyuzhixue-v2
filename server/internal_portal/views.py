@@ -1,7 +1,8 @@
 from functools import wraps
+from itertools import groupby
 
 from django.contrib.auth import login, logout
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,8 +11,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from qbank.models import BaseQuestion, ConceptTag, KnowledgeCard
 
 from .forms import PortalAuthenticationForm, has_portal_access
-from .git_history import get_portal_history
-from .models import BusinessArea, ProjectProfile
+from .models import BusinessArea, HandbookUpdate, PortalEntry, ProjectProfile
 
 
 LEGACY_PAGE_REDIRECTS = {
@@ -77,10 +77,15 @@ def logout_view(request):
 def _page_context(page):
     context = _shared_context()
     context['area'] = page
-    context['sections'] = (
+    sections = list(
         page.sections.filter(is_visible=True)
-        .prefetch_related('entries')
+        .prefetch_related(Prefetch(
+            'entries',
+            queryset=PortalEntry.objects.filter(is_visible=True),
+            to_attr='visible_entries',
+        ))
     )
+    context['sections'] = sections
     return context
 
 
@@ -89,7 +94,12 @@ def index(request):
     overview = get_object_or_404(BusinessArea, slug='overview', is_visible=True)
     context = _page_context(overview)
     context['project_pages'] = _navigation_pages()
-    context['git_history'] = get_portal_history()
+    context['update_groups'] = [
+        {'year': year, 'items': list(items)}
+        for year, items in groupby(
+            HandbookUpdate.objects.all(), key=lambda item: item.date.year,
+        )
+    ]
     return render(request, 'internal_portal/index.html', context)
 
 
@@ -100,12 +110,16 @@ def _question_overview():
         for row in questions.values('question_type').annotate(count=Count('id'))
     }
     return (
-        ('题目总数', questions.count()),
-        ('选择题', type_counts.get('choice', 0)),
-        ('填空题', type_counts.get('fill', 0)),
-        ('解答题', type_counts.get('solution', 0)),
-        ('概念标签', ConceptTag.objects.count()),
-        ('知识卡片', KnowledgeCard.objects.count()),
+        ('题目数量', (
+            ('题目总数', questions.count()),
+            ('选择题', type_counts.get('choice', 0)),
+            ('填空题', type_counts.get('fill', 0)),
+            ('解答题', type_counts.get('solution', 0)),
+        )),
+        ('辅助内容', (
+            ('概念标签', ConceptTag.objects.count()),
+            ('知识卡片', KnowledgeCard.objects.count()),
+        )),
     )
 
 
@@ -124,5 +138,5 @@ def page_detail(request, slug):
         return redirect('internal_portal:index')
     context = _page_context(page)
     if slug == 'software':
-        context['question_overview'] = _question_overview()
+        context['question_overview_groups'] = _question_overview()
     return render(request, 'internal_portal/page_detail.html', context)
