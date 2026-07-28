@@ -134,7 +134,7 @@ def main() -> int:
                 f"student MSIX version mismatch: expected={expected_msix_version}, actual={msix_version}"
             )
 
-        installer = (root / "docs/07-工作流/build_script_student.iss").read_text(encoding="utf-8")
+        installer = (root / "scripts/release/windows_installer.iss").read_text(encoding="utf-8")
         output_directory = field(
             installer, r"^OutputDir=(.+)$", "student output directory",
         )

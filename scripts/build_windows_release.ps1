@@ -30,7 +30,7 @@ try {
     $releasePaths = @(
         "flutter_app", "packages/shared", "scripts/generate_version.py",
         "scripts/audit_release_inputs.py", "scripts/build_windows_release.ps1",
-        "docs/07-工作流/build_script_student.iss"
+        "scripts/release/windows_installer.iss"
     )
     $dirty = & git -c safe.directory=D:/Hermes/zhangyuzhixue_app_v2 status --porcelain -- @releasePaths
     if ($LASTEXITCODE -ne 0) { throw "Unable to inspect release Git status" }
@@ -50,7 +50,7 @@ try {
     $env:FLUTTER_SUPPRESS_ANALYTICS = "true"
     Invoke-CheckedCommand "python" @("scripts\generate_version.py")
     Invoke-CheckedCommand $flutter @("--no-version-check", "build", "windows", "--release") (Join-Path $repoRoot "flutter_app")
-    Invoke-CheckedCommand $iscc @((Join-Path $repoRoot "docs\07-工作流\build_script_student.iss"))
+    Invoke-CheckedCommand $iscc @((Join-Path $repoRoot "scripts\release\windows_installer.iss"))
     Invoke-CheckedCommand "python" @("scripts\create_release_manifest.py", "--output", (Join-Path $distRoot "release-manifest.json"))
     Write-Host "Release artifacts: $distRoot"
 }

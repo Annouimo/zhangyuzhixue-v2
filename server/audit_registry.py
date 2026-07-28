@@ -1,7 +1,7 @@
 """
 审计日志注册 — 集中管理所有需 auditlog 追踪的模型
 
-设计文档参照：docs/03-服务端/服务端架构.md §6.2 审计范围
+架构说明参照：docs/current/system-architecture.md
 """
 
 
@@ -24,7 +24,7 @@ def register_all():
     from system.models import DbVersion
 
     # ── 应审计的模型 ──────────────────────────────────────────
-    # 说明见 docs/03-服务端/服务端架构.md §6.2
+    # 审计范围随当前服务端模型维护。
 
     auditlog_registry.register(Student)
     auditlog_registry.register(InvitationCode)

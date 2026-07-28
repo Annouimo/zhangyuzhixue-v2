@@ -7,14 +7,14 @@ ROOT = Path(r'D:\Hermes\zhangyuzhixue_app_v2')
 
 # 源图候选
 SRC_CANDIDATES = [
-    ROOT / 'docs/00-整体情况/icon_final_1024.png',
-    ROOT / 'docs/00-整体情况/icon_final.png',
+    ROOT / 'assets/brand/icon_final_1024.png',
+    ROOT / 'assets/brand/icon_final.png',
     Path(r'C:\Users\Annouimo\Desktop\微信图片_20260708225603_305_364.jpg'),
     ROOT / 'flutter_app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png',
 ]
 
 # Splash logo 源图（透明白底 Logo，放在品牌蓝背景上）
-SPLASH_SOURCE = ROOT / 'docs/00-整体情况/logo_mark_reverse_2048.png'
+SPLASH_SOURCE = ROOT / 'assets/brand/logo_mark_reverse_2048.png'
 
 # Android mipmap: density folder → px
 ANDROID_SIZES = {'mipmap-mdpi': 48, 'mipmap-hdpi': 72, 'mipmap-xhdpi': 96,

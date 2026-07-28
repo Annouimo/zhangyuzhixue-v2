@@ -1,0 +1,3532 @@
+======================================================================
+章鱼智学 · 自动化审计报告
+======================================================================
+
+总计检查: 718 项
+  CERTAIN ❌ 问题: 2
+  LIKELY ⚠️  告警: 638
+  SUSPICIOUS 可疑: 78
+  ✅ 通过: 42
+
+──────────────────────────────────────────────────────────────────────
+🔴 CERTAIN 问题（无需人工审核，直接采纳）
+──────────────────────────────────────────────────────────────────────
+  ❌ ❌ 底栏导航 Tab 不同: HTML=['📚', '🔍', '📄', '👤'] vs Flutter=['首页', '推荐', '组卷', '我的']
+     来源: C6: 页面导航.md | C4: index.html <nav>
+     路径: flutter_app/lib/pages/main_shell.dart
+     证据: Extracted from HTML: [('index.html', '📚'), ('recommend.html', '🔍'), ('exam.html', '📄'), ('profile.html', '👤')]
+
+  ❌ ❌ 初始化遗漏: setMockAdapter() 在 data/api/api_client.dart 中定义但 main() 中未调用
+     来源: flutter_app/lib/data/api/api_client.dart
+     路径: flutter_app/lib/main.dart
+     证据: Function setMockAdapter defined in data/api/api_client.dart but never called in main()
+
+──────────────────────────────────────────────────────────────────────
+🟡 LIKELY 告警（需人工审核 3 分钟/条）
+──────────────────────────────────────────────────────────────────────
+  ⚠️  ✅ 存在: 题库配图目录，设计文档明确要求存在 (flutter_app/assets/questions/images/)
+     来源: 05-Flutter/图片路由规范.md §一 L14
+     路径: flutter_app/assets/questions/images/
+     证据: Test-Path('flutter_app/assets/questions/images/') → True
+
+  ⚠️  ✅ 存在: 捆绑数据库目录，构建脚本产出 (flutter_app/assets/db/)
+     来源: 02-数据/构建脚本设计.md §构建产物
+     路径: flutter_app/assets/db/
+     证据: Test-Path('flutter_app/assets/db/') → True
+
+  ⚠️  ✅ 存在: 教师端设计原型路径，D2 要求存在 (docs/06-教师端/html/)
+     来源: 06-教师端/教师端功能边界.md D2
+     路径: docs/06-教师端/html/
+     证据: Test-Path('docs/06-教师端/html/') → True
+
+  ⚠️  ✅ 存在: about.html → about_page.dart
+     来源: C4: about.html
+     路径: flutter_app/lib/pages/about_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: achievement.html → achievement_page.dart
+     来源: C4: achievement.html
+     路径: flutter_app/lib/pages/achievement_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: answer_sheet.html → answer_sheet_page.dart
+     来源: C4: answer_sheet.html
+     路径: flutter_app/lib/pages/answer_sheet_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: exam.html → exam_home_page.dart
+     来源: C4: exam.html
+     路径: flutter_app/lib/pages/exam_home_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: homework_detail.html → homework_detail_page.dart
+     来源: C4: homework_detail.html
+     路径: flutter_app/lib/pages/homework_detail_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: homework_list.html → homework_list_page.dart
+     来源: C4: homework_list.html
+     路径: flutter_app/lib/pages/homework_list_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: index.html → index_page.dart
+     来源: C4: index.html
+     路径: flutter_app/lib/pages/index_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: lecture_chapters.html → lecture_chapters_page.dart
+     来源: C4: lecture_chapters.html
+     路径: flutter_app/lib/pages/lecture_chapters_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: lecture_content.html → lecture_content_page.dart
+     来源: C4: lecture_content.html
+     路径: flutter_app/lib/pages/lecture_content_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: lecture_courses.html → lecture_courses_page.dart
+     来源: C4: lecture_courses.html
+     路径: flutter_app/lib/pages/lecture_courses_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: level_detail.html → level_detail_page.dart
+     来源: C4: level_detail.html
+     路径: flutter_app/lib/pages/level_detail_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: login.html → login_page.dart
+     来源: C4: login.html
+     路径: flutter_app/lib/pages/login_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_auto.html → exam_auto_page.dart
+     来源: C4: paper_auto.html
+     路径: flutter_app/lib/pages/exam_auto_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_explore.html → exam_explore_page.dart
+     来源: C4: paper_explore.html
+     路径: flutter_app/lib/pages/exam_explore_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_favorites.html → exam_favorites_page.dart
+     来源: C4: paper_favorites.html
+     路径: flutter_app/lib/pages/exam_favorites_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_history.html → exam_history_page.dart
+     来源: C4: paper_history.html
+     路径: flutter_app/lib/pages/exam_history_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_pick.html → exam_pick_page.dart
+     来源: C4: paper_pick.html
+     路径: flutter_app/lib/pages/exam_pick_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_quicklook.html → exam_quicklook_page.dart
+     来源: C4: paper_quicklook.html
+     路径: flutter_app/lib/pages/exam_quicklook_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: paper_quicklook_other.html → exam_quicklook_other_page.dart
+     来源: C4: paper_quicklook_other.html
+     路径: flutter_app/lib/pages/exam_quicklook_other_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: points.html → points_page.dart
+     来源: C4: points.html
+     路径: flutter_app/lib/pages/points_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: preference_edit.html → preference_edit_page.dart
+     来源: C4: preference_edit.html
+     路径: flutter_app/lib/pages/preference_edit_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: preference_list.html → preference_list_page.dart
+     来源: C4: preference_list.html
+     路径: flutter_app/lib/pages/preference_list_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: preference_welcome.html → preference_welcome_page.dart
+     来源: C4: preference_welcome.html
+     路径: flutter_app/lib/pages/preference_welcome_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: profile.html → profile_page.dart
+     来源: C4: profile.html
+     路径: flutter_app/lib/pages/profile_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: profile_edit.html → profile_edit_page.dart
+     来源: C4: profile_edit.html
+     路径: flutter_app/lib/pages/profile_edit_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: question_history.html → question_history_page.dart
+     来源: C4: question_history.html
+     路径: flutter_app/lib/pages/question_history_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: recommend.html → recommend_page.dart
+     来源: C4: recommend.html
+     路径: flutter_app/lib/pages/recommend_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: register.html → register_page.dart
+     来源: C4: register.html
+     路径: flutter_app/lib/pages/register_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: statistics.html → statistics_page.dart
+     来源: C4: statistics.html
+     路径: flutter_app/lib/pages/statistics_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: sync_queue.html → sync_queue_page.dart
+     来源: C4: sync_queue.html
+     路径: flutter_app/lib/pages/sync_queue_page.dart
+     证据: Listing .html files from docs/04-UI/html/ (total=31), checking each against flutter_app/lib/pages/
+
+  ⚠️  ✅ 存在: solve-pages/solve-choice.html → solve_choice_page.dart
+     来源: C4: solve-pages/solve-choice.html
+     路径: flutter_app/lib/pages/solve/solve_choice_page.dart
+     证据: solve-pages/solve-choice.html → flutter_app/lib/pages/solve/solve_choice_page.dart
+
+  ⚠️  ✅ 存在: solve-pages/solve-fill.html → solve_fill_page.dart
+     来源: C4: solve-pages/solve-fill.html
+     路径: flutter_app/lib/pages/solve/solve_fill_page.dart
+     证据: solve-pages/solve-fill.html → flutter_app/lib/pages/solve/solve_fill_page.dart
+
+  ⚠️  ✅ 存在: solve-pages/solve-map.html → solve_map_page.dart
+     来源: C4: solve-pages/solve-map.html
+     路径: flutter_app/lib/pages/solve/solve_map_page.dart
+     证据: solve-pages/solve-map.html → flutter_app/lib/pages/solve/solve_map_page.dart
+
+  ⚠️  ✅ 存在: solve-pages/solve-rate.html → solve_rate_page.dart
+     来源: C4: solve-pages/solve-rate.html
+     路径: flutter_app/lib/pages/solve/solve_rate_page.dart
+     证据: solve-pages/solve-rate.html → flutter_app/lib/pages/solve/solve_rate_page.dart
+
+  ⚠️  ✅ 存在: solve-pages/solve-step.html → solve_step_page.dart
+     来源: C4: solve-pages/solve-step.html
+     路径: flutter_app/lib/pages/solve/solve_step_page.dart
+     证据: solve-pages/solve-step.html → flutter_app/lib/pages/solve/solve_step_page.dart
+
+  ⚠️  [index.html] 元素 1/9: 欢迎语卡片
+     来源: C4: index.html §card
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（欢迎/每天一句），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 2/9: 待办作业入口
+     来源: C4: index.html §a[href*=homework]
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（📝 待办作业），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 3/9: 讲义入口
+     来源: C4: index.html §a[href*=lecture]
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（📖 讲义），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 4/9: 签到行(按钮+连续天数)
+     来源: C4: index.html §button+span
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（🔥 签到），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 5/9: 签到进度条(7天奖励阶梯)
+     来源: C4: index.html §progress bar
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（第1天→第7天），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 6/9: 任务列表(4项+积分)
+     来源: C4: index.html §task-item
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（✅/⬜ + 积分），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 7/9: 等级进度+今日积分
+     来源: C4: index.html §div
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（🏅 Lv.X 今日积分），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 8/9: Toast签到反馈
+     来源: C4: index.html §toast-container
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（🔥 签到成功），需人工确认 Flutter 实现
+
+  ⚠️  [index.html] 元素 9/9: 底栏导航(首页/推荐/组卷/我的)
+     来源: C4: index.html §nav.bottom-nav
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型定义了此元素（4个Tab），需人工确认 Flutter 实现
+
+  ⚠️  [login.html] 元素 1/5: 品牌标识
+     来源: C4: login.html §text
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型定义了此元素（🐙 章鱼智学），需人工确认 Flutter 实现
+
+  ⚠️  [login.html] 元素 2/5: 用户名输入框
+     来源: C4: login.html §input
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型定义了此元素（用户名），需人工确认 Flutter 实现
+
+  ⚠️  [login.html] 元素 3/5: 密码输入框
+     来源: C4: login.html §input[type=password]
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型定义了此元素（密码），需人工确认 Flutter 实现
+
+  ⚠️  [login.html] 元素 4/5: 登录按钮
+     来源: C4: login.html §button
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型定义了此元素（登录），需人工确认 Flutter 实现
+
+  ⚠️  [login.html] 元素 5/5: 注册链接
+     来源: C4: login.html §a
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型定义了此元素（注册），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 1/11: 个人信息卡片(头像/姓名/学号)
+     来源: C4: profile.html §card
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（头像+编辑），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 2/11: 学习偏好入口
+     来源: C4: profile.html §a[href*=preference]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（📋 学习偏好），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 3/11: 学习统计入口
+     来源: C4: profile.html §a[href*=statistics]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（📊 学习统计），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 4/11: 做题历史入口
+     来源: C4: profile.html §a[href*=history]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（📝 做题历史），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 5/11: 成就入口
+     来源: C4: profile.html §a[href*=achievement]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（🏆 成就），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 6/11: 等级入口
+     来源: C4: profile.html §a[href*=level]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（🏅 等级），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 7/11: 积分流水入口
+     来源: C4: profile.html §a[href*=points]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（💰 积分流水），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 8/11: 同步状态入口
+     来源: C4: profile.html §a[href*=sync]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（📤 同步状态），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 9/11: 关于入口
+     来源: C4: profile.html §a[href*=about]
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（ℹ️ 关于），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 10/11: 退出登录
+     来源: C4: profile.html §button/logout
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（退出登录(红色)），需人工确认 Flutter 实现
+
+  ⚠️  [profile.html] 元素 11/11: 底栏导航(首页/推荐/组卷/我的)
+     来源: C4: profile.html §nav.bottom-nav
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型定义了此元素（4个Tab），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 1/6: 标题
+     来源: C4: exam.html §h1
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（组卷），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 2/6: 智能组卷卡片
+     来源: C4: exam.html §card
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（🤖 智能组卷），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 3/6: 自主选题卡片
+     来源: C4: exam.html §card
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（🖐 自主选题），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 4/6: 我的组卷入ロ
+     来源: C4: exam.html §a
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（📋 我的组卷），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 5/6: 发现组卷入ロ
+     来源: C4: exam.html §a
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（🌐 发现组卷），需人工确认 Flutter 实现
+
+  ⚠️  [exam.html] 元素 6/6: 我的收藏入口
+     来源: C4: exam.html §a
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型定义了此元素（🔖 我的收藏），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 1/13: 返回按钮
+     来源: C4: paper_quicklook.html §back-btn
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（← 返回），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 2/13: 页面标题
+     来源: C4: paper_quicklook.html §h1
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（试卷预览），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 3/13: 试卷名称
+     来源: C4: paper_quicklook.html §card
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（exam.preview.name），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 4/13: 作者信息
+     来源: C4: paper_quicklook.html §text-secondary
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（作者/日期），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 5/13: 题目统计摘要
+     来源: C4: paper_quicklook.html §text-secondary
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（共 N 题 · 选择 M 填空 K），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 6/13: 下载 PDF 按钮
+     来源: C4: paper_quicklook.html §button
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（下载 PDF），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 7/13: 快对答案链接
+     来源: C4: paper_quicklook.html §a[href=answer_sheet]
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（快对答案），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 8/13: 公开/私密开关
+     来源: C4: paper_quicklook.html §toggle-switch
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（公开状态切换），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 9/13: 删除按钮
+     来源: C4: paper_quicklook.html §button[style*=error]
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（删除（红色按钮）），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 10/13: 已选题目区块标题
+     来源: C4: paper_quicklook.html §h3
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（已选题目），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 11/13: 题目列表循环容器
+     来源: C4: paper_quicklook.html §data-db-loop
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（exam.preview.questions），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 12/13: 每题: 标题 + 元信息
+     来源: C4: paper_quicklook.html §q-info
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（题目标题 + 难度/计算量），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook.html] 元素 13/13: 每题: 做题按钮
+     来源: C4: paper_quicklook.html §q-btn
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型定义了此元素（做题 → solve-choice 页），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 1/11: 返回按钮
+     来源: C4: paper_quicklook_other.html §back-btn
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（← 返回），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 2/11: 页面标题
+     来源: C4: paper_quicklook_other.html §h1
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（试卷预览），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 3/11: 试卷名称
+     来源: C4: paper_quicklook_other.html §card
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（exam.previewOther.name），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 4/11: 作者信息
+     来源: C4: paper_quicklook_other.html §text-secondary
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（作者/等级/日期），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 5/11: 题目统计摘要
+     来源: C4: paper_quicklook_other.html §text-secondary
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（共 N 题 · 选择 M 填空 K 解答 P），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 6/11: 点赞/收藏/下载/快对答案
+     来源: C4: paper_quicklook_other.html §4 buttons+a
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（❤️点赞+🔖收藏+下载PDF+快对答案），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 7/11: 试卷题目区块标题
+     来源: C4: paper_quicklook_other.html §h3
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（试卷题目），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 8/11: 题目列表循环容器
+     来源: C4: paper_quicklook_other.html §data-db-loop
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（exam.previewOther.questions），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 9/11: 每题: 标题 + 元信息
+     来源: C4: paper_quicklook_other.html §q-info
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（题目标题 + 难度/计算量），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 10/11: 每题: 做题按钮
+     来源: C4: paper_quicklook_other.html §q-btn
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（做题 → solve-choice 页），需人工确认 Flutter 实现
+
+  ⚠️  [paper_quicklook_other.html] 元素 11/11: 互动数据(点赞/收藏数)
+     来源: C4: paper_quicklook_other.html §text-secondary
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型定义了此元素（❤️ N · 🔖 M），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 1/6: 时间范围切换(pills)
+     来源: C4: statistics.html §sort-pill
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（5个时间选项），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 2/6: 概览卡片(4项)
+     来源: C4: statistics.html §card
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（做题/正确率/连续/活跃），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 3/6: 做题热力图
+     来源: C4: statistics.html §chart
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（Heatmap），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 4/6: 正确率趋势
+     来源: C4: statistics.html §chart
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（折线图），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 5/6: 积分累计趋势
+     来源: C4: statistics.html §chart
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（折线图），需人工确认 Flutter 实现
+
+  ⚠️  [statistics.html] 元素 6/6: 题型分布
+     来源: C4: statistics.html §chart
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型定义了此元素（环形图），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 1/8: 题目元信息(题号/题型)
+     来源: C4: solve-choice.html §meta
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（第X题·[选择]），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 2/8: 作答次数选择器
+     来源: C4: solve-choice.html §attempt-selector
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（多存档），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 3/8: 回顾模式banner
+     来源: C4: solve-choice.html §review-banner
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（回顾模式），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 4/8: 题干(LaTeX)
+     来源: C4: solve-choice.html §content
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（MdLatexBody），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 5/8: 选项网格(A/B/C/D)
+     来源: C4: solve-choice.html §options
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（4选项），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 6/8: 提交按钮/冷却
+     来源: C4: solve-choice.html §button
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（提交+冷却），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 7/8: 解析/结果区
+     来源: C4: solve-choice.html §result
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（正确/错误+解析），需人工确认 Flutter 实现
+
+  ⚠️  [solve-choice.html] 元素 8/8: 已完成+下一题/评分
+     来源: C4: solve-choice.html §done
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型定义了此元素（下一题/⭐评分），需人工确认 Flutter 实现
+
+  ⚠️  [solve-rate.html] 元素 1/5: 难度评分(10星+算法分)
+     来源: C4: solve-rate.html §star-rating
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型定义了此元素（难度对比），需人工确认 Flutter 实现
+
+  ⚠️  [solve-rate.html] 元素 2/5: 计算量评分(10星+算法分)
+     来源: C4: solve-rate.html §star-rating
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型定义了此元素（计算量对比），需人工确认 Flutter 实现
+
+  ⚠️  [solve-rate.html] 元素 3/5: 优雅度评分(10星)
+     来源: C4: solve-rate.html §star-rating
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型定义了此元素（优雅度），需人工确认 Flutter 实现
+
+  ⚠️  [solve-rate.html] 元素 4/5: 提交按钮
+     来源: C4: solve-rate.html §button
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型定义了此元素（提交评分），需人工确认 Flutter 实现
+
+  ⚠️  [solve-rate.html] 元素 5/5: 积分奖励提示
+     来源: C4: solve-rate.html §text
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型定义了此元素（+0.3 赠送积分），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 1/7: 题目元信息(题号/题型)
+     来源: C4: solve-fill.html §meta
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（第X题·[填空]），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 2/7: 作答次数选择器
+     来源: C4: solve-fill.html §attempt-selector
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（多存档），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 3/7: 回顾模式banner
+     来源: C4: solve-fill.html §review-banner
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（回顾模式），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 4/7: 题干(LaTeX)
+     来源: C4: solve-fill.html §content
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（MdLatexBody），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 5/7: 查看答案按钮/冷却
+     来源: C4: solve-fill.html §button
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（查看答案+冷却），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 6/7: 解析/答案区
+     来源: C4: solve-fill.html §result
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（正确答案+解析），需人工确认 Flutter 实现
+
+  ⚠️  [solve-fill.html] 元素 7/7: 已完成+下一题/评分
+     来源: C4: solve-fill.html §done
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型定义了此元素（下一题/⭐评分），需人工确认 Flutter 实现
+
+  ⚠️  [solve-map.html] 元素 1/4: 解题地图标题
+     来源: C4: solve-map.html §h1
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型定义了此元素（解题地图），需人工确认 Flutter 实现
+
+  ⚠️  [solve-map.html] 元素 2/4: 章节列表
+     来源: C4: solve-map.html §chapter-item
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型定义了此元素（章节+关卡），需人工确认 Flutter 实现
+
+  ⚠️  [solve-map.html] 元素 3/4: 题目列表(每关)
+     来源: C4: solve-map.html §question-item
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型定义了此元素（题目+状态），需人工确认 Flutter 实现
+
+  ⚠️  [solve-map.html] 元素 4/4: 返回/关闭按钮
+     来源: C4: solve-map.html §back-btn
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型定义了此元素（← 返回），需人工确认 Flutter 实现
+
+  ⚠️  [solve-step.html] 元素 1/5: 题目元信息
+     来源: C4: solve-step.html §meta
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型定义了此元素（第X题·[解答]），需人工确认 Flutter 实现
+
+  ⚠️  [solve-step.html] 元素 2/5: 作答区
+     来源: C4: solve-step.html §content
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型定义了此元素（解答输入+LaTeX），需人工确认 Flutter 实现
+
+  ⚠️  [solve-step.html] 元素 3/5: 步骤导航
+     来源: C4: solve-step.html §step-nav
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型定义了此元素（上一步/下一步），需人工确认 Flutter 实现
+
+  ⚠️  [solve-step.html] 元素 4/5: 提交按钮
+     来源: C4: solve-step.html §button
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型定义了此元素（提交解答），需人工确认 Flutter 实现
+
+  ⚠️  [solve-step.html] 元素 5/5: 评价反馈
+     来源: C4: solve-step.html §rating
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型定义了此元素（评分+反馈），需人工确认 Flutter 实现
+
+  ⚠️  [about.html] 交互元素 1/13: 按钮 "🐛 导出运行日志"
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 2/13: 按钮 "更新"
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 3/13: 按钮 "知道了"
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 4/13: 按钮 "重试"
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 5/13: 按钮 "关闭"
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 6/13: data-db 字段: about.appVersion
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 7/13: onclick: alert('日志已导出，可通过微信发送');return false;
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 8/13: onclick: startUpdate('课程')
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 9/13: onclick: startUserUpdate()
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 10/13: onclick: closeUpdateModal()
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 11/13: onclick: retryUpdate()
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 12/13: onclick: closeSyncModal()
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [about.html] 交互元素 13/13: onclick: retrySync()
+     来源: C4: about.html
+     路径: docs/04-UI/html/about.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter about_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 1/18: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 2/18: data-db 字段: achievement.summary.unlockedCount
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 3/18: data-db 字段: achievement.summary.totalCount
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 4/18: data-db 字段: achievement.getCategories[].label
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 5/18: data-db 字段: achievement.getCategories[].list[].iconEmoji
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 6/18: data-db 字段: achievement.getCategories[].list[].name
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 7/18: data-db 字段: achievement.getCategories[].list[].description
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 8/18: data-db 字段: achievement.getCategories[].list[].unlockedAt
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 9/18: data-db 字段: achievement.getCategories[].list[].progress
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 10/18: data-db 字段: achievement.getCategories[].list[].threshold
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 11/18: data-db 字段: achievement.getCategories[].list[].statusLabel
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 12/18: data-db 字段: ...name
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 13/18: data-db 字段: ...progress
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 14/18: data-db 字段: ...threshold
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 15/18: data-db 字段: ...statusLabel
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 16/18: data-db 字段: ...unlockedAt
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 17/18: data-db-loop 循环: achievement.getCategories
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [achievement.html] 交互元素 18/18: data-db-loop 循环: achievement.getCategories[].list
+     来源: C4: achievement.html
+     路径: docs/04-UI/html/achievement.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter achievement_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 1/8: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 2/8: 链接按钮 "← 返回试卷预览" → paper_quicklook.html
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 3/8: data-db 字段: exam.quickAnswer.name
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 4/8: data-db 字段: exam.quickAnswer.totalCount
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 5/8: data-db 字段: exam.quickAnswer[].title
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 6/8: data-db 字段: exam.quickAnswer[].questionType
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 7/8: data-db 字段: exam.quickAnswer[].answer
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [answer_sheet.html] 交互元素 8/8: data-db-loop 循环: exam.quickAnswer
+     来源: C4: answer_sheet.html
+     路径: docs/04-UI/html/answer_sheet.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter answer_sheet_page.dart 是否有对应
+
+  ⚠️  [exam.html] 交互元素 1/2: 链接按钮 "🤖 智能组卷 · 消耗 10 积分" → paper_auto.html
+     来源: C4: exam.html
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_home_page.dart 是否有对应
+
+  ⚠️  [exam.html] 交互元素 2/2: 链接按钮 "🖐 自主选题 · 消耗 20 积分" → paper_pick.html
+     来源: C4: exam.html
+     路径: docs/04-UI/html/exam.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_home_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 1/12: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 2/12: 按钮 "下载 PDF"
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 3/12: data-db-action: assign.downloadPdf()
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 4/12: data-db 字段: assign.getQuestions.title
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 5/12: data-db 字段: assign.getQuestions.courseName
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 6/12: data-db 字段: assign.getQuestions.doneCount
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 7/12: data-db 字段: assign.getQuestions.totalCount
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 8/12: data-db 字段: assign.getQuestions.deadlineDays
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 9/12: data-db 字段: assign.getQuestions[].number
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 10/12: data-db 字段: assign.getQuestions[].questionType
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 11/12: data-db 字段: assign.getQuestions[].status
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_detail.html] 交互元素 12/12: data-db-loop 循环: assign.getQuestions
+     来源: C4: homework_detail.html
+     路径: docs/04-UI/html/homework_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_detail_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 1/8: 链接按钮 "← 返回" → index.html
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 2/8: data-db 字段: assign.getPending[].title
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 3/8: data-db 字段: assign.getPending[].courseName
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 4/8: data-db 字段: assign.getPending[].doneCount
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 5/8: data-db 字段: assign.getPending[].totalCount
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 6/8: data-db 字段: assign.getPending[].deadlineDays
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 7/8: data-db 字段: assign.getPending[].status
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [homework_list.html] 交互元素 8/8: data-db-loop 循环: assign.getPending
+     来源: C4: homework_list.html
+     路径: docs/04-UI/html/homework_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter homework_list_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 1/13: 按钮 "签到"
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 2/13: 按钮 "✕"
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 3/13: data-db-action: goToSyncQueue()
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 4/13: data-db 字段: assign.pendingCount
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 5/13: data-db 字段: tasks.streakDays
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 6/13: data-db 字段: tasks.todayReward
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 7/13: data-db 字段: tasks.nextReward
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 8/13: data-db 字段: tasks.levelProgress
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 9/13: data-db 字段: tasks.todayEarned
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 10/13: data-db 字段: sync.pendingCountText
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 11/13: onclick: simulateCheckin()
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 12/13: onclick: void(0)
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [index.html] 交互元素 13/13: onclick: closeToast()
+     来源: C4: index.html
+     路径: docs/04-UI/html/index.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter index_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 1/6: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 2/6: data-db 字段: lecture.getChapters.courseName
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 3/6: data-db 字段: lecture.getChapters[].title
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 4/6: data-db 字段: lecture.getChapters[].pageCount
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 5/6: data-db 字段: lecture.getChapters[].studyStatus
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_chapters.html] 交互元素 6/6: data-db-loop 循环: lecture.getChapters
+     来源: C4: lecture_chapters.html
+     路径: docs/04-UI/html/lecture_chapters.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_chapters_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 1/12: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 2/12: 按钮 "⟨"
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 3/12: 按钮 "⟩"
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 4/12: data-db 字段: lecture.getContentParsed.title
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 5/12: data-db 字段: lecture.getContentParsed.pages[].blocks[0]
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 6/12: data-db 字段: lecture.getContentParsed.pages[].blocks[1]
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 7/12: data-db 字段: lecture.getContentParsed.pages[].blocks[2]
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 8/12: data-db 字段: lecture.getContentParsed.pages[].blocks[3]
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 9/12: data-db 字段: lecture.getContentParsed.pages
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 10/12: data-db-loop 循环: lecture.getContentParsed.pages
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 11/12: onclick: handlePrev()
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_content.html] 交互元素 12/12: onclick: handleNext()
+     来源: C4: lecture_content.html
+     路径: docs/04-UI/html/lecture_content.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_content_page.dart 是否有对应
+
+  ⚠️  [lecture_courses.html] 交互元素 1/4: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: lecture_courses.html
+     路径: docs/04-UI/html/lecture_courses.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_courses_page.dart 是否有对应
+
+  ⚠️  [lecture_courses.html] 交互元素 2/4: data-db 字段: lecture.getCourses[].name
+     来源: C4: lecture_courses.html
+     路径: docs/04-UI/html/lecture_courses.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_courses_page.dart 是否有对应
+
+  ⚠️  [lecture_courses.html] 交互元素 3/4: data-db 字段: lecture.getCourses[].chapterCount
+     来源: C4: lecture_courses.html
+     路径: docs/04-UI/html/lecture_courses.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_courses_page.dart 是否有对应
+
+  ⚠️  [lecture_courses.html] 交互元素 4/4: data-db-loop 循环: lecture.getCourses
+     来源: C4: lecture_courses.html
+     路径: docs/04-UI/html/lecture_courses.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter lecture_courses_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 1/9: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 2/9: data-db 字段: user.getInfo.level
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 3/9: data-db 字段: user.getInfo.levelPercentile
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 4/9: data-db 字段: user.getInfo.earnedPoints
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 5/9: data-db 字段: user.getInfo.bonusPoints
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 6/9: data-db 字段: user.getInfo.spentPoints
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 7/9: data-db 字段: user.getInfo.availablePoints
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 8/9: data-db 字段: points.getLevels[4]
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [level_detail.html] 交互元素 9/9: data-db-loop 循环: points.getLevels
+     来源: C4: level_detail.html
+     路径: docs/04-UI/html/level_detail.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter level_detail_page.dart 是否有对应
+
+  ⚠️  [login.html] 交互元素 1/5: 按钮 "登录"
+     来源: C4: login.html
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter login_page.dart 是否有对应
+
+  ⚠️  [login.html] 交互元素 2/5: data-db-action: auth.login()
+     来源: C4: login.html
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter login_page.dart 是否有对应
+
+  ⚠️  [login.html] 交互元素 3/5: 输入框 (type=text, placeholder="输入用户名")
+     来源: C4: login.html
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter login_page.dart 是否有对应
+
+  ⚠️  [login.html] 交互元素 4/5: 输入框 (type=password, placeholder="输入密码")
+     来源: C4: login.html
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter login_page.dart 是否有对应
+
+  ⚠️  [login.html] 交互元素 5/5: onclick: exportLog();return false;
+     来源: C4: login.html
+     路径: docs/04-UI/html/login.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter login_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 1/35: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 2/35: 按钮 "清除全部"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 3/35: 按钮 "💾 保存为学习偏好"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 4/35: 按钮 "全不选"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 5/35: 按钮 "全选"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 6/35: 按钮 "−"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 7/35: 按钮 "+"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 8/35: 按钮 "确认智能组卷（消耗 10 积分）"
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 9/35: data-db-action: exam.auto.clearFilters()
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 10/35: data-db-action: exam.auto.saveFilterPreset()
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 11/35: data-db-action: exam.auto.generate()
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 12/35: data-db 字段: exam.auto.filterPresets[].name
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 13/35: data-db 字段: exam.auto.availableChoice
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 14/35: data-db 字段: exam.auto.availableFill
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 15/35: data-db 字段: exam.auto.availableSolution
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 16/35: data-db 字段: exam.auto.poolDiffMin
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 17/35: data-db 字段: exam.auto.poolDiffMax
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 18/35: data-db 字段: exam.auto.gaokaoDiffMin
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 19/35: data-db 字段: exam.auto.gaokaoDiffAvg
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 20/35: data-db 字段: exam.auto.gaokaoDiffMax
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 21/35: data-db-loop 循环: exam.auto.filterPresets
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 22/35: data-db-loop 循环: exam.auto.filter.years
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 23/35: data-db-loop 循环: exam.auto.filter.regions
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 24/35: data-db-loop 循环: exam.auto.filter.conceptTagTree
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 25/35: 输入框 (type=text, placeholder="输入试卷名称")
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 26/35: 输入框 (type=checkbox, placeholder="")
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 27/35: 输入框 (type=range, placeholder="")
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 28/35: onclick: toggleFilter(this)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 29/35: onclick: toggleTree(this)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 30/35: onclick: toggleKCGroup(this)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 31/35: onclick: event.stopPropagation();deselectGroup(this)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 32/35: onclick: event.stopPropagation();selectGroup(this)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 33/35: onclick: stepperChange(this, -1)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 34/35: onclick: stepperChange(this, 1)
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_auto.html] 交互元素 35/35: onclick: location.href='paper_quicklook.html'
+     来源: C4: paper_auto.html
+     路径: docs/04-UI/html/paper_auto.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_auto_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 1/24: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 2/24: 链接按钮 "查看试卷" → paper_quicklook_other.html
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 3/24: 按钮 "❤️ 点赞"
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 4/24: 按钮 "🔖 收藏"
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 5/24: 按钮 "下载 PDF"
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 6/24: 按钮 "❤️ 已赞"
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 7/24: 按钮 "🔖 已收藏"
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 8/24: data-db-action: exam.explore.toggleLike(1)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 9/24: data-db-action: exam.explore.toggleCollect(1)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 10/24: data-db-action: exam.explore.downloadPdf(1)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 11/24: data-db-action: exam.explore.toggleLike(2)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 12/24: data-db-action: exam.explore.toggleCollect(2)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 13/24: data-db-action: exam.explore.downloadPdf(2)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 14/24: data-db 字段: exam.explore.getList[].name
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 15/24: data-db 字段: exam.explore.getList[].authorInfo
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 16/24: data-db 字段: exam.explore.getList[].summary
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 17/24: data-db 字段: exam.explore.getList[].stats
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 18/24: data-db 字段: exam.explore.getList[].likeCount
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 19/24: data-db 字段: exam.explore.getList[].collectCount
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 20/24: data-db 字段: exam.explore.getList[].createdAt
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 21/24: data-db-loop 循环: exam.explore.getList
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 22/24: onclick: selectSort(this)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 23/24: onclick: this.classList.toggle('liked')
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_explore.html] 交互元素 24/24: onclick: toggleCollect(this)
+     来源: C4: paper_explore.html
+     路径: docs/04-UI/html/paper_explore.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_explore_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 1/17: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 2/17: 链接按钮 "查看试卷" → paper_quicklook_other.html
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 3/17: 按钮 "❤️ 点赞"
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 4/17: 按钮 "🔖 取消收藏"
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 5/17: 按钮 "下载 PDF"
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 6/17: 按钮 "❤️ 已赞"
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 7/17: data-db-action: exam.favorites.toggleLike(1)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 8/17: data-db-action: exam.favorites.remove(1)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 9/17: data-db-action: exam.favorites.downloadPdf(1)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 10/17: data-db-action: exam.favorites.toggleLike(2)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 11/17: data-db-action: exam.favorites.remove(2)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 12/17: data-db-action: exam.favorites.downloadPdf(2)
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 13/17: data-db 字段: exam.favorites.getList[].name
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 14/17: data-db 字段: exam.favorites.getList[].authorInfo
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 15/17: data-db 字段: exam.favorites.getList[].summary
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 16/17: data-db-loop 循环: exam.favorites.getList
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_favorites.html] 交互元素 17/17: onclick: this.classList.toggle('liked')
+     来源: C4: paper_favorites.html
+     路径: docs/04-UI/html/paper_favorites.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_favorites_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 1/21: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 2/21: 链接按钮 "快对答案" → answer_sheet.html
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 3/21: 按钮 "下载 PDF"
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 4/21: 按钮 "删除"
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 5/21: data-db-action: exam.myExams.togglePublic(1)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 6/21: data-db-action: exam.myExams.downloadPdf(1)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 7/21: data-db-action: exam.myExams.quickAnswer(1)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 8/21: data-db-action: exam.myExams.delete(1)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 9/21: data-db-action: exam.myExams.togglePublic(2)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 10/21: data-db-action: exam.myExams.downloadPdf(2)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 11/21: data-db-action: exam.myExams.quickAnswer(2)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 12/21: data-db-action: exam.myExams.delete(2)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 13/21: data-db-action: exam.myExams.togglePublic(3)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 14/21: data-db-action: exam.myExams.downloadPdf(3)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 15/21: data-db-action: exam.myExams.quickAnswer(3)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 16/21: data-db-action: exam.myExams.delete(3)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 17/21: data-db 字段: exam.myExams.getList[].name
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 18/21: data-db 字段: exam.myExams.getList[].createdAt
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 19/21: data-db 字段: exam.myExams.getList[].summary
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 20/21: data-db-loop 循环: exam.myExams.getList
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_history.html] 交互元素 21/21: onclick: toggleSwitch(this)
+     来源: C4: paper_history.html
+     路径: docs/04-UI/html/paper_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_history_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 1/34: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 2/34: 按钮 "清除全部"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 3/34: 按钮 "💾 保存为学习偏好"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 4/34: 按钮 "全不选"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 5/34: 按钮 "全选"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 6/34: 按钮 "✓"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 7/34: 按钮 "+"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 8/34: 按钮 "确认组卷（消耗 20 积分）"
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 9/34: data-db-action: exam.pick.clearFilters()
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 10/34: data-db-action: exam.pick.saveFilterPreset()
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 11/34: data-db-action: exam.pick.toggleQuestion(1)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 12/34: data-db-action: exam.pick.toggleQuestion(2)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 13/34: data-db-action: exam.pick.toggleQuestion(3)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 14/34: data-db-action: exam.pick.confirm()
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 15/34: data-db 字段: exam.pick.filterPresets[].name
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 16/34: data-db 字段: exam.pick.totalCount
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 17/34: data-db 字段: exam.pick.selectedCount
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 18/34: data-db 字段: exam.pick.getList[].title
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 19/34: data-db 字段: exam.pick.getList[].meta
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 20/34: data-db 字段: exam.pick.getList[].difficulty
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 21/34: data-db 字段: exam.pick.getList[].calculation
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 22/34: data-db-loop 循环: exam.pick.filterPresets
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 23/34: data-db-loop 循环: exam.pick.filter.years
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 24/34: data-db-loop 循环: exam.pick.filter.regions
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 25/34: data-db-loop 循环: exam.pick.getList
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 26/34: 输入框 (type=text, placeholder="输入试卷名称")
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 27/34: 输入框 (type=checkbox, placeholder="")
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 28/34: 输入框 (type=range, placeholder="")
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 29/34: onclick: toggleFilter(this)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 30/34: onclick: toggleTree(this)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 31/34: onclick: toggleKCGroup(this)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 32/34: onclick: event.stopPropagation();deselectGroup(this)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 33/34: onclick: event.stopPropagation();selectGroup(this)
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_pick.html] 交互元素 34/34: onclick: location.href='paper_quicklook.html'
+     来源: C4: paper_pick.html
+     路径: docs/04-UI/html/paper_pick.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_pick_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 1/22: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 2/22: 链接按钮 "快对答案" → answer_sheet.html
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 3/22: 链接按钮 "做题" → solve-pages/solve-choice.html?mode=first
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 4/22: 按钮 "下载 PDF"
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 5/22: 按钮 "删除"
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 6/22: data-db-action: exam.preview.downloadPdf()
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 7/22: data-db-action: exam.preview.quickAnswer()
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 8/22: data-db-action: exam.preview.togglePublic()
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 9/22: data-db-action: exam.preview.deleteExam()
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 10/22: data-db-action: question.startSolve(1)
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 11/22: data-db-action: question.startSolve(2)
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 12/22: data-db 字段: exam.preview.name
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 13/22: data-db 字段: exam.preview.authorInfo
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 14/22: data-db 字段: exam.preview.summary
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 15/22: data-db 字段: exam.preview.choiceCount
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 16/22: data-db 字段: exam.preview.fillCount
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 17/22: data-db 字段: exam.preview.solutionCount
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 18/22: data-db 字段: exam.preview.totalCount
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 19/22: data-db 字段: exam.preview.questions[].title
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 20/22: data-db 字段: exam.preview.questions[].meta
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 21/22: data-db-loop 循环: exam.preview.questions
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook.html] 交互元素 22/22: onclick: toggleSwitch(this)
+     来源: C4: paper_quicklook.html
+     路径: docs/04-UI/html/paper_quicklook.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 1/25: 链接按钮 "← 返回" → paper_explore.html
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 2/25: 链接按钮 "快对答案" → answer_sheet.html
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 3/25: 链接按钮 "做题" → solve-pages/solve-choice.html?mode=first
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 4/25: 按钮 "❤️ 点赞"
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 5/25: 按钮 "🔖 收藏"
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 6/25: 按钮 "下载 PDF"
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 7/25: data-db-action: exam.previewOther.toggleLike()
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 8/25: data-db-action: exam.previewOther.toggleCollect()
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 9/25: data-db-action: exam.previewOther.downloadPdf()
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 10/25: data-db-action: question.startSolve(1)
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 11/25: data-db-action: question.startSolve(2)
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 12/25: data-db 字段: exam.previewOther.name
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 13/25: data-db 字段: exam.previewOther.authorInfo
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 14/25: data-db 字段: exam.previewOther.summary
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 15/25: data-db 字段: exam.previewOther.choiceCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 16/25: data-db 字段: exam.previewOther.fillCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 17/25: data-db 字段: exam.previewOther.solutionCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 18/25: data-db 字段: exam.previewOther.totalCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 19/25: data-db 字段: exam.previewOther.likeCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 20/25: data-db 字段: exam.previewOther.collectCount
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 21/25: data-db 字段: exam.previewOther.questions[].title
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 22/25: data-db 字段: exam.previewOther.questions[].meta
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 23/25: data-db-loop 循环: exam.previewOther.questions
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 24/25: onclick: this.classList.toggle('liked')
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [paper_quicklook_other.html] 交互元素 25/25: onclick: toggleCollect(this)
+     来源: C4: paper_quicklook_other.html
+     路径: docs/04-UI/html/paper_quicklook_other.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter exam_quicklook_other_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 1/13: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 2/13: data-db 字段: user.getInfo.earnedPoints
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 3/13: data-db 字段: user.getInfo.bonusPoints
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 4/13: data-db 字段: user.getInfo.spentPoints
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 5/13: data-db 字段: user.getInfo.availablePoints
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 6/13: data-db 字段: points.getHistory[].time
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 7/13: data-db 字段: points.getHistory[].type
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 8/13: data-db 字段: points.getHistory[].change
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 9/13: data-db 字段: points.getHistory[].earned
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 10/13: data-db 字段: points.getHistory[].bonus
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 11/13: data-db 字段: points.getHistory[].spent
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 12/13: data-db 字段: points.getHistory[].available
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [points.html] 交互元素 13/13: data-db-loop 循环: points.getHistory
+     来源: C4: points.html
+     路径: docs/04-UI/html/points.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter points_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 1/12: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 2/12: 按钮 "保存"
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 3/12: data-db-action: preference.edit.save()
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 4/12: data-db-loop 循环: preference.edit.filter.years
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 5/12: data-db-loop 循环: preference.edit.filter.regions
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 6/12: data-db-loop 循环: preference.edit.filter.conceptTags
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 7/12: data-db-loop 循环: preference.edit.filter.knowledgeCards
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 8/12: 输入框 (type=text, placeholder="给偏好取个名字")
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 9/12: 输入框 (type=checkbox, placeholder="")
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 10/12: 输入框 (type=range, placeholder="")
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 11/12: onclick: toggleFilter(this)
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_edit.html] 交互元素 12/12: onclick: location.href='preference_list.html'
+     来源: C4: preference_edit.html
+     路径: docs/04-UI/html/preference_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_edit_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 1/11: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 2/11: 链接按钮 "编辑" → preference_edit.html
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 3/11: 链接按钮 "＋ 新建偏好" → preference_edit.html
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 4/11: 按钮 "删除"
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 5/11: data-db-action: preference.edit(1)
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 6/11: data-db-action: preference.delete(1)
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 7/11: data-db-action: preference.edit(2)
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 8/11: data-db-action: preference.delete(2)
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 9/11: data-db 字段: preference.list[].name
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 10/11: data-db 字段: preference.list[].summary
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_list.html] 交互元素 11/11: data-db-loop 循环: preference.list
+     来源: C4: preference_list.html
+     路径: docs/04-UI/html/preference_list.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_list_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 1/14: 链接按钮 "跳过，稍后设置" → recommend.html
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 2/14: 按钮 "👌 开始设置学习偏好"
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 3/14: 按钮 "保存并开始学习"
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 4/14: data-db-action: preference.welcome.save()
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 5/14: data-db-loop 循环: preference.welcome.filter.years
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 6/14: data-db-loop 循环: preference.welcome.filter.regions
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 7/14: data-db-loop 循环: preference.welcome.filter.conceptTags
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 8/14: data-db-loop 循环: preference.welcome.filter.knowledgeCards
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 9/14: 输入框 (type=text, placeholder="例如：导数专项、三角函数训练...")
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 10/14: 输入框 (type=checkbox, placeholder="")
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 11/14: 输入框 (type=range, placeholder="")
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 12/14: onclick: closeBonus()
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 13/14: onclick: toggleFilter(this)
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [preference_welcome.html] 交互元素 14/14: onclick: location.href='recommend.html'
+     来源: C4: preference_welcome.html
+     路径: docs/04-UI/html/preference_welcome.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter preference_welcome_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 1/12: data-db 字段: user.getInfo.name
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 2/12: data-db 字段: user.getInfo.studentId
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 3/12: data-db 字段: preference.count
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 4/12: data-db 字段: stats.totalQuestions
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 5/12: data-db 字段: stats.accuracy
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 6/12: data-db 字段: user.getAnswerHistory.count
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 7/12: data-db 字段: achievement.unlockedCount
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 8/12: data-db 字段: user.getInfo.level
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 9/12: data-db 字段: user.getInfo.availablePoints
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 10/12: data-db 字段: user.getInfo.earnedPoints
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 11/12: data-db 字段: sync.failedCountText
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile.html] 交互元素 12/12: data-db 字段: sync.allSuccessText
+     来源: C4: profile.html
+     路径: docs/04-UI/html/profile.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 1/9: 链接按钮 "← 返回" → profile.html
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 2/9: 按钮 "保存修改"
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 3/9: data-db-action: user.saveProfile()
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 4/9: data-db 字段: user.getInfo.avatar
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 5/9: data-db 字段: user.getInfo.realName
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 6/9: 输入框 (type=file, placeholder="")
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 7/9: 输入框 (type=text, placeholder="输入昵称")
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 8/9: 输入框 (type=text, placeholder="")
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [profile_edit.html] 交互元素 9/9: onclick: location.href='profile.html'
+     来源: C4: profile_edit.html
+     路径: docs/04-UI/html/profile_edit.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter profile_edit_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 1/6: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 2/6: data-db 字段: user.getAnswerHistory[].title
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 3/6: data-db 字段: user.getAnswerHistory[].questionType
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 4/6: data-db 字段: user.getAnswerHistory[].date
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 5/6: data-db 字段: user.getAnswerHistory[].status
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [question_history.html] 交互元素 6/6: data-db-loop 循环: user.getAnswerHistory
+     来源: C4: question_history.html
+     路径: docs/04-UI/html/question_history.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter question_history_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 1/15: data-db 字段: recommend.getList[].title
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 2/15: data-db 字段: recommend.getList[].questionType
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 3/15: data-db 字段: recommend.getList[].difficulty
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 4/15: data-db 字段: recommend.getList[].recommendReason
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 5/15: data-db 字段: recommend.getList[].status
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 6/15: data-db 字段: recommend.preset.list[].name
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 7/15: data-db 字段: recommend.preset.questions[].title
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 8/15: data-db 字段: recommend.preset.questions[].questionType
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 9/15: data-db 字段: recommend.preset.questions[].difficulty
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 10/15: data-db 字段: recommend.preset.questions[].status
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 11/15: data-db-loop 循环: recommend.getList
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 12/15: data-db-loop 循环: recommend.preset.list
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 13/15: data-db-loop 循环: recommend.preset.questions
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 14/15: onclick: selectMode(this, 'smart')
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [recommend.html] 交互元素 15/15: onclick: selectMode(this, 'preset')
+     来源: C4: recommend.html
+     路径: docs/04-UI/html/recommend.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter recommend_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 1/8: 按钮 "注册"
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 2/8: data-db-action: auth.register()
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 3/8: 输入框 (type=text, placeholder="输入邀请码，如 GR7X-K2P9-M4")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 4/8: 输入框 (type=text, placeholder="起个用户名，用于登录")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 5/8: 输入框 (type=text, placeholder="输入真实姓名")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 6/8: 输入框 (type=tel, placeholder="11位手机号，用于找回账号")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 7/8: 输入框 (type=password, placeholder="设置密码（至少8位）")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [register.html] 交互元素 8/8: 输入框 (type=password, placeholder="再次输入密码")
+     来源: C4: register.html
+     路径: docs/04-UI/html/register.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter register_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 1/7: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 2/7: 按钮 "提交答案"
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 3/7: 按钮 "下一题 →"
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 4/7: 按钮 "⭐ 评分"
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 5/7: onclick: toggleAttemptDropdown()
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 6/7: onclick: goNext()
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-choice.html] 交互元素 7/7: onclick: goRate()
+     来源: C4: solve-choice.html
+     路径: docs/04-UI/html/solve-choice.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_choice_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 1/11: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 2/11: 按钮 "查看答案"
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 3/11: 按钮 "✅ 正确"
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 4/11: 按钮 "❌ 错误"
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 5/11: 按钮 "下一题 →"
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 6/11: 按钮 "⭐ 评分"
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 7/11: onclick: toggleAttemptDropdown()
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 8/11: onclick: onFeedback('correct')
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 9/11: onclick: onFeedback('wrong')
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 10/11: onclick: goNext()
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-fill.html] 交互元素 11/11: onclick: goRate()
+     来源: C4: solve-fill.html
+     路径: docs/04-UI/html/solve-fill.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_fill_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 1/10: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 2/10: 按钮 "← 返回"
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 3/10: 按钮 "🔄 重新作答"
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 4/10: 按钮 "⭐ 评分"
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 5/10: 按钮 "✕"
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 6/10: onclick: toggleAttemptDropdown()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 7/10: onclick: history.back()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 8/10: onclick: goRetry()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 9/10: onclick: goRate()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-map.html] 交互元素 10/10: onclick: closeToast()
+     来源: C4: solve-map.html
+     路径: docs/04-UI/html/solve-map.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_map_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 1/35: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 2/35: 按钮 "提交评分（可获得 +0.3 赠送积分）"
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 3/35: 按钮 "✕"
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 4/35: onclick: setRating('difficulty', 1)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 5/35: onclick: setRating('difficulty', 2)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 6/35: onclick: setRating('difficulty', 3)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 7/35: onclick: setRating('difficulty', 4)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 8/35: onclick: setRating('difficulty', 5)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 9/35: onclick: setRating('difficulty', 6)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 10/35: onclick: setRating('difficulty', 7)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 11/35: onclick: setRating('difficulty', 8)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 12/35: onclick: setRating('difficulty', 9)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 13/35: onclick: setRating('difficulty', 10)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 14/35: onclick: setRating('calculation', 1)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 15/35: onclick: setRating('calculation', 2)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 16/35: onclick: setRating('calculation', 3)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 17/35: onclick: setRating('calculation', 4)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 18/35: onclick: setRating('calculation', 5)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 19/35: onclick: setRating('calculation', 6)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 20/35: onclick: setRating('calculation', 7)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 21/35: onclick: setRating('calculation', 8)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 22/35: onclick: setRating('calculation', 9)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 23/35: onclick: setRating('calculation', 10)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 24/35: onclick: setRating('elegance', 1)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 25/35: onclick: setRating('elegance', 2)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 26/35: onclick: setRating('elegance', 3)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 27/35: onclick: setRating('elegance', 4)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 28/35: onclick: setRating('elegance', 5)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 29/35: onclick: setRating('elegance', 6)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 30/35: onclick: setRating('elegance', 7)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 31/35: onclick: setRating('elegance', 8)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 32/35: onclick: setRating('elegance', 9)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 33/35: onclick: setRating('elegance', 10)
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 34/35: onclick: submitRating()
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-rate.html] 交互元素 35/35: onclick: closeToast()
+     来源: C4: solve-rate.html
+     路径: docs/04-UI/html/solve-rate.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_rate_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 1/20: 链接按钮 "← 解题地图" → solve-map.html
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 2/20: 按钮 "▶"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 3/20: 按钮 "全对"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 4/20: 按钮 "过程对计算错"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 5/20: 按钮 "不会"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 6/20: 按钮 "← 解题地图"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 7/20: 按钮 "→ 下一步"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 8/20: 按钮 "✕"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 9/20: 按钮 "完全掌握"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 10/20: 按钮 "了解"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 11/20: 按钮 "不理解"
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 12/20: onclick: showKnowledge('三角恒等变形', '由余弦定理 cos C = (a² + b² - 
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 13/20: onclick: showKnowledge('余弦定理', '在任意三角形中，c² = a² + b² - 2ab 
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 14/20: onclick: giveFeedback('correct')
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 15/20: onclick: giveFeedback('partial')
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 16/20: onclick: giveFeedback('wrong')
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 17/20: onclick: goBackToMap()
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 18/20: onclick: goNextStep()
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 19/20: onclick: closeKnowledge()
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [solve-step.html] 交互元素 20/20: onclick: closeToast()
+     来源: C4: solve-step.html
+     路径: docs/04-UI/html/solve-step.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter solve_step_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 1/28: 链接按钮 "← 返回" → javascript:history.back()
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 2/28: 按钮 "条形图"
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 3/28: 按钮 "7行周历"
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 4/28: 按钮 "周格"
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 5/28: 按钮 "月格"
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 6/28: data-db 字段: stats.getOverview.totalQuestions
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 7/28: data-db 字段: stats.getOverview.accuracyPercent
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 8/28: data-db 字段: stats.getOverview.streakDays
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 9/28: data-db 字段: stats.getOverview.activeDays
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 10/28: data-db 字段: stats.getDistribution.total
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 11/28: data-db 字段: stats.getDistribution.choiceCount
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 12/28: data-db 字段: stats.getDistribution.choicePercent
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 13/28: data-db 字段: stats.getDistribution.fillCount
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 14/28: data-db 字段: stats.getDistribution.fillPercent
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 15/28: data-db 字段: stats.getDistribution.solutionCount
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 16/28: data-db 字段: stats.getDistribution.solutionPercent
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 17/28: data-db-loop 循环: stats.getDailyRecords
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 18/28: data-db-loop 循环: stats.getAccuracyTrend
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 19/28: data-db-loop 循环: stats.getPointsTrend
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 20/28: onclick: forceMode('show-bar')
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 21/28: onclick: forceMode('show-cal')
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 22/28: onclick: forceMode('show-week')
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 23/28: onclick: forceMode('show-month')
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 24/28: onclick: selectRange(this,7)
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 25/28: onclick: selectRange(this,30)
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 26/28: onclick: selectRange(this,90)
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 27/28: onclick: selectRange(this,365)
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [statistics.html] 交互元素 28/28: onclick: selectRange(this,0)
+     来源: C4: statistics.html
+     路径: docs/04-UI/html/statistics.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter statistics_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 1/8: 链接按钮 "← 返回" → profile.html
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 2/8: 按钮 "🔄 全部重试"
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 3/8: data-db 字段: sync.getQueue[].icon
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 4/8: data-db 字段: sync.getQueue[].entityTypeName
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 5/8: data-db 字段: sync.getQueue[].timeAgo
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 6/8: data-db 字段: sync.getQueue[].errorMessage
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 7/8: data-db-loop 循环: sync.getQueue
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  [sync_queue.html] 交互元素 8/8: onclick: void(0)
+     来源: C4: sync_queue.html
+     路径: docs/04-UI/html/sync_queue.html
+     证据: HTML 原型中存在此交互元素，需人工确认 Flutter sync_queue_page.dart 是否有对应
+
+  ⚠️  ✅ FlutterError.onError 全局钩子已设置 (via test_setup.dart)
+     来源: H7.1: 测试基础设施规则
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\test\test_setup.dart
+     证据: Global setup file defines FlutterError.onError
+
+  ⚠️  ✅ 桌面页面测试尺寸无手机模式误用
+     来源: H7.2: 测试尺寸规则
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\test
+     证据: No desktop-page test uses phone-size MediaQuery
+
+  ⚠️  ✅ 断言模式多样: 34/50 测试含结构断言
+     来源: H7.4: 测试断言模式规则
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\test
+     证据: 16 text-only, 34 with byType/byKey
+
+──────────────────────────────────────────────────────────────────────
+🔍 SUSPICIOUS 可疑（需人工审核 3 分钟/条）
+──────────────────────────────────────────────────────────────────────
+  ❓ 以下 23 个 HTML→Flutter 页面不在 KEY_HTML_PAGES 元素清单中
+     路径: docs/04-UI/html/
+     证据: 这些页面的元素级对比完全依赖人工执行 R7 — 引擎不会自动检查
+
+  ❓ [about.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/about_page.dart
+     证据: 打开 about.html → 提取 ALL UI 元素 → 对比 about_page.dart 对应 Widget
+
+  ❓ [achievement.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/achievement_page.dart
+     证据: 打开 achievement.html → 提取 ALL UI 元素 → 对比 achievement_page.dart 对应 Widget
+
+  ❓ [answer_sheet.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/answer_sheet_page.dart
+     证据: 打开 answer_sheet.html → 提取 ALL UI 元素 → 对比 answer_sheet_page.dart 对应 Widget
+
+  ❓ [homework_detail.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/homework_detail_page.dart
+     证据: 打开 homework_detail.html → 提取 ALL UI 元素 → 对比 homework_detail_page.dart 对应 Widget
+
+  ❓ [homework_list.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/homework_list_page.dart
+     证据: 打开 homework_list.html → 提取 ALL UI 元素 → 对比 homework_list_page.dart 对应 Widget
+
+  ❓ [lecture_chapters.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/lecture_chapters_page.dart
+     证据: 打开 lecture_chapters.html → 提取 ALL UI 元素 → 对比 lecture_chapters_page.dart 对应 Widget
+
+  ❓ [lecture_content.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/lecture_content_page.dart
+     证据: 打开 lecture_content.html → 提取 ALL UI 元素 → 对比 lecture_content_page.dart 对应 Widget
+
+  ❓ [lecture_courses.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/lecture_courses_page.dart
+     证据: 打开 lecture_courses.html → 提取 ALL UI 元素 → 对比 lecture_courses_page.dart 对应 Widget
+
+  ❓ [level_detail.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/level_detail_page.dart
+     证据: 打开 level_detail.html → 提取 ALL UI 元素 → 对比 level_detail_page.dart 对应 Widget
+
+  ❓ [paper_auto.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/exam_auto_page.dart
+     证据: 打开 paper_auto.html → 提取 ALL UI 元素 → 对比 exam_auto_page.dart 对应 Widget
+
+  ❓ [paper_explore.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/exam_explore_page.dart
+     证据: 打开 paper_explore.html → 提取 ALL UI 元素 → 对比 exam_explore_page.dart 对应 Widget
+
+  ❓ [paper_favorites.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/exam_favorites_page.dart
+     证据: 打开 paper_favorites.html → 提取 ALL UI 元素 → 对比 exam_favorites_page.dart 对应 Widget
+
+  ❓ [paper_history.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/exam_history_page.dart
+     证据: 打开 paper_history.html → 提取 ALL UI 元素 → 对比 exam_history_page.dart 对应 Widget
+
+  ❓ [paper_pick.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/exam_pick_page.dart
+     证据: 打开 paper_pick.html → 提取 ALL UI 元素 → 对比 exam_pick_page.dart 对应 Widget
+
+  ❓ [points.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/points_page.dart
+     证据: 打开 points.html → 提取 ALL UI 元素 → 对比 points_page.dart 对应 Widget
+
+  ❓ [preference_edit.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/preference_edit_page.dart
+     证据: 打开 preference_edit.html → 提取 ALL UI 元素 → 对比 preference_edit_page.dart 对应 Widget
+
+  ❓ [preference_list.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/preference_list_page.dart
+     证据: 打开 preference_list.html → 提取 ALL UI 元素 → 对比 preference_list_page.dart 对应 Widget
+
+  ❓ [preference_welcome.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/preference_welcome_page.dart
+     证据: 打开 preference_welcome.html → 提取 ALL UI 元素 → 对比 preference_welcome_page.dart 对应 Widget
+
+  ❓ [profile_edit.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/profile_edit_page.dart
+     证据: 打开 profile_edit.html → 提取 ALL UI 元素 → 对比 profile_edit_page.dart 对应 Widget
+
+  ❓ [question_history.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/question_history_page.dart
+     证据: 打开 question_history.html → 提取 ALL UI 元素 → 对比 question_history_page.dart 对应 Widget
+
+  ❓ [recommend.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/recommend_page.dart
+     证据: 打开 recommend.html → 提取 ALL UI 元素 → 对比 recommend_page.dart 对应 Widget
+
+  ❓ [register.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/register_page.dart
+     证据: 打开 register.html → 提取 ALL UI 元素 → 对比 register_page.dart 对应 Widget
+
+  ❓ [sync_queue.html] 需人工元素级对比 — 不在 KEY_HTML_PAGES 中
+     路径: flutter_app/lib/pages/sync_queue_page.dart
+     证据: 打开 sync_queue.html → 提取 ALL UI 元素 → 对比 sync_queue_page.dart 对应 Widget
+
+  ❓ [about.html] 自动对标: HTML 有 13 个交互元素，Flutter 检测到 ~7 个交互模式
+     路径: flutter_app/lib/pages/about_page.dart
+     证据: HTML 交互: 13 项 | Flutter onTap/onPressed/nav: ~7 处
+
+  ❓ [achievement.html] 自动对标: HTML 有 18 个交互元素，Flutter 检测到 ~0 个交互模式
+     路径: flutter_app/lib/pages/achievement_page.dart
+     证据: HTML 交互: 18 项 | Flutter onTap/onPressed/nav: ~0 处
+
+  ❓ [answer_sheet.html] 自动对标: HTML 有 8 个交互元素，Flutter 检测到 ~2 个交互模式
+     路径: flutter_app/lib/pages/answer_sheet_page.dart
+     证据: HTML 交互: 8 项 | Flutter onTap/onPressed/nav: ~2 处
+
+  ❓ [exam.html] 自动对标: HTML 有 2 个交互元素，Flutter 检测到 ~14 个交互模式
+     路径: flutter_app/lib/pages/exam_home_page.dart
+     证据: HTML 交互: 2 项 | Flutter onTap/onPressed/nav: ~14 处
+
+  ❓ [homework_detail.html] 自动对标: HTML 有 12 个交互元素，Flutter 检测到 ~10 个交互模式
+     路径: flutter_app/lib/pages/homework_detail_page.dart
+     证据: HTML 交互: 12 项 | Flutter onTap/onPressed/nav: ~10 处
+
+  ❓ [homework_list.html] 自动对标: HTML 有 8 个交互元素，Flutter 检测到 ~2 个交互模式
+     路径: flutter_app/lib/pages/homework_list_page.dart
+     证据: HTML 交互: 8 项 | Flutter onTap/onPressed/nav: ~2 处
+
+  ❓ [index.html] 自动对标: HTML 有 13 个交互元素，Flutter 检测到 ~18 个交互模式
+     路径: flutter_app/lib/pages/index_page.dart
+     证据: HTML 交互: 13 项 | Flutter onTap/onPressed/nav: ~18 处
+
+  ❓ [lecture_chapters.html] 自动对标: HTML 有 6 个交互元素，Flutter 检测到 ~7 个交互模式
+     路径: flutter_app/lib/pages/lecture_chapters_page.dart
+     证据: HTML 交互: 6 项 | Flutter onTap/onPressed/nav: ~7 处
+
+  ❓ [lecture_content.html] 自动对标: HTML 有 12 个交互元素，Flutter 检测到 ~1 个交互模式
+     路径: flutter_app/lib/pages/lecture_content_page.dart
+     证据: HTML 交互: 12 项 | Flutter onTap/onPressed/nav: ~1 处
+
+  ❓ [lecture_courses.html] 自动对标: HTML 有 4 个交互元素，Flutter 检测到 ~7 个交互模式
+     路径: flutter_app/lib/pages/lecture_courses_page.dart
+     证据: HTML 交互: 4 项 | Flutter onTap/onPressed/nav: ~7 处
+
+  ❓ [level_detail.html] 自动对标: HTML 有 9 个交互元素，Flutter 检测到 ~0 个交互模式
+     路径: flutter_app/lib/pages/level_detail_page.dart
+     证据: HTML 交互: 9 项 | Flutter onTap/onPressed/nav: ~0 处
+
+  ❓ [login.html] 自动对标: HTML 有 5 个交互元素，Flutter 检测到 ~17 个交互模式
+     路径: flutter_app/lib/pages/login_page.dart
+     证据: HTML 交互: 5 项 | Flutter onTap/onPressed/nav: ~17 处
+
+  ❓ [paper_auto.html] 自动对标: HTML 有 35 个交互元素，Flutter 检测到 ~10 个交互模式
+     路径: flutter_app/lib/pages/exam_auto_page.dart
+     证据: HTML 交互: 35 项 | Flutter onTap/onPressed/nav: ~10 处
+
+  ❓ [paper_explore.html] 自动对标: HTML 有 24 个交互元素，Flutter 检测到 ~8 个交互模式
+     路径: flutter_app/lib/pages/exam_explore_page.dart
+     证据: HTML 交互: 24 项 | Flutter onTap/onPressed/nav: ~8 处
+
+  ❓ [paper_favorites.html] 自动对标: HTML 有 17 个交互元素，Flutter 检测到 ~8 个交互模式
+     路径: flutter_app/lib/pages/exam_favorites_page.dart
+     证据: HTML 交互: 17 项 | Flutter onTap/onPressed/nav: ~8 处
+
+  ❓ [paper_history.html] 自动对标: HTML 有 21 个交互元素，Flutter 检测到 ~12 个交互模式
+     路径: flutter_app/lib/pages/exam_history_page.dart
+     证据: HTML 交互: 21 项 | Flutter onTap/onPressed/nav: ~12 处
+
+  ❓ [paper_pick.html] 自动对标: HTML 有 34 个交互元素，Flutter 检测到 ~7 个交互模式
+     路径: flutter_app/lib/pages/exam_pick_page.dart
+     证据: HTML 交互: 34 项 | Flutter onTap/onPressed/nav: ~7 处
+
+  ❓ [paper_quicklook.html] 自动对标: HTML 有 22 个交互元素，Flutter 检测到 ~9 个交互模式
+     路径: flutter_app/lib/pages/exam_quicklook_page.dart
+     证据: HTML 交互: 22 项 | Flutter onTap/onPressed/nav: ~9 处
+
+  ❓ [paper_quicklook_other.html] 自动对标: HTML 有 25 个交互元素，Flutter 检测到 ~7 个交互模式
+     路径: flutter_app/lib/pages/exam_quicklook_other_page.dart
+     证据: HTML 交互: 25 项 | Flutter onTap/onPressed/nav: ~7 处
+
+  ❓ [points.html] 自动对标: HTML 有 13 个交互元素，Flutter 检测到 ~0 个交互模式
+     路径: flutter_app/lib/pages/points_page.dart
+     证据: HTML 交互: 13 项 | Flutter onTap/onPressed/nav: ~0 处
+
+  ❓ [preference_edit.html] 自动对标: HTML 有 12 个交互元素，Flutter 检测到 ~6 个交互模式
+     路径: flutter_app/lib/pages/preference_edit_page.dart
+     证据: HTML 交互: 12 项 | Flutter onTap/onPressed/nav: ~6 处
+
+  ❓ [preference_list.html] 自动对标: HTML 有 11 个交互元素，Flutter 检测到 ~11 个交互模式
+     路径: flutter_app/lib/pages/preference_list_page.dart
+     证据: HTML 交互: 11 项 | Flutter onTap/onPressed/nav: ~11 处
+
+  ❓ [preference_welcome.html] 自动对标: HTML 有 14 个交互元素，Flutter 检测到 ~11 个交互模式
+     路径: flutter_app/lib/pages/preference_welcome_page.dart
+     证据: HTML 交互: 14 项 | Flutter onTap/onPressed/nav: ~11 处
+
+  ❓ [profile.html] 自动对标: HTML 有 12 个交互元素，Flutter 检测到 ~23 个交互模式
+     路径: flutter_app/lib/pages/profile_page.dart
+     证据: HTML 交互: 12 项 | Flutter onTap/onPressed/nav: ~23 处
+
+  ❓ [profile_edit.html] 自动对标: HTML 有 9 个交互元素，Flutter 检测到 ~12 个交互模式
+     路径: flutter_app/lib/pages/profile_edit_page.dart
+     证据: HTML 交互: 9 项 | Flutter onTap/onPressed/nav: ~12 处
+
+  ❓ [question_history.html] 自动对标: HTML 有 6 个交互元素，Flutter 检测到 ~2 个交互模式
+     路径: flutter_app/lib/pages/question_history_page.dart
+     证据: HTML 交互: 6 项 | Flutter onTap/onPressed/nav: ~2 处
+
+  ❓ [recommend.html] 自动对标: HTML 有 15 个交互元素，Flutter 检测到 ~8 个交互模式
+     路径: flutter_app/lib/pages/recommend_page.dart
+     证据: HTML 交互: 15 项 | Flutter onTap/onPressed/nav: ~8 处
+
+  ❓ [register.html] 自动对标: HTML 有 8 个交互元素，Flutter 检测到 ~22 个交互模式
+     路径: flutter_app/lib/pages/register_page.dart
+     证据: HTML 交互: 8 项 | Flutter onTap/onPressed/nav: ~22 处
+
+  ❓ [solve-choice.html] 自动对标: HTML 有 7 个交互元素，Flutter 检测到 ~6 个交互模式
+     路径: flutter_app/lib/pages/solve_choice_page.dart
+     证据: HTML 交互: 7 项 | Flutter onTap/onPressed/nav: ~6 处
+
+  ❓ [solve-fill.html] 自动对标: HTML 有 11 个交互元素，Flutter 检测到 ~6 个交互模式
+     路径: flutter_app/lib/pages/solve_fill_page.dart
+     证据: HTML 交互: 11 项 | Flutter onTap/onPressed/nav: ~6 处
+
+  ❓ [solve-map.html] 自动对标: HTML 有 10 个交互元素，Flutter 检测到 ~11 个交互模式
+     路径: flutter_app/lib/pages/solve_map_page.dart
+     证据: HTML 交互: 10 项 | Flutter onTap/onPressed/nav: ~11 处
+
+  ❓ [solve-rate.html] 自动对标: HTML 有 35 个交互元素，Flutter 检测到 ~8 个交互模式
+     路径: flutter_app/lib/pages/solve_rate_page.dart
+     证据: HTML 交互: 35 项 | Flutter onTap/onPressed/nav: ~8 处
+
+  ❓ [solve-step.html] 自动对标: HTML 有 20 个交互元素，Flutter 检测到 ~4 个交互模式
+     路径: flutter_app/lib/pages/solve_step_page.dart
+     证据: HTML 交互: 20 项 | Flutter onTap/onPressed/nav: ~4 处
+
+  ❓ [statistics.html] 自动对标: HTML 有 28 个交互元素，Flutter 检测到 ~0 个交互模式
+     路径: flutter_app/lib/pages/statistics_page.dart
+     证据: HTML 交互: 28 项 | Flutter onTap/onPressed/nav: ~0 处
+
+  ❓ [sync_queue.html] 自动对标: HTML 有 8 个交互元素，Flutter 检测到 ~2 个交互模式
+     路径: flutter_app/lib/pages/sync_queue_page.dart
+     证据: HTML 交互: 8 项 | Flutter onTap/onPressed/nav: ~2 处
+
+  ❓ [recommend_page.dart] 条件性死按钮: onPressed 在 '_presets.isNotEmpty' 不满足时为 null
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\lib\pages\recommend_page.dart
+     证据: onPressed: _presets.isNotEmpty ? _switchToPresetMode : null — 条件不满足时按钮显示但不响应
+
+  ❓ [exam_auto_page.dart] 条件性死按钮: onPressed 在 '_generating' 不满足时为 null
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\lib\pages\exam\exam_auto_page.dart
+     证据: onPressed: _generating ? null : _confirm,
+                  child : null — 条件不满足时按钮显示但不响应
+
+  ❓ [exam_auto_page.dart] 条件性死按钮: onPressed 在 'count < 30' 不满足时为 null
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\lib\pages\exam\exam_auto_page.dart
+     证据: onPressed: count < 30 ? () => setState(() => onChanged(count + 1 : null — 条件不满足时按钮显示但不响应
+
+  ❓ [about_page.dart] 条件性死按钮: onPressed 在 'updating' 不满足时为 null
+     路径: D:\Hermes\zhangyuzhixue_app_v2\flutter_app\lib\pages\profile\about_page.dart
+     证据: onPressed: updating ? null : onUpdate,
+                child:  : null — 条件不满足时按钮显示但不响应
+
+  ❓ stub: return []: if (ids.isEmpty) return [];
+     路径: flutter_app/lib/data\daos\exam_dao.dart:L38
+     证据: Found 27 matches total for pattern 'stub: return []'
+
+  ❓ stub: return []: if (ids.isEmpty) return [];
+     路径: flutter_app/lib/data\daos\question_dao.dart:L21
+     证据: Found 27 matches total for pattern 'stub: return []'
+
+  ❓ stub: return []: return []; // 选中的概念标签在 DB 中不存在 → 空结果
+     路径: flutter_app/lib/data\daos\question_dao.dart:L150
+     证据: Found 27 matches total for pattern 'stub: return []'
+
+  ❓ stub: return []: return [];
+     路径: flutter_app/lib/data\daos\question_dao.dart:L165
+     证据: Found 27 matches total for pattern 'stub: return []'
+
+  ❓ stub: return []: if (methodIds.isEmpty) return [];
+     路径: flutter_app/lib/data\daos\question_dao.dart:L270
+     证据: Found 27 matches total for pattern 'stub: return []'
+
+  ❓ stub: return 0（可能）: if (rows.isEmpty) return 0;
+     路径: flutter_app/lib/data\daos\achievement_dao.dart:L75
+     证据: Found 10 matches total for pattern 'stub: return 0（可能）'
+
+  ❓ stub: return 0（可能）: if (rows.isEmpty) return 0;
+     路径: flutter_app/lib/data\daos\achievement_dao.dart:L115
+     证据: Found 10 matches total for pattern 'stub: return 0（可能）'
+
+  ❓ stub: return 0（可能）: if (rows.isEmpty) return 0;
+     路径: flutter_app/lib/data\daos\statistics_dao.dart:L21
+     证据: Found 10 matches total for pattern 'stub: return 0（可能）'
+
+  ❓ stub: return 0（可能）: if (rows.isEmpty) return 0;
+     路径: flutter_app/lib/data\daos\user_dao.dart:L104
+     证据: Found 10 matches total for pattern 'stub: return 0（可能）'
+
+  ❓ stub: return 0（可能）: return 0;
+     路径: flutter_app/lib/domain\recommend_repository.dart:L195
+     证据: Found 10 matches total for pattern 'stub: return 0（可能）'
+
+  ❓ stub: return false（可能）: if (dir == null) return false;
+     路径: flutter_app/lib/data\database\database_provider.dart:L230
+     证据: Found 11 matches total for pattern 'stub: return false（可能）'
+
+  ❓ stub: return false（可能）: if (!await bak.exists()) return false;
+     路径: flutter_app/lib/data\database\database_provider.dart:L232
+     证据: Found 11 matches total for pattern 'stub: return false（可能）'
+
+  ❓ stub: return false（可能）: return false;
+     路径: flutter_app/lib/data\database\database_provider.dart:L242
+     证据: Found 11 matches total for pattern 'stub: return false（可能）'
+
+  ❓ stub: return false（可能）: if (ts == null) return false;
+     路径: flutter_app/lib/data\prefs\app_prefs.dart:L168
+     证据: Found 11 matches total for pattern 'stub: return false（可能）'
+
+  ❓ stub: return false（可能）: if (Random().nextDouble() >= await config.probability) retur
+     路径: flutter_app/lib/widgets\exit_rating_popup.dart:L48
+     证据: Found 11 matches total for pattern 'stub: return false（可能）'

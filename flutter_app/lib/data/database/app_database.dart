@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 part 'app_database.g.dart';
 
 // ═══════════════════════════════════════════════
-// 表定义 — SQL 表名与设计文档 docs/02-数据/数据库结构设计.md 一致（单数）
+// 表定义 — 数据架构见 docs/current/data-architecture.md
 // ═══════════════════════════════════════════════
 
 /// 用户信息缓存（本地专用）
