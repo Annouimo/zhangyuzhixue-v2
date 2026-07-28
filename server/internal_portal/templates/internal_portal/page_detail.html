@@ -27,30 +27,21 @@
             {% endfor %}
           </dl>
         {% endfor %}
-      {% elif section.slug == 'directions' %}
-        <div class="handbook-table direction-table">
-          <div class="handbook-table__head"><span>内容方向</span><span>当前负责人</span></div>
-          {% for entry in section.visible_entries %}
-            <div class="handbook-table__row"><strong>{{ entry.name }}</strong><span>{{ entry.description }}</span></div>
-          {% endfor %}
-        </div>
       {% elif section.body %}
         <div class="section-copy">{{ section.body|linebreaks }}</div>
       {% endif %}
 
-      {% if section.slug != 'directions' %}
-        {% if section.visible_entries %}
-          <div class="handbook-table entry-list">
-            <div class="handbook-table__head"><span>名称</span><span>说明</span><span></span></div>
-            {% for entry in section.visible_entries %}
-              <div class="handbook-table__row">
-                <strong>{{ entry.name }}</strong>
-                <span>{{ entry.description }}</span>
-                <span>{% if entry.url %}<a href="{{ entry.url }}"{% if entry.is_external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ entry.link_label }} →</a>{% endif %}</span>
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
+      {% if section.visible_entries %}
+        <div class="handbook-table entry-list{% if not section.has_entry_links %} direction-table{% endif %}">
+          <div class="handbook-table__head"><span>名称</span><span>说明</span>{% if section.has_entry_links %}<span></span>{% endif %}</div>
+          {% for entry in section.visible_entries %}
+            <div class="handbook-table__row">
+              <strong>{{ entry.name }}</strong>
+              <span>{{ entry.description }}</span>
+              {% if section.has_entry_links %}<span>{% if entry.url %}<a href="{{ entry.url }}"{% if entry.is_external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ entry.link_label }} →</a>{% endif %}</span>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
     </section>
   {% endfor %}

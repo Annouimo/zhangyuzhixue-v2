@@ -96,6 +96,22 @@ def test_current_portal_documents_use_current_gitee_paths():
     assert not document_entries.filter(url__contains='/docs/07-').exists()
 
 
+def test_student_downloads_use_current_release():
+    release_root = (
+        'https://gitee.com/annouimo/zhangyuzhixue-v2/'
+        'releases/download/v1.2.0-beta.1/'
+    )
+
+    android = PortalEntry.objects.get(name='学生端 Android')
+    windows = PortalEntry.objects.get(name='学生端 Windows')
+
+    assert android.url == f'{release_root}app-release.apk'
+    assert windows.url == (
+        f'{release_root}%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-'
+        '1.2.0-beta.1-windows.exe'
+    )
+
+
 def test_portal_models_are_available_in_admin():
     assert ProjectProfile in site._registry
     assert TeamMember in site._registry
@@ -112,10 +128,15 @@ def test_handbook_pages_follow_the_confirmed_structure(client, portal_user):
         BusinessArea.objects.order_by('sort_order').values_list('slug', flat=True)
     )
     assert pages == ['overview', 'software', 'website', 'content', 'post-production']
-    assert PortalEntry.objects.get(name='可视化').description == '史谨毓'
-    assert PortalEntry.objects.get(name='系统课程').description == '张誉宝'
-    assert PortalEntry.objects.get(name='经验分享').description == ''
-    assert PortalEntry.objects.get(name='学术交流').description == ''
+    content = BusinessArea.objects.get(slug='content')
+    content_types = HandbookSection.objects.get(
+        page=content, slug='directions',
+    )
+    assert list(
+        content_types.entries.values_list('name', flat=True)
+    ) == [
+        '系列系统课程', '专题深度解析', '学习经验分享', '学术交流',
+    ]
 
     post_response = client.get(
         reverse('internal_portal:page-detail', args=['post-production']),
@@ -147,7 +168,8 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
     index_response = client.get(reverse('internal_portal:index'))
     index_content = index_response.content.decode()
     assert '重构项目工作手册' in index_content
-    assert HandbookUpdate.objects.count() == 1
+    assert '完善自媒体视频工作分类' in index_content
+    assert HandbookUpdate.objects.count() == 2
     assert 'update-list' in index_content
     assert 'changelog-table' not in index_content
 
@@ -176,6 +198,42 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
     )
     content = response.content.decode()
     assert content.index('产品与系统资料') < content.index('开发与运维资料')
+
+
+def test_media_pages_explain_content_and_post_production(client, portal_user):
+    client.force_login(portal_user)
+
+    response = client.get(
+        reverse('internal_portal:page-detail', args=['content']),
+    )
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert '视频内容类型' in content
+    assert '系列系统课程' in content
+    assert '专题深度解析' in content
+    assert '学习经验分享' in content
+    assert '内容制作' in content
+    assert '视觉内容' in content
+    assert '可视化是视觉内容的一种实现形式' in content
+    assert '视频类型与视觉呈现' in content
+    assert '当前负责人' not in content
+
+    response = client.get(
+        reverse('internal_portal:page-detail', args=['post-production']),
+    )
+    post_content = response.content.decode()
+    assert response.status_code == 200
+    assert '后期制作' in post_content
+    assert '素材统筹' in post_content
+    assert '剪辑与包装' in post_content
+    assert '音画调整' in post_content
+    assert '成片输出' in post_content
+
+    update = HandbookUpdate.objects.get(title='完善自媒体视频工作分类')
+    assert update.description == (
+        '明确四类视频内容，区分内容制作与后期制作，补充各类'
+        '视频的视觉呈现方式。'
+    )
 
 
 @pytest.mark.parametrize('old_slug', ['product', 'technology'])

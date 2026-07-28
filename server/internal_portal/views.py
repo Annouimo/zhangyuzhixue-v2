@@ -84,6 +84,10 @@ def _page_context(page):
             to_attr='visible_entries',
         ))
     )
+    for section in sections:
+        section.has_entry_links = any(
+            entry.url for entry in section.visible_entries
+        )
     context['sections'] = sections
     return context
 
