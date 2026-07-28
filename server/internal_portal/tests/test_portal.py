@@ -80,6 +80,16 @@ def test_initial_portal_data_excludes_teacher_product():
     assert not any('教师' in name for name in names)
 
 
+def test_current_portal_documents_use_current_gitee_paths():
+    document_entries = PortalEntry.objects.filter(entry_type='document')
+
+    assert document_entries.filter(name='系统架构').exists()
+    assert document_entries.filter(name='项目文档索引').exists()
+    assert not document_entries.filter(url__contains='/docs/01-').exists()
+    assert not document_entries.filter(url__contains='/docs/03-').exists()
+    assert not document_entries.filter(url__contains='/docs/07-').exists()
+
+
 def test_portal_models_are_available_in_admin():
     assert ProjectProfile in site._registry
     assert TeamMember in site._registry
