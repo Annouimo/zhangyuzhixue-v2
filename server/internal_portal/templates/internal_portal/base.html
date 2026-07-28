@@ -6,38 +6,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=1">
+  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=2">
 </head>
 <body>
-  <header class="topbar">
-    <div class="shell topbar__inner">
+  <div class="portal-layout">
+    <aside class="sidebar">
       <a class="brand" href="{% url 'internal_portal:index' %}">
         <span class="brand__mark">章</span>
         <span>
-          <strong>{{ profile.title|default:'章鱼智学项目中心' }}</strong>
-          <small>团队内部</small>
+          <strong>章鱼智学</strong>
+          <small>项目中心</small>
         </span>
       </a>
-      <nav class="nav" aria-label="项目中心导航">
+      <nav class="side-nav" aria-label="项目中心导航">
         <a href="{% url 'internal_portal:index' %}"{% if not area %} class="is-active"{% endif %}>总览</a>
         {% for nav_area in navigation_areas %}
           <a href="{% url 'internal_portal:area-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
         {% endfor %}
       </nav>
-      <form method="post" action="{% url 'internal_portal:logout' %}" class="logout-form">
-        {% csrf_token %}
-        <button type="submit" title="退出项目中心">退出</button>
-      </form>
-    </div>
-  </header>
+      <div class="sidebar__bottom">
+        <a href="/">返回官网</a>
+        <form method="post" action="{% url 'internal_portal:logout' %}">
+          {% csrf_token %}
+          <button type="submit">退出登录</button>
+        </form>
+      </div>
+    </aside>
 
-  <main>{% block content %}{% endblock %}</main>
+    <div class="workspace">
+      <header class="mobile-header">
+        <a class="mobile-brand" href="{% url 'internal_portal:index' %}">
+          <span class="brand__mark">章</span>
+          <strong>项目中心</strong>
+        </a>
+        <details class="mobile-menu">
+          <summary>菜单</summary>
+          <nav aria-label="手机导航">
+            <a href="{% url 'internal_portal:index' %}">总览</a>
+            {% for nav_area in navigation_areas %}
+              <a href="{% url 'internal_portal:area-detail' nav_area.slug %}">{{ nav_area.name }}</a>
+            {% endfor %}
+            <a href="/">返回官网</a>
+            <form method="post" action="{% url 'internal_portal:logout' %}">
+              {% csrf_token %}
+              <button type="submit">退出登录</button>
+            </form>
+          </nav>
+        </details>
+      </header>
 
-  <footer class="portal-footer">
-    <div class="shell">
-      <span>章鱼智学项目团队内部使用</span>
-      <a href="/">返回官网</a>
+      <div class="workspace-bar">
+        <span><strong>当前阶段</strong>{{ profile.current_phase|default:'持续建设中' }}</span>
+        <span><strong>最后更新</strong>{{ profile.updated_at|date:'Y-m-d'|default:'待核验' }}</span>
+      </div>
+
+      <main class="main-content">{% block content %}{% endblock %}</main>
     </div>
-  </footer>
+  </div>
 </body>
 </html>

@@ -7,7 +7,10 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from .forms import PortalAuthenticationForm, has_portal_access
-from .models import BusinessArea, ProjectProfile, TeamMember
+from .models import BusinessArea, PortalEntry, ProjectProfile, TeamMember
+
+
+ENTRY_TYPE_ORDER = ('download', 'product', 'media', 'tool', 'document', 'service')
 
 
 def portal_member_required(view_func):
@@ -64,9 +67,21 @@ def index(request):
     context = _shared_context()
     context['areas'] = (
         BusinessArea.objects.filter(is_visible=True)
-        .prefetch_related('owners', 'entries')
+        .prefetch_related('entries')
     )
     context['members'] = TeamMember.objects.filter(is_active=True)
+    quick_entry_names = (
+        '学生端 Android', '学生端 Windows', '学生端 iOS',
+        'Gitee 主仓库', 'Django 管理后台', '设计文档索引',
+    )
+    quick_entries = PortalEntry.objects.filter(
+        is_visible=True, name__in=quick_entry_names,
+    )
+    quick_entry_map = {entry.name: entry for entry in quick_entries}
+    context['quick_entries'] = [
+        quick_entry_map[name] for name in quick_entry_names
+        if name in quick_entry_map
+    ]
     return render(request, 'internal_portal/index.html', context)
 
 
@@ -74,14 +89,27 @@ def index(request):
 def area_detail(request, slug):
     context = _shared_context()
     context['area'] = get_object_or_404(
-        BusinessArea.objects.prefetch_related('owners'),
+        BusinessArea.objects.all(),
         slug=slug,
         is_visible=True,
     )
-    context['entries'] = (
+    entries = list(
         context['area'].entries.filter(is_visible=True)
-        .prefetch_related('owners')
     )
+    entry_groups = []
+    for entry_type in ENTRY_TYPE_ORDER:
+        grouped_entries = [
+            entry for entry in entries if entry.entry_type == entry_type
+        ]
+        if grouped_entries:
+            entry_groups.append({
+                'label': grouped_entries[0].get_entry_type_display(),
+                'entries': grouped_entries,
+                'show_status': any(
+                    entry.status != 'active' for entry in grouped_entries
+                ),
+            })
+    context['entry_groups'] = entry_groups
     if slug == 'team':
         context['members'] = TeamMember.objects.filter(is_active=True)
     return render(request, 'internal_portal/area_detail.html', context)
