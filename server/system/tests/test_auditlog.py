@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 from accounts.models import InvitationCode, Student
 from courses.models import Course, Document
+from interactions.models import ContentContribution, ContributionTagSuggestion
 from qbank.models import (
     BaseQuestion,
     ChoiceExt,
@@ -25,6 +26,7 @@ EXPECTED_REGISTERED = [
     SolutionMethod, SolutionStep,
     KnowledgeCard, ConceptTag,
     Course, Document,
+    ContentContribution, ContributionTagSuggestion,
     DbVersion,
     User,
 ]

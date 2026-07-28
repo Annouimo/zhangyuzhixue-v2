@@ -9,6 +9,7 @@ import '../../domain/progress_repository.dart';
 import '../../domain/question_repository.dart';
 import '../solve/widgets/solve_result_card.dart';
 import 'question_detail_presentation.dart';
+import '../router.dart';
 
 class StudentQuestionDetailPage extends StatefulWidget {
   const StudentQuestionDetailPage({super.key, required this.questionId});
@@ -72,7 +73,19 @@ class _StudentQuestionDetailPageState extends State<StudentQuestionDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('题目详情')),
+      appBar: AppBar(
+        title: const Text('题目详情'),
+        actions: [
+          IconButton(
+            tooltip: '反馈题目错误',
+            icon: const Icon(Icons.report_outlined),
+            onPressed: () => RouterUtils.push(
+              context,
+              '${AppRoutes.contributionCorrection}?questionId=${widget.questionId}',
+            ),
+          ),
+        ],
+      ),
       body: _loading
           ? const LoadingIndicator(message: '正在加载题目详情')
           : _error != null

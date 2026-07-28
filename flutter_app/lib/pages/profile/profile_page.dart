@@ -445,6 +445,13 @@ class ProfilePageState extends State<ProfilePage> {
         onTap: () => RouterUtils.push(context, AppRoutes.growthCenter),
       ),
       AppNavigationCard(
+        icon: Icons.rate_review_outlined,
+        title: '内容贡献',
+        subtitle: '投稿新题、查看审核进度',
+        tone: AppStatusTone.info,
+        onTap: () => RouterUtils.push(context, AppRoutes.contributions),
+      ),
+      AppNavigationCard(
         icon: Icons.settings_outlined,
         title: '设置',
         subtitle: _syncSubtitle == null ? '常用范围、同步与账号管理' : _syncSubtitle!,

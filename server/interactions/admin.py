@@ -1,10 +1,156 @@
+from django import forms
 from django.contrib import admin
+from django.utils import timezone
 
 from .models import (
     CardFeedback, CustomPaper, CustomPaperQuestion, PageSatisfactionFeedback,
     PaperCollect, PaperLike,
+    ContentContribution, ContributionReview, ContributionRevision,
+    ContributionTagSelection, ContributionTagSuggestion,
     QuestionRating, StepFeedback, StudentSubmission, SubmissionDetail,
 )
+
+
+class ContentContributionAdminForm(forms.ModelForm):
+    class Meta:
+        model = ContentContribution
+        fields = '__all__'
+
+    def clean(self):
+        cleaned = super().clean()
+        status_value = cleaned.get('status')
+        if status_value in {
+            ContentContribution.Status.NEEDS_REVISION,
+            ContentContribution.Status.REJECTED,
+        } and not (cleaned.get('review_note') or '').strip():
+            self.add_error('review_note', '打回修改或不采纳时必须填写审核意见。')
+        if (
+            status_value == ContentContribution.Status.COMPLETED
+            and cleaned.get('completed_question') is None
+        ):
+            self.add_error('completed_question', '标记已完成前必须关联处理后的题目。')
+        return cleaned
+
+
+class ContributionRevisionInline(admin.StackedInline):
+    model = ContributionRevision
+    extra = 0
+    can_delete = False
+    fields = [
+        'revision_number', 'raw_json', 'normalized_payload',
+        'question_snapshot', 'created_at',
+    ]
+    readonly_fields = fields
+
+
+class ContributionTagSelectionInline(admin.TabularInline):
+    model = ContributionTagSelection
+    extra = 0
+    autocomplete_fields = ['concept_tag']
+
+
+class ContributionTagSuggestionInline(admin.TabularInline):
+    model = ContributionTagSuggestion
+    extra = 0
+    fields = [
+        'suggested_name', 'suggested_parent', 'reason', 'status',
+        'resolved_tag', 'reviewer_note',
+    ]
+    autocomplete_fields = ['suggested_parent', 'resolved_tag']
+
+
+class ContributionReviewInline(admin.TabularInline):
+    model = ContributionReview
+    extra = 0
+    can_delete = False
+    fields = ['actor', 'action', 'note', 'created_at']
+    readonly_fields = fields
+
+
+@admin.register(ContentContribution)
+class ContentContributionAdmin(admin.ModelAdmin):
+    form = ContentContributionAdminForm
+    list_display = [
+        'id', 'contribution_type', 'student', 'question', 'status',
+        'revision_count', 'updated_at',
+    ]
+    list_filter = ['contribution_type', 'status', 'created_at']
+    search_fields = [
+        'student__user__username', 'question__stem',
+        'revisions__normalized_payload',
+    ]
+    list_select_related = ['student', 'question', 'completed_question']
+    autocomplete_fields = ['question', 'completed_question', 'reviewed_by']
+    readonly_fields = ['student', 'contribution_type', 'question', 'created_at', 'updated_at']
+    inlines = [
+        ContributionRevisionInline,
+        ContributionTagSelectionInline,
+        ContributionTagSuggestionInline,
+        ContributionReviewInline,
+    ]
+
+    @admin.display(description='修订次数')
+    def revision_count(self, obj):
+        return obj.revisions.count()
+
+    def save_model(self, request, obj, form, change):
+        previous_status = None
+        if change:
+            previous_status = ContentContribution.objects.filter(
+                pk=obj.pk
+            ).values_list('status', flat=True).first()
+        if previous_status != obj.status:
+            obj.reviewed_by = request.user
+            obj.reviewed_at = timezone.now()
+        super().save_model(request, obj, form, change)
+        if previous_status and previous_status != obj.status:
+            action_by_status = {
+                ContentContribution.Status.NEEDS_REVISION: 'needs_revision',
+                ContentContribution.Status.PROCESSING: 'processing',
+                ContentContribution.Status.COMPLETED: 'completed',
+                ContentContribution.Status.REJECTED: 'rejected',
+            }
+            action = action_by_status.get(obj.status)
+            if action:
+                ContributionReview.objects.create(
+                    contribution=obj,
+                    actor=request.user,
+                    action=action,
+                    note=obj.review_note,
+                )
+
+
+@admin.register(ContributionTagSuggestion)
+class ContributionTagSuggestionAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'suggested_name', 'suggested_parent', 'contribution',
+        'status', 'resolved_tag',
+    ]
+    list_filter = ['status']
+    search_fields = ['suggested_name', 'reason']
+    autocomplete_fields = ['suggested_parent', 'resolved_tag']
+    actions = ['create_suggested_tags']
+
+    @admin.action(description='创建所选建议为正式标签')
+    def create_suggested_tags(self, request, queryset):
+        count = 0
+        for suggestion in queryset.filter(status='pending'):
+            tag = suggestion.resolved_tag
+            if tag is None:
+                from qbank.models import ConceptTag
+                tag, _ = ConceptTag.objects.get_or_create(
+                    name=suggestion.suggested_name.strip(),
+                    defaults={'parent': suggestion.suggested_parent},
+                )
+            suggestion.status = 'created'
+            suggestion.resolved_tag = tag
+            suggestion.save(update_fields=['status', 'resolved_tag'])
+            ContributionTagSelection.objects.get_or_create(
+                contribution=suggestion.contribution,
+                concept_tag=tag,
+            )
+            count += 1
+        self.message_user(request, f'已处理 {count} 条标签建议。')
 
 
 class SubmissionDetailInline(admin.TabularInline):

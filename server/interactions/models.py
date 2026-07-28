@@ -2,7 +2,7 @@
 
 from django.contrib.auth.models import User
 from accounts.models import Student
-from qbank.models import BaseQuestion
+from qbank.models import BaseQuestion, ConceptTag
 
 
 class StudentSubmission(models.Model):
@@ -294,3 +294,163 @@ class PreferenceFilter(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.student})'
+
+
+class ContentContribution(models.Model):
+    """Student-authored question submission or correction report."""
+
+    class ContributionType(models.TextChoices):
+        NEW_QUESTION = 'new_question', '新题投稿'
+        QUESTION_CORRECTION = 'question_correction', '题目纠错'
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', '待审核'
+        NEEDS_REVISION = 'needs_revision', '待修改'
+        PROCESSING = 'processing', '处理中'
+        COMPLETED = 'completed', '已完成'
+        REJECTED = 'rejected', '未采纳'
+        WITHDRAWN = 'withdrawn', '已撤回'
+
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name='content_contributions'
+    )
+    contribution_type = models.CharField(
+        '贡献类型', max_length=32, choices=ContributionType.choices
+    )
+    question = models.ForeignKey(
+        BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='correction_contributions', verbose_name='纠错题目',
+    )
+    completed_question = models.ForeignKey(
+        BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='completed_contributions', verbose_name='处理后题目',
+    )
+    status = models.CharField(
+        '状态', max_length=24, choices=Status.choices,
+        default=Status.PENDING, db_index=True,
+    )
+    review_note = models.TextField('当前审核意见', blank=True, default='')
+    reviewed_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reviewed_content_contributions', verbose_name='审核人',
+    )
+    reviewed_at = models.DateTimeField('审核时间', null=True, blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '内容贡献'
+        verbose_name_plural = '内容贡献审核'
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f'{self.get_contribution_type_display()} #{self.pk}'
+
+
+class ContributionRevision(models.Model):
+    """Immutable payload snapshot for each submission/resubmission."""
+
+    contribution = models.ForeignKey(
+        ContentContribution, on_delete=models.CASCADE, related_name='revisions'
+    )
+    revision_number = models.PositiveIntegerField('修订版本')
+    raw_json = models.TextField('原始 JSON', blank=True, default='')
+    normalized_payload = models.JSONField('规范化内容', default=dict)
+    question_snapshot = models.JSONField('原题快照', default=dict, blank=True)
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '贡献修订'
+        verbose_name_plural = '贡献修订'
+        ordering = ['contribution', '-revision_number']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['contribution', 'revision_number'],
+                name='uq_contribution_revision_number',
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.contribution_id} v{self.revision_number}'
+
+
+class ContributionTagSelection(models.Model):
+    contribution = models.ForeignKey(
+        ContentContribution, on_delete=models.CASCADE,
+        related_name='tag_selections',
+    )
+    concept_tag = models.ForeignKey(
+        ConceptTag, on_delete=models.CASCADE,
+        related_name='contribution_selections',
+    )
+
+    class Meta:
+        verbose_name = '贡献标签'
+        verbose_name_plural = '贡献标签'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['contribution', 'concept_tag'],
+                name='uq_contribution_concept_tag',
+            )
+        ]
+
+
+class ContributionTagSuggestion(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', '待审核'
+        CREATED = 'created', '已创建'
+        MERGED = 'merged', '已合并'
+        REJECTED = 'rejected', '未采纳'
+
+    contribution = models.ForeignKey(
+        ContentContribution, on_delete=models.CASCADE,
+        related_name='tag_suggestions',
+    )
+    suggested_name = models.CharField('建议名称', max_length=64)
+    suggested_parent = models.ForeignKey(
+        ConceptTag, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='child_tag_suggestions', verbose_name='建议上级标签',
+    )
+    reason = models.CharField('建议理由', max_length=500, blank=True, default='')
+    status = models.CharField(
+        '状态', max_length=16, choices=Status.choices,
+        default=Status.PENDING,
+    )
+    resolved_tag = models.ForeignKey(
+        ConceptTag, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='resolved_tag_suggestions', verbose_name='处理后标签',
+    )
+    reviewer_note = models.CharField(
+        '审核说明', max_length=500, blank=True, default=''
+    )
+
+    class Meta:
+        verbose_name = '新标签建议'
+        verbose_name_plural = '新标签建议'
+
+
+class ContributionReview(models.Model):
+    class Action(models.TextChoices):
+        SUBMITTED = 'submitted', '已提交'
+        RESUBMITTED = 'resubmitted', '重新提交'
+        NEEDS_REVISION = 'needs_revision', '打回修改'
+        PROCESSING = 'processing', '进入处理'
+        COMPLETED = 'completed', '处理完成'
+        REJECTED = 'rejected', '未采纳'
+        WITHDRAWN = 'withdrawn', '已撤回'
+
+    contribution = models.ForeignKey(
+        ContentContribution, on_delete=models.CASCADE, related_name='reviews'
+    )
+    actor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='content_contribution_actions',
+    )
+    action = models.CharField('操作', max_length=24, choices=Action.choices)
+    note = models.TextField('说明', blank=True, default='')
+    created_at = models.DateTimeField('操作时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '贡献审核记录'
+        verbose_name_plural = '贡献审核记录'
+        ordering = ['created_at']

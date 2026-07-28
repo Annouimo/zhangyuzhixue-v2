@@ -36,6 +36,9 @@ import 'recommend_page.dart';
 import 'exam/exam_home_page.dart';
 import 'review_page.dart';
 import 'question_bank/question_bank_page.dart';
+import 'contributions/contribution_editor_page.dart';
+import 'contributions/contribution_help_page.dart';
+import 'contributions/contribution_list_page.dart';
 import 'package:shared/debug/operation_log.dart';
 
 /// 路由路径常量
@@ -77,6 +80,11 @@ abstract final class AppRoutes {
   static const studyArchive = '/profile/study-archive';
   static const growthCenter = '/profile/growth';
   static const settings = '/profile/settings';
+  static const contributions = '/profile/contributions';
+  static const contributionNew = '/profile/contributions/new';
+  static const contributionCorrection = '/profile/contributions/correction';
+  static const contributionEdit = '/profile/contributions/edit';
+  static const contributionHelp = '/profile/contributions/help';
 }
 
 /// 从 query 参数解析 int
@@ -351,6 +359,35 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.settings,
       name: 'settings',
       builder: (_, _) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.contributions,
+      name: 'contributions',
+      builder: (_, _) => const ContributionListPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.contributionNew,
+      name: 'contribution-new',
+      builder: (_, _) => const ContributionEditorPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.contributionCorrection,
+      name: 'contribution-correction',
+      builder: (_, state) => ContributionEditorPage(
+        questionId: _intParam(state.uri.queryParameters, 'questionId'),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.contributionEdit,
+      name: 'contribution-edit',
+      builder: (_, state) => ContributionEditorPage(
+        contributionId: _intParam(state.uri.queryParameters, 'id'),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.contributionHelp,
+      name: 'contribution-help',
+      builder: (_, _) => const ContributionHelpPage(),
     ),
     GoRoute(
       path: AppRoutes.preferenceWelcome,

@@ -20,6 +20,10 @@ def register_all():
         ProjectProfile,
         TeamMember,
     )
+    from interactions.models import (
+        ContentContribution,
+        ContributionTagSuggestion,
+    )
     from qbank.models import (
         BaseQuestion,
         ChoiceExt,
@@ -43,6 +47,8 @@ def register_all():
     auditlog_registry.register(SolutionStep)
     auditlog_registry.register(KnowledgeCard)
     auditlog_registry.register(ConceptTag)
+    auditlog_registry.register(ContentContribution)
+    auditlog_registry.register(ContributionTagSuggestion)
     auditlog_registry.register(Course)
     auditlog_registry.register(Document)
     auditlog_registry.register(DbVersion)
