@@ -25,7 +25,8 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.lectureRepository ??
+    _repo =
+        widget.lectureRepository ??
         LectureRepository(LectureDao(DatabaseProvider()));
     _load();
   }
@@ -42,10 +43,9 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
         _courses = courses;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'LectureCoursesPage',
-        {'courseCount': _courses?.length},
-      );
+      AuditLogger.instance.page('LectureCoursesPage', {
+        'courseCount': _courses?.length,
+      });
     } catch (error) {
       OperationLog.instance.error('lecture_courses_page_load', error);
       AuditLogger.instance.error('LectureCoursesPage._load', error);
@@ -59,9 +59,9 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('讲义目录')),
-        body: _buildBody(),
-      );
+    appBar: AppBar(title: const Text('内容')),
+    body: _buildBody(),
+  );
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载讲义目录…');
@@ -90,7 +90,7 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
           children: [
             const SizedBox(height: AppSpacing.md),
             AppFeatureBanner(
-              eyebrow: '课程讲义',
+              eyebrow: '公开讲义',
               icon: Icons.menu_book_rounded,
               title: '按章节理解知识脉络',
               subtitle: '讲义支持逐段展开，适合在做题前预习，也可以在错题后快速回顾相关知识。',
@@ -114,18 +114,15 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            const AppSectionHeader(
-              title: '选择课程',
-              subtitle: '进入课程后可以按章节顺序阅读。',
-            ),
+            const AppSectionHeader(title: '选择课程', subtitle: '进入课程后可以按章节顺序阅读。'),
             const SizedBox(height: AppSpacing.md),
             LayoutBuilder(
               builder: (context, constraints) {
                 final columns = constraints.maxWidth >= AppBreakpoints.expanded
                     ? 3
                     : constraints.maxWidth >= AppBreakpoints.compact
-                        ? 2
-                        : 1;
+                    ? 2
+                    : 1;
                 const gap = AppSpacing.md;
                 final width = columns == 1
                     ? constraints.maxWidth
@@ -190,10 +187,7 @@ class _CourseCard extends StatelessWidget {
                   color: colors.primaryContainer,
                   borderRadius: BorderRadius.circular(AppRadius.medium),
                 ),
-                child: Icon(
-                  Icons.menu_book_rounded,
-                  color: colors.primary,
-                ),
+                child: Icon(Icons.menu_book_rounded, color: colors.primary),
               ),
               const Spacer(),
               Icon(AppIcons.chevronRight, color: colors.textMuted),
@@ -204,9 +198,7 @@ class _CourseCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '共 $chapterCount 讲 · 点击进入目录',
-            style: textTheme.bodySmall?.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
           ),
         ],
       ),

@@ -15,6 +15,7 @@ import '../../domain/progress_repository.dart' as progress;
 import '../../domain/question_repository.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../exam/exam_session_timer.dart';
 
 /// 解答题地图页 — 步骤概览（匹配 solve-map.html）
 class SolveMapPage extends StatefulWidget {
@@ -209,7 +210,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('解题步骤')),
+      appBar: AppBar(
+        title: const Text('解题步骤'),
+        actions: const [ExamTimerAction()],
+      ),
       body: _loading
           ? const LoadingIndicator(message: '正在整理解题步骤')
           : _error != null

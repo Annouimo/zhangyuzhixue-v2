@@ -83,6 +83,7 @@ class SolveRouteHelper {
     String questionType, {
     List<int> sequence = const [],
     List<int> quickPracticeSeen = const [],
+    bool forceNewAttempt = false,
   }) async {
     final repo = QuestionRepository(
       QuestionDao(DatabaseProvider()),
@@ -91,7 +92,7 @@ class SolveRouteHelper {
     final attempts = await repo.getAttempts(questionId);
     String mode;
     String? attemptId;
-    if (attempts.isEmpty) {
+    if (forceNewAttempt || attempts.isEmpty) {
       mode = 'first';
       attemptId = null;
     } else {
@@ -151,6 +152,7 @@ class SolveRouteHelper {
       questionId,
       question.questionType,
       sequence: sequence,
+      forceNewAttempt: true,
     );
   }
 }

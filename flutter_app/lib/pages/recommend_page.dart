@@ -1,25 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
-import 'package:shared/theme/app_theme.dart';
-import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/theme/app_icons.dart';
-import 'package:shared/widgets/app_card.dart';
-import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_status_badge.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
-import 'package:shared/widgets/empty_placeholder.dart';
-import 'package:shared/widgets/error_placeholder.dart';
-import 'package:shared/widgets/loading_indicator.dart';
+import 'package:shared/shared.dart';
 
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/question_repository.dart';
 import '../domain/recommend_repository.dart';
-import 'widgets/recommend_card.dart';
 
-/// 推荐页（双模式：智能推荐 / 偏好推荐）
+/// 本地连续推荐页。页面只展示当前题目，完整作答复用既有解题流程。
 class RecommendPage extends StatefulWidget {
   const RecommendPage({super.key, this.recommendRepository});
 
@@ -30,45 +18,24 @@ class RecommendPage extends StatefulWidget {
 }
 
 class RecommendPageState extends State<RecommendPage> {
-  late RecommendRepository _repo;
+  late RecommendRepository _repository;
+  List<RecommendedQuestion> _queue = const [];
+  final Set<int> _seenInSession = {};
+  int _currentIndex = 0;
   bool _loading = true;
   String? _error;
-  List<RecommendedQuestion>? _questions;
-  bool _preferSmart = true;
-  List<RecommendPreset> _presets = [];
-  int _selectedPresetIndex = -1;
 
-  void _initRepo() {
-    _repo =
-        widget.recommendRepository ??
-        RecommendRepository(
-          QuestionDao(DatabaseProvider()),
-          ProgressDao(DatabaseProvider()),
-        );
-  }
+  RecommendedQuestion? get _current =>
+      _currentIndex < _queue.length ? _queue[_currentIndex] : null;
 
-  /// 供 MainShell 切换 Tab 时调用：静默刷新，不打断用户阅读。
-  void refresh() {
-    _initRepo();
-    _loadSilent();
-  }
+  @visibleForTesting
+  int get debugQueueLength => _queue.length;
 
-  Future<void> _loadSilent() async {
-    _initRepo();
-    try {
-      final presets = await _repo.getPresets();
-      final smart = await _repo.getSmartList();
-      if (!mounted) return;
-      setState(() {
-        _presets = presets;
-        if (!_preferSmart) return;
-        _questions = smart;
-        _preferSmart = smart.isNotEmpty || presets.isEmpty;
-      });
-    } catch (_) {
-      // 静默刷新失败时保留已有内容。
-    }
-  }
+  @visibleForTesting
+  String? get debugLoadError => _error;
+
+  @visibleForTesting
+  bool get debugLoading => _loading;
 
   @override
   void initState() {
@@ -76,370 +43,198 @@ class RecommendPageState extends State<RecommendPage> {
     _load();
   }
 
-  Future<void> _load() async {
-    _initRepo();
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  void _initRepository() {
+    _repository =
+        widget.recommendRepository ??
+        RecommendRepository(
+          QuestionDao(DatabaseProvider()),
+          ProgressDao(DatabaseProvider()),
+        );
+  }
+
+  Future<void> refresh() async {
+    await _load(silent: _current != null);
+  }
+
+  Future<void> _load({bool silent = false}) async {
+    _initRepository();
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
-      final presets = await _repo.getPresets();
-      final smart = await _repo.getSmartList();
+      final questions = await _repository.getSmartList();
+      final filtered = questions
+          .where((question) => !_seenInSession.contains(question.id))
+          .toList(growable: false);
       if (!mounted) return;
       setState(() {
-        _presets = presets;
-        _questions = smart;
-        _preferSmart = smart.isNotEmpty || presets.isEmpty;
+        _queue = filtered.isEmpty ? questions : filtered;
+        _currentIndex = 0;
         _loading = false;
-      });
-      AuditLogger.instance.page('RecommendPage', {
-        'presetCount': _presets.length,
-        'smartCount': _questions?.length,
-        'preferSmart': _preferSmart,
+        _error = null;
       });
     } catch (error) {
-      OperationLog.instance.error('RecommendPage._load', error);
-      AuditLogger.instance.error('RecommendPage._load', error);
       if (!mounted) return;
       setState(() {
-        _error = '加载失败，请稍后重试';
+        _error = '暂时无法生成推荐，请稍后重试';
         _loading = false;
       });
     }
   }
 
-  Future<void> _switchToSmart() async {
-    _initRepo();
-    setState(() {
-      _loading = true;
-      _error = null;
-      _preferSmart = true;
-    });
-    try {
-      final questions = await _repo.getSmartList();
-      if (!mounted) return;
-      setState(() {
-        _questions = questions;
-        _loading = false;
-      });
-    } catch (error) {
-      OperationLog.instance.error('RecommendPage._switchToSmart', error);
-      AuditLogger.instance.error('RecommendPage._switchToSmart', error);
-      if (!mounted) return;
-      setState(() {
-        _error = '加载失败，请稍后重试';
-        _loading = false;
-      });
+  void _next() {
+    final current = _current;
+    if (current != null) _seenInSession.add(current.id);
+    if (_currentIndex + 1 < _queue.length) {
+      setState(() => _currentIndex++);
+    } else {
+      _load();
     }
   }
 
-  void _switchToPresetMode() {
-    if (_presets.isEmpty) return;
-    final index = _selectedPresetIndex >= 0 ? _selectedPresetIndex : 0;
-    _switchToPreset(index);
-  }
-
-  Future<void> _switchToPreset(int index) async {
-    if (index < 0 || index >= _presets.length) return;
-    _initRepo();
-    setState(() {
-      _loading = true;
-      _error = null;
-      _preferSmart = false;
-      _selectedPresetIndex = index;
-    });
-    try {
-      final presetQuestions = await _repo.getPresetQuestions(
-        _presets[index].id,
-      );
-      if (!mounted) return;
-      setState(() {
-        _questions = presetQuestions
-            .map(
-              (question) => RecommendedQuestion(
-                id: question.id,
-                title: question.title,
-                questionType: question.questionType,
-                difficulty: question.difficulty,
-                recommendReason: '符合“${_presets[index].name}”学习偏好',
-                status: question.status,
-              ),
-            )
-            .toList();
-        _loading = false;
-      });
-    } catch (error) {
-      OperationLog.instance.error('RecommendPage._switchToPreset', error);
-      AuditLogger.instance.error('RecommendPage._switchToPreset', error);
-      if (!mounted) return;
-      setState(() {
-        _error = '加载失败，请稍后重试';
-        _loading = false;
-      });
-    }
+  Future<void> _start() async {
+    final current = _current;
+    if (current == null) return;
+    _seenInSession.add(current.id);
+    final sequence = _queue
+        .skip(_currentIndex)
+        .map((question) => question.id)
+        .toList(growable: false);
+    await SolveRouteHelper.navigateTo(
+      context,
+      current.id,
+      current.questionType,
+      sequence: sequence,
+      forceNewAttempt: true,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final current = _current;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('题目推荐'),
+        title: const Text('推荐'),
         actions: [
           IconButton(
-            tooltip: '刷新推荐',
-            onPressed: _load,
+            tooltip: '重新生成推荐',
+            onPressed: _loading ? null : () => _load(),
             icon: const Icon(AppIcons.refresh),
           ),
           const SizedBox(width: AppSpacing.xs),
         ],
       ),
-      body: _buildBody(),
+      body: _buildBody(current),
+      bottomNavigationBar: current == null ? null : _buildActions(current),
     );
   }
 
-  Widget _buildBody() {
-    if (_loading) {
-      return const LoadingIndicator(message: '正在生成适合你的练习…');
-    }
+  Widget _buildBody(RecommendedQuestion? current) {
+    if (_loading) return const LoadingIndicator(message: '正在选择下一道题…');
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
-
-    return AppContentContainer(
-      maxWidth: AppContentWidth.standard,
-      child: RefreshIndicator(
-        onRefresh: _load,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(
-            top: AppSpacing.sm,
-            bottom: AppSpacing.lg,
-          ),
-          children: [
-            _buildIntroCard(),
-            const SizedBox(height: AppSpacing.md),
-            _RecommendationModeSelector(
-              smartSelected: _preferSmart,
-              presetEnabled: _presets.isNotEmpty,
-              onSmartTap: _preferSmart ? null : _switchToSmart,
-              onPresetTap: !_preferSmart ? null : _switchToPresetMode,
-            ),
-            if (!_preferSmart) ...[
-              const SizedBox(height: AppSpacing.sm),
-              _buildPresetSelector(),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            AppSectionHeader(
-              title: _preferSmart ? '智能推荐题目' : '偏好推荐题目',
-              subtitle: _preferSmart ? '结合做题记录与薄弱知识点动态生成' : '根据选定的学习范围筛选题目',
-              action: AppStatusBadge(
-                label: '${_questions?.length ?? 0} 题',
-                tone: AppStatusTone.neutral,
-                compact: true,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ..._buildQuestionList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIntroCard() {
-    return AppFeatureBanner(
-      eyebrow: _preferSmart ? '基于学习记录' : '基于学习偏好',
-      icon: Icons.auto_awesome_outlined,
-      title: '把下一步练习交给推荐系统',
-      subtitle: _preferSmart ? '优先补足薄弱知识点，并兼顾题型与难度。' : '使用你保存的学习偏好，生成一组针对性练习。',
-    );
-  }
-
-  Widget _buildPresetSelector() {
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: DropdownButtonFormField<int>(
-        initialValue: _selectedPresetIndex >= 0 ? _selectedPresetIndex : null,
-        isExpanded: true,
-        decoration: const InputDecoration(
-          labelText: '学习偏好',
-          prefixIcon: Icon(Icons.tune_rounded),
-          helperText: '选择后会按偏好条件重新生成题目',
-        ),
-        hint: const Text('请选择一个学习偏好'),
-        items: List.generate(
-          _presets.length,
-          (index) => DropdownMenuItem<int>(
-            value: index,
-            child: Text(_presets[index].name),
-          ),
-        ),
-        onChanged: (value) {
-          if (value != null) _switchToPreset(value);
-        },
-      ),
-    );
-  }
-
-  List<Widget> _buildQuestionList() {
-    final questions = _questions ?? const <RecommendedQuestion>[];
-    if (questions.isEmpty) {
-      final needsPresetSelection = !_preferSmart && _selectedPresetIndex < 0;
-      return [
-        EmptyPlaceholder(
-          icon: _preferSmart
-              ? Icons.auto_awesome_outlined
-              : Icons.playlist_add_outlined,
-          message: _preferSmart
-              ? '暂时没有智能推荐，先完成几道练习积累学习记录'
-              : needsPresetSelection
-              ? '请先选择一个学习偏好开始推荐'
-              : '当前偏好下暂无题目，可以尝试选择其他学习偏好',
-        ),
-      ];
+    if (current == null) {
+      return EmptyPlaceholder(
+        icon: Icons.auto_awesome_outlined,
+        message: '当前没有可推荐的题目，请先检查题库数据',
+      );
     }
 
-    return [
-      for (var index = 0; index < questions.length; index++) ...[
-        if (index > 0) const SizedBox(height: AppSpacing.sm),
-        RecommendCard(
-          title: questions[index].title,
-          questionType: questions[index].questionType,
-          difficulty: questions[index].difficulty,
-          reason: questions[index].recommendReason,
-          status: questions[index].status,
-          onTap: () {
-            final question = questions[index];
-            SolveRouteHelper.navigateTo(
-              context,
-              question.id,
-              question.questionType,
-              sequence: questions
-                  .map((item) => item.id)
-                  .toList(growable: false),
-            );
-          },
-        ),
-      ],
-    ];
-  }
-}
-
-class _RecommendationModeSelector extends StatelessWidget {
-  const _RecommendationModeSelector({
-    required this.smartSelected,
-    required this.presetEnabled,
-    required this.onSmartTap,
-    required this.onPresetTap,
-  });
-
-  final bool smartSelected;
-  final bool presetEnabled;
-  final VoidCallback? onSmartTap;
-  final VoidCallback? onPresetTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxs),
-      decoration: BoxDecoration(
-        color: colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        border: Border.all(color: colors.border),
-      ),
-      child: Row(
+    return AppContentContainer(
+      maxWidth: AppContentWidth.reading,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          Expanded(
-            child: _ModeOption(
-              label: '智能推荐',
-              subtitle: '根据学习记录',
-              icon: Icons.auto_awesome_outlined,
-              selected: smartSelected,
-              onTap: onSmartTap,
+          Row(
+            children: [
+              AppStatusBadge(
+                label: current.recommendReason,
+                tone: AppStatusTone.recommendation,
+                icon: Icons.auto_awesome_rounded,
+                compact: true,
+              ),
+              const Spacer(),
+              Text(
+                '${_currentIndex + 1}/${_queue.length}',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppCard(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    AppStatusBadge(
+                      label: QuestionTypeLabels.of(current.questionType),
+                      tone: AppStatusTone.info,
+                      compact: true,
+                    ),
+                    if (current.difficulty > 0)
+                      AppStatusBadge(
+                        label: '难度 ${current.difficulty.toStringAsFixed(1)}',
+                        tone: AppStatusTone.neutral,
+                        compact: true,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                MdLatexBody(current.title, fontSize: 17),
+              ],
             ),
           ),
-          const SizedBox(width: AppSpacing.xxs),
-          Expanded(
-            child: _ModeOption(
-              label: '偏好推荐',
-              subtitle: presetEnabled ? '根据保存偏好' : '暂无可用偏好',
-              icon: Icons.tune_rounded,
-              selected: !smartSelected,
-              enabled: presetEnabled,
-              onTap: onPresetTap,
-            ),
-          ),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
   }
-}
 
-class _ModeOption extends StatelessWidget {
-  const _ModeOption({
-    required this.label,
-    required this.subtitle,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-    this.enabled = true,
-  });
-
-  final String label;
-  final String subtitle;
-  final IconData icon;
-  final bool selected;
-  final bool enabled;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildActions(RecommendedQuestion current) {
     final colors = context.colors;
-    final textTheme = Theme.of(context).textTheme;
-    final foreground = !enabled
-        ? colors.disabledForeground
-        : selected
-        ? colors.onPrimaryContainer
-        : colors.textSecondary;
-
-    return Material(
-      color: selected ? colors.primaryContainer : Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.medium),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.sm,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 20, color: foreground),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelLarge?.copyWith(color: foreground),
+    return SafeArea(
+      top: false,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border(top: BorderSide(color: colors.divider)),
+        ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: AppButton(
+                      label: '下一题',
+                      icon: Icons.skip_next_rounded,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: _next,
                     ),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.labelSmall?.copyWith(color: foreground),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: AppButton(
+                      label: '开始作答',
+                      icon: Icons.edit_rounded,
+                      onPressed: _start,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

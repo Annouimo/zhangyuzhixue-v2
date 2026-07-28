@@ -7,12 +7,13 @@ import 'package:shared/theme/app_tokens.dart';
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
 import 'exam/exam_home_page.dart';
-import 'index_page.dart';
+import 'lecture/lecture_courses_page.dart';
 import 'profile/profile_page.dart';
 import 'recommend_page.dart';
+import 'review_page.dart';
 
 /// Tab 页枚举。
-enum MainTab { home, recommend, exam, profile }
+enum MainTab { recommend, exam, review, content, profile }
 
 /// 学生端主导航框架。
 ///
@@ -28,8 +29,8 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _syncPendingCount = 0;
 
-  final GlobalKey<IndexPageState> _indexKey = GlobalKey();
   final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
+  final GlobalKey<ReviewPageState> _reviewKey = GlobalKey();
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
 
   late final List<Widget> _pages;
@@ -38,9 +39,10 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _pages = [
-      IndexPage(key: _indexKey),
       RecommendPage(key: _recommendKey),
       const ExamHomePage(),
+      ReviewPage(key: _reviewKey),
+      const LectureCoursesPage(),
       ProfilePage(key: _profileKey),
     ];
     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
@@ -64,8 +66,8 @@ class _MainShellState extends State<MainShell> {
 
   void _onDbVersionChanged() {
     if (!mounted) return;
-    _indexKey.currentState?.reload();
     _recommendKey.currentState?.refresh();
+    _reviewKey.currentState?.refresh();
     _profileKey.currentState?.reload();
   }
 
@@ -74,10 +76,10 @@ class _MainShellState extends State<MainShell> {
       setState(() => _currentIndex = index);
     }
 
-    if (index == MainTab.home.index) {
-      _indexKey.currentState?.reload();
-    } else if (index == MainTab.recommend.index) {
+    if (index == MainTab.recommend.index) {
       _recommendKey.currentState?.refresh();
+    } else if (index == MainTab.review.index) {
+      _reviewKey.currentState?.refresh();
     } else if (index == MainTab.profile.index) {
       _profileKey.currentState?.reload();
       _refreshSyncPending();
@@ -85,75 +87,79 @@ class _MainShellState extends State<MainShell> {
   }
 
   Widget _profileIcon({required bool selected}) {
-    final icon = Icon(
-      selected ? AppIcons.profileSelected : AppIcons.profile,
-    );
+    final icon = Icon(selected ? AppIcons.profileSelected : AppIcons.profile);
     if (_syncPendingCount <= 0) return icon;
 
     return Badge(
       isLabelVisible: true,
-      label: Text(
-        _syncPendingCount > 99 ? '99+' : '$_syncPendingCount',
-      ),
+      label: Text(_syncPendingCount > 99 ? '99+' : '$_syncPendingCount'),
       child: icon,
     );
   }
 
   List<NavigationDestination> get _bottomDestinations => [
-        const NavigationDestination(
-          icon: Icon(AppIcons.home),
-          selectedIcon: Icon(AppIcons.homeSelected),
-          label: '首页',
-          tooltip: '首页',
-        ),
-        const NavigationDestination(
-          icon: Icon(AppIcons.recommendation),
-          selectedIcon: Icon(AppIcons.recommendationSelected),
-          label: '推荐',
-          tooltip: '题目推荐',
-        ),
-        const NavigationDestination(
-          icon: Icon(AppIcons.exam),
-          selectedIcon: Icon(AppIcons.examSelected),
-          label: '组卷',
-          tooltip: '智能组卷',
-        ),
-        NavigationDestination(
-          icon: _profileIcon(selected: false),
-          selectedIcon: _profileIcon(selected: true),
-          label: '我的',
-          tooltip: '个人中心',
-        ),
-      ];
+    const NavigationDestination(
+      icon: Icon(AppIcons.recommendation),
+      selectedIcon: Icon(AppIcons.recommendationSelected),
+      label: '推荐',
+      tooltip: '题目推荐',
+    ),
+    const NavigationDestination(
+      icon: Icon(AppIcons.exam),
+      selectedIcon: Icon(AppIcons.examSelected),
+      label: '组卷',
+      tooltip: '智能组卷',
+    ),
+    const NavigationDestination(
+      icon: Icon(Icons.radar_outlined),
+      selectedIcon: Icon(Icons.radar_rounded),
+      label: '复盘',
+      tooltip: '学习复盘',
+    ),
+    const NavigationDestination(
+      icon: Icon(Icons.menu_book_outlined),
+      selectedIcon: Icon(Icons.menu_book_rounded),
+      label: '内容',
+      tooltip: '学习内容',
+    ),
+    NavigationDestination(
+      icon: _profileIcon(selected: false),
+      selectedIcon: _profileIcon(selected: true),
+      label: '我的',
+      tooltip: '个人中心',
+    ),
+  ];
 
   List<NavigationRailDestination> get _railDestinations => [
-        const NavigationRailDestination(
-          icon: Icon(AppIcons.home),
-          selectedIcon: Icon(AppIcons.homeSelected),
-          label: Text('首页'),
-        ),
-        const NavigationRailDestination(
-          icon: Icon(AppIcons.recommendation),
-          selectedIcon: Icon(AppIcons.recommendationSelected),
-          label: Text('推荐'),
-        ),
-        const NavigationRailDestination(
-          icon: Icon(AppIcons.exam),
-          selectedIcon: Icon(AppIcons.examSelected),
-          label: Text('组卷'),
-        ),
-        NavigationRailDestination(
-          icon: _profileIcon(selected: false),
-          selectedIcon: _profileIcon(selected: true),
-          label: const Text('我的'),
-        ),
-      ];
+    const NavigationRailDestination(
+      icon: Icon(AppIcons.recommendation),
+      selectedIcon: Icon(AppIcons.recommendationSelected),
+      label: Text('推荐'),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(AppIcons.exam),
+      selectedIcon: Icon(AppIcons.examSelected),
+      label: Text('组卷'),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(Icons.radar_outlined),
+      selectedIcon: Icon(Icons.radar_rounded),
+      label: Text('复盘'),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(Icons.menu_book_outlined),
+      selectedIcon: Icon(Icons.menu_book_rounded),
+      label: Text('内容'),
+    ),
+    NavigationRailDestination(
+      icon: _profileIcon(selected: false),
+      selectedIcon: _profileIcon(selected: true),
+      label: const Text('我的'),
+    ),
+  ];
 
   Widget _buildPageStack() {
-    return IndexedStack(
-      index: _currentIndex,
-      children: _pages,
-    );
+    return IndexedStack(index: _currentIndex, children: _pages);
   }
 
   Widget _buildRailHeader(BuildContext context, {required bool extended}) {
@@ -194,9 +200,9 @@ class _MainShellState extends State<MainShell> {
           Text(
             '章鱼智学',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: context.colors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: context.colors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -215,9 +221,7 @@ class _MainShellState extends State<MainShell> {
             body: _buildPageStack(),
             bottomNavigationBar: DecoratedBox(
               decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: context.colors.divider),
-                ),
+                border: Border(top: BorderSide(color: context.colors.divider)),
               ),
               child: NavigationBar(
                 selectedIndex: _currentIndex,
@@ -241,10 +245,7 @@ class _MainShellState extends State<MainShell> {
                       ? NavigationRailLabelType.none
                       : NavigationRailLabelType.all,
                   groupAlignment: -0.72,
-                  leading: _buildRailHeader(
-                    context,
-                    extended: extendRail,
-                  ),
+                  leading: _buildRailHeader(context, extended: extendRail),
                   destinations: _railDestinations,
                 ),
               ),

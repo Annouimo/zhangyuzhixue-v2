@@ -53,7 +53,6 @@ class ProfilePageState extends State<ProfilePage> {
   int? _preferenceCount;
   int? _statsTotalQuestions;
   double? _statsAccuracy;
-  int? _answerHistoryCount;
   int? _achievementUnlocked;
   double? _earnedPoints;
   double? _availablePoints;
@@ -104,7 +103,6 @@ class ProfilePageState extends State<ProfilePage> {
         _repo.getUserInfo(),
         _prefRepo.getCount(),
         _statsRepo.getOverview(),
-        _repo.getAnswerHistoryCount(),
         _achieveRepo.unlockedCount(),
         _repo.getPointsSummary(),
         _repo.currentLevel(),
@@ -112,7 +110,7 @@ class ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
       final info = results[0] as UserInfo;
       final ps =
-          results[5]
+          results[4]
               as ({
                 double earned,
                 double bonus,
@@ -121,7 +119,7 @@ class ProfilePageState extends State<ProfilePage> {
               });
       _earnedPoints = ps.earned;
       _availablePoints = ps.available;
-      _currentLevel = results[6] as int;
+      _currentLevel = results[5] as int;
 
       // 查询同步队列状态
       String? syncSubtitle;
@@ -138,8 +136,7 @@ class ProfilePageState extends State<ProfilePage> {
         final overview = results[2] as StatsOverview;
         _statsTotalQuestions = overview.totalQuestions;
         _statsAccuracy = overview.accuracyPercent;
-        _answerHistoryCount = results[3] as int;
-        _achievementUnlocked = results[4] as int;
+        _achievementUnlocked = results[3] as int;
         _syncSubtitle = syncSubtitle;
         _loading = false;
       });
@@ -698,13 +695,6 @@ class ProfilePageState extends State<ProfilePage> {
     final preferenceSubtitle = _preferenceCount != null
         ? '已设置 $_preferenceCount 个偏好'
         : '管理推荐范围与难度';
-    final statisticsSubtitle =
-        (_statsTotalQuestions != null && _statsAccuracy != null)
-        ? '共 $_statsTotalQuestions 题 · 正确率 ${_statsAccuracy!.toStringAsFixed(0)}%'
-        : '查看学习趋势和题型分布';
-    final historySubtitle = _answerHistoryCount != null
-        ? '共 $_answerHistoryCount 题'
-        : '回顾近期做题记录';
     final achievementSubtitle = _achievementUnlocked != null
         ? '已解锁 $_achievementUnlocked 个'
         : '查看已经达成的学习里程碑';
@@ -714,8 +704,8 @@ class ProfilePageState extends State<ProfilePage> {
 
     final sections = [
       _ProfileSection(
-        title: '学习工具',
-        subtitle: '管理学习方式并回顾历史数据。',
+        title: '学习设置',
+        subtitle: '管理系统推荐时使用的范围与难度。',
         entries: [
           _ProfileEntry(
             icon: Icons.tune_rounded,
@@ -723,18 +713,6 @@ class ProfilePageState extends State<ProfilePage> {
             subtitle: preferenceSubtitle,
             onTap: () =>
                 RouterUtils.push(context, AppRoutes.profilePreferences),
-          ),
-          _ProfileEntry(
-            icon: Icons.insights_rounded,
-            title: '学习统计',
-            subtitle: statisticsSubtitle,
-            onTap: () => RouterUtils.push(context, AppRoutes.statistics),
-          ),
-          _ProfileEntry(
-            icon: Icons.history_rounded,
-            title: '做题历史',
-            subtitle: historySubtitle,
-            onTap: () => RouterUtils.push(context, AppRoutes.profileHistory),
           ),
         ],
       ),

@@ -34,19 +34,18 @@ void main() {
   });
 
   group('MainShell', () {
-    testWidgets('renders 4 bottom navigation tabs (首页/推荐/组卷/我的)', (
-      tester,
-    ) async {
+    testWidgets('renders 5 bottom navigation tabs', (tester) async {
       await pumpShell(tester);
 
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('首页'), findsAtLeastNWidgets(1));
-      expect(find.text('推荐'), findsOneWidget);
+      expect(find.text('推荐'), findsAtLeastNWidgets(1));
       expect(find.text('组卷'), findsOneWidget);
+      expect(find.text('复盘'), findsOneWidget);
+      expect(find.text('内容'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
 
-    testWidgets('default tab is home (index 0)', (tester) async {
+    testWidgets('default tab is recommendation (index 0)', (tester) async {
       await pumpShell(tester);
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
@@ -56,12 +55,12 @@ void main() {
     testWidgets('tapping recommend tab switches content', (tester) async {
       await pumpShell(tester);
 
-      await tester.tap(find.text('推荐'));
+      await tester.tap(find.text('复盘'));
       await tester.pump();
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 1);
+      expect(navBar.selectedIndex, 2);
     });
 
     testWidgets('tapping profile tab switches content', (tester) async {
@@ -72,7 +71,7 @@ void main() {
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 3);
+      expect(navBar.selectedIndex, 4);
     });
 
     testWidgets('tapping exam tab switches content', (tester) async {
@@ -83,7 +82,7 @@ void main() {
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 2);
+      expect(navBar.selectedIndex, 1);
     });
 
     testWidgets('uses side navigation on wide screens', (tester) async {

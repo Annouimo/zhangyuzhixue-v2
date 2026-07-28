@@ -10,6 +10,7 @@ import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
 import '../router.dart';
 import 'widgets/exam_question_card.dart';
+import 'exam_session_timer.dart';
 
 /// 预览自己创建的组卷。
 class ExamQuicklookPage extends StatefulWidget {
@@ -188,13 +189,39 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             subtitle: '共 ${preview.totalCount} 题，点击题目可进入对应的练习与解析流程。',
             action: SizedBox(
               width: 220,
-              child: AppButton(
-                label: '快速对答案',
-                icon: Icons.fact_check_outlined,
-                fullWidth: true,
-                onPressed: () => RouterUtils.push(
-                  context,
-                  '${AppRoutes.answerSheet}?id=${widget.examId}',
+              child: ListenableBuilder(
+                listenable: ExamSessionTimer.instance,
+                builder: (context, _) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppButton(
+                      label: ExamSessionTimer.instance.isRunning
+                          ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
+                          : '开始计时',
+                      icon: ExamSessionTimer.instance.isRunning
+                          ? Icons.timer_off_outlined
+                          : Icons.timer_outlined,
+                      fullWidth: true,
+                      onPressed: () {
+                        if (ExamSessionTimer.instance.isRunning) {
+                          ExamSessionTimer.instance.stop();
+                        } else {
+                          ExamSessionTimer.instance.start(widget.examId);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    AppButton(
+                      label: '快速对答案',
+                      icon: Icons.fact_check_outlined,
+                      variant: AppButtonVariant.secondary,
+                      fullWidth: true,
+                      onPressed: () => RouterUtils.push(
+                        context,
+                        '${AppRoutes.answerSheet}?id=${widget.examId}',
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

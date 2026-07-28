@@ -16,7 +16,14 @@ class RecommendedQuestion {
   final String recommendReason;
   final String status;
 
-  const RecommendedQuestion({required this.id, required this.title, required this.questionType, required this.difficulty, required this.recommendReason, required this.status});
+  const RecommendedQuestion({
+    required this.id,
+    required this.title,
+    required this.questionType,
+    required this.difficulty,
+    required this.recommendReason,
+    required this.status,
+  });
 }
 
 /// 推荐预设
@@ -33,7 +40,13 @@ class PresetQuestion {
   final String questionType;
   final double difficulty;
   final String status;
-  const PresetQuestion({required this.id, required this.title, required this.questionType, required this.difficulty, required this.status});
+  const PresetQuestion({
+    required this.id,
+    required this.title,
+    required this.questionType,
+    required this.difficulty,
+    required this.status,
+  });
 }
 
 /// 推荐 Repository
@@ -66,25 +79,32 @@ class RecommendRepository {
       final editData = await _prefRepo.getEdit(presetId);
       final f = editData.filter;
       final candidates = await _questionDao.search(
-      years: f.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
-      regions: f.regions.isNotEmpty ? f.regions : null,
-      diffMin: f.diffMin,
-      diffMax: f.diffMax,
-      calcMin: f.calcMin,
-      calcMax: f.calcMax,
-      conceptTagNames: f.conceptTags.isNotEmpty ? f.conceptTags : null,
-      knowledgeCardNames: f.knowledgeCards.isNotEmpty ? f.knowledgeCards : null,
-      examTypes: f.types.isNotEmpty ? f.types : null,
-      questionTypes: f.questionTypes.isNotEmpty ? f.questionTypes : null,
-      limit: 50,
-    );
-    return candidates.take(20).map((q) => PresetQuestion(
-      id: q.id,
-      title: '${q.year} ${q.region} ${q.examType}',
-      questionType: q.questionType,
-      difficulty: q.difficulty ?? 0,
-      status: 'pending',
-    )).toList();
+        years: f.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+        regions: f.regions.isNotEmpty ? f.regions : null,
+        diffMin: f.diffMin,
+        diffMax: f.diffMax,
+        calcMin: f.calcMin,
+        calcMax: f.calcMax,
+        conceptTagNames: f.conceptTags.isNotEmpty ? f.conceptTags : null,
+        knowledgeCardNames: f.knowledgeCards.isNotEmpty
+            ? f.knowledgeCards
+            : null,
+        examTypes: f.types.isNotEmpty ? f.types : null,
+        questionTypes: f.questionTypes.isNotEmpty ? f.questionTypes : null,
+        limit: 50,
+      );
+      return candidates
+          .take(20)
+          .map(
+            (q) => PresetQuestion(
+              id: q.id,
+              title: '${q.year} ${q.region} ${q.examType}',
+              questionType: q.questionType,
+              difficulty: q.difficulty ?? 0,
+              status: 'pending',
+            ),
+          )
+          .toList();
     } catch (_) {
       return [];
     }
@@ -95,10 +115,8 @@ class RecommendRepository {
 class _RecommendationEngine {
   final QuestionDao _questionDao;
   final ProgressDao _progressDao;
-
   const _RecommendationEngine(this._questionDao, this._progressDao);
 
-  static const int coldStartThreshold = 5;
   static const double decayLambda = 0.099;
   static const int minConfidence = 5;
 
@@ -117,8 +135,12 @@ class _RecommendationEngine {
     // questionId → Set<tagId>
     final questionTagMap = <int, Set<int>>{};
     for (final link in tagLinks) {
-      tagQuestionMap.putIfAbsent(link.conceptTagId, () => {}).add(link.questionId);
-      questionTagMap.putIfAbsent(link.questionId, () => {}).add(link.conceptTagId);
+      tagQuestionMap
+          .putIfAbsent(link.conceptTagId, () => {})
+          .add(link.questionId);
+      questionTagMap
+          .putIfAbsent(link.questionId, () => {})
+          .add(link.conceptTagId);
     }
 
     // questionId → List<SubmissionDetailRow>
@@ -127,101 +149,151 @@ class _RecommendationEngine {
       attemptsMap.putIfAbsent(a.questionId, () => []).add(a);
     }
 
-    // 冷启动：做题数 < 5 时返回空
     final attemptedIds = allAttemptRows.map((r) => r.questionId).toSet();
-    int totalAttempts = 0;
-    for (final q in allQuestions) {
-      if (attemptedIds.contains(q.id)) totalAttempts++;
-      if (totalAttempts >= coldStartThreshold) break;
-    }
-    if (totalAttempts < coldStartThreshold) return [];
-
-    // 全部 completed 的 attempt 都是 correct → "已掌握"空状态
-    final judgedAttempts = allAttemptRows.where((a) => a.isCorrect != null).toList();
-    if (judgedAttempts.isNotEmpty && judgedAttempts.every((a) => a.isCorrect == 1)) {
-      return [];
-    }
-
     final doneIds = attemptedIds;
 
+    // 路线 R：最近答错的原题。复习由系统混入，不单独暴露队列。
+    final recentWrongIds = await _progressDao.getRecentWrongQuestionIds(14);
+    final review = allQuestions
+        .where((q) => recentWrongIds.contains(q.id))
+        .map(
+          (q) => RecommendedQuestion(
+            id: q.id,
+            title: q.stem,
+            questionType: q.questionType,
+            difficulty: q.difficulty ?? 0.0,
+            recommendReason: '巩固近期错题',
+            status: _computeStatus(q.id, attemptsMap),
+          ),
+        )
+        .take(4)
+        .toList();
+
     // 路线A：选填题 — 概念掌握度（纯内存）
-    final weakTag = _findWeakestConcept(
-      allTags, tagQuestionMap, attemptsMap,
-    );
+    final weakTag = _findWeakestConcept(allTags, tagQuestionMap, attemptsMap);
     final choiceFill = <RecommendedQuestion>[];
     if (weakTag != null) {
       final taggedQIds = tagQuestionMap[weakTag.id] ?? {};
-      final candidates = allQuestions.where((q) =>
-        !doneIds.contains(q.id) &&
-        q.questionType != 'solution' &&
-        taggedQIds.contains(q.id)
-      ).toList();
+      final candidates = allQuestions
+          .where(
+            (q) =>
+                !doneIds.contains(q.id) &&
+                q.questionType != 'solution' &&
+                taggedQIds.contains(q.id),
+          )
+          .toList();
 
-      final wrongIds = await _getRecentWrongIds();
       for (final q in candidates) {
         if (choiceFill.length >= 4) break;
-        if (wrongIds.contains(q.id)) continue;
-        choiceFill.add(RecommendedQuestion(
-          id: q.id,
-          title: q.stem,
-          questionType: q.questionType,
-          difficulty: q.difficulty ?? 0.0,
-          recommendReason: '薄弱概念：${weakTag.name}',
-          status: _computeStatus(q.id, attemptsMap),
-        ));
+        choiceFill.add(
+          RecommendedQuestion(
+            id: q.id,
+            title: q.stem,
+            questionType: q.questionType,
+            difficulty: q.difficulty ?? 0.0,
+            recommendReason: '薄弱概念：${weakTag.name}',
+            status: _computeStatus(q.id, attemptsMap),
+          ),
+        );
       }
     }
 
     // 路线B：解答题 — 按概念标签排序
     final solution = <RecommendedQuestion>[];
-    final solutionCandidates = allQuestions.where((q) =>
-      q.questionType == 'solution' && !doneIds.contains(q.id)
-    ).toList();
+    final solutionCandidates = allQuestions
+        .where((q) => q.questionType == 'solution' && !doneIds.contains(q.id))
+        .toList();
     if (solutionCandidates.isNotEmpty) {
       // 按 weakTag 匹配度排序：有 weakTag 标签的解答题优先
-      final wrongIds = await _getRecentWrongIds();
+      final wrongIds = recentWrongIds;
       solutionCandidates.sort((a, b) {
-        final aHasWeak = weakTag != null && (questionTagMap[a.id]?.contains(weakTag.id) == true);
-        final bHasWeak = weakTag != null && (questionTagMap[b.id]?.contains(weakTag.id) == true);
+        final aHasWeak =
+            weakTag != null &&
+            (questionTagMap[a.id]?.contains(weakTag.id) == true);
+        final bHasWeak =
+            weakTag != null &&
+            (questionTagMap[b.id]?.contains(weakTag.id) == true);
         if (aHasWeak != bHasWeak) return aHasWeak ? -1 : 1;
         // 其次按错误上下文排序
-        final aWrongContext = wrongIds.any((wid) =>
-          (questionTagMap[wid] ?? {}).intersection(questionTagMap[a.id] ?? {}).isNotEmpty
+        final aWrongContext = wrongIds.any(
+          (wid) => (questionTagMap[wid] ?? {})
+              .intersection(questionTagMap[a.id] ?? {})
+              .isNotEmpty,
         );
-        final bWrongContext = wrongIds.any((wid) =>
-          (questionTagMap[wid] ?? {}).intersection(questionTagMap[b.id] ?? {}).isNotEmpty
+        final bWrongContext = wrongIds.any(
+          (wid) => (questionTagMap[wid] ?? {})
+              .intersection(questionTagMap[b.id] ?? {})
+              .isNotEmpty,
         );
         if (aWrongContext != bWrongContext) return aWrongContext ? -1 : 1;
         return 0;
       });
       for (final q in solutionCandidates) {
         if (solution.length >= 2) break;
-        final reason = weakTag != null && (questionTagMap[q.id]?.contains(weakTag.id) == true)
+        final reason =
+            weakTag != null &&
+                (questionTagMap[q.id]?.contains(weakTag.id) == true)
             ? '薄弱概念：${weakTag.name}'
             : '解答题推荐练习';
-        solution.add(RecommendedQuestion(
-          id: q.id,
-          title: q.stem,
-          questionType: q.questionType,
-          difficulty: q.difficulty ?? 0.0,
-          recommendReason: reason,
-          status: _computeStatus(q.id, attemptsMap),
-        ));
+        solution.add(
+          RecommendedQuestion(
+            id: q.id,
+            title: q.stem,
+            questionType: q.questionType,
+            difficulty: q.difficulty ?? 0.0,
+            recommendReason: reason,
+            status: _computeStatus(q.id, attemptsMap),
+          ),
+        );
       }
     }
 
-    // 合并
+    // 冷启动或没有可用薄弱标签时，以未做题建立探索池。
+    final exploration = allQuestions
+        .where((q) => !doneIds.contains(q.id))
+        .map(
+          (q) => RecommendedQuestion(
+            id: q.id,
+            title: q.stem,
+            questionType: q.questionType,
+            difficulty: q.difficulty ?? 0.0,
+            recommendReason: attemptedIds.isEmpty ? '了解你的当前水平' : '拓展新的题目',
+            status: 'pending',
+          ),
+        )
+        .take(10)
+        .toList();
+
+    // 旧题和新题交错，随后用探索题补足一个小批次。
     final result = <RecommendedQuestion>[];
-    final c = choiceFill.where((r) => r.questionType == 'choice').take(2).toList();
-    final f = choiceFill.where((r) => r.questionType == 'fill').take(2).toList();
-    result.addAll(c);
-    result.addAll(f);
-    result.addAll(solution.take(2));
+    final fresh = <RecommendedQuestion>[
+      ...choiceFill,
+      ...solution,
+      ...exploration,
+    ];
+    var reviewIndex = 0;
+    var freshIndex = 0;
+    while (result.length < 10 &&
+        (reviewIndex < review.length || freshIndex < fresh.length)) {
+      if (result.length % 3 == 1 && reviewIndex < review.length) {
+        result.add(review[reviewIndex++]);
+      } else if (freshIndex < fresh.length) {
+        final candidate = fresh[freshIndex++];
+        if (!result.any((item) => item.id == candidate.id)) {
+          result.add(candidate);
+        }
+      } else {
+        result.add(review[reviewIndex++]);
+      }
+    }
     return result;
   }
 
   /// 根据 attemptsMap 判断题目真实状态
-  String _computeStatus(int questionId, Map<int, List<user_db.SubmissionDetailRow>> attemptsMap) {
+  String _computeStatus(
+    int questionId,
+    Map<int, List<user_db.SubmissionDetailRow>> attemptsMap,
+  ) {
     final attempts = attemptsMap[questionId];
     if (attempts == null || attempts.isEmpty) return 'pending';
     if (attempts.any((a) => a.isCorrect == null)) return 'in_progress';
@@ -240,7 +312,7 @@ class _RecommendationEngine {
 
     for (final tag in allTags) {
       final tagQIds = tagQuestionMap[tag.id] ?? {};
-      if (tagQIds.isEmpty) { mastery[tag.id] = double.infinity; continue; }
+      if (tagQIds.isEmpty) continue;
 
       var weightedCorrect = 0.0;
       var weightedTotal = 0.0;
@@ -253,7 +325,7 @@ class _RecommendationEngine {
           if (a.isCorrect == 1) weightedCorrect += weight;
         }
       }
-      if (weightedTotal <= 0) { mastery[tag.id] = double.infinity; continue; }
+      if (weightedTotal <= 0) continue;
       final rawMastery = weightedCorrect / weightedTotal;
       final shrinkage = weightedTotal / (weightedTotal + minConfidence);
       mastery[tag.id] = 1.0 - (shrinkage * rawMastery + (1 - shrinkage) * 0.5);
@@ -262,13 +334,13 @@ class _RecommendationEngine {
     assets_db.ConceptTagRow? best;
     double? bestScore;
     for (final tag in allTags) {
-      final score = mastery[tag.id] ?? double.infinity;
-      if (best == null || score < bestScore!) { best = tag; bestScore = score; }
+      final score = mastery[tag.id];
+      if (score == null) continue;
+      if (best == null || score > bestScore!) {
+        best = tag;
+        bestScore = score;
+      }
     }
     return best;
-  }
-
-  Future<Set<int>> _getRecentWrongIds() async {
-    return _progressDao.getRecentWrongQuestionIds(3);
   }
 }

@@ -18,6 +18,7 @@ import 'widgets/solve_question_surface.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import '../../widgets/pop_back_guard.dart';
+import '../exam/exam_session_timer.dart';
 
 /// 填空题解题页 — 揭示答案模式
 ///
@@ -368,13 +369,19 @@ class _SolveFillPageState extends State<SolveFillPage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('填空题')),
+        appBar: AppBar(
+          title: const Text('填空题'),
+          actions: const [ExamTimerAction()],
+        ),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('填空题')),
+        appBar: AppBar(
+          title: const Text('填空题'),
+          actions: const [ExamTimerAction()],
+        ),
         body: ErrorPlaceholder(
           message: '题目加载失败，请检查后重试',
           onRetry: () {
@@ -395,7 +402,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
         if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('填空题')),
+        appBar: AppBar(
+          title: const Text('填空题'),
+          actions: const [ExamTimerAction()],
+        ),
         body: AppContentContainer(
           maxWidth: AppContentWidth.reading,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),

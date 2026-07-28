@@ -23,9 +23,14 @@ import 'package:shared/debug/operation_log.dart';
 class PreferenceWelcomePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final QuestionDao? questionDao;
-  const PreferenceWelcomePage({super.key, this.preferenceRepository, this.questionDao});
+  const PreferenceWelcomePage({
+    super.key,
+    this.preferenceRepository,
+    this.questionDao,
+  });
 
-  @override State<PreferenceWelcomePage> createState() => _PreferenceWelcomePageState();
+  @override
+  State<PreferenceWelcomePage> createState() => _PreferenceWelcomePageState();
 }
 
 class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
@@ -58,7 +63,9 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.preferenceRepository ?? PreferenceRepository(PreferenceDao(DatabaseProvider()));
+    _repo =
+        widget.preferenceRepository ??
+        PreferenceRepository(PreferenceDao(DatabaseProvider()));
     _qDao = widget.questionDao ?? QuestionDao(DatabaseProvider());
     _loadOpts();
     _loadBonus();
@@ -68,7 +75,9 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   Future<void> _loadOpts() async {
     try {
-      final years = (await _qDao.getDistinctYears()).map((y) => y.toString()).toList();
+      final years = (await _qDao.getDistinctYears())
+          .map((y) => y.toString())
+          .toList();
       final regions = await _qDao.getDistinctRegions();
       final allTags = await _qDao.getAllConceptTags();
       final tags = allTags.map((t) => t.name).toList();
@@ -77,12 +86,17 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final kcs = allKcs.map((k) => k.title).toList();
       if (!mounted) return;
       setState(() {
-        _yearOpts = years; _regionOpts = regions; _tagOpts = tags;
+        _yearOpts = years;
+        _regionOpts = regions;
+        _tagOpts = tags;
         _tagTree = ExamRepository.buildTagTree(allTags);
-        _examTypeOpts = examTypes; _knowledgeCardOpts = kcs;
+        _examTypeOpts = examTypes;
+        _knowledgeCardOpts = kcs;
         _kcGroups = ExamRepository.buildKnowledgeCardGroups(allKcs);
       });
-      AuditLogger.instance.page('PreferenceWelcomePage', {'loaded': _yearOpts != null});
+      AuditLogger.instance.page('PreferenceWelcomePage', {
+        'loaded': _yearOpts != null,
+      });
     } catch (_) {}
   }
 
@@ -91,9 +105,12 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       final cfg = SystemConfigDao(DatabaseProvider());
       final pts = await cfg.getDouble('signup_bonus_amount', 10);
       if (!mounted) return;
-      setState(() { _bonusPoints = pts; _bonusLoaded = true; });
+      setState(() {
+        _bonusPoints = pts;
+        _bonusLoaded = true;
+      });
     } catch (e) {
-      OperationLog.instance.error('PreferenceWelcomePage._loadBonus', e); 
+      OperationLog.instance.error('PreferenceWelcomePage._loadBonus', e);
       AuditLogger.instance.error('PreferenceWelcomePage._loadBonus', e);
       if (!mounted) return;
       setState(() => _bonusLoaded = true);
@@ -114,7 +131,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             gradient: const LinearGradient(colors: BrandColors.gradient),
             borderRadius: BorderRadius.circular(AppRadius.large),
           ),
-          child: const Icon(Icons.celebration_rounded, color: Colors.white, size: 32),
+          child: const Icon(
+            Icons.celebration_rounded,
+            color: Colors.white,
+            size: 32,
+          ),
         ),
         title: const Text('欢迎加入章鱼智学'),
         content: Column(
@@ -122,17 +143,17 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           children: [
             Text(
               '首次注册将获得 ${_bonusLoaded ? _bonusPoints.toStringAsFixed(0) : '…'} 积分',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: colors.success,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: colors.success),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               '完成学习偏好后，系统会为你提供更匹配的题目与学习路径。',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colors.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -159,13 +180,22 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   Future<void> _saveAndGoHome() async {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入偏好名称'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('请输入偏好名称'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
-    if (_years.isEmpty && _regions.isEmpty && _conceptTags.isEmpty && _examTypes.isEmpty) {
+    if (_years.isEmpty &&
+        _regions.isEmpty &&
+        _conceptTags.isEmpty &&
+        _examTypes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请至少选择一项筛选条件'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('请至少选择一项筛选条件'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -187,11 +217,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
         ),
       );
     } catch (e) {
-      OperationLog.instance.error('PreferenceWelcomePage._save', e); 
+      OperationLog.instance.error('PreferenceWelcomePage._save', e);
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('保存失败，请重试'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('保存失败，请重试'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       setState(() => _saving = false);
       return;
@@ -201,7 +234,10 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   }
 
   @override
-  void dispose() { _nameCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +275,10 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                 children: const [
                   AppStatusBadge(label: '可创建多个偏好', tone: AppStatusTone.info),
                   AppStatusBadge(label: '随时调整', tone: AppStatusTone.success),
-                  AppStatusBadge(label: '推荐更精准', tone: AppStatusTone.recommendation),
+                  AppStatusBadge(
+                    label: '推荐更精准',
+                    tone: AppStatusTone.recommendation,
+                  ),
                 ],
               ),
             ),
@@ -295,7 +334,11 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
                 if (!wide) {
                   return Column(
-                    children: [nameCard, const SizedBox(height: AppSpacing.lg), filter],
+                    children: [
+                      nameCard,
+                      const SizedBox(height: AppSpacing.lg),
+                      filter,
+                    ],
                   );
                 }
                 return Row(
@@ -310,7 +353,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: '保存偏好并进入首页',
+              label: '保存偏好并开始推荐',
               icon: Icons.check_rounded,
               onPressed: _saving ? null : _saveAndGoHome,
               isLoading: _saving,
