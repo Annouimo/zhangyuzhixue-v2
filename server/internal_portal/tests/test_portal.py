@@ -148,6 +148,8 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
     index_content = index_response.content.decode()
     assert '重构项目工作手册' in index_content
     assert HandbookUpdate.objects.count() == 1
+    assert 'update-list' in index_content
+    assert 'changelog-table' not in index_content
 
     software = BusinessArea.objects.get(slug='software')
     groups = {

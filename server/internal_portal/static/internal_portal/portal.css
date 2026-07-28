@@ -174,6 +174,40 @@ a.handbook-table__row:hover {
   font-size: 12px;
 }
 
+.update-list {
+  max-width: 820px;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-strong);
+  list-style: none;
+}
+
+.update-list li {
+  display: grid;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.update-list time {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.update-list strong {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.update-list p {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .subsection-title {
   margin: 16px 0 8px;
   color: var(--text-secondary);
@@ -269,6 +303,11 @@ a.handbook-table__row:hover {
 
   .changelog-table .handbook-table__row > :nth-child(3) {
     grid-column: 1 / -1;
+  }
+
+  .update-list li {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 
   .stat-grid {

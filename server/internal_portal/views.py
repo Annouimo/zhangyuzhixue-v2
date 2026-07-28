@@ -1,5 +1,4 @@
 from functools import wraps
-from itertools import groupby
 
 from django.contrib.auth import login, logout
 from django.db.models import Count, Prefetch
@@ -94,12 +93,7 @@ def index(request):
     overview = get_object_or_404(BusinessArea, slug='overview', is_visible=True)
     context = _page_context(overview)
     context['project_pages'] = _navigation_pages()
-    context['update_groups'] = [
-        {'year': year, 'items': list(items)}
-        for year, items in groupby(
-            HandbookUpdate.objects.all(), key=lambda item: item.date.year,
-        )
-    ]
+    context['handbook_updates'] = HandbookUpdate.objects.all()
     return render(request, 'internal_portal/index.html', context)
 
 
