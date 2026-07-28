@@ -64,6 +64,40 @@ void main() {
       expect(all.length, 2);
     });
 
+    test('virtual papers group by source fields', () async {
+      await insertQuestion(year: 2025, examType: '一模', region: '海淀');
+      await insertQuestion(
+        year: 2025,
+        examType: '一模',
+        region: '海淀',
+        number: '2',
+      );
+      await insertQuestion(year: 2025, examType: '二模', region: '海淀');
+
+      final papers = await dao.getVirtualPapers();
+
+      expect(papers, hasLength(2));
+      expect(
+        papers.singleWhere((paper) => paper.examType == '一模').questionCount,
+        2,
+      );
+    });
+
+    test('virtual paper questions use numeric question order', () async {
+      await insertQuestion(number: '10');
+      await insertQuestion(number: '2');
+      await insertQuestion(number: '1');
+      await insertQuestion(region: '西城', number: '3');
+
+      final questions = await dao.getVirtualPaperQuestions(
+        year: 2024,
+        examType: '一模',
+        region: '海淀',
+      );
+
+      expect(questions.map((question) => question.number), ['1', '2', '10']);
+    });
+
     test('getRandomExcluding skips seen questions and respects type', () async {
       final seenId = await insertQuestion(questionType: 'choice');
       final expectedId = await insertQuestion(questionType: 'choice');

@@ -15,7 +15,7 @@ import 'package:shared/widgets/filter_panel.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 学习偏好编辑页（新建/编辑）
+/// 常用选题范围编辑页（新建/编辑）
 class PreferenceEditPage extends StatefulWidget {
   final int? editId;
   final PreferenceRepository? preferenceRepository;
@@ -196,7 +196,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   Widget build(BuildContext context) {
     final editing = widget.editId != null;
     return Scaffold(
-      appBar: AppBar(title: Text(editing ? '编辑偏好' : '新建偏好')),
+      appBar: AppBar(title: Text(editing ? '编辑范围' : '新建范围')),
       body: _loading || _loadingOpts
           ? const LoadingIndicator(message: '正在准备筛选条件…')
           : _error != null
@@ -220,7 +220,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const AppSectionHeader(
-                          title: '偏好名称',
+                          title: '范围名称',
                           subtitle: '建议使用目标明确、容易识别的名称。',
                         ),
                         const SizedBox(height: AppSpacing.md),
@@ -249,7 +249,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppButton(
-                    label: editing ? '保存修改' : '创建偏好',
+                    label: editing ? '保存修改' : '创建范围',
                     icon: Icons.check_rounded,
                     onPressed: _saving ? null : _save,
                     isLoading: _saving,

@@ -12,8 +12,6 @@ import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
 import 'lecture/lecture_courses_page.dart';
-import 'exam/exam_auto_page.dart';
-import 'exam/exam_pick_page.dart';
 import 'exam/exam_quicklook_page.dart';
 import 'exam/exam_quicklook_other_page.dart';
 import 'exam/exam_history_page.dart';
@@ -216,12 +214,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.examAuto,
       name: 'exam-auto',
-      builder: (_, _) => ExamAutoPage(),
+      redirect: (_, _) => AppRoutes.questionBank,
     ),
     GoRoute(
       path: AppRoutes.examPick,
       name: 'exam-pick',
-      builder: (_, _) => ExamPickPage(),
+      redirect: (_, _) => AppRoutes.questionBank,
     ),
     GoRoute(
       path: AppRoutes.examQuicklook,

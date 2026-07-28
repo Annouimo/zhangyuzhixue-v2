@@ -66,7 +66,10 @@ void main() {
     test('insertStepFeedback creates feedback', () async {
       final aId = await dao.createAttempt(questionId: 42);
       final fId = await dao.insertStepFeedback(
-        submissionDetailId: aId, questionId: 42, stepNumber: 1, status: '全对',
+        submissionDetailId: aId,
+        questionId: 42,
+        stepNumber: 1,
+        status: '全对',
       );
       expect(fId, greaterThan(0));
       final feedbacks = await dao.getStepFeedbacks(aId);
@@ -76,7 +79,10 @@ void main() {
     test('insertCardFeedback creates feedback', () async {
       final aId = await dao.createAttempt(questionId: 42);
       final fId = await dao.insertCardFeedback(
-        submissionDetailId: aId, questionId: 42, cardTitle: '正弦定理', cardStatus: '完全掌握',
+        submissionDetailId: aId,
+        questionId: 42,
+        cardTitle: '正弦定理',
+        cardStatus: '完全掌握',
       );
       expect(fId, greaterThan(0));
       final feedbacks = await dao.getCardFeedbacks(aId);
@@ -90,6 +96,25 @@ void main() {
     test('hasAttempt returns true after attempt', () async {
       await dao.createAttempt(questionId: 42);
       expect(await dao.hasAttempt(42), true);
+    });
+
+    test('review ids use the latest graded attempt', () async {
+      final wrongOnly = await dao.createAttempt(questionId: 1);
+      await dao.updateAttemptAnswer(wrongOnly, 'A', 0);
+
+      final firstWrong = await dao.createAttempt(questionId: 2);
+      await dao.updateAttemptAnswer(firstWrong, 'A', 0);
+      final laterCorrect = await dao.createAttempt(questionId: 2);
+      await dao.updateAttemptAnswer(laterCorrect, 'B', 1);
+
+      final correctOnly = await dao.createAttempt(questionId: 3);
+      await dao.updateAttemptAnswer(correctOnly, 'C', 1);
+      await dao.createAttempt(questionId: 1); // 进行中记录不覆盖最近判定
+
+      final result = await dao.getQuestionReviewIds();
+
+      expect(result.currentWrong, {1});
+      expect(result.corrected, {2});
     });
   });
 }

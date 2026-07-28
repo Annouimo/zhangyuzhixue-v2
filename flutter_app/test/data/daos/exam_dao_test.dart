@@ -48,10 +48,13 @@ void main() {
       expect(questions.length, 3);
       expect(questions[0].questionId, 1);
       expect(questions[1].questionId, 2);
+      expect(questions[2].questionId, 3);
+      expect(questions.map((question) => question.sortOrder), [0, 1, 2]);
 
-      await dao.savePaperQuestions(id, [10, 20]);
+      await dao.savePaperQuestions(id, [20, 10]);
       questions = await dao.getQuestions(id);
       expect(questions.length, 2);
+      expect(questions.map((question) => question.questionId), [20, 10]);
     });
 
     test('toggleLike adds and removes', () async {

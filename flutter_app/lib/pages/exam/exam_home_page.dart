@@ -3,13 +3,7 @@ import 'package:shared/shared.dart';
 
 import '../router.dart';
 
-/// 智能组卷积分消耗
-const int _autoPaperCost = 10;
-
-/// 自主选题积分消耗
-const int _pickPaperCost = 20;
-
-/// 组卷首页 — 创建、管理与发现试卷。
+/// 试卷空间 — 管理与发现试卷。创建入口已收敛到题库工作台。
 class ExamHomePage extends StatelessWidget {
   const ExamHomePage({super.key});
 
@@ -18,7 +12,7 @@ class ExamHomePage extends StatelessWidget {
     AuditLogger.instance.page('ExamHomePage', {'visited': true});
 
     return Scaffold(
-      appBar: AppBar(title: const Text('组卷')),
+      appBar: AppBar(title: const Text('我的试卷')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: AppSpacing.xl),
         child: AppContentContainer(
@@ -27,28 +21,8 @@ class ExamHomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  AppButton(
-                    label: '智能组卷 · $_autoPaperCost 积分',
-                    icon: Icons.auto_awesome_rounded,
-                    onPressed: () =>
-                        RouterUtils.push(context, AppRoutes.examAuto),
-                  ),
-                  AppButton(
-                    label: '自主选题 · $_pickPaperCost 积分',
-                    icon: Icons.touch_app_rounded,
-                    variant: AppButtonVariant.secondary,
-                    onPressed: () =>
-                        RouterUtils.push(context, AppRoutes.examPick),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
               const AppSectionHeader(
-                title: '我的试卷空间',
+                title: '试卷空间',
                 subtitle: '管理已创建的试卷，也可以发现和收藏其他同学分享的内容。',
               ),
               const SizedBox(height: AppSpacing.md),

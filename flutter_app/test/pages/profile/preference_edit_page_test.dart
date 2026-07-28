@@ -15,8 +15,10 @@ class _MockPreferenceRepository implements PreferenceRepository {
   Future<int> getCount() async => 0;
 
   @override
-  Future<PreferenceEditData> getEdit(int id) async =>
-      const PreferenceEditData(name: '', filter: PreferenceFilter(years: [], regions: [], conceptTags: []));
+  Future<PreferenceEditData> getEdit(int id) async => const PreferenceEditData(
+    name: '',
+    filter: PreferenceFilter(years: [], regions: [], conceptTags: []),
+  );
 
   @override
   Future<int> save({
@@ -27,30 +29,27 @@ class _MockPreferenceRepository implements PreferenceRepository {
 }
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   group('PreferenceEditPage', () {
-    testWidgets('renders create mode with name field and save button',
-        (tester) async {
+    testWidgets('renders create mode with name field and save button', (
+      tester,
+    ) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceEditPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceEditPage(preferenceRepository: repo)),
       );
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('新建偏好'), findsOneWidget);
+      expect(find.text('新建范围'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       await tester.drag(find.byType(ListView), const Offset(0, -1200));
       await tester.pumpAndSettle();
-      expect(find.text('创建偏好'), findsOneWidget);
+      expect(find.text('创建范围'), findsOneWidget);
     });
 
     testWidgets('shows no loading indicator in create mode', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceEditPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceEditPage(preferenceRepository: repo)),
       );
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -59,9 +58,7 @@ void main() {
     testWidgets('renders filter settings card', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceEditPage(preferenceRepository: repo),
-        ),
+        MaterialApp(home: PreferenceEditPage(preferenceRepository: repo)),
       );
       // Wait for async option loading to complete (will fail gracefully)
       await tester.pump(const Duration(milliseconds: 100));

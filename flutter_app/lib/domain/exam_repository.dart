@@ -278,10 +278,52 @@ class SearchQuestion {
   });
 }
 
+/// 由题目来源字段动态聚合的套卷摘要。
+class VirtualPaper {
+  final int year;
+  final String examType;
+  final String region;
+  final int questionCount;
+
+  const VirtualPaper({
+    required this.year,
+    required this.examType,
+    required this.region,
+    required this.questionCount,
+  });
+
+  String get title => '$year$region$examType';
+}
+
 abstract interface class QuestionLibraryRepository {
   Future<FilterOptions> getFilterOptions();
 
   Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters);
+}
+
+abstract interface class VirtualPaperRepository {
+  Future<List<VirtualPaper>> getVirtualPapers();
+}
+
+class LocalVirtualPaperRepository implements VirtualPaperRepository {
+  final QuestionDao _questionDao;
+
+  const LocalVirtualPaperRepository(this._questionDao);
+
+  @override
+  Future<List<VirtualPaper>> getVirtualPapers() async {
+    final papers = await _questionDao.getVirtualPapers();
+    return papers
+        .map(
+          (paper) => VirtualPaper(
+            year: paper.year,
+            examType: paper.examType,
+            region: paper.region,
+            questionCount: paper.questionCount,
+          ),
+        )
+        .toList(growable: false);
+  }
 }
 
 /// 池子不足异常
@@ -957,8 +999,9 @@ class _ExamGenerator {
         dynamic bestCand;
 
         for (var si = 0; si < sel.length; si++) {
-          if (lockedIds.contains((sel[si] as dynamic).id))
+          if (lockedIds.contains((sel[si] as dynamic).id)) {
             continue; // 跳过 locked 题
+          }
           final s = sel[si];
           for (final c in cand) {
             final delta =

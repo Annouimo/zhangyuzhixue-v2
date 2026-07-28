@@ -4,6 +4,23 @@ import '../database/assets_database.dart' as db;
 import '../database/database_provider.dart';
 import 'package:shared/debug/audit_logger.dart';
 
+/// 由题目来源字段动态聚合的套卷，不对应独立数据库表。
+class VirtualPaperSummary {
+  final int year;
+  final String examType;
+  final String region;
+  final int questionCount;
+
+  const VirtualPaperSummary({
+    required this.year,
+    required this.examType,
+    required this.region,
+    required this.questionCount,
+  });
+
+  String get title => '$year$region$examType';
+}
+
 /// 题目数据访问层
 class QuestionDao {
   final DatabaseProvider _provider;
@@ -52,6 +69,58 @@ class QuestionDao {
     final rows = await _db.select(_db.questions).get();
     AuditLogger.instance.dao('QuestionDao.getAll', rows.length, {});
     return rows;
+  }
+
+  /// 按 year + exam_type + region 聚合题库中的虚拟套卷。
+  Future<List<VirtualPaperSummary>> getVirtualPapers() async {
+    final rows = await _db.customSelect('''
+      SELECT year, exam_type, region, COUNT(*) AS question_count
+      FROM question
+      GROUP BY year, exam_type, region
+      ORDER BY year DESC, exam_type, region
+    ''').get();
+    final papers = rows
+        .map(
+          (row) => VirtualPaperSummary(
+            year: row.read<int>('year'),
+            examType: row.read<String>('exam_type'),
+            region: row.read<String>('region'),
+            questionCount: row.read<int>('question_count'),
+          ),
+        )
+        .toList(growable: false);
+    AuditLogger.instance.dao('QuestionDao.getVirtualPapers', papers.length, {});
+    return papers;
+  }
+
+  /// 获取一套虚拟套卷，并按数值题号排序。
+  Future<List<db.QuestionRow>> getVirtualPaperQuestions({
+    required int year,
+    required String examType,
+    required String region,
+  }) async {
+    final query = _db.select(_db.questions)
+      ..where(
+        (row) =>
+            row.year.equals(year) &
+            row.examType.equals(examType) &
+            row.region.equals(region),
+      );
+    final questions = await query.get();
+    questions.sort((left, right) {
+      final leftNumber = int.tryParse(left.number);
+      final rightNumber = int.tryParse(right.number);
+      if (leftNumber != null && rightNumber != null) {
+        return leftNumber.compareTo(rightNumber);
+      }
+      return left.number.compareTo(right.number);
+    });
+    AuditLogger.instance.dao(
+      'QuestionDao.getVirtualPaperQuestions',
+      questions.length,
+      {'year': year, 'examType': examType, 'region': region},
+    );
+    return questions;
   }
 
   /// 轻量搜索结果统计（仅计数+极值，不加载大文本字段）

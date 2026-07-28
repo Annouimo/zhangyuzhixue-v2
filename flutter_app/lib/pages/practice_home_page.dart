@@ -29,15 +29,15 @@ class PracticeHomePage extends StatelessWidget {
               children: [
                 AppNavigationCard(
                   icon: Icons.search_rounded,
-                  title: '题库浏览',
-                  subtitle: '按题型和来源查找题目，查看完整信息',
+                  title: '题库与组卷',
+                  subtitle: '按套卷或专题找题，直接练习或组合试卷',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.questionBank),
                 ),
                 AppNavigationCard(
                   icon: Icons.description_outlined,
-                  title: '试卷',
-                  subtitle: '智能组卷、自主选题和已有试卷',
+                  title: '我的试卷',
+                  subtitle: '管理、练习和导出已经创建的试卷',
                   onTap: () => RouterUtils.push(context, AppRoutes.examHome),
                 ),
               ],

@@ -19,7 +19,7 @@ import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
-/// 首次引导流程 — 欢迎弹窗 → 偏好设置 → 跳主框架
+/// 兼容入口：创建第一个常用选题范围。
 class PreferenceWelcomePage extends StatefulWidget {
   final PreferenceRepository? preferenceRepository;
   final QuestionDao? questionDao;
@@ -37,7 +37,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   late final PreferenceRepository _repo;
   late final QuestionDao _qDao;
   bool _saving = false;
-  final _nameCtrl = TextEditingController(text: '我的偏好');
+  final _nameCtrl = TextEditingController(text: '我的常用范围');
 
   Set<String> _years = {};
   Set<String> _regions = {};
@@ -150,7 +150,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              '完成学习偏好后，系统会为你提供更匹配的题目与学习路径。',
+              '保存常用范围后，可以更快回到经常使用的选题条件。',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
@@ -181,7 +181,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('请输入偏好名称'),
+          content: Text('请输入范围名称'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -243,14 +243,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   Widget build(BuildContext context) {
     if (_yearOpts == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('设置学习偏好')),
+        appBar: AppBar(title: const Text('创建常用范围')),
         body: const LoadingIndicator(message: '正在准备可选条件…'),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置学习偏好'),
+        title: const Text('创建常用范围'),
         actions: [
           TextButton(
             onPressed: _saving ? null : () => context.go(AppRoutes.mainShell),
@@ -268,15 +268,15 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
               icon: Icons.auto_awesome_rounded,
               eyebrow: '个性化推荐',
               title: '告诉我们你想练什么',
-              subtitle: '你可以按年份、地区、题型、知识点与难度组合偏好，之后也能在个人中心随时修改。',
+              subtitle: '把经常使用的年份、地区、题型和知识范围保存下来，之后可以快速再次使用。',
               footer: Wrap(
                 spacing: AppSpacing.xs,
                 runSpacing: AppSpacing.xs,
                 children: const [
-                  AppStatusBadge(label: '可创建多个偏好', tone: AppStatusTone.info),
+                  AppStatusBadge(label: '可保存多个范围', tone: AppStatusTone.info),
                   AppStatusBadge(label: '随时调整', tone: AppStatusTone.success),
                   AppStatusBadge(
-                    label: '推荐更精准',
+                    label: '下次快速使用',
                     tone: AppStatusTone.recommendation,
                   ),
                 ],
@@ -291,7 +291,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const AppSectionHeader(
-                        title: '偏好名称',
+                        title: '范围名称',
                         subtitle: '给这组条件起一个容易识别的名称。',
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -353,7 +353,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: '保存偏好并开始推荐',
+              label: '保存常用范围',
               icon: Icons.check_rounded,
               onPressed: _saving ? null : _saveAndGoHome,
               isLoading: _saving,

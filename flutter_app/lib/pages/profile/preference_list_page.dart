@@ -15,7 +15,7 @@ import '../../domain/preference_repository.dart';
 import '../../widgets/shared/async_load_widget.dart';
 import '../router.dart';
 
-/// 学习偏好管理。
+/// 常用选题范围管理。
 class PreferenceListPage extends StatefulWidget {
   const PreferenceListPage({super.key, this.preferenceRepository});
 
@@ -43,8 +43,8 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.delete_outline_rounded, color: context.colors.error),
-        title: const Text('删除学习偏好？'),
-        content: const Text('删除后无法恢复，但不会影响已有的练习记录。'),
+        title: const Text('删除常用范围？'),
+        content: const Text('删除后无法恢复，但不会影响已有的练习和试卷。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -91,20 +91,20 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('学习偏好')),
+      appBar: AppBar(title: const Text('常用范围')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('新建偏好'),
+        label: const Text('新建范围'),
       ),
       body: AsyncLoadWidget<List<PreferenceSummary>>(
         contentIsScrollable: true,
         key: _loadKey,
         onLoad: _repo.getList,
-        loadingMessage: '正在加载学习偏好…',
+        loadingMessage: '正在加载常用范围…',
         emptyWidget: EmptyPlaceholder(
           icon: Icons.tune_rounded,
-          message: '还没有学习偏好。创建一组筛选条件后，推荐页会更了解你想练习的内容。',
+          message: '还没有常用范围。可以把经常使用的选题条件保存到这里。',
         ),
         builder: (context, preferences) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,10 +118,10 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               children: [
                 AppSectionHeader(
-                  title: '已保存偏好',
-                  subtitle: '共 ${preferences.length} 组，可随时编辑或删除。',
+                  title: '已保存范围',
+                  subtitle: '共 ${preferences.length} 组，可随时使用、编辑或删除。',
                   action: AppButton(
-                    label: '新建偏好',
+                    label: '新建范围',
                     icon: Icons.add_rounded,
                     onPressed: () => _openEditor(),
                     expanded: false,
@@ -134,7 +134,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                   return AppCard(
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                     onTap: () => _openEditor(preference.id),
-                    semanticLabel: '编辑偏好 ${preference.name}',
+                    semanticLabel: '编辑范围 ${preference.name}',
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -168,7 +168,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                     ),
                                   ),
                                   const AppStatusBadge(
-                                    label: '已启用',
+                                    label: '已保存',
                                     tone: AppStatusTone.success,
                                     compact: true,
                                   ),

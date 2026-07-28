@@ -1,48 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_pick_page.dart';
+import 'package:flutter_app/pages/router.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../test_setup.dart';
 
-class _MockPickRepo implements ExamRepository {
-  @override Future<FilterOptions> getFilterOptions() async => const FilterOptions(
-    years: ['2025', '2024'], regions: ['海淀', '西城'], conceptTags: ['函数'], knowledgeCards: []);
-  @override Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters f) async => [
-    const SearchQuestion(id: 1, title: '测试题', questionType: 'choice', meta: '2025·海淀·选择题·3分', difficulty: 5.0, calculation: 3.0),
-  ];
-  @override Future<int> confirm(SearchFilters f, {bool allowShortfall = false}) async => 1;
-  @override Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
-  @override Future<List<ExploreExamSummary>> getExploreList() async => throw UnimplementedError();
-  @override Future<List<FavoriteExamSummary>> getFavorites() async => throw UnimplementedError();
-  @override Future<ExamPreview> getPreview(int id) async => throw UnimplementedError();
-  @override Future<ExamPreviewOther> getPreviewOther(int id) async => throw UnimplementedError();
-  @override Future<List<AnswerItem>> getQuickAnswers(int id) async => throw UnimplementedError();
-  @override Future<PoolStats> getPoolStats(SearchFilters f) async => throw UnimplementedError();
-  @override Future<int> getTotalCount(SearchFilters f) async => throw UnimplementedError();
-  @override Future<void> toggleLike(int id) async {}
-  @override Future<void> toggleCollect(int id) async {}
-  @override Future<void> togglePublic(int id) async {}
-  @override Future<void> deleteExam(int id) async {}
-  @override Future<void> removeFavorite(int id) async {}
-  @override Future<void> downloadPdf(int id, {BuildContext? context}) async {}
-  @override Future<List<FilterPreset>> getFilterPresets() async => [];
-}
-
 void main() {
-  setUp(() => setupTestHooks());
-  group('ExamPickPage', () {
-    testWidgets('loads empty state (desktop size)', (tester) async {
-      await tester.pumpWidget(
-        MediaQuery(data: const MediaQueryData(size: Size(1266, 627)),
-          child: MaterialApp(home: ExamPickPage(examRepository: _MockPickRepo()))),
-      );
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      await tester.pumpAndSettle();
-      // Bottom bar with button should be visible
-      expect(find.textContaining('已选 0 题'), findsAtLeastNWidgets(1));
-      expect(find.text('确认组卷'), findsOneWidget);
-      // Filter panel section header visible
-      expect(find.text('按来源筛选'), findsOneWidget);
-    });
+  setUp(setupTestHooks);
+
+  testWidgets('redirects the legacy manual-pick page to the workspace', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/legacy-pick',
+      routes: [
+        GoRoute(
+          path: '/legacy-pick',
+          builder: (context, state) => const ExamPickPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.questionBank,
+          builder: (context, state) => const Scaffold(body: Text('统一工作台')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    expect(find.text('统一工作台'), findsOneWidget);
   });
 }

@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import '../../../domain/preference_repository.dart';
 import 'package:shared/widgets/filter_panel.dart';
 
-/// 保存筛选条件为学习偏好的弹窗
+/// 保存筛选条件为常用范围的弹窗
 Future<String?> showSavePreferenceDialog(BuildContext context) async {
   final nameCtrl = TextEditingController();
   final name = await showDialog<String>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('保存为学习偏好'),
+      title: const Text('保存为常用范围'),
       content: TextField(
         controller: nameCtrl,
         decoration: const InputDecoration(
-          hintText: '偏好名称（如"北京高考模拟"）',
+          hintText: '范围名称（如"北京高考模拟"）',
           border: OutlineInputBorder(),
         ),
         autofocus: true,
@@ -53,7 +53,7 @@ PreferenceFilter buildPreferenceFilter(FilterPanelState filterState) {
   );
 }
 
-/// 选择已保存的学习偏好弹窗
+/// 选择已保存的常用范围弹窗
 Future<int?> showLoadPreferenceDialog(
   BuildContext context,
   List<PreferenceSummary> presets,
@@ -62,7 +62,7 @@ Future<int?> showLoadPreferenceDialog(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('暂无保存的学习偏好'),
+          content: Text('暂无保存的常用范围'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -72,7 +72,7 @@ Future<int?> showLoadPreferenceDialog(
   final selected = await showDialog<int>(
     context: context,
     builder: (ctx) => SimpleDialog(
-      title: const Text('选择学习偏好'),
+      title: const Text('选择常用范围'),
       children: presets
           .map(
             (p) => SimpleDialogOption(

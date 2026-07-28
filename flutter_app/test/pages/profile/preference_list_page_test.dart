@@ -49,7 +49,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
-      expect(find.text('学习偏好'), findsOneWidget);
+      expect(find.text('常用范围'), findsOneWidget);
     });
 
     testWidgets('renders FAB with correct label', (tester) async {
@@ -57,7 +57,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
-      expect(find.text('新建偏好'), findsOneWidget);
+      expect(find.text('新建范围'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
@@ -67,7 +67,7 @@ void main() {
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       await tester.pumpAndSettle();
-      expect(find.text('还没有学习偏好。创建一组筛选条件后，推荐页会更了解你想练习的内容。'), findsOneWidget);
+      expect(find.text('还没有常用范围。可以把经常使用的选题条件保存到这里。'), findsOneWidget);
     });
 
     testWidgets('renders preference list after loading', (tester) async {

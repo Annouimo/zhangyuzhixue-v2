@@ -28,6 +28,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   late Map<String, Set<String>> _descMap;
   // name → 父节点 name（根节点为 null）
   late Map<String, String?> _parentMap;
+  final Set<String> _expandedNames = {};
 
   @override
   void initState() {
@@ -39,6 +40,9 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   void didUpdateWidget(ConceptTagTreeView old) {
     super.didUpdateWidget(old);
     if (old.nodes != widget.nodes) _buildMaps();
+    if (old.selectedNames != widget.selectedNames) {
+      _expandSelectedAncestors();
+    }
   }
 
   void _buildMaps() {
@@ -46,6 +50,17 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
     _parentMap = {};
     for (final node in widget.nodes) {
       _walk(node, null);
+    }
+    _expandSelectedAncestors();
+  }
+
+  void _expandSelectedAncestors() {
+    for (final name in widget.selectedNames) {
+      var parent = _parentMap[name];
+      while (parent != null) {
+        _expandedNames.add(parent);
+        parent = _parentMap[parent];
+      }
     }
   }
 
@@ -63,7 +78,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   void _toggleNode(ConceptTagNode node) {
     final newSet = Set<String>.from(widget.selectedNames);
     final all = _descMap[node.name]!;
-    if (widget.selectedNames.contains(node.name)) {
+    if (all.every(widget.selectedNames.contains)) {
       newSet.removeAll(all);
     } else {
       newSet.addAll(all);
@@ -79,10 +94,9 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
       final children = _findDirectChildren(p);
       if (children == null) break;
       final allSel = children.every((c) => set.contains(c));
-      final noneSel = children.every((c) => !set.contains(c));
       if (allSel) {
         set.add(p);
-      } else if (noneSel) {
+      } else {
         set.remove(p);
       }
       p = _parentMap[p];
@@ -112,7 +126,6 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widget.nodes.map((node) => _buildNode(node, 0)).toList(),
@@ -120,49 +133,88 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   }
 
   Widget _buildNode(ConceptTagNode node, int depth) {
-      final colors = context.colors;
+    final colors = context.colors;
     final isLeaf = node.children.isEmpty;
-    final isSelected = widget.selectedNames.contains(node.name);
+    final descendants = _descMap[node.name] ?? {node.name};
+    final selectedCount = descendants
+        .where(widget.selectedNames.contains)
+        .length;
+    final isSelected = selectedCount == descendants.length;
+    final isPartiallySelected = selectedCount > 0 && !isSelected;
+    final isExpanded = _expandedNames.contains(node.name);
     return Padding(
       padding: EdgeInsets.only(left: depth * 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            onTap: () => isLeaf
-                ? widget.onChanged(
-                    _syncParents(
-                      Set<String>.from(widget.selectedNames)..toggle(node.name),
-                      node.name,
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => isLeaf
+                      ? widget.onChanged(
+                          _syncParents(
+                            Set<String>.from(widget.selectedNames)
+                              ..toggle(node.name),
+                            node.name,
+                          ),
+                        )
+                      : _toggleNode(node),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isPartiallySelected
+                              ? Icons.indeterminate_check_box
+                              : isSelected
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
+                          size: 20,
+                          color: isSelected || isPartiallySelected
+                              ? colors.primary
+                              : colors.textSecondary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            node.name,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isSelected || isPartiallySelected
+                                  ? colors.primary
+                                  : colors.textPrimary,
+                              fontWeight: isSelected || isPartiallySelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  )
-                : _toggleNode(node),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isSelected
-                        ? Icons.check_box
-                        : Icons.check_box_outline_blank,
-                    size: 18,
-                    color: isSelected ? colors.primary : colors.textSecondary,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    node.name,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isSelected ? colors.primary : colors.textPrimary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              if (!isLeaf)
+                IconButton(
+                  tooltip: isExpanded ? '收起${node.name}' : '展开${node.name}',
+                  onPressed: () => setState(() {
+                    if (isExpanded) {
+                      _expandedNames.remove(node.name);
+                    } else {
+                      _expandedNames.add(node.name);
+                    }
+                  }),
+                  icon: Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: colors.textSecondary,
+                  ),
+                ),
+            ],
           ),
-          if (!isLeaf)
+          if (!isLeaf && isExpanded)
             ...node.children.map((child) => _buildNode(child, depth + 1)),
         ],
       ),
@@ -172,6 +224,10 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
 
 extension _ToggleSet on Set<String> {
   void toggle(String value) {
-    if (contains(value)) { remove(value); } else { add(value); }
+    if (contains(value)) {
+      remove(value);
+    } else {
+      add(value);
+    }
   }
 }

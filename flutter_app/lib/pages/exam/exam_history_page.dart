@@ -72,14 +72,14 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('我的组卷')),
+    appBar: AppBar(title: const Text('我的试卷')),
     body: AsyncLoadWidget<List<ExamSummary>>(
       contentIsScrollable: true,
       key: _loadKey,
       onLoad: _repo.getMyExams,
       emptyWidget: EmptyPlaceholder(
         icon: Icons.description_outlined,
-        message: '还没有创建过试卷，先从智能组卷开始吧',
+        message: '还没有创建过试卷，前往题库与组卷创建吧',
       ),
       builder: (ctx, list) {
         WidgetsBinding.instance.addPostFrameCallback((_) {

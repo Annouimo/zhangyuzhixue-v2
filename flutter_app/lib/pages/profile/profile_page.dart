@@ -366,7 +366,7 @@ class ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '保持学习偏好和个人资料准确，可以获得更合适的推荐内容。',
+                '学习记录会帮助系统安排更合适的推荐内容。',
                 style: textTheme.bodySmall?.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -447,7 +447,7 @@ class ProfilePageState extends State<ProfilePage> {
       AppNavigationCard(
         icon: Icons.settings_outlined,
         title: '设置',
-        subtitle: _syncSubtitle == null ? '偏好、同步与账号管理' : _syncSubtitle!,
+        subtitle: _syncSubtitle == null ? '常用范围、同步与账号管理' : _syncSubtitle!,
         tone: _syncSubtitle == null
             ? AppStatusTone.primary
             : AppStatusTone.warning,

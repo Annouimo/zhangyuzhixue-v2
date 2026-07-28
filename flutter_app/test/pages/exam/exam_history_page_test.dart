@@ -84,7 +84,7 @@ void main() {
         MaterialApp(home: ExamHistoryPage(examRepository: _MockExamRepo())),
       );
       await tester.pumpAndSettle();
-      expect(find.text('还没有创建过试卷，先从智能组卷开始吧'), findsOneWidget);
+      expect(find.text('还没有创建过试卷，前往题库与组卷创建吧'), findsOneWidget);
     });
   });
 }

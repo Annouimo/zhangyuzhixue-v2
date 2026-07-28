@@ -12,8 +12,6 @@ import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../domain/auth_repository.dart';
 import '../domain/preference_repository.dart';
-import '../data/daos/preference_dao.dart';
-import '../data/database/database_provider.dart';
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'router.dart';
 import 'package:shared/debug/audit_logger.dart';
@@ -39,7 +37,6 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   late final AuthRepository _authRepo;
-  PreferenceRepository? _prefRepo;
 
   @override
   void initState() {
@@ -108,15 +105,8 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
 
-      // 检查是否有学习偏好
-      final hasPrefs = await _checkPreferences();
-      if (!mounted) return;
-
-      if (hasPrefs) {
-        context.go(AppRoutes.mainShell);
-      } else {
-        context.go(AppRoutes.preferenceWelcome);
-      }
+      // 常用范围是可选快捷方式，不再阻断首次登录。
+      context.go(AppRoutes.mainShell);
       OperationLog.instance.action('login', 'ok');
     } catch (e) {
       AuditLogger.instance.error('LoginPage._login', e);
@@ -131,21 +121,6 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
       AuditLogger.instance.page('LoginPage', {'loading': _loading});
-    }
-  }
-
-  Future<bool> _checkPreferences() async {
-    try {
-      _prefRepo ??=
-          widget.preferenceRepository ??
-          PreferenceRepository(PreferenceDao(DatabaseProvider()));
-      final count = await _prefRepo!.getCount();
-      return count > 0;
-    } catch (e) {
-      AuditLogger.instance.error('LoginPage._checkPreferences', e);
-      OperationLog.instance.error('LoginPage._checkPreferences', e);
-      // DB 未初始化等，默认有偏好
-      return true;
     }
   }
 

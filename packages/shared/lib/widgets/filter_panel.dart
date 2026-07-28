@@ -4,61 +4,28 @@ import 'package:shared/domain/models.dart';
 import 'package:shared/widgets/difficulty_slider.dart';
 import 'package:shared/widgets/concept_tag_tree.dart';
 import 'package:shared/widgets/knowledge_card_group.dart';
+import 'package:shared/widgets/filter_panel_components.dart';
+import 'package:shared/widgets/filter_state.dart';
 
-/// 筛选状态
-class FilterState {
-  final Set<String> years;
-  final Set<String> regions;
-  final Set<String> types;
-  final Set<String> conceptTags;
-  final Set<String> examTypes;
-  final Set<String> knowledgeCards;
-  final double diffMin;
-  final double diffMax;
-  final double calcMin;
-  final double calcMax;
-  final SortMode? sort;
+export 'filter_state.dart';
 
-  const FilterState({
-    this.years = const {},
-    this.regions = const {},
-    this.types = const {},
-    this.conceptTags = const {},
-    this.examTypes = const {},
-    this.knowledgeCards = const {},
-    this.diffMin = 0,
-    this.diffMax = 10,
-    this.calcMin = 0,
-    this.calcMax = 10,
-    this.sort,
-  });
-}
-
-/// 筛选面板（智能组卷、自主选题和推荐页面共用）
-typedef FilterChangedCallback = void Function(FilterState state);
+/// 筛选面板（题库工作台和常用范围页面共用）
 
 final _difficultySegments = [
-  _DifficultySegment(max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'),
-  _DifficultySegment(max: 5.0, label: '中档', sample: '单选4-6·填空12-13·常规解答'),
-  _DifficultySegment(max: 7.0, label: '中难', sample: '选填后半·填空14·解答多步推理'),
-  _DifficultySegment(max: 8.5, label: '较难', sample: '选填压轴·解答最后两问'),
-  _DifficultySegment(max: 10.0, label: '压轴', sample: '解答压轴问·创新综合题'),
+  FilterRangeSegment(max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'),
+  FilterRangeSegment(max: 5.0, label: '中档', sample: '单选4-6·填空12-13·常规解答'),
+  FilterRangeSegment(max: 7.0, label: '中难', sample: '选填后半·填空14·解答多步推理'),
+  FilterRangeSegment(max: 8.5, label: '较难', sample: '选填压轴·解答最后两问'),
+  FilterRangeSegment(max: 10.0, label: '压轴', sample: '解答压轴问·创新综合题'),
 ];
 
 final _workloadSegments = [
-  _DifficultySegment(max: 2.0, label: '少量', sample: '心算即可，不需动笔'),
-  _DifficultySegment(max: 4.0, label: '较少', sample: '简单代入化简，2-3步'),
-  _DifficultySegment(max: 6.0, label: '适中', sample: '常规运算量，需完整步骤'),
-  _DifficultySegment(max: 8.0, label: '较多', sample: '多步代数运算，需仔细'),
-  _DifficultySegment(max: 10.0, label: '繁琐', sample: '大量代数变换，需耐心推导'),
+  FilterRangeSegment(max: 2.0, label: '少量', sample: '心算即可，不需动笔'),
+  FilterRangeSegment(max: 4.0, label: '较少', sample: '简单代入化简，2-3步'),
+  FilterRangeSegment(max: 6.0, label: '适中', sample: '常规运算量，需完整步骤'),
+  FilterRangeSegment(max: 8.0, label: '较多', sample: '多步代数运算，需仔细'),
+  FilterRangeSegment(max: 10.0, label: '繁琐', sample: '大量代数变换，需耐心推导'),
 ];
-
-class _DifficultySegment {
-  final double max;
-  final String label;
-  final String sample;
-  const _DifficultySegment({required this.max, required this.label, required this.sample});
-}
 
 class FilterPanel extends StatefulWidget {
   final List<String> yearOptions;
@@ -77,6 +44,15 @@ class FilterPanel extends StatefulWidget {
   /// 是否显示排序选择器。
   final bool showSort;
 
+  /// 是否在首次显示时选择所有选项。新范围选择流程应设为 false。
+  final bool selectAllInitially;
+
+  /// 是否允许从标题行一键选择所有维度。
+  final bool allowGlobalSelectAll;
+
+  /// 面板首次构建时使用的外部筛选状态。
+  final FilterState? initialState;
+
   const FilterPanel({
     super.key,
     required this.yearOptions,
@@ -92,6 +68,9 @@ class FilterPanel extends StatefulWidget {
     this.onLoadPreference,
     this.horizontalMargin = 16,
     this.showSort = false,
+    this.selectAllInitially = true,
+    this.allowGlobalSelectAll = true,
+    this.initialState,
   });
 
   @override
@@ -119,10 +98,14 @@ class FilterPanelState extends State<FilterPanel> {
   bool _initialized = false;
 
   bool get _allEmpty =>
-      _selectedYears.isEmpty && _selectedRegions.isEmpty &&
-      _selectedTypes.isEmpty && _selectedExamTypes.isEmpty &&
-      _selectedConceptTagNames.isEmpty && _selectedKnowledgeCardTitles.isEmpty &&
-      _selectedConceptTags.isEmpty && _selectedKnowledgeCards.isEmpty;
+      _selectedYears.isEmpty &&
+      _selectedRegions.isEmpty &&
+      _selectedTypes.isEmpty &&
+      _selectedExamTypes.isEmpty &&
+      _selectedConceptTagNames.isEmpty &&
+      _selectedKnowledgeCardTitles.isEmpty &&
+      _selectedConceptTags.isEmpty &&
+      _selectedKnowledgeCards.isEmpty;
 
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
@@ -144,42 +127,81 @@ class FilterPanelState extends State<FilterPanel> {
 
   void _selectAllInitial() {
     if (_initialized) return;
+    final initial = widget.initialState;
+    if (initial != null) {
+      applyFilter(
+        years: initial.years,
+        regions: initial.regions,
+        conceptTags: initial.conceptTags,
+        examTypes: initial.examTypes,
+        knowledgeCards: initial.knowledgeCards,
+        types: initial.types,
+        diffMin: initial.diffMin,
+        diffMax: initial.diffMax,
+        calcMin: initial.calcMin,
+        calcMax: initial.calcMax,
+        sort: initial.sort,
+      );
+      return;
+    }
     setState(() {
-      _selectedYears.addAll(widget.yearOptions);
-      _selectedRegions.addAll(widget.regionOptions);
-      _selectedTypes.addAll(widget.typeOptions);
-      _selectedExamTypes.addAll(widget.examTypeOptions);
-      _selectedConceptTagNames.addAll(widget.conceptTagOptions);
-      _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
+      if (widget.selectAllInitially) {
+        _selectedYears.addAll(widget.yearOptions);
+        _selectedRegions.addAll(widget.regionOptions);
+        _selectedTypes.addAll(widget.typeOptions);
+        _selectedExamTypes.addAll(widget.examTypeOptions);
+        _selectedConceptTagNames.addAll(widget.conceptTagOptions);
+        _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
+      }
       _initialized = true;
     });
     _emit();
   }
 
   void applyFilter({
-    Set<String>? years, Set<String>? regions, Set<String>? conceptTags,
-    Set<String>? examTypes, Set<String>? knowledgeCards,
+    Set<String>? years,
+    Set<String>? regions,
+    Set<String>? conceptTags,
+    Set<String>? examTypes,
+    Set<String>? knowledgeCards,
     Set<String>? types,
-    double? diffMin, double? diffMax, double? calcMin, double? calcMax,
+    double? diffMin,
+    double? diffMax,
+    double? calcMin,
+    double? calcMax,
     SortMode? sort,
   }) {
     setState(() {
-      if (years != null) { _selectedYears.clear(); _selectedYears.addAll(years); }
-      if (regions != null) { _selectedRegions.clear(); _selectedRegions.addAll(regions); }
+      if (years != null) {
+        _selectedYears.clear();
+        _selectedYears.addAll(years);
+      }
+      if (regions != null) {
+        _selectedRegions.clear();
+        _selectedRegions.addAll(regions);
+      }
       if (conceptTags != null) {
-        _selectedConceptTags.clear(); _selectedConceptTags.addAll(conceptTags);
+        _selectedConceptTags.clear();
+        _selectedConceptTags.addAll(conceptTags);
         _selectedConceptTagNames
           ..clear()
           ..addAll(conceptTags);
       }
-      if (examTypes != null) { _selectedExamTypes.clear(); _selectedExamTypes.addAll(examTypes); }
+      if (examTypes != null) {
+        _selectedExamTypes.clear();
+        _selectedExamTypes.addAll(examTypes);
+      }
       if (knowledgeCards != null) {
-        _selectedKnowledgeCards.clear(); _selectedKnowledgeCards.addAll(knowledgeCards);
+        _selectedKnowledgeCards.clear();
+        _selectedKnowledgeCards.addAll(knowledgeCards);
         _selectedKnowledgeCardTitles
           ..clear()
           ..addAll(knowledgeCards);
       }
-      if (types != null) { _selectedTypes.clear(); _selectedTypes.addAll(types); }
+      if (types != null) {
+        _selectedTypes.clear();
+        _selectedTypes.addAll(types);
+      }
       if (diffMin != null) _diffMin = diffMin;
       if (diffMax != null) _diffMax = diffMax;
       if (calcMin != null) _calcMin = calcMin;
@@ -200,8 +222,10 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedTypes.clear();
       _selectedConceptTagNames.clear();
       _selectedKnowledgeCardTitles.clear();
-      _diffMin = 0; _diffMax = 10;
-      _calcMin = 0; _calcMax = 10;
+      _diffMin = 0;
+      _diffMax = 10;
+      _calcMin = 0;
+      _calcMax = 10;
       _sort = SortMode.newestFirst;
     });
     _emit();
@@ -217,97 +241,108 @@ class FilterPanelState extends State<FilterPanel> {
       _selectedConceptTags.addAll(widget.conceptTagOptions);
       _selectedKnowledgeCardTitles.addAll(widget.knowledgeCardOptions);
       _selectedKnowledgeCards.addAll(widget.knowledgeCardOptions);
-      _diffMin = 0; _diffMax = 10;
-      _calcMin = 0; _calcMax = 10;
+      _diffMin = 0;
+      _diffMax = 10;
+      _calcMin = 0;
+      _calcMax = 10;
       _sort = SortMode.newestFirst;
     });
     _emit();
   }
 
   void _emit() {
-      final colors = context.colors;
+    final colors = context.colors;
     final flatTags = _selectedConceptTagNames.isNotEmpty
         ? _selectedConceptTagNames
         : _selectedConceptTags;
     final flatKcs = _selectedKnowledgeCardTitles.isNotEmpty
         ? _selectedKnowledgeCardTitles
         : _selectedKnowledgeCards;
-    final effectiveTags = widget.conceptTagOptions.isEmpty || flatTags.length == widget.conceptTagOptions.length
+    final effectiveTags =
+        widget.conceptTagOptions.isEmpty ||
+            flatTags.length == widget.conceptTagOptions.length
         ? const <String>{}
         : flatTags;
-    final effectiveKcs = widget.knowledgeCardOptions.isEmpty || flatKcs.length == widget.knowledgeCardOptions.length
+    final effectiveKcs =
+        widget.knowledgeCardOptions.isEmpty ||
+            flatKcs.length == widget.knowledgeCardOptions.length
         ? const <String>{}
         : flatKcs;
-    widget.onChanged?.call(FilterState(
-      years: _selectedYears,
-      regions: _selectedRegions,
-      types: _selectedTypes,
-      conceptTags: effectiveTags,
-      examTypes: _selectedExamTypes,
-      knowledgeCards: effectiveKcs,
-      diffMin: _diffMin,
-      diffMax: _diffMax,
-      calcMin: _calcMin,
-      calcMax: _calcMax,
-      sort: widget.showSort ? _sort : null,
-    ));
+    widget.onChanged?.call(
+      FilterState(
+        years: _selectedYears,
+        regions: _selectedRegions,
+        types: _selectedTypes,
+        conceptTags: effectiveTags,
+        examTypes: _selectedExamTypes,
+        knowledgeCards: effectiveKcs,
+        diffMin: _diffMin,
+        diffMax: _diffMax,
+        calcMin: _calcMin,
+        calcMax: _calcMax,
+        sort: widget.showSort ? _sort : null,
+      ),
+    );
   }
 
   /// 空维度提示 — 有选项但用户未选任何项时，列出维度名
   List<String> get _emptyHints {
     final h = <String>[];
     if (widget.yearOptions.isNotEmpty && _selectedYears.isEmpty) h.add('年份未选');
-    if (widget.regionOptions.isNotEmpty && _selectedRegions.isEmpty) h.add('地区未选');
-    if (widget.examTypeOptions.isNotEmpty && _selectedExamTypes.isEmpty) h.add('考试类型未选');
+    if (widget.regionOptions.isNotEmpty && _selectedRegions.isEmpty)
+      h.add('地区未选');
+    if (widget.examTypeOptions.isNotEmpty && _selectedExamTypes.isEmpty)
+      h.add('考试类型未选');
     if (widget.typeOptions.isNotEmpty && _selectedTypes.isEmpty) h.add('题型未选');
-    if (widget.conceptTagOptions.isNotEmpty && _selectedConceptTagNames.isEmpty) h.add('概念标签未选');
-    if (widget.knowledgeCardOptions.isNotEmpty && _selectedKnowledgeCardTitles.isEmpty) h.add('知识卡片未选');
+    if (widget.conceptTagOptions.isNotEmpty && _selectedConceptTagNames.isEmpty)
+      h.add('概念标签未选');
+    if (widget.knowledgeCardOptions.isNotEmpty &&
+        _selectedKnowledgeCardTitles.isEmpty)
+      h.add('知识卡片未选');
     return h;
   }
 
-  // ── 摘要 chips ──
-  List<Widget> get _summaryChips {
-    final chips = <Widget>[];
-    void addChip(String text) {
-        final colors = context.colors;
-      chips.add(Container(
-        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: colors.primaryContainer,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(text, style: TextStyle(fontSize: 10, color: colors.primary)),
-      ));
+  List<String> get _summaryLabels {
+    final labels = <String>[];
+    if (_selectedYears.isNotEmpty &&
+        _selectedYears.length < widget.yearOptions.length) {
+      labels.add(_selectedYears.join(' '));
     }
-    if (_selectedYears.isNotEmpty && _selectedYears.length < widget.yearOptions.length) {
-      addChip(_selectedYears.join(' '));
+    if (_selectedRegions.isNotEmpty &&
+        _selectedRegions.length < widget.regionOptions.length) {
+      labels.add(_selectedRegions.join('/'));
     }
-    if (_selectedRegions.isNotEmpty && _selectedRegions.length < widget.regionOptions.length) {
-      addChip(_selectedRegions.join('/'));
+    if (_selectedTypes.isNotEmpty &&
+        _selectedTypes.length < widget.typeOptions.length) {
+      labels.add(
+        _selectedTypes.map((type) => QuestionTypeLabels.of(type)).join('/'),
+      );
     }
-    if (_selectedTypes.isNotEmpty && _selectedTypes.length < widget.typeOptions.length) {
-      addChip(_selectedTypes.map((t) => QuestionTypeLabels.of(t)).join('/'));
-    }
-    if (_selectedExamTypes.isNotEmpty && _selectedExamTypes.length < widget.examTypeOptions.length) {
-      addChip(_selectedExamTypes.join('/'));
+    if (_selectedExamTypes.isNotEmpty &&
+        _selectedExamTypes.length < widget.examTypeOptions.length) {
+      labels.add(_selectedExamTypes.join('/'));
     }
     final tagCount = _selectedConceptTagNames.length;
     final kcCount = _selectedKnowledgeCardTitles.length;
     if (tagCount > 0 && tagCount < widget.conceptTagOptions.length) {
-      addChip('概念标签 $tagCount');
+      labels.add('概念标签 $tagCount');
     }
     if (kcCount > 0 && kcCount < widget.knowledgeCardOptions.length) {
-      addChip('知识卡片 $kcCount');
+      labels.add('知识卡片 $kcCount');
     }
     if ((_diffMin > 0 || _diffMax < 10) || (_calcMin > 0 || _calcMax < 10)) {
-      final d = _diffMin > 0 || _diffMax < 10 ? '难度 ${_diffMin.toStringAsFixed(0)}-${_diffMax.toStringAsFixed(0)}' : null;
-      final c = _calcMin > 0 || _calcMax < 10 ? '计算量 ${_calcMin.toStringAsFixed(0)}-${_calcMax.toStringAsFixed(0)}' : null;
-      addChip([d, c].nonNulls.join(' '));
+      final d = _diffMin > 0 || _diffMax < 10
+          ? '难度 ${_diffMin.toStringAsFixed(0)}-${_diffMax.toStringAsFixed(0)}'
+          : null;
+      final c = _calcMin > 0 || _calcMax < 10
+          ? '计算量 ${_calcMin.toStringAsFixed(0)}-${_calcMax.toStringAsFixed(0)}'
+          : null;
+      labels.add([d, c].nonNulls.join(' '));
     }
-    if (chips.isEmpty) {
-      addChip('全部');
+    if (labels.isEmpty) {
+      labels.add(widget.selectAllInitially ? '全部' : '未选择');
     }
-    return chips;
+    return labels;
   }
 
   // ── 排序选择器（仅 showSort=true 时显示） ──
@@ -320,23 +355,34 @@ class FilterPanelState extends State<FilterPanel> {
   };
 
   Widget _buildSortRow() {
-      final colors = context.colors;
+    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 8),
         Padding(
           padding: EdgeInsets.only(bottom: 4),
-          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
+          child: Text(
+            '排序方式',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
         ),
         Wrap(
-          spacing: 6, runSpacing: 4,
+          spacing: 6,
+          runSpacing: 4,
           children: _sortOptions.entries.map((entry) {
             final mode = entry.key;
             final label = entry.value;
             final isSelected = _sort == mode;
             return GestureDetector(
-              onTap: () { setState(() => _sort = mode); _emit(); },
+              onTap: () {
+                setState(() => _sort = mode);
+                _emit();
+              },
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -346,8 +392,12 @@ class FilterPanelState extends State<FilterPanel> {
                       ? Border.all(color: Colors.transparent)
                       : Border.all(color: colors.border),
                 ),
-                child: Text(label,
-                  style: TextStyle(fontSize: 12, color: isSelected ? colors.primary : colors.textSecondary),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isSelected ? colors.primary : colors.textSecondary,
+                  ),
                 ),
               ),
             );
@@ -375,38 +425,32 @@ class FilterPanelState extends State<FilterPanel> {
             // 标题行
             Row(
               children: [
-                Text('筛选条件', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                Spacer(),
-                TextButton(
-                  onPressed: _allEmpty ? selectAll : clearAll,
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(_allEmpty ? '全选' : '取消全选', style: TextStyle(fontSize: 12)),
+                Text(
+                  '筛选条件',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
+                Spacer(),
+                if (!_allEmpty || widget.allowGlobalSelectAll)
+                  TextButton(
+                    onPressed: _allEmpty ? selectAll : clearAll,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      _allEmpty ? '全选' : '清空',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
               ],
             ),
-            if (_summaryChips.isNotEmpty)
-              Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Wrap(spacing: 4, runSpacing: 4, children: _summaryChips),
-              ),
-            if (_emptyHints.isNotEmpty && !_allEmpty)
-              Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Wrap(spacing: 4, runSpacing: 4, children: _emptyHints.map((h) => Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: colors.warning.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: colors.warning.withValues(alpha: 0.3)),
-                  ),
-                  child: Text(h, style: TextStyle(fontSize: 10, color: colors.warning)),
-                )).toList()),
-              ),
-            if (widget.onSavePreference != null || widget.onLoadPreference != null)
+            FilterPanelSummary(
+              labels: _summaryLabels,
+              emptyHints: _allEmpty ? const [] : _emptyHints,
+            ),
+            if (widget.onSavePreference != null ||
+                widget.onLoadPreference != null)
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 margin: EdgeInsets.only(bottom: 8),
@@ -419,104 +463,178 @@ class FilterPanelState extends State<FilterPanel> {
                     if (widget.onSavePreference != null)
                       GestureDetector(
                         onTap: widget.onSavePreference,
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.save_outlined, size: 14, color: colors.primary),
-                          SizedBox(width: 4),
-                          Text('保存为学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
-                        ]),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.save_outlined,
+                              size: 14,
+                              color: colors.primary,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '保存为常用范围',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    if (widget.onSavePreference != null && widget.onLoadPreference != null)
+                    if (widget.onSavePreference != null &&
+                        widget.onLoadPreference != null)
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('|', style: TextStyle(fontSize: 12, color: colors.textMuted)),
+                        child: Text(
+                          '|',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colors.textMuted,
+                          ),
+                        ),
                       ),
                     if (widget.onLoadPreference != null)
                       GestureDetector(
                         onTap: widget.onLoadPreference,
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(Icons.folder_open_outlined, size: 14, color: colors.primary),
-                          SizedBox(width: 4),
-                          Text('读取学习偏好', style: TextStyle(fontSize: 12, color: colors.primary)),
-                        ]),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.folder_open_outlined,
+                              size: 14,
+                              color: colors.primary,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '读取常用范围',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 ),
               ),
             // 按来源筛选
-            _buildSection('按来源筛选', _sourceExpanded, () {
-              setState(() => _sourceExpanded = !_sourceExpanded);
-            }, [
-              _buildChipGroup('年份', widget.yearOptions, _selectedYears),
-              const SizedBox(height: 8),
-              _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
-              if (widget.examTypeOptions.isNotEmpty) ...[
+            _buildSection(
+              '按来源筛选',
+              _sourceExpanded,
+              () {
+                setState(() => _sourceExpanded = !_sourceExpanded);
+              },
+              [
+                _buildChipGroup('年份', widget.yearOptions, _selectedYears),
                 const SizedBox(height: 8),
-                _buildChipGroup('考试', widget.examTypeOptions, _selectedExamTypes),
+                _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
+                if (widget.examTypeOptions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildChipGroup(
+                    '考试',
+                    widget.examTypeOptions,
+                    _selectedExamTypes,
+                  ),
+                ],
+                if (widget.typeOptions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _buildTypeChipGroup(widget.typeOptions, _selectedTypes),
+                ],
               ],
-              if (widget.typeOptions.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _buildTypeChipGroup(widget.typeOptions, _selectedTypes),
-              ],
-            ]),
+            ),
             const SizedBox(height: 8),
             if (widget.conceptTagTree.isNotEmpty)
-              _section('按概念标签筛选', _conceptExpanded, () {
-                setState(() => _conceptExpanded = !_conceptExpanded);
-              }, ConceptTagTreeView(
-                nodes: widget.conceptTagTree,
-                selectedNames: _selectedConceptTagNames,
-                onChanged: (names) {
-                  setState(() {
-                    _selectedConceptTagNames
-                      ..clear()
-                      ..addAll(names);
-                    _selectedConceptTags
-                      ..clear()
-                      ..addAll(names);
-                  });
-                  _emit();
+              _section(
+                '按概念标签筛选',
+                _conceptExpanded,
+                () {
+                  setState(() => _conceptExpanded = !_conceptExpanded);
                 },
-              )),
-            if (widget.conceptTagTree.isNotEmpty)
-              const SizedBox(height: 8),
+                ConceptTagTreeView(
+                  nodes: widget.conceptTagTree,
+                  selectedNames: _selectedConceptTagNames,
+                  onChanged: (names) {
+                    setState(() {
+                      _selectedConceptTagNames
+                        ..clear()
+                        ..addAll(names);
+                      _selectedConceptTags
+                        ..clear()
+                        ..addAll(names);
+                    });
+                    _emit();
+                  },
+                ),
+              ),
+            if (widget.conceptTagTree.isNotEmpty) const SizedBox(height: 8),
             if (widget.knowledgeCardGroups.isNotEmpty)
-              _section('按知识卡片筛选', _knowledgeExpanded, () {
-                setState(() => _knowledgeExpanded = !_knowledgeExpanded);
-              }, KnowledgeCardGroupView(
-                groups: widget.knowledgeCardGroups,
-                selectedTitles: _selectedKnowledgeCardTitles,
-                onChanged: (titles) {
-                  setState(() {
-                    _selectedKnowledgeCardTitles
-                      ..clear()
-                      ..addAll(titles);
-                    _selectedKnowledgeCards
-                      ..clear()
-                      ..addAll(titles);
-                  });
-                  _emit();
+              _section(
+                '按知识卡片筛选',
+                _knowledgeExpanded,
+                () {
+                  setState(() => _knowledgeExpanded = !_knowledgeExpanded);
                 },
-              )),
+                KnowledgeCardGroupView(
+                  groups: widget.knowledgeCardGroups,
+                  selectedTitles: _selectedKnowledgeCardTitles,
+                  onChanged: (titles) {
+                    setState(() {
+                      _selectedKnowledgeCardTitles
+                        ..clear()
+                        ..addAll(titles);
+                      _selectedKnowledgeCards
+                        ..clear()
+                        ..addAll(titles);
+                    });
+                    _emit();
+                  },
+                ),
+              ),
             if (widget.knowledgeCardGroups.isNotEmpty)
               const SizedBox(height: 8),
-            _buildSection('按难度/计算量筛选', _diffExpanded, () {
-              setState(() => _diffExpanded = !_diffExpanded);
-            }, [
-              DifficultySlider(
-                label: '难度范围', min: 0, max: 10,
-                lower: _diffMin, upper: _diffMax,
-                onChanged: (v) { setState(() { _diffMin = v.start; _diffMax = v.end; }); _emit(); },
-              ),
-              _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
-              const SizedBox(height: 8),
-              DifficultySlider(
-                label: '计算量范围', min: 0, max: 10,
-                lower: _calcMin, upper: _calcMax,
-                onChanged: (v) { setState(() { _calcMin = v.start; _calcMax = v.end; }); _emit(); },
-              ),
-              _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
-              const SizedBox(height: 4),
-            ]),
+            _buildSection(
+              '按难度/计算量筛选',
+              _diffExpanded,
+              () {
+                setState(() => _diffExpanded = !_diffExpanded);
+              },
+              [
+                DifficultySlider(
+                  label: '难度范围',
+                  min: 0,
+                  max: 10,
+                  lower: _diffMin,
+                  upper: _diffMax,
+                  onChanged: (v) {
+                    setState(() {
+                      _diffMin = v.start;
+                      _diffMax = v.end;
+                    });
+                    _emit();
+                  },
+                ),
+                _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
+                const SizedBox(height: 8),
+                DifficultySlider(
+                  label: '计算量范围',
+                  min: 0,
+                  max: 10,
+                  lower: _calcMin,
+                  upper: _calcMax,
+                  onChanged: (v) {
+                    setState(() {
+                      _calcMin = v.start;
+                      _calcMax = v.end;
+                    });
+                    _emit();
+                  },
+                ),
+                _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
+                const SizedBox(height: 4),
+              ],
+            ),
             const SizedBox(height: 4),
             // 排序方式
             if (widget.showSort) _buildSortRow(),
@@ -526,156 +644,75 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
-  Widget _sectionHeader(String title, bool expanded, VoidCallback onToggle, {Widget? trailing}) {
-      final colors = context.colors;
-    return Container(
-      color: colors.background,
-      child: InkWell(
-        onTap: onToggle,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
-              Spacer(),
-              if (trailing != null) trailing,
-              SizedBox(width: 4),
-              Icon(expanded ? Icons.expand_less : Icons.expand_more, size: 18, color: colors.textSecondary),
-            ],
-          ),
-        ),
+  Widget _buildSection(
+    String title,
+    bool expanded,
+    VoidCallback onToggle,
+    List<Widget> children,
+  ) {
+    return FilterPanelSection(
+      title: title,
+      expanded: expanded,
+      onToggle: onToggle,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
 
-  Widget _buildSection(String title, bool expanded, VoidCallback onToggle, List<Widget> children) {
-      final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(title, expanded, onToggle),
-        if (expanded) ...[
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
-          ),
-          const SizedBox(height: 4),
-        ],
-      ],
+  Widget _section(
+    String title,
+    bool expanded,
+    VoidCallback onToggle,
+    Widget child,
+  ) {
+    return FilterPanelSection(
+      title: title,
+      expanded: expanded,
+      onToggle: onToggle,
+      child: child,
     );
   }
 
-  Widget _section(String title, bool expanded, VoidCallback onToggle, Widget child) {
-      final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(title, expanded, onToggle),
-        if (expanded) ...[
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: child,
-          ),
-          const SizedBox(height: 4),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildChipGroup(String label, List<String> options, Set<String> selected) {
-      final colors = context.colors;
-    if (options.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label.isNotEmpty)
-          Padding(
-            padding: EdgeInsets.only(bottom: 4),
-            child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-          ),
-        Wrap(
-          spacing: 6, runSpacing: 4,
-          children: options.map((o) => FilterChip(
-            label: Text(o, style: TextStyle(fontSize: 12, color: selected.contains(o) ? colors.primary : colors.textPrimary)),
-            selected: selected.contains(o),
-            onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: colors.primaryContainer,
-            checkmarkColor: colors.primary,
-            side: selected.contains(o)
-                ? BorderSide.none
-                : BorderSide(color: colors.border),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          )).toList(),
-        ),
-      ],
+  Widget _buildChipGroup(
+    String label,
+    List<String> options,
+    Set<String> selected,
+  ) {
+    return FilterChoiceGroup(
+      label: label,
+      options: options,
+      selected: selected,
+      onChanged: (option, value) {
+        setState(() => value ? selected.add(option) : selected.remove(option));
+        _emit();
+      },
     );
   }
 
   Widget _buildTypeChipGroup(List<String> rawOptions, Set<String> selected) {
-      final colors = context.colors;
-    if (rawOptions.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(bottom: 4),
-          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
-        ),
-        Wrap(
-          spacing: 6, runSpacing: 4,
-          children: rawOptions.map((o) => FilterChip(
-            label: Text(QuestionTypeLabels.of(o), style: TextStyle(fontSize: 12, color: selected.contains(o) ? colors.primary : colors.textPrimary)),
-            selected: selected.contains(o),
-            onSelected: (v) { setState(() { v ? selected.add(o) : selected.remove(o); }); _emit(); },
-            selectedColor: colors.primaryContainer,
-            checkmarkColor: colors.primary,
-            side: selected.contains(o)
-                ? BorderSide.none
-                : BorderSide(color: colors.border),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          )).toList(),
-        ),
-      ],
+    return FilterChoiceGroup(
+      label: '题型',
+      options: rawOptions,
+      selected: selected,
+      labelFor: QuestionTypeLabels.of,
+      onChanged: (option, value) {
+        setState(() => value ? selected.add(option) : selected.remove(option));
+        _emit();
+      },
     );
   }
 
-  Widget _buildSegmentDesc(List<_DifficultySegment> segments, double lower, double upper) {
-      final colors = context.colors;
-    int segIndex(double v) => segments.indexWhere((s) => v <= s.max);
-    final minIdx = segIndex(lower).clamp(0, segments.length - 1);
-    final maxIdx = segIndex(upper).clamp(0, segments.length - 1);
-    final same = minIdx == maxIdx;
-    if (same) {
-      return Padding(
-        padding: EdgeInsets.only(top: 2, bottom: 4),
-        child: Text.rich(TextSpan(children: [
-          TextSpan(text: segments[minIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
-          TextSpan(text: ' ${segments[minIdx].sample}',
-            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-        ])),
-      );
-    }
-    return Padding(
-      padding: EdgeInsets.only(top: 2, bottom: 4),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text.rich(TextSpan(children: [
-          WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
-          TextSpan(text: segments[minIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
-          TextSpan(text: ' ${segments[minIdx].sample}',
-            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-        ])),
-        Text.rich(TextSpan(children: [
-          WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
-          TextSpan(text: segments[maxIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
-          TextSpan(text: ' ${segments[maxIdx].sample}',
-            style: TextStyle(fontSize: 10, color: colors.textSecondary)),
-        ])),
-      ]),
+  Widget _buildSegmentDesc(
+    List<FilterRangeSegment> segments,
+    double lower,
+    double upper,
+  ) {
+    return FilterRangeDescription(
+      segments: segments,
+      lower: lower,
+      upper: upper,
     );
   }
 }

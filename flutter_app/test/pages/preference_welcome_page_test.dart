@@ -42,7 +42,7 @@ void main() {
       expect(await repo.getCount(), 0);
     });
 
-    test('保存偏好后 count=1 → 引导应跳过', () async {
+    test('保存范围后 count=1 → 兼容入口应跳过', () async {
       await repo.save(
         name: '我的偏好',
         filter: PreferenceFilter(
@@ -108,7 +108,7 @@ void main() {
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.textContaining('保存偏好'), findsOneWidget);
+      expect(find.textContaining('保存常用范围'), findsOneWidget);
     });
 
     testWidgets('保存后偏好列表应有记录', (tester) async {
@@ -123,7 +123,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('保存偏好'));
+      await tester.tap(find.textContaining('保存常用范围'));
       await tester.pumpAndSettle();
       // 未选择任何筛选条件时点击保存，触发验证不保存
       expect(await repo.getCount(), 0);
