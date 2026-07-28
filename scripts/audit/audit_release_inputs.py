@@ -98,7 +98,7 @@ def verify_production_bundle(db_type: str, info: dict[str, object]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--production", action="store_true", help="download and validate current public bundles")
-    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parent.parent)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
     args = parser.parse_args()
     root = args.root.resolve()
     errors: list[str] = []

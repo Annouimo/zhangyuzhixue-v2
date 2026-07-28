@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $config = Join-Path $repoRoot "server\deploy\nginx\zhangyuzhixue.conf"
 $server = "root@82.157.115.219"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -102,4 +102,4 @@ Invoke-CheckedCommand "ssh" @(
     "-o", "BatchMode=yes", "-i", $SshKey, $server,
     $remoteScript.Replace("`r", "")
 )
-Invoke-CheckedCommand "python" @("scripts\smoke_production.py")
+Invoke-CheckedCommand "python" @("scripts\audit\smoke_production.py")

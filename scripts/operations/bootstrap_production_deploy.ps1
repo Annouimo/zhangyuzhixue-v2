@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $server = "root@82.157.115.219"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $remoteStage = "/tmp/zhangyuzhixue-deploy-bootstrap-$timestamp"

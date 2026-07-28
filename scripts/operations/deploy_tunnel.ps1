@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $serverScript = Join-Path $repoRoot "server\scripts\deploy_cloudflared_config.sh"
 $server = "root@82.157.115.219"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -45,5 +45,5 @@ $command = "set -e; trap 'rm -f -- `"$remoteScript`" `"$remoteCandidate`"' EXIT;
 & ssh -o BatchMode=yes -i $SshKey $server $command
 if ($LASTEXITCODE -ne 0) { throw "Tunnel configuration deployment failed" }
 
-& python (Join-Path $repoRoot "scripts\smoke_production.py")
+& python (Join-Path $repoRoot "scripts\audit\smoke_production.py")
 if ($LASTEXITCODE -ne 0) { throw "Production smoke test failed" }

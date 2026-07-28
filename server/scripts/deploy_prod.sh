@@ -150,7 +150,7 @@ PY
         echo ""
         echo "✅ 部署验证完成"
 REMOTE_CHECKS
-    python "$REPO_DIR/scripts/smoke_production.py"
+    python "$REPO_DIR/scripts/audit/smoke_production.py"
 fi
 
 echo ""

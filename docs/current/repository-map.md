@@ -8,7 +8,7 @@
 | `packages/shared/` | 学生端基础主题、组件和工具 |
 | `server/` | Django API、Admin、数据构建与生产配置 |
 | `landing/` | 公开静态官网 |
-| `scripts/` | 仓库级测试、构建、审计与发布入口 |
+| `scripts/` | 稳定测试入口，以及按 `audit`、`release`、`operations`、`assets` 分类的工具 |
 | `assets/brand/` | 品牌图标和 Logo 单一来源 |
 | `docs/current/` | 当前有效文档 |
 | `docs/decisions/` | 架构与产品决策记录 |

@@ -14,11 +14,11 @@ post-receive hook 只部署 `server/`，执行数据库备份、迁移、静态�
 
 ## 官网
 
-官网位于 `landing/`，不随服务端 hook 部署。使用 `scripts/deploy_landing.ps1` 的独立审核流程。
+官网位于 `landing/`，不随服务端 hook 部署。使用 `scripts/release/deploy_landing.ps1` 的独立审核流程。
 
 ## 学生端
 
-Windows 构建入口为 `scripts/build_windows_release.ps1`，安装脚本为 `scripts/release/windows_installer.iss`。版本和发布清单由 `scripts/generate_version.py` 与 `scripts/create_release_manifest.py` 管理。
+Windows 构建入口为 `scripts/release/build_windows_release.ps1`，安装脚本为 `scripts/release/windows_installer.iss`。版本和发布清单由同目录脚本管理。
 
 ## 数据包
 

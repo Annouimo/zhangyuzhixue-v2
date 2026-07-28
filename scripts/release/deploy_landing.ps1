@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $landingRoot = Join-Path $repoRoot "landing"
 $server = "root@82.157.115.219"
 $remoteRoot = "/opt/zhangyuzhixue-v2"
@@ -59,7 +59,7 @@ if ($Deploy -and -not (Test-Path -LiteralPath $SshKey -PathType Leaf)) {
 
 Push-Location $repoRoot
 try {
-    Invoke-CheckedCommand "python" @("scripts\audit_landing.py", "landing")
+    Invoke-CheckedCommand "python" @("scripts\audit\audit_landing.py", "landing")
 
     $releasePaths = $releaseFiles | ForEach-Object { "landing/$_" }
     $dirtyLanding = & git -c safe.directory=D:/Hermes/zhangyuzhixue_app_v2 status --porcelain -- @releasePaths
@@ -201,7 +201,7 @@ echo "BACKUP=`$backup"
     )
 
     try {
-        Invoke-CheckedCommand "python" @("scripts\smoke_production.py")
+        Invoke-CheckedCommand "python" @("scripts\audit\smoke_production.py")
     }
     catch {
         Write-Warning "Public smoke test failed. Restoring the Landing backup."

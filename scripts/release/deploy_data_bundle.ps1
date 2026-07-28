@@ -13,7 +13,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $bundlePath = (Resolve-Path -LiteralPath $Bundle).Path
 $server = "root@82.157.115.219"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"

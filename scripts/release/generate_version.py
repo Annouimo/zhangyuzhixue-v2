@@ -53,7 +53,7 @@ def update_shared_app_version(root: Path, release: dict[str, str]) -> bool:
 
     f.write_text(f"""/// App 版本号 — 从 pubspec.yaml 自动生成
 ///
-/// 由 scripts/generate_version.py 自动覆盖。
+/// 由 scripts/release/generate_version.py 自动覆盖。
 /// 不要手动编辑。
 class AppVersion {{
   AppVersion._();
@@ -110,13 +110,13 @@ def update_iss_file(iss_path: Path, release: dict[str, str]) -> bool:
 
 
 # ── 映射表：app 名 → .iss 文件路径 ──
-ISSUES_DIR = Path(__file__).resolve().parent.parent / 'docs' / '07-工作流'
+REPO_ROOT = Path(__file__).resolve().parents[2]
 APP_ISS_MAP = {
-    'flutter_app': ISSUES_DIR / 'build_script_student.iss',
+    'flutter_app': REPO_ROOT / 'scripts' / 'release' / 'windows_installer.iss',
 }
 
 if __name__ == '__main__':
-    root = Path(__file__).resolve().parent.parent
+    root = REPO_ROOT
     ok = True
 
     # 以 flutter_app 版本为基准更新 shared 包

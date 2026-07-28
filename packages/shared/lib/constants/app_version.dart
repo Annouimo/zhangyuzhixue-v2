@@ -1,6 +1,6 @@
 /// App 版本号 — 从 pubspec.yaml 自动生成
 ///
-/// 由 scripts/generate_version.py 自动覆盖。
+/// 由 scripts/release/generate_version.py 自动覆盖。
 /// 不要手动编辑。
 class AppVersion {
   AppVersion._();
