@@ -29,7 +29,7 @@ class AppToast {
                 style: const TextStyle(
                   fontSize: 14,
                   color: Colors.white,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

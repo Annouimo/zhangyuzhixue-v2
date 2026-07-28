@@ -4,7 +4,6 @@ import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_card.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_status_badge.dart';
@@ -37,7 +36,8 @@ class _AchievementPageState extends State<AchievementPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.achievementRepository ??
+    _repo =
+        widget.achievementRepository ??
         AchievementRepository(
           AchievementDao(DatabaseProvider()),
           QuestionDao(DatabaseProvider()),
@@ -85,7 +85,9 @@ class _AchievementPageState extends State<AchievementPage> {
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '正在整理成就进度…');
-    if (_error != null) return ErrorPlaceholder(message: _error!, onRetry: _load);
+    if (_error != null) {
+      return ErrorPlaceholder(message: _error!, onRetry: _load);
+    }
 
     final summary = _summary;
     final categories = _categories ?? [];
@@ -107,17 +109,15 @@ class _AchievementPageState extends State<AchievementPage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         children: [
-          AppFeatureBanner(
-            icon: Icons.emoji_events_rounded,
-            eyebrow: '成长记录',
-            title: '已解锁 ${summary.unlockedCount} 项成就',
-            subtitle: '共 ${summary.totalCount} 项，持续练习会逐步解锁新的里程碑。',
-            footer: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-                minHeight: 8,
-              ),
+          AppSectionHeader(
+            title: '成就进度',
+            subtitle: '已解锁 ${summary.unlockedCount} / ${summary.totalCount}',
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: LinearProgressIndicator(
+              value: progress.clamp(0.0, 1.0),
+              minHeight: 8,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -136,7 +136,8 @@ class _AchievementPageState extends State<AchievementPage> {
         children: [
           AppSectionHeader(
             title: category.label,
-            subtitle: '已解锁 ${category.list.where((item) => item.status == 'unlocked').length} / ${category.list.length}',
+            subtitle:
+                '已解锁 ${category.list.where((item) => item.status == 'unlocked').length} / ${category.list.length}',
           ),
           const SizedBox(height: AppSpacing.md),
           LayoutBuilder(
@@ -144,8 +145,8 @@ class _AchievementPageState extends State<AchievementPage> {
               final columns = constraints.maxWidth >= AppBreakpoints.expanded
                   ? 3
                   : constraints.maxWidth >= AppBreakpoints.compact
-                      ? 2
-                      : 1;
+                  ? 2
+                  : 1;
               final spacing = AppSpacing.sm;
               final width = columns == 1
                   ? constraints.maxWidth
@@ -154,10 +155,12 @@ class _AchievementPageState extends State<AchievementPage> {
                 spacing: spacing,
                 runSpacing: spacing,
                 children: category.list
-                    .map((achievement) => SizedBox(
-                          width: width,
-                          child: _AchievementCard(achievement: achievement),
-                        ))
+                    .map(
+                      (achievement) => SizedBox(
+                        width: width,
+                        child: _AchievementCard(achievement: achievement),
+                      ),
+                    )
                     .toList(),
               );
             },
@@ -181,13 +184,13 @@ class _AchievementCard extends StatelessWidget {
     final tone = unlocked
         ? AppStatusTone.success
         : inProgress
-            ? AppStatusTone.warning
-            : AppStatusTone.neutral;
+        ? AppStatusTone.warning
+        : AppStatusTone.neutral;
     final statusLabel = unlocked
         ? '已解锁'
         : inProgress
-            ? '进行中'
-            : '未解锁';
+        ? '进行中'
+        : '未解锁';
 
     return AppCard(
       child: Column(
@@ -224,8 +227,8 @@ class _AchievementCard extends StatelessWidget {
                     Text(
                       achievement.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.textSecondary,
-                          ),
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -242,7 +245,10 @@ class _AchievementCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                     child: LinearProgressIndicator(
-                      value: (achievement.progressPercent / 100).clamp(0.0, 1.0),
+                      value: (achievement.progressPercent / 100).clamp(
+                        0.0,
+                        1.0,
+                      ),
                       minHeight: 7,
                     ),
                   ),
@@ -261,9 +267,9 @@ class _AchievementCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               '${achievement.unlockedAt} 解锁',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.success,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: colors.success),
             ),
           ],
         ],

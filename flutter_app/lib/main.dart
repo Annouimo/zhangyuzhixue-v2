@@ -170,7 +170,7 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
               const SizedBox(height: 12),
               const Text(
                 '数据更新',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(

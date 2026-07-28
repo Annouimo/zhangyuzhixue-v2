@@ -30,7 +30,8 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.lectureRepository ??
+    _repo =
+        widget.lectureRepository ??
         LectureRepository(LectureDao(DatabaseProvider()));
     _load();
   }
@@ -47,10 +48,9 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
         _chapterList = chapterList;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'LectureChaptersPage',
-        {'chapterCount': _chapterList?.items.length},
-      );
+      AuditLogger.instance.page('LectureChaptersPage', {
+        'chapterCount': _chapterList?.items.length,
+      });
     } catch (error) {
       OperationLog.instance.error('lecture_chapters_page_load', error);
       AuditLogger.instance.error('LectureChaptersPage._load', error);
@@ -64,11 +64,9 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text(_chapterList?.courseName ?? '章节目录'),
-        ),
-        body: _buildBody(),
-      );
+    appBar: AppBar(title: Text(_chapterList?.courseName ?? '章节目录')),
+    body: _buildBody(),
+  );
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载章节…');
@@ -87,21 +85,10 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
       maxWidth: AppContentWidth.reading,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        itemCount: chapterList.items.length + 1,
+        itemCount: chapterList.items.length,
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
         itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-              child: AppFeatureBanner(
-                eyebrow: '章节目录',
-                icon: Icons.library_books_rounded,
-                title: chapterList.courseName,
-                subtitle: '共 ${chapterList.items.length} 讲，建议按顺序阅读并逐段展开内容。',
-              ),
-            );
-          }
-          final chapter = chapterList.items[index - 1];
+          final chapter = chapterList.items[index];
           return AppCard(
             onTap: () => RouterUtils.push(
               context,
@@ -121,8 +108,8 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
                   child: Text(
                     '$index',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: context.colors.primary,
-                        ),
+                      color: context.colors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),

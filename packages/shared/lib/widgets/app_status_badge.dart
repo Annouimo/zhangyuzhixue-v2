@@ -79,7 +79,7 @@ class AppStatusBadge extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: fontScale,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: fg,
               height: 1.2,
             ),

@@ -27,6 +27,9 @@ class SolveChoicePage extends StatefulWidget {
   final QuestionRepository? questionRepository;
   final String? mode;
   final int? attemptId;
+  final bool embedded;
+  final bool forceNewAttempt;
+  final VoidCallback? onNext;
 
   const SolveChoicePage({
     super.key,
@@ -37,6 +40,9 @@ class SolveChoicePage extends StatefulWidget {
     this.questionRepository,
     this.mode,
     this.attemptId,
+    this.embedded = false,
+    this.forceNewAttempt = false,
+    this.onNext,
   });
 
   @override
@@ -50,6 +56,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   bool _submitting = false;
   bool _loading = true;
   bool _showResult = false;
+  bool _newAttemptCreated = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -126,7 +133,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       );
 
       // 首次访问且未指定回顾模式时，自动创建存档
-      if (attempts.isEmpty && widget.mode != 'review') {
+      if (attempts.isEmpty &&
+          widget.mode != 'review' &&
+          !widget.forceNewAttempt) {
         await _repo.startSolve(widget.questionId);
         OperationLog.instance.action(
           'solve_choice_page_load',
@@ -139,7 +148,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       if (widget.attemptId != null) {
         latest = attempts.where((a) => a.id == widget.attemptId).firstOrNull;
       }
-      latest ??= attempts.isNotEmpty ? attempts.last : null;
+      if (!widget.forceNewAttempt) {
+        latest ??= attempts.isNotEmpty ? attempts.last : null;
+      }
       if (!mounted) return;
       setState(() {
         _detail = detail;
@@ -173,6 +184,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     if (_selected == null || _submitting) return;
     setState(() => _submitting = true);
     try {
+      if (widget.forceNewAttempt && !_newAttemptCreated) {
+        await _repo.startSolve(widget.questionId);
+        _newAttemptCreated = true;
+      }
       await _repo.saveAttempt(
         widget.questionId,
         answerText: _selected!,
@@ -211,6 +226,9 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
+      if (widget.embedded) {
+        return const LoadingIndicator(message: '正在加载题目');
+      }
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
@@ -220,24 +238,28 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       );
     }
     if (_error != null) {
+      final error = ErrorPlaceholder(
+        message: '题目加载失败，请检查后重试',
+        onRetry: () {
+          setState(() {
+            _error = null;
+            _loading = true;
+          });
+          _load();
+        },
+      );
+      if (widget.embedded) return error;
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
           actions: const [ExamTimerAction()],
         ),
-        body: ErrorPlaceholder(
-          message: '题目加载失败，请检查后重试',
-          onRetry: () {
-            setState(() {
-              _error = null;
-              _loading = true;
-            });
-            _load();
-          },
-        ),
+        body: error,
       );
     }
 
+    final body = _buildSolveBody();
+    if (widget.embedded) return body;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -249,24 +271,32 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
           title: const Text('选择题'),
           actions: const [ExamTimerAction()],
         ),
-        body: AppContentContainer(
-          maxWidth: AppContentWidth.reading,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SolveFlowWidget(
-                  cooldownSeconds: _coolDownSec,
-                  isRevisit: _submitted,
-                  showResult: _showResult,
-                  isCorrect: _isCorrect,
-                  correctAnswer: _detail?.answer,
-                  explanation: _detail?.explanation,
-                  onSubmit: _selected == null ? null : _submit,
-                  submitLoading: _submitting,
-                  onNext: _isQuickPractice
+        body: body,
+      ),
+    );
+  }
+
+  Widget _buildSolveBody() {
+    return AppContentContainer(
+      maxWidth: AppContentWidth.reading,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SolveFlowWidget(
+              cooldownSeconds: _coolDownSec,
+              isRevisit: _submitted,
+              showResult: _showResult,
+              isCorrect: _isCorrect,
+              correctAnswer: _detail?.answer,
+              explanation: _detail?.explanation,
+              onSubmit: _selected == null ? null : _submit,
+              submitLoading: _submitting,
+              onNext:
+                  widget.onNext ??
+                  (_isQuickPractice
                       ? _continueQuickPractice
                       : _nextQuestionId != null
                       ? () {
@@ -276,31 +306,29 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                             widget.sequence,
                           );
                         }
-                      : null,
-                  nextLabel: _isQuickPractice ? '再来一题' : '下一题',
-                  onRate: () async {
-                    await context.push('/solve/rate?id=${widget.questionId}');
-                    _load();
-                  },
-                  onFinish: !_isQuickPractice && _nextQuestionId == null
-                      ? () => context.pop()
-                      : null,
-                  child: _buildContent(),
-                ),
-                if (_attempts.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: '重新作答',
-                    icon: Icons.refresh_rounded,
-                    variant: AppButtonVariant.secondary,
-                    fullWidth: true,
-                    onPressed: _createNewAttempt,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-              ],
+                      : null),
+              nextLabel: _isQuickPractice ? '再来一题' : '下一题',
+              onRate: () async {
+                await context.push('/solve/rate?id=${widget.questionId}');
+                _load();
+              },
+              onFinish: !_isQuickPractice && _nextQuestionId == null
+                  ? () => context.pop()
+                  : null,
+              child: _buildContent(),
             ),
-          ),
+            if (_attempts.isNotEmpty && !widget.embedded) ...[
+              const SizedBox(height: AppSpacing.md),
+              AppButton(
+                label: '重新作答',
+                icon: Icons.refresh_rounded,
+                variant: AppButtonVariant.secondary,
+                fullWidth: true,
+                onPressed: _createNewAttempt,
+              ),
+            ],
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );
@@ -373,7 +401,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
                     fontSize: 13,
                     fontWeight: a.id == _currentAttempt?.id
                         ? FontWeight.w600
-                        : FontWeight.normal,
+                        : FontWeight.w400,
                     color: a.id == _currentAttempt?.id
                         ? colors.primary
                         : colors.textPrimary,
@@ -446,7 +474,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       number: detail.number,
       title: detail.title,
       questionTypeLabel: _typeLabel(detail.questionType),
-      attemptSelector: _buildAttemptSelector(),
+      attemptSelector: widget.embedded ? null : _buildAttemptSelector(),
       isReviewMode: _submitted,
       conceptTags: detail.conceptTags,
       stem: detail.stem,

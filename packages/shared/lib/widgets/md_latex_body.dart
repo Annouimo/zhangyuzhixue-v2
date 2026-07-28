@@ -20,6 +20,12 @@ class MdLatexBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final textTheme = Theme.of(context).textTheme;
+    final bodyStyle = (textTheme.bodyMedium ?? const TextStyle()).copyWith(
+      fontSize: fontSize,
+      color: colors.textPrimary,
+      height: 1.6,
+    );
     if (data.isEmpty) return SizedBox.shrink();
 
     return MarkdownBody(
@@ -33,34 +39,30 @@ class MdLatexBody extends StatelessWidget {
         'math_block': _BlockMathBuilder(),
       },
       styleSheet: MarkdownStyleSheet(
-        p: TextStyle(
-          fontSize: fontSize,
-          color: colors.textPrimary,
-          height: 1.6,
-        ),
-        h1: TextStyle(
+        p: bodyStyle,
+        h1: (textTheme.headlineMedium ?? bodyStyle).copyWith(
           fontSize: fontSize + 6,
-          fontWeight: FontWeight.bold,
           color: colors.textPrimary,
           height: 1.4,
         ),
-        h2: TextStyle(
+        h2: (textTheme.headlineSmall ?? bodyStyle).copyWith(
           fontSize: fontSize + 4,
-          fontWeight: FontWeight.bold,
           color: colors.textPrimary,
           height: 1.4,
         ),
-        h3: TextStyle(
+        h3: (textTheme.titleMedium ?? bodyStyle).copyWith(
           fontSize: fontSize + 2,
+          color: colors.textPrimary,
+          height: 1.4,
+        ),
+        strong: bodyStyle.copyWith(
           fontWeight: FontWeight.w600,
           color: colors.textPrimary,
-          height: 1.4,
         ),
-        strong: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: colors.textPrimary,
+        em: bodyStyle.copyWith(
+          fontStyle: FontStyle.normal,
+          color: colors.textSecondary,
         ),
-        em: TextStyle(fontStyle: FontStyle.normal, color: colors.textSecondary),
         code: TextStyle(
           fontSize: fontSize - 1,
           backgroundColor: colors.surfaceSubtle,
@@ -75,7 +77,7 @@ class MdLatexBody extends StatelessWidget {
           color: colors.primaryContainer,
           borderRadius: BorderRadius.circular(4),
         ),
-        listBullet: TextStyle(fontSize: fontSize, color: colors.textSecondary),
+        listBullet: bodyStyle.copyWith(color: colors.textSecondary),
         horizontalRuleDecoration: BoxDecoration(
           border: Border(top: BorderSide(color: colors.border)),
         ),

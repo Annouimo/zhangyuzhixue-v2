@@ -5,7 +5,6 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
 import '../../data/api/api_client.dart';
@@ -210,13 +209,6 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 children: [
-                  AppFeatureBanner(
-                    icon: Icons.manage_accounts_rounded,
-                    eyebrow: '账号资料',
-                    title: '完善你的学习档案',
-                    subtitle: '昵称和高考年份会用于个性化展示；姓名、学号和手机号由管理员维护。',
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final wide =

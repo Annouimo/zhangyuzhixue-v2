@@ -26,4 +26,7 @@ flutter:
   fonts:
     - family: NotoSansSC
       fonts:
-        - asset: assets/fonts/NotoSansSC-Variable.ttf
+        - asset: assets/fonts/NotoSansSC-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansSC-SemiBold.ttf
+          weight: 600

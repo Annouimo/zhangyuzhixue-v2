@@ -27,65 +27,26 @@ class ExamHomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: AppSpacing.md),
-              AppFeatureBanner(
-                eyebrow: '专属练习方案',
-                icon: Icons.description_rounded,
-                title: '创建一份适合你的试卷',
-                subtitle: '让系统按目标自动配题，或从题库中逐题挑选。创建后可以预览、下载 PDF，并快速核对答案。',
-                action: SizedBox(
-                  width: 300,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AppButton(
-                        label: '智能组卷 · $_autoPaperCost 积分',
-                        icon: Icons.auto_awesome_rounded,
-                        fullWidth: true,
-                        onPressed: () => RouterUtils.push(
-                          context,
-                          AppRoutes.examAuto,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      AppButton(
-                        label: '自主选题 · $_pickPaperCost 积分',
-                        icon: Icons.touch_app_rounded,
-                        variant: AppButtonVariant.secondary,
-                        fullWidth: true,
-                        onPressed: () => RouterUtils.push(
-                          context,
-                          AppRoutes.examPick,
-                        ),
-                      ),
-                    ],
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  AppButton(
+                    label: '智能组卷 · $_autoPaperCost 积分',
+                    icon: Icons.auto_awesome_rounded,
+                    onPressed: () =>
+                        RouterUtils.push(context, AppRoutes.examAuto),
                   ),
-                ),
-                footer: const Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    AppStatusBadge(
-                      label: '智能匹配难度',
-                      tone: AppStatusTone.info,
-                      icon: Icons.tune_rounded,
-                      compact: true,
-                    ),
-                    AppStatusBadge(
-                      label: '支持 PDF',
-                      tone: AppStatusTone.neutral,
-                      icon: Icons.picture_as_pdf_outlined,
-                      compact: true,
-                    ),
-                    AppStatusBadge(
-                      label: '可快速对答案',
-                      tone: AppStatusTone.success,
-                      icon: Icons.fact_check_outlined,
-                      compact: true,
-                    ),
-                  ],
-                ),
+                  AppButton(
+                    label: '自主选题 · $_pickPaperCost 积分',
+                    icon: Icons.touch_app_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () =>
+                        RouterUtils.push(context, AppRoutes.examPick),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
               const AppSectionHeader(
                 title: '我的试卷空间',
                 subtitle: '管理已创建的试卷，也可以发现和收藏其他同学分享的内容。',
@@ -93,11 +54,12 @@ class ExamHomePage extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final columns = constraints.maxWidth >= AppBreakpoints.expanded
+                  final columns =
+                      constraints.maxWidth >= AppBreakpoints.expanded
                       ? 3
                       : constraints.maxWidth >= AppBreakpoints.compact
-                          ? 2
-                          : 1;
+                      ? 2
+                      : 1;
                   const gap = AppSpacing.md;
                   final width = columns == 1
                       ? constraints.maxWidth
@@ -109,30 +71,24 @@ class ExamHomePage extends StatelessWidget {
                       title: '我的组卷',
                       subtitle: '管理、公开或删除我创建的试卷',
                       tone: AppStatusTone.primary,
-                      onTap: () => RouterUtils.push(
-                        context,
-                        AppRoutes.examHistory,
-                      ),
+                      onTap: () =>
+                          RouterUtils.push(context, AppRoutes.examHistory),
                     ),
                     _ExamEntry(
                       icon: Icons.explore_outlined,
                       title: '发现组卷',
                       subtitle: '浏览公开试卷，按热度或时间筛选',
                       tone: AppStatusTone.recommendation,
-                      onTap: () => RouterUtils.push(
-                        context,
-                        AppRoutes.examExplore,
-                      ),
+                      onTap: () =>
+                          RouterUtils.push(context, AppRoutes.examExplore),
                     ),
                     _ExamEntry(
                       icon: Icons.bookmark_outline_rounded,
                       title: '我的收藏',
                       subtitle: '随时查看已经收藏的优质试卷',
                       tone: AppStatusTone.success,
-                      onTap: () => RouterUtils.push(
-                        context,
-                        AppRoutes.examFavorites,
-                      ),
+                      onTap: () =>
+                          RouterUtils.push(context, AppRoutes.examFavorites),
                     ),
                   ];
 
@@ -197,9 +153,7 @@ class _ExamEntry extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             subtitle,
-            style: textTheme.bodySmall?.copyWith(
-              color: colors.textSecondary,
-            ),
+            style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
           ),
         ],
       ),

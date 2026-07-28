@@ -49,7 +49,8 @@ class _SolveRatePageState extends State<SolveRatePage> {
   @override
   void initState() {
     super.initState();
-    _ratingRepo = widget.ratingRepository ??
+    _ratingRepo =
+        widget.ratingRepository ??
         RatingRepository(
           RatingDao(DatabaseProvider()),
           QuestionDao(DatabaseProvider()),
@@ -140,161 +141,151 @@ class _SolveRatePageState extends State<SolveRatePage> {
       body: _loading
           ? const LoadingIndicator(message: '正在读取评分')
           : _error != null
-              ? ErrorPlaceholder(
-                  message: '评分信息加载失败，请检查后重试',
-                  onRetry: () {
-                    setState(() {
-                      _error = null;
-                      _loading = true;
-                    });
-                    _loadRating();
-                  },
-                )
-              : AppContentContainer(
-                  maxWidth: AppContentWidth.reading,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.lg,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        AppCard(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const AppStatusBadge(
-                                label: '完成后反馈',
-                                tone: AppStatusTone.recommendation,
-                                icon: Icons.star_rounded,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Text(
-                                '请为这道题打分',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(color: colors.textSecondary),
-                              ),
-                            ],
+          ? ErrorPlaceholder(
+              message: '评分信息加载失败，请检查后重试',
+              onRetry: () {
+                setState(() {
+                  _error = null;
+                  _loading = true;
+                });
+                _loadRating();
+              },
+            )
+          : AppContentContainer(
+              maxWidth: AppContentWidth.reading,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppCard(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const AppStatusBadge(
+                            label: '完成后反馈',
+                            tone: AppStatusTone.recommendation,
+                            icon: Icons.star_rounded,
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _StarRating(
-                          label: '理解难度',
-                          description: '理解题意和找到解法有多困难',
-                          value: _difficulty,
-                          algorithmScore:
-                              _algoDifficulty > 0 ? _algoDifficulty : null,
-                          max: 10,
-                          onChanged: _submitted
-                              ? null
-                              : (value) =>
-                                  setState(() => _difficulty = value),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _StarRating(
-                          label: '计算量',
-                          description: '实际推导、运算和书写工作量',
-                          value: _calculation,
-                          algorithmScore:
-                              _algoCalculation > 0 ? _algoCalculation : null,
-                          max: 10,
-                          onChanged: _submitted
-                              ? null
-                              : (value) =>
-                                  setState(() => _calculation = value),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _StarRating(
-                          label: '解法优雅度',
-                          description: '解法是否简洁、自然且具有启发性',
-                          value: _elegance,
-                          max: 10,
-                          onChanged: _submitted
-                              ? null
-                              : (value) => setState(() => _elegance = value),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          '评分可跳过，不影响学习记录；算法评分仅作为参考。',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(color: colors.textSecondary),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        if (_submitted)
-                          AppCard(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            '请为这道题打分',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _StarRating(
+                      label: '理解难度',
+                      description: '理解题意和找到解法有多困难',
+                      value: _difficulty,
+                      algorithmScore: _algoDifficulty > 0
+                          ? _algoDifficulty
+                          : null,
+                      max: 10,
+                      onChanged: _submitted
+                          ? null
+                          : (value) => setState(() => _difficulty = value),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _StarRating(
+                      label: '计算量',
+                      description: '实际推导、运算和书写工作量',
+                      value: _calculation,
+                      algorithmScore: _algoCalculation > 0
+                          ? _algoCalculation
+                          : null,
+                      max: 10,
+                      onChanged: _submitted
+                          ? null
+                          : (value) => setState(() => _calculation = value),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _StarRating(
+                      label: '解法优雅度',
+                      description: '解法是否简洁、自然且具有启发性',
+                      value: _elegance,
+                      max: 10,
+                      onChanged: _submitted
+                          ? null
+                          : (value) => setState(() => _elegance = value),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      '评分可跳过，不影响学习记录；算法评分仅作为参考。',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    if (_submitted)
+                      AppCard(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: AppStatusBadge(
+                                label: '评分已提交',
+                                tone: AppStatusTone.success,
+                                icon: Icons.check_circle_rounded,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              '你的反馈已保存，可以返回继续学习。',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colors.textSecondary),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            Wrap(
+                              alignment: WrapAlignment.end,
+                              spacing: AppSpacing.xs,
+                              runSpacing: AppSpacing.xs,
                               children: [
-                                const Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: AppStatusBadge(
-                                    label: '评分已提交',
-                                    tone: AppStatusTone.success,
-                                    icon: Icons.check_circle_rounded,
-                                  ),
+                                AppButton(
+                                  label: '修改评分',
+                                  icon: Icons.edit_outlined,
+                                  variant: AppButtonVariant.text,
+                                  fullWidth: false,
+                                  onPressed: () =>
+                                      setState(() => _submitted = false),
                                 ),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text(
-                                  '你的反馈已保存，可以返回继续学习。',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(color: colors.textSecondary),
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                                Wrap(
-                                  alignment: WrapAlignment.end,
-                                  spacing: AppSpacing.xs,
-                                  runSpacing: AppSpacing.xs,
-                                  children: [
-                                    AppButton(
-                                      label: '修改评分',
-                                      icon: Icons.edit_outlined,
-                                      variant: AppButtonVariant.text,
-                                      fullWidth: false,
-                                      onPressed: () => setState(
-                                        () => _submitted = false,
-                                      ),
-                                    ),
-                                    AppButton(
-                                      label: '完成并返回',
-                                      icon: Icons.check_rounded,
-                                      fullWidth: false,
-                                      onPressed: () => Navigator.pop(context),
-                                    ),
-                                  ],
+                                AppButton(
+                                  label: '完成并返回',
+                                  icon: Icons.check_rounded,
+                                  fullWidth: false,
+                                  onPressed: () => Navigator.pop(context),
                                 ),
                               ],
                             ),
-                          )
-                        else
-                          AppButton(
-                            label: '提交评分（+$_rewardPoints 赠送积分）',
-                            icon: Icons.send_rounded,
-                            fullWidth: true,
-                            isLoading: _saving,
-                            onPressed: _saving ? null : _submit,
-                          ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
-                    ),
-                  ),
+                          ],
+                        ),
+                      )
+                    else
+                      AppButton(
+                        label: '提交评分（+$_rewardPoints 赠送积分）',
+                        icon: Icons.send_rounded,
+                        fullWidth: true,
+                        isLoading: _saving,
+                        onPressed: _saving ? null : _submit,
+                      ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 }
@@ -336,8 +327,8 @@ class _StarRating extends StatelessWidget {
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.textSecondary,
-                          ),
+                        color: colors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -364,16 +355,17 @@ class _StarRating extends StatelessWidget {
                 selected: filled,
                 label: '$label $score 分',
                 child: IconButton(
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                  padding: const EdgeInsets.all(AppSpacing.xs),
                   tooltip: '$score 分',
-                  onPressed: onChanged == null
-                      ? null
-                      : () => onChanged!(score),
+                  onPressed: onChanged == null ? null : () => onChanged!(score),
                   icon: Icon(
                     filled ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: filled
-                        ? colors.warning
-                        : colors.disabledForeground,
-                    size: 30,
+                    color: filled ? colors.warning : colors.disabledForeground,
+                    size: 24,
                   ),
                 ),
               );
@@ -383,8 +375,8 @@ class _StarRating extends StatelessWidget {
           Text(
             value > 0 ? '$value / $max' : '尚未评分',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: value > 0 ? colors.warning : colors.textSecondary,
-                ),
+              color: value > 0 ? colors.warning : colors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

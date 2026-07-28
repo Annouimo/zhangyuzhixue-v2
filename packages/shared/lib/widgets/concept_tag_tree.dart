@@ -155,7 +155,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
                     style: TextStyle(
                       fontSize: 13,
                       color: isSelected ? colors.primary : colors.textPrimary,
-                      fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
                 ],

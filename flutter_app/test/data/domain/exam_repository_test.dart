@@ -40,50 +40,97 @@ void main() {
     });
 
     test('getFilterOptions returns values from assets', () async {
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(1), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('1'), questionType: const Value('choice'),
-        stem: const Value('题'),
-      ));
-      await aDb.into(aDb.conceptTags).insert(adb.ConceptTagsCompanion(
-        id: const Value(1), name: const Value('函数'),
-      ));
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('题'),
+            ),
+          );
+      await aDb
+          .into(aDb.conceptTags)
+          .insert(
+            adb.ConceptTagsCompanion(
+              id: const Value(1),
+              name: const Value('函数'),
+            ),
+          );
       final opts = await repo.getFilterOptions();
       expect(opts.years, contains('2024'));
       expect(opts.regions, contains('海淀'));
     });
 
     test('confirm creates paper and returns id', () async {
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(1), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('1'), questionType: const Value('choice'),
-        stem: const Value('题'),
-      ));
-      final id = await repo.confirm(const SearchFilters(
-        name: '测试', choiceCount: 1, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      ));
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('题'),
+            ),
+          );
+      final id = await repo.confirm(
+        const SearchFilters(
+          name: '测试',
+          choiceCount: 1,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 5,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+      );
       expect(id, greaterThan(0));
       expect((await repo.getMyExams()).length, 1);
     });
 
     test('confirm throws when pool insufficient', () async {
-      expect(() => repo.confirm(const SearchFilters(
-        name: '不足', choiceCount: 5, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      )), throwsA(isA<InsufficientPoolException>()));
+      expect(
+        () => repo.confirm(
+          const SearchFilters(
+            name: '不足',
+            choiceCount: 5,
+            fillCount: 0,
+            solutionCount: 0,
+            targetDifficulty: 5,
+            years: [],
+            regions: [],
+            conceptTags: [],
+            knowledgeCards: [],
+          ),
+        ),
+        throwsA(isA<InsufficientPoolException>()),
+      );
     });
 
     test('getPreview returns paper info', () async {
       // 创建试卷
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(1), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('1'), questionType: const Value('choice'),
-        stem: const Value('题'),
-      ));
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('题'),
+            ),
+          );
       final paperId = await eDao.savePaper(title: '我的试卷');
       await eDao.savePaperQuestions(paperId, [1]);
       final preview = await repo.getPreview(paperId);
@@ -104,34 +151,133 @@ void main() {
     });
 
     test('getFilteredQuestions returns matching questions', () async {
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(1), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('1'), questionType: const Value('choice'),
-        stem: const Value('题 A'), difficulty: const Value(3.0),
-      ));
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(2), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('东城'),
-        number: const Value('2'), questionType: const Value('choice'),
-        stem: const Value('题 B'), difficulty: const Value(7.0),
-      ));
-      final qs = await repo.getFilteredQuestions(const SearchFilters(
-        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, regions: ['海淀'], conceptTags: [], knowledgeCards: [],
-        years: ['2024'], diffMin: 0, diffMax: 5,
-      ));
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('题 A'),
+              difficulty: const Value(3.0),
+            ),
+          );
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(2),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('东城'),
+              number: const Value('2'),
+              questionType: const Value('choice'),
+              stem: const Value('题 B'),
+              difficulty: const Value(7.0),
+            ),
+          );
+      final qs = await repo.getFilteredQuestions(
+        const SearchFilters(
+          name: '',
+          choiceCount: 0,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 5,
+          regions: ['海淀'],
+          conceptTags: [],
+          knowledgeCards: [],
+          years: ['2024'],
+          diffMin: 0,
+          diffMax: 5,
+        ),
+      );
       expect(qs.length, 1);
       expect(qs.first.id, 1);
+    });
+
+    test('getFilteredQuestions applies keyword search', () async {
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('高考'),
+              region: const Value('全国'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('函数测试题'),
+              difficulty: const Value(3.0),
+            ),
+          );
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(2),
+              year: const Value(2024),
+              examType: const Value('高考'),
+              region: const Value('全国'),
+              number: const Value('2'),
+              questionType: const Value('choice'),
+              stem: const Value('数列测试题'),
+              difficulty: const Value(3.0),
+            ),
+          );
+
+      final qs = await repo.getFilteredQuestions(
+        const SearchFilters(
+          name: '',
+          keyword: '函数',
+          choiceCount: 0,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 0,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+      );
+
+      expect(qs.map((question) => question.id), [1]);
+
+      final stats = await repo.getPoolStats(
+        const SearchFilters(
+          name: '',
+          keyword: '函数',
+          choiceCount: 0,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 0,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+      );
+      expect(stats.availableChoice, 1);
     });
   });
 
   group('_ExamFilterEngine', () {
     test('empty pool returns zeros', () async {
-      final stats = await repo.getPoolStats(const SearchFilters(
-        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      ));
+      final stats = await repo.getPoolStats(
+        const SearchFilters(
+          name: '',
+          choiceCount: 0,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 5,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+      );
       expect(stats.availableChoice, 0);
       expect(stats.availableFill, 0);
       expect(stats.availableSolution, 0);
@@ -139,22 +285,47 @@ void main() {
     });
 
     test('normal pool returns correct counts', () async {
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(1), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('1'), questionType: const Value('choice'),
-        stem: const Value('c1'), difficulty: const Value(3.0),
-      ));
-      await aDb.into(aDb.questions).insert(adb.QuestionsCompanion(
-        id: const Value(2), year: const Value(2024),
-        examType: const Value('一模'), region: const Value('海淀'),
-        number: const Value('2'), questionType: const Value('fill'),
-        stem: const Value('f1'), difficulty: const Value(5.0),
-      ));
-      final stats = await repo.getPoolStats(const SearchFilters(
-        name: '', choiceCount: 0, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      ));
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(1),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('1'),
+              questionType: const Value('choice'),
+              stem: const Value('c1'),
+              difficulty: const Value(3.0),
+            ),
+          );
+      await aDb
+          .into(aDb.questions)
+          .insert(
+            adb.QuestionsCompanion(
+              id: const Value(2),
+              year: const Value(2024),
+              examType: const Value('一模'),
+              region: const Value('海淀'),
+              number: const Value('2'),
+              questionType: const Value('fill'),
+              stem: const Value('f1'),
+              difficulty: const Value(5.0),
+            ),
+          );
+      final stats = await repo.getPoolStats(
+        const SearchFilters(
+          name: '',
+          choiceCount: 0,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 5,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+      );
       expect(stats.availableChoice, 1);
       expect(stats.availableFill, 1);
       expect(stats.availableSolution, 0);
@@ -162,10 +333,20 @@ void main() {
       expect(stats.poolDiffMax, 5.0);
     });
     test('confirm allowShortfall skips pool check', () async {
-      final id = await repo.confirm(const SearchFilters(
-        name: '不足但允许', choiceCount: 5, fillCount: 0, solutionCount: 0,
-        targetDifficulty: 5, years: [], regions: [], conceptTags: [], knowledgeCards: [],
-      ), allowShortfall: true);
+      final id = await repo.confirm(
+        const SearchFilters(
+          name: '不足但允许',
+          choiceCount: 5,
+          fillCount: 0,
+          solutionCount: 0,
+          targetDifficulty: 5,
+          years: [],
+          regions: [],
+          conceptTags: [],
+          knowledgeCards: [],
+        ),
+        allowShortfall: true,
+      );
       expect(id, greaterThan(0));
       expect((await repo.getMyExams()).length, 1);
     });

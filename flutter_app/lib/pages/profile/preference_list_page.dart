@@ -5,7 +5,6 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
@@ -118,22 +117,15 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               children: [
-                AppFeatureBanner(
-                  icon: Icons.tune_rounded,
-                  eyebrow: '推荐设置',
-                  title: '管理你的练习偏好',
-                  subtitle: '为不同目标创建独立偏好，例如选择题专项、函数复习或某地区真题。',
+                AppSectionHeader(
+                  title: '已保存偏好',
+                  subtitle: '共 ${preferences.length} 组，可随时编辑或删除。',
                   action: AppButton(
                     label: '新建偏好',
                     icon: Icons.add_rounded,
                     onPressed: () => _openEditor(),
                     expanded: false,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                AppSectionHeader(
-                  title: '已保存偏好',
-                  subtitle: '共 ${preferences.length} 组，可随时编辑或删除。',
                 ),
                 const SizedBox(height: AppSpacing.md),
                 ...preferences.asMap().entries.map((entry) {

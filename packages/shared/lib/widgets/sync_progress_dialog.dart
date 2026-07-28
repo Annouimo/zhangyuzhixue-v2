@@ -130,7 +130,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         SizedBox(height: 12),
         Text(
           widget.dialogTitle,
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8),
         Text(
@@ -165,7 +165,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         SizedBox(height: 12),
         Text(
           '同步完成',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8),
         Text(
@@ -197,7 +197,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         SizedBox(height: 12),
         Text(
           '同步完成',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8),
         Text(
@@ -230,7 +230,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         SizedBox(height: 12),
         Text(
           '同步失败',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         SizedBox(height: 8),
         Text(

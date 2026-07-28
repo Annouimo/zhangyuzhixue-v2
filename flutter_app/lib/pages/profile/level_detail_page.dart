@@ -4,7 +4,6 @@ import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_card.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/error_placeholder.dart';
@@ -45,7 +44,8 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
   void initState() {
     super.initState();
     _percentile = AppPrefs().levelPercentile;
-    _repo = widget.userRepository ??
+    _repo =
+        widget.userRepository ??
         UserRepository(
           UserDao(DatabaseProvider()),
           UserApi(ApiClient()),
@@ -99,48 +99,42 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       body: _loading
           ? const LoadingIndicator(message: '正在计算成长等级…')
           : _error != null
-              ? ErrorPlaceholder(message: _error!, onRetry: _load)
-              : AppContentContainer(
-                  maxWidth: AppContentWidth.standard,
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                    children: [
-                      AppFeatureBanner(
-                        icon: Icons.military_tech_rounded,
-                        eyebrow: '当前等级',
-                        title: 'Lv.$_level',
-                        subtitle: '你的学习积分已超过 $_percentile% 的用户。坚持练习、完成任务和签到都能继续成长。',
-                        footer: const AppStatusBadge(
-                          label: '等级由学习积分决定',
-                          tone: AppStatusTone.info,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      PointSummaryCard(
-                        earned: _earned,
-                        bonus: _bonus,
-                        spent: _spent,
-                        available: _available,
-                        valueFontSize: 20,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      AppCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const AppSectionHeader(
-                              title: '等级对照',
-                              subtitle: '当前等级会随累计学习积分自动更新。',
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            ..._levels.map(_buildLevelRow),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                    ],
+          ? ErrorPlaceholder(message: _error!, onRetry: _load)
+          : AppContentContainer(
+              maxWidth: AppContentWidth.standard,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                children: [
+                  AppSectionHeader(
+                    title: 'Lv.$_level',
+                    subtitle: '超过 $_percentile% 的用户',
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.lg),
+                  PointSummaryCard(
+                    earned: _earned,
+                    bonus: _bonus,
+                    spent: _spent,
+                    available: _available,
+                    valueFontSize: 20,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppSectionHeader(
+                          title: '等级对照',
+                          subtitle: '当前等级会随累计学习积分自动更新。',
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        ..._levels.map(_buildLevelRow),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ),
+            ),
     );
   }
 
@@ -174,8 +168,8 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
             child: Text(
               'Lv.${row.level}',
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: current ? colors.onPrimary : colors.textSecondary,
-                  ),
+                color: current ? colors.onPrimary : colors.textSecondary,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -183,9 +177,9 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
             child: Text(
               row.range,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: future ? colors.textMuted : colors.textPrimary,
-                    fontWeight: current ? FontWeight.w600 : FontWeight.w400,
-                  ),
+                color: future ? colors.textMuted : colors.textPrimary,
+                fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+              ),
             ),
           ),
           if (current)

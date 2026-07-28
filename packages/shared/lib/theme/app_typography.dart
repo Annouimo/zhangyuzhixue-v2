@@ -11,22 +11,29 @@ abstract final class AppTypography {
   // ── Display（大标题 — 极少使用） ──
   static const displayLarge = TextStyle(
     fontSize: 32,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     height: 1.25,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   );
 
   static const displayMedium = TextStyle(
     fontSize: 28,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     height: 1.25,
-    letterSpacing: -0.25,
+    letterSpacing: 0,
+  );
+
+  static const displaySmall = TextStyle(
+    fontSize: 26,
+    fontWeight: FontWeight.w600,
+    height: 1.25,
+    letterSpacing: 0,
   );
 
   // ── Headline（页面/板块标题） ──
   static const headlineLarge = TextStyle(
     fontSize: 24,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     height: 1.3,
   );
 
@@ -83,38 +90,38 @@ abstract final class AppTypography {
   // ── Label（标签、按钮、辅助文字） ──
   static const labelLarge = TextStyle(
     fontSize: 14,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     height: 1.4,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
   );
 
   static const labelMedium = TextStyle(
     fontSize: 12,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     height: 1.4,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
   );
 
   static const labelSmall = TextStyle(
     fontSize: 11,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w600,
     height: 1.4,
-    letterSpacing: 0.1,
+    letterSpacing: 0,
   );
 
   // ── 数字专用（统计、分数、排行榜） ──
   static const numberLarge = TextStyle(
     fontSize: 32,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     height: 1.1,
-    letterSpacing: -1,
+    letterSpacing: 0,
   );
 
   static const numberMedium = TextStyle(
     fontSize: 24,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     height: 1.2,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   );
 
   static const numberSmall = TextStyle(

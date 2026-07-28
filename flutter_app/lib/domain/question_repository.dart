@@ -92,7 +92,11 @@ class SolveRouteHelper {
     final attempts = await repo.getAttempts(questionId);
     String mode;
     String? attemptId;
-    if (forceNewAttempt || attempts.isEmpty) {
+    if (forceNewAttempt) {
+      final attempt = await repo.startSolve(questionId);
+      mode = 'resume';
+      attemptId = attempt.id.toString();
+    } else if (attempts.isEmpty) {
       mode = 'first';
       attemptId = null;
     } else {

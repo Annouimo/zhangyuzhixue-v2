@@ -327,7 +327,7 @@ class FilterPanelState extends State<FilterPanel> {
         SizedBox(height: 8),
         Padding(
           padding: EdgeInsets.only(bottom: 4),
-          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
+          child: Text('排序方式', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
         ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -536,7 +536,7 @@ class FilterPanelState extends State<FilterPanel> {
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
-              Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: colors.textSecondary)),
+              Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.textSecondary)),
               Spacer(),
               if (trailing != null) trailing,
               SizedBox(width: 4),
@@ -593,7 +593,7 @@ class FilterPanelState extends State<FilterPanel> {
         if (label.isNotEmpty)
           Padding(
             padding: EdgeInsets.only(bottom: 4),
-            child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
+            child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
           ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -621,7 +621,7 @@ class FilterPanelState extends State<FilterPanel> {
       children: [
         Padding(
           padding: EdgeInsets.only(bottom: 4),
-          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary)),
+          child: Text('题型', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary)),
         ),
         Wrap(
           spacing: 6, runSpacing: 4,
@@ -652,7 +652,7 @@ class FilterPanelState extends State<FilterPanel> {
         padding: EdgeInsets.only(top: 2, bottom: 4),
         child: Text.rich(TextSpan(children: [
           TextSpan(text: segments[minIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
           TextSpan(text: ' ${segments[minIdx].sample}',
             style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),
@@ -664,14 +664,14 @@ class FilterPanelState extends State<FilterPanel> {
         Text.rich(TextSpan(children: [
           WidgetSpan(child: Text('← ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
           TextSpan(text: segments[minIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
           TextSpan(text: ' ${segments[minIdx].sample}',
             style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),
         Text.rich(TextSpan(children: [
           WidgetSpan(child: Text('→ ', style: TextStyle(fontSize: 11, color: colors.textSecondary))),
           TextSpan(text: segments[maxIdx].label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: colors.primary)),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colors.primary)),
           TextSpan(text: ' ${segments[maxIdx].sample}',
             style: TextStyle(fontSize: 10, color: colors.textSecondary)),
         ])),

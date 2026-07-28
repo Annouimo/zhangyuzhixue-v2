@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/error_placeholder.dart';
@@ -35,7 +34,8 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.userRepository ??
+    _repo =
+        widget.userRepository ??
         UserRepository(
           UserDao(DatabaseProvider()),
           UserApi(ApiClient()),
@@ -56,7 +56,9 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
         _history = history;
         _loading = false;
       });
-      AuditLogger.instance.page('QuestionHistoryPage', {'total': history.length});
+      AuditLogger.instance.page('QuestionHistoryPage', {
+        'total': history.length,
+      });
     } catch (error) {
       OperationLog.instance.error('question_history_page_load', error);
       AuditLogger.instance.error('QuestionHistoryPage._load', error);
@@ -75,8 +77,8 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       body: _loading
           ? const LoadingIndicator(message: '正在整理做题记录…')
           : _error != null
-              ? ErrorPlaceholder(message: _error!, onRetry: _load)
-              : _buildContent(),
+          ? ErrorPlaceholder(message: _error!, onRetry: _load)
+          : _buildContent(),
     );
   }
 
@@ -91,35 +93,29 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
       );
     }
 
-    final completed = history.where((item) => item.isCompleted).length;
     return AppContentContainer(
       maxWidth: AppContentWidth.standard,
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         children: [
-          AppFeatureBanner(
-            icon: Icons.history_edu_rounded,
-            eyebrow: '学习足迹',
-            title: '共练习 ${history.length} 道题',
-            subtitle: '其中 $completed 道已完成；未完成题目可以继续作答，已完成题目可进入回顾模式。',
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const AppSectionHeader(
+          AppSectionHeader(
             title: '最近记录',
-            subtitle: '点击题目继续作答或查看解析。',
+            subtitle: '共 ${history.length} 道，点击题目继续作答或查看解析。',
           ),
           const SizedBox(height: AppSpacing.md),
-          ...history.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: QuestionCard(
-                  questionId: item.questionId,
-                  title: item.title,
-                  questionType: item.questionType,
-                  subtitle: item.date,
-                  status: item.status,
-                  onTap: () => _openQuestion(item),
-                ),
-              )),
+          ...history.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: QuestionCard(
+                questionId: item.questionId,
+                title: item.title,
+                questionType: item.questionType,
+                subtitle: item.date,
+                status: item.status,
+                onTap: () => _openQuestion(item),
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),

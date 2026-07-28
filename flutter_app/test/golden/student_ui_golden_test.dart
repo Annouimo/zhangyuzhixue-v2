@@ -5,6 +5,8 @@ import 'package:flutter_app/domain/recommend_repository.dart';
 import 'package:flutter_app/pages/login_page.dart';
 import 'package:flutter_app/pages/recommend_page.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+import 'package:shared/shared.dart';
 
 import '../support/ui_test_harness.dart';
 import '../test_setup.dart';
@@ -38,6 +40,10 @@ class _GoldenRecommendRepository implements RecommendRepository {
       const [];
 }
 
+Widget _solveBuilder(RecommendedQuestion question, VoidCallback onNext) {
+  return Center(child: MdLatexBody(question.title));
+}
+
 void main() {
   setUp(setupTestHooks);
 
@@ -69,7 +75,10 @@ void main() {
     ) async {
       await pumpUiScenario(
         tester,
-        RecommendPage(recommendRepository: _GoldenRecommendRepository()),
+        RecommendPage(
+          recommendRepository: _GoldenRecommendRepository(),
+          solveBuilder: _solveBuilder,
+        ),
         viewport: scenario.$1,
         theme: scenario.$2,
       );

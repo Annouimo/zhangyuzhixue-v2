@@ -34,33 +34,31 @@ void main() {
   });
 
   group('MainShell', () {
-    testWidgets('renders 5 bottom navigation tabs', (tester) async {
+    testWidgets('renders 3 bottom navigation tabs', (tester) async {
       await pumpShell(tester);
 
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('推荐'), findsAtLeastNWidgets(1));
-      expect(find.text('组卷'), findsOneWidget);
-      expect(find.text('复盘'), findsOneWidget);
+      expect(find.text('练习'), findsAtLeastNWidgets(1));
       expect(find.text('内容'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
 
-    testWidgets('default tab is recommendation (index 0)', (tester) async {
+    testWidgets('default tab is practice (index 0)', (tester) async {
       await pumpShell(tester);
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 0);
     });
 
-    testWidgets('tapping recommend tab switches content', (tester) async {
+    testWidgets('tapping content tab switches content', (tester) async {
       await pumpShell(tester);
 
-      await tester.tap(find.text('复盘'));
+      await tester.tap(find.text('内容'));
       await tester.pump();
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 2);
+      expect(navBar.selectedIndex, 1);
     });
 
     testWidgets('tapping profile tab switches content', (tester) async {
@@ -71,18 +69,20 @@ void main() {
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 4);
+      expect(navBar.selectedIndex, 2);
     });
 
-    testWidgets('tapping exam tab switches content', (tester) async {
+    testWidgets('tapping practice tab switches content', (tester) async {
       await pumpShell(tester);
 
-      await tester.tap(find.text('组卷'));
+      await tester.tap(find.text('内容'));
+      await tester.pump();
+      await tester.tap(find.text('练习'));
       await tester.pump();
       await tester.pump();
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
-      expect(navBar.selectedIndex, 1);
+      expect(navBar.selectedIndex, 0);
     });
 
     testWidgets('uses side navigation on wide screens', (tester) async {

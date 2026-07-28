@@ -182,80 +182,40 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          AppFeatureBanner(
-            eyebrow: preview.authorInfo.isEmpty ? '我的试卷' : preview.authorInfo,
-            icon: Icons.description_rounded,
-            title: preview.name,
-            subtitle: '共 ${preview.totalCount} 题，点击题目可进入对应的练习与解析流程。',
-            action: SizedBox(
-              width: 220,
-              child: ListenableBuilder(
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              ListenableBuilder(
                 listenable: ExamSessionTimer.instance,
-                builder: (context, _) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppButton(
-                      label: ExamSessionTimer.instance.isRunning
-                          ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
-                          : '开始计时',
-                      icon: ExamSessionTimer.instance.isRunning
-                          ? Icons.timer_off_outlined
-                          : Icons.timer_outlined,
-                      fullWidth: true,
-                      onPressed: () {
-                        if (ExamSessionTimer.instance.isRunning) {
-                          ExamSessionTimer.instance.stop();
-                        } else {
-                          ExamSessionTimer.instance.start(widget.examId);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    AppButton(
-                      label: '快速对答案',
-                      icon: Icons.fact_check_outlined,
-                      variant: AppButtonVariant.secondary,
-                      fullWidth: true,
-                      onPressed: () => RouterUtils.push(
-                        context,
-                        '${AppRoutes.answerSheet}?id=${widget.examId}',
-                      ),
-                    ),
-                  ],
+                builder: (context, _) => AppButton(
+                  label: ExamSessionTimer.instance.isRunning
+                      ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
+                      : '开始计时',
+                  icon: ExamSessionTimer.instance.isRunning
+                      ? Icons.timer_off_outlined
+                      : Icons.timer_outlined,
+                  onPressed: () {
+                    if (ExamSessionTimer.instance.isRunning) {
+                      ExamSessionTimer.instance.stop();
+                    } else {
+                      ExamSessionTimer.instance.start(widget.examId);
+                    }
+                  },
                 ),
               ),
-            ),
-            footer: Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                AppStatusBadge(
-                  label: preview.isPublic ? '公开分享' : '仅自己可见',
-                  tone: preview.isPublic
-                      ? AppStatusTone.success
-                      : AppStatusTone.neutral,
-                  icon: preview.isPublic ? Icons.public : Icons.lock_outline,
-                  compact: true,
+              AppButton(
+                label: '快速对答案',
+                icon: Icons.fact_check_outlined,
+                variant: AppButtonVariant.secondary,
+                onPressed: () => RouterUtils.push(
+                  context,
+                  '${AppRoutes.answerSheet}?id=${widget.examId}',
                 ),
-                AppStatusBadge(
-                  label: '选择 ${preview.choiceCount}',
-                  tone: AppStatusTone.info,
-                  compact: true,
-                ),
-                AppStatusBadge(
-                  label: '填空 ${preview.fillCount}',
-                  tone: AppStatusTone.warning,
-                  compact: true,
-                ),
-                AppStatusBadge(
-                  label: '解答 ${preview.solutionCount}',
-                  tone: AppStatusTone.recommendation,
-                  compact: true,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.md),
           AppSectionHeader(
             title: '试卷题目',
             subtitle: '共 ${preview.questions.length} 题，按当前顺序排列。',

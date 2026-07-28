@@ -49,7 +49,7 @@ class PointSummaryCard extends StatelessWidget {
             formatAmount(value),
             style: TextStyle(
               fontSize: valueFontSize,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: color,
             ),
           ),

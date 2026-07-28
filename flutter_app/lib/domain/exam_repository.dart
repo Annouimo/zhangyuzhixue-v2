@@ -34,7 +34,13 @@ class ExamSummary {
   final String createdAt;
   final String summary;
   final bool isPublic;
-  const ExamSummary({required this.id, required this.name, required this.createdAt, required this.summary, this.isPublic = false});
+  const ExamSummary({
+    required this.id,
+    required this.name,
+    required this.createdAt,
+    required this.summary,
+    this.isPublic = false,
+  });
 }
 
 /// 发现组卷摘要
@@ -49,9 +55,15 @@ class ExploreExamSummary {
   final bool isLiked;
   final bool isCollected;
   const ExploreExamSummary({
-    required this.id, required this.name, required this.authorInfo,
-    required this.summary, required this.likeCount, required this.collectCount,
-    required this.createdAt, this.isLiked = false, this.isCollected = false,
+    required this.id,
+    required this.name,
+    required this.authorInfo,
+    required this.summary,
+    required this.likeCount,
+    required this.collectCount,
+    required this.createdAt,
+    this.isLiked = false,
+    this.isCollected = false,
   });
 }
 
@@ -62,7 +74,13 @@ class FavoriteExamSummary {
   final String authorInfo;
   final String summary;
   final bool isLiked;
-  const FavoriteExamSummary({required this.id, required this.name, required this.authorInfo, required this.summary, this.isLiked = false});
+  const FavoriteExamSummary({
+    required this.id,
+    required this.name,
+    required this.authorInfo,
+    required this.summary,
+    this.isLiked = false,
+  });
 }
 
 /// 组卷预览
@@ -76,9 +94,12 @@ class ExamPreview {
   final bool isPublic;
   final List<ExamQuestion> questions;
   const ExamPreview({
-    required this.name, required this.authorInfo,
-    required this.choiceCount, required this.fillCount,
-    required this.solutionCount, required this.totalCount,
+    required this.name,
+    required this.authorInfo,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.totalCount,
     required this.isPublic,
     required this.questions,
   });
@@ -98,22 +119,31 @@ class ExamPreviewOther {
   final bool isCollected;
   final List<ExamQuestion> questions;
   const ExamPreviewOther({
-    required this.name, required this.authorInfo,
-    required this.choiceCount, required this.fillCount,
-    required this.solutionCount, required this.totalCount,
-    required this.likeCount, required this.collectCount,
-    this.isLiked = false, this.isCollected = false,
+    required this.name,
+    required this.authorInfo,
+    required this.choiceCount,
+    required this.fillCount,
+    required this.solutionCount,
+    required this.totalCount,
+    required this.likeCount,
+    required this.collectCount,
+    this.isLiked = false,
+    this.isCollected = false,
     required this.questions,
   });
 
   ExamPreviewOther copyWith({int? likeCount, int? collectCount}) {
     return ExamPreviewOther(
-      name: name, authorInfo: authorInfo,
-      choiceCount: choiceCount, fillCount: fillCount,
-      solutionCount: solutionCount, totalCount: totalCount,
+      name: name,
+      authorInfo: authorInfo,
+      choiceCount: choiceCount,
+      fillCount: fillCount,
+      solutionCount: solutionCount,
+      totalCount: totalCount,
       likeCount: likeCount ?? this.likeCount,
       collectCount: collectCount ?? this.collectCount,
-      isLiked: isLiked, isCollected: isCollected,
+      isLiked: isLiked,
+      isCollected: isCollected,
       questions: questions,
     );
   }
@@ -124,7 +154,11 @@ class ExamQuestion {
   final int questionId;
   final String title;
   final String questionType;
-  const ExamQuestion({required this.questionId, required this.title, required this.questionType});
+  const ExamQuestion({
+    required this.questionId,
+    required this.title,
+    required this.questionType,
+  });
 }
 
 /// 答案项
@@ -132,13 +166,17 @@ class AnswerItem {
   final String title;
   final String questionType;
   final String answer;
-  const AnswerItem({required this.title, required this.questionType, required this.answer});
+  const AnswerItem({
+    required this.title,
+    required this.questionType,
+    required this.answer,
+  });
 }
-
 
 /// 筛选条件
 class SearchFilters {
   final String name;
+  final String keyword;
   final int choiceCount;
   final int fillCount;
   final int solutionCount;
@@ -157,6 +195,7 @@ class SearchFilters {
 
   const SearchFilters({
     required this.name,
+    this.keyword = '',
     required this.choiceCount,
     required this.fillCount,
     required this.solutionCount,
@@ -165,7 +204,10 @@ class SearchFilters {
     required this.regions,
     required this.conceptTags,
     required this.knowledgeCards,
-    this.diffMin, this.diffMax, this.calcMin, this.calcMax,
+    this.diffMin,
+    this.diffMax,
+    this.calcMin,
+    this.calcMax,
     this.selectedIds = const [],
     this.examTypes,
     this.questionTypes,
@@ -184,9 +226,14 @@ class PoolStats {
   final double gaokaoDiffMax;
 
   const PoolStats({
-    required this.availableChoice, required this.availableFill, required this.availableSolution,
-    required this.poolDiffMin, required this.poolDiffMax,
-    required this.gaokaoDiffMin, required this.gaokaoDiffAvg, required this.gaokaoDiffMax,
+    required this.availableChoice,
+    required this.availableFill,
+    required this.availableSolution,
+    required this.poolDiffMin,
+    required this.poolDiffMax,
+    required this.gaokaoDiffMin,
+    required this.gaokaoDiffAvg,
+    required this.gaokaoDiffMax,
   });
 }
 
@@ -221,7 +268,20 @@ class SearchQuestion {
   final String meta;
   final double difficulty;
   final double calculation;
-  const SearchQuestion({required this.id, required this.title, required this.questionType, required this.meta, required this.difficulty, required this.calculation});
+  const SearchQuestion({
+    required this.id,
+    required this.title,
+    required this.questionType,
+    required this.meta,
+    required this.difficulty,
+    required this.calculation,
+  });
+}
+
+abstract interface class QuestionLibraryRepository {
+  Future<FilterOptions> getFilterOptions();
+
+  Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters);
 }
 
 /// 池子不足异常
@@ -229,14 +289,18 @@ class InsufficientPoolException implements Exception {
   final String type;
   final int needed;
   final int available;
-  const InsufficientPoolException({required this.type, required this.needed, required this.available});
+  const InsufficientPoolException({
+    required this.type,
+    required this.needed,
+    required this.available,
+  });
   String get message => '$type 类题目池子不足（需要 $needed 道，池中只有 $available 道）';
   @override
   String toString() => message;
 }
 
 /// 组卷 Repository — 本地 + API
-class ExamRepository {
+class ExamRepository implements QuestionLibraryRepository {
   final QuestionDao _questionDao;
   final ExamDao _examDao;
   late final api.UserApi _userApi;
@@ -255,7 +319,8 @@ class ExamRepository {
         return ExploreExamSummary(
           id: m['id'] as int,
           name: m['name'] as String? ?? '',
-          authorInfo: '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''} · 总积分 ${m['author_points'] ?? 0}',
+          authorInfo:
+              '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''} · 总积分 ${m['author_points'] ?? 0}',
           summary: m['summary'] as String? ?? '',
           likeCount: m['like_count'] as int? ?? 0,
           collectCount: m['collect_count'] as int? ?? 0,
@@ -272,14 +337,19 @@ class ExamRepository {
     final ids = rows.map((r) => r.id).toList();
     final statuses = await _examDao.getExploreStatuses(ids);
     return rows.map((r) {
-      final s = statuses[r.id] ?? (liked: false, likeCount: 0, collected: false, collectCount: 0);
+      final s =
+          statuses[r.id] ??
+          (liked: false, likeCount: 0, collected: false, collectCount: 0);
       return ExploreExamSummary(
-        id: r.id, name: r.title, authorInfo: '',
+        id: r.id,
+        name: r.title,
+        authorInfo: '',
         summary: r.description ?? '',
         likeCount: s.likeCount,
         collectCount: s.collectCount,
         createdAt: r.createdAt,
-        isLiked: s.liked, isCollected: s.collected,
+        isLiked: s.liked,
+        isCollected: s.collected,
       );
     }).toList();
   }
@@ -295,7 +365,10 @@ class ExamRepository {
         payload: jsonEncode({'paper_id': paperId}),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'toggleLike', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'toggleLike',
+        'error': '$e',
+      });
     }
   }
 
@@ -310,7 +383,10 @@ class ExamRepository {
         payload: jsonEncode({'paper_id': paperId}),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'toggleCollect', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'toggleCollect',
+        'error': '$e',
+      });
     }
   }
 
@@ -326,7 +402,8 @@ class ExamRepository {
         return FavoriteExamSummary(
           id: m['id'] as int,
           name: m['name'] as String? ?? '',
-          authorInfo: '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''}',
+          authorInfo:
+              '作者：${m['author_name'] ?? ''} · Lv.${m['author_level'] ?? ''}',
           summary: m['summary'] as String? ?? '',
           isLiked: m['is_liked'] as bool? ?? false,
         );
@@ -336,11 +413,16 @@ class ExamRepository {
     }
     // API 失败时回退到本地
     final papers = await _examDao.getByIds(collectedIds);
-    return papers.map((p) => FavoriteExamSummary(
-      id: p.id, name: p.title,
-      summary: p.description ?? '',
-      authorInfo: '',
-    )).toList();
+    return papers
+        .map(
+          (p) => FavoriteExamSummary(
+            id: p.id,
+            name: p.title,
+            summary: p.description ?? '',
+            authorInfo: '',
+          ),
+        )
+        .toList();
   }
 
   Future<void> removeFavorite(int examId) async {
@@ -350,10 +432,17 @@ class ExamRepository {
   // ── 我的组卷 ──
   Future<List<ExamSummary>> getMyExams() async {
     final rows = await _examDao.listCreated();
-    return rows.map((r) => ExamSummary(
-      id: r.id, name: r.title, createdAt: r.createdAt, summary: r.filterSnapshot ?? '',
-      isPublic: r.isPublic == 1,
-    )).toList();
+    return rows
+        .map(
+          (r) => ExamSummary(
+            id: r.id,
+            name: r.title,
+            createdAt: r.createdAt,
+            summary: r.filterSnapshot ?? '',
+            isPublic: r.isPublic == 1,
+          ),
+        )
+        .toList();
   }
 
   Future<void> togglePublic(int paperId) async {
@@ -367,7 +456,10 @@ class ExamRepository {
         payload: jsonEncode({'paper_id': paperId}),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'togglePublic', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'togglePublic',
+        'error': '$e',
+      });
     }
   }
 
@@ -390,11 +482,15 @@ class ExamRepository {
       solutionCount: qRows.where((q) => q.questionType == 'solution').length,
       totalCount: qRows.length,
       isPublic: paper.isPublic == 1,
-      questions: qRows.map((q) => ExamQuestion(
-        questionId: q.id,
-        title: '${q.number} ${q.examType} ${q.region}',
-        questionType: q.questionType,
-      )).toList(),
+      questions: qRows
+          .map(
+            (q) => ExamQuestion(
+              questionId: q.id,
+              title: '${q.number} ${q.examType} ${q.region}',
+              questionType: q.questionType,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -402,17 +498,20 @@ class ExamRepository {
     // 优先走 API 获取全局数据
     try {
       final data = await _userApi.getPreviewOther(examId);
-      final qList = (data['questions'] as List<dynamic>?)?.map((j) {
-        final m = j as Map<String, dynamic>;
-        return ExamQuestion(
-          questionId: m['question_id'] as int,
-          title: m['title'] as String? ?? '',
-          questionType: m['question_type'] as String? ?? '',
-        );
-      }).toList() ?? [];
+      final qList =
+          (data['questions'] as List<dynamic>?)?.map((j) {
+            final m = j as Map<String, dynamic>;
+            return ExamQuestion(
+              questionId: m['question_id'] as int,
+              title: m['title'] as String? ?? '',
+              questionType: m['question_type'] as String? ?? '',
+            );
+          }).toList() ??
+          [];
       return ExamPreviewOther(
         name: data['name'] as String? ?? '',
-        authorInfo: '作者：${data['author_name'] ?? ''} · Lv.${data['author_level'] ?? ''} · ${data['created_at']?.toString().substring(0, 10) ?? ''}',
+        authorInfo:
+            '作者：${data['author_name'] ?? ''} · Lv.${data['author_level'] ?? ''} · ${data['created_at']?.toString().substring(0, 10) ?? ''}',
         choiceCount: data['choice_count'] as int? ?? 0,
         fillCount: data['fill_count'] as int? ?? 0,
         solutionCount: data['solution_count'] as int? ?? 0,
@@ -441,17 +540,23 @@ class ExamRepository {
       totalCount: qRows.length,
       likeCount: 0,
       collectCount: 0,
-      questions: qRows.map((q) => ExamQuestion(
-        questionId: q.id,
-        title: '${q.number} ${q.examType} ${q.region}',
-        questionType: q.questionType,
-      )).toList(),
+      questions: qRows
+          .map(
+            (q) => ExamQuestion(
+              questionId: q.id,
+              title: '${q.number} ${q.examType} ${q.region}',
+              questionType: q.questionType,
+            ),
+          )
+          .toList(),
     );
   }
 
   Future<void> downloadPdf(int paperId, {BuildContext? context}) async {
     await PdfHelper.downloadPdf(
-      sourceId: paperId, sourceType: 'paper', context: context,
+      sourceId: paperId,
+      sourceType: 'paper',
+      context: context,
     );
   }
 
@@ -470,6 +575,7 @@ class ExamRepository {
       const labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'};
       return labels[type] ?? type;
     }
+
     for (final q in questions) {
       final baseQ = qMap[q.questionId];
       if (baseQ == null) continue;
@@ -478,18 +584,22 @@ class ExamRepository {
       final label = typeLabel(baseQ.questionType);
       if (baseQ.questionType == 'solution' && subs.length > 1) {
         for (var i = 0; i < subs.length; i++) {
-          result.add(AnswerItem(
-            title: '$baseTitle (${i + 1})',
-            questionType: label,
-            answer: subs[i].answer ?? '',
-          ));
+          result.add(
+            AnswerItem(
+              title: '$baseTitle (${i + 1})',
+              questionType: label,
+              answer: subs[i].answer ?? '',
+            ),
+          );
         }
       } else {
-        result.add(AnswerItem(
-          title: baseTitle,
-          questionType: label,
-          answer: subs.isNotEmpty ? (subs.first.answer ?? '') : '',
-        ));
+        result.add(
+          AnswerItem(
+            title: baseTitle,
+            questionType: label,
+            answer: subs.isNotEmpty ? (subs.first.answer ?? '') : '',
+          ),
+        );
       }
     }
     return result;
@@ -508,26 +618,36 @@ class ExamRepository {
     }
     ConceptTagNode buildNode(assets_db.ConceptTagRow row) {
       return ConceptTagNode(
-        id: row.id, name: row.name, parentId: row.parentId,
+        id: row.id,
+        name: row.name,
+        parentId: row.parentId,
         children: (byParent[row.id] ?? []).map(buildNode).toList(),
       );
     }
+
     return (byParent[null] ?? []).map(buildNode).toList();
   }
 
-  static List<KnowledgeCardGroup> buildKnowledgeCardGroups(List<assets_db.KnowledgeCardRow> cards) {
+  static List<KnowledgeCardGroup> buildKnowledgeCardGroups(
+    List<assets_db.KnowledgeCardRow> cards,
+  ) {
     final byCategory = <String, List<KnowledgeCardItem>>{};
     for (final c in cards) {
-      byCategory.putIfAbsent(c.category, () => []).add(KnowledgeCardItem(id: c.id, title: c.title));
+      byCategory
+          .putIfAbsent(c.category, () => [])
+          .add(KnowledgeCardItem(id: c.id, title: c.title));
     }
-    return byCategory.entries.map((e) => KnowledgeCardGroup(
-      category: e.key, cards: e.value,
-    )).toList();
+    return byCategory.entries
+        .map((e) => KnowledgeCardGroup(category: e.key, cards: e.value))
+        .toList();
   }
 
   // ── 筛选 ──
+  @override
   Future<FilterOptions> getFilterOptions() async {
-    final years = (await _questionDao.getDistinctYears()).map((y) => y.toString()).toList();
+    final years = (await _questionDao.getDistinctYears())
+        .map((y) => y.toString())
+        .toList();
     final regions = await _questionDao.getDistinctRegions();
     final tags = await _questionDao.getAllConceptTags();
     final kcs = await _questionDao.getAllKnowledgeCards();
@@ -544,27 +664,47 @@ class ExamRepository {
     );
   }
 
-  Future<List<SearchQuestion>> getFilteredQuestions(SearchFilters filters) async {
+  @override
+  Future<List<SearchQuestion>> getFilteredQuestions(
+    SearchFilters filters,
+  ) async {
     final q = _questionDao.search(
-      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      keyword: filters.keyword,
+      years: filters.years
+          .map((y) => int.tryParse(y))
+          .whereType<int>()
+          .toList(),
       regions: filters.regions.isNotEmpty ? filters.regions : null,
       diffMin: filters.diffMin,
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
-      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
-      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
-      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+      conceptTagNames: filters.conceptTags.isNotEmpty
+          ? filters.conceptTags
+          : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty
+          ? filters.knowledgeCards
+          : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty
+          ? filters.examTypes
+          : null,
+      questionTypes:
+          filters.questionTypes != null && filters.questionTypes!.isNotEmpty
+          ? filters.questionTypes
+          : null,
     );
-    return (await q).map((r) => SearchQuestion(
-      id: r.id,
-      title: r.stem.length > 80 ? _safeStemCut(r.stem, 80) : r.stem,
-      questionType: r.questionType,
-      meta: '${r.year} ${r.examType} ${r.region}',
-      difficulty: r.difficulty ?? 0,
-      calculation: r.calculation ?? 0,
-    )).toList();
+    return (await q)
+        .map(
+          (r) => SearchQuestion(
+            id: r.id,
+            title: r.stem.length > 80 ? _safeStemCut(r.stem, 80) : r.stem,
+            questionType: r.questionType,
+            meta: '${r.year} ${r.examType} ${r.region}',
+            difficulty: r.difficulty ?? 0,
+            calculation: r.calculation ?? 0,
+          ),
+        )
+        .toList();
   }
 
   Future<PoolStats> getPoolStats(SearchFilters filters) async {
@@ -577,9 +717,15 @@ class ExamRepository {
     return questions.length;
   }
 
-  Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
+  Future<int> confirm(
+    SearchFilters filters, {
+    bool allowShortfall = false,
+  }) async {
     final engine = _ExamGenerator(_questionDao, _examDao);
-    final paperId = await engine.confirm(filters, allowShortfall: allowShortfall);
+    final paperId = await engine.confirm(
+      filters,
+      allowShortfall: allowShortfall,
+    );
     final paperQuestions = await _examDao.getQuestions(paperId);
     // 入同步队列
     try {
@@ -593,7 +739,10 @@ class ExamRepository {
         }),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'confirm', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'confirm',
+        'error': '$e',
+      });
     }
     return paperId;
   }
@@ -610,21 +759,39 @@ class _ExamFilterEngine {
 
   Future<PoolStats> compute(SearchFilters filters) async {
     final s = await _dao.searchStats(
-      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      keyword: filters.keyword,
+      years: filters.years
+          .map((y) => int.tryParse(y))
+          .whereType<int>()
+          .toList(),
       regions: filters.regions.isNotEmpty ? filters.regions : null,
       diffMin: filters.diffMin,
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
-      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
-      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
-      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+      conceptTagNames: filters.conceptTags.isNotEmpty
+          ? filters.conceptTags
+          : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty
+          ? filters.knowledgeCards
+          : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty
+          ? filters.examTypes
+          : null,
+      questionTypes:
+          filters.questionTypes != null && filters.questionTypes!.isNotEmpty
+          ? filters.questionTypes
+          : null,
     );
     return PoolStats(
-      availableChoice: s.choice, availableFill: s.fill, availableSolution: s.solution,
-      poolDiffMin: s.diffMin, poolDiffMax: s.diffMax,
-      gaokaoDiffMin: s.gaokaoDiffMin, gaokaoDiffAvg: s.gaokaoDiffAvg, gaokaoDiffMax: s.gaokaoDiffMax,
+      availableChoice: s.choice,
+      availableFill: s.fill,
+      availableSolution: s.solution,
+      poolDiffMin: s.diffMin,
+      poolDiffMax: s.diffMax,
+      gaokaoDiffMin: s.gaokaoDiffMin,
+      gaokaoDiffAvg: s.gaokaoDiffAvg,
+      gaokaoDiffMax: s.gaokaoDiffMax,
     );
   }
 }
@@ -634,19 +801,35 @@ class _ExamGenerator {
   final ExamDao _examDao;
   const _ExamGenerator(this._questionDao, this._examDao);
 
-  Future<int> confirm(SearchFilters filters, {bool allowShortfall = false}) async {
+  Future<int> confirm(
+    SearchFilters filters, {
+    bool allowShortfall = false,
+  }) async {
     // 1. 获取筛选池
     final pool = await _questionDao.search(
-      years: filters.years.map((y) => int.tryParse(y)).whereType<int>().toList(),
+      keyword: filters.keyword,
+      years: filters.years
+          .map((y) => int.tryParse(y))
+          .whereType<int>()
+          .toList(),
       regions: filters.regions.isNotEmpty ? filters.regions : null,
       diffMin: filters.diffMin,
       diffMax: filters.diffMax,
       calcMin: filters.calcMin,
       calcMax: filters.calcMax,
-      conceptTagNames: filters.conceptTags.isNotEmpty ? filters.conceptTags : null,
-      knowledgeCardNames: filters.knowledgeCards.isNotEmpty ? filters.knowledgeCards : null,
-      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty ? filters.examTypes : null,
-      questionTypes: filters.questionTypes != null && filters.questionTypes!.isNotEmpty ? filters.questionTypes : null,
+      conceptTagNames: filters.conceptTags.isNotEmpty
+          ? filters.conceptTags
+          : null,
+      knowledgeCardNames: filters.knowledgeCards.isNotEmpty
+          ? filters.knowledgeCards
+          : null,
+      examTypes: filters.examTypes != null && filters.examTypes!.isNotEmpty
+          ? filters.examTypes
+          : null,
+      questionTypes:
+          filters.questionTypes != null && filters.questionTypes!.isNotEmpty
+          ? filters.questionTypes
+          : null,
     );
 
     // 2. 按题型分类
@@ -655,37 +838,61 @@ class _ExamGenerator {
     var solutionPool = pool.where((q) => q.questionType == 'solution').toList();
 
     // 2b. 锁定手动选题（selectedIds 固定不动）
-    final lockedChoice = <dynamic>[], lockedFill = <dynamic>[], lockedSolution = <dynamic>[];
+    final lockedChoice = <dynamic>[],
+        lockedFill = <dynamic>[],
+        lockedSolution = <dynamic>[];
     if (filters.selectedIds.isNotEmpty) {
       final lockedRows = await _questionDao.getByIds(filters.selectedIds);
       final lockedIds = lockedRows.map((r) => r.id).toSet();
       for (final r in lockedRows) {
-        if (r.questionType == 'choice') { lockedChoice.add(r); }
-        else if (r.questionType == 'fill') { lockedFill.add(r); }
-        else if (r.questionType == 'solution') { lockedSolution.add(r); }
+        if (r.questionType == 'choice') {
+          lockedChoice.add(r);
+        } else if (r.questionType == 'fill') {
+          lockedFill.add(r);
+        } else if (r.questionType == 'solution') {
+          lockedSolution.add(r);
+        }
       }
       choicePool.removeWhere((q) => lockedIds.contains(q.id));
       fillPool.removeWhere((q) => lockedIds.contains(q.id));
       solutionPool.removeWhere((q) => lockedIds.contains(q.id));
     }
-    final actualChoiceNeeded = (filters.choiceCount - lockedChoice.length).clamp(0, filters.choiceCount);
-    final actualFillNeeded = (filters.fillCount - lockedFill.length).clamp(0, filters.fillCount);
-    final actualSolutionNeeded = (filters.solutionCount - lockedSolution.length).clamp(0, filters.solutionCount);
+    final actualChoiceNeeded = (filters.choiceCount - lockedChoice.length)
+        .clamp(0, filters.choiceCount);
+    final actualFillNeeded = (filters.fillCount - lockedFill.length).clamp(
+      0,
+      filters.fillCount,
+    );
+    final actualSolutionNeeded = (filters.solutionCount - lockedSolution.length)
+        .clamp(0, filters.solutionCount);
 
     // 3. 检查池子（扣除已锁定题后的余量）
     void checkPool(List list, int needed, String type) {
       if (!allowShortfall && needed > list.length) {
-        throw InsufficientPoolException(type: type, needed: needed, available: list.length);
+        throw InsufficientPoolException(
+          type: type,
+          needed: needed,
+          available: list.length,
+        );
       }
     }
+
     checkPool(choicePool, actualChoiceNeeded, 'choice');
     checkPool(fillPool, actualFillNeeded, 'fill');
     checkPool(solutionPool, actualSolutionNeeded, 'solution');
 
     // 4. 贪心选择（按难度差排序，排除 selectedIds）
     List pick(List pool, int needed) {
-      pool.sort((a, b) => (((a as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()
-          .compareTo((((b as dynamic).difficulty ?? 0.0) - filters.targetDifficulty).abs()));
+      pool.sort(
+        (a, b) =>
+            (((a as dynamic).difficulty ?? 0.0) - filters.targetDifficulty)
+                .abs()
+                .compareTo(
+                  (((b as dynamic).difficulty ?? 0.0) -
+                          filters.targetDifficulty)
+                      .abs(),
+                ),
+      );
       return pool.take(needed).toList();
     }
 
@@ -700,34 +907,67 @@ class _ExamGenerator {
     // 5. 3 轮交换优化：遍历各题型，找能改善整体均值的最优交换（跳过 locked 题）
     final target = filters.targetDifficulty;
     const maxSwapRounds = 3;
-    final lockedChoiceIds = lockedChoice.map((q) => (q as dynamic).id as int).toSet();
-    final lockedFillIds = lockedFill.map((q) => (q as dynamic).id as int).toSet();
-    final lockedSolutionIds = lockedSolution.map((q) => (q as dynamic).id as int).toSet();
+    final lockedChoiceIds = lockedChoice
+        .map((q) => (q as dynamic).id as int)
+        .toSet();
+    final lockedFillIds = lockedFill
+        .map((q) => (q as dynamic).id as int)
+        .toSet();
+    final lockedSolutionIds = lockedSolution
+        .map((q) => (q as dynamic).id as int)
+        .toSet();
 
     for (var round = 0; round < maxSwapRounds; round++) {
       for (final entry in [
-        {'type': 'choice', 'pool': choicePool, 'selected': selectedChoice, 'lockedIds': lockedChoiceIds},
-        {'type': 'fill', 'pool': fillPool, 'selected': selectedFill, 'lockedIds': lockedFillIds},
-        {'type': 'solution', 'pool': solutionPool, 'selected': selectedSolution, 'lockedIds': lockedSolutionIds},
+        {
+          'type': 'choice',
+          'pool': choicePool,
+          'selected': selectedChoice,
+          'lockedIds': lockedChoiceIds,
+        },
+        {
+          'type': 'fill',
+          'pool': fillPool,
+          'selected': selectedFill,
+          'lockedIds': lockedFillIds,
+        },
+        {
+          'type': 'solution',
+          'pool': solutionPool,
+          'selected': selectedSolution,
+          'lockedIds': lockedSolutionIds,
+        },
       ]) {
         final sel = entry['selected'] as List;
         final lockedIds = entry['lockedIds'] as Set<int>;
-        final cand = (entry['pool'] as List).where((c) => !sel.contains(c)).toList();
+        final cand = (entry['pool'] as List)
+            .where((c) => !sel.contains(c))
+            .toList();
         if (sel.isEmpty || cand.isEmpty) continue;
 
-        final curMean = selected.fold<double>(0, (s, q) => s + ((q as dynamic).difficulty ?? 0.0)) / selected.length;
+        final curMean =
+            selected.fold<double>(
+              0,
+              (s, q) => s + ((q as dynamic).difficulty ?? 0.0),
+            ) /
+            selected.length;
 
         double bestImprovement = 0;
         int bestSelIdx = -1;
         dynamic bestCand;
 
         for (var si = 0; si < sel.length; si++) {
-          if (lockedIds.contains((sel[si] as dynamic).id)) continue; // 跳过 locked 题
+          if (lockedIds.contains((sel[si] as dynamic).id))
+            continue; // 跳过 locked 题
           final s = sel[si];
           for (final c in cand) {
-            final delta = (((c as dynamic).difficulty ?? 0.0) - ((s as dynamic).difficulty ?? 0.0)) / selected.length;
+            final delta =
+                (((c as dynamic).difficulty ?? 0.0) -
+                    ((s as dynamic).difficulty ?? 0.0)) /
+                selected.length;
             final newMean = curMean + delta;
-            final improvement = (curMean - target).abs() - (newMean - target).abs();
+            final improvement =
+                (curMean - target).abs() - (newMean - target).abs();
             if (improvement > bestImprovement) {
               bestImprovement = improvement;
               bestSelIdx = si;
@@ -744,8 +984,13 @@ class _ExamGenerator {
     }
 
     // 6. 持久化
-    final paperId = await _examDao.savePaper(title: filters.name.isNotEmpty ? filters.name : '智能组卷');
-    await _examDao.savePaperQuestions(paperId, selected.map((q) => (q as dynamic).id as int).toList());
+    final paperId = await _examDao.savePaper(
+      title: filters.name.isNotEmpty ? filters.name : '智能组卷',
+    );
+    await _examDao.savePaperQuestions(
+      paperId,
+      selected.map((q) => (q as dynamic).id as int).toList(),
+    );
     return paperId;
   }
 }

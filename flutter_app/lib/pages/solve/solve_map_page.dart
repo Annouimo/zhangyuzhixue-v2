@@ -24,6 +24,9 @@ class SolveMapPage extends StatefulWidget {
   final int? attemptId;
   final List<int> sequence;
   final List<int> quickPracticeSeen;
+  final bool embedded;
+  final bool forceNewAttempt;
+  final VoidCallback? onNext;
 
   const SolveMapPage({
     super.key,
@@ -32,6 +35,9 @@ class SolveMapPage extends StatefulWidget {
     this.attemptId,
     this.sequence = const [],
     this.quickPracticeSeen = const [],
+    this.embedded = false,
+    this.forceNewAttempt = false,
+    this.onNext,
   });
 
   @override
@@ -44,6 +50,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
   bool _loading = true;
   String? _error;
   bool _reviewMode = false;
+  bool _newAttemptCreated = false;
 
   // 存档选择器
   List<progress.AttemptSummary> _attempts = [];
@@ -100,7 +107,9 @@ class _SolveMapPageState extends State<SolveMapPage> {
       }
 
       // 首次访问自动创建存档
-      if (attempts.isEmpty && widget.mode != 'review') {
+      if (attempts.isEmpty &&
+          widget.mode != 'review' &&
+          !widget.forceNewAttempt) {
         await repo.createAttempt(widget.questionId);
         OperationLog.instance.action(
           'solve_map_page_load',
@@ -112,18 +121,19 @@ class _SolveMapPageState extends State<SolveMapPage> {
       // 判断回顾模式: mode=review 或 attempts.last.completed 且不是最新
       final lastStarted = attempts.isNotEmpty ? attempts.last : null;
       final review =
-          widget.mode == 'review' ||
-          (lastStarted != null &&
-              lastStarted.status == 'completed' &&
-              widget.attemptId != null &&
-              widget.attemptId != lastStarted.id);
+          !widget.forceNewAttempt &&
+          (widget.mode == 'review' ||
+              (lastStarted != null &&
+                  lastStarted.status == 'completed' &&
+                  widget.attemptId != null &&
+                  widget.attemptId != lastStarted.id));
 
       // 计算已完成步骤（按当前 attemptId 或最新存档）
       Set<String> doneSteps = {};
       int? currentSubmissionDetailId;
       int? currentAttemptNumber;
 
-      if (attempts.isNotEmpty) {
+      if (attempts.isNotEmpty && !widget.forceNewAttempt) {
         final targetAttemptNumber = widget.attemptId != null
             ? attempts
                   .where((a) => a.id == widget.attemptId)
@@ -209,25 +219,27 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final body = _loading
+        ? const LoadingIndicator(message: '正在整理解题步骤')
+        : _error != null
+        ? ErrorPlaceholder(
+            message: '解题步骤加载失败，请检查后重试',
+            onRetry: () {
+              setState(() {
+                _error = null;
+                _loading = true;
+              });
+              _load();
+            },
+          )
+        : _buildMapView();
+    if (widget.embedded) return body;
     return Scaffold(
       appBar: AppBar(
         title: const Text('解题步骤'),
         actions: const [ExamTimerAction()],
       ),
-      body: _loading
-          ? const LoadingIndicator(message: '正在整理解题步骤')
-          : _error != null
-          ? ErrorPlaceholder(
-              message: '解题步骤加载失败，请检查后重试',
-              onRetry: () {
-                setState(() {
-                  _error = null;
-                  _loading = true;
-                });
-                _load();
-              },
-            )
-          : _buildMapView(),
+      body: body,
     );
   }
 
@@ -301,7 +313,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                     fontSize: 13,
                     fontWeight: a.attemptNumber == _currentAttemptNumber
                         ? FontWeight.w600
-                        : FontWeight.normal,
+                        : FontWeight.w400,
                     color: a.attemptNumber == _currentAttemptNumber
                         ? colors.primary
                         : colors.textPrimary,
@@ -364,7 +376,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                     tone: AppStatusTone.primary,
                     compact: true,
                   ),
-                  _buildAttemptSelector(),
+                  if (!widget.embedded) _buildAttemptSelector(),
                   if (_detail!.title.isNotEmpty)
                     Text(
                       _detail!.title,
@@ -400,7 +412,6 @@ class _SolveMapPageState extends State<SolveMapPage> {
             final subQIdx = sqEntry.key;
             final sq = sqEntry.value;
             var anyMethodFullyDone = false;
-            var allMethodsFullyDone = true;
             var hasAnyStepDone = false;
 
             for (final mEntry in sq.solutions.asMap().entries) {
@@ -419,15 +430,10 @@ class _SolveMapPageState extends State<SolveMapPage> {
               }
               if (methodDone && method.steps.isNotEmpty) {
                 anyMethodFullyDone = true;
-              } else {
-                allMethodsFullyDone = false;
               }
             }
-            if (sq.solutions.isEmpty) allMethodsFullyDone = false;
 
-            final (statusLabel, statusTone) = allMethodsFullyDone
-                ? ('完全掌握', AppStatusTone.recommendation)
-                : anyMethodFullyDone
+            final (statusLabel, statusTone) = anyMethodFullyDone
                 ? ('已完成', AppStatusTone.success)
                 : hasAnyStepDone
                 ? ('进行中', AppStatusTone.warning)
@@ -558,7 +564,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                           stepIndex > 0 &&
                                           method.steps
                                               .take(stepIndex)
-                                              .every(
+                                              .any(
                                                 (
                                                   previous,
                                                 ) => !_completedSteps.contains(
@@ -585,6 +591,8 @@ class _SolveMapPageState extends State<SolveMapPage> {
                                           onTap: locked
                                               ? null
                                               : () async {
+                                                  await _ensureNewAttempt();
+                                                  if (!mounted) return;
                                                   await context.push(
                                                     _buildStepRoute(
                                                       subQIdx,
@@ -614,35 +622,41 @@ class _SolveMapPageState extends State<SolveMapPage> {
             builder: (context, constraints) {
               final compact = constraints.maxWidth < 620;
               final actions = [
-                AppButton(
-                  label: '返回',
-                  icon: Icons.arrow_back_rounded,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: () => context.pop(),
-                ),
-                AppButton(
-                  label: '重新作答',
-                  icon: Icons.refresh_rounded,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: _onRetry,
-                ),
+                if (!widget.embedded)
+                  AppButton(
+                    label: '返回',
+                    icon: Icons.arrow_back_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: () => context.pop(),
+                  ),
+                if (!widget.embedded)
+                  AppButton(
+                    label: '重新作答',
+                    icon: Icons.refresh_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: _onRetry,
+                  ),
                 AppButton(
                   label: '给题目评分',
                   icon: Icons.star_outline_rounded,
                   onPressed: () =>
                       context.push('/solve/rate?id=${widget.questionId}'),
                 ),
-                if (_nextQuestionId != null || _isQuickPractice)
+                if (widget.onNext != null ||
+                    _nextQuestionId != null ||
+                    _isQuickPractice)
                   AppButton(
                     label: _isQuickPractice ? '再来一题' : '下一题',
                     icon: Icons.arrow_forward_rounded,
-                    onPressed: _isQuickPractice
-                        ? _continueQuickPractice
-                        : () => SolveRouteHelper.navigateToNext(
-                            context,
-                            _nextQuestionId!,
-                            widget.sequence,
-                          ),
+                    onPressed:
+                        widget.onNext ??
+                        (_isQuickPractice
+                            ? _continueQuickPractice
+                            : () => SolveRouteHelper.navigateToNext(
+                                context,
+                                _nextQuestionId!,
+                                widget.sequence,
+                              )),
                   ),
               ];
 
@@ -704,6 +718,24 @@ class _SolveMapPageState extends State<SolveMapPage> {
     );
     await repo.createAttempt(widget.questionId);
     _load();
+  }
+
+  Future<void> _ensureNewAttempt() async {
+    if (!widget.forceNewAttempt || _newAttemptCreated) return;
+    final repo = progress.ProgressRepository(
+      ProgressDao(DatabaseProvider()),
+      QuestionDao(DatabaseProvider()),
+    );
+    await repo.createAttempt(widget.questionId);
+    _newAttemptCreated = true;
+    final attempts = await repo.getAttempts(widget.questionId);
+    if (!mounted || attempts.isEmpty) return;
+    final latest = attempts.last;
+    setState(() {
+      _attempts = attempts;
+      _currentAttemptNumber = latest.attemptNumber;
+      _currentSubmissionDetailId = latest.id;
+    });
   }
 }
 

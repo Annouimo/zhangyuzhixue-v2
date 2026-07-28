@@ -113,54 +113,27 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          AppFeatureBanner(
-            eyebrow: '公开试卷',
-            icon: Icons.public_rounded,
-            title: preview.name,
-            subtitle: '共 ${preview.totalCount} 题，浏览题目后可以收藏或下载留存。',
-            action: Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                ActionChipWidget(
-                  icon: _liked ? AppIcons.likeSelected : AppIcons.like,
-                  label: '${preview.likeCount}',
-                  active: _liked,
-                  onTap: _toggleLike,
-                ),
-                ActionChipWidget(
-                  icon: _collected
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_outline_rounded,
-                  label: '${preview.collectCount}',
-                  active: _collected,
-                  onTap: _toggleCollect,
-                ),
-              ],
-            ),
-            footer: Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                AppStatusBadge(
-                  label: '选择 ${preview.choiceCount}',
-                  tone: AppStatusTone.info,
-                  compact: true,
-                ),
-                AppStatusBadge(
-                  label: '填空 ${preview.fillCount}',
-                  tone: AppStatusTone.warning,
-                  compact: true,
-                ),
-                AppStatusBadge(
-                  label: '解答 ${preview.solutionCount}',
-                  tone: AppStatusTone.recommendation,
-                  compact: true,
-                ),
-              ],
-            ),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              ActionChipWidget(
+                icon: _liked ? AppIcons.likeSelected : AppIcons.like,
+                label: '${preview.likeCount}',
+                active: _liked,
+                onTap: _toggleLike,
+              ),
+              ActionChipWidget(
+                icon: _collected
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_outline_rounded,
+                label: '${preview.collectCount}',
+                active: _collected,
+                onTap: _toggleCollect,
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.md),
           AppSectionHeader(
             title: '试卷题目',
             subtitle: '共 ${preview.questions.length} 题，点击可进入练习。',

@@ -182,7 +182,7 @@ class AppSectionHeader extends StatelessWidget {
                         actionLabel!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colors.primary,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
                       const SizedBox(width: 2),

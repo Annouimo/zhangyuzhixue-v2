@@ -111,29 +111,9 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
   }
 
   Widget _buildHeader() {
-    return AppFeatureBanner(
-      eyebrow: '答案速查',
-      icon: Icons.fact_check_rounded,
+    return AppSectionHeader(
       title: _examName ?? '试卷答案',
-      subtitle: '共 $_totalCount 题。这里只展示最终答案，完整推导和知识点请进入对应题目查看。',
-      footer: const Wrap(
-        spacing: AppSpacing.xs,
-        runSpacing: AppSpacing.xs,
-        children: [
-          AppStatusBadge(
-            label: '仅展示答案',
-            tone: AppStatusTone.warning,
-            icon: Icons.visibility_outlined,
-            compact: true,
-          ),
-          AppStatusBadge(
-            label: '解析在题目页',
-            tone: AppStatusTone.info,
-            icon: Icons.menu_book_outlined,
-            compact: true,
-          ),
-        ],
-      ),
+      subtitle: '共 $_totalCount 题',
     );
   }
 

@@ -6,14 +6,12 @@ import 'package:shared/theme/app_tokens.dart';
 
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
-import 'exam/exam_home_page.dart';
-import 'lecture/lecture_courses_page.dart';
+import 'content_home_page.dart';
+import 'practice_home_page.dart';
 import 'profile/profile_page.dart';
-import 'recommend_page.dart';
-import 'review_page.dart';
 
 /// Tab 页枚举。
-enum MainTab { recommend, exam, review, content, profile }
+enum MainTab { practice, content, profile }
 
 /// 学生端主导航框架。
 ///
@@ -29,8 +27,6 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
   int _syncPendingCount = 0;
 
-  final GlobalKey<RecommendPageState> _recommendKey = GlobalKey();
-  final GlobalKey<ReviewPageState> _reviewKey = GlobalKey();
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
 
   late final List<Widget> _pages;
@@ -39,10 +35,8 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _pages = [
-      RecommendPage(key: _recommendKey),
-      const ExamHomePage(),
-      ReviewPage(key: _reviewKey),
-      const LectureCoursesPage(),
+      const PracticeHomePage(),
+      const ContentHomePage(),
       ProfilePage(key: _profileKey),
     ];
     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
@@ -66,8 +60,6 @@ class _MainShellState extends State<MainShell> {
 
   void _onDbVersionChanged() {
     if (!mounted) return;
-    _recommendKey.currentState?.refresh();
-    _reviewKey.currentState?.refresh();
     _profileKey.currentState?.reload();
   }
 
@@ -76,11 +68,7 @@ class _MainShellState extends State<MainShell> {
       setState(() => _currentIndex = index);
     }
 
-    if (index == MainTab.recommend.index) {
-      _recommendKey.currentState?.refresh();
-    } else if (index == MainTab.review.index) {
-      _reviewKey.currentState?.refresh();
-    } else if (index == MainTab.profile.index) {
+    if (index == MainTab.profile.index) {
       _profileKey.currentState?.reload();
       _refreshSyncPending();
     }
@@ -101,20 +89,8 @@ class _MainShellState extends State<MainShell> {
     const NavigationDestination(
       icon: Icon(AppIcons.recommendation),
       selectedIcon: Icon(AppIcons.recommendationSelected),
-      label: '推荐',
-      tooltip: '题目推荐',
-    ),
-    const NavigationDestination(
-      icon: Icon(AppIcons.exam),
-      selectedIcon: Icon(AppIcons.examSelected),
-      label: '组卷',
-      tooltip: '智能组卷',
-    ),
-    const NavigationDestination(
-      icon: Icon(Icons.radar_outlined),
-      selectedIcon: Icon(Icons.radar_rounded),
-      label: '复盘',
-      tooltip: '学习复盘',
+      label: '练习',
+      tooltip: '题目练习',
     ),
     const NavigationDestination(
       icon: Icon(Icons.menu_book_outlined),
@@ -134,17 +110,7 @@ class _MainShellState extends State<MainShell> {
     const NavigationRailDestination(
       icon: Icon(AppIcons.recommendation),
       selectedIcon: Icon(AppIcons.recommendationSelected),
-      label: Text('推荐'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(AppIcons.exam),
-      selectedIcon: Icon(AppIcons.examSelected),
-      label: Text('组卷'),
-    ),
-    const NavigationRailDestination(
-      icon: Icon(Icons.radar_outlined),
-      selectedIcon: Icon(Icons.radar_rounded),
-      label: Text('复盘'),
+      label: Text('练习'),
     ),
     const NavigationRailDestination(
       icon: Icon(Icons.menu_book_outlined),
@@ -201,7 +167,7 @@ class _MainShellState extends State<MainShell> {
             '章鱼智学',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: context.colors.textPrimary,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

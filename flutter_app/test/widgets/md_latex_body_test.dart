@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/widgets/md_latex_body.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter/material.dart';
+import 'package:shared/theme/app_theme.dart';
 
 import '../test_setup.dart';
 
@@ -14,6 +15,24 @@ void main() {
     );
     await tester.pump();
     expect(find.text('hello world'), findsOneWidget);
+  });
+
+  testWidgets('plain markdown inherits the app font family', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(body: MdLatexBody('统一字体')),
+      ),
+    );
+    await tester.pump();
+
+    final richTexts = tester.widgetList<RichText>(find.byType(RichText));
+    expect(
+      richTexts.any(
+        (widget) => widget.text.style?.fontFamily == AppTheme.fontFamily,
+      ),
+      isTrue,
+    );
   });
 
   testWidgets('renders inline LaTeX', (tester) async {

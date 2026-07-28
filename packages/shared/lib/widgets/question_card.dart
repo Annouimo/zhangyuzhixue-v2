@@ -148,7 +148,7 @@ class QuestionCard extends StatelessWidget {
       ),
       child: Text(
         style.label,
-        style: TextStyle(fontSize: 11, color: style.color, fontWeight: FontWeight.w500),
+        style: TextStyle(fontSize: 11, color: style.color, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -183,7 +183,7 @@ class _Tag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Text(text,
-        style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w500, height: 1.3),
+        style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w600, height: 1.3),
       ),
     );
   }

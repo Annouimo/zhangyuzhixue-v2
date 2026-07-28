@@ -30,7 +30,7 @@ class DifficultySlider extends StatelessWidget {
       children: [
         Text(label,
           style: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w500, color: colors.textPrimary,
+            fontSize: 12, fontWeight: FontWeight.w600, color: colors.textPrimary,
           ),
         ),
         if (lower == upper)

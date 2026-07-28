@@ -4,14 +4,20 @@ import 'package:shared/shared.dart';
 import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/database_provider.dart';
-import '../domain/question_repository.dart';
 import '../domain/recommend_repository.dart';
+import 'solve/solve_choice_page.dart';
+import 'solve/solve_fill_page.dart';
+import 'solve/solve_map_page.dart';
+
+typedef RecommendSolveBuilder =
+    Widget Function(RecommendedQuestion question, VoidCallback onNext);
 
 /// 本地连续推荐页。页面只展示当前题目，完整作答复用既有解题流程。
 class RecommendPage extends StatefulWidget {
-  const RecommendPage({super.key, this.recommendRepository});
+  const RecommendPage({super.key, this.recommendRepository, this.solveBuilder});
 
   final RecommendRepository? recommendRepository;
+  final RecommendSolveBuilder? solveBuilder;
 
   @override
   State<RecommendPage> createState() => RecommendPageState();
@@ -24,6 +30,9 @@ class RecommendPageState extends State<RecommendPage> {
   int _currentIndex = 0;
   bool _loading = true;
   String? _error;
+  int _requestGeneration = 0;
+
+  static const int _minimumBufferedQuestions = 2;
 
   RecommendedQuestion? get _current =>
       _currentIndex < _queue.length ? _queue[_currentIndex] : null;
@@ -53,10 +62,15 @@ class RecommendPageState extends State<RecommendPage> {
   }
 
   Future<void> refresh() async {
-    await _load(silent: _current != null);
+    if (_current == null) {
+      await _load();
+    } else {
+      await _refreshTail();
+    }
   }
 
   Future<void> _load({bool silent = false}) async {
+    final generation = ++_requestGeneration;
     _initRepository();
     if (!silent) {
       setState(() {
@@ -69,7 +83,7 @@ class RecommendPageState extends State<RecommendPage> {
       final filtered = questions
           .where((question) => !_seenInSession.contains(question.id))
           .toList(growable: false);
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
         _queue = filtered.isEmpty ? questions : filtered;
         _currentIndex = 0;
@@ -77,7 +91,7 @@ class RecommendPageState extends State<RecommendPage> {
         _error = null;
       });
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _requestGeneration) return;
       setState(() {
         _error = '暂时无法生成推荐，请稍后重试';
         _loading = false;
@@ -85,31 +99,60 @@ class RecommendPageState extends State<RecommendPage> {
     }
   }
 
-  void _next() {
+  void _skipCurrent() {
+    _advance(recompute: false);
+  }
+
+  void _completeAndAdvance() {
+    _advance(recompute: true);
+  }
+
+  void _advance({required bool recompute}) {
     final current = _current;
     if (current != null) _seenInSession.add(current.id);
     if (_currentIndex + 1 < _queue.length) {
       setState(() => _currentIndex++);
+      final remaining = _queue.length - _currentIndex - 1;
+      if (recompute || remaining < _minimumBufferedQuestions) {
+        _refreshTail();
+      }
     } else {
       _load();
     }
   }
 
-  Future<void> _start() async {
+  Future<void> _refreshTail() async {
     final current = _current;
-    if (current == null) return;
-    _seenInSession.add(current.id);
-    final sequence = _queue
-        .skip(_currentIndex)
-        .map((question) => question.id)
-        .toList(growable: false);
-    await SolveRouteHelper.navigateTo(
-      context,
-      current.id,
-      current.questionType,
-      sequence: sequence,
-      forceNewAttempt: true,
-    );
+    if (current == null) return _load();
+    final currentId = current.id;
+    final generation = ++_requestGeneration;
+    _initRepository();
+    try {
+      final questions = await _repository.getSmartList();
+      if (!mounted || generation != _requestGeneration) return;
+      if (_current?.id != currentId) return;
+      final tail = questions
+          .where(
+            (question) =>
+                question.id != currentId &&
+                !_seenInSession.contains(question.id),
+          )
+          .toList(growable: false);
+      final existingTail = _queue
+          .skip(_currentIndex + 1)
+          .where(
+            (question) =>
+                question.id != currentId &&
+                !_seenInSession.contains(question.id),
+          )
+          .toList(growable: false);
+      setState(() {
+        _queue = [current, ...(tail.isEmpty ? existingTail : tail)];
+        _currentIndex = 0;
+      });
+    } catch (_) {
+      // A background refresh must never replace a usable current question.
+    }
   }
 
   @override
@@ -119,16 +162,16 @@ class RecommendPageState extends State<RecommendPage> {
       appBar: AppBar(
         title: const Text('推荐'),
         actions: [
-          IconButton(
-            tooltip: '重新生成推荐',
-            onPressed: _loading ? null : () => _load(),
-            icon: const Icon(AppIcons.refresh),
-          ),
+          if (current != null)
+            IconButton(
+              tooltip: '换一题',
+              onPressed: _skipCurrent,
+              icon: const Icon(Icons.skip_next_rounded),
+            ),
           const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: _buildBody(current),
-      bottomNavigationBar: current == null ? null : _buildActions(current),
     );
   }
 
@@ -144,92 +187,33 @@ class RecommendPageState extends State<RecommendPage> {
       );
     }
 
-    return AppContentContainer(
-      maxWidth: AppContentWidth.reading,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          Row(
-            children: [
-              AppStatusBadge(
-                label: current.recommendReason,
-                tone: AppStatusTone.recommendation,
-                icon: Icons.auto_awesome_rounded,
-                compact: true,
-              ),
-              const Spacer(),
-              Text(
-                '${_currentIndex + 1}/${_queue.length}',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-            ],
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            0,
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: AppSpacing.xs,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    AppStatusBadge(
-                      label: QuestionTypeLabels.of(current.questionType),
-                      tone: AppStatusTone.info,
-                      compact: true,
-                    ),
-                    if (current.difficulty > 0)
-                      AppStatusBadge(
-                        label: '难度 ${current.difficulty.toStringAsFixed(1)}',
-                        tone: AppStatusTone.neutral,
-                        compact: true,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                MdLatexBody(current.title, fontSize: 17),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActions(RecommendedQuestion current) {
-    final colors = context.colors;
-    return SafeArea(
-      top: false,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border(top: BorderSide(color: colors.divider)),
-        ),
-        child: Align(
-          alignment: Alignment.topCenter,
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 760),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
               child: Row(
                 children: [
-                  Expanded(
-                    child: AppButton(
-                      label: '下一题',
-                      icon: Icons.skip_next_rounded,
-                      variant: AppButtonVariant.secondary,
-                      onPressed: _next,
-                    ),
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 16,
+                    color: context.colors.primary,
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.xs),
                   Expanded(
-                    child: AppButton(
-                      label: '开始作答',
-                      icon: Icons.edit_rounded,
-                      onPressed: _start,
+                    child: Text(
+                      current.recommendReason,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.colors.textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -237,7 +221,36 @@ class RecommendPageState extends State<RecommendPage> {
             ),
           ),
         ),
-      ),
+        Expanded(child: _buildSolve(current)),
+      ],
     );
+  }
+
+  Widget _buildSolve(RecommendedQuestion current) {
+    final builder = widget.solveBuilder;
+    if (builder != null) return builder(current, _completeAndAdvance);
+    return switch (current.questionType) {
+      'choice' => SolveChoicePage(
+        key: ValueKey('recommend-choice-${current.id}'),
+        questionId: current.id,
+        embedded: true,
+        forceNewAttempt: true,
+        onNext: _completeAndAdvance,
+      ),
+      'fill' => SolveFillPage(
+        key: ValueKey('recommend-fill-${current.id}'),
+        questionId: current.id,
+        embedded: true,
+        forceNewAttempt: true,
+        onNext: _completeAndAdvance,
+      ),
+      _ => SolveMapPage(
+        key: ValueKey('recommend-solution-${current.id}'),
+        questionId: current.id,
+        embedded: true,
+        forceNewAttempt: true,
+        onNext: _completeAndAdvance,
+      ),
+    };
   }
 }

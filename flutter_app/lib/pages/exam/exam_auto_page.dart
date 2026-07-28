@@ -307,31 +307,25 @@ class _ExamAutoPageState extends State<ExamAutoPage> {
                         vertical: AppSpacing.md,
                       ),
                       children: [
-                        AppFeatureBanner(
-                          eyebrow: '智能配题',
-                          icon: Icons.auto_awesome_rounded,
-                          title: '告诉系统你想练什么',
-                          subtitle: '设置范围、题型数量和目标难度，系统会从当前题库中挑选最接近目标的组合。',
-                          footer: Wrap(
-                            spacing: AppSpacing.xs,
-                            runSpacing: AppSpacing.xs,
-                            children: [
-                              AppStatusBadge(
-                                label: '预计 $totalCount 题',
-                                tone: AppStatusTone.info,
-                                icon: Icons.format_list_numbered_rounded,
-                                compact: true,
-                              ),
-                              const AppStatusBadge(
-                                label: '消耗 $_kAutoPaperCost 积分',
-                                tone: AppStatusTone.recommendation,
-                                icon: Icons.toll_rounded,
-                                compact: true,
-                              ),
-                            ],
-                          ),
+                        Wrap(
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xs,
+                          children: [
+                            AppStatusBadge(
+                              label: '预计 $totalCount 题',
+                              tone: AppStatusTone.info,
+                              icon: Icons.format_list_numbered_rounded,
+                              compact: true,
+                            ),
+                            const AppStatusBadge(
+                              label: '消耗 $_kAutoPaperCost 积分',
+                              tone: AppStatusTone.recommendation,
+                              icon: Icons.toll_rounded,
+                              compact: true,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.md),
                         const AppSectionHeader(
                           title: '试卷信息',
                           subtitle: '名称可以在创建前随时修改。',

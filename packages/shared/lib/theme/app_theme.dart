@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'app_tokens.dart';
+import 'app_typography.dart';
 
 /// 品牌色 — 来自已定稿 App 图标（不与交互色共享）
 abstract final class BrandColors {
@@ -538,6 +539,30 @@ class AppTheme {
     'Noto Sans CJK SC',
   ];
 
+  static TextStyle _appTextStyle(TextStyle style) => style.copyWith(
+    fontFamily: fontFamily,
+    fontFamilyFallback: _fontFamilyFallback,
+    letterSpacing: 0,
+  );
+
+  static TextTheme get _textTheme => TextTheme(
+    displayLarge: _appTextStyle(AppTypography.displayLarge),
+    displayMedium: _appTextStyle(AppTypography.displayMedium),
+    displaySmall: _appTextStyle(AppTypography.displaySmall),
+    headlineLarge: _appTextStyle(AppTypography.headlineLarge),
+    headlineMedium: _appTextStyle(AppTypography.headlineMedium),
+    headlineSmall: _appTextStyle(AppTypography.headlineSmall),
+    titleLarge: _appTextStyle(AppTypography.titleLarge),
+    titleMedium: _appTextStyle(AppTypography.titleMedium),
+    titleSmall: _appTextStyle(AppTypography.titleSmall),
+    bodyLarge: _appTextStyle(AppTypography.bodyLarge),
+    bodyMedium: _appTextStyle(AppTypography.bodyMedium),
+    bodySmall: _appTextStyle(AppTypography.bodySmall),
+    labelLarge: _appTextStyle(AppTypography.labelLarge),
+    labelMedium: _appTextStyle(AppTypography.labelMedium),
+    labelSmall: _appTextStyle(AppTypography.labelSmall),
+  );
+
   static ThemeData get light => _buildTheme(
     brightness: Brightness.light,
     colors: AppSemanticColors.light,
@@ -585,6 +610,7 @@ class AppTheme {
       brightness: brightness,
       fontFamily: fontFamily,
       fontFamilyFallback: _fontFamilyFallback,
+      textTheme: _textTheme,
       colorScheme: colorScheme,
       extensions: [colors],
     );
@@ -643,7 +669,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colors.primary,
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -694,7 +720,7 @@ class AppTheme {
           }
           return baseTheme.textTheme.labelMedium?.copyWith(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: colors.textMuted,
           );
         }),
@@ -709,7 +735,7 @@ class AppTheme {
         ),
         unselectedLabelTextStyle: baseTheme.textTheme.labelMedium?.copyWith(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: colors.textMuted,
         ),
       ),
@@ -717,7 +743,7 @@ class AppTheme {
         backgroundColor: colors.surfaceSubtle,
         labelStyle: TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: colors.textSecondary,
         ),
         side: BorderSide(color: colors.border),
@@ -767,7 +793,7 @@ class AppTheme {
         ),
         leadingAndTrailingTextStyle: TextStyle(
           fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: colors.textMuted,
         ),
         shape: RoundedRectangleBorder(
@@ -825,7 +851,7 @@ class AppTheme {
         ),
         textStyle: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
           color: colors.textInverse,
         ),
         padding: const EdgeInsets.symmetric(

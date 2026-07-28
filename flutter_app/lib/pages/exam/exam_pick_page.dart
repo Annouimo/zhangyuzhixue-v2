@@ -19,6 +19,9 @@ import '../../data/daos/user_dao.dart';
 import '../../domain/user_repository.dart';
 import '../../data/database/app_database.dart' as app_db;
 import 'package:drift/drift.dart' hide Column;
+import '../../widgets/question_search_field.dart';
+import '../../widgets/question_search_results.dart';
+import '../question_bank/question_detail_page.dart';
 
 /// 自主选题积分消耗常量
 const _kPickPaperCost = 20; // 自主选题消耗 20 积分
@@ -58,6 +61,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   bool _loadingQ = false;
   final _selectedIds = <int>{};
   final _nameController = TextEditingController(text: '自主选题卷');
+  final _queryController = TextEditingController();
   bool _saving = false;
   Set<String> _years = {}, _regions = {}, _conceptTags = {};
   Set<String> _selectedTypes = {},
@@ -82,6 +86,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _queryController.dispose();
     _debouncedSearch?.cancel();
     super.dispose();
   }
@@ -112,6 +117,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     try {
       final filters = SearchFilters(
         name: _nameController.text,
+        keyword: _queryController.text,
         choiceCount: 0,
         fillCount: 0,
         solutionCount: 0,
@@ -186,6 +192,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
     try {
       final filters = SearchFilters(
         name: _nameController.text,
+        keyword: _queryController.text,
         choiceCount: 0,
         fillCount: 0,
         solutionCount: 0,
@@ -258,6 +265,7 @@ class _ExamPickPageState extends State<ExamPickPage> {
       // 2. 组卷
       final filters = SearchFilters(
         name: _nameController.text,
+        keyword: _queryController.text,
         choiceCount: 0,
         fillCount: 0,
         solutionCount: 0,
@@ -459,42 +467,26 @@ class _ExamPickPageState extends State<ExamPickPage> {
           )
         : null;
 
+    final searchField = QuestionSearchField(
+      controller: _queryController,
+      onChanged: (_) {
+        _debouncedSearch?.cancel();
+        _debouncedSearch = Timer(const Duration(milliseconds: 300), _search);
+      },
+      onSubmitted: (_) => _search(),
+    );
+
     if (_loadingQ) {
       return const Center(child: LoadingIndicator(message: '搜索题目…'));
     }
 
     final headerChildren = <Widget>[
       const SizedBox(height: AppSpacing.md),
-      AppFeatureBanner(
-        eyebrow: '自定义试卷',
-        icon: Icons.touch_app_rounded,
-        title: '从题库中逐题挑选',
-        subtitle: '先设置筛选范围，再勾选适合当前学习目标的题目。已选数量会固定显示在页面底部。',
-        footer: Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            AppStatusBadge(
-              label: '已选 ${_selectedIds.length} 题',
-              tone: _selectedIds.isEmpty
-                  ? AppStatusTone.neutral
-                  : AppStatusTone.success,
-              icon: Icons.checklist_rounded,
-              compact: true,
-            ),
-            const AppStatusBadge(
-              label: '消耗 $_kPickPaperCost 积分',
-              tone: AppStatusTone.recommendation,
-              icon: Icons.toll_rounded,
-              compact: true,
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: AppSpacing.lg),
       const AppSectionHeader(title: '试卷信息与筛选', subtitle: '修改条件后会自动重新搜索。'),
       const SizedBox(height: AppSpacing.sm),
       nameField,
+      const SizedBox(height: AppSpacing.sm),
+      searchField,
       if (filterPanel != null) ...[
         const SizedBox(height: AppSpacing.sm),
         filterPanel,
@@ -565,24 +557,22 @@ class _ExamPickPageState extends State<ExamPickPage> {
         if (index < headerChildren.length) return headerChildren[index];
         final question = _questions![index - headerChildren.length];
         final selected = _selectedIds.contains(question.id);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: QuestionCard(
-            questionId: question.id,
-            title: question.title,
-            questionType: question.questionType,
-            subtitle: question.meta,
-            difficulty: question.difficulty,
-            selectable: true,
-            selected: selected,
-            onTap: () => setState(() {
-              if (selected) {
-                _selectedIds.remove(question.id);
-              } else {
-                _selectedIds.add(question.id);
-              }
-            }),
+        return QuestionSearchResultCard(
+          question: question,
+          selected: selected,
+          onOpen: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) =>
+                  StudentQuestionDetailPage(questionId: question.id),
+            ),
           ),
+          onToggle: () => setState(() {
+            if (selected) {
+              _selectedIds.remove(question.id);
+            } else {
+              _selectedIds.add(question.id);
+            }
+          }),
         );
       },
     );

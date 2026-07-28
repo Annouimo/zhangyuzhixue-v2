@@ -37,7 +37,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.statisticsRepository ??
+    _repo =
+        widget.statisticsRepository ??
         StatisticsRepository(
           StatisticsDao(DatabaseProvider()),
           questionDao: QuestionDao(DatabaseProvider()),
@@ -87,10 +88,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
             : null;
         _loading = false;
       });
-      AuditLogger.instance.page(
-        'StatisticsPage',
-        {'hasData': _overview != null},
-      );
+      AuditLogger.instance.page('StatisticsPage', {
+        'hasData': _overview != null,
+      });
     } catch (error) {
       OperationLog.instance.error('statistics_page_load', error);
       AuditLogger.instance.error('StatisticsPage._loadAll', error);
@@ -104,107 +104,97 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('学习统计')),
-        body: _loading
-            ? const LoadingIndicator(message: '加载统计数据…')
-            : _error != null
-                ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
-                : RefreshIndicator(
-                    onRefresh: _loadAll,
-                    child: AppContentContainer(
-                      maxWidth: AppContentWidth.dashboard,
-                      child: ListView(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.md,
-                        ),
-                        children: [
-                          AppFeatureBanner(
-                            eyebrow: '学习数据',
-                            icon: Icons.insights_rounded,
-                            title: '看见每一次积累',
-                            subtitle: '通过做题数量、正确率、连续学习和题型分布，了解近期学习节奏。',
-                            footer: TimeRangePicker(
-                              valueDays: _rangeDays,
-                              onChanged: (days) {
-                                setState(() => _rangeDays = days);
-                                _loadAll();
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                          const AppSectionHeader(
-                            title: '核心概览',
-                            subtitle: '总览数据不受当前时间范围筛选影响。',
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          _buildOverviewCards(),
-                          const SizedBox(height: AppSpacing.xl),
-                          AppSectionHeader(
-                            title: '趋势与分布',
-                            subtitle: '当前展示：${_rangeLabel(_rangeDays)}',
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final twoColumns = constraints.maxWidth >=
-                                  AppBreakpoints.expanded;
-                              const gap = AppSpacing.md;
-                              final width = twoColumns
-                                  ? (constraints.maxWidth - gap) / 2
-                                  : constraints.maxWidth;
-                              final charts = <Widget>[
-                                HeatmapChart(
-                                  rangeDays: _rangeDays,
-                                  records: _dailyRecords ?? [],
-                                ),
-                                TrendChart(
-                                  title: '正确率趋势',
-                                  points: _accuracyTrend ?? [],
-                                  lineColor: context.colors.primary,
-                                  fixedYRange: true,
-                                  summaryLabel: '该时段正确率',
-                                  summaryValue: _accuracySummary,
-                                ),
-                                TrendChart(
-                                  title: '积分累计趋势',
-                                  points: _pointsTrend ?? [],
-                                  lineColor: context.colors.success,
-                                  summaryLabel: '时段累计积分',
-                                  summaryValue: _pointsSummary,
-                                ),
-                                DonutChart(
-                                  data: _distribution ??
-                                      Distribution(
-                                        total: 0,
-                                        choiceCount: 0,
-                                        choicePercent: 0,
-                                        fillCount: 0,
-                                        fillPercent: 0,
-                                        solutionCount: 0,
-                                        solutionPercent: 0,
-                                      ),
-                                ),
-                              ];
-                              return Wrap(
-                                spacing: gap,
-                                runSpacing: gap,
-                                children: charts
-                                    .map(
-                                      (chart) => SizedBox(
-                                        width: width,
-                                        child: chart,
-                                      ),
-                                    )
-                                    .toList(),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                        ],
-                      ),
-                    ),
+    appBar: AppBar(title: const Text('学习统计')),
+    body: _loading
+        ? const LoadingIndicator(message: '加载统计数据…')
+        : _error != null
+        ? ErrorPlaceholder(message: _error!, onRetry: _loadAll)
+        : RefreshIndicator(
+            onRefresh: _loadAll,
+            child: AppContentContainer(
+              maxWidth: AppContentWidth.dashboard,
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                children: [
+                  TimeRangePicker(
+                    valueDays: _rangeDays,
+                    onChanged: (days) {
+                      setState(() => _rangeDays = days);
+                      _loadAll();
+                    },
                   ),
-      );
+                  const SizedBox(height: AppSpacing.md),
+                  const AppSectionHeader(
+                    title: '核心概览',
+                    subtitle: '总览数据不受当前时间范围筛选影响。',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildOverviewCards(),
+                  const SizedBox(height: AppSpacing.xl),
+                  AppSectionHeader(
+                    title: '趋势与分布',
+                    subtitle: '当前展示：${_rangeLabel(_rangeDays)}',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final twoColumns =
+                          constraints.maxWidth >= AppBreakpoints.expanded;
+                      const gap = AppSpacing.md;
+                      final width = twoColumns
+                          ? (constraints.maxWidth - gap) / 2
+                          : constraints.maxWidth;
+                      final charts = <Widget>[
+                        HeatmapChart(
+                          rangeDays: _rangeDays,
+                          records: _dailyRecords ?? [],
+                        ),
+                        TrendChart(
+                          title: '正确率趋势',
+                          points: _accuracyTrend ?? [],
+                          lineColor: context.colors.primary,
+                          fixedYRange: true,
+                          summaryLabel: '该时段正确率',
+                          summaryValue: _accuracySummary,
+                        ),
+                        TrendChart(
+                          title: '积分累计趋势',
+                          points: _pointsTrend ?? [],
+                          lineColor: context.colors.success,
+                          summaryLabel: '时段累计积分',
+                          summaryValue: _pointsSummary,
+                        ),
+                        DonutChart(
+                          data:
+                              _distribution ??
+                              Distribution(
+                                total: 0,
+                                choiceCount: 0,
+                                choicePercent: 0,
+                                fillCount: 0,
+                                fillPercent: 0,
+                                solutionCount: 0,
+                                solutionPercent: 0,
+                              ),
+                        ),
+                      ];
+                      return Wrap(
+                        spacing: gap,
+                        runSpacing: gap,
+                        children: charts
+                            .map(
+                              (chart) => SizedBox(width: width, child: chart),
+                            )
+                            .toList(),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ),
+            ),
+          ),
+  );
 
   Widget _buildOverviewCards() {
     final overview = _overview;
@@ -215,8 +205,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
         final columns = constraints.maxWidth >= AppBreakpoints.expanded
             ? 4
             : constraints.maxWidth >= AppBreakpoints.compact
-                ? 2
-                : 1;
+            ? 2
+            : 1;
         const gap = AppSpacing.sm;
         final width = columns == 1
             ? constraints.maxWidth
@@ -259,10 +249,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   String _rangeLabel(int days) => switch (days) {
-        7 => '近一周',
-        30 => '近一月',
-        90 => '近三月',
-        365 => '近一年',
-        _ => '全部记录',
-      };
+    7 => '近一周',
+    30 => '近一月',
+    90 => '近三月',
+    365 => '近一年',
+    _ => '全部记录',
+  };
 }

@@ -5,7 +5,6 @@ import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/review_repository.dart';
-import 'router.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({super.key, this.reviewRepository});
@@ -58,14 +57,7 @@ class ReviewPageState extends State<ReviewPage> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             children: [
-              const AppFeatureBanner(
-                eyebrow: '学习反馈',
-                icon: Icons.radar_rounded,
-                title: '从记录中找到下一步',
-                subtitle: '掌握状态根据现有答题结果动态计算，不需要手工维护复习计划。',
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              _buildActions(),
+              _buildSummary(),
               const SizedBox(height: AppSpacing.xl),
               const AppSectionHeader(
                 title: '知识点状态',
@@ -80,35 +72,15 @@ class ReviewPageState extends State<ReviewPage> {
     );
   }
 
-  Widget _buildActions() {
-    return Row(
-      children: [
-        Expanded(
-          child: AppCard(
-            onTap: () => RouterUtils.push(context, AppRoutes.statistics),
-            child: const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.insights_rounded),
-              title: Text('学习统计'),
-              subtitle: Text('正确率、活跃度与题型分布'),
-              trailing: Icon(AppIcons.chevronRight),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: AppCard(
-            onTap: () => RouterUtils.push(context, AppRoutes.profileHistory),
-            child: const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.history_rounded),
-              title: Text('做题记录'),
-              subtitle: Text('继续作答或回顾已完成题目'),
-              trailing: Icon(AppIcons.chevronRight),
-            ),
-          ),
-        ),
-      ],
+  Widget _buildSummary() {
+    final needsReview = _concepts
+        ?.where(
+          (concept) => concept.status == ConceptProgressStatus.needsReview,
+        )
+        .length;
+    return AppSectionHeader(
+      title: needsReview == null ? '学习反馈' : '$needsReview 个知识点需要复习',
+      subtitle: '掌握状态会随作答结果自动更新。',
     );
   }
 
@@ -124,36 +96,64 @@ class ReviewPageState extends State<ReviewPage> {
         message: '完成几道推荐题后，这里会显示知识点掌握状态',
       );
     }
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: concepts.take(12).map(_buildConceptCard).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth < 600
+            ? 1
+            : constraints.maxWidth < 900
+            ? 2
+            : constraints.maxWidth < 1200
+            ? 3
+            : 4;
+        const gap = AppSpacing.sm;
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: concepts
+              .take(12)
+              .map(
+                (concept) => SizedBox(
+                  width: width,
+                  child: _buildConceptCard(concept, compact: columns == 1),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 
-  Widget _buildConceptCard(ConceptProgress concept) {
+  Widget _buildConceptCard(ConceptProgress concept, {required bool compact}) {
     final (label, tone) = switch (concept.status) {
       ConceptProgressStatus.insufficient => ('数据不足', AppStatusTone.neutral),
       ConceptProgressStatus.forming => ('正在形成', AppStatusTone.info),
       ConceptProgressStatus.needsReview => ('待巩固', AppStatusTone.warning),
       ConceptProgressStatus.stable => ('基本掌握', AppStatusTone.success),
     };
-    return SizedBox(
-      width: 240,
-      child: AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppStatusBadge(label: label, tone: tone, compact: true),
-            const SizedBox(height: AppSpacing.sm),
-            Text(concept.name, style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              '${concept.attemptCount} 次记录 · 正确率 ${(concept.accuracy * 100).round()}%',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ),
+    return AppCard(
+      padding: EdgeInsets.all(compact ? AppSpacing.sm : AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  concept.name,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              AppStatusBadge(label: label, tone: tone, compact: true),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${concept.attemptCount} 次记录 · 正确率 ${(concept.accuracy * 100).round()}%',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
       ),
     );
   }

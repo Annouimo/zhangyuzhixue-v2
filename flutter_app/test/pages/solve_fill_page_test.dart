@@ -5,6 +5,8 @@ import 'package:flutter_app/domain/question_repository.dart';
 import '../test_setup.dart';
 
 class _MockQRepo implements QuestionRepository {
+  int startCount = 0;
+
   @override
   Future<QuestionDetail> getDetail(int id) async {
     return QuestionDetail(
@@ -17,24 +19,71 @@ class _MockQRepo implements QuestionRepository {
       answer: '42',
     );
   }
-  @override Future<SolveAttempt> startSolve(int questionId) async =>
-      SolveAttempt(id: 1, questionId: questionId, attemptNumber: 1, createdAt: DateTime.now(), isCompleted: false, isStarted: true);
-  @override Future<List<SolveAttempt>> getAttempts(int questionId) async => [];
-  @override Future<int?> nextQuestion(int currentId) async => currentId < 3 ? currentId + 1 : null;
-  @override Future<void> saveAttempt(int questionId, {String? answerText, bool isCorrect = false}) async {}
+
+  @override
+  Future<SolveAttempt> startSolve(int questionId) async {
+    startCount++;
+    return SolveAttempt(
+      id: 1,
+      questionId: questionId,
+      attemptNumber: 1,
+      createdAt: DateTime.now(),
+      isCompleted: false,
+      isStarted: true,
+    );
+  }
+
+  @override
+  Future<List<SolveAttempt>> getAttempts(int questionId) async => [];
+  @override
+  Future<int?> nextQuestion(int currentId) async =>
+      currentId < 3 ? currentId + 1 : null;
+  @override
+  Future<void> saveAttempt(
+    int questionId, {
+    String? answerText,
+    bool isCorrect = false,
+  }) async {}
 }
 
 void main() {
-    setUp(() => setupTestHooks());
+  setUp(() => setupTestHooks());
   group('SolveFillPage', () {
-    testWidgets('renders fill page with stem and reveal button', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: SolveFillPage(questionId: 1, questionRepository: _MockQRepo()),
-      ));
+    testWidgets('renders fill page with stem and reveal button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SolveFillPage(questionId: 1, questionRepository: _MockQRepo()),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('测试题目 1 的题干'), findsOneWidget);
       expect(find.text('查看答案'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     });
+    testWidgets(
+      'embedded mode defers a fresh attempt and hides history actions',
+      (tester) async {
+        final repo = _MockQRepo();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SolveFillPage(
+                questionId: 1,
+                questionRepository: repo,
+                embedded: true,
+                forceNewAttempt: true,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(repo.startCount, 0);
+        expect(find.text('测试题目 1 的题干'), findsOneWidget);
+        expect(find.text('重新作答'), findsNothing);
+      },
+    );
   });
 }

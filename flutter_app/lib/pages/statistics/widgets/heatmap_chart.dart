@@ -299,7 +299,7 @@ class HeatmapChart extends StatelessWidget {
                   '${e.value}',
                   style: TextStyle(
                     fontSize: 11,
-                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.w400,
                     color: lv >= 2 ? colors.textInverse : colors.textPrimary,
                   ),
                 ),
@@ -363,7 +363,7 @@ class HeatmapChart extends StatelessWidget {
                   '${e.value}',
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: lv >= 2 ? FontWeight.w600 : FontWeight.w400,
                     color: lv >= 2 ? colors.textInverse : colors.textPrimary,
                   ),
                 ),

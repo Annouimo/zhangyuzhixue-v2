@@ -32,6 +32,9 @@ class SolveFillPage extends StatefulWidget {
   final QuestionRepository? questionRepository;
   final String? mode;
   final int? attemptId;
+  final bool embedded;
+  final bool forceNewAttempt;
+  final VoidCallback? onNext;
 
   const SolveFillPage({
     super.key,
@@ -42,6 +45,9 @@ class SolveFillPage extends StatefulWidget {
     this.questionRepository,
     this.mode,
     this.attemptId,
+    this.embedded = false,
+    this.forceNewAttempt = false,
+    this.onNext,
   });
 
   @override
@@ -54,6 +60,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
   bool _feedbackGiven = false;
   bool _feedbackCorrect = false;
   bool _isReviewMode = false;
+  bool _newAttemptCreated = false;
   int _coolDownSec = 10;
   QuestionDetail? _detail;
   String? _error;
@@ -104,7 +111,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
       );
 
       // 首次访问且未指定存档时，自动创建
-      if (attempts.isEmpty && widget.mode != 'review') {
+      if (attempts.isEmpty &&
+          widget.mode != 'review' &&
+          !widget.forceNewAttempt) {
         await _repo.startSolve(widget.questionId);
         OperationLog.instance.action(
           'solve_fill_page_load',
@@ -117,7 +126,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
       if (widget.attemptId != null) {
         latest = attempts.where((a) => a.id == widget.attemptId).firstOrNull;
       }
-      latest ??= attempts.isNotEmpty ? attempts.last : null;
+      if (!widget.forceNewAttempt) {
+        latest ??= attempts.isNotEmpty ? attempts.last : null;
+      }
 
       if (!mounted) return;
       setState(() {
@@ -200,7 +211,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
                     fontSize: 13,
                     fontWeight: a.id == _currentAttempt?.id
                         ? FontWeight.w600
-                        : FontWeight.normal,
+                        : FontWeight.w400,
                     color: a.id == _currentAttempt?.id
                         ? colors.primary
                         : colors.textPrimary,
@@ -263,7 +274,16 @@ class _SolveFillPageState extends State<SolveFillPage> {
   /// 揭示答案时展开结果区域，等待用户自评
   Future<void> _onReveal() async {
     setState(() => _revealed = true);
-    if (_currentAttempt == null) {
+    if (widget.forceNewAttempt && !_newAttemptCreated) {
+      await _repo.startSolve(widget.questionId);
+      _newAttemptCreated = true;
+      final attempts = await _repo.getAttempts(widget.questionId);
+      if (!mounted) return;
+      setState(() {
+        _attempts = attempts;
+        _currentAttempt = attempts.isNotEmpty ? attempts.last : null;
+      });
+    } else if (_currentAttempt == null) {
       await _repo.startSolve(widget.questionId);
       final attempts = await _repo.getAttempts(widget.questionId);
       if (!mounted) return;
@@ -368,6 +388,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
+      if (widget.embedded) {
+        return const LoadingIndicator(message: '正在加载题目');
+      }
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
@@ -377,24 +400,28 @@ class _SolveFillPageState extends State<SolveFillPage> {
       );
     }
     if (_error != null) {
+      final error = ErrorPlaceholder(
+        message: '题目加载失败，请检查后重试',
+        onRetry: () {
+          setState(() {
+            _error = null;
+            _loading = true;
+          });
+          _load();
+        },
+      );
+      if (widget.embedded) return error;
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
           actions: const [ExamTimerAction()],
         ),
-        body: ErrorPlaceholder(
-          message: '题目加载失败，请检查后重试',
-          onRetry: () {
-            setState(() {
-              _error = null;
-              _loading = true;
-            });
-            _load();
-          },
-        ),
+        body: error,
       );
     }
 
+    final body = _buildSolveBody();
+    if (widget.embedded) return body;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -406,28 +433,34 @@ class _SolveFillPageState extends State<SolveFillPage> {
           title: const Text('填空题'),
           actions: const [ExamTimerAction()],
         ),
-        body: AppContentContainer(
-          maxWidth: AppContentWidth.reading,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SolveRevealWidget(
-                  cooldownSeconds: _coolDownSec,
-                  isRevisit: _isReviewMode,
-                  revealed: _revealed,
-                  answerValue: _detail?.answer,
-                  explanation: _detail?.explanation,
-                  onReveal: _onReveal,
-                  feedbackWidget: !_feedbackGiven && !_isReviewMode
-                      ? _buildFeedbackButtons()
-                      : null,
-                  feedbackResult: _feedbackGiven
-                      ? _buildFeedbackResult()
-                      : null,
-                  onNext: _isQuickPractice
+        body: body,
+      ),
+    );
+  }
+
+  Widget _buildSolveBody() {
+    return AppContentContainer(
+      maxWidth: AppContentWidth.reading,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SolveRevealWidget(
+              cooldownSeconds: _coolDownSec,
+              isRevisit: _isReviewMode,
+              revealed: _revealed,
+              answerValue: _detail?.answer,
+              explanation: _detail?.explanation,
+              onReveal: _onReveal,
+              feedbackWidget: !_feedbackGiven && !_isReviewMode
+                  ? _buildFeedbackButtons()
+                  : null,
+              feedbackResult: _feedbackGiven ? _buildFeedbackResult() : null,
+              onNext:
+                  widget.onNext ??
+                  (_isQuickPractice
                       ? _continueQuickPractice
                       : _nextQuestionId != null
                       ? () {
@@ -437,30 +470,28 @@ class _SolveFillPageState extends State<SolveFillPage> {
                             widget.sequence,
                           );
                         }
-                      : null,
-                  nextLabel: _isQuickPractice ? '再来一题' : '下一题',
-                  onRate: () async {
-                    await context.push('/solve/rate?id=${widget.questionId}');
-                  },
-                  onFinish: !_isQuickPractice && _nextQuestionId == null
-                      ? () => context.pop()
-                      : null,
-                  child: _buildContent(),
-                ),
-                if (_attempts.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  AppButton(
-                    label: '重新作答',
-                    icon: Icons.refresh_rounded,
-                    variant: AppButtonVariant.secondary,
-                    fullWidth: true,
-                    onPressed: _createNewAttempt,
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.lg),
-              ],
+                      : null),
+              nextLabel: _isQuickPractice ? '再来一题' : '下一题',
+              onRate: () async {
+                await context.push('/solve/rate?id=${widget.questionId}');
+              },
+              onFinish: !_isQuickPractice && _nextQuestionId == null
+                  ? () => context.pop()
+                  : null,
+              child: _buildContent(),
             ),
-          ),
+            if (_attempts.isNotEmpty && !widget.embedded) ...[
+              const SizedBox(height: AppSpacing.md),
+              AppButton(
+                label: '重新作答',
+                icon: Icons.refresh_rounded,
+                variant: AppButtonVariant.secondary,
+                fullWidth: true,
+                onPressed: _createNewAttempt,
+              ),
+            ],
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ),
       ),
     );
@@ -528,7 +559,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       number: detail.number,
       title: detail.title,
       questionTypeLabel: _typeLabel(detail.questionType),
-      attemptSelector: _buildAttemptSelector(),
+      attemptSelector: widget.embedded ? null : _buildAttemptSelector(),
       isReviewMode: _isReviewMode,
       conceptTags: detail.conceptTags,
       stem: detail.stem,

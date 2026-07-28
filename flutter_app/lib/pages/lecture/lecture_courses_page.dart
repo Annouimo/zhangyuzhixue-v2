@@ -89,32 +89,10 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: AppSpacing.md),
-            AppFeatureBanner(
-              eyebrow: '公开讲义',
-              icon: Icons.menu_book_rounded,
-              title: '按章节理解知识脉络',
-              subtitle: '讲义支持逐段展开，适合在做题前预习，也可以在错题后快速回顾相关知识。',
-              footer: Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  AppStatusBadge(
-                    label: '${courses.length} 门课程',
-                    tone: AppStatusTone.info,
-                    icon: Icons.school_outlined,
-                    compact: true,
-                  ),
-                  AppStatusBadge(
-                    label: '共 $chapterCount 讲',
-                    tone: AppStatusTone.success,
-                    icon: Icons.library_books_outlined,
-                    compact: true,
-                  ),
-                ],
-              ),
+            AppSectionHeader(
+              title: '选择课程',
+              subtitle: '${courses.length} 门课程 · 共 $chapterCount 讲',
             ),
-            const SizedBox(height: AppSpacing.xl),
-            const AppSectionHeader(title: '选择课程', subtitle: '进入课程后可以按章节顺序阅读。'),
             const SizedBox(height: AppSpacing.md),
             LayoutBuilder(
               builder: (context, constraints) {

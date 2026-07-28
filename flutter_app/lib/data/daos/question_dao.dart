@@ -68,6 +68,7 @@ class QuestionDao {
     })
   >
   searchStats({
+    String? keyword,
     List<int>? years,
     List<String>? regions,
     double? diffMin,
@@ -80,6 +81,16 @@ class QuestionDao {
     List<String>? questionTypes,
   }) async {
     var q = _db.select(_db.questions);
+    final normalizedKeyword = keyword?.trim();
+    if (normalizedKeyword != null && normalizedKeyword.isNotEmpty) {
+      final pattern = '%$normalizedKeyword%';
+      q.where(
+        (t) =>
+            t.stem.like(pattern) |
+            t.region.like(pattern) |
+            t.examType.like(pattern),
+      );
+    }
     if (years != null && years.isNotEmpty) q.where((t) => t.year.isIn(years));
     if (regions != null && regions.isNotEmpty) {
       q.where((t) => t.region.isIn(regions));
@@ -192,6 +203,7 @@ class QuestionDao {
   }
 
   Future<List<db.QuestionRow>> search({
+    String? keyword,
     List<int>? years,
     List<String>? regions,
     double? diffMin,
@@ -206,6 +218,16 @@ class QuestionDao {
     List<String>? questionTypes,
   }) async {
     final q = _db.select(_db.questions);
+    final normalizedKeyword = keyword?.trim();
+    if (normalizedKeyword != null && normalizedKeyword.isNotEmpty) {
+      final pattern = '%$normalizedKeyword%';
+      q.where(
+        (t) =>
+            t.stem.like(pattern) |
+            t.region.like(pattern) |
+            t.examType.like(pattern),
+      );
+    }
     if (years != null && years.isNotEmpty) q.where((t) => t.year.isIn(years));
     if (regions != null && regions.isNotEmpty) {
       q.where((t) => t.region.isIn(regions));
@@ -268,6 +290,7 @@ class QuestionDao {
 
     AuditLogger.instance.dao('QuestionDao.search', rows.length, {
       'years': years?.length,
+      'hasKeyword': normalizedKeyword?.isNotEmpty == true,
       'regions': regions?.length,
       'conceptTags': conceptTagNames?.length,
       'examTypes': examTypes?.length,

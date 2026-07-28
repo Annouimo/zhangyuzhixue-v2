@@ -29,6 +29,15 @@ RecommendedQuestion _question(int id) => RecommendedQuestion(
   status: 'pending',
 );
 
+Widget _solveBuilder(RecommendedQuestion question, VoidCallback onNext) {
+  return Column(
+    children: [
+      MdLatexBody(question.title),
+      TextButton(onPressed: onNext, child: const Text('完成并下一题')),
+    ],
+  );
+}
+
 void main() {
   setUp(setupTestHooks);
 
@@ -54,6 +63,7 @@ void main() {
           recommendRepository: _MockRecommendRepo(
             smartList: [_question(1), _question(2)],
           ),
+          solveBuilder: _solveBuilder,
         ),
       ),
     );
@@ -65,8 +75,8 @@ void main() {
     expect(state.debugQueueLength, 2);
     final body = tester.widget<MdLatexBody>(find.byType(MdLatexBody));
     expect(body.data, contains('推荐题 1'));
-    expect(find.text('下一题'), findsOneWidget);
-    expect(find.text('开始作答'), findsOneWidget);
+    expect(find.byTooltip('换一题'), findsOneWidget);
+    expect(find.text('作答'), findsNothing);
     expect(find.text('巩固近期错题'), findsOneWidget);
   });
 
@@ -77,15 +87,39 @@ void main() {
           recommendRepository: _MockRecommendRepo(
             smartList: [_question(1), _question(2)],
           ),
+          solveBuilder: _solveBuilder,
         ),
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('下一题'));
+    await tester.tap(find.byTooltip('换一题'));
     await tester.pump();
 
     final body = tester.widget<MdLatexBody>(find.byType(MdLatexBody));
     expect(body.data, contains('推荐题 2'));
-    expect(find.text('2/2'), findsOneWidget);
+    expect(find.text('2/2'), findsNothing);
+  });
+
+  testWidgets('background refresh keeps the current question', (tester) async {
+    final repo = _MockRecommendRepo(smartList: [_question(1), _question(2)]);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RecommendPage(
+          recommendRepository: repo,
+          solveBuilder: _solveBuilder,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    repo.smartList = [_question(3), _question(2)];
+    final state = tester.state<RecommendPageState>(find.byType(RecommendPage));
+    await state.refresh();
+    await tester.pump();
+
+    expect(find.textContaining('推荐题 1'), findsOneWidget);
+    await tester.tap(find.byTooltip('换一题'));
+    await tester.pump();
+    expect(find.textContaining('推荐题 3'), findsOneWidget);
   });
 }

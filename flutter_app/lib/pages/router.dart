@@ -30,8 +30,14 @@ import 'preference_welcome_page.dart';
 import 'profile/question_history_page.dart';
 import 'profile/preference_list_page.dart';
 import 'profile/preference_edit_page.dart';
+import 'profile/study_archive_page.dart';
+import 'profile/growth_center_page.dart';
+import 'profile/settings_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
+import 'exam/exam_home_page.dart';
+import 'review_page.dart';
+import 'question_bank/question_bank_page.dart';
 import 'package:shared/debug/operation_log.dart';
 
 /// 路由路径常量
@@ -56,6 +62,9 @@ abstract final class AppRoutes {
   static const examFavorites = '/exam/favorites';
   static const answerSheet = '/exam/answersheet';
   static const recommend = '/recommend';
+  static const questionBank = '/question-bank';
+  static const examHome = '/exam';
+  static const review = '/review';
   static const statistics = '/statistics';
   static const profileEdit = '/profile/edit';
   static const profileAchievements = '/profile/achievements';
@@ -67,6 +76,9 @@ abstract final class AppRoutes {
   static const preferenceWelcome = '/preference/welcome';
   static const profilePreferences = '/profile/preferences';
   static const preferenceEdit = '/profile/preferences/edit';
+  static const studyArchive = '/profile/study-archive';
+  static const growthCenter = '/profile/growth';
+  static const settings = '/profile/settings';
 }
 
 /// 从 query 参数解析 int
@@ -259,6 +271,21 @@ final GoRouter appRouter = GoRouter(
       builder: (_, _) => RecommendPage(),
     ),
     GoRoute(
+      path: AppRoutes.examHome,
+      name: 'exam-home',
+      builder: (_, _) => const ExamHomePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.review,
+      name: 'review',
+      builder: (_, _) => const ReviewPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.questionBank,
+      name: 'question-bank',
+      builder: (_, _) => const StudentQuestionBankPage(),
+    ),
+    GoRoute(
       path: AppRoutes.statistics,
       name: 'statistics',
       builder: (_, _) => StatisticsPage(),
@@ -311,6 +338,21 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.syncQueue,
       name: 'sync-queue',
       builder: (_, _) => SyncQueuePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.studyArchive,
+      name: 'study-archive',
+      builder: (_, _) => const StudyArchivePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.growthCenter,
+      name: 'growth-center',
+      builder: (_, _) => const GrowthCenterPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.settings,
+      name: 'settings',
+      builder: (_, _) => const SettingsPage(),
     ),
     GoRoute(
       path: AppRoutes.preferenceWelcome,

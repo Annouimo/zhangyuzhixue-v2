@@ -100,6 +100,15 @@ void main() {
       expect(result.first.year, 2024);
     });
 
+    test('search filters by keyword across stem and source fields', () async {
+      await insertQuestion(stem: '函数单调性');
+      await insertQuestion(stem: '圆锥曲线', region: '西城');
+
+      expect((await dao.search(keyword: '单调')).length, 1);
+      expect((await dao.search(keyword: '西城')).length, 1);
+      expect((await dao.search(keyword: '不存在')).length, 0);
+    });
+
     test('search filters by region', () async {
       await insertQuestion(region: '海淀');
       await insertQuestion(region: '西城');

@@ -4,7 +4,6 @@ import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
 import '../data/daos/sync_queue_dao.dart';
@@ -153,11 +152,9 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         children: [
-          AppFeatureBanner(
-            icon: Icons.cloud_sync_outlined,
-            eyebrow: '数据安全',
-            title: '有 $retryableCount 项等待处理',
-            subtitle: '网络恢复后系统会自动继续同步；失败项目也可以在这里统一重试。',
+          AppSectionHeader(
+            title: '同步队列',
+            subtitle: '$retryableCount 项等待处理',
             action: AppButton(
               label: '全部重试',
               icon: Icons.refresh,
@@ -166,11 +163,6 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
               variant: AppButtonVariant.secondary,
               expanded: false,
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const AppSectionHeader(
-            title: '同步队列',
-            subtitle: '按最近更新时间显示，错误信息会保留在对应项目中。',
           ),
           const SizedBox(height: AppSpacing.md),
           ...items.map((item) {
