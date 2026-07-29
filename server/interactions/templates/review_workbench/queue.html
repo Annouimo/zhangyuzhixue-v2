@@ -1,22 +1,38 @@
 {% extends 'review_workbench/base.html' %}
 {% block content %}
-<div class="page-heading">
-  <div><h1>投稿审核</h1><p>审核、修订并录入学生提交的新题和纠错。</p></div>
-  <form method="get"><label for="status">状态</label><select id="status" name="status" onchange="this.form.submit()">
+<div class="page-heading queue-heading">
+  <div><h1>投稿审核 <span class="count-badge">{{ total_count }}</span></h1><p>审核、修订并录入学生提交的新题和纠错。</p></div>
+</div>
+<form method="get" class="queue-filters">
+  <label class="search-field"><span>搜索</span><input name="q" value="{{ query }}" placeholder="题干、投稿人或题目编号"></label>
+  <label><span>类型</span><select name="type">
+    <option value="">全部类型</option>{% for value, label in type_choices %}<option value="{{ value }}"{% if type_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></label>
+  <label><span>状态</span><select name="status">
     <option value="active"{% if status_filter == 'active' %} selected{% endif %}>当前待办</option>
     {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-  </select></form>
-</div>
-<div class="table-wrap"><table>
-  <thead><tr><th>编号</th><th>类型</th><th>内容</th><th>投稿人</th><th>状态</th><th>处理人</th><th>更新时间</th><th></th></tr></thead>
+  </select></label>
+  <label class="check-filter"><input type="checkbox" name="mine" value="1"{% if mine_only %} checked{% endif %}><span>只看我处理</span></label>
+  <button class="primary filter-submit" type="submit">筛选</button>
+  {% if query or type_filter or mine_only or status_filter != 'active' %}<a class="clear-filter" href="{% url 'review_workbench:queue' %}">清除</a>{% endif %}
+</form>
+<div class="table-wrap"><table class="queue-table">
+  <thead><tr><th>编号</th><th>类型</th><th>内容</th><th>投稿人</th><th>状态</th><th>处理人</th><th>更新时间</th></tr></thead>
   <tbody>{% for item in contributions %}
-    <tr>
-      <td>#{{ item.pk }}</td><td>{{ item.get_contribution_type_display }}</td>
-      <td class="summary">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:70 }}{% else %}{{ revision.normalized_payload.description|truncatechars:70 }}{% endif %}{% endwith %}</td>
-      <td>{{ item.student.user.username }}</td><td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span></td>
-      <td>{{ item.reviewed_by.username|default:'-' }}</td><td>{{ item.updated_at|date:'Y-m-d H:i' }}</td>
-      <td><a class="row-link" href="{% url 'review_workbench:detail' item.pk %}">打开</a></td>
+    <tr class="queue-row" data-href="{% url 'review_workbench:detail' item.pk %}" tabindex="0">
+      <td data-label="编号"><a class="row-id" href="{% url 'review_workbench:detail' item.pk %}">#{{ item.pk }}</a></td>
+      <td data-label="类型">{{ item.get_contribution_type_display }}</td>
+      <td data-label="内容" class="summary math-content">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:90 }}{% else %}{{ revision.normalized_payload.description|truncatechars:90 }}{% endif %}{% endwith %}</td>
+      <td data-label="投稿人">{{ item.student.user.username }}</td>
+      <td data-label="状态"><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span></td>
+      <td data-label="处理人">{% if item.reviewed_by %}{{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% else %}-{% endif %}</td>
+      <td data-label="更新时间">{{ item.updated_at|date:'m-d H:i' }}</td>
     </tr>
-  {% empty %}<tr><td colspan="8" class="empty">当前筛选下没有投稿</td></tr>{% endfor %}</tbody>
+  {% empty %}<tr><td colspan="7" class="empty">当前筛选下没有投稿</td></tr>{% endfor %}</tbody>
 </table></div>
+{% if page.paginator.num_pages > 1 %}<nav class="pagination" aria-label="分页">
+  {% if page.has_previous %}<a href="{% querystring page=page.previous_page_number %}">上一页</a>{% endif %}
+  <span>第 {{ page.number }} / {{ page.paginator.num_pages }} 页</span>
+  {% if page.has_next %}<a href="{% querystring page=page.next_page_number %}">下一页</a>{% endif %}
+</nav>{% endif %}
 {% endblock %}
