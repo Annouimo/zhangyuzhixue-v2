@@ -8,7 +8,7 @@ from accounts.models import Student
 from accounts.roles import CONTENT_REVIEWER_GROUP
 from interactions.models import (
     ContentContribution, ContributionReview, ContributionRevision,
-    ContributionTagSelection,
+    ContributionTagSelection, ContributionTagSuggestion,
 )
 from qbank.models import BaseQuestion, ConceptTag, SolutionMethod
 
@@ -119,6 +119,66 @@ def test_review_update_rejects_stale_version(client, reviewer, contribution):
     )
     assert response.status_code == 200
     assert '已被其他人更新' in response.content.decode()
+    contribution.refresh_from_db()
+    assert contribution.status == ContentContribution.Status.PENDING
+
+
+@pytest.mark.django_db
+def test_status_action_does_not_require_valid_question_json(
+    client, reviewer, contribution,
+):
+    client.force_login(reviewer)
+    response = client.post(
+        reverse('review_workbench:detail', args=[contribution.pk]),
+        {
+            'content_json': '{',
+            'note': '题目信息不足，请补充条件。',
+            'version': contribution.updated_at.isoformat(),
+            'action': 'needs_revision',
+        },
+    )
+    assert response.status_code == 302
+    contribution.refresh_from_db()
+    assert contribution.status == ContentContribution.Status.NEEDS_REVISION
+
+
+@pytest.mark.django_db
+def test_terminal_contribution_is_read_only(client, reviewer, contribution):
+    contribution.status = ContentContribution.Status.REJECTED
+    contribution.save()
+    client.force_login(reviewer)
+    response = client.get(
+        reverse('review_workbench:detail', args=[contribution.pk])
+    )
+    content = response.content.decode()
+    assert '页面已切换为只读' in content
+    assert 'data-review-action=' not in content
+
+
+@pytest.mark.django_db
+def test_publish_requires_tag_suggestion_decision(
+    client, reviewer, contribution,
+):
+    tag = ConceptTag.objects.create(name='已有标签')
+    ContributionTagSelection.objects.create(
+        contribution=contribution, concept_tag=tag
+    )
+    ContributionTagSuggestion.objects.create(
+        contribution=contribution, suggested_name='待处理新标签'
+    )
+    client.force_login(reviewer)
+    response = client.post(
+        reverse('review_workbench:detail', args=[contribution.pk]),
+        {
+            'content_json': json.dumps(payload()),
+            'tags': [str(tag.pk)],
+            'note': '内容通过。',
+            'version': contribution.updated_at.isoformat(),
+            'action': 'publish',
+        },
+    )
+    assert response.status_code == 200
+    assert '请处理新标签建议' in response.content.decode()
     contribution.refresh_from_db()
     assert contribution.status == ContentContribution.Status.PENDING
 
