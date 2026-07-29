@@ -20,9 +20,6 @@ from .review_forms import ContributionReviewForm, ReviewerAuthenticationForm
 from .review_services import (
     question_payload, resolve_tags, save_official_question, save_solution_method,
 )
-from .contribution_notification_service import (
-    schedule_contribution_notification,
-)
 
 
 def reviewer_required(view_func):
@@ -293,7 +290,6 @@ def _apply_status_action(request, contribution_id, version, action, note):
     ContributionReview.objects.create(
         contribution=contribution, actor=request.user, action=action, note=note
     )
-    schedule_contribution_notification(contribution)
 
 
 @transaction.atomic
@@ -396,4 +392,3 @@ def _apply_action(request, contribution_id, form, action):
         action=review_action,
         note=contribution.review_note,
     )
-    schedule_contribution_notification(contribution)
