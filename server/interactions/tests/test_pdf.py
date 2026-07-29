@@ -232,7 +232,9 @@ class TestPdfView:
         assert resp.status_code == 200
         html = resp.content.decode()
         assert '试题版式' in html
-        assert '打印内容' in html
+        assert '输出内容' in html
+        assert '打印设置' in html
+        assert '自定义设置' in html
         assert '> 试题</label>' in html
         assert '> 作答纸</label>' in html
         assert '> 参考答案</label>' in html
@@ -241,8 +243,20 @@ class TestPdfView:
         assert '模拟考试' in html
         assert '教师参考' in html
         assert '核对答案' in html
-        assert '卷内作答（留出书写空间）' in html
-        assert '紧凑排版（配合作答纸）' in html
+        assert '卷内作答' in html
+        assert '留出书写空间' in html
+        assert '紧凑排版' in html
+        assert '适合搭配作答纸' in html
+        teacher_preset = (
+            "teacher: {title: '教师参考', "
+            "sections: ['questions', 'answers', 'details'], "
+            "layout: 'standard'}"
+        )
+        assert teacher_preset in html
+        assert "answers: {title: '核对答案', sections: ['answers'], layout: 'standard'}" in html
+        assert '未输出试题，无需选择版式' in html
+        assert 'settings-panel' in html
+        assert 'progress-panel' not in html
         assert '打印 / 保存 PDF' in html
         assert '保存 PDF 指引' in html
         assert '本作答纸仅供练习和模拟使用' in html
