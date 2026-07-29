@@ -7,30 +7,53 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}内容工作台{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
-  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=6">
   <script defer src="{% static 'katex/katex.min.js' %}"></script>
   <script defer src="{% static 'katex/contrib/auto-render.min.js' %}"></script>
   <script defer src="{% static 'review_workbench/workbench.js' %}?v=5"></script>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="{% url 'review_workbench:queue' %}">
-      <span class="brand-mark">章</span>
-      <span><strong>章鱼智学</strong><small>内容工作台</small></span>
-    </a>
-    <nav class="main-nav" aria-label="内容工作台导航">
-      <a href="{% url 'review_workbench:queue' %}"{% if request.resolver_match.url_name == 'queue' or request.resolver_match.url_name == 'detail' %} class="is-active"{% endif %}>贡献审核</a>
-      <a href="{% url 'review_workbench:question_list' %}"{% if request.resolver_match.url_name == 'question_list' or request.resolver_match.url_name == 'question_create' or request.resolver_match.url_name == 'question_edit' %} class="is-active"{% endif %}>题库维护</a>
-      <a href="{% url 'review_workbench:tag_list' %}"{% if request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'tag_create' or request.resolver_match.url_name == 'tag_edit' or request.resolver_match.url_name == 'card_list' or request.resolver_match.url_name == 'card_create' or request.resolver_match.url_name == 'card_edit' %} class="is-active"{% endif %}>内容维护</a>
-    </nav>
-    <div class="account">
-      <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-      <form method="post" action="{% url 'review_workbench:logout' %}">
-        {% csrf_token %}<button class="icon-button" type="submit" title="退出登录" aria-label="退出登录">&#x2192;</button>
-      </form>
+  <div class="workbench-layout">
+    <aside class="workbench-sidebar">
+      <a class="brand" href="{% url 'review_workbench:queue' %}">
+        <span class="brand-mark">章</span>
+        <span><strong>章鱼智学</strong><small>内容工作台</small></span>
+      </a>
+      <nav class="side-nav" aria-label="内容工作台导航">
+        <a class="side-nav-primary{% if request.resolver_match.url_name == 'queue' or request.resolver_match.url_name == 'detail' %} is-active{% endif %}" href="{% url 'review_workbench:queue' %}"><span>贡献审核</span><span class="nav-count">{{ request.workbench_queue_counts.all }}</span></a>
+        <div class="side-nav-group" aria-label="贡献审核队列">
+          <a href="{% url 'review_workbench:queue' %}?type=new_question"{% if request.GET.type == 'new_question' %} class="is-active"{% endif %}><span>新题投稿</span><span class="nav-count">{{ request.workbench_queue_counts.new_question }}</span></a>
+          <a href="{% url 'review_workbench:queue' %}?type=new_solution"{% if request.GET.type == 'new_solution' %} class="is-active"{% endif %}><span>新解法</span><span class="nav-count">{{ request.workbench_queue_counts.new_solution }}</span></a>
+          <a href="{% url 'review_workbench:queue' %}?type=content_change"{% if request.GET.type == 'content_change' %} class="is-active"{% endif %}><span>内容修改</span><span class="nav-count">{{ request.workbench_queue_counts.content_change }}</span></a>
+          <a href="{% url 'review_workbench:queue' %}?type=problem_report"{% if request.GET.type == 'problem_report' %} class="is-active"{% endif %}><span>问题报告</span><span class="nav-count">{{ request.workbench_queue_counts.problem_report }}</span></a>
+        </div>
+        <a class="side-nav-primary{% if request.resolver_match.url_name == 'question_list' or request.resolver_match.url_name == 'question_create' or request.resolver_match.url_name == 'question_edit' %} is-active{% endif %}" href="{% url 'review_workbench:question_list' %}"><span>题库维护</span></a>
+        <div class="side-nav-section">内容维护</div>
+        <div class="side-nav-group">
+          <a href="{% url 'review_workbench:tag_list' %}"{% if request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'tag_create' or request.resolver_match.url_name == 'tag_edit' %} class="is-active"{% endif %}><span>概念标签</span></a>
+          <a href="{% url 'review_workbench:card_list' %}"{% if request.resolver_match.url_name == 'card_list' or request.resolver_match.url_name == 'card_create' or request.resolver_match.url_name == 'card_edit' %} class="is-active"{% endif %}><span>知识卡片</span></a>
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+        <form method="post" action="{% url 'review_workbench:logout' %}">
+          {% csrf_token %}<button type="submit">退出登录</button>
+        </form>
+      </div>
+    </aside>
+    <div class="workbench-main">
+      <header class="mobile-header">
+        <a class="mobile-brand" href="{% url 'review_workbench:queue' %}"><span class="brand-mark">章</span><strong>内容工作台</strong></a>
+        <nav class="mobile-nav" aria-label="手机导航">
+          <a href="{% url 'review_workbench:queue' %}">审核</a>
+          <a href="{% url 'review_workbench:question_list' %}">题库</a>
+          <a href="{% url 'review_workbench:tag_list' %}">标签</a>
+          <a href="{% url 'review_workbench:card_list' %}">卡片</a>
+        </nav>
+      </header>
+      {% if messages %}<div class="messages">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+      <main class="workspace">{% block content %}{% endblock %}</main>
     </div>
-  </header>
-  {% if messages %}<div class="messages">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
-  <main class="workspace">{% block content %}{% endblock %}</main>
+  </div>
 </body>
 </html>
