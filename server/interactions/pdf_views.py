@@ -152,6 +152,17 @@ def _prepare_images(images):
     ]
 
 
+def _answer_to_html(text):
+    """保留答案中的 LaTeX 定界符，并将文本换行转为 HTML。"""
+    if not text:
+        return ''
+    return _md_table_to_html(text).replace('\n', '<br>')
+
+
+def _chunked(items, size):
+    return [items[index:index + size] for index in range(0, len(items), size)]
+
+
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
@@ -234,15 +245,29 @@ def _build_sections(qs):
         # stem 中的换行在 HTML <p> 内不可见，转成 <br>
         full_stem = full_stem.replace('\n', '<br>')
 
+        answers = [sq.answer for sq in sq_map.get(q.pk, []) if sq.answer]
         sections[-1]['questions'].append({
             'number': question_counter,
             'stem': full_stem,
             'options': opts,
             'images': imgs,
-            'answers': [sq.answer for sq in sq_map.get(q.pk, []) if sq.answer],
+            'answers': answers,
+            'answer_html': '<br>'.join(
+                _answer_to_html(answer) for answer in answers
+            ),
         })
 
     return sections
+
+
+def _build_answer_sections(sections):
+    by_type = {section['type']: section['questions'] for section in sections}
+    choice_questions = by_type.get('choice', [])
+    return {
+        'choice_rows': _chunked(choice_questions, 5),
+        'fill_questions': by_type.get('fill', []),
+        'solution_questions': by_type.get('solution', []),
+    }
 
 
 def pdf_view(request):
@@ -295,6 +320,7 @@ def pdf_view(request):
     context = {
         'title': title,
         'sections': sections,
+        'answer_sections': _build_answer_sections(sections),
         'student_nickname': student.user.get_full_name() or student.user.username,
         'student_id_code': student.student_id,
     }

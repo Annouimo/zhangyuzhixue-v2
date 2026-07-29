@@ -166,14 +166,34 @@ class TestPdfView:
         self, api_client, student_user, sample_paper, settings,
     ):
         settings.ALLOWED_HOSTS = ["*"]
-        question = BaseQuestion.objects.create(
+        fill_question = BaseQuestion.objects.create(
             question_type='fill', stem='求 $1+1$ 的值。', default_score=5,
         )
         SubQuestion.objects.create(
-            question=question, answer='2', sort_order=1,
+            question=fill_question, answer='$2$', sort_order=1,
         )
         CustomPaperQuestion.objects.create(
-            paper=sample_paper, question=question, sort_order=1,
+            paper=sample_paper, question=fill_question, sort_order=1,
+        )
+        choice_question = BaseQuestion.objects.create(
+            question_type='choice', stem='1+1=( )', default_score=5,
+        )
+        SubQuestion.objects.create(
+            question=choice_question, answer='B', sort_order=1,
+        )
+        CustomPaperQuestion.objects.create(
+            paper=sample_paper, question=choice_question, sort_order=2,
+        )
+        solution_question = BaseQuestion.objects.create(
+            question_type='solution', stem='证明。', default_score=10,
+        )
+        SubQuestion.objects.create(
+            question=solution_question,
+            answer='由 $a=b$\n所以结论成立。',
+            sort_order=1,
+        )
+        CustomPaperQuestion.objects.create(
+            paper=sample_paper, question=solution_question, sort_order=3,
         )
         url = self._build_url(
             sample_paper.pk, 'paper', student_user.student.pk,
@@ -185,9 +205,15 @@ class TestPdfView:
         html = resp.content.decode()
         assert '版式' in html
         assert '输出内容' in html
+        assert '仅试题' in html
+        assert '仅答案' in html
+        assert '都有' in html
         assert '打印 / 保存 PDF' in html
         assert '参考答案' in html
-        assert '2</div>' in html
+        assert 'choice-answer-table' in html
+        assert 'fill-answer-grid' in html
+        assert '三、解答题参考解答' in html
+        assert '由 $a=b$<br>所以结论成立。' in html
         assert 'body.compact .section-fill' in html
         assert 'body.compact .section-solution .question' in html
         assert 'body.compact { font-size:' not in html
