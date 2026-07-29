@@ -14,7 +14,8 @@ void main() {
       expect(find.text('试卷空间'), findsOneWidget);
       expect(find.textContaining('智能组卷'), findsNothing);
       expect(find.textContaining('自主选题'), findsNothing);
-      expect(find.text('我的组卷'), findsAtLeastNWidgets(1));
+      expect(find.text('组卷夹'), findsAtLeastNWidgets(1));
+      expect(find.text('已生成试卷'), findsAtLeastNWidgets(1));
       expect(find.text('发现组卷'), findsAtLeastNWidgets(1));
       expect(find.text('我的收藏'), findsAtLeastNWidgets(1));
     });

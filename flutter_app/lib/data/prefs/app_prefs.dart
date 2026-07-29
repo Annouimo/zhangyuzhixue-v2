@@ -17,6 +17,7 @@ abstract final class PrefKeys {
   static const userVersion = 'app_user_version';
   static const lastKnownLevel = 'app_last_known_level';
   static const lastKnownUnlockCount = 'app_last_known_unlock_count';
+  static const activePaperFolderId = 'app_active_paper_folder_id';
 }
 
 /// SharedPreferences 封装层
@@ -101,6 +102,12 @@ class AppPrefs {
   }
   Future<bool> setUserVersion(int v) =>
       p.setInt(PrefKeys.userVersion, v);
+
+  int? get activePaperFolderId => p.getInt(PrefKeys.activePaperFolderId);
+  Future<bool> setActivePaperFolderId(int value) =>
+      p.setInt(PrefKeys.activePaperFolderId, value);
+  Future<bool> clearActivePaperFolderId() =>
+      p.remove(PrefKeys.activePaperFolderId);
 
   // ── 等级缓存 ──
 

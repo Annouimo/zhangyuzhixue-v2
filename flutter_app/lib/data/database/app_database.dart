@@ -58,8 +58,7 @@ class StudentAchievements extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get achievementCode => text()();
   IntColumn get progress => integer().withDefault(const Constant(0))();
-  IntColumn get isUnlocked =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get isUnlocked => integer().withDefault(const Constant(0))();
   TextColumn? get unlockedAt => text().nullable()();
   TextColumn? get updatedAt => text().nullable()();
 }
@@ -164,6 +163,41 @@ class CustomPaperQuestions extends Table {
   IntColumn get sortOrder => integer()();
 }
 
+/// 可持续编辑的组卷夹
+@DataClassName('PaperFolderRow')
+class PaperFolders extends Table {
+  @override
+  String get tableName => 'paper_folder';
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn? get serverId => integer().nullable()();
+  TextColumn get name => text()();
+  IntColumn get revision => integer().withDefault(const Constant(0))();
+  IntColumn get isDefault => integer().withDefault(const Constant(0))();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
+  TextColumn? get lastGeneratedAt => text().nullable()();
+  TextColumn get lastGeneratedFingerprint =>
+      text().withDefault(const Constant(''))();
+  IntColumn? get lastGeneratedPaperId => integer().nullable()();
+}
+
+/// 组卷夹中的有序题目
+@DataClassName('PaperFolderQuestionRow')
+class PaperFolderQuestions extends Table {
+  @override
+  String get tableName => 'paper_folder_question';
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get folderId => integer()();
+  IntColumn get questionId => integer()();
+  IntColumn get sortOrder => integer()();
+  TextColumn get createdAt => text()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {folderId, questionId},
+  ];
+}
+
 /// 组卷点赞
 @DataClassName('PaperLikeRow')
 class PaperLikes extends Table {
@@ -216,8 +250,7 @@ class SyncQueue extends Table {
   IntColumn get entityId => integer()();
   IntColumn? get serverId => integer().nullable()();
   TextColumn get payload => text()();
-  TextColumn get status =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get createdAt => text()();
   TextColumn? get updatedAt => text().nullable()();
@@ -228,28 +261,32 @@ class SyncQueue extends Table {
 // Database
 // ═══════════════════════════════════════════════
 
-@DriftDatabase(tables: [
-  UserProfiles,
-  UserLoginLogs,
-  PointsTransactions,
-  StudentAchievements,
-  Submissions,
-  SubmissionDetails,
-  StepFeedbacks,
-  CardFeedbacks,
-  QuestionRatings,
-  CustomPapers,
-  CustomPaperQuestions,
-  PaperLikes,
-  PaperCollects,
-  PreferenceFilters,
-  SyncQueue,
-])
+@DriftDatabase(
+  tables: [
+    UserProfiles,
+    UserLoginLogs,
+    PointsTransactions,
+    StudentAchievements,
+    Submissions,
+    SubmissionDetails,
+    StepFeedbacks,
+    CardFeedbacks,
+    QuestionRatings,
+    CustomPapers,
+    CustomPaperQuestions,
+    PaperFolders,
+    PaperFolderQuestions,
+    PaperLikes,
+    PaperCollects,
+    PreferenceFilters,
+    SyncQueue,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
   // ⚠️ 与 server/interactions/sync_views.py 的 USER_DB_SCHEMA 双轨演进。
   // 服务端 USER_DB_SCHEMA 建表 + _dump_* 写入列必须与此 schema 对齐。
   // 修改任一端时必须同步修改另一端。
@@ -265,16 +302,24 @@ class AppDatabase extends _$AppDatabase {
         // 清理 submission_detail 重复记录（保留每组 question_id+attempt_number 中 id 最小的那条）
         await customStatement(
           'DELETE FROM submission_detail WHERE id NOT IN '
-          '(SELECT MIN(id) FROM submission_detail GROUP BY question_id, attempt_number)'
+          '(SELECT MIN(id) FROM submission_detail GROUP BY question_id, attempt_number)',
         );
         // 添加唯一索引防止再次产生重复
         await customStatement(
           'CREATE UNIQUE INDEX IF NOT EXISTS idx_submission_detail_unique '
-          'ON submission_detail(question_id, attempt_number)'
+          'ON submission_detail(question_id, attempt_number)',
         );
       }
       if (from <= 4 && to >= 5) {
         await m.addColumn(syncQueue, syncQueue.errorMessage);
+      }
+      if (from <= 6 && to >= 7) {
+        await m.createTable(paperFolders);
+        await m.createTable(paperFolderQuestions);
+      }
+      if (from <= 7 && to >= 8) {
+        await m.addColumn(paperFolders, paperFolders.revision);
+        await m.addColumn(paperFolders, paperFolders.isDefault);
       }
     },
   );

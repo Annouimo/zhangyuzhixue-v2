@@ -64,6 +64,7 @@ class SyncPusher {
             (e) => <String, dynamic>{
               'entity_type': e.entityType,
               'local_id': e.entityId,
+              'client_ref': e.id,
               'data': jsonDecode(e.payload),
             },
           )
@@ -75,7 +76,7 @@ class SyncPusher {
         var hasIncompleteResponse = false;
         // 逐条查 server_ids 映射：有的→成功，没有的→失败
         for (final entry in batch) {
-          final sid = result.serverIds[entry.entityId];
+          final sid = result.serverIds[entry.id];
           if (sid == null) {
             await _dao.markFailed(
               entry.id,
@@ -98,6 +99,18 @@ class SyncPusher {
               await (db_.appDb.update(db_.appDb.customPapers)
                     ..where((t) => t.id.equals(entry.entityId)))
                   .write(db.CustomPapersCompanion(serverId: Value(sid)));
+            } else if (entry.entityType == 'paper_folder') {
+              final revision = result.entityMeta[entry.id]?['revision'] as int?;
+              await (db_.appDb.update(db_.appDb.paperFolders)
+                    ..where((t) => t.id.equals(entry.entityId)))
+                  .write(
+                    db.PaperFoldersCompanion(
+                      serverId: Value(sid),
+                      revision: revision == null
+                          ? const Value.absent()
+                          : Value(revision),
+                    ),
+                  );
             }
           } catch (_) {}
           success++;

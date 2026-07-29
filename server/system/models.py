@@ -138,6 +138,14 @@ class PointsTransaction(models.Model):
             models.UniqueConstraint(
                 fields=['student', 'source', 'source_object_id'],
                 condition=models.Q(
+                    source='PAPER_PURCHASE',
+                    source_object_id__isnull=False,
+                ),
+                name='uq_paper_purchase_per_student_paper',
+            ),
+            models.UniqueConstraint(
+                fields=['student', 'source', 'source_object_id'],
+                condition=models.Q(
                     source='RATING_REWARD',
                     source_object_id__isnull=False,
                 ),

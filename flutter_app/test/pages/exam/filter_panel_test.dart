@@ -20,14 +20,14 @@ void main() {
           ),
         ),
       );
-      expect(find.text('按来源筛选'), findsOneWidget);
-      // Expand source section to see year/region chips
-      await tester.tap(find.text('按来源筛选'));
+      expect(find.text('年份 · 全部'), findsOneWidget);
+      expect(find.text('地区 · 全部'), findsOneWidget);
+      await tester.tap(find.text('年份 · 全部'));
       await tester.pumpAndSettle();
-      expect(find.text('年份'), findsOneWidget);
       expect(find.text('2025'), findsOneWidget);
       expect(find.text('2024'), findsOneWidget);
-      expect(find.text('地区'), findsOneWidget);
+      await tester.tap(find.text('地区 · 全部'));
+      await tester.pumpAndSettle();
       expect(find.text('海淀'), findsOneWidget);
       expect(find.text('西城'), findsOneWidget);
     });
@@ -65,11 +65,11 @@ void main() {
         ),
       );
       // Section header visible even when collapsed
-      expect(find.text('按概念标签筛选'), findsOneWidget);
+      expect(find.text('专题 · 全部'), findsOneWidget);
       // Root node hidden when collapsed
       expect(find.text('代数'), findsNothing);
       // Tap to expand
-      await tester.tap(find.text('按概念标签筛选'));
+      await tester.tap(find.text('专题 · 全部'));
       await tester.pumpAndSettle();
       // Now root node visible
       expect(find.text('代数'), findsOneWidget);
@@ -89,7 +89,7 @@ void main() {
       expect(find.textContaining('基础'), findsNothing);
       expect(find.textContaining('压轴'), findsNothing);
       // Tap section header to expand
-      await tester.tap(find.text('按难度/计算量筛选'));
+      await tester.tap(find.text('难度 · 全部'));
       await tester.pumpAndSettle();
       // Now should be visible
       expect(find.textContaining('基础'), findsWidgets);

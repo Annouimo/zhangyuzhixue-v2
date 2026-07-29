@@ -5,6 +5,7 @@ export 'package:shared/domain/models.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/exam_dao.dart';
 import '../data/database/assets_database.dart' as assets_db;
+import '../data/database/database_provider.dart';
 import 'package:shared/debug/audit_logger.dart';
 import '../data/helpers/pdf_helper.dart';
 import '../data/sync/sync_manager.dart';
@@ -488,25 +489,43 @@ class ExamRepository implements QuestionLibraryRepository {
   }
 
   Future<void> togglePublic(int paperId) async {
-    await _examDao.togglePublic(paperId);
-    // 入同步队列
-    try {
-      await SyncManager().enqueue(
+    final paper = await _examDao.getById(paperId);
+    if (paper == null) return;
+    final nextPublic = paper.isPublic == 0;
+    await DatabaseProvider().appDb.transaction(() async {
+      await _examDao.togglePublic(paperId);
+      await SyncManager().addToOutbox(
         entityType: SyncEntityType.exam,
         operation: SyncOperationType.upsert,
         localId: paperId,
-        payload: jsonEncode({'paper_id': paperId}),
+        payload: jsonEncode({
+          'action': 'set_visibility',
+          'server_id': paper.serverId,
+          'client_id': 'paper-${paper.id}-${paper.createdAt}',
+          'is_public': nextPublic,
+        }),
       );
-    } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {
-        'type': 'togglePublic',
-        'error': '$e',
-      });
-    }
+    });
+    SyncManager().scheduleOutboxPush();
   }
 
   Future<void> deleteExam(int paperId) async {
-    await _examDao.deletePaper(paperId);
+    final paper = await _examDao.getById(paperId);
+    if (paper == null) return;
+    await DatabaseProvider().appDb.transaction(() async {
+      await _examDao.deletePaper(paperId);
+      await SyncManager().addToOutbox(
+        entityType: SyncEntityType.exam,
+        operation: SyncOperationType.delete,
+        localId: paperId,
+        payload: jsonEncode({
+          'action': 'delete',
+          'server_id': paper.serverId,
+          'client_id': 'paper-${paper.id}-${paper.createdAt}',
+        }),
+      );
+    });
+    SyncManager().scheduleOutboxPush();
   }
 
   // ── 预览 ──

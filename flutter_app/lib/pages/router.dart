@@ -34,8 +34,11 @@ import 'profile/settings_page.dart';
 import 'statistics/statistics_page.dart';
 import 'recommend_page.dart';
 import 'exam/exam_home_page.dart';
+import 'exam/paper_folder_list_page.dart';
+import 'exam/paper_folder_detail_page.dart';
 import 'review_page.dart';
 import 'question_bank/question_bank_page.dart';
+import 'question_bank/paper_library_page.dart';
 import 'contributions/contribution_editor_page.dart';
 import 'contributions/contribution_detail_page.dart';
 import 'contributions/contribution_help_page.dart';
@@ -65,7 +68,10 @@ abstract final class AppRoutes {
   static const answerSheet = '/exam/answersheet';
   static const recommend = '/recommend';
   static const questionBank = '/question-bank';
+  static const paperLibrary = '/question-bank/papers';
   static const examHome = '/exam';
+  static const paperFolders = '/exam/folders';
+  static const paperFolderDetail = '/exam/folders/detail';
   static const review = '/review';
   static const statistics = '/statistics';
   static const profileEdit = '/profile/edit';
@@ -284,6 +290,18 @@ final GoRouter appRouter = GoRouter(
       builder: (_, _) => const ExamHomePage(),
     ),
     GoRoute(
+      path: AppRoutes.paperFolders,
+      name: 'paper-folders',
+      builder: (_, _) => const PaperFolderListPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.paperFolderDetail,
+      name: 'paper-folder-detail',
+      builder: (_, state) => PaperFolderDetailPage(
+        folderId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+      ),
+    ),
+    GoRoute(
       path: AppRoutes.review,
       name: 'review',
       builder: (_, _) => const ReviewPage(),
@@ -292,6 +310,11 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.questionBank,
       name: 'question-bank',
       builder: (_, _) => const StudentQuestionBankPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.paperLibrary,
+      name: 'paper-library',
+      builder: (_, _) => const PaperLibraryPage(),
     ),
     GoRoute(
       path: AppRoutes.statistics,

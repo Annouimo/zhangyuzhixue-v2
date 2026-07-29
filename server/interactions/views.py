@@ -31,6 +31,7 @@ ENTITY_ORDER = [
     'card_feedback',
     'question_rating',
     'custom_paper',
+    'paper_folder',
     'paper_like',
     'paper_collect',
     'exitRating',
@@ -76,12 +77,13 @@ class SyncPushView(APIView):
             return _err(50000, str(e),
                         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return _ok({'server_ids': result})
+        return _ok(result)
 
     @transaction.atomic
     def _process_batch(self, batch, student):
         """事务内处理全部 batch item，返回 local_id → server_id 映射"""
         server_ids = {}
+        entity_meta = {}
         detail_cache = {}  # local_submission_id → local_detail_ids[]
 
         # 按 ENTITY_ORDER 排序，确保 submission 先于 step_feedback/card_feedback
@@ -91,6 +93,7 @@ class SyncPushView(APIView):
         for item in batch:
             entity_type = item['entity_type']
             local_id = item['local_id']
+            client_ref = item.get('client_ref', local_id)
             data = item['data']
             # 注入 local_id 供 handler 使用（避免改 handler 签名）
             data['_local_id'] = local_id
@@ -100,9 +103,11 @@ class SyncPushView(APIView):
                 continue
 
             obj = handler(data, student, server_ids, detail_cache)
-            server_ids[local_id] = obj.pk
+            server_ids[client_ref] = obj.pk
+            if entity_type == 'paper_folder':
+                entity_meta[client_ref] = {'revision': obj.revision}
 
-        return server_ids
+        return {'server_ids': server_ids, 'entity_meta': entity_meta}
 
     def _increment_user_version(self, student):
         """批量推送成功后递增用户 data_version"""
@@ -196,21 +201,176 @@ class SyncPushView(APIView):
         return rating
 
     def _handle_custom_paper(self, data, student, server_ids, detail_cache):
-        paper = CustomPaper.objects.create(
-            student=student,
-            title=data['title'],
-            description=data.get('description', ''),
-            filter_snapshot=data.get('filter_snapshot', {}),
-            is_public=data.get('is_public', False),
-        )
-        questions = data.get('questions', [])
-        for idx, qid in enumerate(questions):
-            CustomPaperQuestion.objects.create(
-                paper=paper,
-                question_id=qid,
-                sort_order=idx,
+        from interactions.models import SyncIdentity
+
+        action = data.get('action', 'create')
+        client_id = data.get('client_id')
+        identity = None
+        if client_id:
+            identity = SyncIdentity.objects.filter(
+                student=student,
+                entity_type='custom_paper',
+                client_id=client_id,
+            ).first()
+
+        paper = None
+        server_id = data.get('server_id')
+        if server_id:
+            paper = CustomPaper.objects.filter(
+                pk=server_id, student=student
+            ).first()
+        if paper is None and identity is not None:
+            paper = CustomPaper.objects.filter(
+                pk=identity.object_id, student=student
+            ).first()
+
+        if action == 'create':
+            if paper is not None:
+                return paper
+            paper = CustomPaper.objects.create(
+                student=student,
+                title=data['title'],
+                description=data.get('description', ''),
+                filter_snapshot=data.get('filter_snapshot', {}),
+                is_public=data.get('is_public', False),
             )
-        return paper
+            for idx, qid in enumerate(dict.fromkeys(data.get('questions', []))):
+                CustomPaperQuestion.objects.create(
+                    paper=paper, question_id=qid, sort_order=idx
+                )
+            if client_id:
+                SyncIdentity.objects.update_or_create(
+                    student=student,
+                    entity_type='custom_paper',
+                    client_id=client_id,
+                    defaults={'object_id': paper.pk},
+                )
+            return paper
+
+        if paper is None:
+            raise ValueError('试卷不存在或无权操作')
+        if action == 'set_visibility':
+            paper.is_public = bool(data.get('is_public'))
+            paper.save(update_fields=['is_public', 'updated_at'])
+            return paper
+        if action == 'delete':
+            paper_id = paper.pk
+            paper.delete()
+            if identity is not None:
+                identity.delete()
+            return CustomPaper(pk=paper_id)
+        raise ValueError('未知试卷同步操作')
+
+    def _handle_paper_folder(self, data, student, server_ids, detail_cache):
+        from django.utils.dateparse import parse_datetime
+        from interactions.models import (
+            PaperFolder, PaperFolderQuestion, SyncIdentity
+        )
+
+        server_id = data.get('server_id')
+        client_id = data.get('client_id')
+        identity = SyncIdentity.objects.filter(
+            student=student,
+            entity_type='paper_folder',
+            client_id=client_id,
+        ).first() if client_id else None
+        folder = None
+        if server_id:
+            folder = PaperFolder.objects.filter(
+                pk=server_id, student=student
+            ).first()
+        if folder is None and identity is not None:
+            folder = PaperFolder.objects.filter(
+                pk=identity.object_id, student=student
+            ).first()
+
+        if data.get('deleted'):
+            if folder is not None:
+                folder_id = folder.pk
+                folder.delete()
+                if identity is not None:
+                    identity.delete()
+                folder.pk = folder_id
+                folder.revision = 0
+                return folder
+            # Push responses require an id even when a previously deleted
+            # object is retried. Return an unsaved identity object.
+            return PaperFolder(
+                pk=server_id or data['_local_id'], revision=0
+            )
+
+        client_updated_at = parse_datetime(data.get('updated_at', ''))
+        if client_updated_at is None:
+            raise ValueError('组卷夹更新时间无效')
+
+        if folder is None:
+            folder = PaperFolder.objects.create(
+                student=student,
+                name=data['name'],
+                client_updated_at=client_updated_at,
+                revision=1,
+                is_default=bool(data.get('is_default')),
+            )
+            if client_id:
+                identity, _ = SyncIdentity.objects.update_or_create(
+                    student=student,
+                    entity_type='paper_folder',
+                    client_id=client_id,
+                    defaults={'object_id': folder.pk},
+                )
+        elif data.get('base_revision', 0) != folder.revision:
+            folder = PaperFolder.objects.create(
+                student=student,
+                name=f"{data['name']}（冲突副本）",
+                client_updated_at=client_updated_at,
+                revision=1,
+                is_default=False,
+            )
+            if identity is not None:
+                identity.object_id = folder.pk
+                identity.save(update_fields=['object_id'])
+        else:
+            folder.name = data['name']
+            folder.client_updated_at = client_updated_at
+            folder.is_default = bool(data.get('is_default'))
+            folder.revision += 1
+            folder.save(update_fields=[
+                'name', 'client_updated_at', 'is_default', 'revision',
+                'updated_at'
+            ])
+
+        last_generated_at = parse_datetime(data.get('last_generated_at', '')) \
+            if data.get('last_generated_at') else None
+        folder.last_generated_at = last_generated_at
+        folder.last_generated_fingerprint = data.get(
+            'last_generated_fingerprint', ''
+        )
+        last_paper_id = data.get('last_generated_paper_id')
+        if last_paper_id and CustomPaper.objects.filter(
+            pk=last_paper_id, student=student
+        ).exists():
+            folder.last_generated_paper_id = last_paper_id
+        else:
+            folder.last_generated_paper = None
+        folder.save(update_fields=[
+            'last_generated_at', 'last_generated_fingerprint',
+            'last_generated_paper', 'updated_at'
+        ])
+
+        folder.folder_questions.all().delete()
+        seen_question_ids = set()
+        for question in data.get('questions', []):
+            question_id = question.get('question_id') \
+                if isinstance(question, dict) else question
+            if question_id in seen_question_ids:
+                continue
+            seen_question_ids.add(question_id)
+            PaperFolderQuestion.objects.create(
+                folder=folder,
+                question_id=question_id,
+                sort_order=len(seen_question_ids) - 1,
+            )
+        return folder
 
     def _handle_paper_like(self, data, student, server_ids, detail_cache):
         like, _ = PaperLike.objects.get_or_create(
@@ -285,6 +445,23 @@ class SyncPushView(APIView):
         source = data.get('source', '')
         source_object_id = data.get('source_object_id')
         amount = data.get('amount', 0)
+        if source == 'PAPER_PURCHASE':
+            from interactions.models import SyncIdentity
+            identity = SyncIdentity.objects.filter(
+                student=student,
+                entity_type='custom_paper',
+                client_id=data.get('paper_client_id', ''),
+            ).first()
+            if identity is None:
+                raise ValueError('组卷消费缺少对应试卷')
+            source_object_id = identity.object_id
+            existing = PointsTransaction.objects.filter(
+                student=student,
+                source='PAPER_PURCHASE',
+                source_object_id=source_object_id,
+            ).first()
+            if existing is not None:
+                return existing
         if source == 'RATING_REWARD':
             from system.models import SystemConfig
 

@@ -97,10 +97,14 @@ class FilterPanelState extends State<FilterPanel> {
   double _calcMin = 0, _calcMax = 10;
   SortMode _sort = SortMode.newestFirst;
 
-  bool _sourceExpanded = false;
+  bool _yearExpanded = false;
+  bool _regionExpanded = false;
+  bool _examTypeExpanded = false;
+  bool _typeExpanded = false;
   bool _conceptExpanded = false;
   bool _knowledgeExpanded = false;
-  bool _diffExpanded = false;
+  bool _difficultyExpanded = false;
+  bool _calculationExpanded = false;
 
   bool _initialized = false;
 
@@ -527,35 +531,49 @@ class FilterPanelState extends State<FilterPanel> {
                   ],
                 ),
               ),
-            // 按来源筛选
             _buildSection(
-              '按来源筛选',
-              _sourceExpanded,
+              _sectionTitle('年份', _selectedYears.length),
+              _yearExpanded,
               () {
-                setState(() => _sourceExpanded = !_sourceExpanded);
+                setState(() => _yearExpanded = !_yearExpanded);
               },
-              [
-                _buildChipGroup('年份', widget.yearOptions, _selectedYears),
-                const SizedBox(height: 8),
-                _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
-                if (widget.examTypeOptions.isNotEmpty) ...[
-                  const SizedBox(height: 8),
+              [_buildChipGroup('年份', widget.yearOptions, _selectedYears)],
+            ),
+            const SizedBox(height: 8),
+            _buildSection(
+              _sectionTitle('地区', _selectedRegions.length),
+              _regionExpanded,
+              () => setState(() => _regionExpanded = !_regionExpanded),
+              [_buildChipGroup('地区', widget.regionOptions, _selectedRegions)],
+            ),
+            const SizedBox(height: 8),
+            if (widget.examTypeOptions.isNotEmpty) ...[
+              _buildSection(
+                _sectionTitle('考试类型', _selectedExamTypes.length),
+                _examTypeExpanded,
+                () => setState(() => _examTypeExpanded = !_examTypeExpanded),
+                [
                   _buildChipGroup(
-                    '考试',
+                    '考试类型',
                     widget.examTypeOptions,
                     _selectedExamTypes,
                   ),
                 ],
-                if (widget.typeOptions.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  _buildTypeChipGroup(widget.typeOptions, _selectedTypes),
-                ],
-              ],
-            ),
-            const SizedBox(height: 8),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (widget.typeOptions.isNotEmpty) ...[
+              _buildSection(
+                _sectionTitle('题型', _selectedTypes.length),
+                _typeExpanded,
+                () => setState(() => _typeExpanded = !_typeExpanded),
+                [_buildTypeChipGroup(widget.typeOptions, _selectedTypes)],
+              ),
+              const SizedBox(height: 8),
+            ],
             if (widget.showConceptSection && widget.conceptTagTree.isNotEmpty)
               _section(
-                '按概念标签筛选',
+                _sectionTitle('专题', _selectedConceptTagNames.length),
                 _conceptExpanded,
                 () {
                   setState(() => _conceptExpanded = !_conceptExpanded);
@@ -582,7 +600,7 @@ class FilterPanelState extends State<FilterPanel> {
             if (widget.showKnowledgeSection &&
                 widget.knowledgeCardGroups.isNotEmpty)
               _section(
-                '按知识卡片筛选',
+                _sectionTitle('知识卡片', _selectedKnowledgeCardTitles.length),
                 _knowledgeExpanded,
                 () {
                   setState(() => _knowledgeExpanded = !_knowledgeExpanded);
@@ -608,10 +626,10 @@ class FilterPanelState extends State<FilterPanel> {
                 widget.knowledgeCardGroups.isNotEmpty)
               const SizedBox(height: 8),
             _buildSection(
-              '按难度/计算量筛选',
-              _diffExpanded,
+              _rangeTitle('难度', _diffMin, _diffMax),
+              _difficultyExpanded,
               () {
-                setState(() => _diffExpanded = !_diffExpanded);
+                setState(() => _difficultyExpanded = !_difficultyExpanded);
               },
               [
                 DifficultySlider(
@@ -629,7 +647,16 @@ class FilterPanelState extends State<FilterPanel> {
                   },
                 ),
                 _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildSection(
+              _rangeTitle('计算量', _calcMin, _calcMax),
+              _calculationExpanded,
+              () =>
+                  setState(() => _calculationExpanded = !_calculationExpanded),
+              [
                 DifficultySlider(
                   label: '计算量范围',
                   min: 0,
@@ -645,7 +672,6 @@ class FilterPanelState extends State<FilterPanel> {
                   },
                 ),
                 _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
-                const SizedBox(height: 4),
               ],
             ),
             const SizedBox(height: 4),
@@ -673,6 +699,14 @@ class FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
+
+  String _sectionTitle(String label, int count) =>
+      count == 0 ? '$label · 全部' : '$label · 已选 $count';
+
+  String _rangeTitle(String label, double min, double max) =>
+      min == 0 && max == 10
+      ? '$label · 全部'
+      : '$label · ${min.toStringAsFixed(0)}-${max.toStringAsFixed(0)}';
 
   Widget _section(
     String title,

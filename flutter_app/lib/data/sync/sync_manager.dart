@@ -11,6 +11,14 @@ import 'sync_pusher.dart';
 import 'sync_types.dart';
 import 'update_manager.dart';
 
+class PendingSyncException implements Exception {
+  const PendingSyncException(this.count);
+  final int count;
+
+  @override
+  String toString() => '仍有 $count 条本地数据尚未同步';
+}
+
 /// 同步引擎总入口（单例）
 class SyncManager {
   static final SyncManager _instance = SyncManager._();
@@ -79,6 +87,31 @@ class SyncManager {
     }
   }
 
+  /// Writes an outbox entry without starting network work. Call this inside
+  /// the same database transaction as the business mutation.
+  Future<int> addToOutbox({
+    required SyncEntityType entityType,
+    required SyncOperationType operation,
+    required int localId,
+    required String payload,
+  }) async {
+    _ensureInitialized();
+    return _queueDao!.enqueue(
+      entityType: entityType.serverName,
+      operationType: operation.name,
+      entityId: localId,
+      payload: payload,
+    );
+  }
+
+  /// Starts best-effort delivery after the surrounding local transaction has
+  /// committed. The durable outbox entry already exists at this point.
+  void scheduleOutboxPush() {
+    _ensureInitialized();
+    _ensureRetryTimer();
+    unawaited(pushNow());
+  }
+
   /// App 启动时推送积压并发起版本检查
   ///
   /// 返回需要用户操作的更新项（force 弹窗 / banner 提示）。
@@ -117,6 +150,7 @@ class SyncManager {
   }) async {
     _ensureInitialized();
     if (type == 'user') {
+      await _ensureOutboxDrained();
       final info = await _api!.fetchUserPullInfo();
       await _dbProvider!.backupUserDb(_currentUserIdentity);
       try {
@@ -225,7 +259,7 @@ class SyncManager {
   /// 登录后调用：推送积压 → 备份当前 user.db → 拉取并替换 → 成功后清理备份
   Future<void> onLogin({void Function(double progress)? onProgress}) async {
     try {
-      final summary = await pushNow();
+      final summary = await _ensureOutboxDrained();
       final info = await _api!.fetchUserPullInfo();
 
       await _dbProvider!.backupUserDb(_currentUserIdentity);
@@ -280,11 +314,14 @@ class SyncManager {
   }
 
   /// 手动强制拉取（关于页按钮用）
-  Future<void> forcePull({void Function(double progress)? onProgress}) async {
+  Future<void> forcePull({
+    void Function(double progress)? onProgress,
+    bool discardPending = false,
+  }) async {
     _ensureInitialized();
-    try {
-      await pushNow();
-    } catch (_) {}
+    if (!discardPending) {
+      await _ensureOutboxDrained();
+    }
     final info = await _api!.fetchUserPullInfo();
 
     await _dbProvider!.backupUserDb(_currentUserIdentity);
@@ -312,6 +349,15 @@ class SyncManager {
     if (!_initialized) {
       throw StateError('SyncManager not initialized. Call init() first.');
     }
+  }
+
+  Future<PushSummary?> _ensureOutboxDrained() async {
+    final summary = await pushNow();
+    final pending = await _queueDao!.getPendingCount();
+    final failed = await _queueDao!.getFailedCount();
+    final remaining = pending + failed;
+    if (remaining > 0) throw PendingSyncException(remaining);
+    return summary;
   }
 
   /// 重置单例状态（仅测试用）

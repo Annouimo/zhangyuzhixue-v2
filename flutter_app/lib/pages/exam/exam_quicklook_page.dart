@@ -8,6 +8,7 @@ import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
+import '../../domain/paper_folder_repository.dart';
 import '../router.dart';
 import 'widgets/exam_question_card.dart';
 import 'exam_session_timer.dart';
@@ -100,9 +101,19 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
                   await _togglePublic();
                 } else if (value == 'delete') {
                   await _delete();
+                } else if (value == 'copy_folder') {
+                  await _copyToFolder();
                 }
               },
               itemBuilder: (context) => [
+                const PopupMenuItem<String>(
+                  value: 'copy_folder',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.create_new_folder_outlined),
+                    title: Text('基于此试卷新建组卷夹'),
+                  ),
+                ),
                 PopupMenuItem<String>(
                   value: 'visibility',
                   child: ListTile(
@@ -143,6 +154,15 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       ).showSnackBar(const SnackBar(content: Text('公开状态已更新')));
       _load();
     }
+  }
+
+  Future<void> _copyToFolder() async {
+    final folderId = await PaperFolderRepository.local().copyFromPaper(
+      widget.examId,
+      name: '${_preview?.name ?? '试卷'}组卷夹',
+    );
+    if (!mounted) return;
+    RouterUtils.push(context, '${AppRoutes.paperFolderDetail}?id=$folderId');
   }
 
   Future<void> _delete() async {

@@ -7,6 +7,7 @@ enum SyncEntityType {
   cardFeedback,
   rating,
   exam,
+  paperFolder,
   exitRating,
   paperLike,
   paperCollect,
@@ -28,6 +29,8 @@ extension SyncEntityTypeServerName on SyncEntityType {
         return 'question_rating';
       case SyncEntityType.exam:
         return 'custom_paper';
+      case SyncEntityType.paperFolder:
+        return 'paper_folder';
       case SyncEntityType.exitRating:
         return 'exitRating';
       case SyncEntityType.paperLike:
@@ -43,15 +46,7 @@ extension SyncEntityTypeServerName on SyncEntityType {
 }
 
 /// 操作类型
-enum SyncOperationType {
-  upsert,
-  delete,
-}
+enum SyncOperationType { upsert, delete }
 
 /// 同步状态
-enum SyncStatus {
-  pending,
-  inProgress,
-  failed,
-  permanentFailure,
-}
+enum SyncStatus { pending, inProgress, failed, permanentFailure }
