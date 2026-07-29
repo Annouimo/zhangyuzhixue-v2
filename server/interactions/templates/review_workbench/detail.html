@@ -3,8 +3,8 @@
 {% block title %}投稿 #{{ contribution.pk }} | 内容审核工作台{% endblock %}
 {% block content %}
 <div class="detail-nav">
-  <a href="{% url 'review_workbench:queue' %}">&#x2190; 返回待办</a>
-  <div>{% if previous_id %}<a href="{% url 'review_workbench:detail' previous_id %}">上一条</a>{% endif %}{% if next_id %}<a href="{% url 'review_workbench:detail' next_id %}">下一条</a>{% endif %}</div>
+  <a href="{% url 'review_workbench:queue' %}?{{ request.GET.urlencode }}">&#x2190; 返回列表</a>
+  <div>{% if previous_id %}<a href="{% url 'review_workbench:detail' previous_id %}?{{ request.GET.urlencode }}">上一条</a>{% endif %}{% if next_id %}<a href="{% url 'review_workbench:detail' next_id %}?{{ request.GET.urlencode }}">下一条</a>{% endif %}</div>
 </div>
 <div class="page-heading detail-heading"><div><h1>{{ contribution.get_contribution_type_display }} #{{ contribution.pk }}</h1><p>{{ contribution.student.user.username }} · {{ contribution.created_at|date:'Y-m-d H:i' }}{% if contribution.reviewed_by %} · {{ contribution.reviewed_by.get_full_name|default:contribution.reviewed_by.username }} 处理{% endif %}</p></div><span class="status status-{{ contribution.status }}">{{ contribution.get_status_display }}</span></div>
 
@@ -32,8 +32,19 @@
     </section>
 
     <aside class="review-sidebar">
-      <section class="submission-summary"><h2>{% if contribution.contribution_type == 'question_correction' %}投稿人的纠错说明{% else %}投稿信息{% endif %}</h2>{% if contribution.contribution_type == 'question_correction' %}<p>{{ latest_revision.normalized_payload.description }}</p><dl><dt>修改建议</dt><dd class="math-content">{{ latest_revision.normalized_payload.suggestion|default:'-' }}</dd><dt>依据</dt><dd>{{ latest_revision.normalized_payload.evidence|default:'-' }}</dd></dl>{% else %}<p>最新版本：v{{ latest_revision.revision_number }}</p>{% if latest_revision.normalized_payload.uncertainties %}<div class="uncertainty"><strong>待确认内容</strong><ul>{% for item in latest_revision.normalized_payload.uncertainties %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}{% endif %}</section>
-      <section class="tag-section"><div class="section-title"><h2>正式标签</h2>{% if not is_terminal %}<button type="button" id="open-tag-dialog">搜索添加</button>{% endif %}</div><div id="selected-tags" class="selected-tags"></div>{% if form.tags.errors %}<div class="field-error">{{ form.tags.errors.0 }}</div>{% endif %}</section>
+      <section class="submission-summary"><div class="section-title"><h2>{% if contribution.contribution_type == 'question_correction' %}投稿人的纠错说明{% else %}投稿信息{% endif %}</h2>{% if contribution.contribution_type == 'question_correction' %}<button type="button" data-copy-source="correction-all-source">复制全部原稿</button>{% endif %}</div>{% if contribution.contribution_type == 'question_correction' %}<dl class="copyable-fields"><dt><span>问题说明</span><button type="button" data-copy-source="correction-description-source">复制原稿</button></dt><dd class="math-content">{{ latest_revision.normalized_payload.description }}</dd><dt><span>修改建议</span><button type="button" data-copy-source="correction-suggestion-source">复制原稿</button></dt><dd class="math-content">{{ latest_revision.normalized_payload.suggestion|default:'-' }}</dd><dt><span>依据</span>{% if latest_revision.normalized_payload.evidence %}<button type="button" data-copy-source="correction-evidence-source">复制原稿</button>{% endif %}</dt><dd class="math-content">{{ latest_revision.normalized_payload.evidence|default:'-' }}</dd></dl><pre id="correction-description-source" hidden>{{ latest_revision.normalized_payload.description }}</pre><pre id="correction-suggestion-source" hidden>{{ latest_revision.normalized_payload.suggestion }}</pre><pre id="correction-evidence-source" hidden>{{ latest_revision.normalized_payload.evidence }}</pre><pre id="correction-all-source" hidden>## 问题说明
+
+{{ latest_revision.normalized_payload.description }}
+
+## 修改建议
+
+{{ latest_revision.normalized_payload.suggestion }}
+
+## 依据
+
+{{ latest_revision.normalized_payload.evidence }}</pre>{% else %}<p>最新版本：v{{ latest_revision.revision_number }}</p>{% if latest_revision.normalized_payload.uncertainties %}<div class="uncertainty"><strong>待确认内容</strong><ul>{% for item in latest_revision.normalized_payload.uncertainties %}<li>{{ item }}</li>{% endfor %}</ul></div>{% endif %}{% endif %}</section>
+      {% if contribution.contribution_type == 'question_correction' and latest_revision.question_snapshot.tags %}<section class="tag-section"><h2>原题标签</h2><div class="selected-tags">{% for tag in latest_revision.question_snapshot.tags %}<span class="tag-chip">{{ tag }}</span>{% endfor %}</div></section>{% endif %}
+      <section class="tag-section"><div class="section-title"><h2>{% if is_terminal %}最终正式标签{% else %}待确认正式标签{% endif %}</h2>{% if not is_terminal %}<button type="button" id="open-tag-dialog">搜索添加</button>{% endif %}</div><div id="selected-tags" class="selected-tags"></div>{% if form.tags.errors %}<div class="field-error">{{ form.tags.errors.0 }}</div>{% endif %}</section>
       {% if contribution.tag_suggestions.all %}<section><h2>新标签建议</h2>{% for suggestion in contribution.tag_suggestions.all %}<div class="suggestion"><div><strong>{{ suggestion.suggested_name }}</strong><small>{{ suggestion.reason|default:'无说明' }} · {{ suggestion.get_status_display }}</small></div>{% if not is_terminal and suggestion.status == 'pending' %}<label><span>处理方式</span><select name="suggestion_decision_{{ suggestion.pk }}" class="suggestion-decision" required><option value="">请选择</option><option value="create">创建新标签</option><option value="reject">不采纳建议</option></select></label>{% endif %}</div>{% endfor %}</section>{% endif %}
       <section><label for="id_note"><strong>审核意见</strong></label>{% if is_terminal %}<p class="readonly-note">{{ contribution.review_note|default:'无审核意见' }}</p>{% else %}{{ form.note }}{% if form.note.errors %}<div class="field-error">{{ form.note.errors.0 }}</div>{% endif %}{% endif %}</section>
       <details class="history-panel"><summary>处理记录（{{ contribution.reviews.count }}）</summary><ol class="history">{% for event in contribution.reviews.all %}<li><strong>{{ event.get_action_display }}</strong><span>{% if event.actor %}{{ event.actor.get_full_name|default:event.actor.username }}{% else %}系统{% endif %} · {{ event.created_at|date:'m-d H:i' }}</span>{% if event.note %}<p>{{ event.note }}</p>{% endif %}</li>{% endfor %}</ol></details>

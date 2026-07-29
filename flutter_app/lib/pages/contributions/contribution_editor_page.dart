@@ -94,12 +94,25 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       final detail = widget.contributionId == null
           ? null
           : await _api.getDetail(widget.contributionId!);
+      final questionContext =
+          widget.contributionId == null && _questionId != null
+          ? await _api.getQuestionContext(_questionId!)
+          : null;
       if (!mounted) return;
       setState(() {
         _config = config;
         _loading = false;
       });
       if (detail != null) _applyExistingContribution(detail);
+      if (questionContext != null) {
+        setState(() {
+          _tagIds
+            ..clear()
+            ..addAll(
+              (questionContext['tag_ids'] as List? ?? const []).cast<int>(),
+            );
+        });
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -125,22 +138,24 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       _jsonController.text = detail['raw_json'] as String? ?? '';
       _payload = payload;
       _applyPayload(payload);
-      _tagIds
-        ..clear()
-        ..addAll((detail['tag_ids'] as List? ?? const []).cast<int>());
-      _newTags
-        ..clear()
-        ..addAll(
-          (detail['tag_suggestions'] as List? ?? const []).map((item) {
-            final map = Map<String, dynamic>.from(item as Map);
-            return <String, dynamic>{
-              'name': map['name'],
-              'parent_id': map['parent_id'],
-              'reason': map['reason'] ?? '',
-            };
-          }),
-        );
     }
+    _tagIds
+      ..clear()
+      ..addAll((detail['tag_ids'] as List? ?? const []).cast<int>());
+    _newTags
+      ..clear()
+      ..addAll(
+        (detail['tag_suggestions'] as List? ?? const [])
+            .where((item) => (item as Map)['status'] == 'pending')
+            .map((item) {
+              final map = Map<String, dynamic>.from(item as Map);
+              return <String, dynamic>{
+                'name': map['name'],
+                'parent_id': map['parent_id'],
+                'reason': map['reason'] ?? '',
+              };
+            }),
+      );
     setState(() {});
   }
 
@@ -258,10 +273,6 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         setState(() => _error = '每个小题都需要答案');
         return;
       }
-      if (_tagIds.isEmpty && _newTags.isEmpty) {
-        setState(() => _error = '请至少选择或建议一个知识点标签');
-        return;
-      }
       final uncertainties = _payload!['uncertainties'] as List? ?? const [];
       if (uncertainties.isNotEmpty && !_uncertaintiesConfirmed) {
         setState(() => _verificationError = '完成原题核对后才能提交');
@@ -278,6 +289,10 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         });
         return;
       }
+    }
+    if (_tagIds.isEmpty && _newTags.isEmpty) {
+      setState(() => _error = '请至少选择或建议一个知识点标签');
+      return;
     }
 
     setState(() {
@@ -369,9 +384,11 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: AppCard(child: Text('审核意见：$_reviewNote')),
                   ),
-                if (_isCorrection)
-                  _buildCorrectionForm()
-                else
+                if (_isCorrection) ...[
+                  _buildCorrectionForm(),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildTags(),
+                ] else
                   _buildNewQuestionForm(),
                 const SizedBox(height: AppSpacing.lg),
                 AppButton(
@@ -951,18 +968,21 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             label: '问题说明',
             controller: _descriptionController,
             minLines: 4,
+            initialPreview: false,
           ),
           const SizedBox(height: AppSpacing.sm),
           _LatexField(
             label: '建议修改',
             controller: _suggestionController,
             minLines: 3,
+            initialPreview: false,
           ),
           const SizedBox(height: AppSpacing.sm),
           _LatexField(
             label: '验算或依据（选填）',
             controller: _evidenceController,
             minLines: 3,
+            initialPreview: false,
           ),
         ],
       ),
@@ -975,17 +995,25 @@ class _LatexField extends StatefulWidget {
     required this.label,
     required this.controller,
     this.minLines = 1,
+    this.initialPreview = true,
   });
   final String label;
   final TextEditingController controller;
   final int minLines;
+  final bool initialPreview;
 
   @override
   State<_LatexField> createState() => _LatexFieldState();
 }
 
 class _LatexFieldState extends State<_LatexField> {
-  bool preview = true;
+  late bool preview;
+
+  @override
+  void initState() {
+    super.initState();
+    preview = widget.initialPreview;
+  }
 
   @override
   Widget build(BuildContext context) => Column(

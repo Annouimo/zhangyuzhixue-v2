@@ -23,6 +23,13 @@ class ContributionApi {
     return Map<String, dynamic>.from(response.data['data'] as Map);
   }
 
+  Future<Map<String, dynamic>> getQuestionContext(int questionId) async {
+    final response = await _client.dio.get(
+      '/interactions/contributions/question/$questionId/context/',
+    );
+    return Map<String, dynamic>.from(response.data['data'] as Map);
+  }
+
   Future<Map<String, dynamic>> create(Map<String, dynamic> body) async {
     final response = await _client.dio.post(
       '/interactions/contributions/',

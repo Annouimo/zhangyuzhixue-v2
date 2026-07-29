@@ -17,7 +17,9 @@ from accounts.roles import PUBLISH_CONTRIBUTION, is_content_reviewer
 from .models import ContentContribution, ContributionReview
 from .models import ContributionTagSuggestion
 from .review_forms import ContributionReviewForm, ReviewerAuthenticationForm
-from .review_services import question_payload, resolve_tags, save_official_question
+from .review_services import (
+    SOURCE_LABELS, question_payload, resolve_tags, save_official_question,
+)
 
 
 def reviewer_required(view_func):
@@ -60,14 +62,16 @@ def logout_view(request):
 
 @reviewer_required
 def queue_view(request):
-    status_filter = request.GET.get('status', 'active')
+    status_filter = request.GET.get('status', '')
     type_filter = request.GET.get('type', '')
     query = request.GET.get('q', '').strip()[:100]
     mine_only = request.GET.get('mine') == '1'
     queryset = ContentContribution.objects.select_related(
         'student__user', 'question', 'reviewed_by'
     ).prefetch_related('revisions')
-    if status_filter == 'active':
+    if not status_filter:
+        pass
+    elif status_filter == 'active':
         queryset = queryset.filter(status__in=[
             ContentContribution.Status.PENDING,
             ContentContribution.Status.RESUBMITTED,
@@ -76,10 +80,7 @@ def queue_view(request):
     elif status_filter in ContentContribution.Status.values:
         queryset = queryset.filter(status=status_filter)
     else:
-        status_filter = 'active'
-        queryset = queryset.filter(
-            status__in=['pending', 'resubmitted', 'processing']
-        )
+        status_filter = ''
     if type_filter in ContentContribution.ContributionType.values:
         queryset = queryset.filter(contribution_type=type_filter)
     else:
@@ -92,6 +93,7 @@ def queue_view(request):
             | Q(question__stem__icontains=query)
             | Q(revisions__normalized_payload__icontains=query)
         ).distinct()
+    queryset = queryset.order_by('-updated_at', '-pk')
     paginator = Paginator(queryset, 30)
     page = paginator.get_page(request.GET.get('page'))
     return render(request, 'review_workbench/queue.html', {
@@ -127,18 +129,38 @@ def _original_correction_payload(contribution, revision):
             {'key': key, 'content': value} for key, value in options.items()
         ],
         'sub_questions': snapshot.get('sub_questions', current['sub_questions']),
+        'source': {
+            'source_type': next(
+                (
+                    key for key, label in SOURCE_LABELS.items()
+                    if label == snapshot.get('exam_type')
+                ),
+                'other',
+            ),
+            'year': snapshot.get('year'),
+            'region': snapshot.get('region', ''),
+            'source_name': snapshot.get('source_name', ''),
+            'question_number': snapshot.get('number', ''),
+        },
     })
     return current
+
+
+def _detail_url(request, contribution_id):
+    url = reverse('review_workbench:detail', args=[contribution_id])
+    query = request.GET.urlencode()
+    return f'{url}?{query}' if query else url
 
 
 @reviewer_required
 def detail_view(request, contribution_id):
     contribution = get_object_or_404(
         ContentContribution.objects.select_related(
-            'student__user', 'question', 'reviewed_by'
+            'student__user', 'question', 'reviewed_by', 'completed_question'
         ).prefetch_related(
             'revisions', 'reviews__actor', 'tag_selections__concept_tag',
             'tag_suggestions__suggested_parent',
+            'completed_question__concept_tags',
         ),
         pk=contribution_id,
     )
@@ -147,7 +169,15 @@ def detail_view(request, contribution_id):
         'content_json': json.dumps(
             _initial_payload(contribution), ensure_ascii=False, indent=2
         ),
-        'tags': contribution.tag_selections.values_list('concept_tag_id', flat=True),
+        'tags': (
+            contribution.completed_question.concept_tags.values_list(
+                'pk', flat=True
+            )
+            if contribution.completed_question_id
+            else contribution.tag_selections.values_list(
+                'concept_tag_id', flat=True
+            )
+        ),
         'note': contribution.review_note,
         'version': contribution.updated_at.isoformat(),
     }
@@ -175,9 +205,7 @@ def detail_view(request, contribution_id):
                     form.add_error(None, str(exc))
                 else:
                     messages.success(request, _success_message(action))
-                    return redirect(
-                        'review_workbench:detail', contribution_id=contribution.pk
-                    )
+                    return redirect(_detail_url(request, contribution.pk))
         elif action == 'publish' and not request.user.has_perm(PUBLISH_CONTRIBUTION):
             return HttpResponseForbidden('当前账号没有正式录题权限。')
         elif action == 'publish' and form.is_valid():
@@ -189,13 +217,33 @@ def detail_view(request, contribution_id):
                 messages.success(
                     request, '审核通过，正式题目已保存并等待下一版题库发布。'
                 )
-                return redirect('review_workbench:detail', contribution_id=contribution.pk)
+                return redirect(_detail_url(request, contribution.pk))
 
-    active_queryset = ContentContribution.objects.filter(status__in=[
-        ContentContribution.Status.PENDING,
-        ContentContribution.Status.RESUBMITTED,
-        ContentContribution.Status.PROCESSING,
-    ]).order_by('-updated_at', '-pk')
+    detail_status_filter = request.GET.get('status', '')
+    active_queryset = ContentContribution.objects.all()
+    if detail_status_filter == 'active':
+        active_queryset = active_queryset.filter(status__in=[
+            ContentContribution.Status.PENDING,
+            ContentContribution.Status.RESUBMITTED,
+            ContentContribution.Status.PROCESSING,
+        ])
+    elif detail_status_filter in ContentContribution.Status.values:
+        active_queryset = active_queryset.filter(status=detail_status_filter)
+    detail_type_filter = request.GET.get('type', '')
+    if detail_type_filter in ContentContribution.ContributionType.values:
+        active_queryset = active_queryset.filter(
+            contribution_type=detail_type_filter
+        )
+    if request.GET.get('mine') == '1':
+        active_queryset = active_queryset.filter(reviewed_by=request.user)
+    detail_query = request.GET.get('q', '').strip()[:100]
+    if detail_query:
+        active_queryset = active_queryset.filter(
+            Q(student__user__username__icontains=detail_query)
+            | Q(question__stem__icontains=detail_query)
+            | Q(revisions__normalized_payload__icontains=detail_query)
+        ).distinct()
+    active_queryset = active_queryset.order_by('-updated_at', '-pk')
     active_ids = list(active_queryset.values_list('pk', flat=True))
     try:
         active_index = active_ids.index(contribution.pk)

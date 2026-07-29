@@ -74,7 +74,7 @@ def test_new_question_requires_tag(auth_client):
 
 
 @pytest.mark.django_db
-def test_correction_duplicate_and_resubmit(auth_client):
+def test_correction_duplicate_and_resubmit(auth_client, concept_tag):
     question = BaseQuestion.objects.create(
         question_type='fill', stem='原题题干'
     )
@@ -87,7 +87,7 @@ def test_correction_duplicate_and_resubmit(auth_client):
             'suggestion': '建议答案改为 $1$。',
             'evidence': '代入原式可以验证。',
         },
-        'tag_ids': [],
+        'tag_ids': [concept_tag.pk],
     }
     response = auth_client.post(
         reverse('contribution-list-create'), body, format='json'
@@ -117,6 +117,20 @@ def test_correction_duplicate_and_resubmit(auth_client):
     assert ContributionRevision.objects.filter(
         contribution=contribution
     ).count() == 2
+
+
+@pytest.mark.django_db
+def test_correction_context_includes_original_tag_ids(auth_client, concept_tag):
+    question = BaseQuestion.objects.create(
+        question_type='fill', stem='带标签的原题'
+    )
+    question.concept_tags.add(concept_tag)
+    response = auth_client.get(
+        reverse('contribution-question-context', args=[question.pk])
+    )
+    assert response.status_code == 200
+    assert response.data['data']['tag_ids'] == [concept_tag.pk]
+    assert response.data['data']['tags'] == [concept_tag.name]
 
 
 @pytest.mark.django_db

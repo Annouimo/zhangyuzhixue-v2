@@ -193,12 +193,20 @@ class ToolsView(View):
         old_stdout = sys.stdout
         sys.stdout = buf = io.StringIO()
         try:
-            build_database(
+            output_path = build_database(
                 schema=schema,
                 db_type=db_type,
                 version_info=version_info,
                 test_mode=test_mode,
             )
+            if db_type == 'qbank' and not test_mode:
+                from interactions.publication_services import (
+                    confirm_qbank_publication,
+                )
+                published = confirm_qbank_publication(
+                    output_path, version_info['data_version']
+                )
+                buf.write(f'\n已确认发布内容贡献：{published} 条\n')
         except Exception as e:
             buf.write(f'\nERROR: {e}')
         finally:
