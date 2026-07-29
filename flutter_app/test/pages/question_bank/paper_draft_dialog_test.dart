@@ -76,6 +76,14 @@ void main() {
     await tester.tap(find.byTooltip('移除题目').at(1));
     await tester.pump();
     expect(find.text('共 2 题'), findsOneWidget);
+    expect(find.text('撤销'), findsOneWidget);
+
+    await tester.tap(find.text('撤销'));
+    await tester.pump();
+    expect(find.text('共 3 题'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('移除题目').at(1));
+    await tester.pump();
 
     await tester.tap(find.text('确认生成 · 20 积分'));
     await tester.pumpAndSettle();

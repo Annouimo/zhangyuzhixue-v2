@@ -123,29 +123,49 @@ void main() {
     );
     await tester.pumpAndSettle(const Duration(milliseconds: 400));
 
+    expect(find.text('套卷'), findsOneWidget);
+    expect(find.text('专题'), findsOneWidget);
+    expect(find.text('知识卡片'), findsOneWidget);
+    expect(find.text('我的题目'), findsOneWidget);
+    expect(find.text('函数测试题'), findsNothing);
+    expect(repository.lastFilters, isNull);
+
+    await tester.tap(find.text('我的题目'));
+    await tester.pumpAndSettle();
     expect(find.text('当前错题'), findsOneWidget);
     expect(find.text('已订正'), findsOneWidget);
     expect(find.text('高考常用'), findsOneWidget);
-    expect(find.text('函数测试题'), findsNothing);
-    expect(repository.lastFilters, isNull);
 
     await tester.tap(find.text('高考常用'));
     await tester.pumpAndSettle(const Duration(milliseconds: 400));
     expect(repository.lastPreferenceId, 7);
     expect(repository.lastFilters?.examTypes, contains('高考'));
 
+    await tester.ensureVisible(find.text('当前错题'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('当前错题'));
     await tester.pumpAndSettle();
     expect(repository.lastReviewScope, QuestionReviewScope.currentWrong);
 
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 1800));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 1800));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('套卷'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('一模'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('2025年 · 海淀'));
+    expect(find.text('2025'), findsOneWidget);
+    await tester.ensureVisible(find.text('海淀'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('2025年 · 海淀'));
+    await tester.tap(find.text('海淀'));
     await tester.pumpAndSettle(const Duration(milliseconds: 400));
     expect(repository.lastFilters?.years, contains('2025'));
     expect(repository.lastFilters?.examTypes, contains('一模'));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 1800));
+    await tester.pumpAndSettle();
+    expect(find.text('2025年 · 海淀 · 一模'), findsOneWidget);
+    expect(find.byTooltip('保存为常用范围'), findsOneWidget);
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
     await tester.pumpAndSettle();
@@ -164,7 +184,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('函数测试题'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('函数测试题'));
+    await tester.tap(find.byTooltip('加入试卷'));
     await tester.pumpAndSettle();
 
     expect(find.text('已选 1 题'), findsOneWidget);

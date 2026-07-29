@@ -50,6 +50,11 @@ class FilterPanel extends StatefulWidget {
   /// 是否允许从标题行一键选择所有维度。
   final bool allowGlobalSelectAll;
 
+  /// Whether to show concept and knowledge-card selectors inside this panel.
+  /// Dedicated range browsers can disable them to avoid duplicate entry points.
+  final bool showConceptSection;
+  final bool showKnowledgeSection;
+
   /// 面板首次构建时使用的外部筛选状态。
   final FilterState? initialState;
 
@@ -70,6 +75,8 @@ class FilterPanel extends StatefulWidget {
     this.showSort = false,
     this.selectAllInitially = true,
     this.allowGlobalSelectAll = true,
+    this.showConceptSection = true,
+    this.showKnowledgeSection = true,
     this.initialState,
   });
 
@@ -545,7 +552,7 @@ class FilterPanelState extends State<FilterPanel> {
               ],
             ),
             const SizedBox(height: 8),
-            if (widget.conceptTagTree.isNotEmpty)
+            if (widget.showConceptSection && widget.conceptTagTree.isNotEmpty)
               _section(
                 '按概念标签筛选',
                 _conceptExpanded,
@@ -568,8 +575,10 @@ class FilterPanelState extends State<FilterPanel> {
                   },
                 ),
               ),
-            if (widget.conceptTagTree.isNotEmpty) const SizedBox(height: 8),
-            if (widget.knowledgeCardGroups.isNotEmpty)
+            if (widget.showConceptSection && widget.conceptTagTree.isNotEmpty)
+              const SizedBox(height: 8),
+            if (widget.showKnowledgeSection &&
+                widget.knowledgeCardGroups.isNotEmpty)
               _section(
                 '按知识卡片筛选',
                 _knowledgeExpanded,
@@ -592,7 +601,8 @@ class FilterPanelState extends State<FilterPanel> {
                   },
                 ),
               ),
-            if (widget.knowledgeCardGroups.isNotEmpty)
+            if (widget.showKnowledgeSection &&
+                widget.knowledgeCardGroups.isNotEmpty)
               const SizedBox(height: 8),
             _buildSection(
               '按难度/计算量筛选',

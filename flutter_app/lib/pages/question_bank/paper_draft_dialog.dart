@@ -29,6 +29,8 @@ class PaperDraftDialog extends StatefulWidget {
 class _PaperDraftDialogState extends State<PaperDraftDialog> {
   late final TextEditingController _nameController;
   late final List<SearchQuestion> _questions;
+  SearchQuestion? _removedQuestion;
+  int? _removedIndex;
 
   @override
   void initState() {
@@ -52,6 +54,65 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
     Navigator.of(
       context,
     ).pop(PaperDraft(name: name, questions: List.unmodifiable(_questions)));
+  }
+
+  void _removeQuestion(int index) {
+    setState(() {
+      _removedIndex = index;
+      _removedQuestion = _questions.removeAt(index);
+    });
+  }
+
+  void _undoRemove() {
+    final question = _removedQuestion;
+    if (question == null) return;
+    setState(() {
+      final index = (_removedIndex ?? _questions.length).clamp(
+        0,
+        _questions.length,
+      );
+      _questions.insert(index, question);
+      _removedQuestion = null;
+      _removedIndex = null;
+    });
+  }
+
+  void _sortByType() {
+    const order = {'choice': 0, 'fill': 1, 'solution': 2};
+    setState(() {
+      _questions.sort(
+        (left, right) => (order[left.questionType] ?? 99).compareTo(
+          order[right.questionType] ?? 99,
+        ),
+      );
+    });
+  }
+
+  Future<void> _previewQuestion(SearchQuestion question) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(QuestionTypeLabels.of(question.questionType)),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MdLatexBody(question.title, fontSize: 15),
+              if (question.meta.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(question.meta),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -82,10 +143,35 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(
-              '拖动右侧手柄调整题序',
-              style: TextStyle(fontSize: 12, color: colors.textSecondary),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '拖动右侧手柄调整题序',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _questions.length < 2 ? null : _sortByType,
+                  icon: const Icon(Icons.sort_rounded),
+                  label: const Text('按题型排序'),
+                ),
+              ],
             ),
+            if (_removedQuestion != null)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '已移除：${_removedQuestion!.title}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                  ),
+                  TextButton(onPressed: _undoRemove, child: const Text('撤销')),
+                ],
+              ),
             const SizedBox(height: AppSpacing.xs),
             Expanded(
               child: _questions.isEmpty
@@ -123,10 +209,14 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
+                                tooltip: '预览题目',
+                                icon: const Icon(Icons.visibility_outlined),
+                                onPressed: () => _previewQuestion(question),
+                              ),
+                              IconButton(
                                 tooltip: '移除题目',
                                 icon: const Icon(Icons.close),
-                                onPressed: () =>
-                                    setState(() => _questions.removeAt(index)),
+                                onPressed: () => _removeQuestion(index),
                               ),
                               ReorderableDragStartListener(
                                 index: index,

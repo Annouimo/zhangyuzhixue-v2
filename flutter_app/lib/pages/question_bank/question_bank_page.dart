@@ -23,6 +23,10 @@ import '../router.dart';
 import 'question_detail_page.dart';
 import 'paper_draft_dialog.dart';
 
+enum _QuestionLibraryMode { papers, topics, knowledge, mine }
+
+enum _VirtualPaperAction { addToBasket, createPaper }
+
 class StudentQuestionBankPage extends StatefulWidget {
   const StudentQuestionBankPage({
     super.key,
@@ -76,6 +80,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   );
   static const _smartDraftSelector = SmartPaperDraftSelector();
   final _filterKey = GlobalKey<FilterPanelState>();
+  final _resultsKey = GlobalKey();
+  final _scrollController = ScrollController();
   final _queryController = TextEditingController();
   FilterOptions? _filterOptions;
   List<VirtualPaper> _virtualPapers = const [];
@@ -92,6 +98,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   final Map<int, SearchQuestion> _selectedQuestions = {};
   QuestionReviewScope? _reviewScope;
   int? _selectedRangeId;
+  VirtualPaper? _selectedVirtualPaper;
+  _QuestionLibraryMode _mode = _QuestionLibraryMode.papers;
+  bool _advancedExpanded = false;
+  bool _revealResultsAfterSearch = false;
   bool _applyingExternalScope = false;
   String? _error;
   Set<String> _years = {};
@@ -115,6 +125,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void dispose() {
     _debounce?.cancel();
     _queryController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -139,6 +150,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   }
 
   void _selectVirtualPaper(VirtualPaper paper) {
+    _revealResultsAfterSearch = true;
     _queryController.clear();
     _applyFilterState(
       FilterState(
@@ -150,6 +162,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     setState(() {
       _reviewScope = null;
       _selectedRangeId = null;
+      _selectedVirtualPaper = paper;
     });
     _scheduleSearch();
   }
@@ -202,6 +215,15 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     if (_selectedRangeId != null) {
       _selectedRangeId = null;
     }
+    if (_selectedVirtualPaper != null &&
+        (_years.length != 1 ||
+            !_years.contains(_selectedVirtualPaper!.year.toString()) ||
+            _regions.length != 1 ||
+            !_regions.contains(_selectedVirtualPaper!.region) ||
+            _examTypes.length != 1 ||
+            !_examTypes.contains(_selectedVirtualPaper!.examType))) {
+      _selectedVirtualPaper = null;
+    }
     if (!_hasExplicitScope) {
       if (_questions != null || _loadingQuestions) {
         setState(() {
@@ -215,6 +237,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   }
 
   Future<void> _selectReviewScope(QuestionReviewScope scope) async {
+    _revealResultsAfterSearch = true;
     _applyingExternalScope = true;
     _queryController.clear();
     _applyFilterState(const FilterState());
@@ -222,6 +245,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     setState(() {
       _reviewScope = scope;
       _selectedRangeId = null;
+      _selectedVirtualPaper = null;
       _loadingQuestions = true;
       _error = null;
     });
@@ -232,6 +256,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _questions = questions;
         _loadingQuestions = false;
       });
+      _revealResultsIfRequested();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -246,6 +271,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       final data = await _preferenceRepository.getEdit(summary.id);
       if (!mounted) return;
       final filter = data.filter;
+      _revealResultsAfterSearch = true;
       _applyingExternalScope = true;
       _queryController.clear();
       _applyFilterState(
@@ -264,6 +290,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       );
       _applyingExternalScope = false;
       setState(() => _reviewScope = null);
+      _selectedVirtualPaper = null;
       _scheduleSearch();
       setState(() => _selectedRangeId = summary.id);
     } catch (_) {
@@ -319,12 +346,176 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _questions = questions;
         _loadingQuestions = false;
       });
+      _revealResultsIfRequested();
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = '题库加载失败，请稍后重试';
         _loadingQuestions = false;
       });
+    }
+  }
+
+  void _revealResultsIfRequested() {
+    if (!_revealResultsAfterSearch) return;
+    _revealResultsAfterSearch = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _resultsKey.currentContext;
+      if (!mounted || target == null) return;
+      Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        alignment: 0.08,
+      );
+    });
+  }
+
+  String? get _currentScopeLabel {
+    if (_reviewScope == QuestionReviewScope.currentWrong) return '当前错题';
+    if (_reviewScope == QuestionReviewScope.corrected) return '已订正';
+    if (_selectedRangeId != null) {
+      for (final range in _savedRanges) {
+        if (range.id == _selectedRangeId) return range.name;
+      }
+    }
+    final paper = _selectedVirtualPaper;
+    if (paper != null) {
+      return '${paper.year}年 · ${paper.region} · ${paper.examType}';
+    }
+    final labels = <String>[
+      if (_years.isNotEmpty) _years.join('/'),
+      if (_regions.isNotEmpty) _regions.join('/'),
+      if (_examTypes.isNotEmpty) _examTypes.join('/'),
+      if (_conceptTags.isNotEmpty) '专题 ${_conceptTags.length}',
+      if (_knowledgeCards.isNotEmpty) '知识卡片 ${_knowledgeCards.length}',
+      if (_questionTypes.isNotEmpty) '题型 ${_questionTypes.length}',
+    ];
+    final keyword = _queryController.text.trim();
+    if (keyword.isNotEmpty) labels.insert(0, '“$keyword”');
+    return labels.isEmpty ? null : labels.join(' · ');
+  }
+
+  void _clearScope() {
+    _debounce?.cancel();
+    _queryController.clear();
+    _applyFilterState(const FilterState());
+    setState(() {
+      _reviewScope = null;
+      _selectedRangeId = null;
+      _selectedVirtualPaper = null;
+      _questions = null;
+      _loadingQuestions = false;
+      _error = null;
+    });
+  }
+
+  void _applyTopicSelection(Set<String> names) {
+    _applyFilterState(_currentFilterState.copyWith(conceptTags: names));
+    setState(() {
+      _reviewScope = null;
+      _selectedRangeId = null;
+      _selectedVirtualPaper = null;
+    });
+    _scheduleSearch();
+  }
+
+  void _applyKnowledgeSelection(Set<String> titles) {
+    _applyFilterState(_currentFilterState.copyWith(knowledgeCards: titles));
+    setState(() {
+      _reviewScope = null;
+      _selectedRangeId = null;
+      _selectedVirtualPaper = null;
+    });
+    _scheduleSearch();
+  }
+
+  void _changeMode(_QuestionLibraryMode mode) {
+    if (mode == _mode) return;
+    _debounce?.cancel();
+    _applyingExternalScope = true;
+    _applyFilterState(
+      _currentFilterState.copyWith(
+        years: const {},
+        regions: const {},
+        conceptTags: const {},
+        examTypes: const {},
+        knowledgeCards: const {},
+      ),
+    );
+    _applyingExternalScope = false;
+    setState(() {
+      _mode = mode;
+      _reviewScope = null;
+      _selectedRangeId = null;
+      _selectedVirtualPaper = null;
+      if (!_hasExplicitScope) _questions = null;
+    });
+    if (_hasExplicitScope) _scheduleSearch();
+  }
+
+  Future<void> _saveCurrentRange() async {
+    if (!_hasExplicitScope || _reviewScope != null) return;
+    final controller = TextEditingController(
+      text: _currentScopeLabel ?? '常用范围',
+    );
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('保存常用范围'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: '范围名称'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('取消'),
+          ),
+          AppButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.of(dialogContext).pop(value);
+            },
+            label: '保存',
+            expanded: false,
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || !mounted) return;
+    try {
+      final id = await _preferenceRepository.save(
+        name: name,
+        filter: PreferenceFilter(
+          years: _years.toList(),
+          regions: _regions.toList(),
+          conceptTags: _conceptTags.toList(),
+          types: _examTypes.toList(),
+          knowledgeCards: _knowledgeCards.toList(),
+          questionTypes: _questionTypes.toList(),
+          diffMin: _difficultyMin > 0 ? _difficultyMin : null,
+          diffMax: _difficultyMax < 10 ? _difficultyMax : null,
+          calcMin: _calculationMin > 0 ? _calculationMin : null,
+          calcMax: _calculationMax < 10 ? _calculationMax : null,
+        ),
+      );
+      final ranges = await _preferenceRepository.getList();
+      if (!mounted) return;
+      setState(() {
+        _savedRanges = ranges;
+        _selectedRangeId = id;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('已保存为常用范围')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('保存失败，请稍后重试')));
     }
   }
 
@@ -348,11 +539,23 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
 
   Future<void> _createPaper() async {
     if (_selectedQuestions.isEmpty || _creatingPaper) return;
+    await _createManualDraft(
+      _selectedQuestions.values.toList(growable: false),
+      initialName: '我的选题卷',
+      clearBasketOnSuccess: true,
+    );
+  }
+
+  Future<void> _createManualDraft(
+    List<SearchQuestion> questions, {
+    required String initialName,
+    required bool clearBasketOnSuccess,
+  }) async {
     final draft = await showDialog<PaperDraft>(
       context: context,
       builder: (_) => PaperDraftDialog(
-        initialName: '我的选题卷',
-        questions: _selectedQuestions.values.toList(growable: false),
+        initialName: initialName,
+        questions: questions,
         cost: manualPaperCost,
       ),
     );
@@ -367,10 +570,12 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
             .toList(growable: false),
       );
       if (!mounted) return;
-      setState(() {
-        _selectedQuestions.clear();
-        _selectionMode = false;
-      });
+      if (clearBasketOnSuccess) {
+        setState(() {
+          _selectedQuestions.clear();
+          _selectionMode = false;
+        });
+      }
       RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
     } on InsufficientPointsException catch (error) {
       if (!mounted) return;
@@ -382,6 +587,61 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('生成试卷失败，请稍后重试')));
+    } finally {
+      if (mounted) setState(() => _creatingPaper = false);
+    }
+  }
+
+  Future<List<SearchQuestion>> _loadVirtualPaperQuestions(VirtualPaper paper) {
+    return _repository.getFilteredQuestions(
+      SearchFilters(
+        name: '',
+        choiceCount: 0,
+        fillCount: 0,
+        solutionCount: 0,
+        targetDifficulty: 0,
+        years: [paper.year.toString()],
+        regions: [paper.region],
+        conceptTags: const [],
+        knowledgeCards: const [],
+        examTypes: [paper.examType],
+      ),
+    );
+  }
+
+  Future<void> _handleVirtualPaperAction(
+    VirtualPaper paper,
+    _VirtualPaperAction action,
+  ) async {
+    if (_creatingPaper) return;
+    setState(() => _creatingPaper = true);
+    try {
+      final questions = await _loadVirtualPaperQuestions(paper);
+      if (!mounted) return;
+      if (action == _VirtualPaperAction.addToBasket) {
+        setState(() {
+          for (final question in questions) {
+            _selectedQuestions[question.id] = question;
+          }
+          _selectionMode = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('已将 ${questions.length} 题加入试卷篮')),
+        );
+      } else {
+        setState(() => _creatingPaper = false);
+        await _createManualDraft(
+          questions,
+          initialName: paper.title,
+          clearBasketOnSuccess: false,
+        );
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('套卷加载失败，请稍后重试')));
     } finally {
       if (mounted) setState(() => _creatingPaper = false);
     }
@@ -519,6 +779,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
               child: RefreshIndicator(
                 onRefresh: _loadFilterOptions,
                 child: CustomScrollView(
+                  controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverPadding(
@@ -531,49 +792,101 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                         ),
                       ),
                     ),
-                    if (options != null)
+                    if (_currentScopeLabel != null)
                       SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.lg),
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
                         sliver: SliverToBoxAdapter(
-                          child: _QuestionReviewBrowser(
-                            summary: _reviewSummary,
-                            selectedScope: _reviewScope,
-                            onSelected: _selectReviewScope,
-                          ),
-                        ),
-                      ),
-                    if (options != null && _savedRanges.isNotEmpty)
-                      SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.lg),
-                        sliver: SliverToBoxAdapter(
-                          child: _SavedRangeBrowser(
-                            ranges: _savedRanges,
-                            selectedId: _selectedRangeId,
-                            onSelected: _applySavedRange,
+                          child: _CurrentScopeBar(
+                            label: _currentScopeLabel!,
+                            resultCount: _questions?.length,
+                            loading: _loadingQuestions,
+                            onSave: _reviewScope == null && _hasExplicitScope
+                                ? _saveCurrentRange
+                                : null,
+                            onClear: _clearScope,
                           ),
                         ),
                       ),
                     if (options != null)
                       SliverPadding(
                         padding: const EdgeInsets.only(top: AppSpacing.lg),
+                        sliver: SliverToBoxAdapter(
+                          child: _QuestionLibraryModeSelector(
+                            value: _mode,
+                            onChanged: _changeMode,
+                          ),
+                        ),
+                      ),
+                    if (options != null && _mode == _QuestionLibraryMode.papers)
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
                         sliver: SliverToBoxAdapter(
                           child: _VirtualPaperBrowser(
                             papers: _virtualPapers,
+                            selected: _selectedVirtualPaper,
                             onSelected: _selectVirtualPaper,
+                            onAction: _handleVirtualPaperAction,
+                          ),
+                        ),
+                      ),
+                    if (options != null && _mode == _QuestionLibraryMode.topics)
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        sliver: SliverToBoxAdapter(
+                          child: _TopicBrowser(
+                            nodes: options.conceptTagTree,
+                            selectedNames: _conceptTags,
+                            onChanged: _applyTopicSelection,
+                          ),
+                        ),
+                      ),
+                    if (options != null &&
+                        _mode == _QuestionLibraryMode.knowledge)
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        sliver: SliverToBoxAdapter(
+                          child: _KnowledgeBrowser(
+                            groups: options.knowledgeCardGroups,
+                            selectedTitles: _knowledgeCards,
+                            onChanged: _applyKnowledgeSelection,
+                          ),
+                        ),
+                      ),
+                    if (options != null && _mode == _QuestionLibraryMode.mine)
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              _QuestionReviewBrowser(
+                                summary: _reviewSummary,
+                                selectedScope: _reviewScope,
+                                onSelected: _selectReviewScope,
+                              ),
+                              if (_savedRanges.isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.lg),
+                                _SavedRangeBrowser(
+                                  ranges: _savedRanges,
+                                  selectedId: _selectedRangeId,
+                                  onSelected: _applySavedRange,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
                     if (options != null)
                       SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.lg),
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
                         sliver: SliverToBoxAdapter(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: ExpansionTile(
+                            initiallyExpanded: _advancedExpanded,
+                            onExpansionChanged: (expanded) =>
+                                setState(() => _advancedExpanded = expanded),
+                            tilePadding: EdgeInsets.zero,
+                            title: const Text('更多筛选'),
+                            subtitle: const Text('按来源、题型、难度和计算量进一步限定'),
                             children: [
-                              const AppSectionHeader(
-                                title: '自定义范围',
-                                subtitle: '需要更精确时，再按来源、专题、知识卡片或难度限定。',
-                              ),
                               const SizedBox(height: AppSpacing.sm),
                               FilterPanel(
                                 key: _filterKey,
@@ -589,6 +902,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                                     options.knowledgeCardGroups,
                                 selectAllInitially: false,
                                 allowGlobalSelectAll: false,
+                                showConceptSection: false,
+                                showKnowledgeSection: false,
                                 initialState: _currentFilterState,
                                 onChanged: (state) {
                                   _years = state.years;
@@ -615,6 +930,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                       ),
                       sliver: SliverToBoxAdapter(
                         child: AppSectionHeader(
+                          key: _resultsKey,
                           title: _questions == null
                               ? '题目结果'
                               : '题目结果 · ${_questions!.length} 题',
@@ -714,16 +1030,30 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   }
 }
 
-class _VirtualPaperBrowser extends StatelessWidget {
-  const _VirtualPaperBrowser({required this.papers, required this.onSelected});
+class _VirtualPaperBrowser extends StatefulWidget {
+  const _VirtualPaperBrowser({
+    required this.papers,
+    required this.selected,
+    required this.onSelected,
+    required this.onAction,
+  });
 
   final List<VirtualPaper> papers;
+  final VirtualPaper? selected;
   final ValueChanged<VirtualPaper> onSelected;
+  final void Function(VirtualPaper, _VirtualPaperAction) onAction;
+
+  @override
+  State<_VirtualPaperBrowser> createState() => _VirtualPaperBrowserState();
+}
+
+class _VirtualPaperBrowserState extends State<_VirtualPaperBrowser> {
+  String? _expandedExamType;
 
   @override
   Widget build(BuildContext context) {
     final groups = <String, List<VirtualPaper>>{};
-    for (final paper in papers) {
+    for (final paper in widget.papers) {
       groups.putIfAbsent(paper.examType, () => []).add(paper);
     }
     return Column(
@@ -731,26 +1061,298 @@ class _VirtualPaperBrowser extends StatelessWidget {
       children: [
         const AppSectionHeader(title: '按套卷浏览', subtitle: '先选择考试类型，再进入具体年份和地区。'),
         const SizedBox(height: AppSpacing.sm),
-        ...groups.entries.map(
-          (entry) => ExpansionTile(
+        ...groups.entries.map((entry) {
+          final yearGroups = <int, List<VirtualPaper>>{};
+          for (final paper in entry.value) {
+            yearGroups.putIfAbsent(paper.year, () => []).add(paper);
+          }
+          final years = yearGroups.keys.toList()
+            ..sort((a, b) => b.compareTo(a));
+          return ExpansionTile(
+            key: ValueKey('${entry.key}:${_expandedExamType == entry.key}'),
+            initiallyExpanded: _expandedExamType == entry.key,
+            onExpansionChanged: (expanded) =>
+                setState(() => _expandedExamType = expanded ? entry.key : null),
             tilePadding: EdgeInsets.zero,
-            childrenPadding: const EdgeInsets.only(left: AppSpacing.md),
+            childrenPadding: const EdgeInsets.only(
+              left: AppSpacing.md,
+              bottom: AppSpacing.sm,
+            ),
             leading: const Icon(Icons.description_outlined),
             title: Text(entry.key),
             subtitle: Text('${entry.value.length} 套'),
-            children: entry.value
-                .map(
-                  (paper) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text('${paper.year}年 · ${paper.region}'),
-                    subtitle: Text('${paper.questionCount}题'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => onSelected(paper),
-                  ),
-                )
-                .toList(growable: false),
-          ),
+            children: years.map((year) {
+              final papers = yearGroups[year]!
+                ..sort((a, b) => a.region.compareTo(b.region));
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 52,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          '$year',
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: papers
+                            .map(
+                              (paper) => _VirtualPaperChip(
+                                paper: paper,
+                                selected:
+                                    widget.selected?.year == paper.year &&
+                                    widget.selected?.region == paper.region &&
+                                    widget.selected?.examType == paper.examType,
+                                onSelected: () => widget.onSelected(paper),
+                                onAction: (action) =>
+                                    widget.onAction(paper, action),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _VirtualPaperChip extends StatelessWidget {
+  const _VirtualPaperChip({
+    required this.paper,
+    required this.selected,
+    required this.onSelected,
+    required this.onAction,
+  });
+
+  final VirtualPaper paper;
+  final bool selected;
+  final VoidCallback onSelected;
+  final ValueChanged<_VirtualPaperAction> onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: selected ? context.colors.primaryContainer : null,
+        border: Border.all(
+          color: selected ? context.colors.primary : context.colors.border,
         ),
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+            onTap: onSelected,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+              child: Text(
+                paper.region,
+                style: TextStyle(
+                  color: selected
+                      ? context.colors.primary
+                      : context.colors.textPrimary,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+          ),
+          PopupMenuButton<_VirtualPaperAction>(
+            tooltip: '${paper.year}年${paper.region}${paper.examType}操作',
+            padding: EdgeInsets.zero,
+            iconSize: 18,
+            onSelected: onAction,
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: _VirtualPaperAction.addToBasket,
+                child: Text('加入试卷篮'),
+              ),
+              PopupMenuItem(
+                value: _VirtualPaperAction.createPaper,
+                child: Text('整套组卷'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuestionLibraryModeSelector extends StatelessWidget {
+  const _QuestionLibraryModeSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final _QuestionLibraryMode value;
+  final ValueChanged<_QuestionLibraryMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<_QuestionLibraryMode>(
+        showSelectedIcon: false,
+        segments: const [
+          ButtonSegment(value: _QuestionLibraryMode.papers, label: Text('套卷')),
+          ButtonSegment(value: _QuestionLibraryMode.topics, label: Text('专题')),
+          ButtonSegment(
+            value: _QuestionLibraryMode.knowledge,
+            label: Text('知识卡片'),
+          ),
+          ButtonSegment(value: _QuestionLibraryMode.mine, label: Text('我的题目')),
+        ],
+        selected: {value},
+        onSelectionChanged: (selection) => onChanged(selection.first),
+      ),
+    );
+  }
+}
+
+class _CurrentScopeBar extends StatelessWidget {
+  const _CurrentScopeBar({
+    required this.label,
+    required this.resultCount,
+    required this.loading,
+    required this.onSave,
+    required this.onClear,
+  });
+
+  final String label;
+  final int? resultCount;
+  final bool loading;
+  final VoidCallback? onSave;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colors.primaryContainer,
+        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.filter_alt_outlined, size: 18, color: colors.primary),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
+              ),
+            ),
+          ),
+          if (loading)
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else if (resultCount != null)
+            Text('$resultCount题', style: TextStyle(color: colors.primary)),
+          if (onSave != null)
+            IconButton(
+              tooltip: '保存为常用范围',
+              visualDensity: VisualDensity.compact,
+              onPressed: onSave,
+              icon: const Icon(Icons.bookmark_add_outlined),
+            ),
+          IconButton(
+            tooltip: '清除当前范围',
+            visualDensity: VisualDensity.compact,
+            onPressed: onClear,
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopicBrowser extends StatelessWidget {
+  const _TopicBrowser({
+    required this.nodes,
+    required this.selectedNames,
+    required this.onChanged,
+  });
+
+  final List<ConceptTagNode> nodes;
+  final Set<String> selectedNames;
+  final ValueChanged<Set<String>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppSectionHeader(title: '按专题浏览', subtitle: '先选择大类，需要时再逐级展开。'),
+        const SizedBox(height: AppSpacing.sm),
+        if (nodes.isEmpty)
+          EmptyPlaceholder(icon: Icons.account_tree_outlined, message: '暂无专题目录')
+        else
+          ConceptTagTreeView(
+            nodes: nodes,
+            selectedNames: selectedNames,
+            onChanged: onChanged,
+            compactLeaves: true,
+          ),
+      ],
+    );
+  }
+}
+
+class _KnowledgeBrowser extends StatelessWidget {
+  const _KnowledgeBrowser({
+    required this.groups,
+    required this.selectedTitles,
+    required this.onChanged,
+  });
+
+  final List<KnowledgeCardGroup> groups;
+  final Set<String> selectedTitles;
+  final ValueChanged<Set<String>> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppSectionHeader(title: '按知识卡片浏览', subtitle: '选择需要巩固的知识卡片。'),
+        const SizedBox(height: AppSpacing.sm),
+        if (groups.isEmpty)
+          EmptyPlaceholder(icon: Icons.style_outlined, message: '暂无知识卡片')
+        else
+          KnowledgeCardGroupView(
+            groups: groups,
+            selectedTitles: selectedTitles,
+            onChanged: onChanged,
+            compact: true,
+          ),
       ],
     );
   }

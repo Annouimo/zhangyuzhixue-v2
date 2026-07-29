@@ -11,12 +11,14 @@ class ConceptTagTreeView extends StatefulWidget {
   final List<ConceptTagNode> nodes;
   final Set<String> selectedNames;
   final ValueChanged<Set<String>> onChanged;
+  final bool compactLeaves;
 
   const ConceptTagTreeView({
     super.key,
     required this.nodes,
     required this.selectedNames,
     required this.onChanged,
+    this.compactLeaves = false,
   });
 
   @override
@@ -215,8 +217,34 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
             ],
           ),
           if (!isLeaf && isExpanded)
-            ...node.children.map((child) => _buildNode(child, depth + 1)),
+            if (widget.compactLeaves &&
+                node.children.every((child) => child.children.isEmpty))
+              Padding(
+                padding: EdgeInsets.only(left: (depth + 1) * 16.0, bottom: 8),
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: node.children.map(_buildLeafChip).toList(),
+                ),
+              )
+            else
+              ...node.children.map((child) => _buildNode(child, depth + 1)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLeafChip(ConceptTagNode node) {
+    final selected = widget.selectedNames.contains(node.name);
+    return FilterChip(
+      label: Text(node.name, style: const TextStyle(fontSize: 12)),
+      selected: selected,
+      visualDensity: VisualDensity.compact,
+      onSelected: (_) => widget.onChanged(
+        _syncParents(
+          Set<String>.from(widget.selectedNames)..toggle(node.name),
+          node.name,
+        ),
       ),
     );
   }

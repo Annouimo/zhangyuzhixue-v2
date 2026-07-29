@@ -62,26 +62,21 @@ class QuestionSearchResultCard extends StatelessWidget {
         questionType: question.questionType,
         subtitle: question.meta,
         difficulty: question.difficulty,
-        selectable: _selectionMode,
-        selected: selected ?? false,
-        onTap: _selectionMode ? onToggle : onOpen,
+        onTap: onOpen,
         trailing: _selectionMode
             ? Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: '预览题目',
+                    tooltip: selected! ? '移出试卷' : '加入试卷',
                     visualDensity: VisualDensity.compact,
-                    onPressed: onOpen,
-                    icon: const Icon(Icons.visibility_outlined),
-                  ),
-                  Icon(
-                    selected!
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
-                    color: selected!
-                        ? context.colors.primary
-                        : context.colors.textSecondary,
+                    onPressed: onToggle,
+                    icon: Icon(
+                      selected! ? Icons.check_circle : Icons.add_circle_outline,
+                      color: selected!
+                          ? context.colors.primary
+                          : context.colors.textSecondary,
+                    ),
                   ),
                 ],
               )
