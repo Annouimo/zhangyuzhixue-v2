@@ -1,0 +1,22 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}投稿 #{{ contribution.pk }} | 内容审核工作台{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="{% url 'review_workbench:queue' %}">&#x2190; 返回待办</a></div>
+<div class="page-heading detail-heading"><div><h1>{{ contribution.get_contribution_type_display }} #{{ contribution.pk }}</h1><p>{{ contribution.student.user.username }} 提交于 {{ contribution.created_at|date:'Y-m-d H:i' }}</p></div><span class="status status-{{ contribution.status }}">{{ contribution.get_status_display }}</span></div>
+{% if form.non_field_errors %}<div class="error">{{ form.non_field_errors.0 }}</div>{% endif %}
+<form method="post" class="review-layout">
+  {% csrf_token %}{{ form.version }}
+  <section class="editor-pane">
+    <div class="section-title"><div><h2>正式题目内容</h2><p>保存前按统一 schema 校验。</p></div><a href="https://www.latexlive.com/" target="_blank" rel="noopener noreferrer">LaTeX 编辑器</a></div>
+    {{ form.content_json }}{% if form.content_json.errors %}<div class="field-error">{{ form.content_json.errors.0 }}</div>{% endif %}
+  </section>
+  <aside class="review-pane">
+    <section><h2>投稿原文</h2>{% if contribution.contribution_type == 'question_correction' %}<p>{{ latest_revision.normalized_payload.description }}</p><dl><dt>修改建议</dt><dd>{{ latest_revision.normalized_payload.suggestion|default:'-' }}</dd><dt>依据</dt><dd>{{ latest_revision.normalized_payload.evidence|default:'-' }}</dd></dl>{% else %}<p>{{ latest_revision.normalized_payload.stem }}</p>{% endif %}</section>
+    <section><h2>正式标签</h2><div class="tag-options">{{ form.tags }}</div>{% if form.tags.errors %}<div class="field-error">{{ form.tags.errors.0 }}</div>{% endif %}</section>
+    {% if contribution.tag_suggestions.all %}<section><h2>新标签建议</h2>{% for suggestion in contribution.tag_suggestions.all %}<label class="suggestion"><input type="checkbox" name="approve_suggestion" value="{{ suggestion.pk }}"{% if suggestion.status != 'pending' %} disabled{% endif %}><span><strong>{{ suggestion.suggested_name }}</strong><small>{{ suggestion.reason|default:'无说明' }} · {{ suggestion.get_status_display }}</small></span></label>{% endfor %}</section>{% endif %}
+    <section><label for="id_note"><strong>审核意见</strong></label>{{ form.note }}{% if form.note.errors %}<div class="field-error">{{ form.note.errors.0 }}</div>{% endif %}</section>
+    <div class="actions"><button name="action" value="processing" type="submit">标记处理中</button><button class="warning" name="action" value="needs_revision" type="submit">打回修改</button><button class="danger" name="action" value="rejected" type="submit">不采纳</button><button class="primary" name="action" value="publish" type="submit">审核通过并录入</button></div>
+    <section><h2>处理记录</h2><ol class="history">{% for event in contribution.reviews.all %}<li><strong>{{ event.get_action_display }}</strong><span>{{ event.actor.username|default:'系统' }} · {{ event.created_at|date:'Y-m-d H:i' }}</span>{% if event.note %}<p>{{ event.note }}</p>{% endif %}</li>{% endfor %}</ol></section>
+  </aside>
+</form>
+{% endblock %}

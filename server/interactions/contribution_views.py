@@ -1,7 +1,8 @@
 from django.db import transaction
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+
+from accounts.permissions import IsStudent
 
 from qbank.models import BaseQuestion, ConceptTag
 from system.models import SystemConfig
@@ -127,7 +128,7 @@ def _replace_tags(contribution, tag_ids, suggestions):
 
 
 class ContributionConfigView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     def get(self, request):
         tags = ConceptTag.objects.order_by('parent_id', 'name')
@@ -144,7 +145,7 @@ class ContributionConfigView(APIView):
 
 
 class ContributionListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     def get_throttles(self):
         return [ContributionWriteThrottle()] if self.request.method == 'POST' else []
@@ -202,7 +203,7 @@ class ContributionListCreateView(APIView):
 
 
 class ContributionDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     def get(self, request, contribution_id):
         student = _student(request)
@@ -217,7 +218,7 @@ class ContributionDetailView(APIView):
 
 
 class ContributionResubmitView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
     throttle_classes = [ContributionWriteThrottle]
 
     @transaction.atomic
@@ -257,7 +258,7 @@ class ContributionResubmitView(APIView):
 
 
 class ContributionWithdrawView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     @transaction.atomic
     def post(self, request, contribution_id):
@@ -277,7 +278,7 @@ class ContributionWithdrawView(APIView):
 
 
 class ContributionQuestionContextView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     def get(self, request, question_id):
         if not _student(request):

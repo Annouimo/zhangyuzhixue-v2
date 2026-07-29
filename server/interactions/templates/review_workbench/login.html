@@ -1,0 +1,26 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>登录 | 内容审核工作台</title>
+  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=1">
+</head>
+<body class="login-page">
+  <main class="login-panel">
+    <div class="brand"><span class="brand-mark">章</span><span><strong>章鱼智学</strong><small>内容审核工作台</small></span></div>
+    <h1>审核员登录</h1>
+    <p>使用已获得内容审核权限的团队账号登录。</p>
+    <form method="post" class="login-form">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+      {% if form.non_field_errors %}<div class="error">{{ form.non_field_errors.0 }}</div>{% endif %}
+      <label for="id_username">账号</label>
+      <input id="id_username" name="username" autocomplete="username" required autofocus value="{{ form.username.value|default:'' }}">
+      <label for="id_password">密码</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+      <button class="primary" type="submit">登录</button>
+    </form>
+  </main>
+</body>
+</html>

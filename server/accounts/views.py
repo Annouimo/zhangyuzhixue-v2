@@ -5,7 +5,7 @@ from django.db.models import Q, Sum
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
@@ -17,6 +17,8 @@ from accounts.models import (
     Student,
     UserLoginLog,
 )
+from accounts.roles import STUDENT_GROUP, add_user_to_group, is_student_user
+from accounts.permissions import IsStudent
 from accounts.serializers import (
     AccountDeletionCancelSerializer,
     AccountDeletionSerializer,
@@ -88,6 +90,7 @@ def register_view(request):
             phone=data.get('phone', ''),
             gaokao_year=data.get('gaokao_year'),
         )
+        add_user_to_group(user, STUDENT_GROUP)
         RegistrationConsent.objects.create(
             user=user,
             terms_version='2026-07-27',
@@ -130,8 +133,8 @@ def login_view(request):
     if user is None:
         return _err(40001, '用户名或密码错误')
 
-    if user.is_staff:
-        return _err(40003, '管理员账号不允许登录 App')
+    if not is_student_user(user):
+        return _err(40003, '当前账号没有学生端访问权限')
 
     from django.utils import timezone as tz
     user.last_login = tz.now()
@@ -139,12 +142,11 @@ def login_view(request):
 
     refresh = RefreshToken.for_user(user)
 
-    if hasattr(user, 'student'):
-        from django.utils import timezone as tz
-        UserLoginLog.objects.get_or_create(
-            student=user.student,
-            login_date=tz.localdate(),
-        )
+    from django.utils import timezone as tz
+    UserLoginLog.objects.get_or_create(
+        student=user.student,
+        login_date=tz.localdate(),
+    )
 
     return _ok(data={
         'access': str(refresh.access_token),
@@ -159,7 +161,7 @@ def login_view(request):
     responses={200: OpenApiResponse(description='已登出')},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def logout_view(request):
     return _ok(message='已登出')
 
@@ -172,7 +174,7 @@ def logout_view(request):
     responses={200: OpenApiResponse(description='账号已禁用，进入 7 天冷静期')},
 )
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def account_deletion_view(request):
     if request.method == 'GET':
         deletion_request = AccountDeletionRequest.objects.filter(
@@ -226,7 +228,7 @@ def account_deletion_cancel_view(request):
     responses={200: OpenApiResponse(description='密码已修改')},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def password_change_view(request):
     serializer = PasswordChangeSerializer(
         data=request.data,
@@ -300,7 +302,7 @@ def _get_points_summary(user):
     methods=['GET'],
 )
 @api_view(['GET', 'PATCH'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def user_me_view(request):
     """当前用户信息（GET） / 修改个人信息（PATCH）"""
     if request.method == 'GET':
@@ -347,7 +349,7 @@ def user_me_view(request):
     responses={200: OpenApiResponse(description='签到成功')},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def checkin_view(request):
     """签到 — 创建今日登录日志 + 发放签到积分"""
     if not hasattr(request.user, 'student'):
@@ -432,7 +434,7 @@ def _calc_checkin_streak(student):
     responses={200: OpenApiResponse(description='头像上传成功，返回 avatar URL')},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 @throttle_classes([AvatarUploadRateThrottle])
 def avatar_upload_view(request):
     """头像上传 — 接受 multipart，resize 200x200 WebP"""
@@ -484,7 +486,7 @@ def avatar_upload_view(request):
     responses={200: OpenApiResponse(description='等级百分位数据')},
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def level_percentile_view(request):
     """等级百分位：当前用户积分超过百分之多少的学生"""
     if not hasattr(request.user, 'student'):

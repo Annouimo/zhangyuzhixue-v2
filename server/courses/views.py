@@ -1,8 +1,9 @@
 """讲义 API — 课程列表/章节目录/讲义内容"""
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from accounts.permissions import IsStudent
 
 from courses.models import Course, Document
 
@@ -15,9 +16,9 @@ def _ok(data=None, message='ok'):
     responses={200: OpenApiResponse(description='课程列表')},
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def lecture_courses_list(request):
-    """讲义系列对所有已登录用户开放。"""
+    """讲义系列仅对学生端账号开放。"""
     courses = Course.objects.all().order_by('id')
 
     data = [
@@ -31,7 +32,7 @@ def lecture_courses_list(request):
     responses={200: OpenApiResponse(description='指定课程的章节列表（含 page_count）')},
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def chapter_list(request, course_id):
     """指定课程章节目录"""
     documents = Document.objects.filter(
@@ -58,7 +59,7 @@ def chapter_list(request, course_id):
     responses={200: OpenApiResponse(description='讲义原始 Markdown 内容')},
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def chapter_content(request, chapter_id):
     """讲义内容（md_content 原样返回）"""
     try:

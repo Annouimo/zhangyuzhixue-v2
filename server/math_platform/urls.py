@@ -26,6 +26,7 @@ api_v1 = [
 
 urlpatterns = [
     path('internal/', include('internal_portal.urls')),
+    path('review/', include('interactions.review_urls')),
 
     # 管理工具必须在 admin.site.urls 之前，避免被 admin catch-all 拦截
     path('admin/system/tools/', ToolsView.as_view(), name='admin-system-tools'),

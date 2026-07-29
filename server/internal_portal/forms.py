@@ -2,17 +2,11 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
 
-PORTAL_GROUP = 'internal_portal'
-
-
 def has_portal_access(user):
     return bool(
         user.is_authenticated
         and user.is_active
-        and (
-            user.is_superuser
-            or user.groups.filter(name=PORTAL_GROUP).exists()
-        )
+        and user.has_perm('internal_portal.access_internal_portal')
     )
 
 

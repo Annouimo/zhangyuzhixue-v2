@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from rest_framework.reverse import reverse
 
 from accounts.models import RegistrationConsent, Student
+from accounts.roles import STUDENT_GROUP
 
 
 @pytest.fixture
@@ -45,6 +46,14 @@ class TestLogin:
         assert resp.status_code == 400
         assert resp.data['code'] == 40001
 
+    def test_login_rejects_user_without_student_role(self, db, api_client):
+        User.objects.create_user('plain-user', password='test123456')
+        resp = api_client.post(reverse('auth-login'), {
+            'username': 'plain-user', 'password': 'test123456',
+        }, format='json')
+        assert resp.status_code == 400
+        assert resp.data['code'] == 40003
+
 
 class TestRegister:
     def test_registration_requires_explicit_consent(self, db, api_client):
@@ -71,6 +80,7 @@ class TestRegister:
         }, format='json')
         assert response.status_code == 200
         user = User.objects.get(username='newstudent')
+        assert user.groups.filter(name=STUDENT_GROUP).exists()
         consent = RegistrationConsent.objects.get(user=user)
         assert consent.terms_version == '2026-07-27'
         assert consent.privacy_version == '2026-07-27'

@@ -1,0 +1,22 @@
+{% extends 'review_workbench/base.html' %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>投稿审核</h1><p>审核、修订并录入学生提交的新题和纠错。</p></div>
+  <form method="get"><label for="status">状态</label><select id="status" name="status" onchange="this.form.submit()">
+    <option value="active"{% if status_filter == 'active' %} selected{% endif %}>当前待办</option>
+    {% for value, label in status_choices %}<option value="{{ value }}"{% if status_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select></form>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>编号</th><th>类型</th><th>内容</th><th>投稿人</th><th>状态</th><th>处理人</th><th>更新时间</th><th></th></tr></thead>
+  <tbody>{% for item in contributions %}
+    <tr>
+      <td>#{{ item.pk }}</td><td>{{ item.get_contribution_type_display }}</td>
+      <td class="summary">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:70 }}{% else %}{{ revision.normalized_payload.description|truncatechars:70 }}{% endif %}{% endwith %}</td>
+      <td>{{ item.student.user.username }}</td><td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span></td>
+      <td>{{ item.reviewed_by.username|default:'-' }}</td><td>{{ item.updated_at|date:'Y-m-d H:i' }}</td>
+      <td><a class="row-link" href="{% url 'review_workbench:detail' item.pk %}">打开</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="empty">当前筛选下没有投稿</td></tr>{% endfor %}</tbody>
+</table></div>
+{% endblock %}

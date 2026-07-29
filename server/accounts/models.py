@@ -35,6 +35,9 @@ class Student(models.Model):
     class Meta:
         verbose_name = '学生'
         verbose_name_plural = '学生'
+        permissions = [
+            ('access_student_app', '可访问学生端'),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=['phone'],

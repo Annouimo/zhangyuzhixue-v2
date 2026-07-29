@@ -342,6 +342,10 @@ class ContentContribution(models.Model):
         verbose_name = '内容贡献'
         verbose_name_plural = '内容贡献审核'
         ordering = ['-updated_at']
+        permissions = [
+            ('access_review_workbench', '可访问内容审核工作台'),
+            ('publish_content_contribution', '可将投稿录入正式题库'),
+        ]
 
     def __str__(self):
         return f'{self.get_contribution_type_display()} #{self.pk}'

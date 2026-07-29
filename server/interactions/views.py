@@ -23,7 +23,7 @@ from interactions.models import (
 )
 from interactions.serializers import SyncPushSerializer
 from django.db.models import F as DbF, Sum
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsStudent
 
 ENTITY_ORDER = [
     'submission',
@@ -329,7 +329,7 @@ class SyncPushView(APIView):
 
 class ExamExploreView(APIView):
     """获取全平台公开组卷列表（不含当前用户自己的）"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     @extend_schema(
         responses={200: OpenApiResponse(description='公开组卷列表')},
@@ -382,7 +382,7 @@ class ExamExploreView(APIView):
 
 class ExamPreviewOtherView(APIView):
     """获取他人组卷预览详情"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     @extend_schema(
         responses={200: OpenApiResponse(description='组卷预览详情')},
@@ -445,7 +445,7 @@ class ExamPreviewOtherView(APIView):
 
 class ExamFavoritesView(APIView):
     """获取收藏组卷的详情列表（按 paper_id 批量查询）"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     @extend_schema(
         responses={200: OpenApiResponse(description='收藏组卷详情列表')},

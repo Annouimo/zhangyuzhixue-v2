@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFoun
 from django.shortcuts import get_object_or_404, render
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsStudent
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
@@ -57,7 +57,7 @@ def _check_sig(sig, source_id, source_type, student_id, expire):
     responses={200: OpenApiResponse(description='换取 PDF 访问签名')},
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 @throttle_classes([PdfTokenRateThrottle])
 def pdf_request_token(request):
     """换取 PDF 访问签名"""

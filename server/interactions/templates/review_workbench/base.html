@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>{% block title %}内容审核工作台{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=1">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{% url 'review_workbench:queue' %}">
+      <span class="brand-mark">章</span>
+      <span><strong>章鱼智学</strong><small>内容审核工作台</small></span>
+    </a>
+    <div class="account">
+      <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+      <form method="post" action="{% url 'review_workbench:logout' %}">
+        {% csrf_token %}<button class="icon-button" type="submit" title="退出登录" aria-label="退出登录">&#x2192;</button>
+      </form>
+    </div>
+  </header>
+  {% if messages %}<div class="messages">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+  <main class="workspace">{% block content %}{% endblock %}</main>
+</body>
+</html>

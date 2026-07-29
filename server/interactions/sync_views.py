@@ -17,7 +17,7 @@ import uuid
 from django.conf import settings
 from django.db.models import Prefetch
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from accounts.permissions import IsStudent
 
 from interactions.models import (
     CustomPaper,
@@ -453,7 +453,7 @@ def _dump_preferences(conn, student):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def pull_user_db(request):
     """生成该学生的 user.db.gz，返回下载信息。"""
     student = getattr(request.user, 'student', None)

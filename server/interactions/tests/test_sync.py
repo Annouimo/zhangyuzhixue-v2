@@ -452,15 +452,14 @@ class TestSyncPullUserDB:
         assert resp.status_code == 401
 
     def test_non_student_pull(self, api_client, db):
-        """无 Student 资料的普通用户 → 40003"""
+        """无学生权限的普通用户在权限层被拒绝。"""
         from django.contrib.auth.models import User
         from rest_framework_simplejwt.tokens import RefreshToken
         user = User.objects.create_user('plain_user', password='test123')
         refresh = RefreshToken.for_user(user)
         api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
         resp = api_client.get(reverse('sync-user-pull'))
-        assert resp.status_code == 400
-        assert resp.data['code'] == 40003
+        assert resp.status_code == 403
 
     def test_pull_success_empty(self, auth_client):
         """学生无数据可拉 — 仍返回有效响应"""

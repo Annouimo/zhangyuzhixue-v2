@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
+from accounts.models import Student
 from courses.models import Course, Document
 
 
@@ -14,7 +15,9 @@ def api_client():
 
 @pytest.fixture
 def student_user(db):
-    return User.objects.create_user('lecturestudent', password='test123')
+    user = User.objects.create_user('lecturestudent', password='test123')
+    Student.objects.create(user=user)
+    return user
 
 
 @pytest.fixture
@@ -43,6 +46,14 @@ def sample_documents(db, sample_course):
 
 class TestLectureCourses:
     """课程列表 API 测试"""
+
+    def test_plain_authenticated_user_is_denied(self, db, api_client):
+        from rest_framework_simplejwt.tokens import RefreshToken
+        user = User.objects.create_user('plainlecture', password='test123')
+        token = RefreshToken.for_user(user).access_token
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
+        response = api_client.get(reverse('lecture-courses'))
+        assert response.status_code == 403
 
     def test_authenticated_user_sees_all_courses(self, auth_client, sample_course):
         """讲义不再按班级或角色限制。"""

@@ -22,6 +22,9 @@ class ProjectProfile(models.Model):
     class Meta:
         verbose_name = '项目概览'
         verbose_name_plural = '项目概览'
+        permissions = [
+            ('access_internal_portal', '可访问内部资料门户'),
+        ]
 
     def clean(self):
         if ProjectProfile.objects.exclude(pk=self.pk).exists():
