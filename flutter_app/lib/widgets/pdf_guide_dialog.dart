@@ -40,35 +40,62 @@ Future<PdfGuideAction?> showPdfGuideDialog(BuildContext context) {
           ),
         ],
       ),
-      actions: [
-        AppButton(
-          onPressed: () => Navigator.of(ctx).pop(),
-          label: '取消',
-          type: AppButtonType.text,
-          expanded: false,
-        ),
-        if (!isMobile)
-          AppButton(
-            onPressed: () => Navigator.of(ctx).pop(PdfGuideAction.copy),
-            label: '复制链接',
-            type: AppButtonType.secondary,
-            expanded: false,
-          ),
-        AppButton(
-          onPressed: () => Navigator.of(
-            ctx,
-          ).pop(isMobile ? PdfGuideAction.copy : PdfGuideAction.open),
-          label: isMobile ? '复制链接，发送到电脑' : '打开打印页面',
-          expanded: false,
-        ),
-        if (isMobile)
-          AppButton(
-            onPressed: () => Navigator.of(ctx).pop(PdfGuideAction.open),
-            label: '仍在手机打开',
-            type: AppButtonType.text,
-            expanded: false,
-          ),
-      ],
+      actions: isMobile
+          ? [
+              SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AppButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            label: '取消',
+                            type: AppButtonType.text,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: AppButton(
+                            onPressed: () =>
+                                Navigator.of(ctx).pop(PdfGuideAction.open),
+                            label: '仍在手机打开',
+                            type: AppButtonType.text,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    AppButton(
+                      onPressed: () =>
+                          Navigator.of(ctx).pop(PdfGuideAction.copy),
+                      label: '复制链接，发送到电脑',
+                    ),
+                  ],
+                ),
+              ),
+            ]
+          : [
+              AppButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                label: '取消',
+                type: AppButtonType.text,
+                expanded: false,
+              ),
+              AppButton(
+                onPressed: () => Navigator.of(ctx).pop(PdfGuideAction.copy),
+                label: '复制链接',
+                type: AppButtonType.secondary,
+                expanded: false,
+              ),
+              AppButton(
+                onPressed: () => Navigator.of(ctx).pop(PdfGuideAction.open),
+                label: '打开打印页面',
+                expanded: false,
+              ),
+            ],
     ),
   );
 }

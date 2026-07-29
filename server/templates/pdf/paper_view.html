@@ -101,16 +101,17 @@ body:not(.show-questions):not(.show-answer-sheet).show-answers .detailed-answers
 .answer-notice { margin-bottom: 1em; padding: .65em .8em; border: .5pt solid #888; font-size: 9.5pt; line-height: 1.55; }
 .sheet-section { margin-bottom: 1.2em; }
 .sheet-section-title { margin-bottom: .55em; font-size: 12pt; }
-.bubble-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .65em 2em; padding: .7em; border: .7pt solid #555; }
-.bubble-row { display: flex; align-items: center; gap: .7em; min-height: 2.2em; }
-.bubble-number { width: 2em; font-weight: 700; }
-.bubble-option { display: inline-grid; place-items: center; width: 2em; height: 1.45em; border: .7pt solid #555; border-radius: 3px; font-size: 9.5pt; }
-.fill-sheet-item { min-height: 3.2em; margin-bottom: .6em; padding: .5em .7em; border: .7pt solid #555; break-inside: avoid; page-break-inside: avoid; }
+.choice-sheet-table { width: 100%; margin-bottom: .7em; border-collapse: collapse; table-layout: fixed; text-align: center; }
+.choice-sheet-table th, .choice-sheet-table td { border: .7pt solid #555; }
+.choice-sheet-table th { height: 8mm; background: #f1f1f1; font-size: 9.5pt; }
+.choice-sheet-table th:first-child, .choice-sheet-table td:first-child { width: 12mm; font-weight: 700; }
+.choice-sheet-table td { height: 14mm; font-size: 12pt; }
+.fill-sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 7mm; }
+.fill-sheet-item { min-height: 19mm; padding: 2.5mm 3mm; border: .7pt solid #555; break-inside: avoid; page-break-inside: avoid; }
 .sheet-question-number { font-weight: 700; }
-.solution-sheet-item { position: relative; margin-bottom: 1em; padding: .55em .7em; border: .8pt solid #444; break-inside: avoid; page-break-inside: avoid; }
-.solution-sheet-item.half { min-height: 112mm; }
-.solution-sheet-item.full { min-height: 225mm; page-break-before: always; }
-.solution-sheet-item.full:first-of-type { page-break-before: auto; }
+.solution-sheet-section { page-break-before: always; }
+.solution-sheet-item { position: relative; min-height: 225mm; padding: .55em .7em; border: .8pt solid #444; break-inside: avoid; page-break-inside: avoid; page-break-before: always; }
+.solution-sheet-item:first-of-type { page-break-before: auto; }
 .sheet-score { float: right; color: #555; font-size: 9.5pt; }
 .practice-note { margin-top: 1.2em; text-align: center; color: #777; font-size: 8.5pt; }
 .detail-question { margin-bottom: 1.5em; }
@@ -143,7 +144,7 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 .print-options { display: flex; align-items: center; gap: 10px; }
 .print-option { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .print-option input { width: 16px; height: 16px; }
-.presets { display: flex; gap: 5px; }
+.presets { display: grid; grid-template-columns: repeat(4, max-content); gap: 5px; }
 .preset-button { min-height: 28px; padding: 0 7px; border-color: #c4cad3; background: #f7f8fa; color: #344054; font-size: 12px; }
 .warning-button { display: none; border-color: #c47d00; background: #fff7df; color: #805300; }
 .warning-button.visible { display: inline-block; }
@@ -158,13 +159,14 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 .progress-bar { width: 0; height: 100%; background: #155eef; transition: width .2s ease; }
 .progress-panel.ready .progress-bar { background: #16803c; }
 .load-warning { display: none; margin-top: 7px; color: #9a5b00; }
-@media (max-width: 900px) { .brand { width: 100%; } .paper-wrapper { margin-top: 150px; } }
-@media (max-width: 720px) { .toolbar { align-items: stretch; } .print-options, .presets { width: 100%; flex-wrap: wrap; } .paper-wrapper { width: 100%; margin-top: 220px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .bubble-grid, .fill-answer-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .brand { width: 100%; } .presets { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; } .paper-wrapper { margin-top: 178px; } }
+@media (max-width: 720px) { .toolbar { align-items: stretch; } .print-options { width: 100%; flex-wrap: wrap; } .control { width: 100%; } .control select { min-width: 0; max-width: 100%; flex: 1; } .paper-wrapper { width: 100%; margin-top: 260px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .fill-sheet-grid, .fill-answer-grid { grid-template-columns: 1fr; } .guide-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } }
 @media print {
   body { background: white; }
   p { orphans: 3; widows: 3; }
   .toolbar, .progress-panel, .dialog-backdrop { display: none !important; }
   .paper-wrapper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+  .fill-sheet-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -179,12 +181,13 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
     <label class="print-option"><input type="checkbox" value="details"> 详细解析</label>
   </div>
   <div class="presets" aria-label="快捷组合">
-    <button class="preset-button" type="button" data-preset="student">学生用卷</button>
-    <button class="preset-button" type="button" data-preset="teacher">教师用卷</button>
-    <button class="preset-button" type="button" data-preset="answers">对答案</button>
+    <button class="preset-button" type="button" data-preset="practice">日常练习</button>
+    <button class="preset-button" type="button" data-preset="exam">模拟考试</button>
+    <button class="preset-button" type="button" data-preset="teacher">教师参考</button>
+    <button class="preset-button" type="button" data-preset="answers">核对答案</button>
   </div>
-  <label class="control">版式
-    <select id="layout-control"><option value="standard">标准</option><option value="compact">紧凑</option></select>
+  <label class="control">试题版式
+    <select id="layout-control"><option value="standard">卷内作答（留出书写空间）</option><option value="compact">紧凑排版（配合作答纸）</option></select>
   </label>
   {% if print_warnings %}<button id="warning-button" class="warning-button visible" type="button">发现 {{ print_warnings|length }} 处内容可能异常</button>{% endif %}
   <button id="guide-button" class="secondary-button" type="button">保存 PDF 指引</button>
@@ -267,37 +270,37 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
     <div class="candidate-field">考号：</div><div class="candidate-field">日期：</div>
   </div>
   <div class="answer-notice">
-    <strong>作答须知：</strong>选择题建议使用 2B 铅笔填涂；非选择题建议使用黑色签字笔作答。请按题号在指定区域内书写，并保持纸面整洁。
+    <strong>作答须知：</strong>请按题号在指定区域内填写或书写答案，并保持纸面整洁。
   </div>
 
   {% if answer_sections.choice_rows %}
   <section class="sheet-section">
     <h2 class="sheet-section-title">一、选择题作答区</h2>
-    <div class="bubble-grid">
-      {% for row in answer_sections.choice_rows %}{% for question in row %}
-      <div class="bubble-row">
-        <span class="bubble-number">{{ question.number }}.</span>
-        <span class="bubble-option">A</span><span class="bubble-option">B</span><span class="bubble-option">C</span><span class="bubble-option">D</span>
-      </div>
-      {% endfor %}{% endfor %}
-    </div>
+    {% for row in answer_sections.choice_sheet_rows %}
+    <table class="choice-sheet-table">
+      <tr><th>题号</th>{% for question in row %}<th>{{ question.number }}</th>{% endfor %}</tr>
+      <tr><td>答案</td>{% for question in row %}<td></td>{% endfor %}</tr>
+    </table>
+    {% endfor %}
   </section>
   {% endif %}
 
   {% if answer_sections.fill_questions %}
   <section class="sheet-section">
     <h2 class="sheet-section-title">二、填空题作答区</h2>
-    {% for question in answer_sections.fill_questions %}
-    <div class="fill-sheet-item"><span class="sheet-question-number">{{ question.number }}.</span></div>
-    {% endfor %}
+    <div class="fill-sheet-grid">
+      {% for question in answer_sections.fill_questions %}
+      <div class="fill-sheet-item"><span class="sheet-question-number">{{ question.number }}.</span></div>
+      {% endfor %}
+    </div>
   </section>
   {% endif %}
 
   {% if answer_sections.solution_questions %}
-  <section class="sheet-section">
+  <section class="sheet-section solution-sheet-section">
     <h2 class="sheet-section-title">三、解答题作答区</h2>
     {% for question in answer_sections.solution_questions %}
-    <div class="solution-sheet-item {{ question.answer_sheet_height }}">
+    <div class="solution-sheet-item">
       <span class="sheet-question-number">{{ question.number }}.</span>
       {% if question.score %}<span class="sheet-score">本题参考分值 {{ question.score|floatformat:"-1" }} 分</span>{% endif %}
     </div>
@@ -456,11 +459,18 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   presets.forEach(function (preset) {
     preset.addEventListener('click', function () {
       var combinations = {
-        student: ['questions', 'answer-sheet'],
-        teacher: ['questions', 'answers', 'details'],
-        answers: ['answers']
+        practice: {sections: ['questions'], layout: 'standard'},
+        exam: {sections: ['questions', 'answer-sheet'], layout: 'compact'},
+        teacher: {sections: ['questions', 'answers', 'details'], layout: 'compact'},
+        answers: {sections: ['answers'], layout: null}
       };
-      setPreset(combinations[preset.getAttribute('data-preset')]);
+      var combination = combinations[preset.getAttribute('data-preset')];
+      setPreset(combination.sections);
+      if (combination.layout) {
+        layout.value = combination.layout;
+        document.body.classList.toggle('compact', layout.value === 'compact');
+        store('pdf_print_layout', layout.value);
+      }
     });
   });
   guideButton.addEventListener('click', function () { openDialog(guideDialog); });
