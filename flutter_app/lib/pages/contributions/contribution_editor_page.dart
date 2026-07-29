@@ -73,7 +73,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   String? _verificationError;
 
   bool get _isCorrection => _contributionType == 'question_correction';
-  bool get _isSolution => _contributionType == 'solution_contribution';
+  bool get _isSolution => _contributionType == 'new_solution';
+  bool get _isOriginal => _mode == 'original' || _mode == 'solution_original';
 
   @override
   void initState() {
@@ -83,8 +84,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         ? '${DateTime.now().microsecondsSinceEpoch}'
         : 'resubmit-${widget.contributionId}';
     _questionId = widget.questionId;
-    if (_mode == 'solution') {
-      _contributionType = 'solution_contribution';
+    if (_mode == 'solution' || _mode.startsWith('solution_')) {
+      _contributionType = 'new_solution';
     } else if (_questionId != null || _mode == 'correction') {
       _contributionType = 'question_correction';
     }
@@ -464,7 +465,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     source['region'] = _sourceRegionController.text.trim();
     source['source_name'] = _sourceExamController.text.trim();
     source['question_number'] = _sourceNumberController.text.trim();
-    if (_mode == 'original') {
+    if (_isOriginal) {
       source
         ..['source_type'] = 'self_created'
         ..['year'] = null
@@ -605,12 +606,12 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          _mode == 'original' ? '原创声明' : '来源信息',
+          _isOriginal ? '原创声明' : '来源信息',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          _mode == 'original'
+          _isOriginal
               ? '提交即表示这是本人原创题目，且有权授权平台审核和收录。'
               : '来源已在上一阶段填写，请确认年份、地区、资料名称和原题题号准确。',
         ),
@@ -727,10 +728,12 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     try {
       final body = <String, dynamic>{
         'contribution_type': _isSolution
-            ? 'solution_contribution'
+            ? 'new_solution'
             : _isCorrection
             ? 'question_correction'
             : 'new_question',
+        if (!_isCorrection)
+          'content_origin': _isOriginal ? 'original' : 'external',
         if (_isCorrection || _isSolution) 'question_id': _questionId,
         if (_isSolution) 'target_sub_question_id': _targetSubQuestionId,
         'raw_json': _isCorrection || _isSolution ? '' : _jsonController.text,
@@ -739,6 +742,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                 'method_name': _methodNameController.text.trim(),
                 'source': _methodSourceController.text.trim(),
                 'summary': _methodSummaryController.text.trim(),
+                if (_isOriginal) 'originality_confirmed': true,
                 'steps': _solutionSteps.map((step) => step.toJson()).toList(),
               }
             : _isCorrection
@@ -748,7 +752,10 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                 'suggestion': _suggestionController.text.trim(),
                 'evidence': _evidenceController.text.trim(),
               }
-            : _editedPayload(),
+            : {
+                ..._editedPayload(),
+                if (_isOriginal) 'originality_confirmed': true,
+              },
         'tag_ids': _tagIds.toList(),
         'tag_suggestions': _newTags,
       };
@@ -800,7 +807,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             ? '投稿题目解法'
             : _isCorrection
             ? '反馈题目错误'
-            : _mode == 'original'
+            : _isOriginal
             ? '投稿原创题目'
             : '收录已有题目',
       ),
@@ -812,6 +819,20 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
               RouterUtils.push(context, AppRoutes.contributionHelp),
         ),
       ],
+      bottom: _loading
+          ? null
+          : PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                ),
+                child: _buildProgress(),
+              ),
+            ),
     ),
     body: _loading
         ? const LoadingIndicator(message: '正在加载投稿配置')
@@ -828,8 +849,6 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: AppCard(child: Text('审核意见：$_reviewNote')),
                   ),
-                _buildProgress(),
-                const SizedBox(height: AppSpacing.md),
                 _buildCurrentStep(),
                 const SizedBox(height: AppSpacing.lg),
                 Row(
@@ -881,19 +900,24 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     children: [
       for (var index = 0; index < _stepTitles.length; index++) ...[
         Expanded(
-          child: Column(
-            children: [
-              LinearProgressIndicator(value: index <= _currentStep ? 1 : 0),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                _stepTitles[index],
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: index == _currentStep
-                      ? context.colors.primary
-                      : context.colors.textSecondary,
+          child: InkWell(
+            onTap: index <= _currentStep
+                ? () => setState(() => _currentStep = index)
+                : null,
+            child: Column(
+              children: [
+                LinearProgressIndicator(value: index <= _currentStep ? 1 : 0),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  _stepTitles[index],
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: index == _currentStep
+                        ? context.colors.primary
+                        : context.colors.textSecondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (index < _stepTitles.length - 1)

@@ -380,8 +380,12 @@ class ContentContribution(models.Model):
 
     class ContributionType(models.TextChoices):
         NEW_QUESTION = 'new_question', '新题投稿'
-        SOLUTION_CONTRIBUTION = 'solution_contribution', '解法投稿'
+        NEW_SOLUTION = 'new_solution', '解法投稿'
         QUESTION_CORRECTION = 'question_correction', '题目纠错'
+
+    class ContentOrigin(models.TextChoices):
+        EXTERNAL = 'external', '外部'
+        ORIGINAL = 'original', '原创'
 
     class Status(models.TextChoices):
         PENDING = 'pending', '待首次审核'
@@ -399,6 +403,10 @@ class ContentContribution(models.Model):
     contribution_type = models.CharField(
         '贡献类型', max_length=32, choices=ContributionType.choices
     )
+    content_origin = models.CharField(
+        '来源性质', max_length=16, choices=ContentOrigin.choices,
+        null=True, blank=True,
+    )
     question = models.ForeignKey(
         BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='correction_contributions', verbose_name='纠错题目',
@@ -410,6 +418,10 @@ class ContentContribution(models.Model):
     completed_question = models.ForeignKey(
         BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='completed_contributions', verbose_name='处理后题目',
+    )
+    completed_solution_method = models.ForeignKey(
+        'qbank.SolutionMethod', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='source_contributions', verbose_name='处理后解法',
     )
     status = models.CharField(
         '状态', max_length=24, choices=Status.choices,

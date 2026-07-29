@@ -1,6 +1,14 @@
 ﻿from django.db import models
 
 
+from accounts.models import Student
+
+
+class ContentOrigin(models.TextChoices):
+    EXTERNAL = 'external', '外部'
+    ORIGINAL = 'original', '原创'
+
+
 class ConceptTag(models.Model):
     """概念标签 - 树形结构"""
     name = models.CharField('标签名', max_length=64, unique=True)
@@ -50,6 +58,14 @@ class BaseQuestion(models.Model):
         '试卷或资料名称', max_length=255, blank=True, default=''
     )
     number = models.CharField('题号', max_length=16, blank=True, default='')
+    content_origin = models.CharField(
+        '来源性质', max_length=16, choices=ContentOrigin.choices,
+        default=ContentOrigin.EXTERNAL,
+    )
+    contributed_by = models.ForeignKey(
+        Student, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='contributed_questions', verbose_name='题目投稿人',
+    )
     question_type = models.CharField(
         '题型', max_length=16, choices=QUESTION_TYPE_CHOICES
     )
@@ -58,6 +74,7 @@ class BaseQuestion(models.Model):
     stem = models.TextField('题干（不含img标签）')
     images = models.JSONField('配图路径列表', blank=True, default=list)
     default_score = models.FloatField('参考分值', null=True, blank=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
 
     # 多对多关联
     concept_tags = models.ManyToManyField(
@@ -164,6 +181,14 @@ class SolutionMethod(models.Model):
                                    null=True, blank=True,
                                    help_text='null=唯一解法')
     source = models.CharField('来源', max_length=32, blank=True, default='')
+    content_origin = models.CharField(
+        '来源性质', max_length=16, choices=ContentOrigin.choices,
+        default=ContentOrigin.EXTERNAL,
+    )
+    contributed_by = models.ForeignKey(
+        Student, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='contributed_solution_methods', verbose_name='解法投稿人',
+    )
     sort_order = models.IntegerField('排序')
 
     class Meta:

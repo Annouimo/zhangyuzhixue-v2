@@ -72,7 +72,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
     final detail = _detail!;
     final status = detail['status'] as String? ?? 'pending';
     final isCorrection = detail['contribution_type'] == 'question_correction';
-    final isSolution = detail['contribution_type'] == 'solution_contribution';
+    final isSolution = detail['contribution_type'] == 'new_solution';
     final submissionPayload = Map<String, dynamic>.from(
       detail['payload'] as Map? ?? const {},
     );

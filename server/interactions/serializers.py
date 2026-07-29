@@ -176,6 +176,10 @@ class ContributionWriteSerializer(serializers.Serializer):
     contribution_type = serializers.ChoiceField(
         choices=ContentContribution.ContributionType.choices,
     )
+    content_origin = serializers.ChoiceField(
+        choices=ContentContribution.ContentOrigin.choices,
+        required=False, allow_null=True,
+    )
     question_id = serializers.IntegerField(required=False, allow_null=True)
     target_sub_question_id = serializers.IntegerField(required=False, allow_null=True)
     raw_json = serializers.CharField(required=False, allow_blank=True, max_length=100000)
@@ -190,20 +194,38 @@ class ContributionWriteSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         contribution_type = attrs['contribution_type']
+        content_origin = attrs.get('content_origin')
         question_id = attrs.get('question_id')
         target_sub_question_id = attrs.get('target_sub_question_id')
         payload = attrs['payload']
         if contribution_type == ContentContribution.ContributionType.NEW_QUESTION:
+            if content_origin is None:
+                raise serializers.ValidationError('新题投稿必须选择来源性质')
             validate_question_payload(payload)
             if question_id is not None:
                 raise serializers.ValidationError('新题投稿不能关联已有题目')
             if target_sub_question_id is not None:
                 raise serializers.ValidationError('新题投稿不能关联已有小题')
-        elif contribution_type == ContentContribution.ContributionType.SOLUTION_CONTRIBUTION:
+            source = payload.get('source', {})
+            if content_origin == ContentContribution.ContentOrigin.ORIGINAL:
+                source['source_type'] = 'self_created'
+                if not payload.get('originality_confirmed'):
+                    raise serializers.ValidationError('请确认原创声明')
+            elif not str(source.get('source_name', '')).strip():
+                raise serializers.ValidationError('外部题目需要填写来源名称')
+        elif contribution_type == ContentContribution.ContributionType.NEW_SOLUTION:
+            if content_origin is None:
+                raise serializers.ValidationError('解法投稿必须选择来源性质')
             if question_id is None or target_sub_question_id is None:
                 raise serializers.ValidationError('解法投稿必须关联已有题目和小题')
             validate_solution_payload(payload)
+            if content_origin == ContentContribution.ContentOrigin.ORIGINAL:
+                if not payload.get('originality_confirmed'):
+                    raise serializers.ValidationError('请确认原创声明')
+            elif not str(payload.get('source', '')).strip():
+                raise serializers.ValidationError('外部解法需要填写来源')
         else:
+            attrs['content_origin'] = None
             if question_id is None:
                 raise serializers.ValidationError('题目纠错必须关联已有题目')
             categories = payload.get('categories') if isinstance(payload, dict) else None
@@ -214,6 +236,11 @@ class ContributionWriteSerializer(serializers.Serializer):
                 raise serializers.ValidationError('错误类型无效')
             if not isinstance(description, str) or len(description.strip()) < 10:
                 raise serializers.ValidationError('问题说明至少需要 10 个字符')
+            proposed = payload.get('proposed_question')
+            if proposed is not None:
+                validate_question_payload(proposed)
+                if not isinstance(payload.get('base_updated_at'), str):
+                    raise serializers.ValidationError('纠错缺少原题版本')
         needs_tags = (
             contribution_type == ContentContribution.ContributionType.NEW_QUESTION
             and not attrs.get('tag_ids')

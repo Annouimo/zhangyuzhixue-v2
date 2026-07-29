@@ -49,7 +49,7 @@ class ContributionReviewForm(forms.Form):
                 f'JSON 格式错误：第 {exc.lineno} 行第 {exc.colno} 列'
             ) from exc
         try:
-            if self.contribution_type == 'solution_contribution':
+            if self.contribution_type == 'new_solution':
                 validate_solution_payload(payload)
             else:
                 validate_question_payload(payload)

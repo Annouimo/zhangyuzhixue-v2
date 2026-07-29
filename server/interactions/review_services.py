@@ -32,8 +32,10 @@ def question_payload(question):
         (key for key, label in SOURCE_LABELS.items() if label == question.exam_type),
         'other',
     )
+    tag_names = list(question.concept_tags.values_list('name', flat=True))
     return {
-        'schema_version': 1,
+        'schema_version': 2,
+        'base_updated_at': question.updated_at.isoformat(),
         'question_type': question.question_type,
         'stem': question.stem,
         'options': options,
@@ -45,10 +47,17 @@ def question_payload(question):
                 'explanation': item.explanation,
                 'solution_methods': [
                     {
+                        'id': method.pk,
                         'method_name': method.method_name or '',
                         'source': method.source,
+                        'content_origin': method.content_origin,
+                        'contributor_username': (
+                            method.contributed_by.user.username
+                            if method.contributed_by_id else None
+                        ),
                         'steps': [
                             {
+                                'id': step.pk,
                                 'title': step.title,
                                 'content': step.content,
                                 'card_titles': step.card_titles,
@@ -68,7 +77,15 @@ def question_payload(question):
             'source_name': question.source_name,
             'question_number': question.number,
         },
-        'suggested_tags': list(question.concept_tags.values_list('name', flat=True)),
+        'content_origin': question.content_origin,
+        'contributor_username': (
+            question.contributed_by.user.username
+            if question.contributed_by_id else None
+        ),
+        'images': question.images,
+        'default_score': question.default_score,
+        'suggested_tags': tag_names,
+        'tags': tag_names,
         'difficulty': min(DIFFICULTY_VALUES, key=lambda key: abs(
             DIFFICULTY_VALUES[key] - (question.difficulty or 3.0)
         )),
@@ -104,7 +121,10 @@ def resolve_tags(contribution, selected_tags, approved_suggestion_ids):
 
 
 @transaction.atomic
-def save_official_question(payload, tags, question=None):
+def save_official_question(
+    payload, tags, question=None, content_origin='external', contributor=None,
+    replace_methods=False,
+):
     source = payload.get('source', {})
     values = {
         'year': source.get('year'),
@@ -120,17 +140,20 @@ def save_official_question(payload, tags, question=None):
         'difficulty': DIFFICULTY_VALUES[payload['difficulty']],
         'calculation': CALCULATION_VALUES[payload['calculation']],
         'stem': payload['stem'].strip(),
+        'images': payload.get('images', []),
+        'default_score': payload.get('default_score'),
+        'content_origin': content_origin,
     }
     existing_sub_questions = []
     if question is None:
-        question = BaseQuestion.objects.create(**values)
+        question = BaseQuestion.objects.create(**values, contributed_by=contributor)
     else:
         existing_sub_questions = list(
             question.sub_questions.order_by('sort_order', 'pk')
         )
         for field, value in values.items():
             setattr(question, field, value)
-        question.save(update_fields=list(values))
+        question.save()
 
     if payload['question_type'] == 'choice':
         ChoiceExt.objects.update_or_create(
@@ -151,20 +174,34 @@ def save_official_question(payload, tags, question=None):
             'explanation': item.get('explanation', '').strip(),
             'sort_order': index,
         }
-        if index <= len(existing_sub_questions):
+        submitted_id = item.get('id')
+        matching = next(
+            (sub for sub in existing_sub_questions if sub.pk == submitted_id),
+            None,
+        ) if submitted_id else None
+        if matching is not None:
+            sub_question = matching
+        elif question.pk and index <= len(existing_sub_questions) and not submitted_id:
             sub_question = existing_sub_questions[index - 1]
+        else:
+            sub_question = None
+        if sub_question is not None:
             for field, value in values.items():
                 setattr(sub_question, field, value)
             sub_question.save(update_fields=list(values))
         else:
             sub_question = SubQuestion.objects.create(question=question, **values)
         submitted_methods = item.get('solution_methods', [])
-        if submitted_methods:
-            sub_question.solution_methods.all().delete()
-            for method_index, method_data in enumerate(submitted_methods, start=1):
-                save_solution_method(sub_question, method_data, method_index)
-    for stale_sub_question in existing_sub_questions[len(submitted_sub_questions):]:
-        stale_sub_question.delete()
+        if submitted_methods or replace_methods:
+            _replace_solution_methods(
+                sub_question, submitted_methods, contributor=contributor,
+                default_origin=content_origin,
+            )
+    submitted_sub_ids = {item.get('id') for item in submitted_sub_questions}
+    if replace_methods:
+        for stale_sub_question in existing_sub_questions:
+            if stale_sub_question.pk not in submitted_sub_ids:
+                stale_sub_question.delete()
     QuestionConceptTag.objects.filter(question=question).delete()
     QuestionConceptTag.objects.bulk_create([
         QuestionConceptTag(question=question, concept_tag=tag) for tag in tags
@@ -173,7 +210,10 @@ def save_official_question(payload, tags, question=None):
 
 
 @transaction.atomic
-def save_solution_method(sub_question, payload, sort_order=None):
+def save_solution_method(
+    sub_question, payload, sort_order=None, content_origin='external',
+    contributor=None,
+):
     if sort_order is None:
         last = sub_question.solution_methods.order_by('-sort_order').first()
         sort_order = (last.sort_order if last else 0) + 1
@@ -181,6 +221,8 @@ def save_solution_method(sub_question, payload, sort_order=None):
         sub_question=sub_question,
         method_name=payload.get('method_name', '').strip() or None,
         source=payload.get('source', '').strip(),
+        content_origin=content_origin,
+        contributed_by=contributor,
         sort_order=sort_order,
     )
     SolutionStep.objects.bulk_create([
@@ -194,3 +236,42 @@ def save_solution_method(sub_question, payload, sort_order=None):
         for index, step in enumerate(payload['steps'], start=1)
     ])
     return method
+
+
+def _replace_solution_methods(
+    sub_question, submitted_methods, contributor=None, default_origin='external',
+):
+    existing = {item.pk: item for item in sub_question.solution_methods.all()}
+    retained = set()
+    for index, payload in enumerate(submitted_methods, start=1):
+        method_id = payload.get('id')
+        method = existing.get(method_id)
+        origin = payload.get('content_origin', default_origin)
+        if method is None:
+            method = save_solution_method(
+                sub_question, payload, index, content_origin=origin,
+                contributor=contributor,
+            )
+        else:
+            retained.add(method.pk)
+            method.method_name = payload.get('method_name', '').strip() or None
+            method.source = payload.get('source', '').strip()
+            method.content_origin = origin
+            method.sort_order = index
+            method.save(update_fields=[
+                'method_name', 'source', 'content_origin', 'sort_order',
+            ])
+            method.solution_steps.all().delete()
+            SolutionStep.objects.bulk_create([
+                SolutionStep(
+                    method=method,
+                    step_number=step_index,
+                    title=step['title'].strip(),
+                    content=step['content'].strip(),
+                    card_titles=step.get('card_titles', []),
+                )
+                for step_index, step in enumerate(payload['steps'], start=1)
+            ])
+    for method_id, method in existing.items():
+        if method_id not in retained:
+            method.delete()

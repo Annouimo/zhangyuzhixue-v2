@@ -18,8 +18,7 @@ from .models import ContentContribution, ContributionReview
 from .models import ContributionTagSuggestion
 from .review_forms import ContributionReviewForm, ReviewerAuthenticationForm
 from .review_services import (
-    SOURCE_LABELS, question_payload, resolve_tags, save_official_question,
-    save_solution_method,
+    question_payload, resolve_tags, save_official_question, save_solution_method,
 )
 from .contribution_notification_service import (
     schedule_contribution_notification,
@@ -117,40 +116,21 @@ def _initial_payload(contribution):
     if contribution.contribution_type == ContentContribution.ContributionType.NEW_QUESTION:
         revision = contribution.revisions.order_by('-revision_number').first()
         return revision.normalized_payload if revision else {}
-    if contribution.contribution_type == ContentContribution.ContributionType.SOLUTION_CONTRIBUTION:
+    if contribution.contribution_type == ContentContribution.ContributionType.NEW_SOLUTION:
         revision = contribution.revisions.order_by('-revision_number').first()
         return revision.normalized_payload if revision else {}
+    revision = contribution.revisions.order_by('-revision_number').first()
+    if revision:
+        proposed = revision.normalized_payload.get('proposed_question')
+        if proposed:
+            return proposed
     return question_payload(contribution.question)
 
 
 def _original_correction_payload(contribution, revision):
     if not revision or not revision.question_snapshot:
         return question_payload(contribution.question)
-    snapshot = revision.question_snapshot
-    current = question_payload(contribution.question)
-    options = snapshot.get('options', {})
-    current.update({
-        'question_type': snapshot.get('question_type', current['question_type']),
-        'stem': snapshot.get('stem', current['stem']),
-        'options': [
-            {'key': key, 'content': value} for key, value in options.items()
-        ],
-        'sub_questions': snapshot.get('sub_questions', current['sub_questions']),
-        'source': {
-            'source_type': next(
-                (
-                    key for key, label in SOURCE_LABELS.items()
-                    if label == snapshot.get('exam_type')
-                ),
-                'other',
-            ),
-            'year': snapshot.get('year'),
-            'region': snapshot.get('region', ''),
-            'source_name': snapshot.get('source_name', ''),
-            'question_number': snapshot.get('number', ''),
-        },
-    })
-    return current
+    return revision.question_snapshot
 
 
 def _detail_url(request, contribution_id):
@@ -352,7 +332,7 @@ def _apply_action(request, contribution_id, form, action):
         tags = resolve_tags(contribution, selected_tags, approved_ids)
         if (
             contribution.contribution_type
-            != ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
+            != ContentContribution.ContributionType.NEW_SOLUTION
             and not tags
         ):
             raise ValueError('录入正式题库前至少需要一个标签。')
@@ -360,20 +340,45 @@ def _apply_action(request, contribution_id, form, action):
             ContentContribution.ContributionType.QUESTION_CORRECTION
         )
         is_solution = contribution.contribution_type == (
-            ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
+            ContentContribution.ContributionType.NEW_SOLUTION
         )
         if is_solution:
             if not contribution.target_sub_question_id:
                 raise ValueError('解法投稿缺少目标小题。')
-            save_solution_method(
+            method = save_solution_method(
                 contribution.target_sub_question,
                 form.cleaned_data['content_json'],
+                content_origin=contribution.content_origin,
+                contributor=contribution.student,
             )
             question = contribution.question
+            contribution.completed_solution_method = method
         else:
             target = contribution.question if is_correction else None
+            content = form.cleaned_data['content_json']
+            if is_correction:
+                latest = contribution.revisions.order_by('-revision_number').first()
+                base_updated_at = (
+                    latest.normalized_payload.get('base_updated_at')
+                    if latest else None
+                )
+                if (
+                    base_updated_at
+                    and base_updated_at != contribution.question.updated_at.isoformat()
+                ):
+                    raise ValueError('正式题目已发生变化，请重新比较后再应用纠错。')
             question = save_official_question(
-                form.cleaned_data['content_json'], tags, question=target
+                content,
+                tags,
+                question=target,
+                content_origin=(
+                    content.get('content_origin', contribution.question.content_origin)
+                    if is_correction else contribution.content_origin
+                ),
+                contributor=None if is_correction else contribution.student,
+                replace_methods=bool(
+                    any(item.get('solution_methods') for item in content['sub_questions'])
+                ),
             )
         contribution.completed_question = question
         contribution.status = ContentContribution.Status.APPROVED_PENDING_RELEASE

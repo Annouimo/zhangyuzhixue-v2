@@ -42,6 +42,7 @@ def new_question_payload():
         'difficulty': 'easy',
         'calculation': 'very_low',
         'uncertainties': [],
+        'originality_confirmed': True,
     }
 
 
@@ -49,6 +50,7 @@ def new_question_payload():
 def test_create_new_question_contribution(auth_client, concept_tag):
     response = auth_client.post(reverse('contribution-list-create'), {
         'contribution_type': 'new_question',
+        'content_origin': 'original',
         'raw_json': '{"schema_version":1}',
         'payload': new_question_payload(),
         'tag_ids': [concept_tag.pk],
@@ -66,6 +68,7 @@ def test_create_new_question_contribution(auth_client, concept_tag):
 def test_new_question_requires_tag(auth_client):
     response = auth_client.post(reverse('contribution-list-create'), {
         'contribution_type': 'new_question',
+        'content_origin': 'original',
         'payload': new_question_payload(),
     }, format='json')
 
@@ -145,6 +148,7 @@ def test_config_includes_latex_live(auth_client, concept_tag):
 def test_legacy_source_fields_are_normalized(auth_client, concept_tag):
     body = {
         'contribution_type': 'new_question',
+        'content_origin': 'original',
         'payload': new_question_payload(),
         'tag_ids': [concept_tag.pk],
     }
@@ -173,13 +177,15 @@ def test_create_solution_contribution_without_reselecting_tags(
         question=question, answer='1', explanation='', sort_order=1,
     )
     response = auth_client.post(reverse('contribution-list-create'), {
-        'contribution_type': 'solution_contribution',
+        'contribution_type': 'new_solution',
+        'content_origin': 'original',
         'question_id': question.pk,
         'target_sub_question_id': sub.pk,
         'payload': {
             'method_name': '换元法',
             'source': 'contributor_original',
             'summary': '先换元再化简',
+            'originality_confirmed': True,
             'steps': [
                 {'title': '换元', 'content': '令 $t=x+1$', 'card_titles': []},
             ],
@@ -198,7 +204,8 @@ def test_solution_target_must_belong_to_question(auth_client):
         question=other, answer='1', explanation='', sort_order=1,
     )
     response = auth_client.post(reverse('contribution-list-create'), {
-        'contribution_type': 'solution_contribution',
+        'contribution_type': 'new_solution',
+        'content_origin': 'external',
         'question_id': question.pk,
         'target_sub_question_id': sub.pk,
         'payload': {
