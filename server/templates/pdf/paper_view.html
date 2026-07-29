@@ -186,6 +186,9 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 .guide-dialog h2 { margin-bottom: .6em; }
 .guide-dialog ol, .guide-dialog ul { padding-left: 1.5em; margin: .6em 0 1em; }
 .guide-dialog-actions { text-align: right; }
+.preparation-dialog { width: min(460px, 100%); }
+.preparation-dialog p { margin: .55em 0; }
+.preparation-status { color: #155eef; font-weight: 600; }
 @media (max-width: 720px) { .toolbar { padding: 8px 12px; gap: 7px; } .brand { margin-right: auto; } .settings-trigger { flex: 0 0 auto; max-width: none; margin-right: 0; padding: 0 9px; } .settings-trigger-copy, .settings-trigger-caret { display: none; } .settings-trigger-mobile { display: inline; } .help-button { display: none; } #print-button { min-width: 0; padding: 0 9px; } .settings-scrim { inset: 0; background: rgba(0,0,0,.42); } .settings-panel { inset: auto 0 0; width: 100%; max-height: min(82vh, 680px); transform: none; border-width: 1px 0 0; border-radius: 8px 8px 0 0; padding: 16px; } .print-options { grid-template-columns: 1fr 1fr; } .settings-guide-button { display: inline-block; } .paper-wrapper { width: 100%; margin-top: 74px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .fill-sheet-grid, .fill-answer-grid { grid-template-columns: 1fr; } .guide-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } }
 @media print {
   body { background: white; }
@@ -258,6 +261,16 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
       <button class="secondary-button" type="button" data-close-dialog>关闭</button>
       <button id="guide-print-button" type="button">继续打印</button>
     </div>
+  </div>
+</div>
+
+<div class="dialog-backdrop" id="preparation-dialog" role="dialog" aria-modal="true" aria-labelledby="preparation-title">
+  <div class="guide-dialog preparation-dialog">
+    <h2 id="preparation-title">正在准备打印内容</h2>
+    <p>首次使用需要加载打印字体、数学公式和题目图片，可能需要一些时间。</p>
+    <p>资源缓存后，再次打开通常会明显加快。</p>
+    <p id="preparation-status" class="preparation-status" aria-live="polite">正在检查页面内容...</p>
+    <div class="guide-dialog-actions"><button type="button" data-close-dialog>知道了</button></div>
   </div>
 </div>
 
@@ -449,6 +462,8 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   var guideDialog = document.getElementById('guide-dialog');
   var warningButton = document.getElementById('warning-button');
   var warningDialog = document.getElementById('warning-dialog');
+  var preparationDialog = document.getElementById('preparation-dialog');
+  var preparationStatus = document.getElementById('preparation-status');
   var currentPreset = null;
   var combinations = {
     practice: {title: '日常练习', sections: ['questions'], layout: 'standard'},
@@ -602,12 +617,25 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   var total = 3 + images.length;
   var completed = 0;
   var failedImages = 0;
+  var preparationFinished = false;
+  var preparationHintTimer = null;
+  if (!readStored('pdf_preparation_hint_seen')) {
+    preparationHintTimer = setTimeout(function () {
+      if (preparationFinished) return;
+      store('pdf_preparation_hint_seen', '1');
+      openDialog(preparationDialog);
+    }, 3000);
+  }
   function update(label) {
     completed += 1;
-    var percent = Math.round(completed / total * 100);
+    var percent = Math.min(100, Math.round(completed / total * 100));
     buttonLabel.textContent = '准备中 ' + percent + '%';
     button.title = label;
-    if (completed === total) {
+    preparationStatus.textContent = label + '（' + percent + '%）';
+    if (completed >= total && !preparationFinished) {
+      preparationFinished = true;
+      if (preparationHintTimer) clearTimeout(preparationHintTimer);
+      closeDialog(preparationDialog);
       button.disabled = false;
       buttonLabel.textContent = failedImages ? '打印（缺 ' + failedImages + ' 张图）' : '打印 / 保存 PDF';
       button.title = failedImages ? '部分图片加载失败，可以继续打印或刷新页面重试' : '打印或保存为 PDF';
