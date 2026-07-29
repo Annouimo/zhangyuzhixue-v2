@@ -1,5 +1,9 @@
 from pathlib import Path
-import tomllib
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - production uses Python 3.10
+    import tomli as tomllib
 
 from auditlog.context import set_actor
 from django.contrib.auth import get_user_model
