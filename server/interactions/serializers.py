@@ -15,6 +15,7 @@ class BatchItemSerializer(serializers.Serializer):
         'card_feedback',
         'question_rating',
         'custom_paper',
+        'paper_folder',
         'paper_like',
         'paper_collect',
         'exitRating',
@@ -22,6 +23,7 @@ class BatchItemSerializer(serializers.Serializer):
         'points_transaction',
     ])
     local_id = serializers.IntegerField()
+    client_ref = serializers.IntegerField(required=False)
     data = serializers.JSONField()
 
 
