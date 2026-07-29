@@ -180,8 +180,8 @@ void main() {
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
     await tester.pumpAndSettle();
     expect(find.text('题目结果 · 1 题'), findsOneWidget);
-    await tester.tap(find.text('手动选题'));
-    await tester.pumpAndSettle();
+    expect(find.text('选择题 1 · 填空题 0 · 解答题 0 · 平均难度 4.0'), findsOneWidget);
+    expect(find.text('手动选题'), findsNothing);
     await tester.ensureVisible(find.text('函数测试题'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('加入试卷'));

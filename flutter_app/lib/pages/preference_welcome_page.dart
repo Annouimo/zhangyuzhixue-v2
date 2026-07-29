@@ -80,19 +80,24 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
           .toList();
       final regions = await _qDao.getDistinctRegions();
       final allTags = await _qDao.getAllConceptTags();
+      final tagLinks = await _qDao.getAllQuestionTagLinks();
       final tags = allTags.map((t) => t.name).toList();
       final examTypes = await _qDao.getDistinctExamTypes();
       final allKcs = await _qDao.getAllKnowledgeCards();
+      final knowledgeLinks = await _qDao.getAllQuestionKnowledgeCardLinks();
       final kcs = allKcs.map((k) => k.title).toList();
       if (!mounted) return;
       setState(() {
         _yearOpts = years;
         _regionOpts = regions;
         _tagOpts = tags;
-        _tagTree = ExamRepository.buildTagTree(allTags);
+        _tagTree = ExamRepository.buildTagTree(allTags, links: tagLinks);
         _examTypeOpts = examTypes;
         _knowledgeCardOpts = kcs;
-        _kcGroups = ExamRepository.buildKnowledgeCardGroups(allKcs);
+        _kcGroups = ExamRepository.buildKnowledgeCardGroups(
+          allKcs,
+          ExamRepository.buildKnowledgeCardCounts(knowledgeLinks),
+        );
       });
       AuditLogger.instance.page('PreferenceWelcomePage', {
         'loaded': _yearOpts != null,

@@ -67,19 +67,24 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
           .toList();
       final regions = await qDao.getDistinctRegions();
       final allTags = await qDao.getAllConceptTags();
+      final tagLinks = await qDao.getAllQuestionTagLinks();
       final tags = allTags.map((t) => t.name).toList();
       final examTypes = await qDao.getDistinctExamTypes();
       final allKcs = await qDao.getAllKnowledgeCards();
+      final knowledgeLinks = await qDao.getAllQuestionKnowledgeCardLinks();
       final kcs = allKcs.map((k) => k.title).toList();
       if (!mounted) return;
       setState(() {
         _yearOpts = years;
         _regionOpts = regions;
         _tagOpts = tags;
-        _tagTree = ExamRepository.buildTagTree(allTags);
+        _tagTree = ExamRepository.buildTagTree(allTags, links: tagLinks);
         _examTypeOpts = examTypes;
         _knowledgeCardOpts = kcs;
-        _kcGroups = ExamRepository.buildKnowledgeCardGroups(allKcs);
+        _kcGroups = ExamRepository.buildKnowledgeCardGroups(
+          allKcs,
+          ExamRepository.buildKnowledgeCardCounts(knowledgeLinks),
+        );
         _loadingOpts = false;
       });
     } catch (_) {

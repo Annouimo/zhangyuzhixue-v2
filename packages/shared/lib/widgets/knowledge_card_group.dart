@@ -110,9 +110,21 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                         : group.cards)
                     .map(
                       (card) => FilterChip(
-                        label: Text(
-                          card.title,
-                          style: const TextStyle(fontSize: 12),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              card.title,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            if (card.questionCount > 0) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '${card.questionCount}',
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            ],
+                          ],
                         ),
                         selected: widget.selectedTitles.contains(card.title),
                         onSelected: (v) {
@@ -205,6 +217,9 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                             title: Text(card.title),
+                            subtitle: card.questionCount > 0
+                                ? Text('${card.questionCount} 题')
+                                : null,
                             onChanged: (_) {
                               final next = Set<String>.from(
                                 widget.selectedTitles,

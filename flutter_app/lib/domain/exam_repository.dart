@@ -653,35 +653,91 @@ class ExamRepository implements QuestionLibraryRepository {
     return [];
   }
 
-  static List<ConceptTagNode> buildTagTree(List<assets_db.ConceptTagRow> tags) {
+  static List<ConceptTagNode> buildTagTree(
+    List<assets_db.ConceptTagRow> tags, {
+    List<assets_db.QuestionConceptTagRow> links = const [],
+  }) {
     final byParent = <int?, List<assets_db.ConceptTagRow>>{};
+    final questionsByTag = <int, Set<int>>{};
+    final hasUsageData = links.isNotEmpty;
     for (final t in tags) {
       byParent.putIfAbsent(t.parentId, () => []).add(t);
     }
+    for (final link in links) {
+      questionsByTag
+          .putIfAbsent(link.conceptTagId, () => <int>{})
+          .add(link.questionId);
+    }
     ConceptTagNode buildNode(assets_db.ConceptTagRow row) {
+      final children = (byParent[row.id] ?? []).map(buildNode).toList();
+      final questionIds = <int>{...?questionsByTag[row.id]};
+      for (final child in children) {
+        questionIds.addAll(_conceptQuestionIds(child, questionsByTag));
+      }
       return ConceptTagNode(
         id: row.id,
         name: row.name,
         parentId: row.parentId,
-        children: (byParent[row.id] ?? []).map(buildNode).toList(),
+        questionCount: questionIds.length,
+        children: hasUsageData
+            ? children.where((child) => child.questionCount > 0).toList()
+            : children,
       );
     }
 
-    return (byParent[null] ?? []).map(buildNode).toList();
+    return (byParent[null] ?? [])
+        .map(buildNode)
+        .where((node) => !hasUsageData || node.questionCount > 0)
+        .toList();
+  }
+
+  static Set<int> _conceptQuestionIds(
+    ConceptTagNode node,
+    Map<int, Set<int>> direct,
+  ) {
+    final result = <int>{...?direct[node.id]};
+    for (final child in node.children) {
+      result.addAll(_conceptQuestionIds(child, direct));
+    }
+    return result;
   }
 
   static List<KnowledgeCardGroup> buildKnowledgeCardGroups(
-    List<assets_db.KnowledgeCardRow> cards,
-  ) {
+    List<assets_db.KnowledgeCardRow> cards, [
+    Map<int, int> questionCounts = const {},
+  ]) {
     final byCategory = <String, List<KnowledgeCardItem>>{};
     for (final c in cards) {
       byCategory
           .putIfAbsent(c.category, () => [])
-          .add(KnowledgeCardItem(id: c.id, title: c.title));
+          .add(
+            KnowledgeCardItem(
+              id: c.id,
+              title: c.title,
+              questionCount: questionCounts[c.id] ?? 0,
+            ),
+          );
     }
-    return byCategory.entries
-        .map((e) => KnowledgeCardGroup(category: e.key, cards: e.value))
-        .toList();
+    return byCategory.entries.map((e) {
+      e.value.sort(
+        (left, right) => right.questionCount.compareTo(left.questionCount),
+      );
+      return KnowledgeCardGroup(category: e.key, cards: e.value);
+    }).toList();
+  }
+
+  static Map<int, int> buildKnowledgeCardCounts(
+    List<assets_db.QuestionKnowledgeCardRow> links,
+  ) {
+    final counts = <int, int>{};
+    for (final link in links) {
+      counts.update(
+        link.knowledgeCardId,
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
+    return counts;
   }
 
   // ── 筛选 ──
@@ -692,15 +748,19 @@ class ExamRepository implements QuestionLibraryRepository {
         .toList();
     final regions = await _questionDao.getDistinctRegions();
     final tags = await _questionDao.getAllConceptTags();
+    final tagLinks = await _questionDao.getAllQuestionTagLinks();
     final kcs = await _questionDao.getAllKnowledgeCards();
+    final knowledgeLinks = await _questionDao
+        .getAllQuestionKnowledgeCardLinks();
+    final knowledgeCounts = buildKnowledgeCardCounts(knowledgeLinks);
     final examTypes = await _questionDao.getDistinctExamTypes();
     return FilterOptions(
       years: years,
       regions: regions,
       conceptTags: tags.map((t) => t.name).toList(),
-      conceptTagTree: buildTagTree(tags),
+      conceptTagTree: buildTagTree(tags, links: tagLinks),
       knowledgeCards: kcs.map((k) => k.title).toList(),
-      knowledgeCardGroups: buildKnowledgeCardGroups(kcs),
+      knowledgeCardGroups: buildKnowledgeCardGroups(kcs, knowledgeCounts),
       examTypes: examTypes,
       questionTypes: const ['choice', 'fill', 'solution'],
     );

@@ -3,11 +3,13 @@ class ConceptTagNode {
   final int id;
   final String name;
   final int? parentId;
+  final int questionCount;
   final List<ConceptTagNode> children;
   const ConceptTagNode({
     required this.id,
     required this.name,
     this.parentId,
+    this.questionCount = 0,
     this.children = const [],
   });
 }
@@ -16,7 +18,12 @@ class ConceptTagNode {
 class KnowledgeCardItem {
   final int id;
   final String title;
-  const KnowledgeCardItem({required this.id, required this.title});
+  final int questionCount;
+  const KnowledgeCardItem({
+    required this.id,
+    required this.title,
+    this.questionCount = 0,
+  });
 }
 
 /// 分类知识卡片组
@@ -30,16 +37,22 @@ class KnowledgeCardGroup {
 enum SortMode {
   /// 最新优先
   newestFirst,
+
   /// 最早优先
   oldestFirst,
+
   /// 按题型分组
   byType,
+
   /// 难度升序
   difficultyAsc,
+
   /// 难度降序
   difficultyDesc,
+
   /// 年份降序（最新在前）
   yearDesc,
+
   /// 年份升序
   yearAsc,
 }

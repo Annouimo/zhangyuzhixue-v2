@@ -179,17 +179,34 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            node.name,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isSelected || isPartiallySelected
-                                  ? colors.primary
-                                  : colors.textPrimary,
-                              fontWeight: isSelected || isPartiallySelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                            ),
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  node.name,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isSelected || isPartiallySelected
+                                        ? colors.primary
+                                        : colors.textPrimary,
+                                    fontWeight:
+                                        isSelected || isPartiallySelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                              if (node.questionCount > 0) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${node.questionCount}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -237,7 +254,16 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   Widget _buildLeafChip(ConceptTagNode node) {
     final selected = widget.selectedNames.contains(node.name);
     return FilterChip(
-      label: Text(node.name, style: const TextStyle(fontSize: 12)),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(node.name, style: const TextStyle(fontSize: 12)),
+          if (node.questionCount > 0) ...[
+            const SizedBox(width: 4),
+            Text('${node.questionCount}', style: const TextStyle(fontSize: 10)),
+          ],
+        ],
+      ),
       selected: selected,
       visualDensity: VisualDensity.compact,
       onSelected: (_) => widget.onChanged(

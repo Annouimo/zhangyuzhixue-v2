@@ -66,6 +66,111 @@ void main() {
       expect(opts.regions, contains('海淀'));
     });
 
+    test(
+      'filter options hide unused topics and rank knowledge cards',
+      () async {
+        for (var id = 1; id <= 2; id++) {
+          await aDb
+              .into(aDb.questions)
+              .insert(
+                adb.QuestionsCompanion(
+                  id: Value(id),
+                  year: const Value(2025),
+                  examType: const Value('一模'),
+                  region: const Value('海淀'),
+                  number: Value('$id'),
+                  questionType: const Value('choice'),
+                  stem: Value('题 $id'),
+                ),
+              );
+        }
+        await aDb
+            .into(aDb.conceptTags)
+            .insert(
+              adb.ConceptTagsCompanion(
+                id: const Value(1),
+                name: const Value('代数'),
+              ),
+            );
+        await aDb
+            .into(aDb.conceptTags)
+            .insert(
+              adb.ConceptTagsCompanion(
+                id: const Value(2),
+                name: const Value('函数'),
+                parentId: const Value(1),
+              ),
+            );
+        await aDb
+            .into(aDb.conceptTags)
+            .insert(
+              adb.ConceptTagsCompanion(
+                id: const Value(3),
+                name: const Value('无题专题'),
+                parentId: const Value(1),
+              ),
+            );
+        await aDb
+            .into(aDb.questionConceptTags)
+            .insert(
+              const adb.QuestionConceptTagsCompanion(
+                questionId: Value(1),
+                conceptTagId: Value(2),
+              ),
+            );
+        await aDb
+            .into(aDb.knowledgeCards)
+            .insert(
+              const adb.KnowledgeCardsCompanion(
+                id: Value(1),
+                title: Value('低频卡片'),
+                category: Value('流程'),
+                content: Value(''),
+              ),
+            );
+        await aDb
+            .into(aDb.knowledgeCards)
+            .insert(
+              const adb.KnowledgeCardsCompanion(
+                id: Value(2),
+                title: Value('高频卡片'),
+                category: Value('流程'),
+                content: Value(''),
+              ),
+            );
+        await aDb
+            .into(aDb.questionKnowledgeCards)
+            .insert(
+              const adb.QuestionKnowledgeCardsCompanion(
+                questionId: Value(1),
+                knowledgeCardId: Value(1),
+              ),
+            );
+        for (final questionId in [1, 2]) {
+          await aDb
+              .into(aDb.questionKnowledgeCards)
+              .insert(
+                adb.QuestionKnowledgeCardsCompanion(
+                  questionId: Value(questionId),
+                  knowledgeCardId: const Value(2),
+                ),
+              );
+        }
+
+        final options = await repo.getFilterOptions();
+        expect(options.conceptTagTree.single.questionCount, 1);
+        expect(
+          options.conceptTagTree.single.children.map((node) => node.name),
+          ['函数'],
+        );
+        expect(
+          options.knowledgeCardGroups.single.cards.map((card) => card.title),
+          ['高频卡片', '低频卡片'],
+        );
+        expect(options.knowledgeCardGroups.single.cards.first.questionCount, 2);
+      },
+    );
+
     test('confirm creates paper and returns id', () async {
       await aDb
           .into(aDb.questions)

@@ -8,6 +8,7 @@ import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/database/database_provider.dart';
+import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
 import '../../domain/paper_creation_service.dart';
 import '../../domain/question_review_repository.dart';
@@ -25,7 +26,7 @@ import 'paper_draft_dialog.dart';
 
 enum _QuestionLibraryMode { papers, topics, knowledge, mine }
 
-enum _VirtualPaperAction { addToBasket, createPaper }
+enum _VirtualPaperAction { addToBasket, createPaper, createAndDownload }
 
 class StudentQuestionBankPage extends StatefulWidget {
   const StudentQuestionBankPage({
@@ -93,7 +94,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   List<SearchQuestion>? _questions;
   Timer? _debounce;
   bool _loadingQuestions = false;
-  bool _selectionMode = false;
   bool _creatingPaper = false;
   final Map<int, SearchQuestion> _selectedQuestions = {};
   QuestionReviewScope? _reviewScope;
@@ -379,9 +379,11 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         if (range.id == _selectedRangeId) return range.name;
       }
     }
+    final keyword = _queryController.text.trim();
     final paper = _selectedVirtualPaper;
     if (paper != null) {
-      return '${paper.year}年 · ${paper.region} · ${paper.examType}';
+      final paperLabel = '${paper.year}年 · ${paper.region} · ${paper.examType}';
+      return keyword.isEmpty ? paperLabel : '“$keyword” · $paperLabel';
     }
     final labels = <String>[
       if (_years.isNotEmpty) _years.join('/'),
@@ -391,7 +393,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       if (_knowledgeCards.isNotEmpty) '知识卡片 ${_knowledgeCards.length}',
       if (_questionTypes.isNotEmpty) '题型 ${_questionTypes.length}',
     ];
-    final keyword = _queryController.text.trim();
     if (keyword.isNotEmpty) labels.insert(0, '“$keyword”');
     return labels.isEmpty ? null : labels.join(' · ');
   }
@@ -550,6 +551,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     List<SearchQuestion> questions, {
     required String initialName,
     required bool clearBasketOnSuccess,
+    bool downloadAfterCreate = false,
   }) async {
     final draft = await showDialog<PaperDraft>(
       context: context,
@@ -573,9 +575,16 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       if (clearBasketOnSuccess) {
         setState(() {
           _selectedQuestions.clear();
-          _selectionMode = false;
         });
       }
+      if (downloadAfterCreate && mounted) {
+        await PdfHelper.downloadPdf(
+          sourceId: paperId,
+          sourceType: 'paper',
+          context: context,
+        );
+      }
+      if (!mounted) return;
       RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
     } on InsufficientPointsException catch (error) {
       if (!mounted) return;
@@ -623,7 +632,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
           for (final question in questions) {
             _selectedQuestions[question.id] = question;
           }
-          _selectionMode = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('已将 ${questions.length} 题加入试卷篮')),
@@ -634,6 +642,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
           questions,
           initialName: paper.title,
           clearBasketOnSuccess: false,
+          downloadAfterCreate: action == _VirtualPaperAction.createAndDownload,
         );
         return;
       }
@@ -707,7 +716,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       if (!mounted) return;
       setState(() {
         _selectedQuestions.clear();
-        _selectionMode = false;
       });
       RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
     } on InsufficientPointsException catch (error) {
@@ -730,7 +738,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     final options = _filterOptions;
     return Scaffold(
       appBar: AppBar(title: const Text('题库')),
-      bottomNavigationBar: _selectionMode
+      bottomNavigationBar: _selectedQuestions.isNotEmpty
           ? SafeArea(
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -793,9 +801,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                       ),
                     ),
                     if (_currentScopeLabel != null)
-                      SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.sm),
-                        sliver: SliverToBoxAdapter(
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _PinnedScopeHeaderDelegate(
+                          backgroundColor: context.colors.background,
                           child: _CurrentScopeBar(
                             label: _currentScopeLabel!,
                             resultCount: _questions?.length,
@@ -934,6 +943,9 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                           title: _questions == null
                               ? '题目结果'
                               : '题目结果 · ${_questions!.length} 题',
+                          subtitle: _questions?.isNotEmpty == true
+                              ? _resultSummary(_questions!)
+                              : null,
                           action: _questions?.isNotEmpty == true
                               ? Wrap(
                                   spacing: AppSpacing.xs,
@@ -946,19 +958,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                                         Icons.auto_awesome_rounded,
                                       ),
                                       label: const Text('智能选题'),
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: () => setState(
-                                        () => _selectionMode = !_selectionMode,
-                                      ),
-                                      icon: Icon(
-                                        _selectionMode
-                                            ? Icons.close_rounded
-                                            : Icons.playlist_add_rounded,
-                                      ),
-                                      label: Text(
-                                        _selectionMode ? '退出选题' : '手动选题',
-                                      ),
                                     ),
                                   ],
                                 )
@@ -1019,14 +1018,31 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
           return QuestionSearchResultCard(
             question: question,
             onOpen: () => _openQuestion(question),
-            selected: _selectionMode
-                ? _selectedQuestions.containsKey(question.id)
-                : null,
-            onToggle: _selectionMode ? () => _toggleQuestion(question) : null,
+            selected: _selectedQuestions.containsKey(question.id),
+            onToggle: () => _toggleQuestion(question),
           );
         },
       ),
     ];
+  }
+
+  String _resultSummary(List<SearchQuestion> questions) {
+    final choice = questions
+        .where((question) => question.questionType == 'choice')
+        .length;
+    final fill = questions
+        .where((question) => question.questionType == 'fill')
+        .length;
+    final solution = questions
+        .where((question) => question.questionType == 'solution')
+        .length;
+    final averageDifficulty =
+        questions.fold<double>(
+          0,
+          (sum, question) => sum + question.difficulty,
+        ) /
+        questions.length;
+    return '选择题 $choice · 填空题 $fill · 解答题 $solution · 平均难度 ${averageDifficulty.toStringAsFixed(1)}';
   }
 }
 
@@ -1186,6 +1202,10 @@ class _VirtualPaperChip extends StatelessWidget {
                 value: _VirtualPaperAction.createPaper,
                 child: Text('整套组卷'),
               ),
+              PopupMenuItem(
+                value: _VirtualPaperAction.createAndDownload,
+                child: Text('生成并下载'),
+              ),
             ],
           ),
         ],
@@ -1294,7 +1314,43 @@ class _CurrentScopeBar extends StatelessWidget {
   }
 }
 
-class _TopicBrowser extends StatelessWidget {
+class _PinnedScopeHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _PinnedScopeHeaderDelegate({
+    required this.child,
+    required this.backgroundColor,
+  });
+
+  final Widget child;
+  final Color backgroundColor;
+
+  @override
+  double get minExtent => 64;
+
+  @override
+  double get maxExtent => 64;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: backgroundColor,
+      child: Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.sm),
+        child: child,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _PinnedScopeHeaderDelegate oldDelegate) =>
+      oldDelegate.child != child ||
+      oldDelegate.backgroundColor != backgroundColor;
+}
+
+class _TopicBrowser extends StatefulWidget {
   const _TopicBrowser({
     required this.nodes,
     required this.selectedNames,
@@ -1306,19 +1362,67 @@ class _TopicBrowser extends StatelessWidget {
   final ValueChanged<Set<String>> onChanged;
 
   @override
+  State<_TopicBrowser> createState() => _TopicBrowserState();
+}
+
+class _TopicBrowserState extends State<_TopicBrowser> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<ConceptTagNode> _filteredNodes() {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return widget.nodes;
+
+    ConceptTagNode? filterNode(ConceptTagNode node) {
+      if (node.name.toLowerCase().contains(query)) return node;
+      final children = node.children
+          .map(filterNode)
+          .whereType<ConceptTagNode>();
+      if (children.isEmpty) return null;
+      return ConceptTagNode(
+        id: node.id,
+        name: node.name,
+        parentId: node.parentId,
+        questionCount: node.questionCount,
+        children: children.toList(),
+      );
+    }
+
+    return widget.nodes.map(filterNode).whereType<ConceptTagNode>().toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final visibleNodes = _filteredNodes();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const AppSectionHeader(title: '按专题浏览', subtitle: '先选择大类，需要时再逐级展开。'),
         const SizedBox(height: AppSpacing.sm),
-        if (nodes.isEmpty)
+        TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(Icons.search_rounded),
+            hintText: '搜索专题',
+          ),
+          onChanged: (value) => setState(() => _query = value),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (widget.nodes.isEmpty)
           EmptyPlaceholder(icon: Icons.account_tree_outlined, message: '暂无专题目录')
+        else if (visibleNodes.isEmpty)
+          EmptyPlaceholder(icon: Icons.search_off_rounded, message: '没有匹配的专题')
         else
           ConceptTagTreeView(
-            nodes: nodes,
-            selectedNames: selectedNames,
-            onChanged: onChanged,
+            nodes: visibleNodes,
+            selectedNames: widget.selectedNames,
+            onChanged: widget.onChanged,
             compactLeaves: true,
           ),
       ],

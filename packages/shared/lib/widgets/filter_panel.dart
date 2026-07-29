@@ -73,7 +73,7 @@ class FilterPanel extends StatefulWidget {
     this.onLoadPreference,
     this.horizontalMargin = 16,
     this.showSort = false,
-    this.selectAllInitially = true,
+    this.selectAllInitially = false,
     this.allowGlobalSelectAll = true,
     this.showConceptSection = true,
     this.showKnowledgeSection = true,
@@ -562,6 +562,7 @@ class FilterPanelState extends State<FilterPanel> {
                 ConceptTagTreeView(
                   nodes: widget.conceptTagTree,
                   selectedNames: _selectedConceptTagNames,
+                  compactLeaves: true,
                   onChanged: (names) {
                     setState(() {
                       _selectedConceptTagNames
@@ -588,6 +589,7 @@ class FilterPanelState extends State<FilterPanel> {
                 KnowledgeCardGroupView(
                   groups: widget.knowledgeCardGroups,
                   selectedTitles: _selectedKnowledgeCardTitles,
+                  compact: true,
                   onChanged: (titles) {
                     setState(() {
                       _selectedKnowledgeCardTitles

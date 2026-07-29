@@ -571,6 +571,17 @@ class QuestionDao {
     return rows;
   }
 
+  Future<List<db.QuestionKnowledgeCardRow>>
+  getAllQuestionKnowledgeCardLinks() async {
+    final rows = await _db.select(_db.questionKnowledgeCards).get();
+    AuditLogger.instance.dao(
+      'QuestionDao.getAllQuestionKnowledgeCardLinks',
+      rows.length,
+      {},
+    );
+    return rows;
+  }
+
   Future<db.KnowledgeCardRow?> getKnowledgeCardByTitle(String title) async {
     final q = _db.select(_db.knowledgeCards)
       ..where((t) => t.title.equals(title));
