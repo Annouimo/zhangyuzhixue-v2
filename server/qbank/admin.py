@@ -45,7 +45,7 @@ class SolutionMethodInline(admin.TabularInline):
 
 @admin.register(BaseQuestion)
 class BaseQuestionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'year', 'region', 'exam_type', 'number',
+    list_display = ['id', 'year', 'region', 'exam_type', 'source_name', 'number',
                     'question_type', 'difficulty', 'calculation']
     list_filter = ['question_type', 'year', 'region', 'exam_type']
     search_fields = ['stem']
@@ -55,7 +55,7 @@ class BaseQuestionAdmin(admin.ModelAdmin):
     ]
     fieldsets = [
         (None, {
-            'fields': ['year', 'exam_type', 'region', 'number',
+            'fields': ['year', 'exam_type', 'region', 'source_name', 'number',
                        'question_type', 'difficulty', 'calculation']
         }),
         ('内容', {

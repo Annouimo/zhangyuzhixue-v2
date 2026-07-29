@@ -19,6 +19,28 @@ django.setup()
 from scripts.build_schemas import ASSETS_TABLES  # noqa: E402
 from scripts.build_utils import build_database  # noqa: E402
 from system.models import DbVersion  # noqa: E402
+from interactions.models import ContentContribution, ContributionReview  # noqa: E402
+
+
+def mark_published_contributions(data_version):
+    queryset = ContentContribution.objects.filter(
+        status=ContentContribution.Status.APPROVED_PENDING_RELEASE,
+        completed_question__isnull=False,
+    )
+    contribution_ids = list(queryset.values_list('pk', flat=True))
+    updated = queryset.update(
+        status=ContentContribution.Status.COMPLETED,
+        published_qbank_version=data_version,
+    )
+    ContributionReview.objects.bulk_create([
+        ContributionReview(
+            contribution_id=contribution_id,
+            action=ContributionReview.Action.PUBLISHED,
+            note=f'已发布至题库 v{data_version}',
+        )
+        for contribution_id in contribution_ids
+    ])
+    return updated
 
 
 def get_version_info():
@@ -60,6 +82,10 @@ def main():
         version_info=version_info,
         test_mode=test_mode,
     )
+
+    if not test_mode:
+        published = mark_published_contributions(version_info['data_version'])
+        print(f'  已发布内容贡献: {published} 条')
 
     print()
     print('✅ 数据库构建完成')

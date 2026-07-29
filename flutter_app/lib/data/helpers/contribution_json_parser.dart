@@ -206,6 +206,18 @@ abstract final class ContributionJsonParser {
             '自拟题': 'self_created',
             '其他': 'other',
           });
+      if (normalizedSource.containsKey('exam_name') &&
+          !normalizedSource.containsKey('source_name')) {
+        normalizedSource['source_name'] = normalizedSource.remove('exam_name');
+        repairs.add('将字段 exam_name 规范为 source_name');
+      }
+      if (normalizedSource.containsKey('number') &&
+          !normalizedSource.containsKey('question_number')) {
+        normalizedSource['question_number'] = normalizedSource.remove('number');
+        repairs.add('将字段 number 规范为 question_number');
+      }
+      normalizedSource['source_name'] ??= '';
+      normalizedSource['question_number'] ??= '';
       input['source'] = normalizedSource;
     } else {
       input['source'] = {'source_type': 'other'};
@@ -316,6 +328,10 @@ abstract final class ContributionJsonParser {
           'other',
         }.contains(source['source_type'])) {
       throw const ContributionJsonException('source_type 无效');
+    }
+    if (source['source_name'] is! String ||
+        source['question_number'] is! String) {
+      throw const ContributionJsonException('来源名称和原题题号必须是字符串');
     }
   }
 }

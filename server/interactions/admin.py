@@ -25,7 +25,10 @@ class ContentContributionAdminForm(forms.ModelForm):
         } and not (cleaned.get('review_note') or '').strip():
             self.add_error('review_note', '打回修改或不采纳时必须填写审核意见。')
         if (
-            status_value == ContentContribution.Status.COMPLETED
+            status_value in {
+                ContentContribution.Status.APPROVED_PENDING_RELEASE,
+                ContentContribution.Status.COMPLETED,
+            }
             and cleaned.get('completed_question') is None
         ):
             self.add_error('completed_question', '标记已完成前必须关联处理后的题目。')
@@ -107,6 +110,7 @@ class ContentContributionAdmin(admin.ModelAdmin):
             action_by_status = {
                 ContentContribution.Status.NEEDS_REVISION: 'needs_revision',
                 ContentContribution.Status.PROCESSING: 'processing',
+                ContentContribution.Status.APPROVED_PENDING_RELEASE: 'completed',
                 ContentContribution.Status.COMPLETED: 'completed',
                 ContentContribution.Status.REJECTED: 'rejected',
             }

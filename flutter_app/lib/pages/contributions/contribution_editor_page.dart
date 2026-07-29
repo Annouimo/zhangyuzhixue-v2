@@ -36,6 +36,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   final _sourceRegionController = TextEditingController();
   final _sourceExamController = TextEditingController();
   final _sourceNumberController = TextEditingController();
+  final _verificationKey = GlobalKey();
 
   ContributionConfig? _config;
   Map<String, dynamic>? _payload;
@@ -52,6 +53,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   int? _questionId;
   String _contributionType = 'new_question';
   String _reviewNote = '';
+  String? _verificationError;
 
   bool get _isCorrection => _contributionType == 'question_correction';
 
@@ -150,6 +152,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         _payload = result.payload;
         _repairs = result.repairs;
         _error = null;
+        _verificationError = null;
       });
     } on ContributionJsonException catch (error) {
       setState(() => _error = error.message);
@@ -163,8 +166,14 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     );
     _sourceYearController.text = source['year']?.toString() ?? '';
     _sourceRegionController.text = source['region'] as String? ?? '';
-    _sourceExamController.text = source['exam_name'] as String? ?? '';
-    _sourceNumberController.text = source['question_number'] as String? ?? '';
+    _sourceExamController.text =
+        source['source_name'] as String? ??
+        source['exam_name'] as String? ??
+        '';
+    _sourceNumberController.text =
+        source['question_number'] as String? ??
+        source['number'] as String? ??
+        '';
     for (final option in _options) {
       option.dispose();
     }
@@ -218,8 +227,10 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     );
     source['year'] = int.tryParse(_sourceYearController.text.trim());
     source['region'] = _sourceRegionController.text.trim();
-    source['exam_name'] = _sourceExamController.text.trim();
+    source['source_name'] = _sourceExamController.text.trim();
     source['question_number'] = _sourceNumberController.text.trim();
+    source.remove('exam_name');
+    source.remove('number');
     payload['source'] = source;
     return payload;
   }
@@ -253,7 +264,18 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       }
       final uncertainties = _payload!['uncertainties'] as List? ?? const [];
       if (uncertainties.isNotEmpty && !_uncertaintiesConfirmed) {
-        setState(() => _error = '请先确认 AI 标记的不确定内容');
+        setState(() => _verificationError = '完成原题核对后才能提交');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final verificationContext = _verificationKey.currentContext;
+          if (verificationContext != null) {
+            Scrollable.ensureVisible(
+              verificationContext,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOut,
+              alignment: 0.25,
+            );
+          }
+        });
         return;
       }
     }
@@ -261,6 +283,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     setState(() {
       _submitting = true;
       _error = null;
+      _verificationError = null;
     });
     try {
       final body = <String, dynamic>{
@@ -694,14 +717,54 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             ),
           if (uncertainties.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('AI 标记的不确定内容', style: Theme.of(context).textTheme.titleSmall),
-            for (final item in uncertainties) Text('• $item'),
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: _uncertaintiesConfirmed,
-              title: const Text('我已对照原题逐项检查'),
-              onChanged: (value) =>
-                  setState(() => _uncertaintiesConfirmed = value ?? false),
+            Container(
+              key: _verificationKey,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: context.colors.warningContainer,
+                border: Border.all(
+                  color: _verificationError == null
+                      ? context.colors.warning
+                      : context.colors.error,
+                ),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.fact_check_outlined,
+                        color: context.colors.warning,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          '提交前必须对照原题核对',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  for (final item in uncertainties) Text('• $item'),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _uncertaintiesConfirmed,
+                    title: const Text('我已对照原题检查题干、公式、选项、答案和题号'),
+                    onChanged: (value) => setState(() {
+                      _uncertaintiesConfirmed = value ?? false;
+                      if (_uncertaintiesConfirmed) _verificationError = null;
+                    }),
+                  ),
+                  if (_verificationError != null)
+                    Text(
+                      _verificationError!,
+                      style: TextStyle(color: context.colors.error),
+                    ),
+                ],
+              ),
             ),
           ],
         ],
@@ -922,7 +985,7 @@ class _LatexField extends StatefulWidget {
 }
 
 class _LatexFieldState extends State<_LatexField> {
-  bool preview = false;
+  bool preview = true;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -932,7 +995,7 @@ class _LatexFieldState extends State<_LatexField> {
         children: [
           Expanded(child: Text(widget.label)),
           IconButton(
-            tooltip: preview ? '编辑源码' : '预览公式',
+            tooltip: preview ? '编辑原文' : '查看渲染效果',
             icon: Icon(
               preview ? Icons.edit_outlined : Icons.visibility_outlined,
             ),

@@ -106,6 +106,16 @@ def validate_question_payload(payload):
     year = source.get('year')
     if year is not None and (not isinstance(year, int) or not 1950 <= year <= 2100):
         raise serializers.ValidationError('年份无效')
+    source_name = source.get('source_name', source.get('exam_name', ''))
+    question_number = source.get('question_number', source.get('number', ''))
+    if not isinstance(source_name, str) or len(source_name) > 255:
+        raise serializers.ValidationError('试卷或资料名称无效')
+    if not isinstance(question_number, str) or len(question_number) > 16:
+        raise serializers.ValidationError('原题题号无效')
+    source['source_name'] = source_name.strip()
+    source['question_number'] = question_number.strip()
+    source.pop('exam_name', None)
+    source.pop('number', None)
     if payload.get('difficulty') not in DIFFICULTIES:
         raise serializers.ValidationError('difficulty 无效')
     if payload.get('calculation') not in CALCULATIONS:

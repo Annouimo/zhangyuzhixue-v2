@@ -37,6 +37,7 @@ import 'exam/exam_home_page.dart';
 import 'review_page.dart';
 import 'question_bank/question_bank_page.dart';
 import 'contributions/contribution_editor_page.dart';
+import 'contributions/contribution_detail_page.dart';
 import 'contributions/contribution_help_page.dart';
 import 'contributions/contribution_list_page.dart';
 import 'package:shared/debug/operation_log.dart';
@@ -84,6 +85,7 @@ abstract final class AppRoutes {
   static const contributionNew = '/profile/contributions/new';
   static const contributionCorrection = '/profile/contributions/correction';
   static const contributionEdit = '/profile/contributions/edit';
+  static const contributionDetail = '/profile/contributions/detail';
   static const contributionHelp = '/profile/contributions/help';
 }
 
@@ -382,6 +384,13 @@ final GoRouter appRouter = GoRouter(
       name: 'contribution-edit',
       builder: (_, state) => ContributionEditorPage(
         contributionId: _intParam(state.uri.queryParameters, 'id'),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.contributionDetail,
+      name: 'contribution-detail',
+      builder: (_, state) => ContributionDetailPage(
+        contributionId: _intParam(state.uri.queryParameters, 'id') ?? 0,
       ),
     ),
     GoRoute(

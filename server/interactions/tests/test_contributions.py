@@ -113,7 +113,7 @@ def test_correction_duplicate_and_resubmit(auth_client):
     )
     assert resubmitted.status_code == 200
     contribution.refresh_from_db()
-    assert contribution.status == ContentContribution.Status.PENDING
+    assert contribution.status == ContentContribution.Status.RESUBMITTED
     assert ContributionRevision.objects.filter(
         contribution=contribution
     ).count() == 2
@@ -125,3 +125,25 @@ def test_config_includes_latex_live(auth_client, concept_tag):
     assert response.status_code == 200
     assert response.data['data']['latex_editor_url'] == 'https://www.latexlive.com/'
     assert response.data['data']['tags'][0]['name'] == concept_tag.name
+
+
+@pytest.mark.django_db
+def test_legacy_source_fields_are_normalized(auth_client, concept_tag):
+    body = {
+        'contribution_type': 'new_question',
+        'payload': new_question_payload(),
+        'tag_ids': [concept_tag.pk],
+    }
+    body['payload']['source'].update({
+        'exam_name': '高三第一次联考',
+        'number': '12',
+    })
+    response = auth_client.post(
+        reverse('contribution-list-create'), body, format='json'
+    )
+    assert response.status_code == 200
+    payload = response.data['data']['payload']
+    assert payload['source']['source_name'] == '高三第一次联考'
+    assert payload['source']['question_number'] == '12'
+    assert 'exam_name' not in payload['source']
+    assert 'number' not in payload['source']

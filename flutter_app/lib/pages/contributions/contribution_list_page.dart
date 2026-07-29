@@ -12,24 +12,43 @@ class ContributionListPage extends StatefulWidget {
   State<ContributionListPage> createState() => _ContributionListPageState();
 }
 
-class _ContributionListPageState extends State<ContributionListPage> {
+class _ContributionListPageState extends State<ContributionListPage>
+    with WidgetsBindingObserver {
   late final ContributionApi _api = ContributionApi(ApiClient());
   List<Map<String, dynamic>>? _items;
   String? _error;
+  bool _refreshing = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_refreshing) _load();
+  }
+
   Future<void> _load() async {
-    setState(() => _error = null);
+    setState(() {
+      _error = null;
+      _refreshing = true;
+    });
     try {
       final items = await _api.list();
       if (mounted) setState(() => _items = items);
     } catch (_) {
       if (mounted) setState(() => _error = '贡献记录加载失败');
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
     }
   }
 
@@ -46,6 +65,16 @@ class _ContributionListPageState extends State<ContributionListPage> {
     appBar: AppBar(
       title: const Text('内容贡献'),
       actions: [
+        IconButton(
+          tooltip: '刷新贡献记录',
+          onPressed: _refreshing ? null : _load,
+          icon: _refreshing
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.refresh_rounded),
+        ),
         IconButton(
           tooltip: '编辑格式说明',
           icon: const Icon(Icons.help_outline_rounded),
@@ -73,6 +102,7 @@ class _ContributionListPageState extends State<ContributionListPage> {
                 : RefreshIndicator(
                     onRefresh: _load,
                     child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
                         vertical: AppSpacing.md,
                       ),
@@ -91,76 +121,90 @@ class _ContributionListPageState extends State<ContributionListPage> {
     final type = item['contribution_type'] == 'question_correction'
         ? '题目纠错'
         : '新题投稿';
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    return Semantics(
+      button: true,
+      label: '查看$type详情',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: () async {
+          await RouterUtils.push<void>(
+            context,
+            '${AppRoutes.contributionDetail}?id=${item['id']}',
+          );
+          _load();
+        },
+        child: AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                type == '题目纠错' ? Icons.report_outlined : Icons.post_add_rounded,
-                size: 20,
+              Row(
+                children: [
+                  Icon(
+                    type == '题目纠错'
+                        ? Icons.report_outlined
+                        : Icons.post_add_rounded,
+                    size: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      type,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  AppStatusBadge(
+                    label: _statusLabel(status),
+                    tone: _statusTone(status),
+                    compact: true,
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  type,
-                  style: Theme.of(context).textTheme.titleSmall,
+              const SizedBox(height: AppSpacing.sm),
+              MdLatexBody(
+                (item['summary'] as String?)?.trim().isNotEmpty == true
+                    ? item['summary'] as String
+                    : '暂无摘要',
+              ),
+              if ((item['review_note'] as String?)?.isNotEmpty == true) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  '审核意见：${item['review_note']}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: context.colors.textSecondary,
+                  ),
                 ),
-              ),
-              AppStatusBadge(
-                label: _statusLabel(status),
-                tone: _statusTone(status),
-                compact: true,
+              ],
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Text(
+                    '第 ${item['revision_number']} 版',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Spacer(),
+                  if (status == 'pending' || status == 'resubmitted')
+                    TextButton.icon(
+                      onPressed: () => _withdraw(item['id'] as int),
+                      icon: const Icon(Icons.undo_rounded, size: 18),
+                      label: const Text('撤回'),
+                    ),
+                  if (status == 'needs_revision')
+                    TextButton.icon(
+                      onPressed: () async {
+                        final changed = await RouterUtils.push<bool>(
+                          context,
+                          '${AppRoutes.contributionEdit}?id=${item['id']}',
+                        );
+                        if (changed == true) _load();
+                      },
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('修改'),
+                    ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            (item['summary'] as String?)?.trim().isNotEmpty == true
-                ? item['summary'] as String
-                : '暂无摘要',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          if ((item['review_note'] as String?)?.isNotEmpty == true) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              '审核意见：${item['review_note']}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Text(
-                '第 ${item['revision_number']} 版',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const Spacer(),
-              if (status == 'pending')
-                TextButton.icon(
-                  onPressed: () => _withdraw(item['id'] as int),
-                  icon: const Icon(Icons.undo_rounded, size: 18),
-                  label: const Text('撤回'),
-                ),
-              if (status == 'needs_revision')
-                TextButton.icon(
-                  onPressed: () async {
-                    final changed = await RouterUtils.push<bool>(
-                      context,
-                      '${AppRoutes.contributionEdit}?id=${item['id']}',
-                    );
-                    if (changed == true) _load();
-                  },
-                  icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('修改'),
-                ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -197,10 +241,12 @@ class _ContributionListPageState extends State<ContributionListPage> {
   }
 
   String _statusLabel(String value) => switch (value) {
-    'pending' => '待审核',
+    'pending' => '待首次审核',
+    'resubmitted' => '修改后待复审',
     'needs_revision' => '待修改',
     'processing' => '处理中',
-    'completed' => '已完成',
+    'approved_pending_release' => '已通过，待发布',
+    'completed' => '已发布',
     'rejected' => '未采纳',
     'withdrawn' => '已撤回',
     _ => value,
@@ -208,6 +254,7 @@ class _ContributionListPageState extends State<ContributionListPage> {
 
   AppStatusTone _statusTone(String value) => switch (value) {
     'completed' => AppStatusTone.success,
+    'approved_pending_release' => AppStatusTone.info,
     'needs_revision' => AppStatusTone.warning,
     'rejected' || 'withdrawn' => AppStatusTone.neutral,
     'processing' => AppStatusTone.info,

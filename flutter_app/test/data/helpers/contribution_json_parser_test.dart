@@ -36,4 +36,18 @@ void main() {
       throwsA(isA<ContributionJsonException>()),
     );
   });
+
+  test('normalizes legacy source name and question number fields', () {
+    final result = ContributionJsonParser.parse(r'''
+      {"schema_version":1,"question_type":"fill","stem":"题干","options":[],
+       "sub_questions":[{"stem":"","answer":"1","explanation":""}],
+       "source":{"source_type":"mock_exam","exam_name":"联考试卷","number":"12"},
+       "suggested_tags":[],"difficulty":"easy","calculation":"low","uncertainties":[]}
+    ''');
+    final source = result.payload['source'] as Map<String, dynamic>;
+    expect(source['source_name'], '联考试卷');
+    expect(source['question_number'], '12');
+    expect(source.containsKey('exam_name'), isFalse);
+    expect(source.containsKey('number'), isFalse);
+  });
 }
