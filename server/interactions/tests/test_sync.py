@@ -9,6 +9,7 @@ from accounts.models import Student
 from interactions.models import (
     CardFeedback,
     CustomPaper,
+    PaperFolder,
     PaperLike,
     QuestionRating,
     StepFeedback,
@@ -77,6 +78,82 @@ class TestSyncAuth:
         }, format='json')
         assert resp.status_code == 400
         assert resp.data['code'] == 40301
+
+
+class TestPaperFolderSync:
+
+    def test_create_and_update_full_snapshot(
+        self, auth_client, student_user, sample_question, another_question
+    ):
+        created = auth_client.post(reverse('sync-push'), {
+            'batch': [{
+                'entity_type': 'paper_folder',
+                'local_id': 501,
+                'data': {
+                    'client_id': 'folder-501-created-at',
+                    'base_revision': 0,
+                    'name': '函数组卷夹',
+                    'updated_at': '2026-07-29T10:00:00+08:00',
+                    'questions': [
+                        {'question_id': sample_question.pk, 'sort_order': 0},
+                    ],
+                },
+            }],
+        }, format='json')
+        assert created.status_code == 200
+        server_id = created.data['data']['server_ids'][501]
+        revision = created.data['data']['entity_meta'][501]['revision']
+
+        updated = auth_client.post(reverse('sync-push'), {
+            'batch': [{
+                'entity_type': 'paper_folder',
+                'local_id': 501,
+                'data': {
+                    'server_id': server_id,
+                    'client_id': 'folder-501-created-at',
+                    'base_revision': revision,
+                    'name': '函数与数列',
+                    'updated_at': '2026-07-29T11:00:00+08:00',
+                    'questions': [
+                        {'question_id': another_question.pk, 'sort_order': 0},
+                        {'question_id': sample_question.pk, 'sort_order': 1},
+                    ],
+                },
+            }],
+        }, format='json')
+        assert updated.status_code == 200
+
+        folder = PaperFolder.objects.get(pk=server_id)
+        assert folder.student == student_user.student
+        assert folder.name == '函数与数列'
+        assert list(folder.folder_questions.values_list(
+            'question_id', flat=True
+        )) == [another_question.pk, sample_question.pk]
+
+    def test_delete_is_scoped_to_current_student(
+        self, auth_client, student_user
+    ):
+        from django.utils import timezone
+        folder = PaperFolder.objects.create(
+            student=student_user.student,
+            name='待删除',
+            client_updated_at=timezone.now(),
+        )
+
+        response = auth_client.post(reverse('sync-push'), {
+            'batch': [{
+                'entity_type': 'paper_folder',
+                'local_id': 502,
+                'data': {
+                    'server_id': folder.pk,
+                    'deleted': True,
+                    'updated_at': '2026-07-29T12:00:00+08:00',
+                },
+            }],
+        }, format='json')
+
+        assert response.status_code == 200
+        assert not PaperFolder.objects.filter(pk=folder.pk).exists()
 
 
 # ── 提交 ──

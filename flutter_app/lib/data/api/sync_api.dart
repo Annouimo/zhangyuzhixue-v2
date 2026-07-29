@@ -34,13 +34,21 @@ class VersionStatus {
 /// 推送结果
 class PushBatchResult {
   final Map<int, int> serverIds;
+  final Map<int, Map<String, dynamic>> entityMeta;
 
-  const PushBatchResult({required this.serverIds});
+  const PushBatchResult({required this.serverIds, this.entityMeta = const {}});
 
   factory PushBatchResult.fromJson(Map<String, dynamic> json) {
     final raw = json['server_ids'] as Map<String, dynamic>? ?? {};
+    final rawMeta = json['entity_meta'] as Map<String, dynamic>? ?? {};
     return PushBatchResult(
       serverIds: raw.map((k, v) => MapEntry(int.parse(k), v as int)),
+      entityMeta: rawMeta.map(
+        (key, value) => MapEntry(
+          int.parse(key),
+          Map<String, dynamic>.from(value as Map),
+        ),
+      ),
     );
   }
 }

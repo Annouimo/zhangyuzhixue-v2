@@ -21,6 +21,7 @@ from accounts.permissions import IsStudent
 
 from interactions.models import (
     CustomPaper,
+    PaperFolder,
     PaperCollect,
     PaperLike,
     PreferenceFilter,
@@ -73,7 +74,7 @@ def _err(code, detail, http_status=400):
 #   - 服务端: USER_DB_SCHEMA (此文件) + _dump_* 函数
 #   - 客户端: AppDatabase (app_database.dart) schemaVersion + MigrationStrategy
 # 修改任一端时必须同时修改另一端。
-USER_DB_SCHEMA_VERSION = 2
+USER_DB_SCHEMA_VERSION = 4
 
 USER_DB_SCHEMA = """
 CREATE TABLE IF NOT EXISTS user_profile (
@@ -184,6 +185,28 @@ CREATE TABLE IF NOT EXISTS custom_paper_question (
     paper_id INTEGER NOT NULL,
     question_id INTEGER NOT NULL,
     sort_order INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS paper_folder (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_id INTEGER,
+    name TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 0,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    last_generated_at TEXT,
+    last_generated_fingerprint TEXT NOT NULL DEFAULT '',
+    last_generated_paper_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS paper_folder_question (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    folder_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(folder_id, question_id)
 );
 
 CREATE TABLE IF NOT EXISTS paper_like (
@@ -407,6 +430,37 @@ def _dump_custom_papers(conn, student):
             )
 
 
+def _dump_paper_folders(conn, student):
+    folders = PaperFolder.objects.filter(student=student).prefetch_related(
+        'folder_questions'
+    )
+    for folder in folders:
+        conn.execute(
+            'INSERT INTO paper_folder '
+            '(id, server_id, name, revision, is_default, created_at, updated_at, '
+            'last_generated_at, last_generated_fingerprint, '
+            'last_generated_paper_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                folder.pk, folder.pk, folder.name, folder.revision,
+                1 if folder.is_default else 0,
+                _fmt_dt(folder.created_at), _fmt_dt(folder.client_updated_at),
+                _fmt_dt(folder.last_generated_at),
+                folder.last_generated_fingerprint,
+                folder.last_generated_paper_id,
+            ],
+        )
+        for item in folder.folder_questions.all():
+            conn.execute(
+                'INSERT INTO paper_folder_question '
+                '(id, folder_id, question_id, sort_order, created_at) '
+                'VALUES (?, ?, ?, ?, ?)',
+                [
+                    item.pk, folder.pk, item.question_id, item.sort_order,
+                    _fmt_dt(item.created_at),
+                ],
+            )
+
+
 def _dump_likes(conn, student):
     likes = PaperLike.objects.filter(student=student)
     rows = []
@@ -479,6 +533,7 @@ def pull_user_db(request):
         _dump_submissions(conn, student)
         _dump_ratings(conn, student)
         _dump_custom_papers(conn, student)
+        _dump_paper_folders(conn, student)
         _dump_likes(conn, student)
         _dump_collects(conn, student)
         _dump_preferences(conn, student)

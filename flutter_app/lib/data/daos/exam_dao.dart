@@ -58,6 +58,9 @@ class ExamDao {
   }
 
   Future<void> deletePaper(int id) async {
+    await (_db.delete(_db.customPaperQuestions)
+          ..where((t) => t.paperId.equals(id)))
+        .go();
     final q = _db.delete(_db.customPapers)..where((t) => t.id.equals(id));
     await q.go();
   }

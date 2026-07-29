@@ -11,6 +11,7 @@ import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
 import '../../domain/paper_creation_service.dart';
+import '../../domain/paper_folder_repository.dart';
 import '../../domain/question_review_repository.dart';
 import '../../domain/smart_paper_draft_selector.dart';
 import '../../domain/preference_repository.dart';
@@ -24,7 +25,7 @@ import '../router.dart';
 import 'question_detail_page.dart';
 import 'paper_draft_dialog.dart';
 
-enum _QuestionLibraryMode { papers, topics, knowledge, search, mine }
+enum _QuestionLibraryMode { topics, knowledge, search, mine }
 
 enum _VirtualPaperAction { addToBasket, createPaper, createAndDownload }
 
@@ -83,6 +84,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     ),
     DatabaseProvider(),
   );
+  late final PaperFolderRepository _paperFolderRepository =
+      PaperFolderRepository.local();
   static const _smartDraftSelector = SmartPaperDraftSelector();
   final _filterKey = GlobalKey<FilterPanelState>();
   final _resultsKey = GlobalKey();
@@ -90,7 +93,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       widget.scrollController ?? ScrollController();
   final _queryController = TextEditingController();
   FilterOptions? _filterOptions;
-  List<VirtualPaper> _virtualPapers = const [];
   QuestionReviewSummary _reviewSummary = const QuestionReviewSummary(
     currentWrongCount: 0,
     correctedCount: 0,
@@ -104,8 +106,9 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   QuestionReviewScope? _reviewScope;
   int? _selectedRangeId;
   VirtualPaper? _selectedVirtualPaper;
-  _QuestionLibraryMode _mode = _QuestionLibraryMode.papers;
-  bool _advancedExpanded = false;
+  _QuestionLibraryMode _mode = _QuestionLibraryMode.topics;
+  int? _currentFolderId;
+  String _currentFolderName = '默认组卷夹';
   bool _applyingExternalScope = false;
   String? _error;
   Set<String> _years = {};
@@ -123,6 +126,80 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void initState() {
     super.initState();
     _loadFilterOptions();
+    _loadCurrentFolder();
+  }
+
+  Future<void> _loadCurrentFolder() async {
+    try {
+      final id = await _paperFolderRepository.defaultFolderId();
+      final detail = await _paperFolderRepository.detail(id);
+      if (!mounted) return;
+      setState(() {
+        _currentFolderId = id;
+        _currentFolderName = detail.folder.name;
+        _selectedQuestions
+          ..clear()
+          ..addEntries(
+            detail.questions.map((question) => MapEntry(question.id, question)),
+          );
+      });
+    } on StateError {
+      // Repository-injected widget tests may not initialize the user database.
+    }
+  }
+
+  Future<void> _persistCurrentFolder() async {
+    final folderId = _currentFolderId;
+    if (folderId == null) return;
+    try {
+      await _paperFolderRepository.replaceQuestions(
+        folderId,
+        _selectedQuestions.keys.toList(growable: false),
+      );
+    } on StateError {
+      // Repository-injected widget tests may not initialize the user database.
+    }
+  }
+
+  Future<void> _selectCurrentFolder() async {
+    final folders = await _paperFolderRepository.list();
+    if (!mounted || folders.isEmpty) return;
+    final selectedId = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: const Text('选择组卷夹'),
+        children: folders
+            .map(
+              (folder) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, folder.id),
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    folder.id == _currentFolderId
+                        ? Icons.folder
+                        : Icons.folder_outlined,
+                  ),
+                  title: Text(folder.name),
+                  trailing: Text('${folder.questionCount} 题'),
+                ),
+              ),
+            )
+            .toList(growable: false),
+      ),
+    );
+    if (selectedId == null) return;
+    final detail = await _paperFolderRepository.detail(selectedId);
+    await _paperFolderRepository.setActiveFolder(selectedId);
+    if (!mounted) return;
+    setState(() {
+      _currentFolderId = selectedId;
+      _currentFolderName = detail.folder.name;
+      _selectedQuestions
+        ..clear()
+        ..addEntries(
+          detail.questions.map((question) => MapEntry(question.id, question)),
+        );
+    });
   }
 
   @override
@@ -144,30 +221,12 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       if (!mounted) return;
       setState(() {
         _filterOptions = results[0] as FilterOptions;
-        _virtualPapers = results[1] as List<VirtualPaper>;
         _reviewSummary = results[2] as QuestionReviewSummary;
         _savedRanges = results[3] as List<PreferenceSummary>;
       });
     } catch (error) {
       if (mounted) setState(() => _error = '题库筛选条件加载失败，请稍后重试');
     }
-  }
-
-  void _selectVirtualPaper(VirtualPaper paper) {
-    _queryController.clear();
-    _applyFilterState(
-      FilterState(
-        years: {paper.year.toString()},
-        regions: {paper.region},
-        examTypes: {paper.examType},
-      ),
-    );
-    setState(() {
-      _reviewScope = null;
-      _selectedRangeId = null;
-      _selectedVirtualPaper = paper;
-    });
-    _scheduleSearch();
   }
 
   FilterState get _currentFilterState => FilterState(
@@ -525,7 +584,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     );
   }
 
-  void _toggleQuestion(SearchQuestion question) {
+  Future<void> _toggleQuestion(SearchQuestion question) async {
     setState(() {
       if (_selectedQuestions.containsKey(question.id)) {
         _selectedQuestions.remove(question.id);
@@ -533,13 +592,16 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _selectedQuestions[question.id] = question;
       }
     });
+    await _persistCurrentFolder();
   }
 
   bool get _allVisibleQuestionsSelected {
     final questions = _questions;
     return questions != null &&
         questions.isNotEmpty &&
-        questions.every((question) => _selectedQuestions.containsKey(question.id));
+        questions.every(
+          (question) => _selectedQuestions.containsKey(question.id),
+        );
   }
 
   Future<void> _toggleAllVisibleQuestions() async {
@@ -577,8 +639,11 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         }
       }
     });
+    await _persistCurrentFolder();
   }
 
+  // Retained for compatibility with older deep-link flows during migration.
+  // ignore: unused_element
   Future<void> _createPaper() async {
     if (_selectedQuestions.isEmpty || _creatingPaper) return;
     await _createManualDraft(
@@ -659,6 +724,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     );
   }
 
+  // Retained while existing widget tests migrate to the standalone suite page.
+  // ignore: unused_element
   Future<void> _handleVirtualPaperAction(
     VirtualPaper paper,
     _VirtualPaperAction action,
@@ -720,43 +787,25 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       candidates: candidates,
       requestedCount: requestedCount,
     );
-    const cost = paperCreationCost;
-    final description = selected.isEmpty ? '智能组卷' : '智能补足';
-    final draft = await showDialog<PaperDraft>(
-      context: context,
-      builder: (_) => PaperDraftDialog(
-        initialName: '智能练习卷',
-        questions: draftQuestions,
-        cost: cost,
-      ),
-    );
-    if (draft == null || !mounted) return;
-
     setState(() => _creatingPaper = true);
     try {
-      final paperId = await _paperCreationService.createDraftPaper(
-        name: draft.name,
-        questionIds: draft.questions
-            .map((question) => question.id)
-            .toList(growable: false),
-        cost: cost,
-        description: description,
-      );
-      if (!mounted) return;
       setState(() {
-        _selectedQuestions.clear();
+        _selectedQuestions
+          ..clear()
+          ..addEntries(
+            draftQuestions.map((question) => MapEntry(question.id, question)),
+          );
       });
-      RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
-    } on InsufficientPointsException catch (error) {
+      await _persistCurrentFolder();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('积分不足，本次生成需要 ${error.requiredPoints} 积分')),
+        SnackBar(content: Text(selected.isEmpty ? '已生成智能选题方案' : '已完成智能补足')),
       );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('智能组卷失败，请调整范围后重试')));
+      ).showSnackBar(const SnackBar(content: Text('智能补足失败，请调整范围后重试')));
     } finally {
       if (mounted) setState(() => _creatingPaper = false);
     }
@@ -766,7 +815,21 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   Widget build(BuildContext context) {
     final options = _filterOptions;
     return Scaffold(
-      appBar: AppBar(title: const Text('题库')),
+      appBar: AppBar(
+        title: const Text('题库'),
+        actions: [
+          IconButton(
+            tooltip: '套卷',
+            onPressed: () => RouterUtils.push(context, AppRoutes.paperLibrary),
+            icon: const Icon(Icons.library_books_outlined),
+          ),
+          IconButton(
+            tooltip: '组卷夹',
+            onPressed: () => RouterUtils.push(context, AppRoutes.paperFolders),
+            icon: const Icon(Icons.folder_outlined),
+          ),
+        ],
+      ),
       bottomNavigationBar: _selectedQuestions.isNotEmpty
           ? SafeArea(
               child: Container(
@@ -778,15 +841,22 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        '已选 ${_selectedQuestions.length} 题',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      child: TextButton.icon(
+                        onPressed: _selectCurrentFolder,
+                        icon: const Icon(Icons.folder_outlined),
+                        label: Text(
+                          '$_currentFolderName · ${_selectedQuestions.length} 题',
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     TextButton(
                       onPressed: _selectedQuestions.isEmpty
                           ? null
-                          : () => setState(_selectedQuestions.clear),
+                          : () async {
+                              setState(_selectedQuestions.clear);
+                              await _persistCurrentFolder();
+                            },
                       child: const Text('清空'),
                     ),
                     TextButton.icon(
@@ -798,9 +868,12 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                     AppButton(
                       onPressed: _selectedQuestions.isEmpty || _creatingPaper
                           ? null
-                          : _createPaper,
+                          : () => RouterUtils.push(
+                              context,
+                              '${AppRoutes.paperFolderDetail}?id=$_currentFolderId',
+                            ),
                       icon: Icons.description_outlined,
-                      label: '生成试卷',
+                      label: '查看组卷夹',
                       expanded: false,
                       loading: _creatingPaper,
                     ),
@@ -858,18 +931,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                           ),
                         ),
                       ),
-                    if (options != null && _mode == _QuestionLibraryMode.papers)
-                      SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.md),
-                        sliver: SliverToBoxAdapter(
-                          child: _VirtualPaperBrowser(
-                            papers: _virtualPapers,
-                            selected: _selectedVirtualPaper,
-                            onSelected: _selectVirtualPaper,
-                            onAction: _handleVirtualPaperAction,
-                          ),
-                        ),
-                      ),
                     if (options != null && _mode == _QuestionLibraryMode.topics)
                       SliverPadding(
                         padding: const EdgeInsets.only(top: AppSpacing.md),
@@ -920,47 +981,35 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                       SliverPadding(
                         padding: const EdgeInsets.only(top: AppSpacing.md),
                         sliver: SliverToBoxAdapter(
-                          child: ExpansionTile(
-                            initiallyExpanded: _advancedExpanded,
-                            onExpansionChanged: (expanded) =>
-                                setState(() => _advancedExpanded = expanded),
-                            tilePadding: EdgeInsets.zero,
-                            title: const Text('更多筛选'),
-                            subtitle: const Text('按来源、题型、难度和计算量进一步限定'),
-                            children: [
-                              const SizedBox(height: AppSpacing.sm),
-                              FilterPanel(
-                                key: _filterKey,
-                                horizontalMargin: 0,
-                                yearOptions: options.years,
-                                regionOptions: options.regions,
-                                typeOptions: options.questionTypes,
-                                conceptTagOptions: options.conceptTags,
-                                conceptTagTree: options.conceptTagTree,
-                                examTypeOptions: options.examTypes,
-                                knowledgeCardOptions: options.knowledgeCards,
-                                knowledgeCardGroups:
-                                    options.knowledgeCardGroups,
-                                selectAllInitially: false,
-                                allowGlobalSelectAll: false,
-                                showConceptSection: false,
-                                showKnowledgeSection: false,
-                                initialState: _currentFilterState,
-                                onChanged: (state) {
-                                  _years = state.years;
-                                  _regions = state.regions;
-                                  _conceptTags = state.conceptTags;
-                                  _questionTypes = state.types;
-                                  _examTypes = state.examTypes;
-                                  _knowledgeCards = state.knowledgeCards;
-                                  _difficultyMin = state.diffMin;
-                                  _difficultyMax = state.diffMax;
-                                  _calculationMin = state.calcMin;
-                                  _calculationMax = state.calcMax;
-                                  _scheduleSearch();
-                                },
-                              ),
-                            ],
+                          child: FilterPanel(
+                            key: _filterKey,
+                            horizontalMargin: 0,
+                            yearOptions: options.years,
+                            regionOptions: options.regions,
+                            typeOptions: options.questionTypes,
+                            conceptTagOptions: options.conceptTags,
+                            conceptTagTree: options.conceptTagTree,
+                            examTypeOptions: options.examTypes,
+                            knowledgeCardOptions: options.knowledgeCards,
+                            knowledgeCardGroups: options.knowledgeCardGroups,
+                            selectAllInitially: false,
+                            allowGlobalSelectAll: false,
+                            showConceptSection: true,
+                            showKnowledgeSection: true,
+                            initialState: _currentFilterState,
+                            onChanged: (state) {
+                              _years = state.years;
+                              _regions = state.regions;
+                              _conceptTags = state.conceptTags;
+                              _questionTypes = state.types;
+                              _examTypes = state.examTypes;
+                              _knowledgeCards = state.knowledgeCards;
+                              _difficultyMin = state.diffMin;
+                              _difficultyMax = state.diffMax;
+                              _calculationMin = state.calcMin;
+                              _calculationMax = state.calcMax;
+                              _scheduleSearch();
+                            },
                           ),
                         ),
                       ),
@@ -974,7 +1023,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                           key: _resultsKey,
                           questions: _questions,
                           allSelected: _allVisibleQuestionsSelected,
-                          partiallySelected: _questions?.any(
+                          partiallySelected:
+                              _questions?.any(
                                 (question) =>
                                     _selectedQuestions.containsKey(question.id),
                               ) ==
@@ -1047,7 +1097,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       ),
     ];
   }
-
 }
 
 class _VirtualPaperBrowser extends StatefulWidget {
@@ -1254,20 +1303,14 @@ class _QuestionResultsHeader extends StatelessWidget {
         .where((question) => question.questionType == 'solution')
         .length;
     final averageDifficulty =
-        items.fold<double>(
-          0,
-          (sum, question) => sum + question.difficulty,
-        ) /
+        items.fold<double>(0, (sum, question) => sum + question.difficulty) /
         items.length;
     final style = Theme.of(
       context,
     ).textTheme.bodySmall?.copyWith(color: context.colors.textMuted);
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: AppSpacing.lg,
-        bottom: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1332,7 +1375,6 @@ class _QuestionLibraryModeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const modes = [
-      (_QuestionLibraryMode.papers, '套卷'),
       (_QuestionLibraryMode.topics, '专题'),
       (_QuestionLibraryMode.knowledge, '知识卡片'),
       (_QuestionLibraryMode.search, '搜索'),
@@ -1408,8 +1450,7 @@ class _SmartPaperCountDialog extends StatefulWidget {
   final int totalAvailable;
 
   @override
-  State<_SmartPaperCountDialog> createState() =>
-      _SmartPaperCountDialogState();
+  State<_SmartPaperCountDialog> createState() => _SmartPaperCountDialogState();
 }
 
 class _SmartPaperCountDialogState extends State<_SmartPaperCountDialog> {
@@ -1421,9 +1462,7 @@ class _SmartPaperCountDialogState extends State<_SmartPaperCountDialog> {
   @override
   void initState() {
     super.initState();
-    final defaultCount = widget.lockedCount == 0
-        ? 21
-        : widget.lockedCount + 5;
+    final defaultCount = widget.lockedCount == 0 ? 21 : widget.lockedCount + 5;
     _controller = TextEditingController(
       text: defaultCount.clamp(_minimum, widget.totalAvailable).toString(),
     );

@@ -5070,6 +5070,994 @@ class CustomPaperQuestionsCompanion
   }
 }
 
+class $PaperFoldersTable extends PaperFolders
+    with TableInfo<$PaperFoldersTable, PaperFolderRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaperFoldersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _serverIdMeta = const VerificationMeta(
+    'serverId',
+  );
+  @override
+  late final GeneratedColumn<int> serverId = GeneratedColumn<int>(
+    'server_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _revisionMeta = const VerificationMeta(
+    'revision',
+  );
+  @override
+  late final GeneratedColumn<int> revision = GeneratedColumn<int>(
+    'revision',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<int> isDefault = GeneratedColumn<int>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastGeneratedAtMeta = const VerificationMeta(
+    'lastGeneratedAt',
+  );
+  @override
+  late final GeneratedColumn<String> lastGeneratedAt = GeneratedColumn<String>(
+    'last_generated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastGeneratedFingerprintMeta =
+      const VerificationMeta('lastGeneratedFingerprint');
+  @override
+  late final GeneratedColumn<String> lastGeneratedFingerprint =
+      GeneratedColumn<String>(
+        'last_generated_fingerprint',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(''),
+      );
+  static const VerificationMeta _lastGeneratedPaperIdMeta =
+      const VerificationMeta('lastGeneratedPaperId');
+  @override
+  late final GeneratedColumn<int> lastGeneratedPaperId = GeneratedColumn<int>(
+    'last_generated_paper_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    serverId,
+    name,
+    revision,
+    isDefault,
+    createdAt,
+    updatedAt,
+    lastGeneratedAt,
+    lastGeneratedFingerprint,
+    lastGeneratedPaperId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'paper_folder';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaperFolderRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('server_id')) {
+      context.handle(
+        _serverIdMeta,
+        serverId.isAcceptableOrUnknown(data['server_id']!, _serverIdMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('revision')) {
+      context.handle(
+        _revisionMeta,
+        revision.isAcceptableOrUnknown(data['revision']!, _revisionMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('last_generated_at')) {
+      context.handle(
+        _lastGeneratedAtMeta,
+        lastGeneratedAt.isAcceptableOrUnknown(
+          data['last_generated_at']!,
+          _lastGeneratedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_generated_fingerprint')) {
+      context.handle(
+        _lastGeneratedFingerprintMeta,
+        lastGeneratedFingerprint.isAcceptableOrUnknown(
+          data['last_generated_fingerprint']!,
+          _lastGeneratedFingerprintMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_generated_paper_id')) {
+      context.handle(
+        _lastGeneratedPaperIdMeta,
+        lastGeneratedPaperId.isAcceptableOrUnknown(
+          data['last_generated_paper_id']!,
+          _lastGeneratedPaperIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PaperFolderRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaperFolderRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      serverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}server_id'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      revision: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}revision'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}is_default'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      lastGeneratedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_generated_at'],
+      ),
+      lastGeneratedFingerprint: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_generated_fingerprint'],
+      )!,
+      lastGeneratedPaperId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_generated_paper_id'],
+      ),
+    );
+  }
+
+  @override
+  $PaperFoldersTable createAlias(String alias) {
+    return $PaperFoldersTable(attachedDatabase, alias);
+  }
+}
+
+class PaperFolderRow extends DataClass implements Insertable<PaperFolderRow> {
+  final int id;
+  final int? serverId;
+  final String name;
+  final int revision;
+  final int isDefault;
+  final String createdAt;
+  final String updatedAt;
+  final String? lastGeneratedAt;
+  final String lastGeneratedFingerprint;
+  final int? lastGeneratedPaperId;
+  const PaperFolderRow({
+    required this.id,
+    this.serverId,
+    required this.name,
+    required this.revision,
+    required this.isDefault,
+    required this.createdAt,
+    required this.updatedAt,
+    this.lastGeneratedAt,
+    required this.lastGeneratedFingerprint,
+    this.lastGeneratedPaperId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || serverId != null) {
+      map['server_id'] = Variable<int>(serverId);
+    }
+    map['name'] = Variable<String>(name);
+    map['revision'] = Variable<int>(revision);
+    map['is_default'] = Variable<int>(isDefault);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    if (!nullToAbsent || lastGeneratedAt != null) {
+      map['last_generated_at'] = Variable<String>(lastGeneratedAt);
+    }
+    map['last_generated_fingerprint'] = Variable<String>(
+      lastGeneratedFingerprint,
+    );
+    if (!nullToAbsent || lastGeneratedPaperId != null) {
+      map['last_generated_paper_id'] = Variable<int>(lastGeneratedPaperId);
+    }
+    return map;
+  }
+
+  PaperFoldersCompanion toCompanion(bool nullToAbsent) {
+    return PaperFoldersCompanion(
+      id: Value(id),
+      serverId: serverId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverId),
+      name: Value(name),
+      revision: Value(revision),
+      isDefault: Value(isDefault),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      lastGeneratedAt: lastGeneratedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedAt),
+      lastGeneratedFingerprint: Value(lastGeneratedFingerprint),
+      lastGeneratedPaperId: lastGeneratedPaperId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastGeneratedPaperId),
+    );
+  }
+
+  factory PaperFolderRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaperFolderRow(
+      id: serializer.fromJson<int>(json['id']),
+      serverId: serializer.fromJson<int?>(json['serverId']),
+      name: serializer.fromJson<String>(json['name']),
+      revision: serializer.fromJson<int>(json['revision']),
+      isDefault: serializer.fromJson<int>(json['isDefault']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+      lastGeneratedAt: serializer.fromJson<String?>(json['lastGeneratedAt']),
+      lastGeneratedFingerprint: serializer.fromJson<String>(
+        json['lastGeneratedFingerprint'],
+      ),
+      lastGeneratedPaperId: serializer.fromJson<int?>(
+        json['lastGeneratedPaperId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'serverId': serializer.toJson<int?>(serverId),
+      'name': serializer.toJson<String>(name),
+      'revision': serializer.toJson<int>(revision),
+      'isDefault': serializer.toJson<int>(isDefault),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+      'lastGeneratedAt': serializer.toJson<String?>(lastGeneratedAt),
+      'lastGeneratedFingerprint': serializer.toJson<String>(
+        lastGeneratedFingerprint,
+      ),
+      'lastGeneratedPaperId': serializer.toJson<int?>(lastGeneratedPaperId),
+    };
+  }
+
+  PaperFolderRow copyWith({
+    int? id,
+    Value<int?> serverId = const Value.absent(),
+    String? name,
+    int? revision,
+    int? isDefault,
+    String? createdAt,
+    String? updatedAt,
+    Value<String?> lastGeneratedAt = const Value.absent(),
+    String? lastGeneratedFingerprint,
+    Value<int?> lastGeneratedPaperId = const Value.absent(),
+  }) => PaperFolderRow(
+    id: id ?? this.id,
+    serverId: serverId.present ? serverId.value : this.serverId,
+    name: name ?? this.name,
+    revision: revision ?? this.revision,
+    isDefault: isDefault ?? this.isDefault,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    lastGeneratedAt: lastGeneratedAt.present
+        ? lastGeneratedAt.value
+        : this.lastGeneratedAt,
+    lastGeneratedFingerprint:
+        lastGeneratedFingerprint ?? this.lastGeneratedFingerprint,
+    lastGeneratedPaperId: lastGeneratedPaperId.present
+        ? lastGeneratedPaperId.value
+        : this.lastGeneratedPaperId,
+  );
+  PaperFolderRow copyWithCompanion(PaperFoldersCompanion data) {
+    return PaperFolderRow(
+      id: data.id.present ? data.id.value : this.id,
+      serverId: data.serverId.present ? data.serverId.value : this.serverId,
+      name: data.name.present ? data.name.value : this.name,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lastGeneratedAt: data.lastGeneratedAt.present
+          ? data.lastGeneratedAt.value
+          : this.lastGeneratedAt,
+      lastGeneratedFingerprint: data.lastGeneratedFingerprint.present
+          ? data.lastGeneratedFingerprint.value
+          : this.lastGeneratedFingerprint,
+      lastGeneratedPaperId: data.lastGeneratedPaperId.present
+          ? data.lastGeneratedPaperId.value
+          : this.lastGeneratedPaperId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaperFolderRow(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('name: $name, ')
+          ..write('revision: $revision, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastGeneratedAt: $lastGeneratedAt, ')
+          ..write('lastGeneratedFingerprint: $lastGeneratedFingerprint, ')
+          ..write('lastGeneratedPaperId: $lastGeneratedPaperId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    serverId,
+    name,
+    revision,
+    isDefault,
+    createdAt,
+    updatedAt,
+    lastGeneratedAt,
+    lastGeneratedFingerprint,
+    lastGeneratedPaperId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaperFolderRow &&
+          other.id == this.id &&
+          other.serverId == this.serverId &&
+          other.name == this.name &&
+          other.revision == this.revision &&
+          other.isDefault == this.isDefault &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.lastGeneratedAt == this.lastGeneratedAt &&
+          other.lastGeneratedFingerprint == this.lastGeneratedFingerprint &&
+          other.lastGeneratedPaperId == this.lastGeneratedPaperId);
+}
+
+class PaperFoldersCompanion extends UpdateCompanion<PaperFolderRow> {
+  final Value<int> id;
+  final Value<int?> serverId;
+  final Value<String> name;
+  final Value<int> revision;
+  final Value<int> isDefault;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<String?> lastGeneratedAt;
+  final Value<String> lastGeneratedFingerprint;
+  final Value<int?> lastGeneratedPaperId;
+  const PaperFoldersCompanion({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.revision = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.lastGeneratedAt = const Value.absent(),
+    this.lastGeneratedFingerprint = const Value.absent(),
+    this.lastGeneratedPaperId = const Value.absent(),
+  });
+  PaperFoldersCompanion.insert({
+    this.id = const Value.absent(),
+    this.serverId = const Value.absent(),
+    required String name,
+    this.revision = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+    this.lastGeneratedAt = const Value.absent(),
+    this.lastGeneratedFingerprint = const Value.absent(),
+    this.lastGeneratedPaperId = const Value.absent(),
+  }) : name = Value(name),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<PaperFolderRow> custom({
+    Expression<int>? id,
+    Expression<int>? serverId,
+    Expression<String>? name,
+    Expression<int>? revision,
+    Expression<int>? isDefault,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? lastGeneratedAt,
+    Expression<String>? lastGeneratedFingerprint,
+    Expression<int>? lastGeneratedPaperId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serverId != null) 'server_id': serverId,
+      if (name != null) 'name': name,
+      if (revision != null) 'revision': revision,
+      if (isDefault != null) 'is_default': isDefault,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (lastGeneratedAt != null) 'last_generated_at': lastGeneratedAt,
+      if (lastGeneratedFingerprint != null)
+        'last_generated_fingerprint': lastGeneratedFingerprint,
+      if (lastGeneratedPaperId != null)
+        'last_generated_paper_id': lastGeneratedPaperId,
+    });
+  }
+
+  PaperFoldersCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? serverId,
+    Value<String>? name,
+    Value<int>? revision,
+    Value<int>? isDefault,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<String?>? lastGeneratedAt,
+    Value<String>? lastGeneratedFingerprint,
+    Value<int?>? lastGeneratedPaperId,
+  }) {
+    return PaperFoldersCompanion(
+      id: id ?? this.id,
+      serverId: serverId ?? this.serverId,
+      name: name ?? this.name,
+      revision: revision ?? this.revision,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastGeneratedAt: lastGeneratedAt ?? this.lastGeneratedAt,
+      lastGeneratedFingerprint:
+          lastGeneratedFingerprint ?? this.lastGeneratedFingerprint,
+      lastGeneratedPaperId: lastGeneratedPaperId ?? this.lastGeneratedPaperId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (serverId.present) {
+      map['server_id'] = Variable<int>(serverId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (revision.present) {
+      map['revision'] = Variable<int>(revision.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<int>(isDefault.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (lastGeneratedAt.present) {
+      map['last_generated_at'] = Variable<String>(lastGeneratedAt.value);
+    }
+    if (lastGeneratedFingerprint.present) {
+      map['last_generated_fingerprint'] = Variable<String>(
+        lastGeneratedFingerprint.value,
+      );
+    }
+    if (lastGeneratedPaperId.present) {
+      map['last_generated_paper_id'] = Variable<int>(
+        lastGeneratedPaperId.value,
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaperFoldersCompanion(')
+          ..write('id: $id, ')
+          ..write('serverId: $serverId, ')
+          ..write('name: $name, ')
+          ..write('revision: $revision, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastGeneratedAt: $lastGeneratedAt, ')
+          ..write('lastGeneratedFingerprint: $lastGeneratedFingerprint, ')
+          ..write('lastGeneratedPaperId: $lastGeneratedPaperId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PaperFolderQuestionsTable extends PaperFolderQuestions
+    with TableInfo<$PaperFolderQuestionsTable, PaperFolderQuestionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PaperFolderQuestionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _folderIdMeta = const VerificationMeta(
+    'folderId',
+  );
+  @override
+  late final GeneratedColumn<int> folderId = GeneratedColumn<int>(
+    'folder_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _questionIdMeta = const VerificationMeta(
+    'questionId',
+  );
+  @override
+  late final GeneratedColumn<int> questionId = GeneratedColumn<int>(
+    'question_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    folderId,
+    questionId,
+    sortOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'paper_folder_question';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PaperFolderQuestionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('folder_id')) {
+      context.handle(
+        _folderIdMeta,
+        folderId.isAcceptableOrUnknown(data['folder_id']!, _folderIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_folderIdMeta);
+    }
+    if (data.containsKey('question_id')) {
+      context.handle(
+        _questionIdMeta,
+        questionId.isAcceptableOrUnknown(data['question_id']!, _questionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_questionIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {folderId, questionId},
+  ];
+  @override
+  PaperFolderQuestionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PaperFolderQuestionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      folderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}folder_id'],
+      )!,
+      questionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}question_id'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PaperFolderQuestionsTable createAlias(String alias) {
+    return $PaperFolderQuestionsTable(attachedDatabase, alias);
+  }
+}
+
+class PaperFolderQuestionRow extends DataClass
+    implements Insertable<PaperFolderQuestionRow> {
+  final int id;
+  final int folderId;
+  final int questionId;
+  final int sortOrder;
+  final String createdAt;
+  const PaperFolderQuestionRow({
+    required this.id,
+    required this.folderId,
+    required this.questionId,
+    required this.sortOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['folder_id'] = Variable<int>(folderId);
+    map['question_id'] = Variable<int>(questionId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<String>(createdAt);
+    return map;
+  }
+
+  PaperFolderQuestionsCompanion toCompanion(bool nullToAbsent) {
+    return PaperFolderQuestionsCompanion(
+      id: Value(id),
+      folderId: Value(folderId),
+      questionId: Value(questionId),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PaperFolderQuestionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PaperFolderQuestionRow(
+      id: serializer.fromJson<int>(json['id']),
+      folderId: serializer.fromJson<int>(json['folderId']),
+      questionId: serializer.fromJson<int>(json['questionId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'folderId': serializer.toJson<int>(folderId),
+      'questionId': serializer.toJson<int>(questionId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<String>(createdAt),
+    };
+  }
+
+  PaperFolderQuestionRow copyWith({
+    int? id,
+    int? folderId,
+    int? questionId,
+    int? sortOrder,
+    String? createdAt,
+  }) => PaperFolderQuestionRow(
+    id: id ?? this.id,
+    folderId: folderId ?? this.folderId,
+    questionId: questionId ?? this.questionId,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PaperFolderQuestionRow copyWithCompanion(PaperFolderQuestionsCompanion data) {
+    return PaperFolderQuestionRow(
+      id: data.id.present ? data.id.value : this.id,
+      folderId: data.folderId.present ? data.folderId.value : this.folderId,
+      questionId: data.questionId.present
+          ? data.questionId.value
+          : this.questionId,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaperFolderQuestionRow(')
+          ..write('id: $id, ')
+          ..write('folderId: $folderId, ')
+          ..write('questionId: $questionId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, folderId, questionId, sortOrder, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PaperFolderQuestionRow &&
+          other.id == this.id &&
+          other.folderId == this.folderId &&
+          other.questionId == this.questionId &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class PaperFolderQuestionsCompanion
+    extends UpdateCompanion<PaperFolderQuestionRow> {
+  final Value<int> id;
+  final Value<int> folderId;
+  final Value<int> questionId;
+  final Value<int> sortOrder;
+  final Value<String> createdAt;
+  const PaperFolderQuestionsCompanion({
+    this.id = const Value.absent(),
+    this.folderId = const Value.absent(),
+    this.questionId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  PaperFolderQuestionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int folderId,
+    required int questionId,
+    required int sortOrder,
+    required String createdAt,
+  }) : folderId = Value(folderId),
+       questionId = Value(questionId),
+       sortOrder = Value(sortOrder),
+       createdAt = Value(createdAt);
+  static Insertable<PaperFolderQuestionRow> custom({
+    Expression<int>? id,
+    Expression<int>? folderId,
+    Expression<int>? questionId,
+    Expression<int>? sortOrder,
+    Expression<String>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (folderId != null) 'folder_id': folderId,
+      if (questionId != null) 'question_id': questionId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  PaperFolderQuestionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? folderId,
+    Value<int>? questionId,
+    Value<int>? sortOrder,
+    Value<String>? createdAt,
+  }) {
+    return PaperFolderQuestionsCompanion(
+      id: id ?? this.id,
+      folderId: folderId ?? this.folderId,
+      questionId: questionId ?? this.questionId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (folderId.present) {
+      map['folder_id'] = Variable<int>(folderId.value);
+    }
+    if (questionId.present) {
+      map['question_id'] = Variable<int>(questionId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PaperFolderQuestionsCompanion(')
+          ..write('id: $id, ')
+          ..write('folderId: $folderId, ')
+          ..write('questionId: $questionId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PaperLikesTable extends PaperLikes
     with TableInfo<$PaperLikesTable, PaperLikeRow> {
   @override
@@ -6869,6 +7857,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CustomPapersTable customPapers = $CustomPapersTable(this);
   late final $CustomPaperQuestionsTable customPaperQuestions =
       $CustomPaperQuestionsTable(this);
+  late final $PaperFoldersTable paperFolders = $PaperFoldersTable(this);
+  late final $PaperFolderQuestionsTable paperFolderQuestions =
+      $PaperFolderQuestionsTable(this);
   late final $PaperLikesTable paperLikes = $PaperLikesTable(this);
   late final $PaperCollectsTable paperCollects = $PaperCollectsTable(this);
   late final $PreferenceFiltersTable preferenceFilters =
@@ -6890,6 +7881,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     questionRatings,
     customPapers,
     customPaperQuestions,
+    paperFolders,
+    paperFolderQuestions,
     paperLikes,
     paperCollects,
     preferenceFilters,
@@ -9563,6 +10556,513 @@ typedef $$CustomPaperQuestionsTableProcessedTableManager =
       CustomPaperQuestionRow,
       PrefetchHooks Function()
     >;
+typedef $$PaperFoldersTableCreateCompanionBuilder =
+    PaperFoldersCompanion Function({
+      Value<int> id,
+      Value<int?> serverId,
+      required String name,
+      Value<int> revision,
+      Value<int> isDefault,
+      required String createdAt,
+      required String updatedAt,
+      Value<String?> lastGeneratedAt,
+      Value<String> lastGeneratedFingerprint,
+      Value<int?> lastGeneratedPaperId,
+    });
+typedef $$PaperFoldersTableUpdateCompanionBuilder =
+    PaperFoldersCompanion Function({
+      Value<int> id,
+      Value<int?> serverId,
+      Value<String> name,
+      Value<int> revision,
+      Value<int> isDefault,
+      Value<String> createdAt,
+      Value<String> updatedAt,
+      Value<String?> lastGeneratedAt,
+      Value<String> lastGeneratedFingerprint,
+      Value<int?> lastGeneratedPaperId,
+    });
+
+class $$PaperFoldersTableFilterComposer
+    extends Composer<_$AppDatabase, $PaperFoldersTable> {
+  $$PaperFoldersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastGeneratedAt => $composableBuilder(
+    column: $table.lastGeneratedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastGeneratedFingerprint => $composableBuilder(
+    column: $table.lastGeneratedFingerprint,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastGeneratedPaperId => $composableBuilder(
+    column: $table.lastGeneratedPaperId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PaperFoldersTableOrderingComposer
+    extends Composer<_$AppDatabase, $PaperFoldersTable> {
+  $$PaperFoldersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get serverId => $composableBuilder(
+    column: $table.serverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get revision => $composableBuilder(
+    column: $table.revision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastGeneratedAt => $composableBuilder(
+    column: $table.lastGeneratedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastGeneratedFingerprint => $composableBuilder(
+    column: $table.lastGeneratedFingerprint,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastGeneratedPaperId => $composableBuilder(
+    column: $table.lastGeneratedPaperId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PaperFoldersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PaperFoldersTable> {
+  $$PaperFoldersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get serverId =>
+      $composableBuilder(column: $table.serverId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get revision =>
+      $composableBuilder(column: $table.revision, builder: (column) => column);
+
+  GeneratedColumn<int> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastGeneratedAt => $composableBuilder(
+    column: $table.lastGeneratedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastGeneratedFingerprint => $composableBuilder(
+    column: $table.lastGeneratedFingerprint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastGeneratedPaperId => $composableBuilder(
+    column: $table.lastGeneratedPaperId,
+    builder: (column) => column,
+  );
+}
+
+class $$PaperFoldersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PaperFoldersTable,
+          PaperFolderRow,
+          $$PaperFoldersTableFilterComposer,
+          $$PaperFoldersTableOrderingComposer,
+          $$PaperFoldersTableAnnotationComposer,
+          $$PaperFoldersTableCreateCompanionBuilder,
+          $$PaperFoldersTableUpdateCompanionBuilder,
+          (
+            PaperFolderRow,
+            BaseReferences<_$AppDatabase, $PaperFoldersTable, PaperFolderRow>,
+          ),
+          PaperFolderRow,
+          PrefetchHooks Function()
+        > {
+  $$PaperFoldersTableTableManager(_$AppDatabase db, $PaperFoldersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PaperFoldersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PaperFoldersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PaperFoldersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> serverId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> revision = const Value.absent(),
+                Value<int> isDefault = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String> updatedAt = const Value.absent(),
+                Value<String?> lastGeneratedAt = const Value.absent(),
+                Value<String> lastGeneratedFingerprint = const Value.absent(),
+                Value<int?> lastGeneratedPaperId = const Value.absent(),
+              }) => PaperFoldersCompanion(
+                id: id,
+                serverId: serverId,
+                name: name,
+                revision: revision,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                lastGeneratedAt: lastGeneratedAt,
+                lastGeneratedFingerprint: lastGeneratedFingerprint,
+                lastGeneratedPaperId: lastGeneratedPaperId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> serverId = const Value.absent(),
+                required String name,
+                Value<int> revision = const Value.absent(),
+                Value<int> isDefault = const Value.absent(),
+                required String createdAt,
+                required String updatedAt,
+                Value<String?> lastGeneratedAt = const Value.absent(),
+                Value<String> lastGeneratedFingerprint = const Value.absent(),
+                Value<int?> lastGeneratedPaperId = const Value.absent(),
+              }) => PaperFoldersCompanion.insert(
+                id: id,
+                serverId: serverId,
+                name: name,
+                revision: revision,
+                isDefault: isDefault,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                lastGeneratedAt: lastGeneratedAt,
+                lastGeneratedFingerprint: lastGeneratedFingerprint,
+                lastGeneratedPaperId: lastGeneratedPaperId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PaperFoldersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PaperFoldersTable,
+      PaperFolderRow,
+      $$PaperFoldersTableFilterComposer,
+      $$PaperFoldersTableOrderingComposer,
+      $$PaperFoldersTableAnnotationComposer,
+      $$PaperFoldersTableCreateCompanionBuilder,
+      $$PaperFoldersTableUpdateCompanionBuilder,
+      (
+        PaperFolderRow,
+        BaseReferences<_$AppDatabase, $PaperFoldersTable, PaperFolderRow>,
+      ),
+      PaperFolderRow,
+      PrefetchHooks Function()
+    >;
+typedef $$PaperFolderQuestionsTableCreateCompanionBuilder =
+    PaperFolderQuestionsCompanion Function({
+      Value<int> id,
+      required int folderId,
+      required int questionId,
+      required int sortOrder,
+      required String createdAt,
+    });
+typedef $$PaperFolderQuestionsTableUpdateCompanionBuilder =
+    PaperFolderQuestionsCompanion Function({
+      Value<int> id,
+      Value<int> folderId,
+      Value<int> questionId,
+      Value<int> sortOrder,
+      Value<String> createdAt,
+    });
+
+class $$PaperFolderQuestionsTableFilterComposer
+    extends Composer<_$AppDatabase, $PaperFolderQuestionsTable> {
+  $$PaperFolderQuestionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get folderId => $composableBuilder(
+    column: $table.folderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PaperFolderQuestionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PaperFolderQuestionsTable> {
+  $$PaperFolderQuestionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get folderId => $composableBuilder(
+    column: $table.folderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PaperFolderQuestionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PaperFolderQuestionsTable> {
+  $$PaperFolderQuestionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get folderId =>
+      $composableBuilder(column: $table.folderId, builder: (column) => column);
+
+  GeneratedColumn<int> get questionId => $composableBuilder(
+    column: $table.questionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PaperFolderQuestionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PaperFolderQuestionsTable,
+          PaperFolderQuestionRow,
+          $$PaperFolderQuestionsTableFilterComposer,
+          $$PaperFolderQuestionsTableOrderingComposer,
+          $$PaperFolderQuestionsTableAnnotationComposer,
+          $$PaperFolderQuestionsTableCreateCompanionBuilder,
+          $$PaperFolderQuestionsTableUpdateCompanionBuilder,
+          (
+            PaperFolderQuestionRow,
+            BaseReferences<
+              _$AppDatabase,
+              $PaperFolderQuestionsTable,
+              PaperFolderQuestionRow
+            >,
+          ),
+          PaperFolderQuestionRow,
+          PrefetchHooks Function()
+        > {
+  $$PaperFolderQuestionsTableTableManager(
+    _$AppDatabase db,
+    $PaperFolderQuestionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PaperFolderQuestionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PaperFolderQuestionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PaperFolderQuestionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> folderId = const Value.absent(),
+                Value<int> questionId = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+              }) => PaperFolderQuestionsCompanion(
+                id: id,
+                folderId: folderId,
+                questionId: questionId,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int folderId,
+                required int questionId,
+                required int sortOrder,
+                required String createdAt,
+              }) => PaperFolderQuestionsCompanion.insert(
+                id: id,
+                folderId: folderId,
+                questionId: questionId,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PaperFolderQuestionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PaperFolderQuestionsTable,
+      PaperFolderQuestionRow,
+      $$PaperFolderQuestionsTableFilterComposer,
+      $$PaperFolderQuestionsTableOrderingComposer,
+      $$PaperFolderQuestionsTableAnnotationComposer,
+      $$PaperFolderQuestionsTableCreateCompanionBuilder,
+      $$PaperFolderQuestionsTableUpdateCompanionBuilder,
+      (
+        PaperFolderQuestionRow,
+        BaseReferences<
+          _$AppDatabase,
+          $PaperFolderQuestionsTable,
+          PaperFolderQuestionRow
+        >,
+      ),
+      PaperFolderQuestionRow,
+      PrefetchHooks Function()
+    >;
 typedef $$PaperLikesTableCreateCompanionBuilder =
     PaperLikesCompanion Function({
       Value<int> paperId,
@@ -10519,6 +12019,10 @@ class $AppDatabaseManager {
       $$CustomPapersTableTableManager(_db, _db.customPapers);
   $$CustomPaperQuestionsTableTableManager get customPaperQuestions =>
       $$CustomPaperQuestionsTableTableManager(_db, _db.customPaperQuestions);
+  $$PaperFoldersTableTableManager get paperFolders =>
+      $$PaperFoldersTableTableManager(_db, _db.paperFolders);
+  $$PaperFolderQuestionsTableTableManager get paperFolderQuestions =>
+      $$PaperFolderQuestionsTableTableManager(_db, _db.paperFolderQuestions);
   $$PaperLikesTableTableManager get paperLikes =>
       $$PaperLikesTableTableManager(_db, _db.paperLikes);
   $$PaperCollectsTableTableManager get paperCollects =>

@@ -193,6 +193,85 @@ class CustomPaperQuestion(models.Model):
         ]
 
 
+class PaperFolder(models.Model):
+    """可持续编辑的组卷夹。正式试卷仍是不可变快照。"""
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name='paper_folders'
+    )
+    name = models.CharField('名称', max_length=128)
+    revision = models.PositiveIntegerField('版本号', default=0)
+    is_default = models.BooleanField('默认组卷夹', default=False)
+    client_updated_at = models.DateTimeField('客户端更新时间')
+    last_generated_at = models.DateTimeField(
+        '最近生成时间', null=True, blank=True
+    )
+    last_generated_fingerprint = models.CharField(
+        '最近生成内容指纹', max_length=64, blank=True, default=''
+    )
+    last_generated_paper = models.ForeignKey(
+        CustomPaper, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='source_folders'
+    )
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    questions = models.ManyToManyField(
+        BaseQuestion, through='PaperFolderQuestion',
+        related_name='paper_folders', blank=True
+    )
+
+    class Meta:
+        verbose_name = '组卷夹'
+        verbose_name_plural = '组卷夹'
+        ordering = ['-updated_at', '-id']
+
+    def __str__(self):
+        return f'{self.student_id} - {self.name}'
+
+
+class PaperFolderQuestion(models.Model):
+    """组卷夹中的有序题目。"""
+    folder = models.ForeignKey(
+        PaperFolder, on_delete=models.CASCADE, related_name='folder_questions'
+    )
+    question = models.ForeignKey(
+        BaseQuestion, on_delete=models.CASCADE,
+        related_name='paper_folder_questions'
+    )
+    sort_order = models.IntegerField('排序')
+    created_at = models.DateTimeField('加入时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '组卷夹题目'
+        verbose_name_plural = '组卷夹题目'
+        ordering = ['folder', 'sort_order']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['folder', 'question'],
+                name='uq_paper_folder_question'
+            )
+        ]
+
+
+class SyncIdentity(models.Model):
+    """Maps stable client UUIDs to server objects without changing them."""
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name='sync_identities'
+    )
+    entity_type = models.CharField('实体类型', max_length=32)
+    client_id = models.CharField('客户端唯一标识', max_length=128)
+    object_id = models.PositiveBigIntegerField('服务端对象 ID')
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'entity_type', 'client_id'],
+                name='uq_sync_identity_client'
+            )
+        ]
+
+
 class PaperLike(models.Model):
     """组卷点赞"""
     student = models.ForeignKey(

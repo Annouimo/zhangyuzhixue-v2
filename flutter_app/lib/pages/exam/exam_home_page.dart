@@ -41,8 +41,16 @@ class ExamHomePage extends StatelessWidget {
 
                   final entries = [
                     _ExamEntry(
+                      icon: Icons.folder_outlined,
+                      title: '组卷夹',
+                      subtitle: '持续收集、整理并生成试卷',
+                      tone: AppStatusTone.primary,
+                      onTap: () =>
+                          RouterUtils.push(context, AppRoutes.paperFolders),
+                    ),
+                    _ExamEntry(
                       icon: Icons.folder_copy_outlined,
-                      title: '我的组卷',
+                      title: '已生成试卷',
                       subtitle: '管理、公开或删除我创建的试卷',
                       tone: AppStatusTone.primary,
                       onTap: () =>

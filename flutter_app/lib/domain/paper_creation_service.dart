@@ -45,6 +45,66 @@ class PaperCreationService {
     );
   }
 
+  Future<int> createFolderPaper({
+    required String name,
+    required List<int> questionIds,
+  }) async {
+    final available = await _userRepository.availablePoints();
+    if (available < paperCreationCost) {
+      throw InsufficientPointsException(
+        requiredPoints: paperCreationCost,
+        availablePoints: available,
+      );
+    }
+    final now = DateTime.now().toIso8601String();
+    late int pointId;
+    late int paperId;
+    await _databaseProvider.appDb.transaction(() async {
+      pointId = await _databaseProvider.appDb
+          .into(_databaseProvider.appDb.pointsTransactions)
+          .insert(
+            app_db.PointsTransactionsCompanion(
+              amount: const Value(-paperCreationCost * 1.0),
+              source: const Value('PAPER_PURCHASE'),
+              transactionType: const Value('SPEND'),
+              createdAt: Value(now),
+              description: const Value('组卷夹生成试卷'),
+            ),
+          );
+      final examDao = ExamDao(_databaseProvider);
+      paperId = await examDao.savePaper(title: name);
+      await examDao.savePaperQuestions(paperId, questionIds);
+      final paper = await examDao.getById(paperId);
+      final paperClientId = 'paper-$paperId-${paper!.createdAt}';
+      await SyncManager().addToOutbox(
+        entityType: SyncEntityType.exam,
+        operation: SyncOperationType.upsert,
+        localId: paperId,
+        payload: jsonEncode({
+          'action': 'create',
+          'client_id': paperClientId,
+          'title': name,
+          'questions': questionIds,
+        }),
+      );
+      await SyncManager().addToOutbox(
+        entityType: SyncEntityType.pointsTransaction,
+        operation: SyncOperationType.upsert,
+        localId: pointId,
+        payload: jsonEncode({
+          'amount': -paperCreationCost * 1.0,
+          'source': 'PAPER_PURCHASE',
+          'paper_client_id': paperClientId,
+          'transaction_type': 'SPEND',
+          'description': '组卷夹生成试卷',
+          'created_at': now,
+        }),
+      );
+    });
+    SyncManager().scheduleOutboxPush();
+    return paperId;
+  }
+
   Future<int> createDraftPaper({
     required String name,
     required List<int> questionIds,
