@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>题库与组卷重设计稿</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8f9fd;
+      --text: #20242d;
+      --muted: #747b89;
+      --line: #e7eaf1;
+      --primary: #5367e8;
+      --primary-soft: #eef0ff;
+      --success: #1f9d71;
+      --warning: #d9892b;
+      --danger: #d9534f;
+      --shadow: 0 16px 40px rgba(35, 45, 90, .10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .prototype {
+      width: min(1180px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .app-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      padding: 10px 28px;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--primary);
+      font-weight: 700;
+    }
+    .brand strong { font-size: 18px; }
+    .brand small { display: block; margin-top: 2px; color: var(--muted); }
+    .cart-button, .icon-button, .button, .chip, .tab, .scope-card {
+      border: 0;
+      transition: .18s ease;
+    }
+    .cart-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 13px;
+      color: var(--primary);
+      background: var(--primary-soft);
+      font-weight: 600;
+    }
+    .cart-count {
+      display: grid;
+      place-items: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 11px;
+      color: #fff;
+      background: var(--primary);
+      font-size: 12px;
+    }
+    .main-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 12px 28px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .tab {
+      position: relative;
+      padding: 14px 8px 16px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 600;
+    }
+    .tab.active { color: var(--primary); }
+    .tab.active::after {
+      position: absolute;
+      right: 22%; bottom: -1px; left: 22%;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--primary);
+      content: "";
+    }
+    main { padding: 24px 28px 96px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .search-row { display: flex; gap: 10px; margin-bottom: 22px; }
+    .search {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 16px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      outline: 0;
+      color: var(--text);
+      background: var(--surface-soft);
+    }
+    .search:focus { border-color: var(--primary); background: var(--surface); }
+    .section { margin-top: 26px; }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+    .section-head h2 { margin: 0; font-size: 19px; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .text-action { border: 0; color: var(--primary); background: transparent; }
+    .paper-groups, .scope-grid, .question-grid, .mine-grid { display: grid; gap: 12px; }
+    .paper-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .paper-group, .question-card, .scope-card, .summary-card, .mine-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .paper-group { padding: 18px; }
+    .paper-group.featured { background: linear-gradient(145deg, var(--primary-soft), #fff 70%); }
+    .paper-group .group-icon {
+      display: grid;
+      place-items: center;
+      width: 42px; height: 42px;
+      margin-bottom: 16px;
+      border-radius: 14px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 20px;
+    }
+    .paper-group h3 { margin: 0 0 5px; font-size: 16px; }
+    .paper-group p { min-height: 38px; margin: 0; color: var(--muted); font-size: 13px; }
+    .paper-links { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+    .chip {
+      padding: 7px 10px;
+      border-radius: 10px;
+      color: var(--text);
+      background: var(--surface-soft);
+      font-size: 13px;
+    }
+    .chip:hover, .chip.selected { color: var(--primary); background: var(--primary-soft); }
+    .paper-list { border-top: 1px solid var(--line); }
+    .paper-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 14px;
+      padding: 17px 2px;
+      border-bottom: 1px solid var(--line);
+    }
+    .paper-row strong { display: block; margin-bottom: 5px; }
+    .meta { color: var(--muted); font-size: 13px; }
+    .button {
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 12px;
+      color: var(--text);
+      background: var(--surface-soft);
+      font-weight: 600;
+    }
+    .button.primary { color: #fff; background: var(--primary); }
+    .button.outline { color: var(--primary); background: #fff; box-shadow: inset 0 0 0 1px var(--primary); }
+    .button.ghost { color: var(--primary); background: transparent; }
+    .button:active, .scope-card:active { transform: scale(.98); }
+    .compose-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 26px; }
+    .scope-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .scope-card { padding: 18px 14px; text-align: left; background: var(--surface-soft); }
+    .scope-card.selected { color: var(--primary); background: var(--primary-soft); box-shadow: inset 0 0 0 1px var(--primary); }
+    .scope-card strong { display: block; margin-bottom: 5px; }
+    .scope-card span { color: var(--muted); font-size: 12px; }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0;
+      padding: 13px;
+      border-radius: 15px;
+      background: var(--surface-soft);
+    }
+    .filter-bar .summary { margin-right: auto; font-size: 13px; }
+    .question-grid { grid-template-columns: 1fr; }
+    .question-card { padding: 17px; }
+    .question-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .badge { padding: 5px 8px; border-radius: 8px; background: var(--primary-soft); color: var(--primary); font-size: 12px; }
+    .question-card p { margin: 14px 0; line-height: 1.75; }
+    .question-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .question-actions { display: flex; gap: 7px; }
+    .basket-panel { position: sticky; top: 96px; align-self: start; padding: 18px; border-radius: var(--radius); background: var(--surface-soft); }
+    .basket-panel h3 { margin: 0 0 4px; }
+    .basket-list { margin: 16px 0; padding: 0; list-style: none; }
+    .basket-list li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .basket-actions { display: grid; gap: 8px; }
+    .mine-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .mine-card { padding: 20px; }
+    .mine-card strong { display: block; margin-bottom: 8px; font-size: 28px; }
+    .mine-card span { color: var(--muted); }
+    .drawer-mask {
+      position: fixed; inset: 0; z-index: 20;
+      display: none;
+      background: rgba(20,25,40,.28);
+    }
+    .drawer-mask.open { display: block; }
+    .drawer {
+      position: absolute; top: 0; right: 0;
+      width: min(430px, 92vw); height: 100%;
+      padding: 22px;
+      overflow: auto;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; }
+    .drawer-head h2 { margin: 0; }
+    .icon-button { width: 38px; height: 38px; border-radius: 12px; background: var(--surface-soft); }
+    .folder-tabs { display: flex; gap: 8px; margin: 18px 0; overflow: auto; }
+    .cart-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .cart-item div:first-child { display: flex; justify-content: space-between; gap: 10px; }
+    .drawer-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+    .toast {
+      position: fixed; z-index: 30; left: 50%; bottom: 28px;
+      display: none;
+      padding: 11px 16px;
+      border-radius: 12px;
+      transform: translateX(-50%);
+      color: #fff; background: #252a36;
+      box-shadow: var(--shadow);
+    }
+    .toast.show { display: block; }
+    @media (max-width: 780px) {
+      .prototype { box-shadow: none; }
+      .app-bar { min-height: 60px; padding: 9px 16px; }
+      .brand small { display: none; }
+      .main-tabs { padding: 8px 16px 0; }
+      main { padding: 18px 16px 104px; }
+      .paper-groups { grid-template-columns: 1fr; }
+      .paper-group p { min-height: 0; }
+      .compose-layout { grid-template-columns: 1fr; }
+      .basket-panel { display: none; }
+      .scope-grid, .mine-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .paper-row { grid-template-columns: 1fr auto; }
+      .paper-row .meta:last-of-type { display: none; }
+      .question-bottom { align-items: flex-end; }
+      .question-actions { flex-direction: column-reverse; }
+    }
+  </style>
+</head>
+<body>
+  <div class="prototype">
+    <header class="app-bar">
+      <div class="brand">
+        <div class="brand-mark">章</div>
+        <div><strong>题库</strong><small>找套卷、自由选题、管理个人题目</small></div>
+      </div>
+      <button class="cart-button" id="openCart" type="button">▣ 组卷夹 <span class="cart-count" id="cartCount">3</span></button>
+    </header>
+
+    <nav class="main-tabs" aria-label="题库功能">
+      <button class="tab active" type="button" data-view="papers">套卷</button>
+      <button class="tab" type="button" data-view="compose">组卷</button>
+      <button class="tab" type="button" data-view="mine">我的题目</button>
+    </nav>
+
+    <main>
+      <section class="view active" id="papers">
+        <div class="search-row"><input class="search" placeholder="搜索年份、地区、考试类型或套卷名称" aria-label="搜索套卷"></div>
+        <div class="paper-groups">
+          <article class="paper-group featured"><div class="group-icon">卷</div><h3>高考真题</h3><p>按年份和地区浏览完整高考试卷</p><div class="paper-links"><button class="chip selected">2025</button><button class="chip">2024</button><button class="chip">更多年份</button></div></article>
+          <article class="paper-group"><div class="group-icon">模</div><h3>模拟试卷</h3><p>地区联考、名校模考与校内考试</p><div class="paper-links"><button class="chip">北京</button><button class="chip">上海</button><button class="chip">全国</button></div></article>
+          <article class="paper-group"><div class="group-icon">我</div><h3>我的试卷</h3><p>已生成、收藏和最近练习的试卷</p><div class="paper-links"><button class="chip">已生成</button><button class="chip">收藏</button></div></article>
+        </div>
+        <div class="section">
+          <div class="section-head"><div><h2>2025 年高考真题</h2><p>点击整卷查看题目目录，也可直接练习</p></div><button class="text-action">筛选地区</button></div>
+          <div class="paper-list">
+            <div class="paper-row"><div><strong>2025 年普通高等学校招生全国统一考试（全国一卷）</strong><span class="meta">选择 8 · 填空 3 · 解答 8</span></div><span class="meta">21 题</span><button class="button outline" data-demo="打开整卷详情">查看整卷</button></div>
+            <div class="paper-row"><div><strong>2025 年普通高等学校招生全国统一考试（北京卷）</strong><span class="meta">选择 10 · 填空 5 · 解答 6</span></div><span class="meta">21 题</span><button class="button outline" data-demo="打开整卷详情">查看整卷</button></div>
+            <div class="paper-row"><div><strong>2025 年普通高等学校招生全国统一考试（上海卷）</strong><span class="meta">选择 6 · 填空 12 · 解答 3</span></div><span class="meta">21 题</span><button class="button outline" data-demo="打开整卷详情">查看整卷</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="compose">
+        <div class="compose-layout">
+          <div>
+            <div class="search-row"><input class="search" placeholder="搜索题干关键词或题目编号" aria-label="搜索题目"></div>
+            <div class="section-head"><div><h2>选择出题范围</h2><p>先确定主要范围，再按需补充高级条件</p></div><button class="text-action" data-demo="展开题型、难度和计算量筛选">更多筛选</button></div>
+            <div class="scope-grid">
+              <button class="scope-card selected"><strong>按专题</strong><span>函数、几何、概率等</span></button>
+              <button class="scope-card"><strong>按知识点</strong><span>精确到知识卡片</span></button>
+              <button class="scope-card"><strong>年份地区</strong><span>按来源组合筛选</span></button>
+              <button class="scope-card"><strong>常用范围</strong><span>恢复保存的条件</span></button>
+            </div>
+            <div class="filter-bar"><span class="summary"><strong>函数</strong> · 高考 · 中档</span><button class="chip">选择题</button><button class="chip">难度 3–6</button><button class="chip">清除</button></div>
+            <div class="section-head"><div><h2>匹配题目 · 24</h2><p>选择 10 · 填空 6 · 解答 8</p></div><button class="text-action" data-demo="切换排序方式">综合排序⌄</button></div>
+            <div class="question-grid">
+              <article class="question-card"><div class="question-top"><span class="badge">选择题 · 难度 4.2</span><span class="meta">2024 全国卷</span></div><p>已知函数 f(x) 的定义域为 R，若 g(x) 为奇函数，则……</p><div class="question-bottom"><span class="meta">函数的奇偶性 · 计算量 3.0</span><div class="question-actions"><button class="button ghost" data-demo="打开题目详情">查看</button><button class="button outline add-question">加入组卷夹</button></div></div></article>
+              <article class="question-card"><div class="question-top"><span class="badge">解答题 · 难度 6.1</span><span class="meta">2023 北京卷</span></div><p>设函数 f(x)=ln x−ax，讨论函数的单调性并求参数范围。</p><div class="question-bottom"><span class="meta">导数应用 · 计算量 6.5</span><div class="question-actions"><button class="button ghost" data-demo="打开题目详情">查看</button><button class="button outline add-question">加入组卷夹</button></div></div></article>
+              <article class="question-card"><div class="question-top"><span class="badge">填空题 · 难度 5.0</span><span class="meta">2022 浙江卷</span></div><p>若数列 {aₙ} 满足给定递推关系，则 a₁₀ 的值为______。</p><div class="question-bottom"><span class="meta">数列递推 · 计算量 4.0</span><div class="question-actions"><button class="button ghost" data-demo="打开题目详情">查看</button><button class="button primary" data-demo="使用当前勾选题目进入试卷草稿">立即组卷</button></div></div></article>
+            </div>
+          </div>
+          <aside class="basket-panel"><h3>当前组卷夹</h3><span class="meta">函数专项 · 3 题</span><ul class="basket-list"><li><span>1. 函数奇偶性</span><span>选择</span></li><li><span>2. 导数与单调性</span><span>解答</span></li><li><span>3. 数列递推</span><span>填空</span></li></ul><div class="basket-actions"><button class="button outline" data-demo="按条件智能补足当前组卷夹">智能补足</button><button class="button primary" data-demo="打开试卷草稿并确认生成">生成试卷</button></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="mine">
+        <div class="section-head"><div><h2>我的题目</h2><p>从个人记录快速返回练习或组卷</p></div></div>
+        <div class="mine-grid"><article class="mine-card"><strong>12</strong><span>当前错题</span></article><article class="mine-card"><strong>37</strong><span>已订正</span></article><article class="mine-card"><strong>18</strong><span>最近浏览</span></article><article class="mine-card"><strong>4</strong><span>常用范围</span></article></div>
+        <div class="section"><div class="section-head"><div><h2>最近使用</h2><p>继续上次没有完成的选题</p></div></div><div class="paper-list"><div class="paper-row"><div><strong>函数专项组卷夹</strong><span class="meta">今天 14:26 更新</span></div><span class="meta">3 题</span><button class="button primary" data-view-target="compose">继续选题</button></div><div class="paper-row"><div><strong>解析几何错题</strong><span class="meta">昨天更新</span></div><span class="meta">8 题</span><button class="button outline" data-demo="打开错题范围">查看题目</button></div></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-mask" id="cartDrawer" aria-hidden="true">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-label="组卷夹">
+      <div class="drawer-head"><div><h2>组卷夹</h2><span class="meta">像购物车一样跨范围收集题目</span></div><button class="icon-button" id="closeCart" aria-label="关闭">×</button></div>
+      <div class="folder-tabs"><button class="chip selected">函数专项 · 3</button><button class="chip">错题卷 · 8</button><button class="chip">＋ 新建</button></div>
+      <div class="cart-item"><div><strong>1. 函数奇偶性</strong><button class="text-action">移除</button></div><span class="meta">选择题 · 难度 4.2</span></div>
+      <div class="cart-item"><div><strong>2. 导数与单调性</strong><button class="text-action">移除</button></div><span class="meta">解答题 · 难度 6.1</span></div>
+      <div class="cart-item"><div><strong>3. 数列递推</strong><button class="text-action">移除</button></div><span class="meta">填空题 · 难度 5.0</span></div>
+      <div class="drawer-footer"><button class="button outline" data-demo="进入智能补足设置">智能补足</button><button class="button primary" data-demo="进入可编辑试卷草稿">生成试卷</button></div>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const tabs = [...document.querySelectorAll('.tab')];
+    const views = [...document.querySelectorAll('.view')];
+    const toast = document.getElementById('toast');
+    const cartDrawer = document.getElementById('cartDrawer');
+    let cartCount = 3;
+
+    function showView(id) {
+      tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.view === id));
+      views.forEach(view => view.classList.toggle('active', view.id === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+    tabs.forEach(tab => tab.addEventListener('click', () => showView(tab.dataset.view)));
+    document.querySelectorAll('[data-view-target]').forEach(button => button.addEventListener('click', () => showView(button.dataset.viewTarget)));
+    document.querySelectorAll('.scope-card').forEach(card => card.addEventListener('click', () => {
+      document.querySelectorAll('.scope-card').forEach(item => item.classList.remove('selected'));
+      card.classList.add('selected');
+    }));
+    document.querySelectorAll('.add-question').forEach(button => button.addEventListener('click', () => {
+      if (button.dataset.added === 'true') return;
+      button.dataset.added = 'true';
+      button.textContent = '已加入';
+      button.classList.remove('outline');
+      button.classList.add('primary');
+      cartCount += 1;
+      document.getElementById('cartCount').textContent = cartCount;
+      showToast('已加入“函数专项”组卷夹');
+    }));
+    document.querySelectorAll('[data-demo]').forEach(button => button.addEventListener('click', () => showToast(button.dataset.demo)));
+    document.getElementById('openCart').addEventListener('click', () => { cartDrawer.classList.add('open'); cartDrawer.setAttribute('aria-hidden', 'false'); });
+    document.getElementById('closeCart').addEventListener('click', () => { cartDrawer.classList.remove('open'); cartDrawer.setAttribute('aria-hidden', 'true'); });
+    cartDrawer.addEventListener('click', event => { if (event.target === cartDrawer) document.getElementById('closeCart').click(); });
+  </script>
+</body>
+</html>

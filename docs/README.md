@@ -13,6 +13,7 @@
 
 - [产品边界](current/product-scope.md)
 - [学生端体验重组计划](current/student-experience-restructure.md)
+- [投稿功能静态设计稿](current/contribution-prototype/index.html)
 - [仓库地图](current/repository-map.md)
 - [系统架构](current/system-architecture.md)
 - [数据架构](current/data-architecture.md)

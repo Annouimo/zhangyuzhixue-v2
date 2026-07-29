@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>章鱼智学 · 投稿功能设计稿</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="prototype-nav">
+    <div class="brand"><span class="brand-mark">章</span><div><strong>投稿功能设计稿</strong><small>交互原型 · 2026-07</small></div></div>
+    <nav aria-label="设计稿页面">
+      <button class="nav-item active" data-screen="records"><span>01</span>投稿记录</button>
+      <button class="nav-item" data-screen="type"><span>02</span>选择投稿类型</button>
+      <button class="nav-item" data-screen="import"><span>03</span>AI 转写导入</button>
+      <button class="nav-item" data-screen="verify"><span>04</span>核对题目</button>
+      <button class="nav-item" data-screen="metadata"><span>05</span>补充信息</button>
+      <button class="nav-item" data-screen="confirm"><span>06</span>确认提交</button>
+      <button class="nav-item" data-screen="detail"><span>07</span>投稿详情</button>
+    </nav>
+    <div class="prototype-note">本稿以外部 AI JSON 为主流程，不包含图片上传、平台 OCR 和完整手工录题。</div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-toolbar">
+      <div><strong id="screen-title">投稿记录</strong><span id="screen-note">查看进度，并优先处理被打回的投稿</span></div>
+      <div class="viewport-switch" aria-label="预览宽度"><button class="active" data-width="desktop">桌面</button><button data-width="mobile">窄屏</button></div>
+    </div>
+
+    <section class="app-frame" id="app-frame">
+      <header class="app-header"><button class="icon-button" aria-label="返回">‹</button><div class="app-title" id="app-title">我的投稿</div><button class="text-button">投稿说明</button></header>
+
+      <div class="screen active" data-screen-panel="records">
+        <div class="content wide">
+          <div class="hero-row"><div><p class="eyebrow">内容共建</p><h1>我的投稿</h1><p class="muted">查看审核进度，及时处理需要修改的内容。</p></div><button class="primary" data-goto="type">＋ 开始投稿</button></div>
+          <div class="tabs"><button class="active">待我处理 <b>1</b></button><button>审核中 <b>2</b></button><button>已结束</button></div>
+          <article class="record-card urgent">
+            <div class="record-main"><div class="record-icon warning">改</div><div><div class="record-meta"><span class="badge warning">待修改</span><span>新题投稿 · 外部资料</span></div><h3>已知函数 $f(x)=x^3-3x$，求其单调区间……</h3><p class="review-note"><strong>审核意见：</strong>第（2）问缺少定义域条件，请对照原题补充；来源请填写试卷全称。</p><small>今天 14:32 更新 · 第 1 版</small></div></div>
+            <button class="primary small" data-goto="import">修改并重新提交</button>
+          </article>
+          <article class="record-card"><div class="record-main"><div class="record-icon">题</div><div><div class="record-meta"><span class="badge info">审核中</span><span>新题投稿 · 原创</span></div><h3>椭圆与切线的定值问题</h3><small>昨天 20:18 提交 · 第 1 版</small></div></div><button class="secondary small" data-goto="detail">查看详情</button></article>
+          <article class="record-card"><div class="record-main"><div class="record-icon">解</div><div><div class="record-meta"><span class="badge info">审核中</span><span>解法投稿 · 原创</span></div><h3>题目 #1024 · 第 2 小题 · 参数分离法</h3><small>7 月 27 日提交 · 第 1 版</small></div></div><button class="secondary small">查看详情</button></article>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="type">
+        <div class="content reading"><p class="eyebrow">开始投稿</p><h1>你想提交什么？</h1><p class="muted">先选择内容类型，原创或外部资料将在后续确认。</p>
+          <div class="choice-grid">
+            <button class="choice-card selected" data-select-type="question"><span class="choice-icon">题</span><span><strong>投稿一道新题</strong><small>使用外部 AI 将题目转写为 JSON，再核对并提交</small></span><i>›</i></button>
+            <button class="choice-card" data-select-type="solution"><span class="choice-icon">解</span><span><strong>投稿新的解法</strong><small>为题库中某个具体小题补充一种解法</small></span><i>›</i></button>
+            <button class="choice-card"><span class="choice-icon">纠</span><span><strong>反馈题目错误</strong><small>指出题干、答案、解析、标签或排版问题</small></span><i>›</i></button>
+          </div>
+          <div class="bottom-actions"><button class="secondary" data-goto="records">取消</button><button class="primary" data-goto="import">继续</button></div>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="import">
+        <div class="content reading">
+          <div class="stepper"><span class="active">1<b>AI 转写</b></span><i></i><span>2<b>核对题目</b></span><i></i><span>3<b>补充信息</b></span><i></i><span>4<b>确认提交</b></span></div>
+          <p class="eyebrow">第 1 步</p><h1>使用 AI 转写题目</h1><p class="muted">将原题图片交给你常用的大模型，然后把返回的完整内容粘贴到下方。</p>
+          <div class="instruction-card"><div class="number">1</div><div><strong>复制专用提示词</strong><p>提示词已包含格式、LaTeX 转义和不确定内容的处理要求。</p></div><button class="secondary small" id="copy-prompt">复制提示词</button></div>
+          <div class="instruction-card"><div class="number">2</div><div><strong>发送题目图片和提示词</strong><p>可使用任意支持图片识别的大模型。请勿发送包含个人信息的图片。</p></div></div>
+          <label class="field-label" for="json-input">3　粘贴 AI 返回的内容</label>
+          <textarea id="json-input" class="json-input" spellcheck="false">```json
+{
+  "schema_version": 1,
+  "question_type": "choice",
+  "stem": "已知函数 $f(x)=x^3-3x$……",
+  "options": [...],
+  "uncertainties": ["第（2）问定义域不清晰"]
+}
+```</textarea>
+          <div class="helper-row"><span>支持自动去除代码围栏，并修正常见 JSON 格式问题</span><button class="link-button">格式说明</button></div>
+          <div class="bottom-actions"><button class="secondary" data-goto="type">上一步</button><button class="primary" data-goto="verify">解析并继续</button></div>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="verify">
+        <div class="content reading">
+          <div class="stepper"><span class="done">✓<b>AI 转写</b></span><i class="done"></i><span class="active">2<b>核对题目</b></span><i></i><span>3<b>补充信息</b></span><i></i><span>4<b>确认提交</b></span></div>
+          <p class="eyebrow">第 2 步</p><h1>对照原题核对内容</h1><p class="muted">重点检查公式、条件、选项和答案。点击各部分右侧按钮可修改。</p>
+          <div class="alert warning-alert"><span>!</span><div><strong>AI 标记了 1 处不确定内容</strong><p>第（2）问定义域不清晰，请对照原题确认。</p></div><button class="secondary small">去处理</button></div>
+          <article class="preview-card"><div class="section-heading"><strong>题干与选项</strong><button class="link-button">编辑</button></div><p>已知函数 $f(x)=x^3-3x$，则下列说法正确的是（　）</p><ol class="options"><li><b>A</b>$f(x)$ 在 $(-∞,-1)$ 上单调递增</li><li><b>B</b>$f(x)$ 有两个极值点</li><li><b>C</b>$f(x)$ 是偶函数</li><li><b>D</b>$f(x)$ 的最小值为 $-2$</li></ol></article>
+          <article class="preview-card"><div class="section-heading"><strong>答案与解析</strong><button class="link-button">编辑</button></div><div class="answer"><span>答案</span><strong>AB</strong></div><p>由 $f'(x)=3x^2-3$，令 $f'(x)=0$，得 $x=±1$……</p></article>
+          <label class="confirm-check"><input type="checkbox" id="verified-check"><span><strong>我已对照原题完成核对</strong><small>确认题干、公式、选项、答案和题号与原题一致</small></span></label>
+          <p class="inline-error hidden" id="verify-error">请先确认已经对照原题完成核对</p>
+          <div class="bottom-actions"><button class="secondary" data-goto="import">上一步</button><button class="primary" id="verify-next">继续</button></div>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="metadata">
+        <div class="content reading">
+          <div class="stepper"><span class="done">✓<b>AI 转写</b></span><i class="done"></i><span class="done">✓<b>核对题目</b></span><i class="done"></i><span class="active">3<b>补充信息</b></span><i></i><span>4<b>确认提交</b></span></div>
+          <p class="eyebrow">第 3 步</p><h1>补充来源与标签</h1>
+          <section class="form-card"><h2>内容来源</h2><div class="segmented"><button>本人原创</button><button class="active">外部资料</button></div><div class="form-grid"><label><span>资料或试卷名称 *</span><input value="2025 届高三第一次联合考试"></label><label><span>原题题号</span><input value="第 12 题"></label><label><span>年份</span><input value="2025"></label><label><span>地区</span><input value="浙江"></label></div><p class="field-help">请填写能够帮助审核员识别原题的名称，无需上传原图。</p></section>
+          <section class="form-card"><div class="section-heading"><h2>知识点标签</h2><span class="requirement">至少 1 个</span></div><input class="search" placeholder="搜索标签"><div class="chips"><button class="selected">导数 ✓</button><button class="selected">函数单调性 ✓</button><button>函数极值</button><button>三次函数</button></div><button class="link-button">＋ 建议新标签</button></section>
+          <section class="form-card"><h2>题目特征</h2><div class="form-grid"><label><span>难度建议</span><select><option>中等</option></select></label><label><span>计算量建议</span><select><option>较少</option></select></label></div></section>
+          <div class="bottom-actions"><button class="secondary" data-goto="verify">上一步</button><button class="primary" data-goto="confirm">继续</button></div>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="confirm">
+        <div class="content reading">
+          <div class="stepper"><span class="done">✓<b>AI 转写</b></span><i class="done"></i><span class="done">✓<b>核对题目</b></span><i class="done"></i><span class="done">✓<b>补充信息</b></span><i class="done"></i><span class="active">4<b>确认提交</b></span></div>
+          <p class="eyebrow">第 4 步</p><h1>确认投稿内容</h1><p class="muted">这是审核员将看到的完整内容。</p>
+          <article class="preview-card final-preview"><div class="section-heading"><strong>选择题</strong><button class="link-button" data-goto="verify">返回修改</button></div><p>已知函数 $f(x)=x^3-3x$，则下列说法正确的是（　）</p><ol class="options"><li><b>A</b>$f(x)$ 在 $(-∞,-1)$ 上单调递增</li><li><b>B</b>$f(x)$ 有两个极值点</li><li><b>C</b>$f(x)$ 是偶函数</li><li><b>D</b>$f(x)$ 的最小值为 $-2$</li></ol><hr><div class="answer"><span>答案</span><strong>AB</strong></div><p><b>解析：</b>由 $f'(x)=3x^2-3$，令 $f'(x)=0$……</p></article>
+          <dl class="summary-list"><div><dt>来源</dt><dd>2025 届高三第一次联合考试 · 浙江 · 第 12 题</dd></div><div><dt>知识点</dt><dd><span class="tag">导数</span><span class="tag">函数单调性</span></dd></div><div><dt>题目特征</dt><dd>难度：中等　计算量：较少</dd></div><div><dt>核对结果</dt><dd class="success-text">✓ 已处理全部 AI 不确定项</dd></div></dl>
+          <div class="submission-note"><strong>提交后会发生什么？</strong><p>投稿将进入人工审核。若需要修改，会在“待我处理”中显示审核意见。</p></div>
+          <div class="bottom-actions"><button class="secondary" data-goto="metadata">上一步</button><button class="primary" id="submit-button">确认并提交审核</button></div>
+        </div>
+      </div>
+
+      <div class="screen" data-screen-panel="detail">
+        <div class="content reading"><div class="detail-title"><div><p class="eyebrow">投稿 #128</p><h1>投稿详情</h1></div><span class="badge success">已发布</span></div>
+          <div class="status-banner"><span>✓</span><div><strong>投稿已收录</strong><p>首次发布于题库 v32，可在题库中查看正式内容。</p></div><button class="primary small">在题库中查看</button></div>
+          <div class="tabs compact"><button class="active">最终收录内容</button><button>我的投稿</button><button>版本记录</button></div>
+          <article class="preview-card"><div class="section-heading"><strong>审核后的正式内容</strong><span class="muted">由审核员规范格式</span></div><p>已知函数 $f(x)=x^3-3x$，则下列说法正确的是（　）</p><p class="success-text">投稿的题干、答案与解析均被采纳。</p></article>
+          <section class="timeline"><h2>处理记录</h2><div><i class="done">✓</i><p><strong>已发布到题库</strong><small>审核员 · 今天 16:40</small></p></div><div><i class="done">✓</i><p><strong>审核通过，等待发布</strong><small>审核员 · 今天 15:12</small></p></div><div><i class="done">✓</i><p><strong>修改后重新提交</strong><small>投稿人 · 今天 14:32</small></p></div><div><i>1</i><p><strong>首次提交</strong><small>投稿人 · 昨天 20:18</small></p></div></section>
+        </div>
+      </div>
+
+      <div class="toast" id="toast">提示词已复制</div>
+    </section>
+  </main>
+  <script src="prototype.js"></script>
+</body>
+</html>
