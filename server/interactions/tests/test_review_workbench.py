@@ -10,7 +10,7 @@ from interactions.models import (
     ContentContribution, ContributionReview, ContributionRevision,
     ContributionTagSelection, ContributionTagSuggestion,
 )
-from qbank.models import BaseQuestion, ConceptTag, SolutionMethod
+from qbank.models import BaseQuestion, ConceptTag, SolutionMethod, SolutionStep
 
 
 def payload(stem='函数 $f(x)=x^2$ 的最小值为'):
@@ -262,3 +262,40 @@ def test_reviewer_can_apply_correction(client, reviewer, contribution):
     assert question.stem == '修正后的题干'
     assert question.question_type == 'choice'
     assert SolutionMethod.objects.filter(pk=method.pk).exists()
+
+
+@pytest.mark.django_db
+def test_reviewer_can_append_solution_without_changing_existing_method(
+    client, reviewer, contribution,
+):
+    question = BaseQuestion.objects.create(question_type='fill', stem='原题')
+    sub = question.sub_questions.create(answer='1', explanation='', sort_order=1)
+    existing = SolutionMethod.objects.create(
+        sub_question=sub, method_name='原解法', sort_order=1,
+    )
+    contribution.contribution_type = (
+        ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
+    )
+    contribution.question = question
+    contribution.target_sub_question = sub
+    contribution.save()
+    solution = {
+        'method_name': '新解法', 'source': 'contributor_original',
+        'summary': '另一条思路',
+        'steps': [{'title': '化简', 'content': '$x=1$', 'card_titles': []}],
+    }
+    client.force_login(reviewer)
+    response = client.post(
+        reverse('review_workbench:detail', args=[contribution.pk]),
+        {
+            'content_json': json.dumps(solution),
+            'note': '解法成立。',
+            'version': contribution.updated_at.isoformat(),
+            'action': 'publish',
+        },
+    )
+    assert response.status_code == 302
+    assert SolutionMethod.objects.filter(pk=existing.pk).exists()
+    added = SolutionMethod.objects.get(method_name='新解法')
+    assert added.sub_question == sub
+    assert SolutionStep.objects.get(method=added).title == '化简'

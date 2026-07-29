@@ -370,13 +370,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.contributionNew,
       name: 'contribution-new',
-      builder: (_, _) => const ContributionEditorPage(),
+      builder: (_, state) => ContributionEditorPage(
+        mode: state.uri.queryParameters['mode'],
+        questionId: _intParam(state.uri.queryParameters, 'questionId'),
+      ),
     ),
     GoRoute(
       path: AppRoutes.contributionCorrection,
       name: 'contribution-correction',
       builder: (_, state) => ContributionEditorPage(
         questionId: _intParam(state.uri.queryParameters, 'questionId'),
+        mode: 'correction',
       ),
     ),
     GoRoute(

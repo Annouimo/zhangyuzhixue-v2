@@ -1,7 +1,7 @@
 {% extends 'review_workbench/base.html' %}
 {% block content %}
 <div class="page-heading queue-heading">
-  <div><h1>投稿审核 <span class="count-badge">{{ total_count }}</span></h1><p>审核、修订并录入学生提交的新题和纠错。</p></div>
+  <div><h1>投稿审核 <span class="count-badge">{{ total_count }}</span></h1><p>审核、修订并录入学生提交的新题、解法和纠错。</p></div>
 </div>
 <form method="get" class="queue-filters">
   <label class="search-field"><span>搜索</span><input name="q" value="{{ query }}" placeholder="题干、投稿人或题目编号"></label>
@@ -23,7 +23,7 @@
     <tr class="queue-row" data-href="{% url 'review_workbench:detail' item.pk %}?{{ request.GET.urlencode }}" tabindex="0">
       <td data-label="编号"><a class="row-id" href="{% url 'review_workbench:detail' item.pk %}?{{ request.GET.urlencode }}">#{{ item.pk }}</a></td>
       <td data-label="类型">{{ item.get_contribution_type_display }}</td>
-      <td data-label="内容" class="summary math-content">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:90 }}{% else %}{{ revision.normalized_payload.description|truncatechars:90 }}{% endif %}{% endwith %}</td>
+      <td data-label="内容" class="summary math-content">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:90 }}{% elif item.contribution_type == 'solution_contribution' %}{{ revision.normalized_payload.method_name|default:'未命名解法'|truncatechars:90 }}{% else %}{{ revision.normalized_payload.description|truncatechars:90 }}{% endif %}{% endwith %}</td>
       <td data-label="投稿人">{{ item.student.user.username }}</td>
       <td data-label="状态"><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span></td>
       <td data-label="处理人">{% if item.reviewed_by %}{{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% else %}-{% endif %}</td>

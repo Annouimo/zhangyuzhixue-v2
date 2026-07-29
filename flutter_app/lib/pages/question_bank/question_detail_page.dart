@@ -77,6 +77,14 @@ class _StudentQuestionDetailPageState extends State<StudentQuestionDetailPage> {
         title: const Text('题目详情'),
         actions: [
           IconButton(
+            tooltip: '投稿新的解法',
+            icon: const Icon(Icons.account_tree_outlined),
+            onPressed: () => RouterUtils.push(
+              context,
+              '${AppRoutes.contributionNew}?mode=solution&questionId=${widget.questionId}',
+            ),
+          ),
+          IconButton(
             tooltip: '反馈题目错误',
             icon: const Icon(Icons.report_outlined),
             onPressed: () => RouterUtils.push(

@@ -1,7 +1,8 @@
 from django.db import transaction
 
 from qbank.models import (
-    BaseQuestion, ChoiceExt, ConceptTag, QuestionConceptTag, SubQuestion,
+    BaseQuestion, ChoiceExt, ConceptTag, QuestionConceptTag, SolutionMethod,
+    SolutionStep, SubQuestion,
 )
 
 from .models import ContributionTagSelection, ContributionTagSuggestion
@@ -38,9 +39,25 @@ def question_payload(question):
         'options': options,
         'sub_questions': [
             {
+                'id': item.pk,
                 'stem': item.stem or '',
                 'answer': item.answer,
                 'explanation': item.explanation,
+                'solution_methods': [
+                    {
+                        'method_name': method.method_name or '',
+                        'source': method.source,
+                        'steps': [
+                            {
+                                'title': step.title,
+                                'content': step.content,
+                                'card_titles': step.card_titles,
+                            }
+                            for step in method.solution_steps.order_by('step_number')
+                        ],
+                    }
+                    for method in item.solution_methods.order_by('sort_order')
+                ],
             }
             for item in question.sub_questions.order_by('sort_order')
         ],
@@ -140,7 +157,12 @@ def save_official_question(payload, tags, question=None):
                 setattr(sub_question, field, value)
             sub_question.save(update_fields=list(values))
         else:
-            SubQuestion.objects.create(question=question, **values)
+            sub_question = SubQuestion.objects.create(question=question, **values)
+        submitted_methods = item.get('solution_methods', [])
+        if submitted_methods:
+            sub_question.solution_methods.all().delete()
+            for method_index, method_data in enumerate(submitted_methods, start=1):
+                save_solution_method(sub_question, method_data, method_index)
     for stale_sub_question in existing_sub_questions[len(submitted_sub_questions):]:
         stale_sub_question.delete()
     QuestionConceptTag.objects.filter(question=question).delete()
@@ -148,3 +170,27 @@ def save_official_question(payload, tags, question=None):
         QuestionConceptTag(question=question, concept_tag=tag) for tag in tags
     ])
     return question
+
+
+@transaction.atomic
+def save_solution_method(sub_question, payload, sort_order=None):
+    if sort_order is None:
+        last = sub_question.solution_methods.order_by('-sort_order').first()
+        sort_order = (last.sort_order if last else 0) + 1
+    method = SolutionMethod.objects.create(
+        sub_question=sub_question,
+        method_name=payload.get('method_name', '').strip() or None,
+        source=payload.get('source', '').strip(),
+        sort_order=sort_order,
+    )
+    SolutionStep.objects.bulk_create([
+        SolutionStep(
+            method=method,
+            step_number=index,
+            title=step['title'].strip(),
+            content=step['content'].strip(),
+            card_titles=step.get('card_titles', []),
+        )
+        for index, step in enumerate(payload['steps'], start=1)
+    ])
+    return method

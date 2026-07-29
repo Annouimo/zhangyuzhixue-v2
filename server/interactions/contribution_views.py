@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from accounts.permissions import IsStudent
 
-from qbank.models import BaseQuestion, ConceptTag
+from qbank.models import BaseQuestion, ConceptTag, SubQuestion
 from system.models import SystemConfig
 
 from .models import (
@@ -50,10 +50,20 @@ def _question_snapshot(question):
         'options': options,
         'sub_questions': [
             {
+                'id': item.pk,
                 'stem': item.stem or '',
                 'answer': item.answer,
                 'explanation': item.explanation,
                 'sort_order': item.sort_order,
+                'solution_methods': [
+                    {
+                        'id': method.pk,
+                        'method_name': method.method_name or '',
+                        'source': method.source,
+                        'step_count': method.solution_steps.count(),
+                    }
+                    for method in item.solution_methods.all()
+                ],
             }
             for item in question.sub_questions.all()
         ],
@@ -69,6 +79,7 @@ def _serialize(contribution, include_detail=False):
         'contribution_type': contribution.contribution_type,
         'status': contribution.status,
         'question_id': contribution.question_id,
+        'target_sub_question_id': contribution.target_sub_question_id,
         'completed_question_id': contribution.completed_question_id,
         'published_qbank_version': contribution.published_qbank_version,
         'review_note': contribution.review_note,
@@ -81,6 +92,8 @@ def _serialize(contribution, include_detail=False):
         data['summary'] = (
             payload.get('stem', '')[:100]
             if contribution.contribution_type == 'new_question'
+            else payload.get('method_name', '')[:100]
+            if contribution.contribution_type == 'solution_contribution'
             else payload.get('description', '')[:100]
         )
     if include_detail:
@@ -191,24 +204,32 @@ class ContributionListCreateView(APIView):
             return _err(40201, serializer.errors)
         data = serializer.validated_data
         question = None
+        target_sub_question = None
         if data.get('question_id') is not None:
             question = BaseQuestion.objects.filter(pk=data['question_id']).first()
             if question is None:
                 return _err(40401, '题目不存在', status.HTTP_404_NOT_FOUND)
+            if data.get('target_sub_question_id') is not None:
+                target_sub_question = SubQuestion.objects.filter(
+                    pk=data['target_sub_question_id'], question=question,
+                ).first()
+                if target_sub_question is None:
+                    return _err(40201, '目标小题不属于所选题目')
             duplicate = ContentContribution.objects.filter(
                 student=student,
                 question=question,
-                contribution_type='question_correction',
+                contribution_type=data['contribution_type'],
                 status__in=[
                     'pending', 'resubmitted', 'needs_revision', 'processing',
                 ],
             ).exists()
             if duplicate:
-                return _err(40901, '你已经有一条关于此题的待处理纠错')
+                return _err(40901, '你已经有一条关于此题的同类待处理投稿')
         contribution = ContentContribution.objects.create(
             student=student,
             contribution_type=data['contribution_type'],
             question=question,
+            target_sub_question=target_sub_question,
         )
         ContributionRevision.objects.create(
             contribution=contribution,
@@ -258,6 +279,7 @@ class ContributionResubmitView(APIView):
         incoming = request.data.copy()
         incoming['contribution_type'] = contribution.contribution_type
         incoming['question_id'] = contribution.question_id
+        incoming['target_sub_question_id'] = contribution.target_sub_question_id
         serializer = ContributionWriteSerializer(data=incoming)
         if not serializer.is_valid():
             return _err(40201, serializer.errors)
@@ -312,7 +334,7 @@ class ContributionQuestionContextView(APIView):
         if not _student(request):
             return _err(40302, '仅学生用户可访问', status.HTTP_403_FORBIDDEN)
         question = BaseQuestion.objects.filter(pk=question_id).prefetch_related(
-            'sub_questions', 'concept_tags'
+            'sub_questions__solution_methods__solution_steps', 'concept_tags'
         ).first()
         if question is None:
             return _err(40401, '题目不存在', status.HTTP_404_NOT_FOUND)

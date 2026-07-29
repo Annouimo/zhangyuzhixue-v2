@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared/shared.dart';
@@ -6,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/contribution_api.dart';
 import '../../data/helpers/contribution_json_parser.dart';
+import '../../data/prefs/contribution_draft_store.dart';
 import '../router.dart';
 
 class ContributionEditorPage extends StatefulWidget {
@@ -13,10 +16,12 @@ class ContributionEditorPage extends StatefulWidget {
     super.key,
     this.questionId,
     this.contributionId,
+    this.mode,
   });
 
   final int? questionId;
   final int? contributionId;
+  final String? mode;
 
   @override
   State<ContributionEditorPage> createState() => _ContributionEditorPageState();
@@ -36,6 +41,10 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   final _sourceRegionController = TextEditingController();
   final _sourceExamController = TextEditingController();
   final _sourceNumberController = TextEditingController();
+  final _targetQuestionController = TextEditingController();
+  final _methodNameController = TextEditingController();
+  final _methodSourceController = TextEditingController();
+  final _methodSummaryController = TextEditingController();
   final _verificationKey = GlobalKey();
 
   ContributionConfig? _config;
@@ -43,6 +52,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   List<String> _repairs = const [];
   final List<_OptionEditor> _options = [];
   final List<_SubQuestionEditor> _subQuestions = [];
+  final List<_SolutionStepEditor> _solutionSteps = [];
   final Set<int> _tagIds = {};
   final List<Map<String, dynamic>> _newTags = [];
   final Set<String> _correctionCategories = {};
@@ -52,16 +62,50 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   String? _error;
   int? _questionId;
   String _contributionType = 'new_question';
+  late String _mode;
+  int _currentStep = 0;
+  int? _targetSubQuestionId;
+  Map<String, dynamic>? _questionContext;
+  late final String _draftId;
+  final _draftStore = ContributionDraftStore();
+  Timer? _draftTimer;
   String _reviewNote = '';
   String? _verificationError;
 
   bool get _isCorrection => _contributionType == 'question_correction';
+  bool get _isSolution => _contributionType == 'solution_contribution';
 
   @override
   void initState() {
     super.initState();
+    _mode = widget.mode ?? 'existing';
+    _draftId = widget.contributionId == null
+        ? '${DateTime.now().microsecondsSinceEpoch}'
+        : 'resubmit-${widget.contributionId}';
     _questionId = widget.questionId;
-    if (_questionId != null) _contributionType = 'question_correction';
+    if (_mode == 'solution') {
+      _contributionType = 'solution_contribution';
+    } else if (_questionId != null || _mode == 'correction') {
+      _contributionType = 'question_correction';
+    }
+    _solutionSteps.add(_SolutionStepEditor());
+    for (final controller in [
+      _jsonController,
+      _stemController,
+      _descriptionController,
+      _suggestionController,
+      _evidenceController,
+      _sourceYearController,
+      _sourceRegionController,
+      _sourceExamController,
+      _sourceNumberController,
+      _targetQuestionController,
+      _methodNameController,
+      _methodSourceController,
+      _methodSummaryController,
+    ]) {
+      controller.addListener(_queueDraftSave);
+    }
     _loadConfig();
   }
 
@@ -79,11 +123,19 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     _sourceRegionController.dispose();
     _sourceExamController.dispose();
     _sourceNumberController.dispose();
+    _targetQuestionController.dispose();
+    _methodNameController.dispose();
+    _methodSourceController.dispose();
+    _methodSummaryController.dispose();
+    _draftTimer?.cancel();
     for (final option in _options) {
       option.dispose();
     }
     for (final sub in _subQuestions) {
       sub.dispose();
+    }
+    for (final step in _solutionSteps) {
+      step.dispose();
     }
     super.dispose();
   }
@@ -106,6 +158,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       if (detail != null) _applyExistingContribution(detail);
       if (questionContext != null) {
         setState(() {
+          _questionContext = questionContext;
+          _targetQuestionController.text = '${_questionId!}';
           _tagIds
             ..clear()
             ..addAll(
@@ -113,6 +167,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             );
         });
       }
+      if (widget.contributionId == null) await _offerDraftRestore();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -134,6 +189,23 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       _descriptionController.text = payload['description'] as String? ?? '';
       _suggestionController.text = payload['suggestion'] as String? ?? '';
       _evidenceController.text = payload['evidence'] as String? ?? '';
+    } else if (_isSolution) {
+      _targetSubQuestionId = detail['target_sub_question_id'] as int?;
+      _methodNameController.text = payload['method_name'] as String? ?? '';
+      _methodSourceController.text = payload['source'] as String? ?? '';
+      _methodSummaryController.text = payload['summary'] as String? ?? '';
+      for (final step in _solutionSteps) {
+        step.dispose();
+      }
+      _solutionSteps
+        ..clear()
+        ..addAll(
+          (payload['steps'] as List? ?? const []).map(
+            (item) => _SolutionStepEditor.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          ),
+        );
     } else {
       _jsonController.text = detail['raw_json'] as String? ?? '';
       _payload = payload;
@@ -156,6 +228,154 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
               };
             }),
       );
+    setState(() {});
+  }
+
+  Future<void> _loadQuestionContext() async {
+    final id =
+        _questionId ?? int.tryParse(_targetQuestionController.text.trim());
+    if (id == null) {
+      setState(() => _error = '请输入有效的题目编号');
+      return;
+    }
+    try {
+      final context = await _api.getQuestionContext(id);
+      if (!mounted) return;
+      setState(() {
+        _questionId = id;
+        _questionContext = context;
+        _tagIds
+          ..clear()
+          ..addAll((context['tag_ids'] as List? ?? const []).cast<int>());
+        final subs = context['sub_questions'] as List? ?? const [];
+        _targetSubQuestionId = subs.length == 1
+            ? (subs.first as Map)['id'] as int?
+            : null;
+        _error = null;
+      });
+      _queueDraftSave();
+    } catch (_) {
+      if (mounted) setState(() => _error = '没有找到该题目，请核对题目编号');
+    }
+  }
+
+  void _queueDraftSave() {
+    if (_loading || _submitting) return;
+    _draftTimer?.cancel();
+    _draftTimer = Timer(const Duration(milliseconds: 350), _saveDraft);
+  }
+
+  Future<void> _saveDraft() async {
+    final draft = <String, dynamic>{
+      'mode': _mode,
+      'step': _currentStep,
+      'question_id': _questionId,
+      'target_sub_question_id': _targetSubQuestionId,
+      'raw_json': _jsonController.text,
+      if (_payload != null) 'payload': _editedPayload(),
+      'description': _descriptionController.text,
+      'suggestion': _suggestionController.text,
+      'evidence': _evidenceController.text,
+      'method_name': _methodNameController.text,
+      'method_source': _methodSourceController.text,
+      'method_summary': _methodSummaryController.text,
+      'solution_steps': _solutionSteps.map((step) => step.toJson()).toList(),
+      'correction_categories': _correctionCategories.toList(),
+      'tag_ids': _tagIds.toList(),
+      'tag_suggestions': _newTags,
+      'summary': _isSolution
+          ? _methodNameController.text
+          : _isCorrection
+          ? _descriptionController.text
+          : _stemController.text,
+    };
+    await _draftStore.save(_draftId, draft);
+  }
+
+  Future<void> _offerDraftRestore() async {
+    final drafts = _draftStore
+        .list()
+        .where((item) => item['mode'] == _mode && item['draft_id'] != _draftId)
+        .toList();
+    if (drafts.isEmpty || !mounted) return;
+    final latest = drafts.first;
+    final restore = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('继续本地草稿？'),
+        content: Text(
+          '${latest['summary']?.toString().trim().isNotEmpty == true ? latest['summary'] : '未命名投稿'}\n\n草稿只保存在本机。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('新建'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('继续编辑'),
+          ),
+        ],
+      ),
+    );
+    if (restore != true) return;
+    final draft = _draftStore.read('${latest['draft_id']}');
+    if (draft == null || !mounted) return;
+    _currentStep = draft['step'] as int? ?? 0;
+    _questionId = draft['question_id'] as int?;
+    _targetSubQuestionId = draft['target_sub_question_id'] as int?;
+    _jsonController.text = draft['raw_json'] as String? ?? '';
+    final savedPayload = draft['payload'];
+    if (savedPayload is Map) {
+      _payload = Map<String, dynamic>.from(savedPayload);
+      _applyPayload(_payload!);
+    }
+    _descriptionController.text = draft['description'] as String? ?? '';
+    _suggestionController.text = draft['suggestion'] as String? ?? '';
+    _evidenceController.text = draft['evidence'] as String? ?? '';
+    _methodNameController.text = draft['method_name'] as String? ?? '';
+    _methodSourceController.text = draft['method_source'] as String? ?? '';
+    _methodSummaryController.text = draft['method_summary'] as String? ?? '';
+    _correctionCategories
+      ..clear()
+      ..addAll(
+        (draft['correction_categories'] as List? ?? const []).cast<String>(),
+      );
+    for (final step in _solutionSteps) {
+      step.dispose();
+    }
+    _solutionSteps
+      ..clear()
+      ..addAll(
+        (draft['solution_steps'] as List? ?? const []).map(
+          (item) => _SolutionStepEditor.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        ),
+      );
+    if (_solutionSteps.isEmpty) _solutionSteps.add(_SolutionStepEditor());
+    _tagIds
+      ..clear()
+      ..addAll((draft['tag_ids'] as List? ?? const []).cast<int>());
+    _newTags
+      ..clear()
+      ..addAll(
+        (draft['tag_suggestions'] as List? ?? const []).map(
+          (item) => Map<String, dynamic>.from(item as Map),
+        ),
+      );
+    if (savedPayload == null &&
+        _jsonController.text.trim().isNotEmpty &&
+        !_isCorrection &&
+        !_isSolution) {
+      _parseJson();
+    }
+    if (_questionId != null && (_isSolution || _isCorrection)) {
+      _targetQuestionController.text = '${_questionId!}';
+      await _loadQuestionContext();
+    }
+    await _draftStore.remove('${latest['draft_id']}');
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -244,14 +464,218 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     source['region'] = _sourceRegionController.text.trim();
     source['source_name'] = _sourceExamController.text.trim();
     source['question_number'] = _sourceNumberController.text.trim();
+    if (_mode == 'original') {
+      source
+        ..['source_type'] = 'self_created'
+        ..['year'] = null
+        ..['region'] = ''
+        ..['source_name'] = ''
+        ..['question_number'] = '';
+    }
     source.remove('exam_name');
     source.remove('number');
     payload['source'] = source;
     return payload;
   }
 
+  Widget _buildQuestionTarget() {
+    final subs = _questionContext?['sub_questions'] as List? ?? const [];
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('选择题目和小题', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            controller: _targetQuestionController,
+            enabled: widget.questionId == null,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: '题目编号'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppButton(
+            label: _questionContext == null ? '加载题目' : '重新加载',
+            icon: Icons.search_rounded,
+            onPressed: _loadQuestionContext,
+          ),
+          if (_questionContext != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            MdLatexBody('${_questionContext!['stem'] ?? ''}'),
+            const SizedBox(height: AppSpacing.sm),
+            DropdownButtonFormField<int>(
+              initialValue: _targetSubQuestionId,
+              decoration: const InputDecoration(labelText: '目标小题'),
+              items: [
+                for (var index = 0; index < subs.length; index++)
+                  DropdownMenuItem(
+                    value: (subs[index] as Map)['id'] as int,
+                    child: Text(
+                      '第 ${index + 1} 小题 · ${(subs[index] as Map)['answer'] ?? ''}',
+                    ),
+                  ),
+              ],
+              onChanged: (value) {
+                setState(() => _targetSubQuestionId = value);
+                _queueDraftSave();
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSolutionForm() => AppCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('解法内容', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        TextField(
+          controller: _methodNameController,
+          decoration: const InputDecoration(labelText: '解法名称'),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TextField(
+          controller: _methodSourceController,
+          decoration: const InputDecoration(
+            labelText: '解法来源',
+            hintText: '例如：本人原创、资料整理',
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _LatexField(
+          label: '思路概述（选填）',
+          controller: _methodSummaryController,
+          minLines: 2,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text('分步过程', style: Theme.of(context).textTheme.titleSmall),
+        for (var index = 0; index < _solutionSteps.length; index++)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: Text('第 ${index + 1} 步')),
+                    IconButton(
+                      tooltip: '删除步骤',
+                      onPressed: _solutionSteps.length == 1
+                          ? null
+                          : () {
+                              setState(
+                                () => _solutionSteps.removeAt(index).dispose(),
+                              );
+                              _queueDraftSave();
+                            },
+                      icon: const Icon(Icons.delete_outline_rounded),
+                    ),
+                  ],
+                ),
+                TextField(
+                  controller: _solutionSteps[index].title,
+                  decoration: const InputDecoration(labelText: '步骤标题'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _LatexField(
+                  label: '步骤内容',
+                  controller: _solutionSteps[index].content,
+                  minLines: 3,
+                ),
+              ],
+            ),
+          ),
+        TextButton.icon(
+          onPressed: () => setState(() {
+            final step = _SolutionStepEditor();
+            step.title.addListener(_queueDraftSave);
+            step.content.addListener(_queueDraftSave);
+            _solutionSteps.add(step);
+          }),
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('增加步骤'),
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildSourceSummary() => AppCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          _mode == 'original' ? '原创声明' : '来源信息',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          _mode == 'original'
+              ? '提交即表示这是本人原创题目，且有权授权平台审核和收录。'
+              : '来源已在上一阶段填写，请确认年份、地区、资料名称和原题题号准确。',
+        ),
+      ],
+    ),
+  );
+
+  Widget _buildReview() => AppCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('提交前核对', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        if (_isSolution) ...[
+          Text(
+            '题目 #${_questionId ?? '-'} · 小题 #${_targetSubQuestionId ?? '-'}',
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            _methodNameController.text.isEmpty
+                ? '未填写解法名称'
+                : _methodNameController.text,
+          ),
+          for (var index = 0; index < _solutionSteps.length; index++)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(radius: 13, child: Text('${index + 1}')),
+              title: Text(_solutionSteps[index].title.text),
+              subtitle: MdLatexBody(_solutionSteps[index].content.text),
+            ),
+        ] else if (_isCorrection) ...[
+          Text(_descriptionController.text),
+          if (_suggestionController.text.isNotEmpty)
+            Text('修改建议：${_suggestionController.text}'),
+        ] else if (_payload != null) ...[
+          MdLatexBody(_stemController.text, fontSize: 16),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '共 ${_subQuestions.length} 个答案项 · ${_tagIds.length + _newTags.length} 个知识点标签',
+          ),
+        ] else
+          const Text('尚未导入题目内容，请返回上一步完成。'),
+        const SizedBox(height: AppSpacing.md),
+        const Text('提交后将进入人工审核；需要修改时，审核意见会显示在贡献详情中。'),
+      ],
+    ),
+  );
+
   Future<void> _submit() async {
-    if (_isCorrection) {
+    if (_isSolution) {
+      if (_questionId == null || _targetSubQuestionId == null) {
+        setState(() => _error = '请先选择题目和具体小题');
+        return;
+      }
+      if (_methodNameController.text.trim().isEmpty ||
+          _solutionSteps.isEmpty ||
+          _solutionSteps.any(
+            (step) =>
+                step.title.text.trim().isEmpty ||
+                step.content.text.trim().isEmpty,
+          )) {
+        setState(() => _error = '请填写解法名称以及每一步的标题和内容');
+        return;
+      }
+    } else if (_isCorrection) {
       if (_correctionCategories.isEmpty) {
         setState(() => _error = '请至少选择一个错误类型');
         return;
@@ -290,7 +714,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         return;
       }
     }
-    if (_tagIds.isEmpty && _newTags.isEmpty) {
+    if (!_isCorrection && !_isSolution && _tagIds.isEmpty && _newTags.isEmpty) {
       setState(() => _error = '请至少选择或建议一个知识点标签');
       return;
     }
@@ -302,12 +726,22 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     });
     try {
       final body = <String, dynamic>{
-        'contribution_type': _isCorrection
+        'contribution_type': _isSolution
+            ? 'solution_contribution'
+            : _isCorrection
             ? 'question_correction'
             : 'new_question',
-        if (_isCorrection) 'question_id': _questionId,
-        'raw_json': _isCorrection ? '' : _jsonController.text,
-        'payload': _isCorrection
+        if (_isCorrection || _isSolution) 'question_id': _questionId,
+        if (_isSolution) 'target_sub_question_id': _targetSubQuestionId,
+        'raw_json': _isCorrection || _isSolution ? '' : _jsonController.text,
+        'payload': _isSolution
+            ? {
+                'method_name': _methodNameController.text.trim(),
+                'source': _methodSourceController.text.trim(),
+                'summary': _methodSummaryController.text.trim(),
+                'steps': _solutionSteps.map((step) => step.toJson()).toList(),
+              }
+            : _isCorrection
             ? {
                 'categories': _correctionCategories.toList(),
                 'description': _descriptionController.text.trim(),
@@ -323,6 +757,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       } else {
         await _api.resubmit(widget.contributionId!, body);
       }
+      if (!mounted) return;
+      await _draftStore.remove(_draftId);
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -359,7 +795,15 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(_isCorrection ? '反馈题目错误' : '投稿新题'),
+      title: Text(
+        _isSolution
+            ? '投稿题目解法'
+            : _isCorrection
+            ? '反馈题目错误'
+            : _mode == 'original'
+            ? '投稿原创题目'
+            : '收录已有题目',
+      ),
       actions: [
         IconButton(
           tooltip: '编辑格式说明',
@@ -384,18 +828,42 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: AppCard(child: Text('审核意见：$_reviewNote')),
                   ),
-                if (_isCorrection) ...[
-                  _buildCorrectionForm(),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildTags(),
-                ] else
-                  _buildNewQuestionForm(),
+                _buildProgress(),
+                const SizedBox(height: AppSpacing.md),
+                _buildCurrentStep(),
                 const SizedBox(height: AppSpacing.lg),
-                AppButton(
-                  label: _submitting ? '正在提交' : '提交审核',
-                  icon: Icons.send_outlined,
-                  fullWidth: true,
-                  onPressed: _submitting ? null : _submit,
+                Row(
+                  children: [
+                    if (_currentStep > 0)
+                      Expanded(
+                        child: AppButton(
+                          label: '上一步',
+                          variant: AppButtonVariant.secondary,
+                          onPressed: () => setState(() => _currentStep--),
+                        ),
+                      ),
+                    if (_currentStep > 0) const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: AppButton(
+                        label: _currentStep == _stepTitles.length - 1
+                            ? _submitting
+                                  ? '正在提交'
+                                  : '提交审核'
+                            : '下一步',
+                        icon: _currentStep == _stepTitles.length - 1
+                            ? Icons.send_outlined
+                            : Icons.arrow_forward_rounded,
+                        onPressed: _submitting
+                            ? null
+                            : _currentStep == _stepTitles.length - 1
+                            ? _submit
+                            : () {
+                                setState(() => _currentStep++);
+                                _queueDraftSave();
+                              },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppSpacing.xl),
               ],
@@ -403,66 +871,127 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
           ),
   );
 
-  Widget _buildNewQuestionForm() => Column(
+  List<String> get _stepTitles => _isSolution
+      ? const ['选择题目', '编辑解法', '核对提交']
+      : _isCorrection
+      ? const ['填写纠错', '核对提交']
+      : const ['导入题目', '编辑内容', '来源与标签', '核对提交'];
+
+  Widget _buildProgress() => Row(
+    children: [
+      for (var index = 0; index < _stepTitles.length; index++) ...[
+        Expanded(
+          child: Column(
+            children: [
+              LinearProgressIndicator(value: index <= _currentStep ? 1 : 0),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                _stepTitles[index],
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: index == _currentStep
+                      ? context.colors.primary
+                      : context.colors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (index < _stepTitles.length - 1)
+          const SizedBox(width: AppSpacing.xs),
+      ],
+    ],
+  );
+
+  Widget _buildCurrentStep() {
+    if (_isSolution) {
+      return switch (_currentStep) {
+        0 => _buildQuestionTarget(),
+        1 => _buildSolutionForm(),
+        _ => _buildReview(),
+      };
+    }
+    if (_isCorrection) {
+      return _currentStep == 0 ? _buildCorrectionForm() : _buildReview();
+    }
+    return switch (_currentStep) {
+      0 => _buildNewQuestionForm(showImport: true),
+      1 => _buildNewQuestionForm(showStructured: true),
+      2 => Column(
+        children: [
+          _buildSourceSummary(),
+          const SizedBox(height: AppSpacing.md),
+          _buildTags(),
+        ],
+      ),
+      _ => _buildReview(),
+    };
+  }
+
+  Widget _buildNewQuestionForm({
+    bool showImport = false,
+    bool showStructured = false,
+  }) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AppCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('AI JSON 导入', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              '使用 AI 转写后粘贴 JSON。解析完成后请对照原题检查公式与条件。',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.colors.textSecondary,
+      if (showImport)
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'AI JSON 导入',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                AppButton(
-                  label: '复制提示词',
-                  icon: Icons.copy_outlined,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: _copyPrompt,
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '使用 AI 转写后粘贴 JSON。解析完成后请对照原题检查公式与条件。',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: context.colors.textSecondary,
                 ),
-                AppButton(
-                  label: 'LaTeXLive',
-                  icon: Icons.open_in_new_rounded,
-                  variant: AppButtonVariant.secondary,
-                  onPressed: _openLatexLive,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _jsonController,
-              minLines: 8,
-              maxLines: 18,
-              decoration: const InputDecoration(
-                labelText: '题目 JSON',
-                hintText: '在这里粘贴 AI 生成的 JSON',
-                alignLabelWithHint: true,
               ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppButton(
-              label: '解析并预览',
-              icon: Icons.data_object_rounded,
-              onPressed: _parseJson,
-            ),
-          ],
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  AppButton(
+                    label: '复制提示词',
+                    icon: Icons.copy_outlined,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: _copyPrompt,
+                  ),
+                  AppButton(
+                    label: 'LaTeXLive',
+                    icon: Icons.open_in_new_rounded,
+                    variant: AppButtonVariant.secondary,
+                    onPressed: _openLatexLive,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: _jsonController,
+                minLines: 8,
+                maxLines: 18,
+                decoration: const InputDecoration(
+                  labelText: '题目 JSON',
+                  hintText: '在这里粘贴 AI 生成的 JSON',
+                  alignLabelWithHint: true,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              AppButton(
+                label: '解析并预览',
+                icon: Icons.data_object_rounded,
+                onPressed: _parseJson,
+              ),
+            ],
+          ),
         ),
-      ),
-      if (_payload != null) ...[
+      if (showStructured && _payload != null) ...[
         const SizedBox(height: AppSpacing.md),
         if (_repairs.isNotEmpty) _buildRepairs(),
         _buildStructuredEditor(),
-        const SizedBox(height: AppSpacing.md),
-        _buildTags(),
       ],
     ],
   );
@@ -606,6 +1135,24 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                     label: '解析',
                     controller: _subQuestions[index].explanation,
                     minLines: 3,
+                  ),
+                  for (
+                    var methodIndex = 0;
+                    methodIndex < _subQuestions[index].methods.length;
+                    methodIndex++
+                  )
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.md),
+                      child: _buildQuestionMethodEditor(index, methodIndex),
+                    ),
+                  TextButton.icon(
+                    onPressed: () => setState(
+                      () => _subQuestions[index].methods.add(
+                        _QuestionMethodEditor(const {}),
+                      ),
+                    ),
+                    icon: const Icon(Icons.account_tree_outlined),
+                    label: const Text('增加完整分步解法（选填）'),
                   ),
                 ],
               ),
@@ -785,6 +1332,70 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionMethodEditor(int subIndex, int methodIndex) {
+    final method = _subQuestions[subIndex].methods[methodIndex];
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: context.colors.divider),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text('解法 ${methodIndex + 1}')),
+                IconButton(
+                  tooltip: '删除解法',
+                  onPressed: () => setState(
+                    () => _subQuestions[subIndex].methods
+                        .removeAt(methodIndex)
+                        .dispose(),
+                  ),
+                  icon: const Icon(Icons.delete_outline_rounded),
+                ),
+              ],
+            ),
+            TextField(
+              controller: method.name,
+              decoration: const InputDecoration(labelText: '解法名称'),
+            ),
+            for (
+              var stepIndex = 0;
+              stepIndex < method.steps.length;
+              stepIndex++
+            )
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: method.steps[stepIndex].title,
+                      decoration: InputDecoration(
+                        labelText: '第 ${stepIndex + 1} 步标题',
+                      ),
+                    ),
+                    _LatexField(
+                      label: '步骤内容',
+                      controller: method.steps[stepIndex].content,
+                      minLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+            TextButton.icon(
+              onPressed: () =>
+                  setState(() => method.steps.add(_SolutionStepEditor())),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('增加步骤'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1072,19 +1683,89 @@ class _SubQuestionEditor {
   _SubQuestionEditor(Map<String, dynamic> json)
     : stem = TextEditingController(text: '${json['stem'] ?? ''}'),
       answer = TextEditingController(text: '${json['answer'] ?? ''}'),
-      explanation = TextEditingController(text: '${json['explanation'] ?? ''}');
+      explanation = TextEditingController(text: '${json['explanation'] ?? ''}'),
+      methods = (json['solution_methods'] as List? ?? const [])
+          .map(
+            (item) =>
+                _QuestionMethodEditor(Map<String, dynamic>.from(item as Map)),
+          )
+          .toList();
   final TextEditingController stem;
   final TextEditingController answer;
   final TextEditingController explanation;
+  final List<_QuestionMethodEditor> methods;
   Map<String, dynamic> toJson() => {
     'stem': stem.text.trim(),
     'answer': answer.text.trim(),
     'explanation': explanation.text.trim(),
+    'solution_methods': methods.map((method) => method.toJson()).toList(),
   };
   void dispose() {
     stem.dispose();
     answer.dispose();
     explanation.dispose();
+    for (final method in methods) {
+      method.dispose();
+    }
+  }
+}
+
+class _QuestionMethodEditor {
+  _QuestionMethodEditor(Map<String, dynamic> json)
+    : name = TextEditingController(text: '${json['method_name'] ?? ''}'),
+      source = TextEditingController(text: '${json['source'] ?? ''}'),
+      steps = (json['steps'] as List? ?? const [])
+          .map(
+            (item) => _SolutionStepEditor.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList() {
+    if (steps.isEmpty) steps.add(_SolutionStepEditor());
+  }
+
+  final TextEditingController name;
+  final TextEditingController source;
+  final List<_SolutionStepEditor> steps;
+
+  Map<String, dynamic> toJson() => {
+    'method_name': name.text.trim(),
+    'source': source.text.trim(),
+    'steps': steps.map((step) => step.toJson()).toList(),
+  };
+
+  void dispose() {
+    name.dispose();
+    source.dispose();
+    for (final step in steps) {
+      step.dispose();
+    }
+  }
+}
+
+class _SolutionStepEditor {
+  _SolutionStepEditor({String title = '', String content = ''})
+    : title = TextEditingController(text: title),
+      content = TextEditingController(text: content);
+
+  factory _SolutionStepEditor.fromJson(Map<String, dynamic> json) =>
+      _SolutionStepEditor(
+        title: '${json['title'] ?? ''}',
+        content: '${json['content'] ?? ''}',
+      );
+
+  final TextEditingController title;
+  final TextEditingController content;
+
+  Map<String, dynamic> toJson() => {
+    'title': title.text.trim(),
+    'content': content.text.trim(),
+    'card_titles': <String>[],
+  };
+
+  void dispose() {
+    title.dispose();
+    content.dispose();
   }
 }
 

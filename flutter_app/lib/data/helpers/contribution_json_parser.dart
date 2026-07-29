@@ -254,7 +254,7 @@ abstract final class ContributionJsonParser {
       aliases[value] ?? value;
 
   static void _validate(Map<String, dynamic> payload) {
-    if (payload['schema_version'] != 1) {
+    if (!const {1, 2}.contains(payload['schema_version'])) {
       throw const ContributionJsonException('不支持的 schema_version');
     }
     if (!const {

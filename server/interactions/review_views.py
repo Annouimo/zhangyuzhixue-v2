@@ -19,6 +19,7 @@ from .models import ContributionTagSuggestion
 from .review_forms import ContributionReviewForm, ReviewerAuthenticationForm
 from .review_services import (
     SOURCE_LABELS, question_payload, resolve_tags, save_official_question,
+    save_solution_method,
 )
 
 
@@ -113,6 +114,9 @@ def _initial_payload(contribution):
     if contribution.contribution_type == ContentContribution.ContributionType.NEW_QUESTION:
         revision = contribution.revisions.order_by('-revision_number').first()
         return revision.normalized_payload if revision else {}
+    if contribution.contribution_type == ContentContribution.ContributionType.SOLUTION_CONTRIBUTION:
+        revision = contribution.revisions.order_by('-revision_number').first()
+        return revision.normalized_payload if revision else {}
     return question_payload(contribution.question)
 
 
@@ -156,7 +160,8 @@ def _detail_url(request, contribution_id):
 def detail_view(request, contribution_id):
     contribution = get_object_or_404(
         ContentContribution.objects.select_related(
-            'student__user', 'question', 'reviewed_by', 'completed_question'
+            'student__user', 'question', 'target_sub_question',
+            'reviewed_by', 'completed_question'
         ).prefetch_related(
             'revisions', 'reviews__actor', 'tag_selections__concept_tag',
             'tag_suggestions__suggested_parent',
@@ -181,7 +186,11 @@ def detail_view(request, contribution_id):
         'note': contribution.review_note,
         'version': contribution.updated_at.isoformat(),
     }
-    form = ContributionReviewForm(request.POST or None, initial=initial)
+    form = ContributionReviewForm(
+        request.POST or None,
+        initial=initial,
+        contribution_type=contribution.contribution_type,
+    )
     is_terminal = contribution.status in {
         ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
@@ -306,7 +315,7 @@ def _apply_status_action(request, contribution_id, version, action, note):
 @transaction.atomic
 def _apply_action(request, contribution_id, form, action):
     contribution = ContentContribution.objects.select_for_update().select_related(
-        'question'
+        'question', 'target_sub_question'
     ).get(pk=contribution_id)
     if form.cleaned_data['version'] != contribution.updated_at.isoformat():
         raise ValueError('该投稿已被其他人更新，请刷新页面后重新处理。')
@@ -333,16 +342,35 @@ def _apply_action(request, contribution_id, form, action):
                 suggestion.save(update_fields=['status', 'reviewer_note'])
             else:
                 raise ValueError(f'请处理新标签建议“{suggestion.suggested_name}”。')
-        tags = resolve_tags(contribution, form.cleaned_data['tags'], approved_ids)
-        if not tags:
+        selected_tags = form.cleaned_data['tags']
+        if not selected_tags and contribution.question_id:
+            selected_tags = contribution.question.concept_tags.all()
+        tags = resolve_tags(contribution, selected_tags, approved_ids)
+        if (
+            contribution.contribution_type
+            != ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
+            and not tags
+        ):
             raise ValueError('录入正式题库前至少需要一个标签。')
         is_correction = contribution.contribution_type == (
             ContentContribution.ContributionType.QUESTION_CORRECTION
         )
-        target = contribution.question if is_correction else None
-        question = save_official_question(
-            form.cleaned_data['content_json'], tags, question=target
+        is_solution = contribution.contribution_type == (
+            ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
         )
+        if is_solution:
+            if not contribution.target_sub_question_id:
+                raise ValueError('解法投稿缺少目标小题。')
+            save_solution_method(
+                contribution.target_sub_question,
+                form.cleaned_data['content_json'],
+            )
+            question = contribution.question
+        else:
+            target = contribution.question if is_correction else None
+            question = save_official_question(
+                form.cleaned_data['content_json'], tags, question=target
+            )
         contribution.completed_question = question
         contribution.status = ContentContribution.Status.APPROVED_PENDING_RELEASE
         review_action = ContributionReview.Action.COMPLETED

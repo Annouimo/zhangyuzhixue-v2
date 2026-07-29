@@ -301,6 +301,7 @@ class ContentContribution(models.Model):
 
     class ContributionType(models.TextChoices):
         NEW_QUESTION = 'new_question', '新题投稿'
+        SOLUTION_CONTRIBUTION = 'solution_contribution', '解法投稿'
         QUESTION_CORRECTION = 'question_correction', '题目纠错'
 
     class Status(models.TextChoices):
@@ -322,6 +323,10 @@ class ContentContribution(models.Model):
     question = models.ForeignKey(
         BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='correction_contributions', verbose_name='纠错题目',
+    )
+    target_sub_question = models.ForeignKey(
+        'qbank.SubQuestion', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='solution_contributions', verbose_name='目标小题',
     )
     completed_question = models.ForeignKey(
         BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,

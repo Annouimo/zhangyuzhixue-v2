@@ -12,7 +12,7 @@
 {% if is_terminal %}<section class="terminal-banner"><strong>{% if contribution.status == 'approved_pending_release' %}审核已通过，等待下一版题库发布。{% else %}该投稿已结束，页面已切换为只读。{% endif %}</strong>{% if contribution.completed_question_id %}<a href="/admin/qbank/basequestion/{{ contribution.completed_question_id }}/change/">正式题目 #{{ contribution.completed_question_id }}</a>{% endif %}</section>{% endif %}
 <div class="draft-banner" id="draft-banner" hidden><span>发现此投稿尚未提交的本地草稿。</span><button type="button" data-draft="restore">恢复</button><button type="button" data-draft="discard">舍弃</button></div>
 
-<form method="post" id="review-form" data-contribution-id="{{ contribution.pk }}" data-terminal="{{ is_terminal|yesno:'true,false' }}" novalidate>
+<form method="post" id="review-form" data-contribution-id="{{ contribution.pk }}" data-contribution-type="{{ contribution.contribution_type }}" data-terminal="{{ is_terminal|yesno:'true,false' }}" novalidate>
   {% csrf_token %}{{ form.version }}
   <div class="review-layout-v2">
     <section class="content-workspace">

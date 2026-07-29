@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import Student
 from interactions.models import ContentContribution, ContributionRevision
-from qbank.models import BaseQuestion, ConceptTag
+from qbank.models import BaseQuestion, ConceptTag, SubQuestion
 
 
 @pytest.fixture
@@ -161,3 +161,50 @@ def test_legacy_source_fields_are_normalized(auth_client, concept_tag):
     assert payload['source']['question_number'] == '12'
     assert 'exam_name' not in payload['source']
     assert 'number' not in payload['source']
+
+
+@pytest.mark.django_db
+def test_create_solution_contribution_without_reselecting_tags(
+    auth_client, concept_tag,
+):
+    question = BaseQuestion.objects.create(question_type='fill', stem='求函数值')
+    question.concept_tags.add(concept_tag)
+    sub = SubQuestion.objects.create(
+        question=question, answer='1', explanation='', sort_order=1,
+    )
+    response = auth_client.post(reverse('contribution-list-create'), {
+        'contribution_type': 'solution_contribution',
+        'question_id': question.pk,
+        'target_sub_question_id': sub.pk,
+        'payload': {
+            'method_name': '换元法',
+            'source': 'contributor_original',
+            'summary': '先换元再化简',
+            'steps': [
+                {'title': '换元', 'content': '令 $t=x+1$', 'card_titles': []},
+            ],
+        },
+    }, format='json')
+    assert response.status_code == 200
+    contribution = ContentContribution.objects.get()
+    assert contribution.target_sub_question == sub
+
+
+@pytest.mark.django_db
+def test_solution_target_must_belong_to_question(auth_client):
+    question = BaseQuestion.objects.create(question_type='fill', stem='题目一')
+    other = BaseQuestion.objects.create(question_type='fill', stem='题目二')
+    sub = SubQuestion.objects.create(
+        question=other, answer='1', explanation='', sort_order=1,
+    )
+    response = auth_client.post(reverse('contribution-list-create'), {
+        'contribution_type': 'solution_contribution',
+        'question_id': question.pk,
+        'target_sub_question_id': sub.pk,
+        'payload': {
+            'method_name': '方法', 'source': '',
+            'steps': [{'title': '步骤', 'content': '内容', 'card_titles': []}],
+        },
+    }, format='json')
+    assert response.status_code == 400
+    assert response.data['code'] == 40201

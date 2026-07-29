@@ -72,6 +72,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
     final detail = _detail!;
     final status = detail['status'] as String? ?? 'pending';
     final isCorrection = detail['contribution_type'] == 'question_correction';
+    final isSolution = detail['contribution_type'] == 'solution_contribution';
     final submissionPayload = Map<String, dynamic>.from(
       detail['payload'] as Map? ?? const {},
     );
@@ -95,7 +96,11 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
                   children: [
                     Expanded(
                       child: Text(
-                        isCorrection ? '题目纠错' : '新题投稿',
+                        isCorrection
+                            ? '题目纠错'
+                            : isSolution
+                            ? '解法投稿'
+                            : '新题投稿',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -129,6 +134,8 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
           AppCard(
             child: isCorrection
                 ? _buildCorrection(submissionPayload)
+                : isSolution
+                ? _buildSolution(submissionPayload, detail)
                 : _buildQuestion(officialPayload ?? submissionPayload),
           ),
           if (isCorrection) ...[
@@ -260,6 +267,34 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
       const SizedBox(height: AppSpacing.sm),
       Text('依据', style: Theme.of(context).textTheme.titleSmall),
       MdLatexBody('${payload['evidence'] ?? '-'}'),
+    ],
+  );
+
+  Widget _buildSolution(
+    Map<String, dynamic> payload,
+    Map<String, dynamic> detail,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        payload['method_name'] as String? ?? '未命名解法',
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      Text(
+        '题目 #${detail['question_id']} · 小题 #${detail['target_sub_question_id']}',
+      ),
+      if ((payload['summary'] as String?)?.isNotEmpty == true) ...[
+        const SizedBox(height: AppSpacing.sm),
+        MdLatexBody(payload['summary'] as String),
+      ],
+      for (final entry in (payload['steps'] as List? ?? const []).indexed) ...[
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          '第 ${entry.$1 + 1} 步 · ${(entry.$2 as Map)['title'] ?? ''}',
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        MdLatexBody('${(entry.$2 as Map)['content'] ?? ''}'),
+      ],
     ],
   );
 

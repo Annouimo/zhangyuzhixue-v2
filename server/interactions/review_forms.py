@@ -6,7 +6,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from accounts.roles import is_content_reviewer
 from qbank.models import ConceptTag
 
-from .serializers import validate_question_payload
+from .serializers import validate_question_payload, validate_solution_payload
 
 
 class ReviewerAuthenticationForm(AuthenticationForm):
@@ -36,6 +36,7 @@ class ContributionReviewForm(forms.Form):
     version = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
+        self.contribution_type = kwargs.pop('contribution_type', 'new_question')
         super().__init__(*args, **kwargs)
         self.fields['tags'].queryset = ConceptTag.objects.order_by('parent_id', 'name')
 
@@ -48,7 +49,10 @@ class ContributionReviewForm(forms.Form):
                 f'JSON 格式错误：第 {exc.lineno} 行第 {exc.colno} 列'
             ) from exc
         try:
-            validate_question_payload(payload)
+            if self.contribution_type == 'solution_contribution':
+                validate_solution_payload(payload)
+            else:
+                validate_question_payload(payload)
         except Exception as exc:
             detail = getattr(exc, 'detail', exc)
             raise forms.ValidationError(str(detail)) from exc

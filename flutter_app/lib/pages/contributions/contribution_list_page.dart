@@ -53,9 +53,50 @@ class _ContributionListPageState extends State<ContributionListPage>
   }
 
   Future<void> _openNew() async {
+    final mode = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('选择投稿类型', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              _ContributionTypeTile(
+                icon: Icons.library_add_outlined,
+                title: '收录已有题目',
+                subtitle: '录入高考、模拟考试、校内考试或资料中的题目',
+                onTap: () => Navigator.pop(context, 'existing'),
+              ),
+              _ContributionTypeTile(
+                icon: Icons.lightbulb_outline_rounded,
+                title: '投稿原创题目',
+                subtitle: '提交本人创作的题目，并确认原创声明',
+                onTap: () => Navigator.pop(context, 'original'),
+              ),
+              _ContributionTypeTile(
+                icon: Icons.account_tree_outlined,
+                title: '投稿已有题目的解法',
+                subtitle: '为题库中的具体小题补充一种分步解法',
+                onTap: () => Navigator.pop(context, 'solution'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mode == null || !mounted) return;
     final changed = await RouterUtils.push<bool>(
       context,
-      AppRoutes.contributionNew,
+      '${AppRoutes.contributionNew}?mode=$mode',
     );
     if (changed == true) _load();
   }
@@ -86,7 +127,7 @@ class _ContributionListPageState extends State<ContributionListPage>
     floatingActionButton: FloatingActionButton.extended(
       onPressed: _openNew,
       icon: const Icon(Icons.add_rounded),
-      label: const Text('投稿新题'),
+      label: const Text('开始投稿'),
     ),
     body: _error != null
         ? ErrorPlaceholder(message: _error!, onRetry: _load)
@@ -118,9 +159,11 @@ class _ContributionListPageState extends State<ContributionListPage>
 
   Widget _buildItem(Map<String, dynamic> item) {
     final status = item['status'] as String? ?? 'pending';
-    final type = item['contribution_type'] == 'question_correction'
-        ? '题目纠错'
-        : '新题投稿';
+    final type = switch (item['contribution_type']) {
+      'question_correction' => '题目纠错',
+      'solution_contribution' => '解法投稿',
+      _ => '新题投稿',
+    };
     return Semantics(
       button: true,
       label: '查看$type详情',
@@ -142,6 +185,8 @@ class _ContributionListPageState extends State<ContributionListPage>
                   Icon(
                     type == '题目纠错'
                         ? Icons.report_outlined
+                        : type == '解法投稿'
+                        ? Icons.account_tree_outlined
                         : Icons.post_add_rounded,
                     size: 20,
                   ),
@@ -260,4 +305,26 @@ class _ContributionListPageState extends State<ContributionListPage>
     'processing' => AppStatusTone.info,
     _ => AppStatusTone.primary,
   };
+}
+
+class _ContributionTypeTile extends StatelessWidget {
+  const _ContributionTypeTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(icon),
+    title: Text(title),
+    subtitle: Text(subtitle),
+    trailing: const Icon(Icons.chevron_right_rounded),
+    onTap: onTap,
+  );
 }

@@ -46,12 +46,40 @@ CORRECTION_CATEGORIES = {
 }
 
 
+def validate_solution_payload(payload):
+    if not isinstance(payload, dict):
+        raise serializers.ValidationError('解法内容必须是 JSON 对象')
+    method_name = payload.get('method_name', '')
+    if not isinstance(method_name, str) or len(method_name) > 64:
+        raise serializers.ValidationError('解法名称无效')
+    source = payload.get('source', '')
+    if not isinstance(source, str) or len(source) > 32:
+        raise serializers.ValidationError('解法来源无效')
+    steps = payload.get('steps')
+    if not isinstance(steps, list) or not steps or len(steps) > 30:
+        raise serializers.ValidationError('解法需要 1 至 30 个步骤')
+    for step in steps:
+        if not isinstance(step, dict):
+            raise serializers.ValidationError('解法步骤格式错误')
+        title = step.get('title', '')
+        content = step.get('content', '')
+        cards = step.get('card_titles', [])
+        if not isinstance(title, str) or not title.strip() or len(title) > 128:
+            raise serializers.ValidationError('每个步骤都需要有效标题')
+        if not isinstance(content, str) or not content.strip() or len(content) > 20000:
+            raise serializers.ValidationError('每个步骤都需要有效内容')
+        if not isinstance(cards, list) or not all(isinstance(x, str) for x in cards):
+            raise serializers.ValidationError('关联知识卡片格式无效')
+    return payload
+
+
 def validate_question_payload(payload):
     """Validate the stable contribution schema after client-side repair."""
     if not isinstance(payload, dict):
         raise serializers.ValidationError('题目内容必须是 JSON 对象')
     if payload.get('schema_version') != 1:
-        raise serializers.ValidationError('不支持的 JSON schema_version')
+        if payload.get('schema_version') != 2:
+            raise serializers.ValidationError('不支持的 JSON schema_version')
     question_type = payload.get('question_type')
     if question_type not in QUESTION_TYPES:
         raise serializers.ValidationError('question_type 无效')
@@ -96,6 +124,11 @@ def validate_question_payload(payload):
             value = item.get(field, '')
             if not isinstance(value, str) or len(value) > 20000:
                 raise serializers.ValidationError(f'{field} 格式或长度无效')
+        methods = item.get('solution_methods', [])
+        if not isinstance(methods, list) or len(methods) > 10:
+            raise serializers.ValidationError('solution_methods 格式无效')
+        for method in methods:
+            validate_solution_payload(method)
 
     source = payload.get('source', {})
     if not isinstance(source, dict):
@@ -144,6 +177,7 @@ class ContributionWriteSerializer(serializers.Serializer):
         choices=ContentContribution.ContributionType.choices,
     )
     question_id = serializers.IntegerField(required=False, allow_null=True)
+    target_sub_question_id = serializers.IntegerField(required=False, allow_null=True)
     raw_json = serializers.CharField(required=False, allow_blank=True, max_length=100000)
     payload = serializers.JSONField()
     tag_ids = serializers.ListField(
@@ -157,11 +191,18 @@ class ContributionWriteSerializer(serializers.Serializer):
     def validate(self, attrs):
         contribution_type = attrs['contribution_type']
         question_id = attrs.get('question_id')
+        target_sub_question_id = attrs.get('target_sub_question_id')
         payload = attrs['payload']
         if contribution_type == ContentContribution.ContributionType.NEW_QUESTION:
             validate_question_payload(payload)
             if question_id is not None:
                 raise serializers.ValidationError('新题投稿不能关联已有题目')
+            if target_sub_question_id is not None:
+                raise serializers.ValidationError('新题投稿不能关联已有小题')
+        elif contribution_type == ContentContribution.ContributionType.SOLUTION_CONTRIBUTION:
+            if question_id is None or target_sub_question_id is None:
+                raise serializers.ValidationError('解法投稿必须关联已有题目和小题')
+            validate_solution_payload(payload)
         else:
             if question_id is None:
                 raise serializers.ValidationError('题目纠错必须关联已有题目')
@@ -173,7 +214,12 @@ class ContributionWriteSerializer(serializers.Serializer):
                 raise serializers.ValidationError('错误类型无效')
             if not isinstance(description, str) or len(description.strip()) < 10:
                 raise serializers.ValidationError('问题说明至少需要 10 个字符')
-        if not attrs.get('tag_ids') and not attrs.get('tag_suggestions'):
+        needs_tags = (
+            contribution_type == ContentContribution.ContributionType.NEW_QUESTION
+            and not attrs.get('tag_ids')
+            and not attrs.get('tag_suggestions')
+        )
+        if needs_tags:
             raise serializers.ValidationError('请至少选择或建议一个知识点标签')
         existing_ids = set(
             ConceptTag.objects.filter(pk__in=attrs.get('tag_ids', [])).values_list(

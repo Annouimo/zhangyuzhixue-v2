@@ -86,6 +86,18 @@
       container.appendChild(make('div', 'preview-error', '题目 JSON 无法解析，修复后才能预览。'));
       return;
     }
+    if (Array.isArray(payload.steps)) {
+      container.appendChild(make('h2', '', payload.method_name || '未命名解法'));
+      if (payload.summary) container.appendChild(make('p', 'math-content', payload.summary));
+      payload.steps.forEach(function (step, index) {
+        var block = make('section', 'subquestion-preview');
+        block.appendChild(make('h3', '', '第 ' + (index + 1) + ' 步 · ' + (step.title || '未命名步骤')));
+        block.appendChild(make('p', 'math-content', step.content || '（内容为空）'));
+        container.appendChild(block);
+      });
+      renderMath(container);
+      return;
+    }
     var stem = make('div', 'question-stem math-content', payload.stem || '（题干为空）');
     container.appendChild(stem);
     if (payload.question_type === 'choice' && Array.isArray(payload.options)) {
@@ -265,6 +277,18 @@
 
     function syncJsonFromStructured() {
       if (!currentPayload) return;
+      if (form.dataset.contributionType === 'solution_contribution') {
+        currentPayload.method_name = structured.querySelector('[data-field="method_name"]').value;
+        currentPayload.source = structured.querySelector('[data-field="method_source"]').value;
+        currentPayload.summary = structured.querySelector('[data-field="method_summary"]').value;
+        currentPayload.steps = Array.from(structured.querySelectorAll('.solution-step-item')).map(function (row) {
+          return {title: row.querySelector('[data-step="title"]').value, content: row.querySelector('[data-step="content"]').value, card_titles: []};
+        });
+        contentJson.value = JSON.stringify(currentPayload, null, 2);
+        renderQuestion(preview, currentPayload);
+        changed();
+        return;
+      }
       var source = currentPayload.source || {};
       currentPayload.question_type = structured.querySelector('[data-field="question_type"]').value;
       currentPayload.stem = structured.querySelector('[data-field="stem"]').value;
@@ -331,6 +355,31 @@
     function buildStructured(payload) {
       if (!structured || !payload) return;
       structured.replaceChildren();
+      if (form.dataset.contributionType === 'solution_contribution') {
+        addField(structured, '解法名称', input('text', payload.method_name, 'method_name'));
+        addField(structured, '解法来源', input('text', payload.source, 'method_source'));
+        addField(structured, '思路概述（可选）', textarea(payload.summary, 'method_summary', 3));
+        var stepSection = make('section', 'editor-section');
+        var stepList = make('div', 'solution-steps-list');
+        function stepRow(step) {
+          var row = make('div', 'repeat-item solution-step-item');
+          var title = input('text', step.title || ''); title.dataset.step = 'title';
+          var content = textarea(step.content || '', '', 5); content.dataset.step = 'content';
+          addField(row, '步骤标题', title); addField(row, '步骤内容', content);
+          var remove = make('button', 'remove-item', '×'); remove.type = 'button';
+          remove.addEventListener('click', function () { row.remove(); syncJsonFromStructured(); });
+          row.appendChild(remove);
+          return row;
+        }
+        stepSection.appendChild(repeatHeader('解题步骤', '添加步骤', function () {
+          stepList.appendChild(stepRow({})); syncJsonFromStructured();
+        }));
+        (payload.steps || []).forEach(function (step) { stepList.appendChild(stepRow(step)); });
+        stepSection.appendChild(stepList); structured.appendChild(stepSection);
+        structured.addEventListener('input', syncJsonFromStructured);
+        structured.addEventListener('change', syncJsonFromStructured);
+        return;
+      }
       var basic = make('div', 'field-grid');
       addField(basic, '题型', select([['choice', '选择题'], ['fill', '填空题'], ['solution', '解答题']], payload.question_type, 'question_type'));
       addField(basic, '难度', select([['basic', '基础'], ['easy', '容易'], ['medium', '中等'], ['hard', '困难'], ['very_hard', '很难']], payload.difficulty, 'difficulty'));
