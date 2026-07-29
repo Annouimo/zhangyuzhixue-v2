@@ -1,13 +1,18 @@
 {% extends 'review_workbench/base.html' %}
 {% block content %}
 <div class="page-heading queue-heading">
-  <div><h1>投稿审核 <span class="count-badge">{{ total_count }}</span></h1><p>审核、修订并录入学生提交的新题、解法和纠错。</p></div>
+  <div><h1>贡献审核 <span class="count-badge">{{ total_count }}</span></h1><p>统一处理新题、新解法、内容修改和问题报告。</p></div>
 </div>
+<nav class="queue-tabs" aria-label="贡献类型">
+  <a href="{% querystring type=None page=None %}"{% if not type_filter %} class="is-active"{% endif %}>全部 <span>{{ queue_counts.all }}</span></a>
+  <a href="{% querystring type='new_question' page=None %}"{% if type_filter == 'new_question' %} class="is-active"{% endif %}>新题投稿 <span>{{ queue_counts.new_question }}</span></a>
+  <a href="{% querystring type='new_solution' page=None %}"{% if type_filter == 'new_solution' %} class="is-active"{% endif %}>新解法 <span>{{ queue_counts.new_solution }}</span></a>
+  <a href="{% querystring type='content_change' page=None %}"{% if type_filter == 'content_change' %} class="is-active"{% endif %}>内容修改 <span>{{ queue_counts.content_change }}</span></a>
+  <a href="{% querystring type='problem_report' page=None %}"{% if type_filter == 'problem_report' %} class="is-active"{% endif %}>问题报告 <span>{{ queue_counts.problem_report }}</span></a>
+</nav>
 <form method="get" class="queue-filters">
+  {% if type_filter %}<input type="hidden" name="type" value="{{ type_filter }}">{% endif %}
   <label class="search-field"><span>搜索</span><input name="q" value="{{ query }}" placeholder="题干、投稿人或题目编号"></label>
-  <label><span>类型</span><select name="type">
-    <option value="">全部类型</option>{% for value, label in type_choices %}<option value="{{ value }}"{% if type_filter == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-  </select></label>
   <label><span>状态</span><select name="status">
     <option value=""{% if not status_filter %} selected{% endif %}>全部状态</option>
     <option value="active"{% if status_filter == 'active' %} selected{% endif %}>当前待办</option>
@@ -22,8 +27,8 @@
   <tbody>{% for item in contributions %}
     <tr class="queue-row" data-href="{% url 'review_workbench:detail' item.pk %}?{{ request.GET.urlencode }}" tabindex="0">
       <td data-label="编号"><a class="row-id" href="{% url 'review_workbench:detail' item.pk %}?{{ request.GET.urlencode }}">#{{ item.pk }}</a></td>
-      <td data-label="类型">{{ item.get_contribution_type_display }}</td>
-      <td data-label="内容" class="summary math-content">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:90 }}{% elif item.contribution_type == 'solution_contribution' %}{{ revision.normalized_payload.method_name|default:'未命名解法'|truncatechars:90 }}{% else %}{{ revision.normalized_payload.description|truncatechars:90 }}{% endif %}{% endwith %}</td>
+      <td data-label="类型">{% if item.contribution_type == 'question_correction' %}{% if item.has_proposed_question %}内容修改{% else %}问题报告{% endif %}{% else %}{{ item.get_contribution_type_display }}{% endif %}</td>
+      <td data-label="内容" class="summary math-content">{% with revision=item.revisions.first %}{% if item.contribution_type == 'new_question' %}{{ revision.normalized_payload.stem|truncatechars:90 }}{% elif item.contribution_type == 'new_solution' %}{{ revision.normalized_payload.method_name|default:'未命名解法'|truncatechars:90 }}{% else %}{{ revision.normalized_payload.description|truncatechars:90 }}{% endif %}{% endwith %}</td>
       <td data-label="投稿人">{{ item.student.user.username }}</td>
       <td data-label="状态"><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span></td>
       <td data-label="处理人">{% if item.reviewed_by %}{{ item.reviewed_by.get_full_name|default:item.reviewed_by.username }}{% else %}-{% endif %}</td>

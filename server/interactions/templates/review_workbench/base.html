@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>{% block title %}内容审核工作台{% endblock %}</title>
+  <title>{% block title %}内容工作台{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
   <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=4">
   <script defer src="{% static 'katex/katex.min.js' %}"></script>
@@ -16,8 +16,13 @@
   <header class="topbar">
     <a class="brand" href="{% url 'review_workbench:queue' %}">
       <span class="brand-mark">章</span>
-      <span><strong>章鱼智学</strong><small>内容审核工作台</small></span>
+      <span><strong>章鱼智学</strong><small>内容工作台</small></span>
     </a>
+    <nav class="main-nav" aria-label="内容工作台导航">
+      <a href="{% url 'review_workbench:queue' %}"{% if request.resolver_match.url_name == 'queue' or request.resolver_match.url_name == 'detail' %} class="is-active"{% endif %}>贡献审核</a>
+      <a href="{% url 'review_workbench:question_list' %}"{% if request.resolver_match.url_name == 'question_list' or request.resolver_match.url_name == 'question_create' or request.resolver_match.url_name == 'question_edit' %} class="is-active"{% endif %}>题库维护</a>
+      <a href="{% url 'review_workbench:tag_list' %}"{% if request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'tag_create' or request.resolver_match.url_name == 'tag_edit' or request.resolver_match.url_name == 'card_list' or request.resolver_match.url_name == 'card_create' or request.resolver_match.url_name == 'card_edit' %} class="is-active"{% endif %}>内容维护</a>
+    </nav>
     <div class="account">
       <span>{{ request.user.get_full_name|default:request.user.username }}</span>
       <form method="post" action="{% url 'review_workbench:logout' %}">

@@ -5,7 +5,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import BooleanField, Q
+from django.db.models.expressions import RawSQL
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,8 +15,9 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.roles import PUBLISH_CONTRIBUTION, is_content_reviewer
 
-from .models import ContentContribution, ContributionReview
-from .models import ContributionTagSuggestion
+from .models import (
+    ContentContribution, ContributionReview, ContributionTagSuggestion,
+)
 from .review_forms import ContributionReviewForm, ReviewerAuthenticationForm
 from .review_services import (
     question_payload, resolve_tags, save_official_question, save_solution_method,
@@ -60,13 +62,51 @@ def logout_view(request):
     return redirect('review_workbench:queue')
 
 
+def _with_contribution_kind(queryset):
+    return queryset.annotate(
+        has_proposed_question=RawSQL(
+            """
+            json_type((
+                SELECT revision.normalized_payload
+                FROM interactions_contributionrevision AS revision
+                WHERE revision.contribution_id = interactions_contentcontribution.id
+                ORDER BY revision.revision_number DESC
+                LIMIT 1
+            ), '$.proposed_question') IS NOT NULL
+            """,
+            params=(), output_field=BooleanField(),
+        )
+    )
+
+
+def _filter_contribution_kind(queryset, type_filter):
+    if type_filter in {
+        ContentContribution.ContributionType.NEW_QUESTION,
+        ContentContribution.ContributionType.NEW_SOLUTION,
+    }:
+        return queryset.filter(contribution_type=type_filter), type_filter
+    if type_filter == 'content_change':
+        return queryset.filter(
+            contribution_type=ContentContribution.ContributionType.QUESTION_CORRECTION,
+            has_proposed_question=True,
+        ), type_filter
+    if type_filter == 'problem_report':
+        return queryset.filter(
+            contribution_type=ContentContribution.ContributionType.QUESTION_CORRECTION,
+            has_proposed_question=False,
+        ), type_filter
+    if type_filter == ContentContribution.ContributionType.QUESTION_CORRECTION:
+        return queryset.filter(contribution_type=type_filter), type_filter
+    return queryset, ''
+
+
 @reviewer_required
 def queue_view(request):
     status_filter = request.GET.get('status', '')
     type_filter = request.GET.get('type', '')
     query = request.GET.get('q', '').strip()[:100]
     mine_only = request.GET.get('mine') == '1'
-    queryset = ContentContribution.objects.select_related(
+    queryset = _with_contribution_kind(ContentContribution.objects).select_related(
         'student__user', 'question', 'reviewed_by'
     ).prefetch_related('revisions')
     if not status_filter:
@@ -81,10 +121,7 @@ def queue_view(request):
         queryset = queryset.filter(status=status_filter)
     else:
         status_filter = ''
-    if type_filter in ContentContribution.ContributionType.values:
-        queryset = queryset.filter(contribution_type=type_filter)
-    else:
-        type_filter = ''
+    queryset, type_filter = _filter_contribution_kind(queryset, type_filter)
     if mine_only:
         queryset = queryset.filter(reviewed_by=request.user)
     if query:
@@ -96,6 +133,24 @@ def queue_view(request):
     queryset = queryset.order_by('-updated_at', '-pk')
     paginator = Paginator(queryset, 30)
     page = paginator.get_page(request.GET.get('page'))
+    active = _with_contribution_kind(ContentContribution.objects.filter(
+        status__in=[
+            ContentContribution.Status.PENDING,
+            ContentContribution.Status.RESUBMITTED,
+            ContentContribution.Status.PROCESSING,
+        ]
+    ))
+    queue_counts = {
+        'all': active.count(),
+        'new_question': active.filter(contribution_type='new_question').count(),
+        'new_solution': active.filter(contribution_type='new_solution').count(),
+        'content_change': active.filter(
+            contribution_type='question_correction', has_proposed_question=True,
+        ).count(),
+        'problem_report': active.filter(
+            contribution_type='question_correction', has_proposed_question=False,
+        ).count(),
+    }
     return render(request, 'review_workbench/queue.html', {
         'contributions': page.object_list,
         'page': page,
@@ -106,6 +161,7 @@ def queue_view(request):
         'mine_only': mine_only,
         'status_choices': ContentContribution.Status.choices,
         'type_choices': ContentContribution.ContributionType.choices,
+        'queue_counts': queue_counts,
     })
 
 
@@ -209,7 +265,7 @@ def detail_view(request, contribution_id):
                 return redirect(_detail_url(request, contribution.pk))
 
     detail_status_filter = request.GET.get('status', '')
-    active_queryset = ContentContribution.objects.all()
+    active_queryset = _with_contribution_kind(ContentContribution.objects.all())
     if detail_status_filter == 'active':
         active_queryset = active_queryset.filter(status__in=[
             ContentContribution.Status.PENDING,
@@ -219,10 +275,9 @@ def detail_view(request, contribution_id):
     elif detail_status_filter in ContentContribution.Status.values:
         active_queryset = active_queryset.filter(status=detail_status_filter)
     detail_type_filter = request.GET.get('type', '')
-    if detail_type_filter in ContentContribution.ContributionType.values:
-        active_queryset = active_queryset.filter(
-            contribution_type=detail_type_filter
-        )
+    active_queryset, detail_type_filter = _filter_contribution_kind(
+        active_queryset, detail_type_filter
+    )
     if request.GET.get('mine') == '1':
         active_queryset = active_queryset.filter(reviewed_by=request.user)
     detail_query = request.GET.get('q', '').strip()[:100]
@@ -251,6 +306,15 @@ def detail_view(request, contribution_id):
         'next_id': (
             active_ids[active_index + 1]
             if 0 <= active_index < len(active_ids) - 1 else None
+        ),
+        'contribution_kind': (
+            'content_change'
+            if contribution.contribution_type == 'question_correction'
+            and latest_revision
+            and 'proposed_question' in latest_revision.normalized_payload
+            else 'problem_report'
+            if contribution.contribution_type == 'question_correction'
+            else contribution.contribution_type
         ),
     })
 

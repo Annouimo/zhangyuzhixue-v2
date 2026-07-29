@@ -1,7 +1,7 @@
 ﻿from django.contrib import admin
 
 from .models import (
-    BaseQuestion, ChoiceExt, ConceptTag, KnowledgeCard,
+    BaseQuestion, ChoiceExt, ConceptTag, ContentChangeLog, KnowledgeCard,
     QuestionConceptTag, QuestionKnowledgeCard,
     SolutionMethod, SolutionStep, SubQuestion,
 )
@@ -95,6 +95,25 @@ class SolutionStepAdmin(admin.ModelAdmin):
     list_display = ['id', 'method', 'step_number', 'title']
     list_select_related = ['method']
     search_fields = ['title', 'content']
+
+
+@admin.register(ContentChangeLog)
+class ContentChangeLogAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'object_type', 'object_id', 'action', 'actor', 'created_at',
+    ]
+    list_filter = ['object_type', 'action']
+    search_fields = ['object_label', 'note']
+    readonly_fields = [
+        'actor', 'question', 'object_type', 'object_id', 'object_label',
+        'action', 'note', 'created_at',
+    ]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(QuestionConceptTag)

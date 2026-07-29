@@ -2,6 +2,7 @@
 
 
 from accounts.models import Student
+from django.contrib.auth.models import User
 
 
 class ContentOrigin(models.TextChoices):
@@ -219,3 +220,30 @@ class SolutionStep(models.Model):
 
     def __str__(self):
         return f'步骤 {self.step_number}: {self.title}'
+
+
+class ContentChangeLog(models.Model):
+    """内容工作台中人工修改的业务说明。"""
+
+    actor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='content_change_logs', verbose_name='操作人',
+    )
+    question = models.ForeignKey(
+        BaseQuestion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='workbench_changes', verbose_name='题目',
+    )
+    object_type = models.CharField('内容类型', max_length=32)
+    object_id = models.PositiveIntegerField('内容 ID', null=True, blank=True)
+    object_label = models.CharField('内容标题', max_length=255, blank=True)
+    action = models.CharField('操作', max_length=32)
+    note = models.CharField('修改说明', max_length=500)
+    created_at = models.DateTimeField('操作时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '内容修改记录'
+        verbose_name_plural = '内容修改记录'
+        ordering = ['-created_at', '-pk']
+
+    def __str__(self):
+        return f'{self.object_type} #{self.object_id or "-"}: {self.note}'

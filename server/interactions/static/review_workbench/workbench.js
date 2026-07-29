@@ -277,7 +277,7 @@
 
     function syncJsonFromStructured() {
       if (!currentPayload) return;
-      if (form.dataset.contributionType === 'solution_contribution') {
+      if (form.dataset.contributionType === 'new_solution') {
         currentPayload.method_name = structured.querySelector('[data-field="method_name"]').value;
         currentPayload.source = structured.querySelector('[data-field="method_source"]').value;
         currentPayload.summary = structured.querySelector('[data-field="method_summary"]').value;
@@ -307,10 +307,13 @@
         return {key: row.querySelector('[data-option="key"]').value, content: row.querySelector('[data-option="content"]').value};
       });
       currentPayload.sub_questions = Array.from(structured.querySelectorAll('.subquestion-item')).map(function (row) {
+        var original = row._sourcePayload || {};
         return {
+          id: original.id,
           stem: row.querySelector('[data-sub="stem"]').value,
           answer: row.querySelector('[data-sub="answer"]').value,
-          explanation: row.querySelector('[data-sub="explanation"]').value
+          explanation: row.querySelector('[data-sub="explanation"]').value,
+          solution_methods: original.solution_methods || []
         };
       });
       contentJson.value = JSON.stringify(currentPayload, null, 2);
@@ -342,6 +345,7 @@
 
     function subQuestionRow(item) {
       var row = make('div', 'repeat-item subquestion-item');
+      row._sourcePayload = item;
       var stem = textarea(item.stem || '', '', 2); stem.dataset.sub = 'stem';
       var answer = textarea(item.answer || '', '', 2); answer.dataset.sub = 'answer';
       var explanation = textarea(item.explanation || '', '', 4); explanation.dataset.sub = 'explanation';
@@ -355,7 +359,7 @@
     function buildStructured(payload) {
       if (!structured || !payload) return;
       structured.replaceChildren();
-      if (form.dataset.contributionType === 'solution_contribution') {
+      if (form.dataset.contributionType === 'new_solution') {
         addField(structured, '解法名称', input('text', payload.method_name, 'method_name'));
         addField(structured, '解法来源', input('text', payload.source, 'method_source'));
         addField(structured, '思路概述（可选）', textarea(payload.summary, 'method_summary', 3));
@@ -513,14 +517,16 @@
           if (pendingAction === 'publish' && undecidedSuggestions.length) {
             undecidedSuggestions[0].reportValidity(); undecidedSuggestions[0].focus(); return;
           }
-          if (pendingAction === 'publish' && selectedTags + newTags === 0) {
+          if (pendingAction === 'publish' && form.dataset.contributionType !== 'new_solution' && selectedTags + newTags === 0) {
             document.getElementById('open-tag-dialog').click(); return;
           }
           title.textContent = configs[pendingAction][0];
           description.textContent = configs[pendingAction][1];
           summary.replaceChildren();
           summary.appendChild(make('div', '', '审核意见：' + (note.value.trim() || '无')));
-          if (pendingAction === 'publish') {
+          if (pendingAction === 'publish' && form.dataset.contributionType === 'new_solution') {
+            summary.appendChild(make('div', '', '解法：' + (currentPayload.method_name || '未命名') + ' · 步骤：' + (currentPayload.steps || []).length));
+          } else if (pendingAction === 'publish') {
             summary.appendChild(make('div', '', '题型：' + currentPayload.question_type + ' · 小题：' + currentPayload.sub_questions.length + ' · 已选标签：' + selectedTags));
           }
           dialog.showModal();
@@ -534,6 +540,11 @@
     }
 
     contentJson.addEventListener('input', function () { parseJson(true); changed(); });
+    form.addEventListener('submit', function () {
+      submitting = true;
+      dirty = false;
+      localStorage.removeItem(draftKey);
+    });
     var note = document.getElementById('id_note');
     if (note) note.addEventListener('input', changed);
     var format = document.getElementById('format-json');

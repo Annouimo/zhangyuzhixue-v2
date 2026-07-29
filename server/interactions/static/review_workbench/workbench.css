@@ -46,6 +46,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .brand strong, .brand small { display: block; }
 .brand small { color: var(--muted); font-size: 12px; }
 .account { display: flex; align-items: center; gap: 16px; }
+.main-nav { display: flex; align-self: stretch; gap: 4px; }
+.main-nav a { display: flex; align-items: center; padding: 0 14px; border-bottom: 2px solid transparent; color: var(--muted); text-decoration: none; font-weight: 600; }
+.main-nav a.is-active { border-bottom-color: var(--blue); color: var(--blue); }
 .account form { margin: 0; }
 .icon-button { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 5px; background: #fff; cursor: pointer; }
 .workspace { max-width: 1440px; margin: 0 auto; padding: 24px; }
@@ -61,6 +64,7 @@ input, select, textarea { border: 1px solid var(--border); border-radius: 5px; b
 input, select { height: 38px; padding: 0 10px; }
 textarea { width: 100%; padding: 10px; resize: vertical; }
 button { min-height: 38px; padding: 0 13px; border: 1px solid var(--border); border-radius: 5px; background: #fff; color: var(--text); cursor: pointer; font-weight: 600; }
+.button-link { display: inline-flex; min-height: 38px; padding: 0 13px; align-items: center; border: 1px solid var(--border); border-radius: 5px; text-decoration: none; font-weight: 600; }
 button:hover { border-color: #aeb8c3; background: #f7f9fb; }
 .primary { border-color: var(--blue); background: var(--blue); color: #fff; }
 .primary:hover { border-color: #0759a6; background: #0759a6; }
@@ -68,6 +72,10 @@ button:hover { border-color: #aeb8c3; background: #f7f9fb; }
 .danger { border-color: #e0aaa6; color: var(--red); }
 
 .queue-filters { display: flex; align-items: end; gap: 10px; margin-bottom: 14px; }
+.queue-tabs, .content-subnav { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.queue-tabs a, .content-subnav a { padding: 9px 12px; border-bottom: 2px solid transparent; color: var(--muted); text-decoration: none; font-weight: 600; }
+.queue-tabs a.is-active, .content-subnav a.is-active { border-bottom-color: var(--blue); color: var(--blue); }
+.queue-tabs span { display: inline-grid; min-width: 22px; height: 20px; margin-left: 4px; padding: 0 5px; place-items: center; border-radius: 3px; background: #e9edf1; font-size: 11px; }
 .queue-filters label { margin: 0; }
 .queue-filters label > span { display: block; margin-bottom: 4px; font-size: 12px; color: var(--muted); }
 .queue-filters .search-field { flex: 1; min-width: 220px; }
@@ -172,6 +180,12 @@ th { background: #f8f9fb; color: var(--muted); font-size: 12px; }
 .history { margin: 12px 0 0; padding-left: 20px; }
 .history li { margin-bottom: 10px; }
 .history p { margin: 3px 0; }
+.field-help { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.review-sidebar select[multiple] { width: 100%; min-height: 170px; padding: 6px; }
+.simple-editor { max-width: 760px; padding: 20px; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+.simple-editor input, .simple-editor select { width: 100%; margin-bottom: 14px; }
+.simple-editor textarea { margin-bottom: 14px; }
+.simple-actions { display: flex; justify-content: end; margin-top: 8px; }
 
 .action-bar { position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; min-height: 68px; padding: 10px max(24px, calc((100vw - 1392px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 14px; border-top: 1px solid var(--border); background: #ffffffed; backdrop-filter: blur(8px); box-shadow: 0 -4px 20px #18223314; }
 .action-buttons { display: flex; gap: 8px; }
@@ -217,6 +231,7 @@ dialog::backdrop { background: #18223366; }
   .workspace { padding: 16px; }
   .topbar { padding: 0 16px; }
   .account > span { display: none; }
+  .brand small { display: none; }
   .review-layout-v2 { grid-template-columns: 1fr; }
   .field-grid { grid-template-columns: 1fr 1fr; }
   .queue-filters { flex-wrap: wrap; }
@@ -226,6 +241,11 @@ dialog::backdrop { background: #18223366; }
 @media (max-width: 620px) {
   body { padding-bottom: 132px; }
   .workspace { padding: 14px 12px; }
+  .topbar { height: auto; min-height: 64px; flex-wrap: wrap; }
+  .main-nav { width: 100%; height: 42px; order: 3; overflow-x: auto; }
+  .main-nav a { padding: 0 10px; white-space: nowrap; }
+  .queue-tabs { overflow-x: auto; }
+  .queue-tabs a { white-space: nowrap; }
   .page-heading { align-items: start; }
   .page-heading h1 { font-size: 22px; }
   .queue-filters { display: grid; grid-template-columns: 1fr 1fr; }

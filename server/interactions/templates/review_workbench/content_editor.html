@@ -1,0 +1,6 @@
+{% extends 'review_workbench/base.html' %}
+{% block content %}
+<div class="detail-nav"><a href="{% if kind == 'tag' %}{% url 'review_workbench:tag_list' %}{% else %}{% url 'review_workbench:card_list' %}{% endif %}">← 返回列表</a></div>
+<div class="page-heading"><div><h1>{% if object %}编辑{% else %}新建{% endif %}{% if kind == 'tag' %}概念标签{% else %}知识卡片{% endif %}</h1><p>请填写修改说明；工作台不提供删除。</p></div></div>
+<form method="post" class="simple-editor">{% csrf_token %}{% if form.non_field_errors %}<div class="error-summary">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-error">{{ field.errors.0 }}</div>{% endif %}{% endfor %}<div class="simple-actions"><button class="primary" type="submit">保存</button></div></form>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}{% if question %}编辑题目 #{{ question.pk }}{% else %}新建题目{% endif %} | 内容工作台{% endblock %}
+{% block content %}
+<div class="detail-nav"><a href="{% url 'review_workbench:question_list' %}">← 返回题库</a></div>
+<div class="page-heading detail-heading"><div><h1>{% if question %}编辑题目 #{{ question.pk }}{% else %}新建题目{% endif %}</h1><p>保存后进入下一版题库，工作台不提供整题删除。</p></div></div>
+{% if form.errors %}<section class="error-summary" id="error-summary" tabindex="-1"><strong>本次操作没有保存</strong><ul>{% for field in form %}{% for error in field.errors %}<li>{{ field.label }}：{{ error }}</li>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></section>{% endif %}
+<div class="draft-banner" id="draft-banner" hidden><span>发现尚未提交的本地草稿。</span><button type="button" data-draft="restore">恢复</button><button type="button" data-draft="discard">舍弃</button></div>
+<form method="post" id="review-form" data-contribution-id="question-{% if question %}{{ question.pk }}{% else %}new{% endif %}" data-contribution-type="question" data-terminal="false" novalidate>
+  {% csrf_token %}{{ form.version }}
+  <div class="review-layout-v2">
+    <section class="content-workspace">
+      <div class="content-tabs" role="tablist"><button type="button" class="is-active" data-tab="preview">渲染预览</button><button type="button" data-tab="structured">结构化编辑</button><button type="button" data-tab="json">原始 JSON</button></div>
+      <section class="tab-panel is-active" data-panel="preview"><div id="question-preview" class="question-preview"></div></section>
+      <section class="tab-panel" data-panel="structured"><div id="structured-editor" class="structured-editor"></div></section>
+      <section class="tab-panel" data-panel="json"><div class="json-toolbar"><span>高级模式，修改后会同步到预览。</span><button type="button" id="format-json">格式化 JSON</button></div>{{ form.content_json }}<div id="json-live-error" class="field-error" hidden></div></section>
+    </section>
+    <aside class="review-sidebar">
+      <section class="tag-section"><div class="section-title"><h2>概念标签</h2><button type="button" id="open-tag-dialog">搜索添加</button></div><div id="selected-tags" class="selected-tags"></div></section>
+      <section><label for="id_knowledge_cards"><strong>关联知识卡片</strong></label>{{ form.knowledge_cards }}</section>
+      <section><label for="id_note"><strong>修改说明</strong></label>{{ form.note }}<p class="field-help">简要说明本次新建或修改的原因。</p></section>
+      {% if history %}<details class="history-panel"><summary>工作台修改记录（最近 {{ history|length }} 条）</summary><ol class="history">{% for event in history %}<li><strong>{{ event.note }}</strong><span>{{ event.actor.get_full_name|default:event.actor.username|default:'系统' }} · {{ event.created_at|date:'Y-m-d H:i' }}</span></li>{% endfor %}</ol></details>{% endif %}
+    </aside>
+  </div>
+  <div class="action-bar"><div class="save-state" id="save-state">尚未修改</div><div class="action-buttons"><button class="primary" type="submit">{% if question %}保存题目{% else %}创建题目{% endif %}</button></div></div>
+  <dialog id="tag-dialog" class="tag-dialog"><div class="dialog-heading"><h2>选择概念标签</h2><button type="button" data-close-dialog aria-label="关闭">×</button></div><input id="tag-search" placeholder="搜索标签名称"><div class="tag-options">{{ form.tags }}</div><div class="dialog-footer"><span id="tag-result-count"></span><button class="primary" type="button" data-close-dialog>完成</button></div></dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog"><h2 id="confirm-title">确认操作</h2><p id="confirm-description"></p><div id="confirm-summary"></div><div class="dialog-footer"><button type="button" data-cancel-confirm>取消</button><button type="button" data-confirm-action>确认</button></div></dialog>
+</form>
+{% endblock %}
