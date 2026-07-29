@@ -27,7 +27,6 @@ TABLES = [
     ('system_levelconfig',            'system_level_config',      []),
     ('system_achievementdef',         'system_achievement_defs',  []),
     ('system_appversion',             'system_app_versions',      []),
-    ('system_announcement',           'system_announcements',     []),
     ('system_pointstransaction',      'points_transactions',      []),
     ('system_studentachievement',     'student_achievements',     []),
     ('courses_course',                'courses_courses',          []),

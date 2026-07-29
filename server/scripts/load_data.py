@@ -29,7 +29,6 @@ FILE_TABLE_MAP = [
     ('system_level_config',           'system_levelconfig'),
     ('system_achievement_defs',       'system_achievementdef'),
     ('system_app_versions',           'system_appversion'),
-    ('system_announcements',          'system_announcement'),
     ('points_transactions',           'system_pointstransaction'),
     ('student_achievements',          'system_studentachievement'),
     ('courses_courses',               'courses_course'),
