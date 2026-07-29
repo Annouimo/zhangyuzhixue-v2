@@ -103,6 +103,47 @@ class _QuestionLibraryRepository
   }
 }
 
+class _LargeQuestionLibraryRepository extends _QuestionLibraryRepository {
+  @override
+  Future<List<VirtualPaper>> getVirtualPapers() async {
+    const regions = ['东城', '朝阳', '海淀', '西城'];
+    return [
+      for (final year in [2026, 2025, 2024, 2023])
+        for (final region in regions)
+          VirtualPaper(
+            year: year,
+            examType: '一模',
+            region: region,
+            questionCount: 21,
+          ),
+    ];
+  }
+
+  @override
+  Future<List<SearchQuestion>> getFilteredQuestions(
+    SearchFilters filters,
+  ) async {
+    lastFilters = filters;
+    return List.generate(21, (index) {
+      final type = index < 10
+          ? 'choice'
+          : index < 15
+          ? 'fill'
+          : 'solution';
+      return SearchQuestion(
+        id: index + 1,
+        title:
+            r'已知函数 $f(x)=x^2+1$，求对应结论。'
+            '${index + 1}',
+        questionType: type,
+        meta: '2026 一模 东城',
+        difficulty: 3.4,
+        calculation: 3,
+      );
+    });
+  }
+}
+
 void main() {
   setUp(setupTestHooks);
 
@@ -165,7 +206,7 @@ void main() {
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 1800));
     await tester.pumpAndSettle();
     expect(find.text('2025年 · 海淀 · 一模'), findsOneWidget);
-    expect(find.byTooltip('保存为常用范围'), findsOneWidget);
+    expect(find.byTooltip('范围操作'), findsOneWidget);
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 2000));
     await tester.pumpAndSettle();
@@ -189,5 +230,48 @@ void main() {
 
     expect(find.text('已选 1 题'), findsOneWidget);
     expect(find.text('生成试卷'), findsOneWidget);
+  });
+
+  testWidgets('paper selection keeps scroll stable and can return to top', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final repository = _LargeQuestionLibraryRepository();
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: StudentQuestionBankPage(
+          examRepository: repository,
+          virtualPaperRepository: repository,
+          questionReviewRepository: repository,
+          preferenceRepository: repository,
+          scrollController: scrollController,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('一模'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('东城').first);
+    await tester.pumpAndSettle(const Duration(milliseconds: 400));
+
+    expect(scrollController.offset, 0);
+    expect(find.text('2026'), findsNothing);
+    expect(find.text('题目结果 · 21 题'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    expect(scrollController.offset, greaterThan(0));
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 2400));
+    await tester.pumpAndSettle();
+    expect(scrollController.offset, 0);
+    expect(find.text('套卷'), findsOneWidget);
+    expect(find.text('一模'), findsOneWidget);
   });
 }

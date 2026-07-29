@@ -120,7 +120,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                             if (card.questionCount > 0) ...[
                               const SizedBox(width: 4),
                               Text(
-                                '${card.questionCount}',
+                                '${card.questionCount}题',
                                 style: const TextStyle(fontSize: 10),
                               ),
                             ],

@@ -199,7 +199,7 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
                               if (node.questionCount > 0) ...[
                                 const SizedBox(width: 6),
                                 Text(
-                                  '${node.questionCount}',
+                                  '${node.questionCount}题',
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: colors.textSecondary,
@@ -260,7 +260,10 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
           Text(node.name, style: const TextStyle(fontSize: 12)),
           if (node.questionCount > 0) ...[
             const SizedBox(width: 4),
-            Text('${node.questionCount}', style: const TextStyle(fontSize: 10)),
+            Text(
+              '${node.questionCount}题',
+              style: const TextStyle(fontSize: 10),
+            ),
           ],
         ],
       ),

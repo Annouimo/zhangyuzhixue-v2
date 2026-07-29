@@ -28,6 +28,8 @@ enum _QuestionLibraryMode { papers, topics, knowledge, mine }
 
 enum _VirtualPaperAction { addToBasket, createPaper, createAndDownload }
 
+enum _ScopeAction { save, clear }
+
 class StudentQuestionBankPage extends StatefulWidget {
   const StudentQuestionBankPage({
     super.key,
@@ -35,12 +37,14 @@ class StudentQuestionBankPage extends StatefulWidget {
     this.virtualPaperRepository,
     this.questionReviewRepository,
     this.preferenceRepository,
+    this.scrollController,
   });
 
   final QuestionLibraryRepository? examRepository;
   final VirtualPaperRepository? virtualPaperRepository;
   final QuestionReviewRepository? questionReviewRepository;
   final PreferenceRepository? preferenceRepository;
+  final ScrollController? scrollController;
 
   @override
   State<StudentQuestionBankPage> createState() =>
@@ -82,7 +86,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   static const _smartDraftSelector = SmartPaperDraftSelector();
   final _filterKey = GlobalKey<FilterPanelState>();
   final _resultsKey = GlobalKey();
-  final _scrollController = ScrollController();
+  late final ScrollController _scrollController =
+      widget.scrollController ?? ScrollController();
   final _queryController = TextEditingController();
   FilterOptions? _filterOptions;
   List<VirtualPaper> _virtualPapers = const [];
@@ -101,7 +106,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   VirtualPaper? _selectedVirtualPaper;
   _QuestionLibraryMode _mode = _QuestionLibraryMode.papers;
   bool _advancedExpanded = false;
-  bool _revealResultsAfterSearch = false;
   bool _applyingExternalScope = false;
   String? _error;
   Set<String> _years = {};
@@ -125,7 +129,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void dispose() {
     _debounce?.cancel();
     _queryController.dispose();
-    _scrollController.dispose();
+    if (widget.scrollController == null) _scrollController.dispose();
     super.dispose();
   }
 
@@ -150,7 +154,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   }
 
   void _selectVirtualPaper(VirtualPaper paper) {
-    _revealResultsAfterSearch = true;
     _queryController.clear();
     _applyFilterState(
       FilterState(
@@ -203,6 +206,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       calcMin: state.calcMin,
       calcMax: state.calcMax,
       sort: state.sort,
+      notify: false,
     );
   }
 
@@ -237,7 +241,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   }
 
   Future<void> _selectReviewScope(QuestionReviewScope scope) async {
-    _revealResultsAfterSearch = true;
     _applyingExternalScope = true;
     _queryController.clear();
     _applyFilterState(const FilterState());
@@ -256,7 +259,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _questions = questions;
         _loadingQuestions = false;
       });
-      _revealResultsIfRequested();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -271,7 +273,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       final data = await _preferenceRepository.getEdit(summary.id);
       if (!mounted) return;
       final filter = data.filter;
-      _revealResultsAfterSearch = true;
       _applyingExternalScope = true;
       _queryController.clear();
       _applyFilterState(
@@ -346,7 +347,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _questions = questions;
         _loadingQuestions = false;
       });
-      _revealResultsIfRequested();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -356,19 +356,15 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     }
   }
 
-  void _revealResultsIfRequested() {
-    if (!_revealResultsAfterSearch) return;
-    _revealResultsAfterSearch = false;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = _resultsKey.currentContext;
-      if (!mounted || target == null) return;
-      Scrollable.ensureVisible(
-        target,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        alignment: 0.08,
-      );
-    });
+  void _showResults() {
+    final target = _resultsKey.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      alignment: 0,
+    );
   }
 
   String? get _currentScopeLabel {
@@ -801,14 +797,16 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                       ),
                     ),
                     if (_currentScopeLabel != null)
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: _PinnedScopeHeaderDelegate(
-                          backgroundColor: context.colors.background,
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        sliver: SliverToBoxAdapter(
                           child: _CurrentScopeBar(
                             label: _currentScopeLabel!,
                             resultCount: _questions?.length,
                             loading: _loadingQuestions,
+                            onViewResults: _questions?.isNotEmpty == true
+                                ? _showResults
+                                : null,
                             onSave: _reviewScope == null && _hasExplicitScope
                                 ? _saveCurrentRange
                                 : null,
@@ -1092,7 +1090,7 @@ class _VirtualPaperBrowserState extends State<_VirtualPaperBrowser> {
             tilePadding: EdgeInsets.zero,
             childrenPadding: const EdgeInsets.only(
               left: AppSpacing.md,
-              bottom: AppSpacing.sm,
+              bottom: AppSpacing.xs,
             ),
             leading: const Icon(Icons.description_outlined),
             title: Text(entry.key),
@@ -1101,7 +1099,7 @@ class _VirtualPaperBrowserState extends State<_VirtualPaperBrowser> {
               final papers = yearGroups[year]!
                 ..sort((a, b) => a.region.compareTo(b.region));
               return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1127,7 +1125,10 @@ class _VirtualPaperBrowserState extends State<_VirtualPaperBrowser> {
                                     widget.selected?.year == paper.year &&
                                     widget.selected?.region == paper.region &&
                                     widget.selected?.examType == paper.examType,
-                                onSelected: () => widget.onSelected(paper),
+                                onSelected: () {
+                                  setState(() => _expandedExamType = null);
+                                  widget.onSelected(paper);
+                                },
                                 onAction: (action) =>
                                     widget.onAction(paper, action),
                               ),
@@ -1176,7 +1177,7 @@ class _VirtualPaperChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSizes.cardRadius),
             onTap: onSelected,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+              padding: EdgeInsets.fromLTRB(10, 8, selected ? 6 : 10, 8),
               child: Text(
                 paper.region,
                 style: TextStyle(
@@ -1188,26 +1189,27 @@ class _VirtualPaperChip extends StatelessWidget {
               ),
             ),
           ),
-          PopupMenuButton<_VirtualPaperAction>(
-            tooltip: '${paper.year}年${paper.region}${paper.examType}操作',
-            padding: EdgeInsets.zero,
-            iconSize: 18,
-            onSelected: onAction,
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: _VirtualPaperAction.addToBasket,
-                child: Text('加入试卷篮'),
-              ),
-              PopupMenuItem(
-                value: _VirtualPaperAction.createPaper,
-                child: Text('整套组卷'),
-              ),
-              PopupMenuItem(
-                value: _VirtualPaperAction.createAndDownload,
-                child: Text('生成并下载'),
-              ),
-            ],
-          ),
+          if (selected)
+            PopupMenuButton<_VirtualPaperAction>(
+              tooltip: '${paper.year}年${paper.region}${paper.examType}操作',
+              padding: EdgeInsets.zero,
+              iconSize: 18,
+              onSelected: onAction,
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: _VirtualPaperAction.addToBasket,
+                  child: Text('加入试卷篮'),
+                ),
+                PopupMenuItem(
+                  value: _VirtualPaperAction.createPaper,
+                  child: Text('整套组卷'),
+                ),
+                PopupMenuItem(
+                  value: _VirtualPaperAction.createAndDownload,
+                  child: Text('生成并下载'),
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -1250,6 +1252,7 @@ class _CurrentScopeBar extends StatelessWidget {
     required this.label,
     required this.resultCount,
     required this.loading,
+    required this.onViewResults,
     required this.onSave,
     required this.onClear,
   });
@@ -1257,6 +1260,7 @@ class _CurrentScopeBar extends StatelessWidget {
   final String label;
   final int? resultCount;
   final bool loading;
+  final VoidCallback? onViewResults;
   final VoidCallback? onSave;
   final VoidCallback onClear;
 
@@ -1293,61 +1297,36 @@ class _CurrentScopeBar extends StatelessWidget {
               height: 18,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          else if (resultCount != null)
+          else if (resultCount != null) ...[
             Text('$resultCount题', style: TextStyle(color: colors.primary)),
-          if (onSave != null)
-            IconButton(
-              tooltip: '保存为常用范围',
-              visualDensity: VisualDensity.compact,
-              onPressed: onSave,
-              icon: const Icon(Icons.bookmark_add_outlined),
-            ),
-          IconButton(
-            tooltip: '清除当前范围',
-            visualDensity: VisualDensity.compact,
-            onPressed: onClear,
-            icon: const Icon(Icons.close),
+            if (onViewResults != null)
+              TextButton(onPressed: onViewResults, child: const Text('查看题目')),
+          ],
+          PopupMenuButton<_ScopeAction>(
+            tooltip: '范围操作',
+            onSelected: (action) {
+              if (action == _ScopeAction.save) {
+                onSave?.call();
+              } else {
+                onClear();
+              }
+            },
+            itemBuilder: (_) => [
+              if (onSave != null)
+                const PopupMenuItem(
+                  value: _ScopeAction.save,
+                  child: Text('保存为常用范围'),
+                ),
+              const PopupMenuItem(
+                value: _ScopeAction.clear,
+                child: Text('清除当前范围'),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
-}
-
-class _PinnedScopeHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _PinnedScopeHeaderDelegate({
-    required this.child,
-    required this.backgroundColor,
-  });
-
-  final Widget child;
-  final Color backgroundColor;
-
-  @override
-  double get minExtent => 64;
-
-  @override
-  double get maxExtent => 64;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return ColoredBox(
-      color: backgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.sm),
-        child: child,
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _PinnedScopeHeaderDelegate oldDelegate) =>
-      oldDelegate.child != child ||
-      oldDelegate.backgroundColor != backgroundColor;
 }
 
 class _TopicBrowser extends StatefulWidget {

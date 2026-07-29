@@ -177,6 +177,7 @@ class FilterPanelState extends State<FilterPanel> {
     double? calcMin,
     double? calcMax,
     SortMode? sort,
+    bool notify = true,
   }) {
     setState(() {
       if (years != null) {
@@ -216,7 +217,7 @@ class FilterPanelState extends State<FilterPanel> {
       if (sort != null) _sort = sort;
       _initialized = true; // 阻止 _selectAllInitial 覆盖已加载值
     });
-    _emit();
+    if (notify) _emit();
   }
 
   void clearAll() {
