@@ -15,34 +15,7 @@
   {% for section in sections %}
     <section class="handbook-section" id="{{ section.slug }}">
       <h2>{{ section.title }}</h2>
-
-      {% if section.slug == 'question-structure' and section.body %}
-        <pre class="structure-tree">{{ section.body }}</pre>
-      {% elif section.slug == 'question-overview' and question_overview_groups %}
-        {% for group_title, stats in question_overview_groups %}
-          <h3 class="subsection-title">{{ group_title }}</h3>
-          <dl class="stat-grid">
-            {% for label, value in stats %}
-              <div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>
-            {% endfor %}
-          </dl>
-        {% endfor %}
-      {% elif section.body %}
-        <div class="section-copy">{{ section.body|linebreaks }}</div>
-      {% endif %}
-
-      {% if section.visible_entries %}
-        <div class="handbook-table entry-list{% if not section.has_entry_links %} direction-table{% endif %}">
-          <div class="handbook-table__head"><span>名称</span><span>说明</span>{% if section.has_entry_links %}<span></span>{% endif %}</div>
-          {% for entry in section.visible_entries %}
-            <div class="handbook-table__row">
-              <strong>{{ entry.name }}</strong>
-              <span>{{ entry.description }}</span>
-              {% if section.has_entry_links %}<span>{% if entry.url %}<a href="{{ entry.url }}"{% if entry.is_external %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ entry.link_label }} →</a>{% endif %}</span>{% endif %}
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
+      {% include 'internal_portal/_section_content.html' %}
     </section>
   {% endfor %}
 {% endblock %}

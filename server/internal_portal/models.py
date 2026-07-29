@@ -68,20 +68,32 @@ class BusinessArea(models.Model):
 
     class Meta:
         ordering = ('sort_order', 'id')
-        verbose_name = '业务板块'
-        verbose_name_plural = '业务板块'
+        verbose_name = '项目板块'
+        verbose_name_plural = '项目板块'
 
     def __str__(self):
         return self.name
 
 
 class HandbookSection(models.Model):
+    class DisplayType(models.TextChoices):
+        TEXT = 'text', '普通正文'
+        ENTRIES = 'entries', '条目列表'
+        PROJECT_MAP = 'project_map', '项目板块列表'
+        CHANGELOG = 'changelog', '更新日志'
+        TREE = 'tree', '树形文本'
+        QUESTION_STATS = 'question_stats', '题库统计'
+
     page = models.ForeignKey(
         BusinessArea, verbose_name='所属页面', on_delete=models.CASCADE,
         related_name='sections',
     )
     title = models.CharField('章节标题', max_length=100)
     slug = models.SlugField('章节标识', max_length=50)
+    display_type = models.CharField(
+        '展示方式', max_length=24, choices=DisplayType.choices,
+        default=DisplayType.TEXT,
+    )
     body = models.TextField('正文', blank=True)
     is_visible = models.BooleanField('显示', default=True)
     sort_order = models.PositiveIntegerField('排序', default=0)
@@ -129,6 +141,7 @@ class PortalEntry(models.Model):
         BusinessArea, verbose_name='所属板块', on_delete=models.CASCADE,
         related_name='entries',
     )
+    key = models.SlugField('稳定标识', max_length=80)
     section = models.ForeignKey(
         HandbookSection, verbose_name='所属章节', on_delete=models.SET_NULL,
         related_name='entries', null=True, blank=True,
@@ -156,6 +169,11 @@ class PortalEntry(models.Model):
         ordering = ('area__sort_order', 'sort_order', 'id')
         verbose_name = '门户条目'
         verbose_name_plural = '门户条目'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('area', 'key'), name='unique_portal_area_entry_key',
+            ),
+        ]
 
     def clean(self):
         if self.url and not self.url.startswith(('/', 'https://', 'http://')):

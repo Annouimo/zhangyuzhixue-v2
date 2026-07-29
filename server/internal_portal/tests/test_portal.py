@@ -128,6 +128,20 @@ def test_handbook_pages_follow_the_confirmed_structure(client, portal_user):
         BusinessArea.objects.order_by('sort_order').values_list('slug', flat=True)
     )
     assert pages == ['overview', 'software', 'website', 'content', 'post-production']
+    assert set(
+        HandbookSection.objects.values_list('display_type', flat=True)
+    ) >= {
+        HandbookSection.DisplayType.TEXT,
+        HandbookSection.DisplayType.ENTRIES,
+        HandbookSection.DisplayType.PROJECT_MAP,
+        HandbookSection.DisplayType.CHANGELOG,
+        HandbookSection.DisplayType.TREE,
+        HandbookSection.DisplayType.QUESTION_STATS,
+    }
+    assert not PortalEntry.objects.filter(key='').exists()
+    assert PortalEntry.objects.count() == PortalEntry.objects.values(
+        'area', 'key',
+    ).distinct().count()
     content = BusinessArea.objects.get(slug='content')
     content_types = HandbookSection.objects.get(
         page=content, slug='directions',

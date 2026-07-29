@@ -89,6 +89,21 @@ def _page_context(page):
             entry.url for entry in section.visible_entries
         )
     context['sections'] = sections
+    if any(
+        section.display_type == section.DisplayType.PROJECT_MAP
+        for section in sections
+    ):
+        context['project_pages'] = _navigation_pages()
+    if any(
+        section.display_type == section.DisplayType.CHANGELOG
+        for section in sections
+    ):
+        context['handbook_updates'] = HandbookUpdate.objects.all()
+    if any(
+        section.display_type == section.DisplayType.QUESTION_STATS
+        for section in sections
+    ):
+        context['question_overview_groups'] = _question_overview()
     return context
 
 
@@ -96,8 +111,6 @@ def _page_context(page):
 def index(request):
     overview = get_object_or_404(BusinessArea, slug='overview', is_visible=True)
     context = _page_context(overview)
-    context['project_pages'] = _navigation_pages()
-    context['handbook_updates'] = HandbookUpdate.objects.all()
     return render(request, 'internal_portal/index.html', context)
 
 
@@ -135,6 +148,4 @@ def page_detail(request, slug):
     if page.slug == 'overview':
         return redirect('internal_portal:index')
     context = _page_context(page)
-    if slug == 'software':
-        context['question_overview_groups'] = _question_overview()
     return render(request, 'internal_portal/page_detail.html', context)

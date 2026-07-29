@@ -1,0 +1,35 @@
+summary = "补充项目沟通规范和项目中心阅读要求"
+
+[[sections]]
+area = "overview"
+key = "rules"
+title = "沟通规范"
+display_type = "text"
+sort_order = 20
+body = """
+1. 项目事项优先在相关群内公开交流，原则上不通过私信讨论项目情况，以便相关成员及时了解信息，减少重复沟通和转述成本。
+2. 单一项目板块的具体工作在对应工作群讨论；涉及多个板块、职责边界或项目整体安排的事项在项目总群讨论。
+3. 群聊用于提出问题和开展讨论。发起需要形成结论的讨论时，应同时注明讨论事项和截止时间。
+4. 已确定的结论应及时登记到对应的项目板块；涉及多个板块或项目整体的结论，登记到项目总览。群聊记录不作为长期保存结论的唯一位置。
+"""
+
+[[sections]]
+area = "overview"
+key = "reading-requirements"
+title = "阅读要求"
+display_type = "text"
+sort_order = 30
+body = """
+每位项目成员至少应阅读项目总览，以及自己负责或参与的项目板块。开展跨板块工作时，还应阅读相关项目板块及最近更新的内容。
+"""
+
+[[sections]]
+area = "overview"
+key = "changelog"
+sort_order = 40
+
+[[updates]]
+date = 2026-07-29
+title = "补充项目沟通与阅读规范"
+description = "明确群聊使用、结论登记和项目板块阅读要求。"
+sort_order = 10
