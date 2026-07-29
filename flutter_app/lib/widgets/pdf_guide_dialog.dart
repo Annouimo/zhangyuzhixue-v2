@@ -33,8 +33,15 @@ Future<bool?> showPdfGuideDialog(BuildContext context) async {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '试卷已生成，请在浏览器中完成打印：',
+              '试卷已生成，请在浏览器中完成打印或保存 PDF。',
               style: Theme.of(ctx).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '首次打开需加载印刷字体，可能需要多等几秒；页面显示“试卷已就绪”后再打印。',
+              style: Theme.of(
+                ctx,
+              ).textTheme.bodySmall?.copyWith(color: ctx.colors.textMuted),
             ),
             const SizedBox(height: AppSpacing.md),
             Text('电脑用户：', style: Theme.of(ctx).textTheme.titleSmall),

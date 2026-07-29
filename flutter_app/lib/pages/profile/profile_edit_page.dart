@@ -317,7 +317,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppSectionHeader(title: '基本信息', subtitle: '可编辑字段会同步到你的学生端资料。'),
+          const AppSectionHeader(title: '基本信息', subtitle: '可编辑字段会同步到你的账号资料。'),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _nameCtrl,

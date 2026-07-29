@@ -141,8 +141,8 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     return AppAuthLayout(
-      title: '创建学生账号',
-      subtitle: '注册完成后即可登录并开始练习。',
+      title: '创建账号',
+      subtitle: '注册完成后，即可开始学习、选题和组卷。',
       leading: IconButton(
         tooltip: '返回登录',
         icon: const Icon(Icons.arrow_back_ios),

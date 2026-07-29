@@ -120,7 +120,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                   ),
                   ActionChipWidget(
                     icon: Icons.picture_as_pdf_outlined,
-                    label: '下载 PDF',
+                    label: '打印试卷',
                     onTap: () => PdfHelper.downloadPdf(
                       sourceId: exam.id,
                       sourceType: 'paper',

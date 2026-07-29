@@ -9,7 +9,7 @@ class PracticeHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('练习')),
+      appBar: AppBar(title: const Text('学习与出卷')),
       body: AppContentContainer(
         maxWidth: AppContentWidth.reading,
         child: ListView(
@@ -23,21 +23,24 @@ class PracticeHomePage extends StatelessWidget {
               onTap: () => RouterUtils.push(context, AppRoutes.recommend),
             ),
             const SizedBox(height: AppSpacing.lg),
-            const AppSectionHeader(title: '自主练习'),
+            const AppSectionHeader(
+              title: '选题与出卷',
+              subtitle: '找题练习，也可快速组成并打印试卷',
+            ),
             const SizedBox(height: AppSpacing.sm),
             AppResponsiveCardGrid(
               children: [
                 AppNavigationCard(
                   icon: Icons.search_rounded,
-                  title: '题库与组卷',
-                  subtitle: '按套卷或专题找题，直接练习或组合试卷',
+                  title: '题库选题',
+                  subtitle: '按套卷、专题或知识点找题，练习或一键出卷',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.questionBank),
                 ),
                 AppNavigationCard(
                   icon: Icons.description_outlined,
                   title: '我的试卷',
-                  subtitle: '管理、练习和导出已经创建的试卷',
+                  subtitle: '管理已创建的试卷，开始作答或直接打印',
                   onTap: () => RouterUtils.push(context, AppRoutes.examHome),
                 ),
               ],

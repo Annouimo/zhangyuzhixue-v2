@@ -13,7 +13,7 @@ import 'profile/profile_page.dart';
 /// Tab 页枚举。
 enum MainTab { practice, content, profile }
 
-/// 学生端主导航框架。
+/// 应用主导航框架。
 ///
 /// 紧凑窗口使用 Material 3 底部导航；中等及以上窗口自动切换侧边导航。
 class MainShell extends StatefulWidget {
@@ -89,8 +89,8 @@ class _MainShellState extends State<MainShell> {
     const NavigationDestination(
       icon: Icon(AppIcons.recommendation),
       selectedIcon: Icon(AppIcons.recommendationSelected),
-      label: '练习',
-      tooltip: '题目练习',
+      label: '首页',
+      tooltip: '学习与出卷',
     ),
     const NavigationDestination(
       icon: Icon(Icons.menu_book_outlined),
@@ -110,7 +110,7 @@ class _MainShellState extends State<MainShell> {
     const NavigationRailDestination(
       icon: Icon(AppIcons.recommendation),
       selectedIcon: Icon(AppIcons.recommendationSelected),
-      label: Text('练习'),
+      label: Text('首页'),
     ),
     const NavigationRailDestination(
       icon: Icon(Icons.menu_book_outlined),

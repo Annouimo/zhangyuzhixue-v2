@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: PracticeHomePage()));
 
     expect(find.text('推荐练习'), findsOneWidget);
-    expect(find.text('题库与组卷'), findsOneWidget);
+    expect(find.text('题库选题'), findsOneWidget);
     expect(find.text('我的试卷'), findsOneWidget);
     expect(find.byType(TabBar), findsNothing);
   });

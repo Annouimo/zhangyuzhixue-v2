@@ -88,7 +88,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
         ),
         IconButton(
           icon: const Icon(Icons.picture_as_pdf_outlined),
-          tooltip: '下载 PDF',
+          tooltip: '打印试卷',
           onPressed: () => PdfHelper.downloadPdf(
             sourceId: widget.examId,
             sourceType: 'paper',

@@ -97,7 +97,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                   padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                   child: AppSectionHeader(
                     title: '共 ${list.length} 份试卷',
-                    subtitle: '可以切换公开状态、下载 PDF、查看答案或删除。',
+                    subtitle: '可以切换公开状态、打印试卷、查看答案或删除。',
                   ),
                 );
               }
@@ -133,7 +133,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                   ),
                   ActionChipWidget(
                     icon: Icons.picture_as_pdf_outlined,
-                    label: '下载 PDF',
+                    label: '打印试卷',
                     onTap: () => PdfHelper.downloadPdf(
                       sourceId: exam.id,
                       sourceType: 'paper',

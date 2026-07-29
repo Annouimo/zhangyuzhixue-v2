@@ -38,7 +38,7 @@ void main() {
       await pumpShell(tester);
 
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('练习'), findsAtLeastNWidgets(1));
+      expect(find.text('首页'), findsAtLeastNWidgets(1));
       expect(find.text('内容'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
@@ -77,7 +77,7 @@ void main() {
 
       await tester.tap(find.text('内容'));
       await tester.pump();
-      await tester.tap(find.text('练习'));
+      await tester.tap(find.text('首页'));
       await tester.pump();
       await tester.pump();
 

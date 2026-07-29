@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>{{ title }} — 章鱼智学</title>
 <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
+<link rel="preload" href="{% static 'fonts/NotoSerifCJKsc-Regular.otf' %}" as="font" type="font/otf" crossorigin>
 <script defer src="{% static 'katex/katex.min.js' %}"></script>
 <script defer src="{% static 'katex/contrib/auto-render.min.js' %}"
   onload="renderMathInElement(document.body, {
@@ -18,12 +19,6 @@
   font-family: 'Noto Serif CJK SC';
   src: url('{% static "fonts/NotoSerifCJKsc-Regular.otf" %}') format('opentype');
   font-weight: 400;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Noto Serif CJK SC';
-  src: url('{% static "fonts/NotoSerifCJKsc-Bold.otf" %}') format('opentype');
-  font-weight: 700;
   font-style: normal;
 }
 @page { size: A4; margin: 2.54cm 3.17cm 2.54cm 3.17cm;
@@ -68,9 +63,18 @@ body {
 .katex { font-size: 1.08em; }
 .katex-display { margin: 0.4em 0; text-align: center; }
 @media print { p { orphans: 3; widows: 3; } }
+.print-status {
+  position: fixed; right: 16px; bottom: 16px; z-index: 10;
+  padding: 8px 12px; border-radius: 6px; background: #fff7df;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16); color: #765300;
+  font: 14px/1.4 'Microsoft YaHei', sans-serif;
+}
+.print-status.ready { background: #e8f7ef; color: #17633a; }
+@media print { .print-status { display: none; } }
 </style>
 </head>
 <body>
+<div class="print-status" id="print-status">正在加载印刷字体，首次打开可能稍慢…</div>
 <div class="paper-wrapper">
 <div class="paper">
 
@@ -102,5 +106,19 @@ body {
 
 </div>
 </div>
+<script>
+Promise.all([
+  document.fonts ? document.fonts.ready : Promise.resolve(),
+  new Promise(function (resolve) {
+    if (document.readyState === 'complete') resolve();
+    else window.addEventListener('load', resolve, {once: true});
+  })
+]).then(function () {
+  var status = document.getElementById('print-status');
+  status.textContent = '试卷已就绪，可以打印';
+  status.classList.add('ready');
+  setTimeout(function () { status.hidden = true; }, 3000);
+});
+</script>
 </body>
 </html>
