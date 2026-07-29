@@ -77,6 +77,25 @@ def test_student_cannot_open_review_workbench(client, contribution):
 
 
 @pytest.mark.django_db
+def test_workbench_sidebar_contains_maintenance_and_review_queues(
+    client, reviewer, contribution,
+):
+    client.force_login(reviewer)
+    response = client.get(reverse('review_workbench:queue'))
+    content = response.content.decode()
+    assert 'class="workbench-sidebar"' in content
+    assert '题库维护' in content
+    assert '概念标签' in content
+    assert '知识卡片' in content
+    assert '?type=new_question' in content
+    assert '?type=new_solution' in content
+    assert '?type=content_change' in content
+    assert '?type=problem_report' in content
+    assert 'queue-tabs' not in content
+    assert '>全部 <' not in content
+
+
+@pytest.mark.django_db
 def test_reviewer_can_publish_new_question(client, reviewer, contribution):
     original_tag = ConceptTag.objects.create(name='原投稿标签')
     tag = ConceptTag.objects.create(name='函数最值')
