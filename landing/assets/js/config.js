@@ -30,9 +30,9 @@ window.SITE_CONFIG = {
   },
 
   downloads: {
-    android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.1.0-beta.3/app-release.apk",
+    android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.2.0-beta.1/app-release.apk",
     ios: "https://testflight.apple.com/join/tg29y4wF",
-    windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.1.0-beta.3/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-1.1.0-beta.3-windows.exe",
+    windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.2.0-beta.1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-1.2.0-beta.1-windows.exe",
     netdisk: "https://pan.baidu.com/s/1vFe6MaYHI3b8tGQMOaOh3Q?pwd=6bjf"
   },
 
