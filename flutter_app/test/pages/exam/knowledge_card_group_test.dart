@@ -34,6 +34,7 @@ void main() {
 
     await tester.tap(find.text('流程'));
     await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
     expect(find.text('卡片 9'), findsOneWidget);
     expect(find.text('卡片 10'), findsNothing);
 
@@ -48,5 +49,10 @@ void main() {
     await tester.tap(result);
     await tester.pumpAndSettle();
     expect(selected, contains('卡片 14'));
+    expect(tester.takeException(), isNull);
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+    expect(find.text('已选 1/15 项'), findsOneWidget);
   });
 }

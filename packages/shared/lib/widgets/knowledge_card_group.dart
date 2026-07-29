@@ -36,15 +36,39 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
       children: widget.groups.map((group) {
         if (!widget.compact) return _buildGroup(group);
         final expanded = _expandedCategory == group.category;
+        final groupTitles = group.cards.map((card) => card.title).toSet();
+        final selectedCount = widget.selectedTitles
+            .where(groupTitles.contains)
+            .length;
         return ExpansionTile(
           key: PageStorageKey(group.category),
           initiallyExpanded: expanded,
           tilePadding: EdgeInsets.zero,
           childrenPadding: const EdgeInsets.only(bottom: 8),
           title: Text(group.category),
-          subtitle: Text('${group.cards.length} 项'),
-          onExpansionChanged: (value) =>
-              setState(() => _expandedCategory = value ? group.category : null),
+          subtitle: Text(
+            selectedCount == 0
+                ? '${group.cards.length} 项'
+                : selectedCount == group.cards.length
+                ? '已全选 ${group.cards.length} 项'
+                : '已选 $selectedCount/${group.cards.length} 项',
+          ),
+          leading: Icon(
+            selectedCount == 0
+                ? Icons.check_box_outline_blank
+                : selectedCount == group.cards.length
+                ? Icons.check_box
+                : Icons.indeterminate_check_box,
+            color: selectedCount == 0 ? colors.textSecondary : colors.primary,
+          ),
+          onExpansionChanged: (value) {
+            if (value) {
+              if (_expandedCategory == group.category) return;
+              setState(() => _expandedCategory = group.category);
+            } else if (_expandedCategory == group.category) {
+              setState(() => _expandedCategory = null);
+            }
+          },
           children: [_buildGroup(group, hideHeader: true, previewOnly: true)],
         );
       }).toList(),
@@ -242,6 +266,8 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
         },
       ),
     );
+    // 等待 bottom sheet 的退出动画结束，避免 TextField 仍在卸载时使用已释放的控制器。
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     controller.dispose();
   }
 }

@@ -197,11 +197,7 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
                             width: 28,
                             child: Text('${index + 1}.'),
                           ),
-                          title: Text(
-                            question.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          title: MdLatexBody(question.title, fontSize: 14),
                           subtitle: Text(
                             QuestionTypeLabels.of(question.questionType),
                           ),

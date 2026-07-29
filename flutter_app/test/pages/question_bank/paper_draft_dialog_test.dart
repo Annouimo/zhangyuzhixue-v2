@@ -16,7 +16,7 @@ void main() {
     const questions = [
       SearchQuestion(
         id: 1,
-        title: '第一题',
+        title: r'第一题 $x^2$',
         questionType: 'choice',
         meta: '',
         difficulty: 3,
@@ -52,7 +52,7 @@ void main() {
                   builder: (_) => const PaperDraftDialog(
                     initialName: '原名称',
                     questions: questions,
-                    cost: 20,
+                    cost: 10,
                   ),
                 );
               },
@@ -65,6 +65,7 @@ void main() {
 
     await tester.tap(find.text('打开'));
     await tester.pumpAndSettle();
+    expect(find.byType(MdLatexBody), findsWidgets);
     await tester.enterText(find.byType(TextField), '新试卷');
 
     final list = tester.widget<ReorderableListView>(
@@ -85,7 +86,7 @@ void main() {
     await tester.tap(find.byTooltip('移除题目').at(1));
     await tester.pump();
 
-    await tester.tap(find.text('确认生成 · 20 积分'));
+    await tester.tap(find.text('确认生成 · 10 积分'));
     await tester.pumpAndSettle();
 
     expect(result?.name, '新试卷');

@@ -24,7 +24,7 @@ import '../router.dart';
 import 'question_detail_page.dart';
 import 'paper_draft_dialog.dart';
 
-enum _QuestionLibraryMode { papers, topics, knowledge, mine }
+enum _QuestionLibraryMode { papers, topics, knowledge, search, mine }
 
 enum _VirtualPaperAction { addToBasket, createPaper, createAndDownload }
 
@@ -430,6 +430,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void _changeMode(_QuestionLibraryMode mode) {
     if (mode == _mode) return;
     _debounce?.cancel();
+    _queryController.clear();
     _applyingExternalScope = true;
     _applyFilterState(
       _currentFilterState.copyWith(
@@ -534,6 +535,50 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     });
   }
 
+  bool get _allVisibleQuestionsSelected {
+    final questions = _questions;
+    return questions != null &&
+        questions.isNotEmpty &&
+        questions.every((question) => _selectedQuestions.containsKey(question.id));
+  }
+
+  Future<void> _toggleAllVisibleQuestions() async {
+    final questions = _questions;
+    if (questions == null || questions.isEmpty) return;
+    final allSelected = _allVisibleQuestionsSelected;
+    if (!allSelected && questions.length > 50) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('全选当前结果？'),
+          content: Text('将把当前匹配的 ${questions.length} 题全部加入试卷篮。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('全部加入'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+    setState(() {
+      if (allSelected) {
+        for (final question in questions) {
+          _selectedQuestions.remove(question.id);
+        }
+      } else {
+        for (final question in questions) {
+          _selectedQuestions[question.id] = question;
+        }
+      }
+    });
+  }
+
   Future<void> _createPaper() async {
     if (_selectedQuestions.isEmpty || _creatingPaper) return;
     await _createManualDraft(
@@ -554,7 +599,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       builder: (_) => PaperDraftDialog(
         initialName: initialName,
         questions: questions,
-        cost: manualPaperCost,
+        cost: paperCreationCost,
       ),
     );
     if (draft == null || !mounted) return;
@@ -660,23 +705,11 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         .where((id) => !candidateIds.contains(id))
         .length;
     final totalAvailable = candidates.length + selectedOutsidePool;
-    final countOptions = <int>{
-      10.clamp(1, totalAvailable),
-      15.clamp(1, totalAvailable),
-      21.clamp(1, totalAvailable),
-    }.toList()..sort();
     final requestedCount = await showDialog<int>(
       context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(_selectedQuestions.isEmpty ? '智能选题' : '智能补足'),
-        children: countOptions
-            .map(
-              (count) => SimpleDialogOption(
-                onPressed: () => Navigator.of(dialogContext).pop(count),
-                child: Text('生成 $count 题'),
-              ),
-            )
-            .toList(growable: false),
+      builder: (_) => _SmartPaperCountDialog(
+        lockedCount: _selectedQuestions.length,
+        totalAvailable: totalAvailable,
       ),
     );
     if (requestedCount == null || !mounted) return;
@@ -687,8 +720,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       candidates: candidates,
       requestedCount: requestedCount,
     );
-    final cost = selected.isEmpty ? smartPaperCost : manualPaperCost;
-    final description = selected.isEmpty ? '智能选题' : '智能补足';
+    const cost = paperCreationCost;
+    final description = selected.isEmpty ? '智能组卷' : '智能补足';
     final draft = await showDialog<PaperDraft>(
       context: context,
       builder: (_) => PaperDraftDialog(
@@ -723,7 +756,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('智能选题失败，请调整范围后重试')));
+      ).showSnackBar(const SnackBar(content: Text('智能组卷失败，请调整范围后重试')));
     } finally {
       if (mounted) setState(() => _creatingPaper = false);
     }
@@ -756,10 +789,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                           : () => setState(_selectedQuestions.clear),
                       child: const Text('清空'),
                     ),
-                    IconButton(
-                      tooltip: '智能补足',
+                    TextButton.icon(
                       onPressed: _creatingPaper ? null : _createSmartPaper,
                       icon: const Icon(Icons.auto_awesome_rounded),
+                      label: const Text('智能补足'),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     AppButton(
@@ -786,16 +819,16 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsets.only(top: AppSpacing.md),
-                      sliver: SliverToBoxAdapter(
-                        child: QuestionSearchField(
-                          controller: _queryController,
-                          onChanged: (_) => _scheduleSearch(),
-                          onSubmitted: (_) => _search(),
+                    if (options != null)
+                      SliverPadding(
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        sliver: SliverToBoxAdapter(
+                          child: _QuestionLibraryModeSelector(
+                            value: _mode,
+                            onChanged: _changeMode,
+                          ),
                         ),
                       ),
-                    ),
                     if (_currentScopeLabel != null)
                       SliverPadding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -814,13 +847,14 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                           ),
                         ),
                       ),
-                    if (options != null)
+                    if (options != null && _mode == _QuestionLibraryMode.search)
                       SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.lg),
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
                         sliver: SliverToBoxAdapter(
-                          child: _QuestionLibraryModeSelector(
-                            value: _mode,
-                            onChanged: _changeMode,
+                          child: _KeywordSearchBrowser(
+                            controller: _queryController,
+                            onChanged: (_) => _scheduleSearch(),
+                            onSubmitted: (_) => _search(),
                           ),
                         ),
                       ),
@@ -936,30 +970,20 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                         bottom: AppSpacing.sm,
                       ),
                       sliver: SliverToBoxAdapter(
-                        child: AppSectionHeader(
+                        child: _QuestionResultsHeader(
                           key: _resultsKey,
-                          title: _questions == null
-                              ? '题目结果'
-                              : '题目结果 · ${_questions!.length} 题',
-                          subtitle: _questions?.isNotEmpty == true
-                              ? _resultSummary(_questions!)
-                              : null,
-                          action: _questions?.isNotEmpty == true
-                              ? Wrap(
-                                  spacing: AppSpacing.xs,
-                                  children: [
-                                    TextButton.icon(
-                                      onPressed: _creatingPaper
-                                          ? null
-                                          : _createSmartPaper,
-                                      icon: const Icon(
-                                        Icons.auto_awesome_rounded,
-                                      ),
-                                      label: const Text('智能选题'),
-                                    ),
-                                  ],
-                                )
-                              : null,
+                          questions: _questions,
+                          allSelected: _allVisibleQuestionsSelected,
+                          partiallySelected: _questions?.any(
+                                (question) =>
+                                    _selectedQuestions.containsKey(question.id),
+                              ) ==
+                              true,
+                          onToggleAll: _toggleAllVisibleQuestions,
+                          onSmartPaper:
+                              _creatingPaper || _selectedQuestions.isNotEmpty
+                              ? null
+                              : _createSmartPaper,
                         ),
                       ),
                     ),
@@ -1024,24 +1048,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     ];
   }
 
-  String _resultSummary(List<SearchQuestion> questions) {
-    final choice = questions
-        .where((question) => question.questionType == 'choice')
-        .length;
-    final fill = questions
-        .where((question) => question.questionType == 'fill')
-        .length;
-    final solution = questions
-        .where((question) => question.questionType == 'solution')
-        .length;
-    final averageDifficulty =
-        questions.fold<double>(
-          0,
-          (sum, question) => sum + question.difficulty,
-        ) /
-        questions.length;
-    return '选择题 $choice · 填空题 $fill · 解答题 $solution · 平均难度 ${averageDifficulty.toStringAsFixed(1)}';
-  }
 }
 
 class _VirtualPaperBrowser extends StatefulWidget {
@@ -1216,6 +1222,104 @@ class _VirtualPaperChip extends StatelessWidget {
   }
 }
 
+class _QuestionResultsHeader extends StatelessWidget {
+  const _QuestionResultsHeader({
+    super.key,
+    required this.questions,
+    required this.allSelected,
+    required this.partiallySelected,
+    required this.onToggleAll,
+    required this.onSmartPaper,
+  });
+
+  final List<SearchQuestion>? questions;
+  final bool allSelected;
+  final bool partiallySelected;
+  final VoidCallback onToggleAll;
+  final VoidCallback? onSmartPaper;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = questions;
+    if (items == null || items.isEmpty) {
+      return const AppSectionHeader(title: '题目结果');
+    }
+    final choice = items
+        .where((question) => question.questionType == 'choice')
+        .length;
+    final fill = items
+        .where((question) => question.questionType == 'fill')
+        .length;
+    final solution = items
+        .where((question) => question.questionType == 'solution')
+        .length;
+    final averageDifficulty =
+        items.fold<double>(
+          0,
+          (sum, question) => sum + question.difficulty,
+        ) /
+        items.length;
+    final style = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: context.colors.textMuted);
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: AppSpacing.lg,
+        bottom: AppSpacing.sm,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '题目结果 · ${items.length} 题',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: context.colors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: 2,
+            children: [
+              Text('选择题 $choice', style: style),
+              Text('填空题 $fill', style: style),
+              Text('解答题 $solution', style: style),
+              Text(
+                '平均难度 ${averageDifficulty.toStringAsFixed(1)}',
+                style: style,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: onToggleAll,
+                icon: Icon(
+                  allSelected
+                      ? Icons.check_box
+                      : partiallySelected
+                      ? Icons.indeterminate_check_box
+                      : Icons.check_box_outline_blank,
+                ),
+                label: Text(allSelected ? '取消全选' : '全选当前结果'),
+              ),
+              const Spacer(),
+              TextButton.icon(
+                onPressed: onSmartPaper,
+                icon: const Icon(Icons.auto_awesome_rounded),
+                label: const Text('智能组卷'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _QuestionLibraryModeSelector extends StatelessWidget {
   const _QuestionLibraryModeSelector({
     required this.value,
@@ -1227,22 +1331,176 @@ class _QuestionLibraryModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<_QuestionLibraryMode>(
-        showSelectedIcon: false,
-        segments: const [
-          ButtonSegment(value: _QuestionLibraryMode.papers, label: Text('套卷')),
-          ButtonSegment(value: _QuestionLibraryMode.topics, label: Text('专题')),
-          ButtonSegment(
-            value: _QuestionLibraryMode.knowledge,
-            label: Text('知识卡片'),
-          ),
-          ButtonSegment(value: _QuestionLibraryMode.mine, label: Text('我的题目')),
-        ],
-        selected: {value},
-        onSelectionChanged: (selection) => onChanged(selection.first),
+    const modes = [
+      (_QuestionLibraryMode.papers, '套卷'),
+      (_QuestionLibraryMode.topics, '专题'),
+      (_QuestionLibraryMode.knowledge, '知识卡片'),
+      (_QuestionLibraryMode.search, '搜索'),
+      (_QuestionLibraryMode.mine, '我的题目'),
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: modes
+            .map(
+              (mode) => Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.sm),
+                child: ChoiceChip(
+                  label: Text(
+                    mode.$2,
+                    style: TextStyle(
+                      color: value == mode.$1
+                          ? context.colors.onPrimary
+                          : context.colors.textPrimary,
+                    ),
+                  ),
+                  selected: value == mode.$1,
+                  selectedColor: context.colors.primary,
+                  showCheckmark: false,
+                  onSelected: (_) => onChanged(mode.$1),
+                ),
+              ),
+            )
+            .toList(growable: false),
       ),
+    );
+  }
+}
+
+class _KeywordSearchBrowser extends StatelessWidget {
+  const _KeywordSearchBrowser({
+    required this.controller,
+    required this.onChanged,
+    required this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppSectionHeader(
+          title: '搜索题目',
+          subtitle: '按题干关键词搜索，也可以继续使用下方的更多筛选。',
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        QuestionSearchField(
+          controller: controller,
+          onChanged: onChanged,
+          onSubmitted: onSubmitted,
+        ),
+      ],
+    );
+  }
+}
+
+class _SmartPaperCountDialog extends StatefulWidget {
+  const _SmartPaperCountDialog({
+    required this.lockedCount,
+    required this.totalAvailable,
+  });
+
+  final int lockedCount;
+  final int totalAvailable;
+
+  @override
+  State<_SmartPaperCountDialog> createState() =>
+      _SmartPaperCountDialogState();
+}
+
+class _SmartPaperCountDialogState extends State<_SmartPaperCountDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+
+  int get _minimum => widget.lockedCount == 0 ? 1 : widget.lockedCount;
+
+  @override
+  void initState() {
+    super.initState();
+    final defaultCount = widget.lockedCount == 0
+        ? 21
+        : widget.lockedCount + 5;
+    _controller = TextEditingController(
+      text: defaultCount.clamp(_minimum, widget.totalAvailable).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final count = int.tryParse(_controller.text.trim());
+    if (count == null || count < _minimum || count > widget.totalAvailable) {
+      setState(() => _error = '请输入 $_minimum—${widget.totalAvailable} 之间的题数');
+      return;
+    }
+    Navigator.of(context).pop(count);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final supplementing = widget.lockedCount > 0;
+    final presets = <int>{10, 15, 21}
+        .where((count) => count >= _minimum && count <= widget.totalAvailable)
+        .toList();
+    return AlertDialog(
+      title: Text(supplementing ? '智能补足' : '智能组卷'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            supplementing
+                ? '已选 ${widget.lockedCount} 题，请设置试卷最终题数。'
+                : '设置试卷题数，系统会从当前 ${widget.totalAvailable} 道结果中均衡抽取。',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: '最终题数',
+              suffixText: '题',
+              errorText: _error,
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (presets.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: presets
+                  .map(
+                    (count) => ActionChip(
+                      label: Text('$count 题'),
+                      onPressed: () => setState(() {
+                        _controller.text = count.toString();
+                        _error = null;
+                      }),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          const Text('生成试卷消耗 10 积分'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('生成草稿')),
+      ],
     );
   }
 }

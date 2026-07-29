@@ -75,4 +75,30 @@ void main() {
     expect(selected, {'集合'});
     expect(find.byIcon(Icons.indeterminate_check_box), findsOneWidget);
   });
+
+  testWidgets('selecting a collapsed parent does not expand its children', (
+    tester,
+  ) async {
+    var selected = <String>{};
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) => ConceptTagTreeView(
+              nodes: nodes,
+              selectedNames: selected,
+              onChanged: (value) => setState(() => selected = value),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('代数'));
+    await tester.pump();
+
+    expect(selected, {'代数', '集合', '函数'});
+    expect(find.text('集合'), findsNothing);
+    expect(find.byTooltip('展开代数'), findsOneWidget);
+  });
 }

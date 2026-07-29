@@ -10,8 +10,7 @@ import '../data/sync/sync_types.dart';
 import 'exam_repository.dart';
 import 'user_repository.dart';
 
-const manualPaperCost = 20;
-const smartPaperCost = 10;
+const paperCreationCost = 10;
 
 class InsufficientPointsException implements Exception {
   final int requiredPoints;
@@ -40,7 +39,7 @@ class PaperCreationService {
     required List<int> selectedIds,
   }) async {
     return _createWithPoints(
-      cost: manualPaperCost,
+      cost: paperCreationCost,
       description: '手动选题',
       create: () => _saveManualPaper(name: name, questionIds: selectedIds),
     );

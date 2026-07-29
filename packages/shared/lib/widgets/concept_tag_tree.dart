@@ -42,9 +42,6 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   void didUpdateWidget(ConceptTagTreeView old) {
     super.didUpdateWidget(old);
     if (old.nodes != widget.nodes) _buildMaps();
-    if (old.selectedNames != widget.selectedNames) {
-      _expandSelectedAncestors();
-    }
   }
 
   void _buildMaps() {
@@ -52,17 +49,6 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
     _parentMap = {};
     for (final node in widget.nodes) {
       _walk(node, null);
-    }
-    _expandSelectedAncestors();
-  }
-
-  void _expandSelectedAncestors() {
-    for (final name in widget.selectedNames) {
-      var parent = _parentMap[name];
-      while (parent != null) {
-        _expandedNames.add(parent);
-        parent = _parentMap[parent];
-      }
     }
   }
 
@@ -252,22 +238,35 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   }
 
   Widget _buildLeafChip(ConceptTagNode node) {
+    final colors = context.colors;
     final selected = widget.selectedNames.contains(node.name);
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(node.name, style: const TextStyle(fontSize: 12)),
+          Text(
+            node.name,
+            style: TextStyle(
+              fontSize: 12,
+              color: selected ? colors.primary : colors.textPrimary,
+            ),
+          ),
           if (node.questionCount > 0) ...[
             const SizedBox(width: 4),
             Text(
               '${node.questionCount}题',
-              style: const TextStyle(fontSize: 10),
+              style: TextStyle(
+                fontSize: 10,
+                color: selected ? colors.primary : colors.textSecondary,
+              ),
             ),
           ],
         ],
       ),
       selected: selected,
+      selectedColor: colors.primaryContainer,
+      checkmarkColor: colors.primary,
+      side: BorderSide(color: selected ? colors.primary : colors.border),
       visualDensity: VisualDensity.compact,
       onSelected: (_) => widget.onChanged(
         _syncParents(
