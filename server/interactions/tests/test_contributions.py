@@ -137,6 +137,80 @@ def test_correction_context_includes_original_tag_ids(auth_client, concept_tag):
 
 
 @pytest.mark.django_db
+def test_correction_with_proposed_question_preserves_diff_base(
+    auth_client, concept_tag,
+):
+    question = BaseQuestion.objects.create(
+        question_type='fill', stem='原题题干', source_name='原试卷'
+    )
+    SubQuestion.objects.create(
+        question=question, answer='1', explanation='原解析', sort_order=1,
+    )
+    question.concept_tags.add(concept_tag)
+    context_response = auth_client.get(
+        reverse('contribution-question-context', args=[question.pk])
+    )
+    proposed = context_response.data['data']
+    proposed['stem'] = '修正后的题干'
+    proposed['sub_questions'][0]['answer'] = '2'
+
+    response = auth_client.post(reverse('contribution-list-create'), {
+        'contribution_type': 'question_correction',
+        'question_id': question.pk,
+        'payload': {
+            'categories': ['stem', 'answer'],
+            'description': '题干常数和参考答案需要同步修正。',
+            'evidence': '代入题目条件可验证修正结果。',
+            'proposed_question': proposed,
+            'base_updated_at': proposed['base_updated_at'],
+        },
+        'tag_ids': [concept_tag.pk],
+    }, format='json')
+
+    assert response.status_code == 200
+    revision = ContentContribution.objects.get().revisions.get()
+    assert revision.normalized_payload['proposed_question']['stem'] == '修正后的题干'
+    assert revision.normalized_payload['proposed_question']['sub_questions'][0][
+        'answer'
+    ] == '2'
+    assert revision.question_snapshot['stem'] == '原题题干'
+    assert revision.normalized_payload['base_updated_at'] == (
+        question.updated_at.isoformat()
+    )
+
+
+@pytest.mark.django_db
+def test_correction_with_proposed_question_requires_base_version(
+    auth_client, concept_tag,
+):
+    question = BaseQuestion.objects.create(
+        question_type='fill', stem='原题题干', source_name='原试卷'
+    )
+    SubQuestion.objects.create(
+        question=question, answer='1', explanation='', sort_order=1,
+    )
+    context_response = auth_client.get(
+        reverse('contribution-question-context', args=[question.pk])
+    )
+    proposed = context_response.data['data']
+    proposed['stem'] = '修正后的题干'
+
+    response = auth_client.post(reverse('contribution-list-create'), {
+        'contribution_type': 'question_correction',
+        'question_id': question.pk,
+        'payload': {
+            'categories': ['stem'],
+            'description': '这里提供了完整修改方案，但缺少原题版本。',
+            'proposed_question': proposed,
+        },
+        'tag_ids': [concept_tag.pk],
+    }, format='json')
+
+    assert response.status_code == 400
+    assert response.data['code'] == 40201
+
+
+@pytest.mark.django_db
 def test_config_includes_latex_live(auth_client, concept_tag):
     response = auth_client.get(reverse('contribution-config'))
     assert response.status_code == 200

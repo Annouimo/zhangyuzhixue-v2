@@ -15,6 +15,7 @@ import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_reveal_widget.dart';
 import 'widgets/solve_question_surface.dart';
+import 'widgets/question_contribution_actions.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import '../../widgets/pop_back_guard.dart';
@@ -394,7 +395,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
@@ -414,7 +418,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: error,
       );
@@ -431,7 +438,10 @@ class _SolveFillPageState extends State<SolveFillPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: body,
       ),

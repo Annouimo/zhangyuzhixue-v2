@@ -13,6 +13,7 @@ import '../../data/daos/system_config_dao.dart';
 import '../../data/database/database_provider.dart';
 import 'widgets/solve_flow_widget.dart';
 import 'widgets/solve_question_surface.dart';
+import 'widgets/question_contribution_actions.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import '../../widgets/pop_back_guard.dart';
@@ -232,7 +233,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
@@ -252,7 +256,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: error,
       );
@@ -269,7 +276,10 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: const [ExamTimerAction()],
+          actions: [
+            ...questionContributionActions(context, widget.questionId),
+            const ExamTimerAction(),
+          ],
         ),
         body: body,
       ),

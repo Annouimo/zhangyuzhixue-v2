@@ -8,6 +8,7 @@ import '../domain/recommend_repository.dart';
 import 'solve/solve_choice_page.dart';
 import 'solve/solve_fill_page.dart';
 import 'solve/solve_map_page.dart';
+import 'solve/widgets/question_contribution_actions.dart';
 
 typedef RecommendSolveBuilder =
     Widget Function(RecommendedQuestion question, VoidCallback onNext);
@@ -162,6 +163,8 @@ class RecommendPageState extends State<RecommendPage> {
       appBar: AppBar(
         title: const Text('推荐'),
         actions: [
+          if (current != null)
+            ...questionContributionActions(context, current.id),
           if (current != null)
             IconButton(
               tooltip: '换一题',

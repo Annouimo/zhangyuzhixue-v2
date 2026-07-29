@@ -53,56 +53,9 @@ class _ContributionListPageState extends State<ContributionListPage>
   }
 
   Future<void> _openNew() async {
-    final mode = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            0,
-            AppSpacing.md,
-            AppSpacing.md,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('选择投稿类型', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.sm),
-              _ContributionTypeTile(
-                icon: Icons.library_add_outlined,
-                title: '收录已有题目',
-                subtitle: '录入高考、模拟考试、校内考试或资料中的题目',
-                onTap: () => Navigator.pop(context, 'existing'),
-              ),
-              _ContributionTypeTile(
-                icon: Icons.lightbulb_outline_rounded,
-                title: '投稿原创题目',
-                subtitle: '提交本人创作的题目，并确认原创声明',
-                onTap: () => Navigator.pop(context, 'original'),
-              ),
-              _ContributionTypeTile(
-                icon: Icons.account_tree_outlined,
-                title: '收录外部解法',
-                subtitle: '为题库中的具体小题收录资料中的分步解法',
-                onTap: () => Navigator.pop(context, 'solution_external'),
-              ),
-              _ContributionTypeTile(
-                icon: Icons.edit_note_rounded,
-                title: '投稿原创解法',
-                subtitle: '为题库中的具体小题提交本人原创的分步解法',
-                onTap: () => Navigator.pop(context, 'solution_original'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (mode == null || !mounted) return;
     final changed = await RouterUtils.push<bool>(
       context,
-      '${AppRoutes.contributionNew}?mode=$mode',
+      '${AppRoutes.contributionNew}?mode=existing',
     );
     if (changed == true) _load();
   }
@@ -141,25 +94,49 @@ class _ContributionListPageState extends State<ContributionListPage>
         ? const LoadingIndicator(message: '正在加载贡献记录')
         : AppContentContainer(
             maxWidth: AppContentWidth.dashboard,
-            child: _items!.isEmpty
-                ? EmptyPlaceholder(
-                    icon: Icons.rate_review_outlined,
-                    message: '暂无贡献记录\n投稿新题或反馈题目错误后，处理进度会显示在这里。',
-                  )
-                : RefreshIndicator(
-                    onRefresh: _load,
-                    child: ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.md,
+            child: Column(
+              children: [
+                AppCard(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.tips_and_updates_outlined,
+                        color: context.colors.primary,
                       ),
-                      itemCount: _items!.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: AppSpacing.sm),
-                      itemBuilder: (context, index) =>
-                          _buildItem(_items![index]),
-                    ),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Expanded(
+                        child: Text(
+                          '做题过程中，你可以在解题页面或题目详情中反馈题目错误、投稿新的解法。',
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Expanded(
+                  child: _items!.isEmpty
+                      ? EmptyPlaceholder(
+                          icon: Icons.rate_review_outlined,
+                          message: '暂无贡献记录\n投稿新题后，处理进度会显示在这里。',
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _load,
+                          child: ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.sm,
+                            ),
+                            itemCount: _items!.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.sm),
+                            itemBuilder: (context, index) =>
+                                _buildItem(_items![index]),
+                          ),
+                        ),
+                ),
+              ],
+            ),
           ),
   );
 
@@ -311,26 +288,4 @@ class _ContributionListPageState extends State<ContributionListPage>
     'processing' => AppStatusTone.info,
     _ => AppStatusTone.primary,
   };
-}
-
-class _ContributionTypeTile extends StatelessWidget {
-  const _ContributionTypeTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon),
-    title: Text(title),
-    subtitle: Text(subtitle),
-    trailing: const Icon(Icons.chevron_right_rounded),
-    onTap: onTap,
-  );
 }
