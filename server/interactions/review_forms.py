@@ -4,7 +4,7 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
 from accounts.roles import is_content_reviewer
-from qbank.models import ConceptTag
+from qbank.models import ConceptTag, KnowledgeCard
 
 from .serializers import validate_question_payload, validate_solution_payload
 
@@ -57,3 +57,56 @@ class ContributionReviewForm(forms.Form):
             detail = getattr(exc, 'detail', exc)
             raise forms.ValidationError(str(detail)) from exc
         return payload
+
+
+class QuestionWorkbenchForm(ContributionReviewForm):
+    knowledge_cards = forms.ModelMultipleChoiceField(
+        queryset=KnowledgeCard.objects.none(), required=False,
+        widget=forms.SelectMultiple(attrs={'size': 8}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, contribution_type='new_question', **kwargs)
+        self.fields['knowledge_cards'].queryset = KnowledgeCard.objects.order_by(
+            'category', 'title'
+        )
+        self.fields['note'].required = True
+        self.fields['note'].label = '修改说明'
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get('tags'):
+            self.add_error('tags', '正式题目至少需要一个概念标签。')
+        return cleaned
+
+
+class ConceptTagWorkbenchForm(forms.ModelForm):
+    note = forms.CharField(label='修改说明', max_length=500)
+
+    class Meta:
+        model = ConceptTag
+        fields = ['name', 'parent']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = ConceptTag.objects.order_by('parent_id', 'name')
+        if self.instance.pk:
+            descendants = {self.instance.pk}
+            frontier = {self.instance.pk}
+            while frontier:
+                frontier = set(
+                    ConceptTag.objects.filter(parent_id__in=frontier)
+                    .values_list('pk', flat=True)
+                ) - descendants
+                descendants.update(frontier)
+            queryset = queryset.exclude(pk__in=descendants)
+        self.fields['parent'].queryset = queryset
+
+
+class KnowledgeCardWorkbenchForm(forms.ModelForm):
+    note = forms.CharField(label='修改说明', max_length=500)
+
+    class Meta:
+        model = KnowledgeCard
+        fields = ['title', 'category', 'content']
+        widgets = {'content': forms.Textarea(attrs={'rows': 14})}

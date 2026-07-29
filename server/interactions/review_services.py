@@ -167,6 +167,7 @@ def save_official_question(
         ChoiceExt.objects.filter(question=question).delete()
 
     submitted_sub_questions = payload['sub_questions']
+    retained_sub_question_ids = set()
     for index, item in enumerate(submitted_sub_questions, start=1):
         values = {
             'stem': item.get('stem', '').strip() or None,
@@ -191,16 +192,16 @@ def save_official_question(
             sub_question.save(update_fields=list(values))
         else:
             sub_question = SubQuestion.objects.create(question=question, **values)
+        retained_sub_question_ids.add(sub_question.pk)
         submitted_methods = item.get('solution_methods', [])
         if submitted_methods or replace_methods:
             _replace_solution_methods(
                 sub_question, submitted_methods, contributor=contributor,
                 default_origin=content_origin,
             )
-    submitted_sub_ids = {item.get('id') for item in submitted_sub_questions}
     if replace_methods:
         for stale_sub_question in existing_sub_questions:
-            if stale_sub_question.pk not in submitted_sub_ids:
+            if stale_sub_question.pk not in retained_sub_question_ids:
                 stale_sub_question.delete()
     QuestionConceptTag.objects.filter(question=question).delete()
     QuestionConceptTag.objects.bulk_create([

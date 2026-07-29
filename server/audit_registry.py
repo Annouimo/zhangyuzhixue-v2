@@ -25,10 +25,12 @@ def register_all():
         ContributionTagSuggestion,
     )
     from qbank.models import (
-        BaseQuestion,
+        BaseQuestion, ContentChangeLog,
         ChoiceExt,
         ConceptTag,
         KnowledgeCard,
+        QuestionConceptTag,
+        QuestionKnowledgeCard,
         SolutionMethod,
         SolutionStep,
         SubQuestion,
@@ -47,6 +49,9 @@ def register_all():
     auditlog_registry.register(SolutionStep)
     auditlog_registry.register(KnowledgeCard)
     auditlog_registry.register(ConceptTag)
+    auditlog_registry.register(QuestionConceptTag)
+    auditlog_registry.register(QuestionKnowledgeCard)
+    auditlog_registry.register(ContentChangeLog)
     auditlog_registry.register(ContentContribution)
     auditlog_registry.register(ContributionTagSuggestion)
     auditlog_registry.register(Course)
