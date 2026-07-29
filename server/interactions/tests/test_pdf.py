@@ -262,7 +262,13 @@ class TestPdfView:
         assert '资源缓存后，再次打开通常会明显加快' in html
         assert "readStored('pdf_preparation_hint_seen')" in html
         assert '}, 3000);' in html
-        assert 'Math.min(100, Math.round(completed / total * 100))' in html
+        assert 'NotoSerifCJKsc-Regular.subset.woff2' in html
+        assert "document.querySelector('.paper-wrapper')" in html
+        assert "document.querySelectorAll('.paper-wrapper img')" in html
+        assert 'if (completedTasks[taskId]) return' in html
+        assert 'if (mathRenderStarted) return' in html
+        assert "console.info('[PDF Performance]'" in html
+        assert 'renderMathInElement(document.body' not in html
         assert '打印 / 保存 PDF' in html
         assert '保存 PDF 指引' in html
         assert '本作答纸仅供练习和模拟使用' in html
