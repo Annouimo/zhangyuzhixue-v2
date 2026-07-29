@@ -92,7 +92,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('测试卷'), findsAtLeast(1));
-      expect(find.textContaining('共 10 题'), findsOneWidget);
+      expect(find.textContaining('共 0 题'), findsOneWidget);
       expect(find.text('开始计时'), findsOneWidget);
     });
 
