@@ -9,8 +9,13 @@ from rest_framework.test import APIClient
 from accounts.models import Student
 from interactions.models import CustomPaper
 from interactions.models import CustomPaperQuestion
-from interactions.pdf_views import _check_sig, _make_sig, _prepare_images
-from qbank.models import BaseQuestion, SubQuestion
+from interactions.pdf_views import (
+    _check_sig,
+    _content_warnings,
+    _make_sig,
+    _prepare_images,
+)
+from qbank.models import BaseQuestion, SolutionMethod, SolutionStep, SubQuestion
 
 
 @pytest.fixture
@@ -128,6 +133,11 @@ class TestPdfRequestToken:
             },
         ]
 
+    def test_content_warnings_detect_suspicious_source(self):
+        warnings = _content_warnings(r'计算 $x+1 并求', 8)
+        assert '第 8 题可能存在未闭合的公式定界符' in warnings
+        assert '第 8 题内容可能不完整' in warnings
+
 
 class TestPdfView:
     """PDF 视图权限验证测试"""
@@ -187,10 +197,28 @@ class TestPdfView:
         solution_question = BaseQuestion.objects.create(
             question_type='solution', stem='证明。', default_score=10,
         )
-        SubQuestion.objects.create(
+        solution_sub = SubQuestion.objects.create(
             question=solution_question,
-            answer='由 $a=b$\n所以结论成立。',
+            answer='$a=b$，结论成立。',
+            explanation='由已知条件代入即可验证。',
             sort_order=1,
+        )
+        method = SolutionMethod.objects.create(
+            sub_question=solution_sub,
+            method_name='代数证明',
+            sort_order=1,
+        )
+        SolutionStep.objects.create(
+            method=method,
+            step_number=1,
+            title='整理条件',
+            content='由已知条件得到 $a=b$。',
+        )
+        SolutionStep.objects.create(
+            method=method,
+            step_number=2,
+            title='完成证明',
+            content='代入原式，两边相等，所以结论成立。',
         )
         CustomPaperQuestion.objects.create(
             paper=sample_paper, question=solution_question, sort_order=3,
@@ -204,16 +232,27 @@ class TestPdfView:
         assert resp.status_code == 200
         html = resp.content.decode()
         assert '版式' in html
-        assert '输出内容' in html
-        assert '仅试题' in html
-        assert '仅答案' in html
-        assert '都有' in html
+        assert '打印内容' in html
+        assert '> 试题</label>' in html
+        assert '> 作答纸</label>' in html
+        assert '> 参考答案</label>' in html
+        assert '> 详细解析</label>' in html
+        assert '学生用卷' in html
+        assert '教师用卷' in html
+        assert '对答案' in html
         assert '打印 / 保存 PDF' in html
+        assert '保存 PDF 指引' in html
+        assert '本作答纸仅供练习和模拟使用' in html
         assert '参考答案' in html
         assert 'choice-answer-table' in html
         assert 'fill-answer-grid' in html
-        assert '三、解答题参考解答' in html
-        assert '由 $a=b$<br>所以结论成立。' in html
+        assert '三、解答题答案' in html
+        assert '$a=b$，结论成立。' in html
+        assert '解答题详细解析' in html
+        assert '整理条件' in html
+        assert '由已知条件得到 $a=b$。' in html
+        assert '完成证明' in html
+        assert '代入原式，两边相等，所以结论成立。' in html
         assert 'body.compact .section-fill' in html
         assert 'body.compact .section-solution .question' in html
         assert 'body.compact { font-size:' not in html

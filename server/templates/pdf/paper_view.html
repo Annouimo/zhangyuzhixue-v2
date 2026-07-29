@@ -65,7 +65,8 @@ body {
 .figure.option-grid img { width: 100%; max-width: 420px; }
 .katex { font-size: 1.08em; }
 .katex-display { margin: 0.4em 0; text-align: center; }
-.answers { display: none; page-break-before: always; }
+.questions-content, .answers { display: none; }
+.answers { page-break-before: always; }
 .answers-title { text-align: center; margin-bottom: 1.2em; padding-bottom: .55em; border-bottom: .5pt solid #333; font-size: 16pt; letter-spacing: 3pt; }
 .answer-section { margin-bottom: 1.4em; }
 .answer-section-title { margin: 0 0 .65em; font-size: 12pt; page-break-after: avoid; }
@@ -77,16 +78,54 @@ body {
 .fill-answer-item { min-width: 0; padding: .35em 0 .5em; border-bottom: .5pt solid #bbb; break-inside: avoid; page-break-inside: avoid; }
 .fill-answer-number { display: inline-block; min-width: 2.2em; font-weight: 700; }
 .fill-answer-content { line-height: 1.65; }
-.solution-answers { page-break-before: always; }
+.solution-answers { margin-top: 1em; }
 .solution-answer { margin-bottom: 1.35em; padding-top: .2em; break-inside: auto; page-break-inside: auto; }
 .solution-answer + .solution-answer { border-top: .5pt solid #aaa; padding-top: 1em; }
 .solution-answer-title { margin: 0 0 .55em; font-size: 11.5pt; page-break-after: avoid; }
 .solution-answer-body { line-height: 1.65; text-align: left; overflow-wrap: anywhere; }
 .solution-answer-body .katex-display { margin: .55em 0; }
-body.content-answers .questions-content { display: none; }
-body.content-answers .answers,
-body.content-both .answers { display: block; }
-body.content-answers .answers { page-break-before: auto; }
+.answer-sheet, .detailed-answers { display: none; page-break-before: always; }
+body.show-questions .questions-content,
+body.show-answer-sheet .answer-sheet,
+body.show-answers .answers,
+body.show-details .detailed-answers { display: block; }
+body:not(.show-questions) .answers,
+body:not(.show-questions) .answer-sheet,
+body:not(.show-questions) .detailed-answers { page-break-before: auto; }
+body:not(.show-questions).show-answer-sheet .answers,
+body:not(.show-questions).show-answer-sheet .detailed-answers,
+body:not(.show-questions):not(.show-answer-sheet).show-answers .detailed-answers { page-break-before: always; }
+.answer-sheet-title, .detailed-title { text-align: center; margin-bottom: .8em; padding-bottom: .5em; border-bottom: .5pt solid #333; font-size: 16pt; letter-spacing: 3pt; }
+.candidate-fields { display: grid; grid-template-columns: 1.4fr 1fr 1.4fr 1fr; gap: .7em 1.2em; margin-bottom: .8em; }
+.candidate-field { min-height: 2em; border-bottom: .7pt solid #333; }
+.answer-notice { margin-bottom: 1em; padding: .65em .8em; border: .5pt solid #888; font-size: 9.5pt; line-height: 1.55; }
+.sheet-section { margin-bottom: 1.2em; }
+.sheet-section-title { margin-bottom: .55em; font-size: 12pt; }
+.bubble-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .65em 2em; padding: .7em; border: .7pt solid #555; }
+.bubble-row { display: flex; align-items: center; gap: .7em; min-height: 2.2em; }
+.bubble-number { width: 2em; font-weight: 700; }
+.bubble-option { display: inline-grid; place-items: center; width: 2em; height: 1.45em; border: .7pt solid #555; border-radius: 3px; font-size: 9.5pt; }
+.fill-sheet-item { min-height: 3.2em; margin-bottom: .6em; padding: .5em .7em; border: .7pt solid #555; break-inside: avoid; page-break-inside: avoid; }
+.sheet-question-number { font-weight: 700; }
+.solution-sheet-item { position: relative; margin-bottom: 1em; padding: .55em .7em; border: .8pt solid #444; break-inside: avoid; page-break-inside: avoid; }
+.solution-sheet-item.half { min-height: 112mm; }
+.solution-sheet-item.full { min-height: 225mm; page-break-before: always; }
+.solution-sheet-item.full:first-of-type { page-break-before: auto; }
+.sheet-score { float: right; color: #555; font-size: 9.5pt; }
+.practice-note { margin-top: 1.2em; text-align: center; color: #777; font-size: 8.5pt; }
+.detail-question { margin-bottom: 1.5em; }
+.detail-question + .detail-question { border-top: .5pt solid #aaa; padding-top: 1em; }
+.detail-question-title, .detail-sub-title, .detail-method-title, .detail-step-title { page-break-after: avoid; }
+.detail-question-title { margin-bottom: .6em; font-size: 12pt; }
+.detail-sub { margin-bottom: 1em; }
+.detail-sub-title { margin: .5em 0; font-size: 11pt; }
+.detail-final-answer { margin-bottom: .55em; padding: .45em .65em; background: #f3f3f3; border-left: 2pt solid #555; }
+.detail-method { margin: .6em 0; }
+.detail-method-title { font-weight: 700; margin-bottom: .3em; }
+.detail-step { margin: .45em 0; }
+.detail-step-title { font-weight: 600; }
+.detail-content { line-height: 1.7; text-align: left; }
+.no-detail { color: #666; }
 /* 紧凑版仅放宽分页规则，保留标准版的字号、边距和题间距。 */
 body.compact .section-fill,
 body.compact .section-solution,
@@ -94,22 +133,37 @@ body.compact .section-solution .question {
   page-break-before: auto;
   break-before: auto;
 }
-.toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
+.toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 9px 14px; min-height: 74px; padding: 8px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
 .brand { margin-right: auto; font-weight: 700; color: #155eef; }
 .control { display: flex; align-items: center; gap: 7px; }
-select, button { min-height: 36px; border: 1px solid #b8c0cc; border-radius: 6px; background: white; padding: 0 10px; font: inherit; }
+select, button { min-height: 34px; border: 1px solid #b8c0cc; border-radius: 6px; background: white; padding: 0 10px; font: inherit; }
 button { border-color: #155eef; background: #155eef; color: white; cursor: pointer; font-weight: 600; }
 button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
+.secondary-button { border-color: #87909d; background: white; color: #344054; }
+.print-options { display: flex; align-items: center; gap: 10px; }
+.print-option { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.print-option input { width: 16px; height: 16px; }
+.presets { display: flex; gap: 5px; }
+.preset-button { min-height: 28px; padding: 0 7px; border-color: #c4cad3; background: #f7f8fa; color: #344054; font-size: 12px; }
+.warning-button { display: none; border-color: #c47d00; background: #fff7df; color: #805300; }
+.warning-button.visible { display: inline-block; }
+.dialog-backdrop { display: none; position: fixed; inset: 0; z-index: 50; place-items: center; padding: 20px; background: rgba(0,0,0,.42); font: 14px/1.6 "Microsoft YaHei", sans-serif; }
+.dialog-backdrop.visible { display: grid; }
+.guide-dialog { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 22px; border-radius: 10px; background: white; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+.guide-dialog h2 { margin-bottom: .6em; }
+.guide-dialog ol, .guide-dialog ul { padding-left: 1.5em; margin: .6em 0 1em; }
+.guide-dialog-actions { text-align: right; }
 .progress-panel { position: fixed; right: 18px; bottom: 18px; z-index: 30; width: min(330px, calc(100vw - 36px)); padding: 12px 14px; border-radius: 8px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,.18); font: 13px/1.4 "Microsoft YaHei", sans-serif; }
 .progress-track { height: 7px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #e7eaf0; }
 .progress-bar { width: 0; height: 100%; background: #155eef; transition: width .2s ease; }
 .progress-panel.ready .progress-bar { background: #16803c; }
 .load-warning { display: none; margin-top: 7px; color: #9a5b00; }
-@media (max-width: 720px) { .toolbar { align-items: stretch; flex-wrap: wrap; } .brand { width: 100%; } .paper-wrapper { width: 100%; margin-top: 132px; padding: 24px 18px; box-shadow: none; } }
+@media (max-width: 900px) { .brand { width: 100%; } .paper-wrapper { margin-top: 150px; } }
+@media (max-width: 720px) { .toolbar { align-items: stretch; } .print-options, .presets { width: 100%; flex-wrap: wrap; } .paper-wrapper { width: 100%; margin-top: 220px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .bubble-grid, .fill-answer-grid { grid-template-columns: 1fr; } }
 @media print {
   body { background: white; }
   p { orphans: 3; widows: 3; }
-  .toolbar, .progress-panel { display: none !important; }
+  .toolbar, .progress-panel, .dialog-backdrop { display: none !important; }
   .paper-wrapper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 }
 </style>
@@ -117,12 +171,23 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 <body>
 <div class="toolbar">
   <div class="brand">章鱼智学</div>
+  <div class="print-options" role="group" aria-label="打印内容">
+    <strong>打印内容</strong>
+    <label class="print-option"><input type="checkbox" value="questions" checked> 试题</label>
+    <label class="print-option"><input type="checkbox" value="answer-sheet"> 作答纸</label>
+    <label class="print-option"><input type="checkbox" value="answers" checked> 参考答案</label>
+    <label class="print-option"><input type="checkbox" value="details"> 详细解析</label>
+  </div>
+  <div class="presets" aria-label="快捷组合">
+    <button class="preset-button" type="button" data-preset="student">学生用卷</button>
+    <button class="preset-button" type="button" data-preset="teacher">教师用卷</button>
+    <button class="preset-button" type="button" data-preset="answers">对答案</button>
+  </div>
   <label class="control">版式
     <select id="layout-control"><option value="standard">标准</option><option value="compact">紧凑</option></select>
   </label>
-  <label class="control">输出内容
-    <select id="content-control"><option value="questions">仅试题</option><option value="answers">仅答案</option><option value="both">都有</option></select>
-  </label>
+  {% if print_warnings %}<button id="warning-button" class="warning-button visible" type="button">发现 {{ print_warnings|length }} 处内容可能异常</button>{% endif %}
+  <button id="guide-button" class="secondary-button" type="button">保存 PDF 指引</button>
   <button id="print-button" type="button" disabled>正在准备…</button>
 </div>
 <div class="progress-panel" id="progress-panel">
@@ -130,6 +195,40 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
   <div class="load-warning" id="load-warning"></div>
 </div>
+
+<div class="dialog-backdrop" id="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+  <div class="guide-dialog">
+    <h2 id="guide-title">如何保存 PDF</h2>
+    <div class="desktop-guide">
+      <ol>
+        <li>点击“打印 / 保存 PDF”。</li>
+        <li>在打印窗口中，将打印机或目标选择为“另存为 PDF”。</li>
+        <li>纸张选择 A4，并关闭浏览器自带的页眉和页脚。</li>
+        <li>点击“保存”，选择文件位置。</li>
+      </ol>
+    </div>
+    <div class="mobile-guide">
+      <p><strong>手机：</strong>Android 在打印窗口选择“保存为 PDF”；iPhone/iPad 可在打印预览后通过分享菜单“存储到文件”。不同系统版本的入口可能略有差异。</p>
+      <p>为了获得更稳定的预览与打印效果，建议在电脑浏览器中操作。</p>
+    </div>
+    <div class="guide-dialog-actions">
+      <button class="secondary-button" type="button" data-close-dialog>关闭</button>
+      <button id="guide-print-button" type="button">继续打印</button>
+    </div>
+  </div>
+</div>
+
+{% if print_warnings %}
+<div class="dialog-backdrop" id="warning-dialog" role="dialog" aria-modal="true" aria-labelledby="warning-title">
+  <div class="guide-dialog">
+    <h2 id="warning-title">内容可能异常</h2>
+    <p>以下问题不会阻止打印，建议打印前核对题库原文：</p>
+    <ul>{% for warning in print_warnings %}<li>{{ warning }}</li>{% endfor %}</ul>
+    <div class="guide-dialog-actions"><button type="button" data-close-dialog>关闭</button></div>
+  </div>
+</div>
+{% endif %}
+
 <div class="paper-wrapper">
 <div class="paper questions-content">
 
@@ -160,6 +259,53 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 {% endfor %}
 
 </div>
+
+<section class="answer-sheet">
+  <h1 class="answer-sheet-title">作 答 纸</h1>
+  <div class="candidate-fields">
+    <div class="candidate-field">姓名：</div><div class="candidate-field">班级：</div>
+    <div class="candidate-field">考号：</div><div class="candidate-field">日期：</div>
+  </div>
+  <div class="answer-notice">
+    <strong>作答须知：</strong>选择题建议使用 2B 铅笔填涂；非选择题建议使用黑色签字笔作答。请按题号在指定区域内书写，并保持纸面整洁。
+  </div>
+
+  {% if answer_sections.choice_rows %}
+  <section class="sheet-section">
+    <h2 class="sheet-section-title">一、选择题作答区</h2>
+    <div class="bubble-grid">
+      {% for row in answer_sections.choice_rows %}{% for question in row %}
+      <div class="bubble-row">
+        <span class="bubble-number">{{ question.number }}.</span>
+        <span class="bubble-option">A</span><span class="bubble-option">B</span><span class="bubble-option">C</span><span class="bubble-option">D</span>
+      </div>
+      {% endfor %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if answer_sections.fill_questions %}
+  <section class="sheet-section">
+    <h2 class="sheet-section-title">二、填空题作答区</h2>
+    {% for question in answer_sections.fill_questions %}
+    <div class="fill-sheet-item"><span class="sheet-question-number">{{ question.number }}.</span></div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if answer_sections.solution_questions %}
+  <section class="sheet-section">
+    <h2 class="sheet-section-title">三、解答题作答区</h2>
+    {% for question in answer_sections.solution_questions %}
+    <div class="solution-sheet-item {{ question.answer_sheet_height }}">
+      <span class="sheet-question-number">{{ question.number }}.</span>
+      {% if question.score %}<span class="sheet-score">本题参考分值 {{ question.score|floatformat:"-1" }} 分</span>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+  <p class="practice-note">本作答纸仅供练习和模拟使用，不支持官方考试机器阅卷。</p>
+</section>
 
 <section class="answers">
   <h1 class="answers-title">参考答案</h1>
@@ -192,15 +338,51 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 
   {% if answer_sections.solution_questions %}
   <section class="answer-section solution-answers">
-    <h2 class="answer-section-title">三、解答题参考解答</h2>
+    <h2 class="answer-section-title">三、解答题答案</h2>
     {% for question in answer_sections.solution_questions %}
     <article class="solution-answer">
-      <h3 class="solution-answer-title">{{ question.number }}. 参考解答</h3>
-      <div class="solution-answer-body">{% if question.answer_html %}{{ question.answer_html|safe }}{% else %}暂无参考解答{% endif %}</div>
+      <h3 class="solution-answer-title">{{ question.number }}.</h3>
+      <div class="solution-answer-body">
+        {% for sub in question.sub_questions %}
+          {% if sub.show_number %}<strong>({{ sub.number }})</strong> {% endif %}{% if sub.answer_html %}{{ sub.answer_html|safe }}{% else %}暂无参考答案{% endif %}{% if not forloop.last %}<br>{% endif %}
+        {% empty %}暂无参考答案{% endfor %}
+      </div>
     </article>
     {% endfor %}
   </section>
   {% endif %}
+</section>
+
+<section class="detailed-answers">
+  <h1 class="detailed-title">解答题详细解析</h1>
+  {% for question in answer_sections.solution_questions %}
+  <article class="detail-question">
+    <h2 class="detail-question-title">{{ question.number }}. 详细解析</h2>
+    {% for sub in question.sub_questions %}
+    <section class="detail-sub">
+      {% if sub.show_number %}<h3 class="detail-sub-title">({{ sub.number }})</h3>{% endif %}
+      <div class="detail-final-answer"><strong>答案：</strong>{% if sub.answer_html %}{{ sub.answer_html|safe }}{% else %}暂无参考答案{% endif %}</div>
+      {% if sub.methods %}
+        {% for method in sub.methods %}
+        <div class="detail-method">
+          {% if method.show_title %}<div class="detail-method-title">{{ method.title }}</div>{% endif %}
+          {% for step in method.steps %}
+          <div class="detail-step">
+            {% if method.steps|length > 1 or step.title %}<div class="detail-step-title">{% if method.steps|length > 1 %}第 {{ step.number }} 步{% endif %}{% if step.title %}{% if method.steps|length > 1 %} · {% endif %}{{ step.title }}{% endif %}</div>{% endif %}
+            <div class="detail-content">{{ step.content_html|safe }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      {% elif sub.explanation_html %}
+        <div class="detail-content">{{ sub.explanation_html|safe }}</div>
+      {% else %}
+        <p class="no-detail">本小题暂无详细解析。</p>
+      {% endif %}
+    </section>
+    {% empty %}<p class="no-detail">本题暂无详细解析。</p>{% endfor %}
+  </article>
+  {% empty %}<p class="no-detail">这份试卷没有解答题。</p>{% endfor %}
 </section>
 
 </div>
@@ -208,20 +390,96 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 <script>
 (function () {
   var layout = document.getElementById('layout-control');
-  var content = document.getElementById('content-control');
+  var options = Array.prototype.slice.call(document.querySelectorAll('.print-option input'));
+  var presets = Array.prototype.slice.call(document.querySelectorAll('[data-preset]'));
   var button = document.getElementById('print-button');
+  var guideButton = document.getElementById('guide-button');
+  var guidePrintButton = document.getElementById('guide-print-button');
+  var guideDialog = document.getElementById('guide-dialog');
+  var warningButton = document.getElementById('warning-button');
+  var warningDialog = document.getElementById('warning-dialog');
   var panel = document.getElementById('progress-panel');
   var text = document.getElementById('progress-text');
   var bar = document.getElementById('progress-bar');
   var warning = document.getElementById('load-warning');
-  layout.addEventListener('change', function () { document.body.classList.toggle('compact', layout.value === 'compact'); });
-  function applyContentMode() {
-    document.body.classList.remove('content-questions', 'content-answers', 'content-both');
-    document.body.classList.add('content-' + content.value);
+
+  function readStored(key) {
+    try { return window.localStorage.getItem(key); } catch (error) { return null; }
   }
-  content.addEventListener('change', applyContentMode);
-  applyContentMode();
-  button.addEventListener('click', function () { window.print(); });
+  function store(key, value) {
+    try { window.localStorage.setItem(key, value); } catch (error) { /* storage is optional */ }
+  }
+  function openDialog(dialog) { if (dialog) dialog.classList.add('visible'); }
+  function closeDialog(dialog) { if (dialog) dialog.classList.remove('visible'); }
+  function selectedValues() {
+    return options.filter(function (option) { return option.checked; }).map(function (option) { return option.value; });
+  }
+  function applySelections(save) {
+    var selected = selectedValues();
+    if (!selected.length) {
+      options[0].checked = true;
+      selected = [options[0].value];
+    }
+    ['questions', 'answer-sheet', 'answers', 'details'].forEach(function (value) {
+      document.body.classList.toggle('show-' + value, selected.indexOf(value) !== -1);
+    });
+    if (save) store('pdf_print_sections', JSON.stringify(selected));
+  }
+  function setPreset(values) {
+    options.forEach(function (option) { option.checked = values.indexOf(option.value) !== -1; });
+    applySelections(true);
+  }
+  function printDocument() {
+    closeDialog(guideDialog);
+    window.print();
+  }
+
+  var storedSections = readStored('pdf_print_sections');
+  if (storedSections) {
+    try {
+      var parsedSections = JSON.parse(storedSections);
+      if (Array.isArray(parsedSections) && parsedSections.length) setPreset(parsedSections);
+    } catch (error) { /* keep server defaults */ }
+  }
+  var storedLayout = readStored('pdf_print_layout');
+  if (storedLayout === 'compact') layout.value = storedLayout;
+  document.body.classList.toggle('compact', layout.value === 'compact');
+  applySelections(false);
+
+  layout.addEventListener('change', function () {
+    document.body.classList.toggle('compact', layout.value === 'compact');
+    store('pdf_print_layout', layout.value);
+  });
+  options.forEach(function (option) {
+    option.addEventListener('change', function () { applySelections(true); });
+  });
+  presets.forEach(function (preset) {
+    preset.addEventListener('click', function () {
+      var combinations = {
+        student: ['questions', 'answer-sheet'],
+        teacher: ['questions', 'answers', 'details'],
+        answers: ['answers']
+      };
+      setPreset(combinations[preset.getAttribute('data-preset')]);
+    });
+  });
+  guideButton.addEventListener('click', function () { openDialog(guideDialog); });
+  if (warningButton) warningButton.addEventListener('click', function () { openDialog(warningDialog); });
+  document.querySelectorAll('[data-close-dialog]').forEach(function (closeButton) {
+    closeButton.addEventListener('click', function () { closeDialog(closeButton.closest('.dialog-backdrop')); });
+  });
+  document.querySelectorAll('.dialog-backdrop').forEach(function (dialog) {
+    dialog.addEventListener('click', function (event) { if (event.target === dialog) closeDialog(dialog); });
+  });
+  guidePrintButton.addEventListener('click', printDocument);
+  button.addEventListener('click', function () {
+    if (!readStored('pdf_print_guide_seen')) {
+      store('pdf_print_guide_seen', '1');
+      openDialog(guideDialog);
+      return;
+    }
+    printDocument();
+  });
 
   var images = Array.prototype.slice.call(document.images);
   var total = 3 + images.length;
