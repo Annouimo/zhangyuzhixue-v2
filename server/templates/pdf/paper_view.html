@@ -134,37 +134,63 @@ body.compact .section-solution .question {
   page-break-before: auto;
   break-before: auto;
 }
-.toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; flex-wrap: wrap; gap: 9px 14px; min-height: 74px; padding: 8px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
-.brand { margin-right: auto; font-weight: 700; color: #155eef; }
-.control { display: flex; align-items: center; gap: 7px; }
-select, button { min-height: 34px; border: 1px solid #b8c0cc; border-radius: 6px; background: white; padding: 0 10px; font: inherit; }
+.toolbar { position: fixed; inset: 0 0 auto; z-index: 30; display: flex; align-items: center; gap: 10px; height: 58px; padding: 8px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
+.brand { flex: 0 0 auto; margin-right: 6px; font-weight: 700; color: #155eef; white-space: nowrap; }
+button { min-height: 34px; border: 1px solid #b8c0cc; border-radius: 6px; background: white; padding: 0 10px; font: inherit; }
 button { border-color: #155eef; background: #155eef; color: white; cursor: pointer; font-weight: 600; }
 button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 .secondary-button { border-color: #87909d; background: white; color: #344054; }
-.print-options { display: flex; align-items: center; gap: 10px; }
+.settings-trigger { display: flex; align-items: center; min-width: 0; max-width: min(520px, 48vw); margin-right: auto; border-color: #c4cad3; background: #f7f8fa; color: #24324a; text-align: left; }
+.settings-trigger-copy { min-width: 0; overflow: hidden; }
+.settings-trigger-title, .settings-trigger-summary { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settings-trigger-title { font-weight: 700; }
+.settings-trigger-summary { color: #667085; font-size: 11px; font-weight: 400; }
+.settings-trigger-caret { margin-left: 10px; color: #667085; }
+.settings-trigger-mobile { display: none; }
+.toolbar-actions { display: flex; align-items: center; gap: 7px; }
+.icon-button { position: relative; width: 34px; padding: 0; border-color: #87909d; background: white; color: #344054; font-size: 16px; }
+.icon-button.warning { border-color: #c47d00; background: #fff7df; color: #805300; }
+.icon-badge { position: absolute; top: -6px; right: -6px; display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: #b54708; color: white; font-size: 10px; line-height: 1; }
+#print-button { min-width: 142px; white-space: nowrap; }
+.settings-scrim { display: none; position: fixed; inset: 58px 0 0; z-index: 38; background: rgba(0,0,0,.18); }
+.settings-scrim.visible { display: block; }
+.settings-panel { display: none; position: fixed; top: 66px; left: 50%; z-index: 40; width: min(600px, calc(100vw - 32px)); max-height: calc(100vh - 82px); overflow: auto; transform: translateX(-50%); border: 1px solid #d7dce2; border-radius: 8px; background: white; padding: 18px; box-shadow: 0 10px 30px rgba(16,24,40,.2); font: 14px/1.5 "Microsoft YaHei", sans-serif; }
+.settings-panel.visible { display: block; }
+.settings-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.settings-title { font-size: 17px; }
+.settings-close { width: 32px; min-height: 32px; padding: 0; border-color: transparent; background: transparent; color: #475467; }
+.settings-group { margin-top: 16px; padding: 0; border: 0; }
+.settings-group legend { margin-bottom: 8px; font-weight: 700; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.preset-button { min-height: 54px; padding: 7px 10px; border-color: #c4cad3; background: #f7f8fa; color: #344054; text-align: left; }
+.preset-button strong, .preset-button small { display: block; }
+.preset-button small { margin-top: 2px; color: #667085; font-size: 11px; font-weight: 400; }
+.preset-button.active { border-color: #155eef; background: #eef4ff; color: #155eef; }
+.print-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .print-option { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .print-option input { width: 16px; height: 16px; }
-.presets { display: grid; grid-template-columns: repeat(4, max-content); gap: 5px; }
-.preset-button { min-height: 28px; padding: 0 7px; border-color: #c4cad3; background: #f7f8fa; color: #344054; font-size: 12px; }
-.warning-button { display: none; border-color: #c47d00; background: #fff7df; color: #805300; }
-.warning-button.visible { display: inline-block; }
+.layout-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.layout-option { display: block; padding: 9px 10px; border: 1px solid #c4cad3; border-radius: 6px; cursor: pointer; }
+.layout-option:has(input:checked) { border-color: #155eef; background: #eef4ff; }
+.layout-option-title { font-weight: 700; }
+.layout-option-note { display: block; margin: 2px 0 0 22px; color: #667085; font-size: 11px; }
+.layout-group.disabled { opacity: .55; }
+.layout-group.disabled .layout-option { cursor: not-allowed; }
+.layout-unavailable { display: none; margin-top: 6px; color: #667085; font-size: 12px; }
+.layout-group.disabled .layout-unavailable { display: block; }
+.settings-footer { display: flex; justify-content: flex-end; margin-top: 18px; padding-top: 12px; border-top: 1px solid #eaecf0; }
+.settings-guide-button { display: none; border-color: transparent; background: transparent; color: #155eef; }
 .dialog-backdrop { display: none; position: fixed; inset: 0; z-index: 50; place-items: center; padding: 20px; background: rgba(0,0,0,.42); font: 14px/1.6 "Microsoft YaHei", sans-serif; }
 .dialog-backdrop.visible { display: grid; }
 .guide-dialog { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 22px; border-radius: 10px; background: white; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
 .guide-dialog h2 { margin-bottom: .6em; }
 .guide-dialog ol, .guide-dialog ul { padding-left: 1.5em; margin: .6em 0 1em; }
 .guide-dialog-actions { text-align: right; }
-.progress-panel { position: fixed; right: 18px; bottom: 18px; z-index: 30; width: min(330px, calc(100vw - 36px)); padding: 12px 14px; border-radius: 8px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,.18); font: 13px/1.4 "Microsoft YaHei", sans-serif; }
-.progress-track { height: 7px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #e7eaf0; }
-.progress-bar { width: 0; height: 100%; background: #155eef; transition: width .2s ease; }
-.progress-panel.ready .progress-bar { background: #16803c; }
-.load-warning { display: none; margin-top: 7px; color: #9a5b00; }
-@media (max-width: 900px) { .brand { width: 100%; } .presets { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; } .paper-wrapper { margin-top: 178px; } }
-@media (max-width: 720px) { .toolbar { align-items: stretch; } .print-options { width: 100%; flex-wrap: wrap; } .control { width: 100%; } .control select { min-width: 0; max-width: 100%; flex: 1; } .paper-wrapper { width: 100%; margin-top: 260px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .fill-sheet-grid, .fill-answer-grid { grid-template-columns: 1fr; } .guide-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } }
+@media (max-width: 720px) { .toolbar { padding: 8px 12px; gap: 7px; } .brand { margin-right: auto; } .settings-trigger { flex: 0 0 auto; max-width: none; margin-right: 0; padding: 0 9px; } .settings-trigger-copy, .settings-trigger-caret { display: none; } .settings-trigger-mobile { display: inline; } .help-button { display: none; } #print-button { min-width: 0; padding: 0 9px; } .settings-scrim { inset: 0; background: rgba(0,0,0,.42); } .settings-panel { inset: auto 0 0; width: 100%; max-height: min(82vh, 680px); transform: none; border-width: 1px 0 0; border-radius: 8px 8px 0 0; padding: 16px; } .print-options { grid-template-columns: 1fr 1fr; } .settings-guide-button { display: inline-block; } .paper-wrapper { width: 100%; margin-top: 74px; padding: 24px 18px; box-shadow: none; } .candidate-fields { grid-template-columns: 1fr 1fr; } .fill-sheet-grid, .fill-answer-grid { grid-template-columns: 1fr; } .guide-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } }
 @media print {
   body { background: white; }
   p { orphans: 3; widows: 3; }
-  .toolbar, .progress-panel, .dialog-backdrop { display: none !important; }
+  .toolbar, .settings-panel, .settings-scrim, .dialog-backdrop { display: none !important; }
   .paper-wrapper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
   .fill-sheet-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -173,31 +199,45 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 <body>
 <div class="toolbar">
   <div class="brand">章鱼智学</div>
-  <div class="print-options" role="group" aria-label="打印内容">
-    <strong>打印内容</strong>
-    <label class="print-option"><input type="checkbox" value="questions" checked> 试题</label>
-    <label class="print-option"><input type="checkbox" value="answer-sheet"> 作答纸</label>
-    <label class="print-option"><input type="checkbox" value="answers" checked> 参考答案</label>
-    <label class="print-option"><input type="checkbox" value="details"> 详细解析</label>
+  <button id="settings-button" class="settings-trigger" type="button" aria-expanded="false" aria-controls="settings-panel">
+    <span class="settings-trigger-copy"><span id="settings-title" class="settings-trigger-title">自定义设置</span><span id="settings-summary" class="settings-trigger-summary">试题 + 参考答案 · 卷内作答</span></span>
+    <span class="settings-trigger-mobile">打印设置</span><span class="settings-trigger-caret">▾</span>
+  </button>
+  <div class="toolbar-actions">
+    {% if print_warnings %}<button id="warning-button" class="icon-button warning" type="button" aria-label="内容异常提示" title="内容异常提示">!<span class="icon-badge">{{ print_warnings|length }}</span></button>{% endif %}
+    <button class="icon-button help-button guide-button" type="button" aria-label="保存 PDF 指引" title="保存 PDF 指引">?</button>
+    <button id="print-button" type="button" disabled><span id="print-button-label">准备中 0%</span></button>
   </div>
-  <div class="presets" aria-label="快捷组合">
-    <button class="preset-button" type="button" data-preset="practice">日常练习</button>
-    <button class="preset-button" type="button" data-preset="exam">模拟考试</button>
-    <button class="preset-button" type="button" data-preset="teacher">教师参考</button>
-    <button class="preset-button" type="button" data-preset="answers">核对答案</button>
-  </div>
-  <label class="control">试题版式
-    <select id="layout-control"><option value="standard">卷内作答（留出书写空间）</option><option value="compact">紧凑排版（配合作答纸）</option></select>
-  </label>
-  {% if print_warnings %}<button id="warning-button" class="warning-button visible" type="button">发现 {{ print_warnings|length }} 处内容可能异常</button>{% endif %}
-  <button id="guide-button" class="secondary-button" type="button">保存 PDF 指引</button>
-  <button id="print-button" type="button" disabled>正在准备…</button>
 </div>
-<div class="progress-panel" id="progress-panel">
-  <div id="progress-text">正在准备试卷 0%</div>
-  <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
-  <div class="load-warning" id="load-warning"></div>
-</div>
+
+<div id="settings-scrim" class="settings-scrim"></div>
+<section id="settings-panel" class="settings-panel" aria-labelledby="settings-panel-title">
+  <div class="settings-header"><h2 id="settings-panel-title" class="settings-title">打印设置</h2><button id="settings-close" class="settings-close" type="button" aria-label="关闭打印设置">X</button></div>
+  <fieldset class="settings-group"><legend>常用方案</legend>
+    <div class="presets" aria-label="常用方案">
+      <button class="preset-button" type="button" data-preset="practice"><strong>日常练习</strong><small>试题 · 卷内作答</small></button>
+      <button class="preset-button" type="button" data-preset="exam"><strong>模拟考试</strong><small>试题 + 作答纸 · 紧凑排版</small></button>
+      <button class="preset-button" type="button" data-preset="teacher"><strong>教师参考</strong><small>试题 + 答案 + 解析 · 卷内作答</small></button>
+      <button class="preset-button" type="button" data-preset="answers"><strong>核对答案</strong><small>仅参考答案</small></button>
+    </div>
+  </fieldset>
+  <fieldset class="settings-group"><legend>输出内容</legend>
+    <div class="print-options" role="group" aria-label="输出内容">
+      <label class="print-option"><input type="checkbox" value="questions" checked> 试题</label>
+      <label class="print-option"><input type="checkbox" value="answer-sheet"> 作答纸</label>
+      <label class="print-option"><input type="checkbox" value="answers" checked> 参考答案</label>
+      <label class="print-option"><input type="checkbox" value="details"> 详细解析</label>
+    </div>
+  </fieldset>
+  <fieldset id="layout-group" class="settings-group layout-group"><legend>试题版式</legend>
+    <div class="layout-options">
+      <label class="layout-option"><input type="radio" name="layout" value="standard" checked> <span class="layout-option-title">卷内作答</span><span class="layout-option-note">留出书写空间</span></label>
+      <label class="layout-option"><input type="radio" name="layout" value="compact"> <span class="layout-option-title">紧凑排版</span><span class="layout-option-note">适合搭配作答纸</span></label>
+    </div>
+    <p class="layout-unavailable">未输出试题，无需选择版式。</p>
+  </fieldset>
+  <div class="settings-footer"><button class="settings-guide-button guide-button" type="button">如何保存 PDF</button></div>
+</section>
 
 <div class="dialog-backdrop" id="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guide-title">
   <div class="guide-dialog">
@@ -392,19 +432,30 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
 </div>
 <script>
 (function () {
-  var layout = document.getElementById('layout-control');
+  var layoutOptions = Array.prototype.slice.call(document.querySelectorAll('input[name="layout"]'));
+  var layoutGroup = document.getElementById('layout-group');
   var options = Array.prototype.slice.call(document.querySelectorAll('.print-option input'));
   var presets = Array.prototype.slice.call(document.querySelectorAll('[data-preset]'));
+  var settingsButton = document.getElementById('settings-button');
+  var settingsPanel = document.getElementById('settings-panel');
+  var settingsScrim = document.getElementById('settings-scrim');
+  var settingsClose = document.getElementById('settings-close');
+  var settingsTitle = document.getElementById('settings-title');
+  var settingsSummary = document.getElementById('settings-summary');
   var button = document.getElementById('print-button');
-  var guideButton = document.getElementById('guide-button');
+  var buttonLabel = document.getElementById('print-button-label');
+  var guideButtons = Array.prototype.slice.call(document.querySelectorAll('.guide-button'));
   var guidePrintButton = document.getElementById('guide-print-button');
   var guideDialog = document.getElementById('guide-dialog');
   var warningButton = document.getElementById('warning-button');
   var warningDialog = document.getElementById('warning-dialog');
-  var panel = document.getElementById('progress-panel');
-  var text = document.getElementById('progress-text');
-  var bar = document.getElementById('progress-bar');
-  var warning = document.getElementById('load-warning');
+  var currentPreset = null;
+  var combinations = {
+    practice: {title: '日常练习', sections: ['questions'], layout: 'standard'},
+    exam: {title: '模拟考试', sections: ['questions', 'answer-sheet'], layout: 'compact'},
+    teacher: {title: '教师参考', sections: ['questions', 'answers', 'details'], layout: 'standard'},
+    answers: {title: '核对答案', sections: ['answers'], layout: 'standard'}
+  };
 
   function readStored(key) {
     try { return window.localStorage.getItem(key); } catch (error) { return null; }
@@ -414,6 +465,25 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   }
   function openDialog(dialog) { if (dialog) dialog.classList.add('visible'); }
   function closeDialog(dialog) { if (dialog) dialog.classList.remove('visible'); }
+  function openSettings() {
+    settingsPanel.classList.add('visible');
+    settingsScrim.classList.add('visible');
+    settingsButton.setAttribute('aria-expanded', 'true');
+  }
+  function closeSettings() {
+    settingsPanel.classList.remove('visible');
+    settingsScrim.classList.remove('visible');
+    settingsButton.setAttribute('aria-expanded', 'false');
+  }
+  function currentLayout() {
+    var selected = layoutOptions.filter(function (option) { return option.checked; });
+    return selected.length ? selected[0].value : 'standard';
+  }
+  function setLayout(value, save) {
+    layoutOptions.forEach(function (option) { option.checked = option.value === value; });
+    document.body.classList.toggle('compact', value === 'compact');
+    if (save) store('pdf_print_layout', value);
+  }
   function selectedValues() {
     return options.filter(function (option) { return option.checked; }).map(function (option) { return option.value; });
   }
@@ -428,9 +498,42 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
     });
     if (save) store('pdf_print_sections', JSON.stringify(selected));
   }
-  function setPreset(values) {
+  function setSections(values, save) {
     options.forEach(function (option) { option.checked = values.indexOf(option.value) !== -1; });
-    applySelections(true);
+    applySelections(save);
+  }
+  function valuesMatch(left, right) {
+    return left.slice().sort().join('|') === right.slice().sort().join('|');
+  }
+  function matchingPreset() {
+    var selected = selectedValues();
+    var layout = currentLayout();
+    return Object.keys(combinations).filter(function (name) {
+      var combination = combinations[name];
+      return valuesMatch(selected, combination.sections) && layout === combination.layout;
+    })[0] || null;
+  }
+  function updateSettingsState() {
+    var selected = selectedValues();
+    var hasQuestions = selected.indexOf('questions') !== -1;
+    if (currentPreset && currentPreset !== matchingPreset()) currentPreset = null;
+    settingsTitle.textContent = currentPreset ? combinations[currentPreset].title : '自定义设置';
+    var labels = {questions: '试题', 'answer-sheet': '作答纸', answers: '参考答案', details: '详细解析'};
+    var summary = selected.map(function (value) { return labels[value]; }).join(' + ');
+    if (hasQuestions) summary += ' · ' + (currentLayout() === 'compact' ? '紧凑排版' : '卷内作答');
+    settingsSummary.textContent = summary;
+    layoutGroup.classList.toggle('disabled', !hasQuestions);
+    layoutOptions.forEach(function (option) { option.disabled = !hasQuestions; });
+    presets.forEach(function (preset) {
+      preset.classList.toggle('active', preset.getAttribute('data-preset') === currentPreset);
+    });
+  }
+  function applyPreset(name) {
+    var combination = combinations[name];
+    currentPreset = name;
+    setSections(combination.sections, true);
+    setLayout(combination.layout, true);
+    updateSettingsState();
   }
   function printDocument() {
     closeDialog(guideDialog);
@@ -441,46 +544,50 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   if (storedSections) {
     try {
       var parsedSections = JSON.parse(storedSections);
-      if (Array.isArray(parsedSections) && parsedSections.length) setPreset(parsedSections);
+      if (Array.isArray(parsedSections) && parsedSections.length) setSections(parsedSections, false);
     } catch (error) { /* keep server defaults */ }
   }
   var storedLayout = readStored('pdf_print_layout');
-  if (storedLayout === 'compact') layout.value = storedLayout;
-  document.body.classList.toggle('compact', layout.value === 'compact');
+  setLayout(storedLayout === 'compact' ? 'compact' : 'standard', false);
   applySelections(false);
+  currentPreset = matchingPreset();
+  updateSettingsState();
 
-  layout.addEventListener('change', function () {
-    document.body.classList.toggle('compact', layout.value === 'compact');
-    store('pdf_print_layout', layout.value);
+  settingsButton.addEventListener('click', function () {
+    if (settingsPanel.classList.contains('visible')) closeSettings(); else openSettings();
+  });
+  settingsClose.addEventListener('click', closeSettings);
+  settingsScrim.addEventListener('click', closeSettings);
+  layoutOptions.forEach(function (layoutOption) {
+    layoutOption.addEventListener('change', function () {
+      currentPreset = null;
+      setLayout(layoutOption.value, true);
+      updateSettingsState();
+    });
   });
   options.forEach(function (option) {
-    option.addEventListener('change', function () { applySelections(true); });
+    option.addEventListener('change', function () {
+      currentPreset = null;
+      applySelections(true);
+      updateSettingsState();
+    });
   });
   presets.forEach(function (preset) {
     preset.addEventListener('click', function () {
-      var combinations = {
-        practice: {sections: ['questions'], layout: 'standard'},
-        exam: {sections: ['questions', 'answer-sheet'], layout: 'compact'},
-        teacher: {sections: ['questions', 'answers', 'details'], layout: 'compact'},
-        answers: {sections: ['answers'], layout: null}
-      };
-      var combination = combinations[preset.getAttribute('data-preset')];
-      setPreset(combination.sections);
-      if (combination.layout) {
-        layout.value = combination.layout;
-        document.body.classList.toggle('compact', layout.value === 'compact');
-        store('pdf_print_layout', layout.value);
-      }
+      applyPreset(preset.getAttribute('data-preset'));
     });
   });
-  guideButton.addEventListener('click', function () { openDialog(guideDialog); });
-  if (warningButton) warningButton.addEventListener('click', function () { openDialog(warningDialog); });
+  guideButtons.forEach(function (guideButton) {
+    guideButton.addEventListener('click', function () { closeSettings(); openDialog(guideDialog); });
+  });
+  if (warningButton) warningButton.addEventListener('click', function () { closeSettings(); openDialog(warningDialog); });
   document.querySelectorAll('[data-close-dialog]').forEach(function (closeButton) {
     closeButton.addEventListener('click', function () { closeDialog(closeButton.closest('.dialog-backdrop')); });
   });
   document.querySelectorAll('.dialog-backdrop').forEach(function (dialog) {
     dialog.addEventListener('click', function (event) { if (event.target === dialog) closeDialog(dialog); });
   });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeSettings(); });
   guidePrintButton.addEventListener('click', printDocument);
   button.addEventListener('click', function () {
     if (!readStored('pdf_print_guide_seen')) {
@@ -498,14 +605,12 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
   function update(label) {
     completed += 1;
     var percent = Math.round(completed / total * 100);
-    bar.style.width = percent + '%';
-    text.textContent = '正在准备试卷 ' + percent + '% · ' + label;
+    buttonLabel.textContent = '准备中 ' + percent + '%';
+    button.title = label;
     if (completed === total) {
-      panel.classList.add('ready');
-      text.textContent = failedImages ? '试卷已就绪，' + failedImages + ' 张图片加载失败' : '试卷已就绪';
       button.disabled = false;
-      button.textContent = '打印 / 保存 PDF';
-      if (failedImages) { warning.style.display = 'block'; warning.textContent = '可以继续打印，或刷新页面重试图片。'; }
+      buttonLabel.textContent = failedImages ? '打印（缺 ' + failedImages + ' 张图）' : '打印 / 保存 PDF';
+      button.title = failedImages ? '部分图片加载失败，可以继续打印或刷新页面重试' : '打印或保存为 PDF';
     }
   }
   if (document.fonts) document.fonts.ready.then(function () { update('字体已加载'); }); else update('使用系统字体');
