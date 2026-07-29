@@ -69,10 +69,13 @@ body {
 .answers h2 { margin-bottom: .6em; font-size: 13pt; }
 .answer-item { margin: .25em 0; }
 body.show-answers .answers { display: block; }
-body.compact { font-size: 10pt; line-height: 1.42; }
-body.compact .paper-wrapper { padding: 1.8cm 2.2cm; }
-body.compact .question { margin: .15em 0 .3em; }
-body.compact .section-title { margin-top: .65em; }
+/* 紧凑版仅放宽分页规则，保留标准版的字号、边距和题间距。 */
+body.compact .section-fill,
+body.compact .section-solution,
+body.compact .section-solution .question {
+  page-break-before: auto;
+  break-before: auto;
+}
 .toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
 .brand { margin-right: auto; font-weight: 700; color: #155eef; }
 .control { display: flex; align-items: center; gap: 7px; }

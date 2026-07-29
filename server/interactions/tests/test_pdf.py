@@ -188,3 +188,6 @@ class TestPdfView:
         assert '打印 / 保存 PDF' in html
         assert '参考答案' in html
         assert '2</div>' in html
+        assert 'body.compact .section-fill' in html
+        assert 'body.compact .section-solution .question' in html
+        assert 'body.compact { font-size:' not in html
