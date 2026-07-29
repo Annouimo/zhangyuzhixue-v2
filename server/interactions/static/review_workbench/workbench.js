@@ -325,7 +325,7 @@
       var open = document.getElementById('open-tag-dialog');
       var search = document.getElementById('tag-search');
       var count = document.getElementById('tag-result-count');
-      var options = Array.from(dialog.querySelectorAll('.tag-options li'));
+      var options = Array.from(dialog.querySelectorAll('.tag-options label'));
       if (open) open.addEventListener('click', function () { dialog.showModal(); search.focus(); });
       dialog.querySelectorAll('[data-close-dialog]').forEach(function (button) { button.addEventListener('click', function () { dialog.close(); }); });
       search.addEventListener('input', function () {
