@@ -176,14 +176,6 @@ def _content_warnings(text, question_number):
     return warnings
 
 
-def _answer_sheet_height(question):
-    score = question.get('score') or 0
-    sub_count = max(1, len(question.get('sub_questions', [])))
-    if score >= 15 or sub_count >= 3:
-        return 'full'
-    return 'half'
-
-
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
@@ -323,8 +315,6 @@ def _build_sections(qs):
                 _answer_to_html(answer) for answer in answers
             ),
         }
-        question_data['answer_sheet_height'] = _answer_sheet_height(
-            question_data)
         question_data['has_detailed_answer'] = any(
             sub['has_detail'] for sub in sub_details
         )
@@ -348,6 +338,7 @@ def _build_answer_sections(sections):
     choice_questions = by_type.get('choice', [])
     return {
         'choice_rows': _chunked(choice_questions, 5),
+        'choice_sheet_rows': _chunked(choice_questions, 10),
         'fill_questions': by_type.get('fill', []),
         'solution_questions': by_type.get('solution', []),
     }
