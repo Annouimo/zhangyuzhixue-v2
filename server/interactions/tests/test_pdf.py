@@ -257,6 +257,12 @@ class TestPdfView:
         assert '未输出试题，无需选择版式' in html
         assert 'settings-panel' in html
         assert 'progress-panel' not in html
+        assert '正在准备打印内容' in html
+        assert '首次使用需要加载打印字体、数学公式和题目图片' in html
+        assert '资源缓存后，再次打开通常会明显加快' in html
+        assert "readStored('pdf_preparation_hint_seen')" in html
+        assert '}, 3000);' in html
+        assert 'Math.min(100, Math.round(completed / total * 100))' in html
         assert '打印 / 保存 PDF' in html
         assert '保存 PDF 指引' in html
         assert '本作答纸仅供练习和模拟使用' in html
