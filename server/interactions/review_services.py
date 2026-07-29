@@ -48,7 +48,8 @@ def question_payload(question):
             'source_type': source_type,
             'year': question.year,
             'region': question.region,
-            'number': question.number,
+            'source_name': question.source_name,
+            'question_number': question.number,
         },
         'suggested_tags': list(question.concept_tags.values_list('name', flat=True)),
         'difficulty': min(DIFFICULTY_VALUES, key=lambda key: abs(
@@ -92,7 +93,12 @@ def save_official_question(payload, tags, question=None):
         'year': source.get('year'),
         'exam_type': SOURCE_LABELS.get(source.get('source_type'), '其他'),
         'region': str(source.get('region', ''))[:32],
-        'number': str(source.get('number', ''))[:16],
+        'source_name': str(source.get(
+            'source_name', source.get('exam_name', '')
+        ))[:255],
+        'number': str(source.get(
+            'question_number', source.get('number', '')
+        ))[:16],
         'question_type': payload['question_type'],
         'difficulty': DIFFICULTY_VALUES[payload['difficulty']],
         'calculation': CALCULATION_VALUES[payload['calculation']],

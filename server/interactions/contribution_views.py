@@ -15,6 +15,7 @@ from .models import (
     ContributionTagSuggestion,
 )
 from .serializers import ContributionWriteSerializer
+from .review_services import question_payload
 from .throttles import ContributionWriteThrottle
 from .views import _err, _ok
 
@@ -24,7 +25,8 @@ DEFAULT_AI_PROMPT = '''请把图片中的高中数学题转写为严格 JSON。�
 question_type、stem、options、sub_questions、source、suggested_tags、difficulty、
 calculation、uncertainties。行内公式使用 $...$，独立公式使用 $$...$$。JSON 字符串内
 所有 LaTeX 反斜杠必须写成双反斜杠，例如 \\\\frac、\\\\sqrt。无法确认的字符不要猜测，
-写入 uncertainties。'''
+写入 uncertainties。source 内使用 source_type、year、region、source_name 和
+question_number；source_name 表示试卷或资料名称，question_number 表示原题题号。'''
 
 
 def _student(request):
@@ -41,6 +43,7 @@ def _question_snapshot(question):
         'year': question.year,
         'exam_type': question.exam_type,
         'region': question.region,
+        'source_name': question.source_name,
         'number': question.number,
         'question_type': question.question_type,
         'stem': question.stem,
@@ -66,6 +69,7 @@ def _serialize(contribution, include_detail=False):
         'status': contribution.status,
         'question_id': contribution.question_id,
         'completed_question_id': contribution.completed_question_id,
+        'published_qbank_version': contribution.published_qbank_version,
         'review_note': contribution.review_note,
         'revision_number': latest.revision_number if latest else 0,
         'created_at': contribution.created_at.isoformat(),
@@ -106,6 +110,10 @@ def _serialize(contribution, include_detail=False):
                 for item in contribution.reviews.all()
             ],
         })
+        if contribution.completed_question_id:
+            data['official_payload'] = question_payload(
+                contribution.completed_question
+            )
     return data
 
 
@@ -177,7 +185,9 @@ class ContributionListCreateView(APIView):
                 student=student,
                 question=question,
                 contribution_type='question_correction',
-                status__in=['pending', 'needs_revision', 'processing'],
+                status__in=[
+                    'pending', 'resubmitted', 'needs_revision', 'processing',
+                ],
             ).exists()
             if duplicate:
                 return _err(40901, '你已经有一条关于此题的待处理纠错')
@@ -209,7 +219,7 @@ class ContributionDetailView(APIView):
         student = _student(request)
         contribution = ContentContribution.objects.filter(
             pk=contribution_id, student=student
-        ).prefetch_related(
+        ).select_related('completed_question').prefetch_related(
             'revisions', 'reviews', 'tag_selections', 'tag_suggestions'
         ).first()
         if contribution is None:
@@ -248,7 +258,7 @@ class ContributionResubmitView(APIView):
         _replace_tags(
             contribution, data.get('tag_ids', []), data.get('tag_suggestions', [])
         )
-        contribution.status = ContentContribution.Status.PENDING
+        contribution.status = ContentContribution.Status.RESUBMITTED
         contribution.review_note = ''
         contribution.save(update_fields=['status', 'review_note', 'updated_at'])
         ContributionReview.objects.create(
@@ -265,7 +275,10 @@ class ContributionWithdrawView(APIView):
         student = _student(request)
         contribution = ContentContribution.objects.select_for_update().filter(
             pk=contribution_id, student=student,
-            status=ContentContribution.Status.PENDING,
+            status__in=[
+                ContentContribution.Status.PENDING,
+                ContentContribution.Status.RESUBMITTED,
+            ],
         ).first()
         if contribution is None:
             return _err(40901, '当前状态不能撤回')

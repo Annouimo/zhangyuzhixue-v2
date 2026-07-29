@@ -94,12 +94,44 @@ def test_reviewer_can_publish_new_question(client, reviewer, contribution):
     )
     assert response.status_code == 302
     contribution.refresh_from_db()
-    assert contribution.status == ContentContribution.Status.COMPLETED
+    assert contribution.status == (
+        ContentContribution.Status.APPROVED_PENDING_RELEASE
+    )
     assert contribution.reviewed_by == reviewer
     assert contribution.completed_question.stem == '审核后的题干'
     assert contribution.completed_question.choice_ext.options['B'] == '$0$'
     assert contribution.completed_question.sub_questions.get().answer == 'B'
     assert list(contribution.completed_question.concept_tags.all()) == [tag]
+
+
+@pytest.mark.django_db
+def test_publish_preserves_source_name_and_question_number(
+    client, reviewer, contribution,
+):
+    tag = ConceptTag.objects.create(name='来源测试')
+    ContributionTagSelection.objects.create(
+        contribution=contribution, concept_tag=tag
+    )
+    content = payload()
+    content['source'].update({
+        'source_name': '高三第一次联考',
+        'question_number': '12',
+    })
+    client.force_login(reviewer)
+    response = client.post(
+        reverse('review_workbench:detail', args=[contribution.pk]),
+        {
+            'content_json': json.dumps(content),
+            'tags': [str(tag.pk)],
+            'note': '来源已核验。',
+            'version': contribution.updated_at.isoformat(),
+            'action': 'publish',
+        },
+    )
+    assert response.status_code == 302
+    contribution.refresh_from_db()
+    assert contribution.completed_question.source_name == '高三第一次联考'
+    assert contribution.completed_question.number == '12'
 
 
 @pytest.mark.django_db
@@ -152,6 +184,19 @@ def test_terminal_contribution_is_read_only(client, reviewer, contribution):
     )
     content = response.content.decode()
     assert '页面已切换为只读' in content
+    assert 'data-review-action=' not in content
+
+
+@pytest.mark.django_db
+def test_approved_pending_release_is_read_only(client, reviewer, contribution):
+    contribution.status = ContentContribution.Status.APPROVED_PENDING_RELEASE
+    contribution.save()
+    client.force_login(reviewer)
+    response = client.get(
+        reverse('review_workbench:detail', args=[contribution.pk])
+    )
+    content = response.content.decode()
+    assert '等待下一版题库发布' in content
     assert 'data-review-action=' not in content
 
 

@@ -86,7 +86,8 @@
       '来源：' + textValue(source.source_type),
       '年份：' + textValue(source.year),
       '地区：' + textValue(source.region),
-      '题号：' + textValue(source.number),
+      '试卷或资料：' + textValue(source.source_name || source.exam_name),
+      '题号：' + textValue(source.question_number || source.number),
       '难度：' + textValue(payload.difficulty),
       '计算量：' + textValue(payload.calculation)
     ].forEach(function (value) { meta.appendChild(make('span', '', value)); });
@@ -219,7 +220,10 @@
       var yearValue = structured.querySelector('[data-field="year"]').value;
       source.year = yearValue ? Number(yearValue) : null;
       source.region = structured.querySelector('[data-field="region"]').value;
-      source.number = structured.querySelector('[data-field="number"]').value;
+      source.source_name = structured.querySelector('[data-field="source_name"]').value;
+      source.question_number = structured.querySelector('[data-field="question_number"]').value;
+      delete source.exam_name;
+      delete source.number;
       currentPayload.source = source;
       currentPayload.difficulty = structured.querySelector('[data-field="difficulty"]').value;
       currentPayload.calculation = structured.querySelector('[data-field="calculation"]').value;
@@ -286,7 +290,8 @@
       addField(sourceGrid, '来源', select([['gaokao', '高考'], ['mock_exam', '模拟考试'], ['school_exam', '校内考试'], ['textbook', '教材'], ['self_created', '原创'], ['other', '其他']], source.source_type || 'other', 'source_type'));
       addField(sourceGrid, '年份', input('number', source.year, 'year'));
       addField(sourceGrid, '地区', input('text', source.region, 'region'));
-      addField(sourceGrid, '题号', input('text', source.number, 'number'));
+      addField(sourceGrid, '试卷或资料名称', input('text', source.source_name || source.exam_name, 'source_name'));
+      addField(sourceGrid, '题号', input('text', source.question_number || source.number, 'question_number'));
       structured.appendChild(sourceGrid);
       var optionsSection = make('section', 'editor-section');
       var optionsList = make('div', 'options-list');

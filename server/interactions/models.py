@@ -305,9 +305,11 @@ class ContentContribution(models.Model):
 
     class Status(models.TextChoices):
         PENDING = 'pending', '待审核'
+        RESUBMITTED = 'resubmitted', '修改后待复审'
         NEEDS_REVISION = 'needs_revision', '待修改'
         PROCESSING = 'processing', '处理中'
-        COMPLETED = 'completed', '已完成'
+        APPROVED_PENDING_RELEASE = 'approved_pending_release', '已通过，待题库发布'
+        COMPLETED = 'completed', '已发布'
         REJECTED = 'rejected', '未采纳'
         WITHDRAWN = 'withdrawn', '已撤回'
 
@@ -335,6 +337,9 @@ class ContentContribution(models.Model):
         related_name='reviewed_content_contributions', verbose_name='审核人',
     )
     reviewed_at = models.DateTimeField('审核时间', null=True, blank=True)
+    published_qbank_version = models.PositiveIntegerField(
+        '发布题库版本', null=True, blank=True
+    )
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
@@ -440,6 +445,7 @@ class ContributionReview(models.Model):
         NEEDS_REVISION = 'needs_revision', '打回修改'
         PROCESSING = 'processing', '进入处理'
         COMPLETED = 'completed', '处理完成'
+        PUBLISHED = 'published', '已发布到题库'
         REJECTED = 'rejected', '未采纳'
         WITHDRAWN = 'withdrawn', '已撤回'
 

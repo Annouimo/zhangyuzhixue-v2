@@ -31,6 +31,28 @@ class TestBuildAssets:
         if os.path.exists(output):
             os.unlink(output)
 
+    def test_marks_approved_contributions_with_published_version(self, db):
+        from django.contrib.auth.models import User
+        from accounts.models import Student
+        from interactions.models import ContentContribution
+        from qbank.models import BaseQuestion
+        from scripts.build_assets import mark_published_contributions
+
+        student = Student.objects.create(user=User.objects.create_user('builder'))
+        question = BaseQuestion.objects.create(
+            question_type='fill', stem='待发布题目'
+        )
+        contribution = ContentContribution.objects.create(
+            student=student,
+            contribution_type='new_question',
+            completed_question=question,
+            status=ContentContribution.Status.APPROVED_PENDING_RELEASE,
+        )
+        assert mark_published_contributions(42) == 1
+        contribution.refresh_from_db()
+        assert contribution.status == ContentContribution.Status.COMPLETED
+        assert contribution.published_qbank_version == 42
+
     def test_build_assets_output_is_gzipped(self, db):
         """构建产物是有效的 .db.gz 文件"""
         output = build_database(

@@ -91,9 +91,9 @@ th { background: #f8f9fb; color: var(--muted); font-size: 12px; }
 .pagination a { color: var(--blue); text-decoration: none; }
 
 .status { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #edf1f5; color: #465568; font-size: 12px; white-space: nowrap; }
-.status-pending, .status-needs_revision { background: var(--amber-soft); color: var(--amber); }
+.status-pending, .status-resubmitted, .status-needs_revision { background: var(--amber-soft); color: var(--amber); }
 .status-processing { background: var(--blue-soft); color: var(--blue); }
-.status-completed { background: var(--green-soft); color: var(--green); }
+.status-approved_pending_release, .status-completed { background: var(--green-soft); color: var(--green); }
 .status-rejected, .status-withdrawn { background: var(--red-soft); color: var(--red); }
 
 .detail-nav { display: flex; justify-content: space-between; margin-bottom: 12px; }

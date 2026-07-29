@@ -70,13 +70,16 @@ def queue_view(request):
     if status_filter == 'active':
         queryset = queryset.filter(status__in=[
             ContentContribution.Status.PENDING,
+            ContentContribution.Status.RESUBMITTED,
             ContentContribution.Status.PROCESSING,
         ])
     elif status_filter in ContentContribution.Status.values:
         queryset = queryset.filter(status=status_filter)
     else:
         status_filter = 'active'
-        queryset = queryset.filter(status__in=['pending', 'processing'])
+        queryset = queryset.filter(
+            status__in=['pending', 'resubmitted', 'processing']
+        )
     if type_filter in ContentContribution.ContributionType.values:
         queryset = queryset.filter(contribution_type=type_filter)
     else:
@@ -150,6 +153,7 @@ def detail_view(request, contribution_id):
     }
     form = ContributionReviewForm(request.POST or None, initial=initial)
     is_terminal = contribution.status in {
+        ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
         ContentContribution.Status.WITHDRAWN,
@@ -182,11 +186,14 @@ def detail_view(request, contribution_id):
             except ValueError as exc:
                 form.add_error(None, str(exc))
             else:
-                messages.success(request, '审核通过，正式题目已经保存。')
+                messages.success(
+                    request, '审核通过，正式题目已保存并等待下一版题库发布。'
+                )
                 return redirect('review_workbench:detail', contribution_id=contribution.pk)
 
     active_queryset = ContentContribution.objects.filter(status__in=[
         ContentContribution.Status.PENDING,
+        ContentContribution.Status.RESUBMITTED,
         ContentContribution.Status.PROCESSING,
     ]).order_by('-updated_at', '-pk')
     active_ids = list(active_queryset.values_list('pk', flat=True))
@@ -227,6 +234,7 @@ def _apply_status_action(request, contribution_id, version, action, note):
     if version != contribution.updated_at.isoformat():
         raise ValueError('该投稿已被其他人更新，请刷新页面后重新处理。')
     if contribution.status in {
+        ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
         ContentContribution.Status.WITHDRAWN,
@@ -255,6 +263,7 @@ def _apply_action(request, contribution_id, form, action):
     if form.cleaned_data['version'] != contribution.updated_at.isoformat():
         raise ValueError('该投稿已被其他人更新，请刷新页面后重新处理。')
     if contribution.status in {
+        ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
         ContentContribution.Status.WITHDRAWN,
@@ -287,7 +296,7 @@ def _apply_action(request, contribution_id, form, action):
             form.cleaned_data['content_json'], tags, question=target
         )
         contribution.completed_question = question
-        contribution.status = ContentContribution.Status.COMPLETED
+        contribution.status = ContentContribution.Status.APPROVED_PENDING_RELEASE
         review_action = ContributionReview.Action.COMPLETED
     else:
         raise ValueError('未知的审核操作。')

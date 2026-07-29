@@ -46,6 +46,9 @@ class BaseQuestion(models.Model):
     year = models.IntegerField('年份', null=True, blank=True)
     exam_type = models.CharField('考试类型', max_length=32, blank=True, default='')
     region = models.CharField('地区', max_length=32, blank=True, default='')
+    source_name = models.CharField(
+        '试卷或资料名称', max_length=255, blank=True, default=''
+    )
     number = models.CharField('题号', max_length=16, blank=True, default='')
     question_type = models.CharField(
         '题型', max_length=16, choices=QUESTION_TYPE_CHOICES
