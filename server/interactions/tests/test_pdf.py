@@ -8,7 +8,9 @@ from rest_framework.test import APIClient
 
 from accounts.models import Student
 from interactions.models import CustomPaper
+from interactions.models import CustomPaperQuestion
 from interactions.pdf_views import _check_sig, _make_sig, _prepare_images
+from qbank.models import BaseQuestion, SubQuestion
 
 
 @pytest.fixture
@@ -61,6 +63,7 @@ class TestPdfRequestToken:
         assert resp.data['code'] == 0
         assert 'sid' in resp.data['data']['url']
         assert 'exp' in resp.data['data']['url']
+        assert resp.data['data']['expire_in'] == 1800
 
     def test_request_token_no_source_id(self, auth_client):
         resp = auth_client.post(reverse('pdf-request-token'), {
@@ -140,6 +143,7 @@ class TestPdfView:
         url = self._build_url(1, 'paper', student_user.student.pk, expire_offset=-999)
         resp = api_client.get(url)
         assert resp.status_code == 403
+        assert '打印链接已过期' in resp.content.decode()
 
     def test_view_invalid_sig(self, api_client, settings):
         settings.ALLOWED_HOSTS = ["*"]
@@ -157,3 +161,30 @@ class TestPdfView:
         url = self._build_url(99999, 'paper', student_user.student.pk)
         resp = api_client.get(url)
         assert resp.status_code == 404
+
+    def test_view_renders_print_workspace(
+        self, api_client, student_user, sample_paper, settings,
+    ):
+        settings.ALLOWED_HOSTS = ["*"]
+        question = BaseQuestion.objects.create(
+            question_type='fill', stem='求 $1+1$ 的值。', default_score=5,
+        )
+        SubQuestion.objects.create(
+            question=question, answer='2', sort_order=1,
+        )
+        CustomPaperQuestion.objects.create(
+            paper=sample_paper, question=question, sort_order=1,
+        )
+        url = self._build_url(
+            sample_paper.pk, 'paper', student_user.student.pk,
+        )
+
+        resp = api_client.get(url)
+
+        assert resp.status_code == 200
+        html = resp.content.decode()
+        assert '版式' in html
+        assert '输出内容' in html
+        assert '打印 / 保存 PDF' in html
+        assert '参考答案' in html
+        assert '2</div>' in html

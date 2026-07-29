@@ -33,6 +33,7 @@ def _err(code, message, http_status=400):
 
 
 PDF_KEY = settings.PDF_SECRET_KEY or ''
+PDF_LINK_TTL_SECONDS = 30 * 60
 
 
 def _make_sig(source_id, source_type, student_id, expire):
@@ -81,12 +82,12 @@ def pdf_request_token(request):
     else:
         return _err(40201, '无效的 source_type')
 
-    expire = int(time.time()) + 300
+    expire = int(time.time()) + PDF_LINK_TTL_SECONDS
     sig = _make_sig(source_id, source_type, student.pk, expire)
 
     return _ok(data={
         'sig': sig,
-        'expire_in': 300,
+        'expire_in': PDF_LINK_TTL_SECONDS,
         'url': '/pdf/view/?pid={0}&type={1}&sid={2}&exp={3}&sig={4}'.format(
             source_id, source_type, student.pk, expire, sig),
     })
@@ -238,6 +239,7 @@ def _build_sections(qs):
             'stem': full_stem,
             'options': opts,
             'images': imgs,
+            'answers': [sq.answer for sq in sq_map.get(q.pk, []) if sq.answer],
         })
 
     return sections
@@ -266,7 +268,7 @@ def pdf_view(request):
         return HttpResponseForbidden('参数格式错误')
 
     if expire < int(time.time()):
-        return HttpResponseForbidden('链接已过期，请重新下载')
+        return render(request, 'pdf/link_expired.html', status=403)
 
     if not _check_sig(sig, source_id, source_type, student_id, expire):
         return HttpResponseForbidden('签名无效')

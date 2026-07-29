@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title }} — 章鱼智学</title>
 <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
 <link rel="preload" href="{% static 'fonts/NotoSerifCJKsc-Regular.otf' %}" as="font" type="font/otf" crossorigin>
@@ -13,7 +14,7 @@
       {left: '$', right: '$', display: false}
     ],
     throwOnError: false
-  });"></script>
+  }); window.pdfMathReadyCalled = true; if (window.pdfMathReady) window.pdfMathReady();"></script>
 <style>
 @font-face {
   font-family: 'Noto Serif CJK SC';
@@ -30,7 +31,9 @@
 body {
   font-family: 'Noto Serif CJK SC', 'SimSun', 'STSong', serif;
   font-size: 11pt; line-height: 1.6; text-align: justify; color: #1a1a1a;
+  background: #eef1f5;
 }
+.paper-wrapper { width: 210mm; min-height: 297mm; margin: 84px auto 32px; padding: 2.54cm 3.17cm; background: white; box-shadow: 0 4px 20px rgba(0,0,0,.12); }
 .title-block { text-align: center; margin-bottom: 1.5em; padding-bottom: 0.8em; border-bottom: 0.5pt solid #333; }
 .paper-title { font-family: 'Noto Serif CJK SC', 'SimHei', 'Microsoft YaHei', sans-serif; font-size: 16pt; font-weight: 700; letter-spacing: 3pt; }
 .section { margin-bottom: 0.5em; }
@@ -62,19 +65,50 @@ body {
 .figure.option-grid img { width: 100%; max-width: 420px; }
 .katex { font-size: 1.08em; }
 .katex-display { margin: 0.4em 0; text-align: center; }
-@media print { p { orphans: 3; widows: 3; } }
-.print-status {
-  position: fixed; right: 16px; bottom: 16px; z-index: 10;
-  padding: 8px 12px; border-radius: 6px; background: #fff7df;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.16); color: #765300;
-  font: 14px/1.4 'Microsoft YaHei', sans-serif;
+.answers { display: none; margin-top: 1.5em; padding-top: 1em; border-top: 1px solid #999; }
+.answers h2 { margin-bottom: .6em; font-size: 13pt; }
+.answer-item { margin: .25em 0; }
+body.show-answers .answers { display: block; }
+body.compact { font-size: 10pt; line-height: 1.42; }
+body.compact .paper-wrapper { padding: 1.8cm 2.2cm; }
+body.compact .question { margin: .15em 0 .3em; }
+body.compact .section-title { margin-top: .65em; }
+.toolbar { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 20px; background: white; border-bottom: 1px solid #d7dce2; font: 14px/1.4 "Microsoft YaHei", sans-serif; }
+.brand { margin-right: auto; font-weight: 700; color: #155eef; }
+.control { display: flex; align-items: center; gap: 7px; }
+select, button { min-height: 36px; border: 1px solid #b8c0cc; border-radius: 6px; background: white; padding: 0 10px; font: inherit; }
+button { border-color: #155eef; background: #155eef; color: white; cursor: pointer; font-weight: 600; }
+button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
+.progress-panel { position: fixed; right: 18px; bottom: 18px; z-index: 30; width: min(330px, calc(100vw - 36px)); padding: 12px 14px; border-radius: 8px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,.18); font: 13px/1.4 "Microsoft YaHei", sans-serif; }
+.progress-track { height: 7px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #e7eaf0; }
+.progress-bar { width: 0; height: 100%; background: #155eef; transition: width .2s ease; }
+.progress-panel.ready .progress-bar { background: #16803c; }
+.load-warning { display: none; margin-top: 7px; color: #9a5b00; }
+@media (max-width: 720px) { .toolbar { align-items: stretch; flex-wrap: wrap; } .brand { width: 100%; } .paper-wrapper { width: 100%; margin-top: 132px; padding: 24px 18px; box-shadow: none; } }
+@media print {
+  body { background: white; }
+  p { orphans: 3; widows: 3; }
+  .toolbar, .progress-panel { display: none !important; }
+  .paper-wrapper { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 }
-.print-status.ready { background: #e8f7ef; color: #17633a; }
-@media print { .print-status { display: none; } }
 </style>
 </head>
 <body>
-<div class="print-status" id="print-status">正在加载印刷字体，首次打开可能稍慢…</div>
+<div class="toolbar">
+  <div class="brand">章鱼智学</div>
+  <label class="control">版式
+    <select id="layout-control"><option value="standard">标准</option><option value="compact">紧凑</option></select>
+  </label>
+  <label class="control">输出内容
+    <select id="content-control"><option value="questions">仅试题</option><option value="answers">附答案</option></select>
+  </label>
+  <button id="print-button" type="button" disabled>正在准备…</button>
+</div>
+<div class="progress-panel" id="progress-panel">
+  <div id="progress-text">正在准备试卷 0%</div>
+  <div class="progress-track"><div class="progress-bar" id="progress-bar"></div></div>
+  <div class="load-warning" id="load-warning"></div>
+</div>
 <div class="paper-wrapper">
 <div class="paper">
 
@@ -104,21 +138,60 @@ body {
 </div>
 {% endfor %}
 
+<section class="answers">
+  <h2>参考答案</h2>
+  {% for section in sections %}
+    {% for question in section.questions %}
+      <div class="answer-item"><strong>{{ question.number }}.</strong> {% if question.answers %}{{ question.answers|join:" ；" }}{% else %}暂无参考答案{% endif %}</div>
+    {% endfor %}
+  {% endfor %}
+</section>
+
 </div>
 </div>
 <script>
-Promise.all([
-  document.fonts ? document.fonts.ready : Promise.resolve(),
-  new Promise(function (resolve) {
-    if (document.readyState === 'complete') resolve();
-    else window.addEventListener('load', resolve, {once: true});
-  })
-]).then(function () {
-  var status = document.getElementById('print-status');
-  status.textContent = '试卷已就绪，可以打印';
-  status.classList.add('ready');
-  setTimeout(function () { status.hidden = true; }, 3000);
-});
+(function () {
+  var layout = document.getElementById('layout-control');
+  var content = document.getElementById('content-control');
+  var button = document.getElementById('print-button');
+  var panel = document.getElementById('progress-panel');
+  var text = document.getElementById('progress-text');
+  var bar = document.getElementById('progress-bar');
+  var warning = document.getElementById('load-warning');
+  layout.addEventListener('change', function () { document.body.classList.toggle('compact', layout.value === 'compact'); });
+  content.addEventListener('change', function () { document.body.classList.toggle('show-answers', content.value === 'answers'); });
+  button.addEventListener('click', function () { window.print(); });
+
+  var images = Array.prototype.slice.call(document.images);
+  var total = 3 + images.length;
+  var completed = 0;
+  var failedImages = 0;
+  function update(label) {
+    completed += 1;
+    var percent = Math.round(completed / total * 100);
+    bar.style.width = percent + '%';
+    text.textContent = '正在准备试卷 ' + percent + '% · ' + label;
+    if (completed === total) {
+      panel.classList.add('ready');
+      text.textContent = failedImages ? '试卷已就绪，' + failedImages + ' 张图片加载失败' : '试卷已就绪';
+      button.disabled = false;
+      button.textContent = '打印 / 保存 PDF';
+      if (failedImages) { warning.style.display = 'block'; warning.textContent = '可以继续打印，或刷新页面重试图片。'; }
+    }
+  }
+  if (document.fonts) document.fonts.ready.then(function () { update('字体已加载'); }); else update('使用系统字体');
+  window.pdfMathReady = function () { update('公式已渲染'); };
+  if (window.pdfMathReadyCalled) window.pdfMathReady();
+  images.forEach(function (img) {
+    if (img.complete) { if (!img.naturalWidth) failedImages += 1; update('图片 ' + (completed - 1) + '/' + images.length); }
+    else {
+      img.addEventListener('load', function () { update('图片加载中'); }, {once: true});
+      img.addEventListener('error', function () { failedImages += 1; update('图片加载中'); }, {once: true});
+    }
+  });
+  if (document.readyState === 'complete') update('页面已排版'); else window.addEventListener('load', function () { update('页面已排版'); }, {once: true});
+  setTimeout(function () { if (!window.pdfMathReadyCalled) { window.pdfMathReadyCalled = true; window.pdfMathReady(); } }, 8000);
+})();
 </script>
 </body>
 </html>
