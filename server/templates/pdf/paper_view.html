@@ -4,21 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ title }} — 章鱼智学</title>
+<script>window.pdfPerformanceStartedAt = performance.now();</script>
 <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
-<link rel="preload" href="{% static 'fonts/NotoSerifCJKsc-Regular.otf' %}" as="font" type="font/otf" crossorigin>
+<link rel="preload" href="{% static 'fonts/NotoSerifCJKsc-Regular.subset.woff2' %}" as="font" type="font/woff2" crossorigin>
 <script defer src="{% static 'katex/katex.min.js' %}"></script>
 <script defer src="{% static 'katex/contrib/auto-render.min.js' %}"
-  onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    throwOnError: false
-  }); window.pdfMathReadyCalled = true; if (window.pdfMathReady) window.pdfMathReady();"></script>
+  onload="window.renderPdfMath()"></script>
 <style>
 @font-face {
   font-family: 'Noto Serif CJK SC';
-  src: url('{% static "fonts/NotoSerifCJKsc-Regular.otf" %}') format('opentype');
+  src: url('{% static "fonts/NotoSerifCJKsc-Regular.subset.woff2" %}') format('woff2');
   font-weight: 400;
   font-style: normal;
 }
@@ -613,9 +608,12 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
     printDocument();
   });
 
-  var images = Array.prototype.slice.call(document.images);
-  var total = 3 + images.length;
-  var completed = 0;
+  var performanceStartedAt = window.pdfPerformanceStartedAt || 0;
+  var images = Array.prototype.slice.call(document.querySelectorAll('.paper-wrapper img'));
+  var taskIds = ['font', 'math', 'layout'].concat(images.map(function (_, index) { return 'image-' + index; }));
+  var completedTasks = {};
+  var taskDurations = {};
+  var mathRenderStarted = false;
   var failedImages = 0;
   var preparationFinished = false;
   var preparationHintTimer = null;
@@ -626,33 +624,70 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
       openDialog(preparationDialog);
     }, 3000);
   }
-  function update(label) {
-    completed += 1;
-    var percent = Math.min(100, Math.round(completed / total * 100));
+  function resourceSummary() {
+    var resources = performance.getEntriesByType ? performance.getEntriesByType('resource') : [];
+    function summarize(matches) {
+      var entries = resources.filter(matches);
+      return {
+        count: entries.length,
+        durationMs: Math.round(entries.reduce(function (sum, entry) { return sum + entry.duration; }, 0)),
+        transferBytes: entries.reduce(function (sum, entry) { return sum + (entry.transferSize || 0); }, 0),
+        cachedCount: entries.filter(function (entry) { return entry.transferSize === 0; }).length
+      };
+    }
+    return {
+      font: summarize(function (entry) { return entry.name.indexOf('NotoSerifCJKsc-Regular.subset.woff2') !== -1; }),
+      katex: summarize(function (entry) { return entry.name.indexOf('/katex/') !== -1; }),
+      images: summarize(function (entry) { return entry.initiatorType === 'img'; })
+    };
+  }
+  function finishTask(taskId, label) {
+    if (completedTasks[taskId]) return;
+    completedTasks[taskId] = true;
+    taskDurations[taskId] = Math.round(performance.now() - performanceStartedAt);
+    var completed = Object.keys(completedTasks).length;
+    var percent = Math.round(completed / taskIds.length * 100);
     buttonLabel.textContent = '准备中 ' + percent + '%';
     button.title = label;
     preparationStatus.textContent = label + '（' + percent + '%）';
-    if (completed >= total && !preparationFinished) {
+    if (completed === taskIds.length && !preparationFinished) {
       preparationFinished = true;
       if (preparationHintTimer) clearTimeout(preparationHintTimer);
       closeDialog(preparationDialog);
       button.disabled = false;
       buttonLabel.textContent = failedImages ? '打印（缺 ' + failedImages + ' 张图）' : '打印 / 保存 PDF';
       button.title = failedImages ? '部分图片加载失败，可以继续打印或刷新页面重试' : '打印或保存为 PDF';
+      console.info('[PDF Performance]', {
+        totalMs: Math.round(performance.now() - performanceStartedAt),
+        taskCompletedAtMs: taskDurations,
+        resources: resourceSummary()
+      });
     }
   }
-  if (document.fonts) document.fonts.ready.then(function () { update('字体已加载'); }); else update('使用系统字体');
-  window.pdfMathReady = function () { update('公式已渲染'); };
-  if (window.pdfMathReadyCalled) window.pdfMathReady();
-  images.forEach(function (img) {
-    if (img.complete) { if (!img.naturalWidth) failedImages += 1; update('图片 ' + (completed - 1) + '/' + images.length); }
+  if (document.fonts) document.fonts.ready.then(function () { finishTask('font', '字体已加载'); }); else finishTask('font', '使用系统字体');
+  window.renderPdfMath = function () {
+    if (mathRenderStarted) return;
+    mathRenderStarted = true;
+    renderMathInElement(document.querySelector('.paper-wrapper'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+    finishTask('math', '公式已渲染');
+  };
+  images.forEach(function (img, index) {
+    var taskId = 'image-' + index;
+    var label = '图片 ' + (index + 1) + '/' + images.length;
+    if (img.complete) { if (!img.naturalWidth) failedImages += 1; finishTask(taskId, label); }
     else {
-      img.addEventListener('load', function () { update('图片加载中'); }, {once: true});
-      img.addEventListener('error', function () { failedImages += 1; update('图片加载中'); }, {once: true});
+      img.addEventListener('load', function () { finishTask(taskId, label); }, {once: true});
+      img.addEventListener('error', function () { failedImages += 1; finishTask(taskId, label); }, {once: true});
     }
   });
-  if (document.readyState === 'complete') update('页面已排版'); else window.addEventListener('load', function () { update('页面已排版'); }, {once: true});
-  setTimeout(function () { if (!window.pdfMathReadyCalled) { window.pdfMathReadyCalled = true; window.pdfMathReady(); } }, 8000);
+  if (document.readyState === 'complete') finishTask('layout', '页面已排版'); else window.addEventListener('load', function () { finishTask('layout', '页面已排版'); }, {once: true});
+  setTimeout(function () { finishTask('math', '公式组件加载超时'); }, 8000);
 })();
 </script>
 </body>
