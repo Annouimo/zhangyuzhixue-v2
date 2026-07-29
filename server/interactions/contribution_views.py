@@ -34,42 +34,12 @@ def _student(request):
 
 
 def _question_snapshot(question):
-    try:
-        options = question.choice_ext.options
-    except BaseQuestion.choice_ext.RelatedObjectDoesNotExist:
-        options = {}
-    return {
-        'id': question.pk,
-        'year': question.year,
-        'exam_type': question.exam_type,
-        'region': question.region,
-        'source_name': question.source_name,
-        'number': question.number,
-        'question_type': question.question_type,
-        'stem': question.stem,
-        'options': options,
-        'sub_questions': [
-            {
-                'id': item.pk,
-                'stem': item.stem or '',
-                'answer': item.answer,
-                'explanation': item.explanation,
-                'sort_order': item.sort_order,
-                'solution_methods': [
-                    {
-                        'id': method.pk,
-                        'method_name': method.method_name or '',
-                        'source': method.source,
-                        'step_count': method.solution_steps.count(),
-                    }
-                    for method in item.solution_methods.all()
-                ],
-            }
-            for item in question.sub_questions.all()
-        ],
-        'tags': list(question.concept_tags.values_list('name', flat=True)),
-        'tag_ids': list(question.concept_tags.values_list('pk', flat=True)),
-    }
+    snapshot = question_payload(question)
+    snapshot['id'] = question.pk
+    snapshot['tag_ids'] = list(
+        question.concept_tags.values_list('pk', flat=True)
+    )
+    return snapshot
 
 
 def _serialize(contribution, include_detail=False):
@@ -77,10 +47,12 @@ def _serialize(contribution, include_detail=False):
     data = {
         'id': contribution.pk,
         'contribution_type': contribution.contribution_type,
+        'content_origin': contribution.content_origin,
         'status': contribution.status,
         'question_id': contribution.question_id,
         'target_sub_question_id': contribution.target_sub_question_id,
         'completed_question_id': contribution.completed_question_id,
+        'completed_solution_method_id': contribution.completed_solution_method_id,
         'published_qbank_version': contribution.published_qbank_version,
         'review_note': contribution.review_note,
         'revision_number': latest.revision_number if latest else 0,
@@ -93,7 +65,7 @@ def _serialize(contribution, include_detail=False):
             payload.get('stem', '')[:100]
             if contribution.contribution_type == 'new_question'
             else payload.get('method_name', '')[:100]
-            if contribution.contribution_type == 'solution_contribution'
+            if contribution.contribution_type == 'new_solution'
             else payload.get('description', '')[:100]
         )
     if include_detail:
@@ -228,6 +200,7 @@ class ContributionListCreateView(APIView):
         contribution = ContentContribution.objects.create(
             student=student,
             contribution_type=data['contribution_type'],
+            content_origin=data.get('content_origin'),
             question=question,
             target_sub_question=target_sub_question,
         )
@@ -278,6 +251,7 @@ class ContributionResubmitView(APIView):
             return _err(40901, '当前状态不能重新提交')
         incoming = request.data.copy()
         incoming['contribution_type'] = contribution.contribution_type
+        incoming['content_origin'] = contribution.content_origin
         incoming['question_id'] = contribution.question_id
         incoming['target_sub_question_id'] = contribution.target_sub_question_id
         serializer = ContributionWriteSerializer(data=incoming)

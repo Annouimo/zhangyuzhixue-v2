@@ -84,9 +84,15 @@ class _ContributionListPageState extends State<ContributionListPage>
               ),
               _ContributionTypeTile(
                 icon: Icons.account_tree_outlined,
-                title: '投稿已有题目的解法',
-                subtitle: '为题库中的具体小题补充一种分步解法',
-                onTap: () => Navigator.pop(context, 'solution'),
+                title: '收录外部解法',
+                subtitle: '为题库中的具体小题收录资料中的分步解法',
+                onTap: () => Navigator.pop(context, 'solution_external'),
+              ),
+              _ContributionTypeTile(
+                icon: Icons.edit_note_rounded,
+                title: '投稿原创解法',
+                subtitle: '为题库中的具体小题提交本人原创的分步解法',
+                onTap: () => Navigator.pop(context, 'solution_original'),
               ),
             ],
           ),
@@ -161,7 +167,7 @@ class _ContributionListPageState extends State<ContributionListPage>
     final status = item['status'] as String? ?? 'pending';
     final type = switch (item['contribution_type']) {
       'question_correction' => '题目纠错',
-      'solution_contribution' => '解法投稿',
+      'new_solution' => '解法投稿',
       _ => '新题投稿',
     };
     return Semantics(

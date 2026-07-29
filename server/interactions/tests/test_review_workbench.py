@@ -47,6 +47,7 @@ def contribution(db):
     item = ContentContribution.objects.create(
         student=student,
         contribution_type=ContentContribution.ContributionType.NEW_QUESTION,
+        content_origin=ContentContribution.ContentOrigin.ORIGINAL,
     )
     ContributionRevision.objects.create(
         contribution=item, revision_number=1, normalized_payload=payload()
@@ -102,6 +103,8 @@ def test_reviewer_can_publish_new_question(client, reviewer, contribution):
     assert contribution.completed_question.stem == '审核后的题干'
     assert contribution.completed_question.choice_ext.options['B'] == '$0$'
     assert contribution.completed_question.sub_questions.get().answer == 'B'
+    assert contribution.completed_question.content_origin == 'original'
+    assert contribution.completed_question.contributed_by == contribution.student
     assert list(contribution.completed_question.concept_tags.all()) == [tag]
     assert list(
         contribution.tag_selections.values_list('concept_tag', flat=True)
@@ -274,8 +277,9 @@ def test_reviewer_can_append_solution_without_changing_existing_method(
         sub_question=sub, method_name='原解法', sort_order=1,
     )
     contribution.contribution_type = (
-        ContentContribution.ContributionType.SOLUTION_CONTRIBUTION
+        ContentContribution.ContributionType.NEW_SOLUTION
     )
+    contribution.content_origin = ContentContribution.ContentOrigin.ORIGINAL
     contribution.question = question
     contribution.target_sub_question = sub
     contribution.save()
@@ -298,4 +302,8 @@ def test_reviewer_can_append_solution_without_changing_existing_method(
     assert SolutionMethod.objects.filter(pk=existing.pk).exists()
     added = SolutionMethod.objects.get(method_name='新解法')
     assert added.sub_question == sub
+    assert added.content_origin == 'original'
+    assert added.contributed_by == contribution.student
+    contribution.refresh_from_db()
+    assert contribution.completed_solution_method == added
     assert SolutionStep.objects.get(method=added).title == '化简'
