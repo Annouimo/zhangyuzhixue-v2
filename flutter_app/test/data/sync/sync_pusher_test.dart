@@ -201,6 +201,7 @@ void main() {
       expect(batch.single, {
         'entity_type': 'step_feedback',
         'local_id': 42,
+        'client_ref': 1,
         'data': {'step_number': 1, 'status': 'correct'},
       });
     });
