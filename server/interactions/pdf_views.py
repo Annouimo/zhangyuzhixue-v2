@@ -2,6 +2,7 @@
 import hashlib
 import hmac
 import json
+import re
 import time
 from collections import defaultdict
 
@@ -14,7 +15,7 @@ from accounts.permissions import IsStudent
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
-from qbank.models import ChoiceExt, SubQuestion
+from qbank.models import ChoiceExt, SolutionMethod, SolutionStep, SubQuestion
 from accounts.throttles import PdfTokenRateThrottle
 
 
@@ -163,6 +164,26 @@ def _chunked(items, size):
     return [items[index:index + size] for index in range(0, len(items), size)]
 
 
+def _content_warnings(text, question_number):
+    warnings = []
+    if text.count('$') % 2:
+        warnings.append('第 {0} 题可能存在未闭合的公式定界符'.format(question_number))
+    stripped = re.sub(r'\$[^$]*\$', '', text)
+    if re.search(r'\\(?:alpha|beta|gamma|underline|dfrac|sqrt)\b', stripped):
+        warnings.append('第 {0} 题可能存在未渲染的 LaTeX'.format(question_number))
+    if re.search(r'(?:第|条件|由|则|求|为|当|如果)\s*$', text.strip()):
+        warnings.append('第 {0} 题内容可能不完整'.format(question_number))
+    return warnings
+
+
+def _answer_sheet_height(question):
+    score = question.get('score') or 0
+    sub_count = max(1, len(question.get('sub_questions', [])))
+    if score >= 15 or sub_count >= 3:
+        return 'full'
+    return 'half'
+
+
 def _build_sections(qs):
     """组装试卷 sections，同时处理选项 dict→list 转换"""
     sections = []
@@ -177,10 +198,25 @@ def _build_sections(qs):
         ce_map[ce.question_id] = ce
 
     sq_map = defaultdict(list)
-    for sq in SubQuestion.objects.filter(
+    sub_questions = list(SubQuestion.objects.filter(
         question_id__in=q_ids
-    ).order_by('sort_order'):
+    ).order_by('sort_order'))
+    for sq in sub_questions:
         sq_map[sq.question_id].append(sq)
+
+    sub_ids = [sq.pk for sq in sub_questions]
+    method_map = defaultdict(list)
+    methods = list(SolutionMethod.objects.filter(
+        sub_question_id__in=sub_ids
+    ).order_by('sort_order'))
+    for method in methods:
+        method_map[method.sub_question_id].append(method)
+
+    step_map = defaultdict(list)
+    for step in SolutionStep.objects.filter(
+        method_id__in=[method.pk for method in methods]
+    ).order_by('step_number'):
+        step_map[step.method_id].append(step)
 
     seen_types = []
     question_counter = 0
@@ -245,17 +281,64 @@ def _build_sections(qs):
         # stem 中的换行在 HTML <p> 内不可见，转成 <br>
         full_stem = full_stem.replace('\n', '<br>')
 
-        answers = [sq.answer for sq in sq_map.get(q.pk, []) if sq.answer]
-        sections[-1]['questions'].append({
+        question_subs = sq_map.get(q.pk, [])
+        answers = [sq.answer for sq in question_subs if sq.answer]
+        sub_details = []
+        for sub_index, sq in enumerate(question_subs, start=1):
+            method_details = []
+            for method_index, method in enumerate(
+                method_map.get(sq.pk, []), start=1
+            ):
+                steps = [{
+                    'number': step.step_number,
+                    'title': step.title,
+                    'content_html': _answer_to_html(step.content),
+                } for step in step_map.get(method.pk, []) if step.content]
+                if steps:
+                    method_details.append({
+                        'title': method.method_name or '解法 {0}'.format(
+                            method_index),
+                        'show_title': bool(method.method_name) or len(
+                            method_map.get(sq.pk, [])) > 1,
+                        'steps': steps,
+                    })
+            sub_details.append({
+                'number': sub_index,
+                'show_number': len(question_subs) > 1,
+                'answer_html': _answer_to_html(sq.answer),
+                'explanation_html': _answer_to_html(sq.explanation),
+                'methods': method_details,
+                'has_detail': bool(method_details or sq.explanation),
+            })
+
+        question_data = {
             'number': question_counter,
             'stem': full_stem,
             'options': opts,
             'images': imgs,
+            'score': q.default_score,
+            'sub_questions': sub_details,
             'answers': answers,
             'answer_html': '<br>'.join(
                 _answer_to_html(answer) for answer in answers
             ),
-        })
+        }
+        question_data['answer_sheet_height'] = _answer_sheet_height(
+            question_data)
+        question_data['has_detailed_answer'] = any(
+            sub['has_detail'] for sub in sub_details
+        )
+        warning_text = [q.stem or '']
+        for sq in question_subs:
+            warning_text.extend([sq.stem or '', sq.answer, sq.explanation])
+            for method in method_map.get(sq.pk, []):
+                warning_text.extend(
+                    step.content for step in step_map.get(method.pk, [])
+                )
+        question_data['warnings'] = list(dict.fromkeys(_content_warnings(
+            '\n'.join(warning_text), question_counter
+        )))
+        sections[-1]['questions'].append(question_data)
 
     return sections
 
@@ -268,6 +351,12 @@ def _build_answer_sections(sections):
         'fill_questions': by_type.get('fill', []),
         'solution_questions': by_type.get('solution', []),
     }
+
+
+def _build_print_warnings(sections):
+    return [warning for section in sections
+            for question in section['questions']
+            for warning in question['warnings']]
 
 
 def pdf_view(request):
@@ -321,6 +410,7 @@ def pdf_view(request):
         'title': title,
         'sections': sections,
         'answer_sections': _build_answer_sections(sections),
+        'print_warnings': _build_print_warnings(sections),
         'student_nickname': student.user.get_full_name() or student.user.username,
         'student_id_code': student.student_id,
     }
