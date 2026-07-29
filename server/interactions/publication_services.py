@@ -7,6 +7,9 @@ from pathlib import Path
 from django.db import transaction
 
 from .models import ContentContribution, ContributionReview
+from .contribution_notification_service import (
+    schedule_contribution_notification,
+)
 
 
 def question_ids_in_bundle(bundle_path):
@@ -36,11 +39,12 @@ def confirm_qbank_publication(bundle_path, data_version):
         status=ContentContribution.Status.APPROVED_PENDING_RELEASE,
         published_qbank_version__isnull=True,
     )
-    contribution_ids = [
-        contribution.pk
-        for contribution in candidates.only('pk', 'completed_question_id')
+    contributions = [
+        contribution
+        for contribution in candidates.select_related('student')
         if contribution.completed_question_id in question_ids
     ]
+    contribution_ids = [contribution.pk for contribution in contributions]
     queryset = ContentContribution.objects.filter(pk__in=contribution_ids)
     queryset.update(
         status=ContentContribution.Status.COMPLETED,
@@ -54,6 +58,12 @@ def confirm_qbank_publication(bundle_path, data_version):
         )
         for contribution_id in contribution_ids
     ])
+    for contribution in contributions:
+        contribution.status = ContentContribution.Status.COMPLETED
+        contribution.published_qbank_version = data_version
+        schedule_contribution_notification(
+            contribution, event_suffix=f'qbank:{data_version}',
+        )
     return len(contribution_ids)
 
 

@@ -34,12 +34,13 @@ void main() {
   });
 
   group('MainShell', () {
-    testWidgets('renders 3 bottom navigation tabs', (tester) async {
+    testWidgets('renders 4 bottom navigation tabs', (tester) async {
       await pumpShell(tester);
 
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(find.text('首页'), findsAtLeastNWidgets(1));
       expect(find.text('内容'), findsOneWidget);
+      expect(find.text('通知'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
 
@@ -65,6 +66,17 @@ void main() {
       await pumpShell(tester);
 
       await tester.tap(find.text('我的'));
+      await tester.pump();
+      await tester.pump();
+
+      final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+      expect(navBar.selectedIndex, 3);
+    });
+
+    testWidgets('tapping notifications tab switches content', (tester) async {
+      await pumpShell(tester);
+
+      await tester.tap(find.text('通知'));
       await tester.pump();
       await tester.pump();
 

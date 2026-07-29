@@ -11,7 +11,7 @@ from django.utils import timezone
 from .models import (
     AchievementDef, AdminHelpProxy, Announcement, AppVersion, DbVersion,
     LevelConfig, PointsTransaction, StudentAchievement,
-    SystemConfig, SystemToolsProxy,
+    StudentNotification, SystemConfig, SystemToolsProxy,
 )
 
 
@@ -65,9 +65,27 @@ class AppVersionAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ['title', 'is_active', 'created_at']
-    list_filter = ['is_active']
+    list_display = [
+        'title', 'priority', 'is_active', 'publish_at', 'expires_at',
+        'created_at',
+    ]
+    list_filter = ['priority', 'is_active']
     search_fields = ['title', 'content']
+
+
+@admin.register(StudentNotification)
+class StudentNotificationAdmin(admin.ModelAdmin):
+    list_display = [
+        'id', 'student', 'category', 'title', 'priority', 'created_at',
+        'read_at',
+    ]
+    list_select_related = ['student', 'student__user']
+    list_filter = ['category', 'priority', 'read_at', 'created_at']
+    search_fields = [
+        'student__student_id', 'student__user__username', 'title', 'content',
+        'event_key',
+    ]
+    readonly_fields = ['created_at', 'read_at']
 
 
 @admin.register(SystemConfig)
