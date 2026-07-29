@@ -77,9 +77,10 @@ def test_student_cannot_open_review_workbench(client, contribution):
 
 @pytest.mark.django_db
 def test_reviewer_can_publish_new_question(client, reviewer, contribution):
+    original_tag = ConceptTag.objects.create(name='原投稿标签')
     tag = ConceptTag.objects.create(name='函数最值')
     ContributionTagSelection.objects.create(
-        contribution=contribution, concept_tag=tag
+        contribution=contribution, concept_tag=original_tag
     )
     client.force_login(reviewer)
     response = client.post(
@@ -102,6 +103,9 @@ def test_reviewer_can_publish_new_question(client, reviewer, contribution):
     assert contribution.completed_question.choice_ext.options['B'] == '$0$'
     assert contribution.completed_question.sub_questions.get().answer == 'B'
     assert list(contribution.completed_question.concept_tags.all()) == [tag]
+    assert list(
+        contribution.tag_selections.values_list('concept_tag', flat=True)
+    ) == [original_tag.pk]
 
 
 @pytest.mark.django_db

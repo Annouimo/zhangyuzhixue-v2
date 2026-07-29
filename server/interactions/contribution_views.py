@@ -58,6 +58,7 @@ def _question_snapshot(question):
             for item in question.sub_questions.all()
         ],
         'tags': list(question.concept_tags.values_list('name', flat=True)),
+        'tag_ids': list(question.concept_tags.values_list('pk', flat=True)),
     }
 
 
@@ -90,6 +91,10 @@ def _serialize(contribution, include_detail=False):
             'tag_ids': list(
                 contribution.tag_selections.values_list('concept_tag_id', flat=True)
             ),
+            'selected_tags': [
+                {'id': item.concept_tag_id, 'name': item.concept_tag.name}
+                for item in contribution.tag_selections.select_related('concept_tag')
+            ],
             'tag_suggestions': [
                 {
                     'id': item.pk,
@@ -106,6 +111,11 @@ def _serialize(contribution, include_detail=False):
                     'action': item.action,
                     'note': item.note,
                     'created_at': item.created_at.isoformat(),
+                    'actor_role': (
+                        'student'
+                        if item.actor_id == contribution.student.user_id
+                        else 'reviewer' if item.actor_id else 'system'
+                    ),
                 }
                 for item in contribution.reviews.all()
             ],
@@ -114,6 +124,10 @@ def _serialize(contribution, include_detail=False):
             data['official_payload'] = question_payload(
                 contribution.completed_question
             )
+            data['official_tags'] = [
+                {'id': tag.pk, 'name': tag.name}
+                for tag in contribution.completed_question.concept_tags.all()
+            ]
     return data
 
 
@@ -219,8 +233,9 @@ class ContributionDetailView(APIView):
         student = _student(request)
         contribution = ContentContribution.objects.filter(
             pk=contribution_id, student=student
-        ).select_related('completed_question').prefetch_related(
-            'revisions', 'reviews', 'tag_selections', 'tag_suggestions'
+        ).select_related('student__user', 'completed_question').prefetch_related(
+            'revisions', 'reviews', 'tag_selections__concept_tag',
+            'tag_suggestions', 'completed_question__concept_tags',
         ).first()
         if contribution is None:
             return _err(40401, '贡献记录不存在', status.HTTP_404_NOT_FOUND)

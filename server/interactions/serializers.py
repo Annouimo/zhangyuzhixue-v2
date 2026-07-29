@@ -162,8 +162,6 @@ class ContributionWriteSerializer(serializers.Serializer):
             validate_question_payload(payload)
             if question_id is not None:
                 raise serializers.ValidationError('新题投稿不能关联已有题目')
-            if not attrs.get('tag_ids') and not attrs.get('tag_suggestions'):
-                raise serializers.ValidationError('请至少选择或建议一个知识点标签')
         else:
             if question_id is None:
                 raise serializers.ValidationError('题目纠错必须关联已有题目')
@@ -175,6 +173,8 @@ class ContributionWriteSerializer(serializers.Serializer):
                 raise serializers.ValidationError('错误类型无效')
             if not isinstance(description, str) or len(description.strip()) < 10:
                 raise serializers.ValidationError('问题说明至少需要 10 个字符')
+        if not attrs.get('tag_ids') and not attrs.get('tag_suggestions'):
+            raise serializers.ValidationError('请至少选择或建议一个知识点标签')
         existing_ids = set(
             ConceptTag.objects.filter(pk__in=attrs.get('tag_ids', [])).values_list(
                 'pk', flat=True

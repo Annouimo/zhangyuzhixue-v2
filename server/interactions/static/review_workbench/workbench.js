@@ -45,6 +45,41 @@
     return String(value);
   }
 
+  function optionText(value) {
+    if (!value) return '-';
+    if (!Array.isArray(value)) {
+      return Object.entries(value).map(function (entry) {
+        return entry[0] + '. ' + entry[1];
+      }).join('\n');
+    }
+    return value.map(function (item) {
+      return (item.key || '?') + '. ' + (item.content || '');
+    }).join('\n');
+  }
+
+  function subQuestionText(value, field) {
+    if (!Array.isArray(value) || !value.length) return '-';
+    return value.map(function (item, index) {
+      var prefix = value.length > 1 ? '第 ' + (index + 1) + ' 小题：' : '';
+      return prefix + (item[field] || '-');
+    }).join('\n');
+  }
+
+  function sourceText(value) {
+    value = value || {};
+    var sourceLabels = {
+      gaokao: '高考', mock_exam: '模拟考试', school_exam: '校内考试',
+      textbook: '教材', self_created: '原创', other: '其他'
+    };
+    return [
+      '来源类型：' + (sourceLabels[value.source_type] || value.source_type || '-'),
+      '年份：' + textValue(value.year),
+      '地区：' + textValue(value.region),
+      '试卷或资料名称：' + textValue(value.source_name || value.exam_name),
+      '题号：' + textValue(value.question_number || value.number)
+    ].join('\n');
+  }
+
   function renderQuestion(container, payload) {
     container.replaceChildren();
     if (!payload || typeof payload !== 'object') {
@@ -178,16 +213,16 @@
       if (!diff || !originalPayload || !currentPayload) return;
       diff.replaceChildren();
       var rows = [
-        ['题干', originalPayload.stem, currentPayload.stem],
-        ['选项', originalPayload.options, currentPayload.options],
-        ['答案', (originalPayload.sub_questions || []).map(function (item) { return item.answer; }), (currentPayload.sub_questions || []).map(function (item) { return item.answer; })],
-        ['解析', (originalPayload.sub_questions || []).map(function (item) { return item.explanation; }), (currentPayload.sub_questions || []).map(function (item) { return item.explanation; })],
-        ['来源', originalPayload.source, currentPayload.source]
+        ['题干', originalPayload.stem, currentPayload.stem, textValue],
+        ['选项', originalPayload.options, currentPayload.options, optionText],
+        ['答案', originalPayload.sub_questions, currentPayload.sub_questions, function (value) { return subQuestionText(value, 'answer'); }],
+        ['解析', originalPayload.sub_questions, currentPayload.sub_questions, function (value) { return subQuestionText(value, 'explanation'); }],
+        ['来源', originalPayload.source, currentPayload.source, sourceText]
       ];
       rows.forEach(function (values) {
-        var oldText = textValue(values[1]);
-        var newText = textValue(values[2]);
-        var row = make('div', 'diff-row');
+        var oldText = values[3](values[1]);
+        var newText = values[3](values[2]);
+        var row = make('div', 'diff-row' + (oldText === newText ? ' is-same' : ''));
         row.appendChild(make('div', 'diff-label', values[0]));
         row.appendChild(make('div', 'diff-value math-content' + (oldText !== newText ? ' is-old' : ''), oldText));
         row.appendChild(make('div', 'diff-arrow', '→'));
@@ -195,6 +230,23 @@
         diff.appendChild(row);
       });
       renderMath(diff);
+    }
+
+    function initCopyButtons() {
+      document.querySelectorAll('[data-copy-source]').forEach(function (button) {
+        button.addEventListener('click', async function () {
+          var source = document.getElementById(button.dataset.copySource);
+          if (!source) return;
+          try {
+            await navigator.clipboard.writeText(source.textContent || '');
+            var original = button.textContent;
+            button.textContent = '已复制';
+            window.setTimeout(function () { button.textContent = original; }, 1200);
+          } catch (error) {
+            window.alert('复制失败，请手动选择原文。');
+          }
+        });
+      });
     }
 
     function queueDraftSave() {
@@ -442,6 +494,7 @@
     parseJson(false);
     initTabs();
     initTags();
+    initCopyButtons();
     initDraft();
     initActions();
     document.querySelectorAll('.math-content').forEach(renderMath);

@@ -177,6 +177,7 @@ def install(args: argparse.Namespace) -> int:
     setup_django(project_root)
     from django.db import transaction
     from django.utils import timezone as django_timezone
+    from interactions.publication_services import confirm_qbank_publication
     from system.models import DbVersion
 
     release_id = args.release_id
@@ -230,6 +231,8 @@ def install(args: argparse.Namespace) -> int:
                 current.message = args.message
                 current.built_at = django_timezone.now()
                 current.save()
+                if manifest["db_type"] == "qbank":
+                    confirm_qbank_publication(bundle, manifest["data_version"])
             with (backup_root / "releases.log").open("a", encoding="utf-8") as log:
                 log.write(
                     f'{datetime.now(timezone.utc).isoformat()} release={release_id} '
@@ -267,6 +270,7 @@ def rollback(args: argparse.Namespace) -> int:
     setup_django(project_root)
     from django.db import transaction
     from django.utils.dateparse import parse_datetime
+    from interactions.publication_services import rollback_qbank_publication
     from system.models import DbVersion
 
     with release_lock(args.lock_file):
@@ -280,6 +284,8 @@ def rollback(args: argparse.Namespace) -> int:
                     value = parse_datetime(value)
                 setattr(version, field, value)
             version.save()
+            if metadata["db_type"] == "qbank":
+                rollback_qbank_publication(metadata["manifest"]["data_version"])
             saved_bundle = backup_dir / destination.name
             if metadata["destination_existed"]:
                 if not saved_bundle.is_file():

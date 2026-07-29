@@ -36,11 +36,18 @@ class TestBuildAssets:
         from accounts.models import Student
         from interactions.models import ContentContribution
         from qbank.models import BaseQuestion
-        from scripts.build_assets import mark_published_contributions
+        from interactions.publication_services import (
+            confirm_qbank_publication, rollback_qbank_publication,
+        )
 
         student = Student.objects.create(user=User.objects.create_user('builder'))
         question = BaseQuestion.objects.create(
-            question_type='fill', stem='待发布题目'
+            year=2026,
+            exam_type='原创',
+            region='测试',
+            number='P1',
+            question_type='fill',
+            stem='待发布题目',
         )
         contribution = ContentContribution.objects.create(
             student=student,
@@ -48,10 +55,45 @@ class TestBuildAssets:
             completed_question=question,
             status=ContentContribution.Status.APPROVED_PENDING_RELEASE,
         )
-        assert mark_published_contributions(42) == 1
-        contribution.refresh_from_db()
-        assert contribution.status == ContentContribution.Status.COMPLETED
-        assert contribution.published_qbank_version == 42
+        omitted_question = BaseQuestion.objects.create(
+            question_type='fill', stem='因缺少客户端必填来源而未进入数据包'
+        )
+        omitted = ContentContribution.objects.create(
+            student=student,
+            contribution_type='new_question',
+            completed_question=omitted_question,
+            status=ContentContribution.Status.APPROVED_PENDING_RELEASE,
+        )
+        output = build_database(
+            schema=ASSETS_TABLES,
+            db_type='qbank',
+            version_info={'schema_version': 1, 'data_version': 42},
+            test_mode=True,
+        )
+        try:
+            assert confirm_qbank_publication(output, 42) == 1
+            contribution.refresh_from_db()
+            assert contribution.status == ContentContribution.Status.COMPLETED
+            assert contribution.published_qbank_version == 42
+            omitted.refresh_from_db()
+            assert omitted.status == (
+                ContentContribution.Status.APPROVED_PENDING_RELEASE
+            )
+            assert omitted.published_qbank_version is None
+
+            assert confirm_qbank_publication(output, 43) == 0
+            contribution.refresh_from_db()
+            assert contribution.published_qbank_version == 42
+
+            assert rollback_qbank_publication(42) == 1
+            contribution.refresh_from_db()
+            assert contribution.status == (
+                ContentContribution.Status.APPROVED_PENDING_RELEASE
+            )
+            assert contribution.published_qbank_version is None
+        finally:
+            if os.path.exists(output):
+                os.unlink(output)
 
     def test_build_assets_output_is_gzipped(self, db):
         """构建产物是有效的 .db.gz 文件"""

@@ -143,7 +143,10 @@ th { background: #f8f9fb; color: var(--muted); font-size: 12px; }
 .diff-value { min-height: 32px; padding: 7px 9px; border-radius: 4px; background: #f5f7f9; white-space: pre-wrap; }
 .diff-value.is-old { background: #fff0ef; }
 .diff-value.is-new { background: #eaf8f1; }
+.diff-row.is-same { opacity: .62; }
 .diff-arrow { padding-top: 7px; text-align: center; color: var(--muted); }
+.copyable-fields dt { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.copyable-fields dt button, .submission-summary .section-title button { padding: 3px 7px; font-size: 12px; }
 
 .review-sidebar { display: grid; gap: 12px; }
 .review-sidebar > section, .history-panel { padding: 15px; }

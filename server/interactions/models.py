@@ -304,7 +304,7 @@ class ContentContribution(models.Model):
         QUESTION_CORRECTION = 'question_correction', '题目纠错'
 
     class Status(models.TextChoices):
-        PENDING = 'pending', '待审核'
+        PENDING = 'pending', '待首次审核'
         RESUBMITTED = 'resubmitted', '修改后待复审'
         NEEDS_REVISION = 'needs_revision', '待修改'
         PROCESSING = 'processing', '处理中'
@@ -446,6 +446,7 @@ class ContributionReview(models.Model):
         PROCESSING = 'processing', '进入处理'
         COMPLETED = 'completed', '处理完成'
         PUBLISHED = 'published', '已发布到题库'
+        PUBLICATION_ROLLED_BACK = 'publication_rolled_back', '题库发布已回滚'
         REJECTED = 'rejected', '未采纳'
         WITHDRAWN = 'withdrawn', '已撤回'
 
