@@ -641,7 +641,11 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -652,7 +656,11 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -663,13 +671,21 @@ class AppTheme {
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           side: BorderSide(color: colors.primaryBorder),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colors.primary,
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -742,6 +758,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: colors.surfaceSubtle,
         labelStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: colors.textSecondary,
@@ -770,6 +787,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: colors.textPrimary,
         contentTextStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: colors.textInverse,
@@ -782,16 +800,19 @@ class AppTheme {
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         titleTextStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: colors.textPrimary,
         ),
         subtitleTextStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: colors.textSecondary,
         ),
         leadingAndTrailingTextStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: colors.textMuted,
@@ -850,6 +871,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         textStyle: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.w600,
           color: colors.textInverse,

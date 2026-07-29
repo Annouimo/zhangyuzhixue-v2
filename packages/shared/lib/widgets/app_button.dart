@@ -55,7 +55,8 @@ class AppButton extends StatelessWidget {
   /// 最小宽度（覆盖 expanded 行为时使用）
   final double? minWidth;
 
-  AppButtonType get _effectiveType => variant != null ? AppButtonType.fromVariant(variant!) : type;
+  AppButtonType get _effectiveType =>
+      variant != null ? AppButtonType.fromVariant(variant!) : type;
   bool get _effectiveExpanded => fullWidth ?? expanded;
   bool get _effectiveLoading => isLoading ?? loading;
 
@@ -96,10 +97,7 @@ class AppButton extends StatelessWidget {
     }
 
     if (_effectiveExpanded) {
-      button = SizedBox(
-        width: minWidth ?? double.infinity,
-        child: button,
-      );
+      button = SizedBox(width: minWidth ?? double.infinity, child: button);
     }
 
     return button;
@@ -154,8 +152,8 @@ class AppButton extends StatelessWidget {
     final height = size == AppButtonSize.sm
         ? AppControlSize.sm
         : size == AppButtonSize.md
-            ? AppControlSize.md
-            : AppControlSize.lg;
+        ? AppControlSize.md
+        : AppControlSize.lg;
 
     return ButtonStyle(
       minimumSize: WidgetStatePropertyAll(Size(0, height)),
@@ -169,6 +167,7 @@ class AppButton extends StatelessWidget {
       ),
       textStyle: WidgetStatePropertyAll(
         TextStyle(
+          fontFamily: AppTheme.fontFamily,
           fontSize: size == AppButtonSize.sm ? 13 : 15,
           fontWeight: FontWeight.w600,
         ),
@@ -179,12 +178,15 @@ class AppButton extends StatelessWidget {
   ButtonStyle _primaryStyle(AppSemanticColors colors) {
     return _baseStyle(colors).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledBackground;
-        if (states.contains(WidgetState.pressed)) return colors.primary.withValues(alpha: 0.85);
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledBackground;
+        if (states.contains(WidgetState.pressed))
+          return colors.primary.withValues(alpha: 0.85);
         return colors.primary;
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledForeground;
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledForeground;
         return colors.textInverse;
       }),
     );
@@ -193,12 +195,15 @@ class AppButton extends StatelessWidget {
   ButtonStyle _secondaryStyle(AppSemanticColors colors) {
     return _baseStyle(colors).copyWith(
       backgroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledBackground;
-        if (states.contains(WidgetState.pressed)) return colors.primaryContainer.withValues(alpha: 0.7);
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledBackground;
+        if (states.contains(WidgetState.pressed))
+          return colors.primaryContainer.withValues(alpha: 0.7);
         return colors.primaryContainer;
       }),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledForeground;
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledForeground;
         return colors.primaryOnContainer;
       }),
     );
@@ -208,11 +213,13 @@ class AppButton extends StatelessWidget {
     return _baseStyle(colors).copyWith(
       backgroundColor: WidgetStatePropertyAll(Colors.transparent),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledForeground;
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledForeground;
         return colors.primary;
       }),
       side: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return BorderSide(color: colors.disabledBackground);
+        if (states.contains(WidgetState.disabled))
+          return BorderSide(color: colors.disabledBackground);
         return BorderSide(color: colors.primaryBorder);
       }),
     );
@@ -222,12 +229,15 @@ class AppButton extends StatelessWidget {
     return _baseStyle(colors).copyWith(
       backgroundColor: WidgetStatePropertyAll(Colors.transparent),
       foregroundColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.disabled)) return colors.disabledForeground;
+        if (states.contains(WidgetState.disabled))
+          return colors.disabledForeground;
         return colors.primary;
       }),
       overlayColor: WidgetStateProperty.resolveWith((states) {
-        if (states.contains(WidgetState.hovered)) return colors.primaryContainer.withValues(alpha: 0.3);
-        if (states.contains(WidgetState.pressed)) return colors.primaryContainer.withValues(alpha: 0.5);
+        if (states.contains(WidgetState.hovered))
+          return colors.primaryContainer.withValues(alpha: 0.3);
+        if (states.contains(WidgetState.pressed))
+          return colors.primaryContainer.withValues(alpha: 0.5);
         return null;
       }),
     );
@@ -249,24 +259,15 @@ enum AppButtonType {
   text;
 
   static AppButtonType fromVariant(AppButtonVariant v) => switch (v) {
-        AppButtonVariant.primary => primary,
-        AppButtonVariant.secondary => secondary,
-        AppButtonVariant.outlined => outlined,
-        AppButtonVariant.text => text,
-      };
+    AppButtonVariant.primary => primary,
+    AppButtonVariant.secondary => secondary,
+    AppButtonVariant.outlined => outlined,
+    AppButtonVariant.text => text,
+  };
 }
 
 /// 变体别名（原 Phase 1 命名）
-enum AppButtonVariant {
-  primary,
-  secondary,
-  outlined,
-  text,
-}
+enum AppButtonVariant { primary, secondary, outlined, text }
 
 /// 按钮尺寸
-enum AppButtonSize {
-  sm,
-  md,
-  lg,
-}
+enum AppButtonSize { sm, md, lg }

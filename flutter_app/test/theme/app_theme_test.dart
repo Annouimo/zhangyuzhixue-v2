@@ -57,4 +57,24 @@ void main() {
     );
     expect(navigationBarLabels?.resolve({})?.fontFamily, AppTheme.fontFamily);
   });
+
+  test('component themes keep the bundled font family', () {
+    final theme = AppTheme.light;
+    final componentStyles = [
+      theme.elevatedButtonTheme.style?.textStyle?.resolve({}),
+      theme.filledButtonTheme.style?.textStyle?.resolve({}),
+      theme.outlinedButtonTheme.style?.textStyle?.resolve({}),
+      theme.textButtonTheme.style?.textStyle?.resolve({}),
+      theme.chipTheme.labelStyle,
+      theme.snackBarTheme.contentTextStyle,
+      theme.listTileTheme.titleTextStyle,
+      theme.listTileTheme.subtitleTextStyle,
+      theme.listTileTheme.leadingAndTrailingTextStyle,
+      theme.tooltipTheme.textStyle,
+    ];
+
+    for (final style in componentStyles) {
+      expect(style?.fontFamily, AppTheme.fontFamily);
+    }
+  });
 }
