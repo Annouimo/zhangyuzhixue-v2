@@ -67,7 +67,22 @@ class AppButton extends StatelessWidget {
     final disabled = onPressed == null || _effectiveLoading;
 
     Widget button;
-    final content = _buildContent(colors);
+    final content = AnimatedSwitcher(
+      duration: AppMotion.fast,
+      switchInCurve: AppMotion.easeOut,
+      switchOutCurve: AppMotion.easeIn,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.96, end: 1).animate(animation),
+          child: child,
+        ),
+      ),
+      child: KeyedSubtree(
+        key: ValueKey((_effectiveLoading, icon, label)),
+        child: _buildContent(colors),
+      ),
+    );
 
     switch (t) {
       case AppButtonType.primary:

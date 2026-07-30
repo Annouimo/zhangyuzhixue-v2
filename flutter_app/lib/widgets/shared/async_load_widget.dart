@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
+import 'package:shared/theme/app_tokens.dart';
 
 /// 泛型异步加载组件 — 统一处理 loading / error / empty / RefreshIndicator
 ///
@@ -132,23 +133,60 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return LoadingIndicator(message: widget.loadingMessage);
+    final hasData = _initialLoadDone && _data != null;
+    final showInitialLoading = _loading && !hasData;
+
+    Widget state;
+    if (showInitialLoading) {
+      state = LoadingIndicator(
+        key: const ValueKey('loading'),
+        message: widget.loadingMessage,
+      );
+    } else if (_error != null && !hasData) {
+      state = ErrorPlaceholder(
+        key: const ValueKey('error'),
+        message: _error!,
+        onRetry: _load,
+      );
+    } else {
+      state = _buildDataState();
     }
 
-    if (_error != null) {
-      return ErrorPlaceholder(message: _error!, onRetry: _load);
-    }
+    return Stack(
+      children: [
+        AnimatedSwitcher(
+          duration: AppMotion.normal,
+          switchInCurve: AppMotion.easeOut,
+          switchOutCurve: AppMotion.easeIn,
+          child: state,
+        ),
+        if (_loading && hasData)
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+      ],
+    );
+  }
 
+  Widget _buildDataState() {
     // 空状态处理
     if (_isEmpty(_data)) {
       // 优先使用 emptyWidgetBuilder
       if (widget.emptyWidgetBuilder != null) {
         final customEmpty = widget.emptyWidgetBuilder!(_data as T);
-        if (customEmpty != null) return customEmpty;
+        if (customEmpty != null) {
+          return KeyedSubtree(key: const ValueKey('empty'), child: customEmpty);
+        }
       }
-      return widget.emptyWidget ??
-          EmptyPlaceholder(icon: Icons.inbox_outlined, message: '暂无内容');
+      return KeyedSubtree(
+        key: const ValueKey('empty'),
+        child:
+            widget.emptyWidget ??
+            EmptyPlaceholder(icon: Icons.inbox_outlined, message: '暂无内容'),
+      );
     }
 
     // 数据就绪 → 构建 UI
@@ -161,18 +199,24 @@ class AsyncLoadWidgetState<T> extends State<AsyncLoadWidget<T>> {
       if (widget.contentIsScrollable ||
           content is Scrollable ||
           _isScrollView(content)) {
-        return RefreshIndicator(onRefresh: _load, child: content);
+        return KeyedSubtree(
+          key: const ValueKey('content'),
+          child: RefreshIndicator(onRefresh: _load, child: content),
+        );
       }
-      return RefreshIndicator(
-        onRefresh: _load,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: content,
+      return KeyedSubtree(
+        key: const ValueKey('content'),
+        child: RefreshIndicator(
+          onRefresh: _load,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: content,
+          ),
         ),
       );
     }
 
-    return content;
+    return KeyedSubtree(key: const ValueKey('content'), child: content);
   }
 
   bool _isScrollView(Widget w) {
