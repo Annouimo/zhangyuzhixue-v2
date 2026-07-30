@@ -60,6 +60,8 @@ class TestAdminTools:
         assert tx.transaction_type == 'EARN'
         assert tx.source == 'ADMIN_ADJUST'
         assert tx.description == '测试奖励'
+        test_data['student'].refresh_from_db()
+        assert test_data['student'].data_version == 1
 
     def test_grant_points_invalid_student(self, db, admin_user):
         """学生不存在时返回错误"""

@@ -59,6 +59,35 @@ class TestUserMe:
         student_user.refresh_from_db()
         assert student_user.username == 'usertest'  # 未改变
 
+    def test_points_summary_includes_admin_adjustment(
+            self, auth_client, student_user):
+        PointsTransaction.objects.create(
+            student=student_user.student,
+            amount=12.5,
+            transaction_type='EARN',
+            source='ADMIN_ADJUST',
+            description='管理员奖励',
+        )
+
+        resp = auth_client.get(reverse('user-me'))
+
+        assert resp.status_code == 200
+        summary = resp.data['data']['points_summary']
+        assert summary['bonus'] == 12.5
+        assert summary['available'] == 12.5
+
+
+class TestCheckin:
+
+    def test_checkin_reward_increments_user_data_version(
+            self, auth_client, student_user):
+        resp = auth_client.post(reverse('user-checkin'), {}, format='json')
+
+        assert resp.status_code == 200
+        assert resp.data['data']['points_earned'] > 0
+        student_user.student.refresh_from_db()
+        assert student_user.student.data_version == 1
+
 
 class TestAvatarUpload:
     """头像上传 API 测试"""

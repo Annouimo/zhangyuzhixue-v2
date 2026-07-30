@@ -80,7 +80,6 @@ void main() async {
   if (!performanceTestMode) {
     ConnectivityMonitor().init();
   }
-
   final syncApi = SyncApi(ApiClient());
   SyncManager().init(
     SyncQueueDao(DatabaseProvider()),
@@ -135,7 +134,7 @@ void _processUpdates(List<UpdateSummary> updates) {
 
   // 先处理强制更新（优先于 banner）
   for (final summary in updates) {
-    if (summary.forceUpdate && summary.canDownload) {
+    if (summary.forceUpdate && summary.canApply) {
       _showForcedUpdateDialog(ctx, summary);
       return; // 一次只处理一个强制更新，完成后再处理下一个
     }
@@ -143,7 +142,7 @@ void _processUpdates(List<UpdateSummary> updates) {
 
   // 非强制更新 → 显示 banner
   for (final summary in updates) {
-    if (summary.canDownload &&
+    if (summary.canApply &&
         UpdateManager.shouldShowBanner(
           localVersion: summary.localVersion,
           serverVersion: summary.serverVersion,

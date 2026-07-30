@@ -1,6 +1,8 @@
 
 from django.contrib import admin, messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db import transaction
+from django.db.models import F
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -245,6 +247,7 @@ class ToolsView(View):
                 )
                 created += 1
 
+    @transaction.atomic
     def _grant_points(self, request):
         """管理员赠送积分"""
         from accounts.models import Student
@@ -295,6 +298,9 @@ class ToolsView(View):
             transaction_type='EARN',
             source='ADMIN_ADJUST',
             description=description,
+        )
+        Student.objects.filter(pk=student.pk).update(
+            data_version=F('data_version') + 1,
         )
         messages.success(
             request,

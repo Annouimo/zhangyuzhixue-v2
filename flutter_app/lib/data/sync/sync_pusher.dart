@@ -14,12 +14,14 @@ class PushSummary {
   final int successCount;
   final int failCount;
   final int batchesPushed;
+  final int? serverDataVersion;
   final String? message;
 
   const PushSummary({
     required this.successCount,
     required this.failCount,
     this.batchesPushed = 0,
+    this.serverDataVersion,
     this.message,
   });
 }
@@ -45,6 +47,7 @@ class SyncPusher {
     var success = 0;
     var fail = 0;
     var batchesPushed = 0;
+    int? serverDataVersion;
 
     while (true) {
       // 每批推送前检查网络状态
@@ -74,6 +77,7 @@ class SyncPusher {
       try {
         final result = await _api.pushBatch(items);
         batchesPushed++;
+        serverDataVersion = result.dataVersion ?? serverDataVersion;
         var hasIncompleteResponse = false;
         // 逐条查 server_ids 映射：有的→成功，没有的→失败
         for (final entry in batch) {
@@ -102,16 +106,16 @@ class SyncPusher {
                   .write(db.CustomPapersCompanion(serverId: Value(sid)));
             } else if (entry.entityType == 'paper_folder') {
               final revision = result.entityMeta[entry.id]?['revision'] as int?;
-              await (db_.appDb.update(db_.appDb.paperFolders)
-                    ..where((t) => t.id.equals(entry.entityId)))
-                  .write(
-                    db.PaperFoldersCompanion(
-                      serverId: Value(sid),
-                      revision: revision == null
-                          ? const Value.absent()
-                          : Value(revision),
-                    ),
-                  );
+              await (db_.appDb.update(
+                db_.appDb.paperFolders,
+              )..where((t) => t.id.equals(entry.entityId))).write(
+                db.PaperFoldersCompanion(
+                  serverId: Value(sid),
+                  revision: revision == null
+                      ? const Value.absent()
+                      : Value(revision),
+                ),
+              );
             }
           } catch (_) {}
           success++;
@@ -155,6 +159,7 @@ class SyncPusher {
       successCount: success,
       failCount: fail,
       batchesPushed: batchesPushed,
+      serverDataVersion: serverDataVersion,
     );
   }
 }

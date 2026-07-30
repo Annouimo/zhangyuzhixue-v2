@@ -81,7 +81,7 @@ class SyncPushView(APIView):
     @transaction.atomic
     def _process_batch_and_increment(self, batch, student):
         result = self._process_batch(batch, student)
-        self._increment_user_version(student)
+        result['data_version'] = self._increment_user_version(student)
         return result
 
     def _process_batch(self, batch, student):
@@ -119,6 +119,8 @@ class SyncPushView(APIView):
         Student.objects.filter(pk=student.pk).update(
             data_version=DbF('data_version') + 1
         )
+        student.refresh_from_db(fields=['data_version'])
+        return student.data_version
 
     # ── 各 entity_type 处理器 ─────────────────────────────────
 

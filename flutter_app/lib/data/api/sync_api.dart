@@ -21,22 +21,27 @@ class VersionStatus {
   });
 
   factory VersionStatus.fromJson(Map<String, dynamic> json) => VersionStatus(
-        schemaVersion: json['schema_version'] as int,
-        dataVersion: json['data_version'] as int,
-        forceUpdate: json['force_update'] as bool? ?? false,
-        message: json['message'] as String?,
-        downloadUrl: json['download_url'] as String?,
-        checksum: json['checksum'] as String?,
-        sizeBytes: json['size_bytes'] as int?,
-      );
+    schemaVersion: json['schema_version'] as int,
+    dataVersion: json['data_version'] as int,
+    forceUpdate: json['force_update'] as bool? ?? false,
+    message: json['message'] as String?,
+    downloadUrl: json['download_url'] as String?,
+    checksum: json['checksum'] as String?,
+    sizeBytes: json['size_bytes'] as int?,
+  );
 }
 
 /// 推送结果
 class PushBatchResult {
   final Map<int, int> serverIds;
   final Map<int, Map<String, dynamic>> entityMeta;
+  final int? dataVersion;
 
-  const PushBatchResult({required this.serverIds, this.entityMeta = const {}});
+  const PushBatchResult({
+    required this.serverIds,
+    this.entityMeta = const {},
+    this.dataVersion,
+  });
 
   factory PushBatchResult.fromJson(Map<String, dynamic> json) {
     final raw = json['server_ids'] as Map<String, dynamic>? ?? {};
@@ -44,11 +49,10 @@ class PushBatchResult {
     return PushBatchResult(
       serverIds: raw.map((k, v) => MapEntry(int.parse(k), v as int)),
       entityMeta: rawMeta.map(
-        (key, value) => MapEntry(
-          int.parse(key),
-          Map<String, dynamic>.from(value as Map),
-        ),
+        (key, value) =>
+            MapEntry(int.parse(key), Map<String, dynamic>.from(value as Map)),
       ),
+      dataVersion: json['data_version'] as int?,
     );
   }
 }
@@ -68,11 +72,11 @@ class UserPullInfo {
   });
 
   factory UserPullInfo.fromJson(Map<String, dynamic> json) => UserPullInfo(
-        downloadUrl: json['download_url'] as String,
-        checksum: json['checksum'] as String,
-        sizeBytes: json['size_bytes'] as int,
-        version: json['data_version'] as int,
-      );
+    downloadUrl: json['download_url'] as String,
+    checksum: json['checksum'] as String,
+    sizeBytes: json['size_bytes'] as int,
+    version: json['data_version'] as int,
+  );
 }
 
 /// 同步 API

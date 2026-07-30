@@ -22,13 +22,19 @@ class MockAdapter implements HttpClientAdapter {
     }
     if (options.path.contains('version')) {
       return ResponseBody.fromString(
-        '{"code":0,"data":{"schema_version":1,"data_version":5,"force_update":false}}', 200,
-        headers: {'content-type': ['application/json']},
+        '{"code":0,"data":{"schema_version":1,"data_version":5,"force_update":false}}',
+        200,
+        headers: {
+          'content-type': ['application/json'],
+        },
       );
     }
     return ResponseBody.fromString(
-      '{"code":0,"data":{"server_ids":{"1":101,"2":102}}}', 200,
-      headers: {'content-type': ['application/json']},
+      '{"code":0,"data":{"server_ids":{"1":101,"2":102},"data_version":7}}',
+      200,
+      headers: {
+        'content-type': ['application/json'],
+      },
     );
   }
 
@@ -58,11 +64,20 @@ void main() {
 
       final api = SyncApi(client);
       final result = await api.pushBatch([
-        {'entity_type': 'rating', 'local_id': 1, 'payload': {'score': 5}},
-        {'entity_type': 'rating', 'local_id': 2, 'payload': {'score': 3}},
+        {
+          'entity_type': 'rating',
+          'local_id': 1,
+          'payload': {'score': 5},
+        },
+        {
+          'entity_type': 'rating',
+          'local_id': 2,
+          'payload': {'score': 3},
+        },
       ]);
 
       expect(result.serverIds, {1: 101, 2: 102});
+      expect(result.dataVersion, 7);
       expect(adapter.sentBatch!.length, 2);
     });
   });

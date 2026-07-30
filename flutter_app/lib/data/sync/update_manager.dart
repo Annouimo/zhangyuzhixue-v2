@@ -40,6 +40,9 @@ class UpdateSummary {
       checksum!.trim().isNotEmpty &&
       (sizeBytes ?? 0) > 0;
 
+  /// User databases obtain download metadata lazily from /sync/user/pull/.
+  bool get canApply => type == 'user' ? hasUpdate : canDownload;
+
   bool get localIsNewer => localVersion > serverVersion;
 }
 

@@ -406,6 +406,8 @@ class TestSyncMixedBatch:
         assert resp.data['code'] == 0
         assert StepFeedback.objects.count() == 1
         assert CardFeedback.objects.count() == 1
+        student_user.student.refresh_from_db()
+        assert resp.data['data']['data_version'] == student_user.student.data_version
 
     def test_full_batch_all_types(self, auth_client, student_user, sample_question):
         sub = StudentSubmission.objects.create(student=student_user.student)

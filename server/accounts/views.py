@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
@@ -281,7 +281,7 @@ def _get_points_summary(user):
         earned=Sum('amount', filter=Q(source='PRACTICE_REWARD')),
         bonus=Sum('amount', filter=Q(source__in=[
             'LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS',
-            'REVIEW_REWARD', 'RATING_REWARD',
+            'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST',
         ])),
         spent=Sum('amount', filter=Q(source='PAPER_PURCHASE')),
     )
@@ -350,6 +350,7 @@ def user_me_view(request):
 )
 @api_view(['POST'])
 @permission_classes([IsStudent])
+@transaction.atomic
 def checkin_view(request):
     """签到 — 创建今日登录日志 + 发放签到积分"""
     if not hasattr(request.user, 'student'):
@@ -393,6 +394,9 @@ def checkin_view(request):
         transaction_type='EARN',
         source='LOGIN_BONUS',
         description=f'第{streak}天签到奖励',
+    )
+    Student.objects.filter(pk=student.pk).update(
+        data_version=F('data_version') + 1,
     )
 
     return _ok(data={

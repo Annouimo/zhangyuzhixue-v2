@@ -110,5 +110,17 @@ void main() {
       expect(downgrade.canDownload, isFalse);
       expect(downgrade.localIsNewer, isTrue);
     });
+
+    test('newer user data can be applied without eager download metadata', () {
+      final summary = UpdateSummary(
+        type: 'user',
+        localVersion: 2,
+        serverVersion: 3,
+        forceUpdate: false,
+      );
+
+      expect(summary.canDownload, isFalse);
+      expect(summary.canApply, isTrue);
+    });
   });
 }

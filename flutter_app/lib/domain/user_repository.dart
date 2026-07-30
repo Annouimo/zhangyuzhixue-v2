@@ -169,8 +169,10 @@ class UserRepository {
         gaokaoYear: (remote['gaokao_year'] as Object?)?.toString(),
         phone: local?.phone,
       );
-      AuditLogger.instance.sync('refreshProfile',
-          {'id': remote['id'], 'name': remote['username']});
+      AuditLogger.instance.sync('refreshProfile', {
+        'id': remote['id'],
+        'name': remote['username'],
+      });
     } catch (e) {
       AuditLogger.instance.error('UserRepository._refreshProfileFromApi', e);
     }
@@ -256,20 +258,29 @@ class UserRepository {
       final r = rows[i];
       if (r.source == 'PRACTICE_REWARD') {
         cumEarned += r.amount;
-      } else if (['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST'].contains(r.source)) {
+      } else if ([
+        'LOGIN_BONUS',
+        'TASK_REWARD',
+        'SIGNUP_BONUS',
+        'REVIEW_REWARD',
+        'RATING_REWARD',
+        'ADMIN_ADJUST',
+      ].contains(r.source)) {
         cumBonus += r.amount;
       } else if (r.source == 'PAPER_PURCHASE') {
         cumSpent += r.amount.abs();
       }
-      records.add(PointsRecord(
-        time: r.createdAt,
-        type: _sourceLabels[r.source] ?? r.source,
-        change: r.amount,
-        earned: cumEarned,
-        bonus: cumBonus,
-        spent: cumSpent,
-        available: cumEarned + cumBonus - cumSpent,
-      ));
+      records.add(
+        PointsRecord(
+          time: r.createdAt,
+          type: _sourceLabels[r.source] ?? r.source,
+          change: r.amount,
+          earned: cumEarned,
+          bonus: cumBonus,
+          spent: cumSpent,
+          available: cumEarned + cumBonus - cumSpent,
+        ),
+      );
     }
     // records 现在是倒序（最新在前），最前面已经是累加到最后的值
     // 但我们需要每行是"到该笔交易时的累计值" — 从旧到新累积后反转
@@ -280,13 +291,15 @@ class UserRepository {
 
   /// 一次性获取所有积分汇总（earned + bonus + spent + available）
   /// 使用 Drift 原生聚合，1 次 DB 查询替代全量加载+Dart 循环
-  Future<({double earned, double bonus, double spent, double available})> getPointsSummary() =>
-      _dao.getPointsSummaryAggregated();
+  Future<({double earned, double bonus, double spent, double available})>
+  getPointsSummary() => _dao.getPointsSummaryAggregated();
 
-  Future<double> earnedPoints() async => (await _dao.getEarnedPoints()).toDouble();
+  Future<double> earnedPoints() async =>
+      (await _dao.getEarnedPoints()).toDouble();
 
   /// 一次性获取所有积分行，通过 _PointsCalculator 计算四种积分汇总
-  Future<({double earned, double bonus, double spent, double available})> _computePointsSummary() async {
+  Future<({double earned, double bonus, double spent, double available})>
+  _computePointsSummary() async {
     final rows = await _dao.getPointsHistory();
     final calc = _PointsCalculator(rows);
     return (
@@ -338,20 +351,23 @@ class UserRepository {
       final d = _taskDefs[i];
       final done = i == 2 ? correct >= d.threshold : total >= d.threshold;
       final prevDone = i == 0 || results.last.done;
-      results.add(TaskState(
-        done: done,
-        inProgress: !done && prevDone,
-        label: d.label,
-        rewardText: d.reward.toStringAsFixed(1),
-        reward: d.reward,
-      ));
+      results.add(
+        TaskState(
+          done: done,
+          inProgress: !done && prevDone,
+          label: d.label,
+          rewardText: d.reward.toStringAsFixed(1),
+          reward: d.reward,
+        ),
+      );
     }
     return results;
   }
 
   /// 今日签到奖励（基于连续天数）
   static double todayReward(int streakDays) => 0.5 + (streakDays % 7) * 0.3;
-  static double nextReward(int streakDays) => 0.5 + ((streakDays + 1) % 7) * 0.3;
+  static double nextReward(int streakDays) =>
+      0.5 + ((streakDays + 1) % 7) * 0.3;
 
   /// 今日签到奖励文本
   static String todayRewardText(int streakDays) =>
@@ -369,12 +385,14 @@ class UserRepository {
       final range = isLast
           ? '${c.minXp}+'
           : '${c.minXp} ~ ${configs[i + 1].minXp - 1}';
-      list.add(LevelRow(
-        level: c.level,
-        range: range,
-        title: c.title,
-        iconEmoji: c.iconEmoji,
-      ));
+      list.add(
+        LevelRow(
+          level: c.level,
+          range: range,
+          title: c.title,
+          iconEmoji: c.iconEmoji,
+        ),
+      );
     }
     return list;
   }
@@ -401,13 +419,17 @@ class UserRepository {
     for (var i = 0; i < configs.length; i++) {
       if (configs[i].minXp <= totalXp) {
         currentMin = configs[i].minXp;
-        nextMin = i + 1 < configs.length ? configs[i + 1].minXp : configs[i].minXp;
+        nextMin = i + 1 < configs.length
+            ? configs[i + 1].minXp
+            : configs[i].minXp;
         lv = configs[i].level;
       } else {
         break;
       }
     }
-    if (currentMin == null || nextMin == null) return (level: 1, progress: '0/0');
+    if (currentMin == null || nextMin == null) {
+      return (level: 1, progress: '0/0');
+    }
     final range = nextMin - currentMin;
     final progress = totalXp - currentMin;
     return (level: lv, progress: '$progress/$range');
@@ -437,8 +459,8 @@ class UserRepository {
     return _api.checkin();
   }
 
-  Future<String> questionBankVersion() async => AppPrefs().qbankVersion.toString();
-
+  Future<String> questionBankVersion() async =>
+      AppPrefs().qbankVersion.toString();
 }
 
 // ── 积分计算引擎 ──
@@ -459,7 +481,14 @@ class _PointsCalculator {
   double get bonus {
     var total = 0.0;
     for (final r in _rows) {
-      if (['LOGIN_BONUS', 'TASK_REWARD', 'SIGNUP_BONUS', 'REVIEW_REWARD', 'RATING_REWARD', 'ADMIN_ADJUST'].contains(r.source)) {
+      if ([
+        'LOGIN_BONUS',
+        'TASK_REWARD',
+        'SIGNUP_BONUS',
+        'REVIEW_REWARD',
+        'RATING_REWARD',
+        'ADMIN_ADJUST',
+      ].contains(r.source)) {
         total += r.amount;
       }
     }

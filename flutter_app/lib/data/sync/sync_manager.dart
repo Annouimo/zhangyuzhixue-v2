@@ -201,8 +201,14 @@ class SyncManager {
       final summary = await _pusher!.pushAll();
 
       if (summary.batchesPushed > 0) {
-        final current = AppPrefs().userVersion;
-        await AppPrefs().setUserVersion(current + summary.batchesPushed);
+        final authoritativeVersion = summary.serverDataVersion;
+        if (authoritativeVersion != null) {
+          await AppPrefs().setUserVersion(authoritativeVersion);
+        } else {
+          // Backward compatibility while older servers are still deployed.
+          final current = AppPrefs().userVersion;
+          await AppPrefs().setUserVersion(current + summary.batchesPushed);
+        }
       }
 
       AuditLogger.instance.sync('pushAll', {
