@@ -11,8 +11,8 @@ import '../../domain/exam_repository.dart';
 import '../../domain/paper_content.dart';
 import '../../domain/paper_folder_repository.dart';
 import '../../domain/question_repository.dart';
+import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
-import 'widgets/exam_question_card.dart';
 import 'widgets/paper_action_bar.dart';
 import 'exam_session_timer.dart';
 
@@ -95,8 +95,10 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
             .map(
               (q) => ExamQuestion(
                 questionId: q.id,
-                title: '${q.number} ${q.examType} ${q.region}',
+                title: q.stem,
                 questionType: q.questionType,
+                source: '${q.year} ${q.examType} ${q.region}',
+                difficulty: q.difficulty,
               ),
             )
             .toList(growable: false),
@@ -202,104 +204,120 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     final paper = _paper;
     if (paper == null) return const SizedBox.shrink();
 
+    final sequence = paper.questions
+        .map((question) => question.questionId)
+        .toList(growable: false);
+    final items = paper.questions
+        .asMap()
+        .entries
+        .map(
+          (entry) => QuestionWorkspaceItem(
+            id: entry.value.questionId,
+            title: entry.value.title,
+            questionType: entry.value.questionType,
+            subtitle: '${entry.key + 1}. ${entry.value.source}',
+            difficulty: entry.value.difficulty,
+          ),
+        )
+        .toList(growable: false);
     return AppContentContainer(
       maxWidth: AppContentWidth.reading,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          ListenableBuilder(
-            listenable: ExamSessionTimer.instance,
-            builder: (context, _) => PaperActionBar(
-              actions: [
-                PaperAction(
-                  label: widget.examId == null
-                      ? '开始练习'
-                      : ExamSessionTimer.instance.isRunning
-                      ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
-                      : '开始计时',
-                  icon: widget.examId == null
-                      ? Icons.play_arrow_rounded
-                      : ExamSessionTimer.instance.isRunning
-                      ? Icons.timer_off_outlined
-                      : Icons.timer_outlined,
-                  variant: AppButtonVariant.primary,
-                  onPressed: () {
-                    if (widget.examId == null) {
-                      _startVirtualPaper(paper);
-                    } else if (ExamSessionTimer.instance.isRunning) {
-                      ExamSessionTimer.instance.stop();
-                    } else {
-                      ExamSessionTimer.instance.start(widget.examId!);
-                    }
-                  },
-                ),
-                PaperAction(
-                  label: '快速对答案',
-                  icon: Icons.fact_check_outlined,
-                  onPressed: () => RouterUtils.push(
-                    context,
-                    widget.examId != null
-                        ? '${AppRoutes.answerSheet}?id=${widget.examId}'
-                        : AppRoutes.answerSheet,
-                    extra: widget.virtualPaper,
-                  ),
-                ),
-                PaperAction(
-                  label: '打印试卷',
-                  icon: Icons.picture_as_pdf_outlined,
-                  variant: AppButtonVariant.outlined,
-                  onPressed: () => PdfHelper.downloadPaperPdf(
-                    source:
-                        widget.virtualPaper ?? SavedPaperRef(widget.examId!),
-                    context: context,
-                  ),
-                ),
-              ],
-              menuActions: widget.examId == null
-                  ? const []
-                  : [
-                      PaperMenuAction(
-                        value: 'visibility',
-                        label: paper.isPublic ? '设为私密' : '公开分享',
-                        icon: paper.isPublic
-                            ? Icons.lock_outline
-                            : Icons.public,
+      child: QuestionWorkspace(
+        items: items,
+        basketRepository: PaperFolderRepository.local(),
+        onOpen: (item) => SolveRouteHelper.navigateTo(
+          context,
+          item.id,
+          item.questionType,
+          sequence: sequence,
+        ),
+        headerSliversBuilder: (context, selectedIds) => [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                ListenableBuilder(
+                  listenable: ExamSessionTimer.instance,
+                  builder: (context, _) => PaperActionBar(
+                    actions: [
+                      PaperAction(
+                        label: widget.examId == null
+                            ? '开始练习'
+                            : ExamSessionTimer.instance.isRunning
+                            ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
+                            : '开始计时',
+                        icon: widget.examId == null
+                            ? Icons.play_arrow_rounded
+                            : ExamSessionTimer.instance.isRunning
+                            ? Icons.timer_off_outlined
+                            : Icons.timer_outlined,
+                        variant: AppButtonVariant.primary,
+                        onPressed: () {
+                          if (widget.examId == null) {
+                            _startVirtualPaper(paper);
+                          } else if (ExamSessionTimer.instance.isRunning) {
+                            ExamSessionTimer.instance.stop();
+                          } else {
+                            ExamSessionTimer.instance.start(widget.examId!);
+                          }
+                        },
                       ),
-                      const PaperMenuAction(
-                        value: 'copy_folder',
-                        label: '基于此试卷新建试题篮',
-                        icon: Icons.create_new_folder_outlined,
+                      PaperAction(
+                        label: '快速对答案',
+                        icon: Icons.fact_check_outlined,
+                        onPressed: () => RouterUtils.push(
+                          context,
+                          widget.examId != null
+                              ? '${AppRoutes.answerSheet}?id=${widget.examId}'
+                              : AppRoutes.answerSheet,
+                          extra: widget.virtualPaper,
+                        ),
                       ),
-                      const PaperMenuAction(
-                        value: 'delete',
-                        label: '删除试卷',
-                        icon: AppIcons.delete,
-                        destructive: true,
+                      PaperAction(
+                        label: '打印试卷',
+                        icon: Icons.picture_as_pdf_outlined,
+                        variant: AppButtonVariant.outlined,
+                        onPressed: () => PdfHelper.downloadPaperPdf(
+                          source:
+                              widget.virtualPaper ??
+                              SavedPaperRef(widget.examId!),
+                          context: context,
+                        ),
                       ),
                     ],
-              onMenuSelected: _handleMenuAction,
+                    menuActions: widget.examId == null
+                        ? const []
+                        : [
+                            PaperMenuAction(
+                              value: 'visibility',
+                              label: paper.isPublic ? '设为私密' : '公开分享',
+                              icon: paper.isPublic
+                                  ? Icons.lock_outline
+                                  : Icons.public,
+                            ),
+                            const PaperMenuAction(
+                              value: 'copy_folder',
+                              label: '基于此试卷新建试题篮',
+                              icon: Icons.create_new_folder_outlined,
+                            ),
+                            const PaperMenuAction(
+                              value: 'delete',
+                              label: '删除试卷',
+                              icon: AppIcons.delete,
+                              destructive: true,
+                            ),
+                          ],
+                    onMenuSelected: _handleMenuAction,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                AppSectionHeader(
+                  title: '试卷题目',
+                  subtitle: '共 ${paper.questions.length} 题，按当前顺序排列。',
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppSectionHeader(
-            title: '试卷题目',
-            subtitle: '共 ${paper.questions.length} 题，按当前顺序排列。',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...paper.questions.map(
-            (question) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: ExamQuestionCard(
-                questionId: question.questionId,
-                title: question.title,
-                questionType: question.questionType,
-                sequence: paper.questions
-                    .map((item) => item.questionId)
-                    .toList(growable: false),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
         ],
       ),
     );

@@ -12,6 +12,7 @@ import '../../domain/paper_creation_service.dart';
 import '../../domain/paper_folder_repository.dart';
 import '../../domain/user_repository.dart';
 import '../../widgets/basket_selection_panel.dart';
+import '../../widgets/question_selection_workspace.dart';
 import '../question_bank/paper_draft_dialog.dart';
 import '../router.dart';
 
@@ -39,7 +40,14 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   PaperFolderDetail? _detail;
   String? _error;
   bool _saving = false;
-  final Set<int> _selectedIds = {};
+  final QuestionWorkspaceController _workspaceController =
+      QuestionWorkspaceController();
+
+  @override
+  void dispose() {
+    _workspaceController.dispose();
+    super.dispose();
+  }
 
   PaperCreationService _buildCreationService() {
     final provider = DatabaseProvider();
@@ -66,8 +74,8 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
       if (!mounted) return;
       setState(() {
         _detail = detail;
-        _selectedIds.removeWhere(
-          (id) => !detail.questions.any((question) => question.id == id),
+        _workspaceController.retain(
+          detail.questions.map((question) => question.id),
         );
         _error = null;
       });
@@ -184,9 +192,10 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
 
   Future<void> _generate() async {
     final detail = _detail;
-    if (detail == null || _selectedIds.isEmpty || _saving) return;
+    final selectedIds = _workspaceController.selectedIds;
+    if (detail == null || selectedIds.isEmpty || _saving) return;
     final selectedQuestions = detail.questions
-        .where((question) => _selectedIds.contains(question.id))
+        .where((question) => selectedIds.contains(question.id))
         .toList();
     final ids = selectedQuestions.map((question) => question.id).toList();
     final unchanged =
@@ -267,110 +276,63 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
           ? const LoadingIndicator(message: '正在加载试题篮')
           : AppContentContainer(
               maxWidth: AppContentWidth.standard,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
+              child: QuestionWorkspace(
+                controller: _workspaceController,
+                items: detail.questions
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => QuestionWorkspaceItem(
+                        id: entry.value.id,
+                        title: entry.value.title,
+                        questionType: entry.value.questionType,
+                        subtitle: '${entry.key + 1}. ${entry.value.meta}',
+                        difficulty: entry.value.difficulty,
+                      ),
+                    )
+                    .toList(growable: false),
+                onOpen: (item) => _workspaceController.toggle(item.id),
+                onEdit: (item) => _editQuestionFolders(
+                  detail.questions.firstWhere(
+                    (question) => question.id == item.id,
+                  ),
+                ),
+                onReorder: (oldIndex, newIndex) {
+                  final questions = List<SearchQuestion>.of(detail.questions);
+                  final item = questions.removeAt(oldIndex);
+                  questions.insert(newIndex, item);
+                  _saveQuestions(questions);
+                },
+                headerSliversBuilder: (context, selectedIds) => const [
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
                       AppSpacing.sm,
                       AppSpacing.sm,
                       AppSpacing.sm,
                       0,
                     ),
-                    child: MaterialBanner(
-                      content: const Text('长按题目（桌面端右键）可编辑所在试题篮；长按右侧手柄可调整顺序。'),
-                      actions: const [SizedBox.shrink()],
-                    ),
-                  ),
-                  Expanded(
-                    child: ReorderableListView.builder(
-                      buildDefaultDragHandles: false,
-                      padding: const EdgeInsets.only(
-                        top: AppSpacing.sm,
-                        bottom: 96,
+                    sliver: SliverToBoxAdapter(
+                      child: MaterialBanner(
+                        content: Text('长按题目（桌面端右键）可编辑所在试题篮；长按右侧手柄可调整顺序。'),
+                        actions: [SizedBox.shrink()],
                       ),
-                      itemCount: detail.questions.length,
-                      onReorderItem: (oldIndex, newIndex) {
-                        final questions = List<SearchQuestion>.of(
-                          detail.questions,
-                        );
-                        final item = questions.removeAt(oldIndex);
-                        questions.insert(newIndex, item);
-                        _saveQuestions(questions);
-                      },
-                      itemBuilder: (context, index) {
-                        final question = detail.questions[index];
-                        final selected = _selectedIds.contains(question.id);
-                        return GestureDetector(
-                          key: ValueKey(question.id),
-                          onLongPress: () => _editQuestionFolders(question),
-                          onSecondaryTap: () => _editQuestionFolders(question),
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSpacing.xs,
-                            ),
-                            child: QuestionCard(
-                              questionId: question.id,
-                              title: question.title,
-                              questionType: question.questionType,
-                              subtitle: '${index + 1}. ${question.meta}',
-                              difficulty: question.difficulty,
-                              compact: true,
-                              onTap: () => setState(() {
-                                selected
-                                    ? _selectedIds.remove(question.id)
-                                    : _selectedIds.add(question.id);
-                              }),
-                              trailing: SizedBox(
-                                width: 96,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Checkbox(
-                                      value: selected,
-                                      onChanged: (_) => setState(() {
-                                        selected
-                                            ? _selectedIds.remove(question.id)
-                                            : _selectedIds.add(question.id);
-                                      }),
-                                    ),
-                                    ReorderableDelayedDragStartListener(
-                                      index: index,
-                                      child: const Tooltip(
-                                        message: '长按拖动排序',
-                                        child: Padding(
-                                          padding: EdgeInsets.all(
-                                            AppSpacing.sm,
-                                          ),
-                                          child: Icon(
-                                            Icons.drag_handle_rounded,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
                     ),
                   ),
                 ],
-              ),
-            ),
-      bottomNavigationBar: detail == null
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: AppButton(
-                  label: _selectedIds.isEmpty
-                      ? '请选择题目'
-                      : '用已选 ${_selectedIds.length} 题组卷 · 10 积分',
-                  icon: Icons.description_outlined,
-                  onPressed: _selectedIds.isEmpty || _saving ? null : _generate,
-                  loading: _saving,
+                bottomBuilder: (context, selectedIds) => SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: AppButton(
+                      label: selectedIds.isEmpty
+                          ? '请选择题目'
+                          : '用已选 ${selectedIds.length} 题组卷 · 10 积分',
+                      icon: Icons.description_outlined,
+                      onPressed: selectedIds.isEmpty || _saving
+                          ? null
+                          : _generate,
+                      loading: _saving,
+                    ),
+                  ),
                 ),
               ),
             ),

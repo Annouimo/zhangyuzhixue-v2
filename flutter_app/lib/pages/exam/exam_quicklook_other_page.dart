@@ -6,8 +6,10 @@ import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
+import '../../domain/paper_folder_repository.dart';
+import '../../domain/question_repository.dart';
+import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
-import 'widgets/exam_question_card.dart';
 import 'widgets/paper_action_bar.dart';
 
 /// 预览其他用户公开的组卷。
@@ -87,71 +89,86 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
     final preview = _preview;
     if (preview == null) return const SizedBox.shrink();
 
+    final sequence = preview.questions
+        .map((question) => question.questionId)
+        .toList(growable: false);
+    final items = preview.questions
+        .asMap()
+        .entries
+        .map(
+          (entry) => QuestionWorkspaceItem(
+            id: entry.value.questionId,
+            title: entry.value.title,
+            questionType: entry.value.questionType,
+            subtitle: '${entry.key + 1}. ${entry.value.source}',
+            difficulty: entry.value.difficulty,
+          ),
+        )
+        .toList(growable: false);
     return AppContentContainer(
       maxWidth: AppContentWidth.reading,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        children: [
-          PaperActionBar(
-            actions: [
-              PaperAction(
-                label: '快速对答案',
-                icon: Icons.fact_check_outlined,
-                onPressed: () => RouterUtils.push(
-                  context,
-                  '${AppRoutes.answerSheet}?id=${widget.examId}',
+      child: QuestionWorkspace(
+        items: items,
+        basketRepository: PaperFolderRepository.local(),
+        onOpen: (item) => SolveRouteHelper.navigateTo(
+          context,
+          item.id,
+          item.questionType,
+          sequence: sequence,
+        ),
+        headerSliversBuilder: (context, selectedIds) => [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                PaperActionBar(
+                  actions: [
+                    PaperAction(
+                      label: '快速对答案',
+                      icon: Icons.fact_check_outlined,
+                      onPressed: () => RouterUtils.push(
+                        context,
+                        '${AppRoutes.answerSheet}?id=${widget.examId}',
+                      ),
+                    ),
+                    PaperAction(
+                      label: '打印试卷',
+                      icon: Icons.picture_as_pdf_outlined,
+                      variant: AppButtonVariant.outlined,
+                      onPressed: () => PdfHelper.downloadPdf(
+                        sourceId: widget.examId,
+                        sourceType: 'paper',
+                        context: context,
+                      ),
+                    ),
+                    PaperAction(
+                      label: _liked
+                          ? '${preview.likeCount} 已点赞'
+                          : '${preview.likeCount} 点赞',
+                      icon: _liked ? AppIcons.likeSelected : AppIcons.like,
+                      variant: AppButtonVariant.outlined,
+                      onPressed: _toggleLike,
+                    ),
+                    PaperAction(
+                      label: _collected
+                          ? '${preview.collectCount} 已收藏'
+                          : '${preview.collectCount} 收藏',
+                      icon: _collected
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_outline_rounded,
+                      variant: AppButtonVariant.outlined,
+                      onPressed: _toggleCollect,
+                    ),
+                  ],
                 ),
-              ),
-              PaperAction(
-                label: '打印试卷',
-                icon: Icons.picture_as_pdf_outlined,
-                variant: AppButtonVariant.outlined,
-                onPressed: () => PdfHelper.downloadPdf(
-                  sourceId: widget.examId,
-                  sourceType: 'paper',
-                  context: context,
+                const SizedBox(height: AppSpacing.md),
+                AppSectionHeader(
+                  title: '试卷题目',
+                  subtitle: '共 ${preview.questions.length} 题，点击可进入练习。',
                 ),
-              ),
-              PaperAction(
-                label: _liked
-                    ? '${preview.likeCount} 已点赞'
-                    : '${preview.likeCount} 点赞',
-                icon: _liked ? AppIcons.likeSelected : AppIcons.like,
-                variant: AppButtonVariant.outlined,
-                onPressed: _toggleLike,
-              ),
-              PaperAction(
-                label: _collected
-                    ? '${preview.collectCount} 已收藏'
-                    : '${preview.collectCount} 收藏',
-                icon: _collected
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_outline_rounded,
-                variant: AppButtonVariant.outlined,
-                onPressed: _toggleCollect,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          AppSectionHeader(
-            title: '试卷题目',
-            subtitle: '共 ${preview.questions.length} 题，点击可进入练习。',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...preview.questions.map(
-            (question) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: ExamQuestionCard(
-                questionId: question.questionId,
-                title: question.title,
-                questionType: question.questionType,
-                sequence: preview.questions
-                    .map((item) => item.questionId)
-                    .toList(growable: false),
-              ),
+                const SizedBox(height: AppSpacing.md),
+              ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
         ],
       ),
     );

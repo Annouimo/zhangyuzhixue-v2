@@ -4,7 +4,6 @@ import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/domain/question_review_repository.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/question_bank/question_bank_page.dart';
-import 'package:flutter_app/widgets/question_search_results.dart';
 import 'package:shared/shared.dart';
 
 import '../test_setup.dart';
@@ -209,21 +208,18 @@ void main() {
     expect(find.text('全选当前结果'), findsOneWidget);
     expect(find.text('清空'), findsOneWidget);
     expect(find.text('智能选题'), findsOneWidget);
-    expect(find.byTooltip('加入试题篮'), findsOneWidget);
+    expect(find.byTooltip('选择题目'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('加入试题篮'));
+    await tester.tap(find.byTooltip('选择题目'));
     await tester.pumpAndSettle();
 
-    expect(find.byTooltip('移出试题篮'), findsOneWidget);
+    expect(find.byTooltip('取消选择'), findsOneWidget);
     expect(find.text('智能补全'), findsOneWidget);
     expect(find.text('已选 1 道题'), findsOneWidget);
     expect(find.text('加入试题篮'), findsOneWidget);
     await tester.ensureVisible(find.text('函数测试题'));
     await tester.pumpAndSettle();
-    final resultCard = tester.widget<QuestionSearchResultCard>(
-      find.byType(QuestionSearchResultCard),
-    );
-    expect(resultCard.selected, isTrue);
+    expect(find.byTooltip('取消选择'), findsOneWidget);
   });
 
   testWidgets('question list keeps scroll stable and can return to top', (

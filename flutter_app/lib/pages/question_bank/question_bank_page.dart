@@ -20,8 +20,7 @@ import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
 import '../../data/daos/user_dao.dart';
 import '../../widgets/question_search_field.dart';
-import '../../widgets/question_search_results.dart';
-import '../../widgets/basket_selection_panel.dart';
+import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
 import 'question_detail_page.dart';
 import 'paper_draft_dialog.dart';
@@ -96,6 +95,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   bool _loadingQuestions = false;
   bool _creatingPaper = false;
   final Map<int, SearchQuestion> _selectedQuestions = {};
+  final QuestionWorkspaceController _workspaceController =
+      QuestionWorkspaceController();
   QuestionReviewScope? _reviewScope;
   int? _selectedRangeId;
   bool _applyingExternalScope = false;
@@ -122,6 +123,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void dispose() {
     _debounce?.cancel();
     _queryController.dispose();
+    _workspaceController.dispose();
     if (widget.scrollController == null) _scrollController.dispose();
     super.dispose();
   }
@@ -621,16 +623,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     );
   }
 
-  Future<void> _toggleQuestion(SearchQuestion question) async {
-    setState(() {
-      if (_selectedQuestions.containsKey(question.id)) {
-        _selectedQuestions.remove(question.id);
-      } else {
-        _selectedQuestions[question.id] = question;
-      }
-    });
-  }
-
   bool get _allVisibleQuestionsSelected {
     final questions = _questions;
     return questions != null &&
@@ -672,95 +664,13 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _selectedQuestions[question.id] = question;
       }
     });
+    _workspaceController.replace(_selectedQuestions.keys);
   }
 
   Future<void> _clearBasket() async {
     if (_selectedQuestions.isEmpty) return;
     setState(_selectedQuestions.clear);
-  }
-
-  Future<void> _addSelectionToFolder() async {
-    if (_selectedQuestions.isEmpty) return;
-    var folders = await _paperFolderRepository.list();
-    if (folders.isEmpty) {
-      await _paperFolderRepository.defaultFolderId();
-      folders = await _paperFolderRepository.list();
-    }
-    if (!mounted) return;
-    final selectedIds = _selectedQuestions.keys.toSet();
-    final duplicateCounts = <int, int>{};
-    final items = await Future.wait(
-      folders.map((folder) async {
-        final detail = await _paperFolderRepository.detail(folder.id);
-        final duplicateCount = detail.questions
-            .where((question) => selectedIds.contains(question.id))
-            .length;
-        duplicateCounts[folder.id] = duplicateCount;
-        return BasketSelectionItem(
-          id: folder.id,
-          name: folder.name,
-          subtitle:
-              '${folder.questionCount} 道题 · 新增 ${selectedIds.length - duplicateCount} 道 · 已有 $duplicateCount 道',
-        );
-      }),
-    );
-    if (!mounted) return;
-    final selectedFolderIds = await showBasketSelectionPanel(
-      context: context,
-      title: '加入试题篮',
-      subtitle: '已选择 ${selectedIds.length} 道题',
-      items: items,
-      initialSelectedIds: items.isEmpty ? const {} : {items.first.id},
-      multiple: true,
-      footerBuilder: (ids) {
-        final duplicateCount = ids.fold<int>(
-          0,
-          (sum, id) => sum + (duplicateCounts[id] ?? 0),
-        );
-        final addedCount = ids.length * selectedIds.length - duplicateCount;
-        return BasketSelectionFooter(
-          summary: ids.isEmpty
-              ? '请选择至少一个试题篮'
-              : '将 ${selectedIds.length} 道题加入 ${ids.length} 个试题篮，新增 $addedCount 道次，已有 $duplicateCount 道次',
-          confirmLabel: ids.isEmpty ? '请选择试题篮' : '加入所选试题篮',
-          confirmIcon: Icons.shopping_cart_checkout_outlined,
-        );
-      },
-      onCreate: () async {
-        final name = await showCreateBasketDialog(context);
-        if (name == null || name.isEmpty) return null;
-        final id = await _paperFolderRepository.create(name);
-        duplicateCounts[id] = 0;
-        return BasketSelectionItem(
-          id: id,
-          name: name,
-          subtitle: '0 道题 · 新增 ${selectedIds.length} 道 · 已有 0 道',
-        );
-      },
-    );
-    if (selectedFolderIds == null || selectedFolderIds.isEmpty) return;
-    final result = await _paperFolderRepository.prependQuestionsToFolders(
-      selectedFolderIds,
-      _selectedQuestions.keys,
-    );
-    final folderId = selectedFolderIds.first;
-    await _paperFolderRepository.setActiveFolder(folderId);
-    if (!mounted) return;
-    setState(_selectedQuestions.clear);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '已加入 ${selectedFolderIds.length} 个试题篮：新增 ${result.added} 道次，${result.existing} 道次已存在',
-        ),
-        action: SnackBarAction(
-          label: '查看试题篮',
-          onPressed: () => RouterUtils.push(
-            context,
-            '${AppRoutes.paperFolderDetail}?id=$folderId',
-          ),
-        ),
-      ),
-    );
+    _workspaceController.clear();
   }
 
   // Retained for compatibility with older deep-link flows during migration.
@@ -803,6 +713,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         setState(() {
           _selectedQuestions.clear();
         });
+        _workspaceController.clear();
       }
       if (downloadAfterCreate && mounted) {
         await PdfHelper.downloadPdf(
@@ -860,6 +771,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
             draftQuestions.map((question) => MapEntry(question.id, question)),
           );
       });
+      _workspaceController.replace(_selectedQuestions.keys);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(selected.isEmpty ? '已完成智能选题' : '已完成智能补全')),
@@ -879,48 +791,50 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     final options = _filterOptions;
     return Scaffold(
       appBar: AppBar(toolbarHeight: 64, title: const Text('题库'), actions: []),
-      bottomNavigationBar: _selectedQuestions.isNotEmpty
-          ? SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: context.colors.surfaceSubtle,
-                  border: Border(top: BorderSide(color: context.colors.border)),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '已选 ${_selectedQuestions.length} 道题',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    AppButton(
-                      onPressed: _addSelectionToFolder,
-                      icon: Icons.shopping_cart_checkout_outlined,
-                      label: '加入试题篮',
-                      expanded: false,
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : null,
       body: options == null && _error == null
           ? const LoadingIndicator(message: '正在加载题库')
           : AppContentContainer(
               maxWidth: AppContentWidth.standard,
               child: RefreshIndicator(
                 onRefresh: _loadFilterOptions,
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
+                child: QuestionWorkspace(
+                  controller: _workspaceController,
+                  basketRepository: _paperFolderRepository,
+                  scrollController: _scrollController,
+                  items: (_questions ?? const <SearchQuestion>[])
+                      .map(
+                        (question) => QuestionWorkspaceItem(
+                          id: question.id,
+                          title: question.title,
+                          questionType: question.questionType,
+                          subtitle: question.meta,
+                          difficulty: question.difficulty,
+                        ),
+                      )
+                      .toList(growable: false),
+                  onOpen: (item) => _openQuestion(
+                    _questions!.firstWhere(
+                      (question) => question.id == item.id,
+                    ),
+                  ),
+                  onSelectionChanged: (ids) {
+                    final questionsById = {
+                      for (final question
+                          in _questions ?? const <SearchQuestion>[])
+                        question.id: question,
+                    };
+                    setState(() {
+                      _selectedQuestions.removeWhere(
+                        (id, question) => !ids.contains(id),
+                      );
+                      for (final id in ids) {
+                        final question = questionsById[id];
+                        if (question != null) _selectedQuestions[id] = question;
+                      }
+                    });
+                  },
+                  stateSlivers: _buildResultSlivers(),
+                  headerSliversBuilder: (context, selectedIds) => [
                     if (options != null)
                       SliverPadding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -952,10 +866,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                         ),
                       ),
                     ),
-                    ..._buildResultSlivers(),
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: AppSpacing.xl),
-                    ),
                   ],
                 ),
               ),
@@ -963,7 +873,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     );
   }
 
-  List<Widget> _buildResultSlivers() {
+  List<Widget>? _buildResultSlivers() {
     if (_error != null) {
       return [
         SliverFillRemaining(
@@ -997,20 +907,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         ),
       ];
     }
-    return [
-      SliverList.builder(
-        itemCount: questions.length,
-        itemBuilder: (context, index) {
-          final question = questions[index];
-          return QuestionSearchResultCard(
-            question: question,
-            onOpen: () => _openQuestion(question),
-            selected: _selectedQuestions.containsKey(question.id),
-            onToggle: () => _toggleQuestion(question),
-          );
-        },
-      ),
-    ];
+    return null;
   }
 }
 

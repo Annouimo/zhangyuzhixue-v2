@@ -155,10 +155,14 @@ class ExamQuestion {
   final int questionId;
   final String title;
   final String questionType;
+  final String source;
+  final double? difficulty;
   const ExamQuestion({
     required this.questionId,
     required this.title,
     required this.questionType,
+    required this.source,
+    this.difficulty,
   });
 }
 
@@ -536,7 +540,10 @@ class ExamRepository implements QuestionLibraryRepository {
     final qIds = questions.map((q) => q.questionId).toList();
     final unorderedRows = await _questionDao.getByIds(qIds);
     final rowsById = {for (final row in unorderedRows) row.id: row};
-    final qRows = qIds.map((id) => rowsById[id]).whereType<assets_db.QuestionRow>().toList();
+    final qRows = qIds
+        .map((id) => rowsById[id])
+        .whereType<assets_db.QuestionRow>()
+        .toList();
     return ExamPreview(
       name: paper.title,
       authorInfo: '创建于 ${paper.createdAt.substring(0, 10)}',
@@ -549,8 +556,10 @@ class ExamRepository implements QuestionLibraryRepository {
           .map(
             (q) => ExamQuestion(
               questionId: q.id,
-              title: '${q.number} ${q.examType} ${q.region}',
+              title: q.stem,
               questionType: q.questionType,
+              source: '${q.year} ${q.examType} ${q.region}',
+              difficulty: q.difficulty,
             ),
           )
           .toList(),
@@ -568,6 +577,8 @@ class ExamRepository implements QuestionLibraryRepository {
               questionId: m['question_id'] as int,
               title: m['title'] as String? ?? '',
               questionType: m['question_type'] as String? ?? '',
+              source: m['source'] as String? ?? '',
+              difficulty: (m['difficulty'] as num?)?.toDouble(),
             );
           }).toList() ??
           [];
@@ -607,8 +618,10 @@ class ExamRepository implements QuestionLibraryRepository {
           .map(
             (q) => ExamQuestion(
               questionId: q.id,
-              title: '${q.number} ${q.examType} ${q.region}',
+              title: q.stem,
               questionType: q.questionType,
+              source: '${q.year} ${q.examType} ${q.region}',
+              difficulty: q.difficulty,
             ),
           )
           .toList(),

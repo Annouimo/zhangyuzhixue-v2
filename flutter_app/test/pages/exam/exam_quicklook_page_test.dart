@@ -83,7 +83,15 @@ void main() {
           solutionCount: 2,
           totalCount: 10,
           isPublic: false,
-          questions: [],
+          questions: const [
+            ExamQuestion(
+              questionId: 1,
+              title: '已知函数，求其最值。',
+              questionType: 'solution',
+              source: '2025 全国 高考',
+              difficulty: 6,
+            ),
+          ],
         ),
       );
       await tester.pumpWidget(
@@ -92,7 +100,10 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('测试卷'), findsAtLeast(1));
-      expect(find.textContaining('共 0 题'), findsOneWidget);
+      expect(find.textContaining('共 1 题'), findsOneWidget);
+      expect(find.text('已知函数，求其最值。'), findsOneWidget);
+      expect(find.text('1. 2025 全国 高考'), findsOneWidget);
+      expect(find.text('中难'), findsOneWidget);
       expect(find.text('开始计时'), findsOneWidget);
       expect(find.text('快速对答案'), findsOneWidget);
       expect(find.text('打印试卷'), findsOneWidget);

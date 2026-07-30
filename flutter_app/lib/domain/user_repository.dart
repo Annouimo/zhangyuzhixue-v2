@@ -37,6 +37,8 @@ class HistoryItem {
   final int questionId;
   final String date;
   final String status;
+  final String source;
+  final double? difficulty;
 
   bool get isCompleted => status == 'completed';
 
@@ -47,6 +49,8 @@ class HistoryItem {
     required this.questionId,
     required this.date,
     required this.status,
+    required this.source,
+    this.difficulty,
   });
 }
 
@@ -194,21 +198,29 @@ class UserRepository {
     for (final s in submissions) {
       String qType = '';
       String title = '#${s.questionId}';
+      String source = '';
+      double? difficulty;
       try {
         final q = await _questionDao.getById(s.questionId);
         if (q != null) {
           qType = q.questionType;
-          title = '${q.year} ${q.region}${q.examType} ${q.number}';
+          title = q.stem;
+          source = '${q.year} ${q.examType} ${q.region}';
+          difficulty = q.difficulty;
         }
       } catch (_) {}
-      items.add(HistoryItem(
-        id: s.id,
-        title: title,
-        questionType: qType,
-        questionId: s.questionId,
-        date: s.createdAt.substring(0, 10),
-        status: s.status,
-      ));
+      items.add(
+        HistoryItem(
+          id: s.id,
+          title: title,
+          questionType: qType,
+          questionId: s.questionId,
+          date: s.createdAt.substring(0, 10),
+          status: s.status,
+          source: source,
+          difficulty: difficulty,
+        ),
+      );
     }
     return items;
   }

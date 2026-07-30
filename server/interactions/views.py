@@ -586,8 +586,12 @@ class ExamPreviewOtherView(APIView):
             q = pq.question
             q_list.append({
                 'question_id': q.pk,
-                'title': f'{q.number} {q.exam_type} {q.region}',
+                'title': q.stem,
                 'question_type': q.question_type,
+                'source': ' '.join(str(value) for value in (
+                    q.year, q.exam_type, q.region
+                ) if value),
+                'difficulty': q.difficulty,
             })
 
         choice_count = sum(1 for q in q_list if q['question_type'] == 'choice')

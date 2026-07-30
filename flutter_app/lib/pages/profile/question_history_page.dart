@@ -6,7 +6,6 @@ import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/loading_indicator.dart';
-import 'package:shared/widgets/question_card.dart';
 
 import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
@@ -14,6 +13,8 @@ import '../../data/daos/question_dao.dart';
 import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
+import '../../domain/paper_folder_repository.dart';
+import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
 
 class QuestionHistoryPage extends StatefulWidget {
@@ -95,28 +96,38 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
 
     return AppContentContainer(
       maxWidth: AppContentWidth.standard,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-        children: [
-          AppSectionHeader(
-            title: '最近记录',
-            subtitle: '共 ${history.length} 道，点击题目继续作答或查看解析。',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...history.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: QuestionCard(
-                questionId: item.questionId,
+      child: QuestionWorkspace(
+        items: history
+            .map(
+              (item) => QuestionWorkspaceItem(
+                id: item.questionId,
                 title: item.title,
                 questionType: item.questionType,
-                subtitle: item.date,
+                subtitle: item.source.isEmpty
+                    ? item.date
+                    : '${item.date} · ${item.source}',
+                difficulty: item.difficulty,
                 status: item.status,
-                onTap: () => _openQuestion(item),
+              ),
+            )
+            .toList(growable: false),
+        basketRepository: PaperFolderRepository.local(),
+        onOpen: (item) => _openQuestion(
+          history.firstWhere((entry) => entry.questionId == item.id),
+        ),
+        headerSliversBuilder: (context, selectedIds) => [
+          SliverPadding(
+            padding: const EdgeInsets.only(
+              top: AppSpacing.lg,
+              bottom: AppSpacing.md,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: AppSectionHeader(
+                title: '最近记录',
+                subtitle: '共 ${history.length} 道，点击题目继续作答或查看解析。',
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );

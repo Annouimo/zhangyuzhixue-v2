@@ -15,7 +15,15 @@ class _MockOtherRepo implements ExamRepository {
     totalCount: 6,
     likeCount: 10,
     collectCount: 5,
-    questions: [],
+    questions: const [
+      ExamQuestion(
+        questionId: 2,
+        title: '公开试卷中的题干',
+        questionType: 'choice',
+        source: '2024 北京 模拟',
+        difficulty: 3,
+      ),
+    ],
   );
   @override
   Future<List<ExamSummary>> getMyExams() async => throw UnimplementedError();
@@ -79,6 +87,8 @@ void main() {
       expect(find.text('打印试卷'), findsOneWidget);
       expect(find.text('10 点赞'), findsOneWidget);
       expect(find.text('5 收藏'), findsOneWidget);
+      expect(find.text('公开试卷中的题干'), findsOneWidget);
+      expect(find.text('1. 2024 北京 模拟'), findsOneWidget);
     });
   });
 }
