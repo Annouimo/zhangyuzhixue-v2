@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/sync_progress_dialog.dart';
+import '../../widgets/user_sync_progress.dart';
 import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_page_layout.dart';
@@ -145,14 +146,21 @@ class _AboutPageState extends State<AboutPage> {
     if (type == 'courses') setState(() => _updatingCourses = true);
     if (type == 'user') setState(() => _updatingUser = true);
 
-    final ok = await showSyncProgress(
-      context,
-      (onProgress) async {
-        await SyncManager().runUpdate(type, onProgress: onProgress);
-      },
-      title: '更新数据',
-      message: '正在下载$label新版本…',
-    );
+    Future<void> task(void Function(double) onProgress) =>
+        SyncManager().runUpdate(type, onProgress: onProgress);
+    final ok = type == 'user'
+        ? await showUserSyncProgress(
+            context,
+            task,
+            title: '更新数据',
+            message: '正在下载$label新版本…',
+          )
+        : await showSyncProgress(
+            context,
+            task,
+            title: '更新数据',
+            message: '正在下载$label新版本…',
+          );
 
     if (!mounted) return;
     final prefs = AppPrefs();

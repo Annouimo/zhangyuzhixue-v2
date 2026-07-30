@@ -12,6 +12,7 @@ import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/pages/router.dart'
     show appRouter, routerNavigatorKey;
 import 'package:shared/widgets/sync_progress_dialog.dart';
+import 'package:flutter_app/widgets/user_sync_progress.dart';
 import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
@@ -211,14 +212,21 @@ Future<void> _startUpdate(
   Navigator.of(context).pop();
 
   // 显示进度弹窗
-  final ok = await showSyncProgress(
-    context,
-    (onProgress) async {
-      await SyncManager().runUpdate(summary.type, onProgress: onProgress);
-    },
-    title: '更新数据',
-    message: '正在下载$label新版本…',
-  );
+  Future<void> task(void Function(double) onProgress) =>
+      SyncManager().runUpdate(summary.type, onProgress: onProgress);
+  final ok = summary.type == 'user'
+      ? await showUserSyncProgress(
+          context,
+          task,
+          title: '更新数据',
+          message: '正在下载$label新版本…',
+        )
+      : await showSyncProgress(
+          context,
+          task,
+          title: '更新数据',
+          message: '正在下载$label新版本…',
+        );
   // 更新成功后显示 Toast
   if (ok && context.mounted) {
     AppToast.show(

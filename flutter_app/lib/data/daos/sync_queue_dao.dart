@@ -118,15 +118,20 @@ class SyncQueueDao {
   /// Count every queue item that has not completed, without double-counting
   /// failed rows (which are also retryable pending rows).
   Future<int> getUnresolvedCount() async {
-    final rows = await (_db.select(_db.syncQueue)
-          ..where((t) => t.status.isNotIn(['done'])))
-        .get();
+    final rows = await getUnresolved();
     AuditLogger.instance.dao(
       'SyncQueueDao.getUnresolvedCount',
       rows.length,
       {},
     );
     return rows.length;
+  }
+
+  Future<List<db.SyncQueueRow>> getUnresolved() {
+    return (_db.select(_db.syncQueue)
+          ..where((t) => t.status.isNotIn(['done']))
+          ..orderBy([(t) => OrderingTerm(expression: t.id)]))
+        .get();
   }
 
   Future<bool> hasFailed() async {

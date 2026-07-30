@@ -12,7 +12,7 @@ import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../domain/auth_repository.dart';
 import '../domain/preference_repository.dart';
-import 'package:shared/widgets/sync_progress_dialog.dart';
+import '../widgets/user_sync_progress.dart';
 import 'router.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
@@ -74,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       // 同步用户数据（展示进度弹窗）
-      final syncOk = await showSyncProgress(
+      final syncOk = await showUserSyncProgress(
         context,
         (onProgress) async {
           await SyncManager().onLogin(onProgress: onProgress);

@@ -21,6 +21,8 @@ Future<bool> showSyncProgress(
   BuildContext context,
   Future<void> Function(void Function(double) onProgress) task, {
   Future<bool> Function()? dataVerifier,
+  Future<List<String>> Function()? unresolvedDetails,
+  Future<void> Function(void Function(double) onProgress)? forceTask,
   String title = '同步数据',
   String message = '正在同步…',
 }) async {
@@ -33,6 +35,8 @@ Future<bool> showSyncProgress(
       task: task,
       completer: completer,
       dataVerifier: dataVerifier,
+      unresolvedDetails: unresolvedDetails,
+      forceTask: forceTask,
       dialogTitle: title,
       dialogMessage: message,
     ),
@@ -45,6 +49,8 @@ class _SyncProgressDialog extends StatefulWidget {
   final Future<void> Function(void Function(double) onProgress) task;
   final Completer<bool> completer;
   final Future<bool> Function()? dataVerifier;
+  final Future<List<String>> Function()? unresolvedDetails;
+  final Future<void> Function(void Function(double) onProgress)? forceTask;
   final String dialogTitle;
   final String dialogMessage;
 
@@ -52,6 +58,8 @@ class _SyncProgressDialog extends StatefulWidget {
     required this.task,
     required this.completer,
     this.dataVerifier,
+    this.unresolvedDetails,
+    this.forceTask,
     this.dialogTitle = '同步数据',
     this.dialogMessage = '正在同步…',
   });
@@ -64,6 +72,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   double _progress = 0;
   String _status = 'progress'; // progress | done | no_data | fail
   String _errorMessage = '';
+  List<String> _unresolvedDetails = const [];
 
   @override
   void initState() {
@@ -71,9 +80,10 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     _runTask();
   }
 
-  Future<void> _runTask() async {
+  Future<void> _runTask({bool force = false}) async {
     try {
-      await widget.task((p) {
+      final task = force ? widget.forceTask! : widget.task;
+      await task((p) {
         if (mounted) setState(() => _progress = p);
       });
 
@@ -83,25 +93,71 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         if (mounted) {
           setState(() => _status = hasData ? 'done' : 'no_data');
         }
-        widget.completer.complete(hasData);
+        _completeOnce(hasData);
       } else {
         if (mounted) setState(() => _status = 'done');
-        widget.completer.complete(true);
+        _completeOnce(true);
       }
     } catch (e) {
       if (mounted) {
+        var details = const <String>[];
+        try {
+          details = widget.unresolvedDetails == null
+              ? const <String>[]
+              : await widget.unresolvedDetails!();
+        } catch (_) {
+          // Failure details are supplementary; keep the primary error usable.
+        }
+        if (!mounted) return;
         setState(() {
           _status = 'fail';
           _errorMessage = e.toString();
+          _unresolvedDetails = details;
         });
       }
-      widget.completer.complete(false);
     }
+  }
+
+  void _completeOnce(bool value) {
+    if (!widget.completer.isCompleted) widget.completer.complete(value);
+  }
+
+  void _closeAsFailed() {
+    _completeOnce(false);
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _confirmForceSync() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('放弃未同步记录？'),
+        content: const Text('这些本地记录将不会上传，随后会以服务器数据覆盖本机学习记录。此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(minimumSize: const Size(0, 40)),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+            child: const Text('确认放弃并同步'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _status = 'progress';
+      _progress = 0;
+      _errorMessage = '';
+    });
+    await _runTask(force: true);
   }
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
     return PopScope(
       canPop: _status != 'progress',
       child: AlertDialog(
@@ -240,7 +296,38 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
           style: TextStyle(fontSize: 13, color: colors.textMuted),
           textAlign: TextAlign.center,
         ),
+        if (_unresolvedDetails.isNotEmpty) ...[
+          SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colors.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('尚未同步：', style: TextStyle(fontWeight: FontWeight.w600)),
+                SizedBox(height: 4),
+                for (final detail in _unresolvedDetails) Text('• $detail'),
+              ],
+            ),
+          ),
+        ],
         SizedBox(height: 16),
+        if (widget.forceTask != null) ...[
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _confirmForceSync,
+              style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+              icon: Icon(Icons.sync_lock),
+              label: Text('放弃这些记录并同步'),
+            ),
+          ),
+          SizedBox(height: 10),
+        ],
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -265,7 +352,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
             ),
             SizedBox(width: 12),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: _closeAsFailed,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(0, 40),
                 backgroundColor: colors.primary,
