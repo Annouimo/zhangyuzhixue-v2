@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group, User
@@ -66,6 +68,23 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
     assert response.status_code == 200
     assert 'Gitee 主仓库' in response.content.decode()
     assert '题库结构' in response.content.decode()
+
+
+def test_handbook_follows_system_dark_mode_and_busts_css_cache():
+    root = Path(__file__).parents[1]
+    stylesheet = (
+        root / 'static' / 'internal_portal' / 'portal.css'
+    ).read_text(encoding='utf-8')
+    base = (
+        root / 'templates' / 'internal_portal' / 'base.html'
+    ).read_text(encoding='utf-8')
+    login = (
+        root / 'templates' / 'internal_portal' / 'login.html'
+    ).read_text(encoding='utf-8')
+    assert '@media (prefers-color-scheme: dark)' in stylesheet
+    assert 'color-scheme: dark' in stylesheet
+    assert "portal.css' %}?v=5" in base
+    assert "portal.css' %}?v=5" in login
 
 
 def test_logout_requires_post_and_ends_session(client, portal_user):

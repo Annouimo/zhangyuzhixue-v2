@@ -15,6 +15,25 @@
   --red-soft: #ffebe9;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --border: #30363d;
+    --blue: #58a6ff;
+    --blue-soft: #0d2d4a;
+    --green: #56d364;
+    --green-soft: #12351f;
+    --amber: #e3b341;
+    --amber-soft: #3b2e0b;
+    --red: #ff7b72;
+    --red-soft: #3d161b;
+  }
+}
+
 /* Workbench revision history and Git-style read-only diff. */
 .revision-table code { color: #8250df; font-weight: 700; }
 .revision-table td:nth-child(2) { white-space: nowrap; }
@@ -411,4 +430,48 @@ dialog::backdrop { background: #18223366; }
   .dashboard-grid, .release-grid, .lecture-layout { grid-template-columns: 1fr; }
   .training-list li { grid-template-columns: 32px minmax(0, 1fr); }
   .training-list form { grid-column: 2; }
+}
+
+/* Keep dark component overrides after all base and responsive rules. */
+@media (prefers-color-scheme: dark) {
+  .side-nav a:hover, .sidebar-bottom button:hover, button:hover,
+  .queue-row:hover, .tag-options li:hover { background: #21262d; }
+  .side-nav a.is-active { color: #79c0ff; }
+  .side-nav-section { color: #6e7681; }
+  .nav-count, .queue-tabs span, .count-badge, .status, .training-index { color: #b1bac4; background: #30363d; }
+  .side-nav a.is-active .nav-count { color: var(--blue); background: #0d1117; }
+  .brand-mark { color: #fff; background: #0d1117; border: 1px solid #30363d; }
+  input, select, textarea, button, .icon-button, dialog { color: var(--text); background: #0d1117; }
+  input::placeholder, textarea::placeholder { color: #6e7681; }
+  button:hover { border-color: #6e7681; }
+  .primary, .primary:hover { color: #fff; background: #1f6feb; border-color: #1f6feb; }
+  .table-wrap, .content-workspace, .review-sidebar > section, .history-panel,
+  .simple-editor, .metric-grid a, .panel, .training-list li, .login-panel,
+  .commit-panel, .diff-comparison { background: var(--surface); }
+  th, .solution-target, .subquestion-preview, .repeat-item, .training-json,
+  .confirm-summary, .question-meta span { background: #21262d; }
+  .repeat-item { border-color: var(--border); }
+  .option-key, .tag-chip { color: #79c0ff; }
+  .type-chip { color: #b1bac4; background: #21262d; border-color: #30363d; }
+  .revision-table code { color: #d2a8ff; }
+  .commit-mark { color: #fff; background: #8957e5; }
+  .diff-version-head { background: #21262d; border-color: #30363d; }
+  .diff-version-head div + div, .field-diff + .field-diff,
+  .diff-cell:nth-child(even) { border-color: #30363d; }
+  .diff-version-head span, .field-diff > header code { color: #8b949e; }
+  .field-diff > header { background: #0d2d4a; border-color: #30363d; }
+  .field-diff > header strong { color: #79c0ff; }
+  .diff-cell { border-bottom-color: #21262d; }
+  .diff-cell .line-no { color: #8b949e; background: #21262d; }
+  .diff-cell.diff-add { color: #aff5b4; background: #033a16; }
+  .diff-cell.diff-add .line-no, .diff-cell.diff-add .change-mark { background: #196c2e; }
+  .diff-cell.diff-remove { color: #ffdcd7; background: #67060c; }
+  .diff-cell.diff-remove .line-no, .diff-cell.diff-remove .change-mark { background: #9e1c23; }
+  .diff-cell.diff-empty { background-color: #161b22; background-image: repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(110, 118, 129, .16) 6px, rgba(110, 118, 129, .16) 8px); }
+  .diff-value { background: #21262d; }
+  .diff-value.is-old { background: #3d161b; }
+  .diff-value.is-new { background: #12351f; }
+  .action-bar { background: #161b22ed; box-shadow: 0 -4px 20px #0008; }
+  .mobile-header, .queue-table .queue-row { background: var(--surface); }
+  dialog::backdrop { background: #010409aa; }
 }

@@ -50,6 +50,25 @@ def test_solution_target_uses_separate_option_content_column():
     assert '<span class="option-content">{{ value }}</span>' in template
 
 
+def test_workbench_follows_system_dark_mode_and_busts_css_cache():
+    root = Path(__file__).parents[1]
+    stylesheet = (
+        root / 'static' / 'review_workbench' / 'workbench.css'
+    ).read_text(encoding='utf-8')
+    base = (
+        root / 'templates' / 'review_workbench' / 'base.html'
+    ).read_text(encoding='utf-8')
+    login = (
+        root / 'templates' / 'review_workbench' / 'login.html'
+    ).read_text(encoding='utf-8')
+    assert '@media (prefers-color-scheme: dark)' in stylesheet
+    assert 'color-scheme: dark' in stylesheet
+    assert '.diff-cell.diff-add' in stylesheet
+    assert '.diff-cell.diff-remove' in stylesheet
+    assert "workbench.css' %}?v=10" in base
+    assert "workbench.css' %}?v=10" in login
+
+
 @pytest.fixture
 def reviewer(db):
     user = User.objects.create_user('reviewer', password='review-pass-123')
