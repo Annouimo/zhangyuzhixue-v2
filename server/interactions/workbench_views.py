@@ -20,7 +20,8 @@ from .training_data import (
 from .workbench_forms import CourseWorkbenchForm, DocumentWorkbenchForm
 from .workbench_release import build_candidate, publish
 from .workbench_revisions import (
-    CATEGORY_TYPES, field_diffs, previous_revision, record_revision,
+    CATEGORY_TYPES, ensure_baseline_revision, field_diffs, previous_revision,
+    record_revision,
 )
 
 
@@ -54,8 +55,13 @@ def course_edit(request, object_id=None):
     form = CourseWorkbenchForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
         with transaction.atomic():
-            saved = form.save()
             action = 'create' if instance is None else 'update'
+            if instance is not None:
+                baseline_instance = Course.objects.select_for_update().get(
+                    pk=instance.pk
+                )
+                ensure_baseline_revision('course', baseline_instance)
+            saved = form.save()
             ContentChangeLog.objects.create(
                 actor=request.user, object_type='course', object_id=saved.pk,
                 object_label=saved.name, action=action,
@@ -77,8 +83,13 @@ def document_edit(request, object_id=None):
     form = DocumentWorkbenchForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
         with transaction.atomic():
-            saved = form.save()
             action = 'create' if instance is None else 'update'
+            if instance is not None:
+                baseline_instance = Document.objects.select_for_update().get(
+                    pk=instance.pk
+                )
+                ensure_baseline_revision('document', baseline_instance)
+            saved = form.save()
             ContentChangeLog.objects.create(
                 actor=request.user, object_type='document', object_id=saved.pk,
                 object_label=saved.title, action=action,

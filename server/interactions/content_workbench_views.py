@@ -18,7 +18,7 @@ from .review_forms import (
 )
 from .review_services import question_payload, save_official_question
 from .review_views import reviewer_required
-from .workbench_revisions import record_revision
+from .workbench_revisions import ensure_baseline_revision, record_revision
 
 
 def _question_initial(question=None):
@@ -124,6 +124,8 @@ def _question_editor(request, question=None):
                 if form.cleaned_data['version'] != locked.updated_at.isoformat():
                     form.add_error(None, '该题目已被其他人更新，请刷新后再修改。')
             if not form.errors:
+                if locked is not None:
+                    ensure_baseline_revision('question', locked)
                 payload = form.cleaned_data['content_json']
                 content_origin = payload.get(
                     'content_origin', locked.content_origin if locked else 'external'
@@ -219,16 +221,22 @@ def _content_editor(request, form_class, kind, instance=None):
     form = form_class(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
         with transaction.atomic(), set_actor(request.user):
+            action = 'create' if instance is None else 'update'
+            if instance is not None:
+                baseline_instance = instance.__class__.objects.select_for_update().get(
+                    pk=instance.pk
+                )
+                ensure_baseline_revision(kind, baseline_instance)
             saved = form.save()
             ContentChangeLog.objects.create(
                 actor=request.user, object_type=kind, object_id=saved.pk,
                 object_label=str(saved)[:255],
-                action='create' if instance is None else 'update',
+                action=action,
                 note=form.cleaned_data['note'].strip(),
             )
             record_revision(
                 kind, saved, request.user,
-                'create' if instance is None else 'update',
+                action,
                 form.cleaned_data['note'],
             )
         messages.success(request, '内容已保存。')

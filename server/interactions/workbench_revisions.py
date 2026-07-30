@@ -71,6 +71,19 @@ def record_revision(content_type, instance, actor, action, note):
     )
 
 
+def ensure_baseline_revision(content_type, instance):
+    """为尚无历史的既有对象保存编辑前基线。"""
+    exists = WorkbenchRevision.objects.filter(
+        content_type=content_type, object_id=instance.pk,
+    ).exists()
+    if exists:
+        return None
+    return record_revision(
+        content_type, instance, None, 'baseline',
+        '版本历史功能启用时生成的初始基线',
+    )
+
+
 def previous_revision(revision):
     return WorkbenchRevision.objects.filter(
         content_type=revision.content_type,
