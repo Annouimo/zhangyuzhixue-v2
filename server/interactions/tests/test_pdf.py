@@ -11,6 +11,7 @@ from accounts.models import Student
 from interactions.models import CustomPaper
 from interactions.models import CustomPaperQuestion
 from interactions.pdf_views import (
+    _build_sections,
     _check_sig,
     _content_warnings,
     _make_sig,
@@ -19,6 +20,31 @@ from interactions.pdf_views import (
 from qbank.models import (
     BaseQuestion, ChoiceExt, SolutionMethod, SolutionStep, SubQuestion,
 )
+
+
+@pytest.mark.django_db
+def test_build_sections_uses_canonical_type_order_stably():
+    solution = BaseQuestion.objects.create(
+        question_type='solution', stem='解答题',
+    )
+    choice_one = BaseQuestion.objects.create(
+        question_type='choice', stem='选择题一',
+    )
+    fill = BaseQuestion.objects.create(
+        question_type='fill', stem='填空题',
+    )
+    choice_two = BaseQuestion.objects.create(
+        question_type='choice', stem='选择题二',
+    )
+
+    sections = _build_sections([solution, choice_one, fill, choice_two])
+
+    assert [section['type'] for section in sections] == [
+        'choice', 'fill', 'solution',
+    ]
+    assert [question['stem'] for question in sections[0]['questions']] == [
+        '选择题一', '选择题二',
+    ]
 
 
 @pytest.fixture

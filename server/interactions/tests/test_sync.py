@@ -128,7 +128,7 @@ class TestPaperFolderSync:
         assert folder.name == '函数与数列'
         assert list(folder.folder_questions.values_list(
             'question_id', flat=True
-        )) == [another_question.pk, sample_question.pk]
+        )) == [sample_question.pk, another_question.pk]
 
     def test_delete_is_scoped_to_current_student(
         self, auth_client, student_user

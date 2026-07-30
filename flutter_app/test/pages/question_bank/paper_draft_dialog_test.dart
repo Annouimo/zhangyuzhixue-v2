@@ -9,14 +9,20 @@ import '../../test_setup.dart';
 void main() {
   setUp(setupTestHooks);
 
-  testWidgets('edits title, order, and contents before confirming', (
-    tester,
-  ) async {
+  testWidgets('groups by type and reorders only within a type', (tester) async {
     PaperDraft? result;
     const questions = [
       SearchQuestion(
+        id: 3,
+        title: '解答题',
+        questionType: 'solution',
+        meta: '',
+        difficulty: 3,
+        calculation: 2,
+      ),
+      SearchQuestion(
         id: 1,
-        title: r'第一题 $x^2$',
+        title: r'选择题一 $x^2$',
         questionType: 'choice',
         meta: '',
         difficulty: 3,
@@ -24,16 +30,16 @@ void main() {
       ),
       SearchQuestion(
         id: 2,
-        title: '第二题',
+        title: '填空题',
         questionType: 'fill',
         meta: '',
         difficulty: 4,
         calculation: 3,
       ),
       SearchQuestion(
-        id: 3,
-        title: '第三题',
-        questionType: 'solution',
+        id: 4,
+        title: '选择题二',
+        questionType: 'choice',
         meta: '',
         difficulty: 5,
         calculation: 4,
@@ -66,30 +72,23 @@ void main() {
     await tester.tap(find.text('打开'));
     await tester.pumpAndSettle();
     expect(find.byType(MdLatexBody), findsWidgets);
+    expect(find.text('选择题 · 2 题'), findsOneWidget);
+    expect(find.text('填空题 · 1 题'), findsOneWidget);
+    expect(find.text('解答题 · 1 题'), findsOneWidget);
+    expect(find.text('按题型排序'), findsNothing);
+    expect(find.byType(ReorderableListView), findsNWidgets(3));
     await tester.enterText(find.byType(TextField), '新试卷');
 
     final list = tester.widget<ReorderableListView>(
-      find.byType(ReorderableListView),
+      find.byType(ReorderableListView).first,
     );
-    list.onReorderItem!(0, 2);
-    await tester.pump();
-
-    await tester.tap(find.byTooltip('移除题目').at(1));
-    await tester.pump();
-    expect(find.text('共 2 题'), findsOneWidget);
-    expect(find.text('撤销'), findsOneWidget);
-
-    await tester.tap(find.text('撤销'));
-    await tester.pump();
-    expect(find.text('共 3 题'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('移除题目').at(1));
+    list.onReorderItem!(0, 1);
     await tester.pump();
 
     await tester.tap(find.text('确认生成 · 10 积分'));
     await tester.pumpAndSettle();
 
     expect(result?.name, '新试卷');
-    expect(result?.questions.map((question) => question.id), [2, 1]);
+    expect(result?.questions.map((question) => question.id), [4, 1, 2, 3]);
   });
 }

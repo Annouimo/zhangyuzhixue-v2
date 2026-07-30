@@ -22,6 +22,7 @@ from interactions.models import (
     SubmissionDetail,
 )
 from interactions.serializers import SyncPushSerializer
+from interactions.paper_ordering import canonicalize_question_ids
 from django.db.models import F as DbF, Sum
 from accounts.permissions import IsStudent
 
@@ -240,7 +241,8 @@ class SyncPushView(APIView):
                 filter_snapshot=data.get('filter_snapshot', {}),
                 is_public=data.get('is_public', False),
             )
-            for idx, qid in enumerate(dict.fromkeys(data.get('questions', []))):
+            question_ids = canonicalize_question_ids(data.get('questions', []))
+            for idx, qid in enumerate(question_ids):
                 CustomPaperQuestion.objects.create(
                     paper=paper, question_id=qid, sort_order=idx
                 )
@@ -364,17 +366,16 @@ class SyncPushView(APIView):
         ])
 
         folder.folder_questions.all().delete()
-        seen_question_ids = set()
-        for question in data.get('questions', []):
-            question_id = question.get('question_id') \
-                if isinstance(question, dict) else question
-            if question_id in seen_question_ids:
-                continue
-            seen_question_ids.add(question_id)
+        question_ids = canonicalize_question_ids([
+            question.get('question_id')
+            if isinstance(question, dict) else question
+            for question in data.get('questions', [])
+        ])
+        for index, question_id in enumerate(question_ids):
             PaperFolderQuestion.objects.create(
                 folder=folder,
                 question_id=question_id,
-                sort_order=len(seen_question_ids) - 1,
+                sort_order=index,
             )
         return folder
 

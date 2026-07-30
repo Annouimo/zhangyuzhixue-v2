@@ -11,6 +11,7 @@ import '../../data/prefs/app_prefs.dart';
 import '../../domain/exam_repository.dart';
 import '../../domain/paper_creation_service.dart';
 import '../../domain/paper_folder_repository.dart';
+import '../../domain/paper_question_order.dart';
 import '../../domain/user_repository.dart';
 import '../../widgets/basket_selection_panel.dart';
 import '../../widgets/question_selection_workspace.dart';
@@ -194,9 +195,13 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   }
 
   Future<void> _saveQuestions(List<SearchQuestion> questions) async {
+    final ordered = canonicalizePaperQuestions(
+      questions,
+      (question) => question.questionType,
+    );
     await _repository.replaceQuestions(
       widget.folderId,
-      questions.map((question) => question.id).toList(growable: false),
+      ordered.map((question) => question.id).toList(growable: false),
     );
     await _load();
   }
@@ -252,9 +257,10 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     final detail = _detail;
     final selectedIds = _workspaceController.selectedIds;
     if (detail == null || selectedIds.isEmpty || _saving) return;
-    final selectedQuestions = detail.questions
-        .where((question) => selectedIds.contains(question.id))
-        .toList();
+    final selectedQuestions = canonicalizePaperQuestions(
+      detail.questions.where((question) => selectedIds.contains(question.id)),
+      (question) => question.questionType,
+    );
     final ids = selectedQuestions.map((question) => question.id).toList();
     final unchanged =
         detail.folder.lastGeneratedFingerprint.isNotEmpty &&
@@ -300,6 +306,12 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   @override
   Widget build(BuildContext context) {
     final detail = _detail;
+    final orderedQuestions = detail == null
+        ? const <SearchQuestion>[]
+        : canonicalizePaperQuestions(
+            detail.questions,
+            (question) => question.questionType,
+          );
     return Scaffold(
       appBar: AppBar(
         leading: _organizing
@@ -386,7 +398,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
               maxWidth: AppContentWidth.standard,
               child: QuestionWorkspace(
                 controller: _workspaceController,
-                items: detail.questions
+                items: orderedQuestions
                     .asMap()
                     .entries
                     .map(
@@ -409,7 +421,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
                 onEdit: _organizing
                     ? null
                     : (item) => _editQuestionFolders(
-                        detail.questions.firstWhere(
+                        orderedQuestions.firstWhere(
                           (question) => question.id == item.id,
                         ),
                       ),
@@ -417,10 +429,23 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
                     ? null
                     : (oldIndex, newIndex) {
                         final questions = List<SearchQuestion>.of(
-                          detail.questions,
+                          orderedQuestions,
                         );
+                        final type = questions[oldIndex].questionType;
+                        final groupIndices = questions.indexed
+                            .where((entry) => entry.$2.questionType == type)
+                            .map((entry) => entry.$1)
+                            .toList(growable: false);
+                        final insertionIndex = oldIndex < newIndex
+                            ? newIndex - 1
+                            : newIndex;
+                        if (insertionIndex < groupIndices.first ||
+                            insertionIndex > groupIndices.last) {
+                          AppToast.info(context, '只能在同一题型内调整顺序');
+                          return;
+                        }
                         final item = questions.removeAt(oldIndex);
-                        questions.insert(newIndex, item);
+                        questions.insert(insertionIndex, item);
                         _saveQuestions(questions);
                       },
                 bottomBuilder: _organizing

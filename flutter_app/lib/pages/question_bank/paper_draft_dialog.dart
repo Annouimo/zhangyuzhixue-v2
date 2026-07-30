@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
 import '../../domain/exam_repository.dart';
+import '../../domain/paper_question_order.dart';
 
 class PaperDraft {
   final String name;
@@ -36,7 +37,10 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
-    _questions = List.of(widget.questions);
+    _questions = canonicalizePaperQuestions(
+      widget.questions,
+      (question) => question.questionType,
+    );
   }
 
   @override
@@ -77,15 +81,97 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
     });
   }
 
-  void _sortByType() {
-    const order = {'choice': 0, 'fill': 1, 'solution': 2};
+  void _reorderWithinType(String type, int oldIndex, int newIndex) {
     setState(() {
-      _questions.sort(
-        (left, right) => (order[left.questionType] ?? 99).compareTo(
-          order[right.questionType] ?? 99,
+      final group = _questions
+          .where((question) => question.questionType == type)
+          .toList();
+      final question = group.removeAt(oldIndex);
+      group.insert(newIndex, question);
+      var groupIndex = 0;
+      for (var index = 0; index < _questions.length; index++) {
+        if (_questions[index].questionType == type) {
+          _questions[index] = group[groupIndex++];
+        }
+      }
+    });
+  }
+
+  Widget _buildQuestionGroups() {
+    var numberOffset = 0;
+    final sections = <Widget>[];
+    final types = [
+      ...paperQuestionTypeOrder,
+      ..._questions
+          .map((question) => question.questionType)
+          .where((type) => !paperQuestionTypeOrder.contains(type))
+          .toSet(),
+    ];
+    for (final type in types) {
+      final questions = _questions
+          .where((question) => question.questionType == type)
+          .toList();
+      if (questions.isEmpty) continue;
+      final startNumber = numberOffset;
+      numberOffset += questions.length;
+      sections.add(
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          child: Text(
+            '${QuestionTypeLabels.of(type)} · ${questions.length} 题',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
         ),
       );
-    });
+      sections.add(
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          itemCount: questions.length,
+          onReorderItem: (oldIndex, newIndex) =>
+              _reorderWithinType(type, oldIndex, newIndex),
+          itemBuilder: (context, index) {
+            final question = questions[index];
+            final globalIndex = _questions.indexWhere(
+              (item) => item.id == question.id,
+            );
+            return ListTile(
+              key: ValueKey(question.id),
+              contentPadding: EdgeInsets.zero,
+              leading: SizedBox(
+                width: 28,
+                child: Text('${startNumber + index + 1}.'),
+              ),
+              title: MdLatexBody(question.title, fontSize: 14),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: '预览题目',
+                    icon: const Icon(Icons.visibility_outlined),
+                    onPressed: () => _previewQuestion(question),
+                  ),
+                  IconButton(
+                    tooltip: '移除题目',
+                    icon: const Icon(Icons.close),
+                    onPressed: () => _removeQuestion(globalIndex),
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Icon(Icons.drag_handle),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    }
+    return ListView(children: sections);
   }
 
   Future<void> _previewQuestion(SearchQuestion question) {
@@ -147,14 +233,9 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
               children: [
                 Expanded(
                   child: Text(
-                    '拖动右侧手柄调整题序',
+                    '可在同一题型内拖动排序',
                     style: TextStyle(fontSize: 12, color: colors.textSecondary),
                   ),
-                ),
-                TextButton.icon(
-                  onPressed: _questions.length < 2 ? null : _sortByType,
-                  icon: const Icon(Icons.sort_rounded),
-                  label: const Text('按题型排序'),
                 ),
               ],
             ),
@@ -179,53 +260,7 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
                       icon: Icons.playlist_remove,
                       message: '试卷中至少需要一道题',
                     )
-                  : ReorderableListView.builder(
-                      buildDefaultDragHandles: false,
-                      itemCount: _questions.length,
-                      onReorderItem: (oldIndex, newIndex) {
-                        setState(() {
-                          final question = _questions.removeAt(oldIndex);
-                          _questions.insert(newIndex, question);
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        final question = _questions[index];
-                        return ListTile(
-                          key: ValueKey(question.id),
-                          contentPadding: EdgeInsets.zero,
-                          leading: SizedBox(
-                            width: 28,
-                            child: Text('${index + 1}.'),
-                          ),
-                          title: MdLatexBody(question.title, fontSize: 14),
-                          subtitle: Text(
-                            QuestionTypeLabels.of(question.questionType),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: '预览题目',
-                                icon: const Icon(Icons.visibility_outlined),
-                                onPressed: () => _previewQuestion(question),
-                              ),
-                              IconButton(
-                                tooltip: '移除题目',
-                                icon: const Icon(Icons.close),
-                                onPressed: () => _removeQuestion(index),
-                              ),
-                              ReorderableDragStartListener(
-                                index: index,
-                                child: const Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: Icon(Icons.drag_handle),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                  : _buildQuestionGroups(),
             ),
           ],
         ),

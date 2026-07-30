@@ -18,6 +18,7 @@ from accounts.permissions import IsStudent
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
+from interactions.paper_ordering import canonicalize_questions
 from qbank.models import (
     BaseQuestion, ChoiceExt, SolutionMethod, SolutionStep, SubQuestion,
 )
@@ -242,7 +243,7 @@ def _build_sections(qs):
     type_labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'}
 
     # 批量查询 ChoiceExt + SubQuestion（N+1 -> 1）
-    qs_list = list(qs)
+    qs_list = canonicalize_questions(qs)
     q_ids = [question.pk for question in qs_list]
 
     ce_map = {}
@@ -271,6 +272,7 @@ def _build_sections(qs):
         step_map[step.method_id].append(step)
 
     seen_types = []
+    section_by_type = {}
     question_counter = 0
     for q in qs_list:
         qt = q.question_type
@@ -280,13 +282,15 @@ def _build_sections(qs):
             seen_types.append(qt)
             idx = len(seen_types) - 1
             num_prefix = NUM_CN[idx] if idx < len(NUM_CN) else str(idx + 1)
-            sections.append({
+            section = {
                 'type': qt,
                 'label': type_labels.get(qt, qt),
                 'numbered_label': '{0}、{1}'.format(
                     num_prefix, type_labels.get(qt, qt)),
                 'questions': [],
-            })
+            }
+            sections.append(section)
+            section_by_type[qt] = section
 
         # 选项：JSON dict -> 渲染用 list
         opts = []
@@ -386,7 +390,7 @@ def _build_sections(qs):
         question_data['warnings'] = list(dict.fromkeys(_content_warnings(
             '\n'.join(warning_text), question_counter
         )))
-        sections[-1]['questions'].append(question_data)
+        section_by_type[qt]['questions'].append(question_data)
 
     return sections
 

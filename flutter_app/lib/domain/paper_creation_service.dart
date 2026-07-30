@@ -4,10 +4,12 @@ import 'package:drift/drift.dart';
 
 import '../data/database/app_database.dart' as app_db;
 import '../data/daos/exam_dao.dart';
+import '../data/daos/question_dao.dart';
 import '../data/database/database_provider.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import 'exam_repository.dart';
+import 'paper_question_order.dart';
 import 'user_repository.dart';
 
 const paperCreationCost = 10;
@@ -38,10 +40,11 @@ class PaperCreationService {
     required String name,
     required List<int> selectedIds,
   }) async {
+    final orderedIds = await _canonicalizeQuestionIds(selectedIds);
     return _createWithPoints(
       cost: paperCreationCost,
       description: '手动选题',
-      create: () => _saveManualPaper(name: name, questionIds: selectedIds),
+      create: () => _saveManualPaper(name: name, questionIds: orderedIds),
     );
   }
 
@@ -49,6 +52,7 @@ class PaperCreationService {
     required String name,
     required List<int> questionIds,
   }) async {
+    questionIds = await _canonicalizeQuestionIds(questionIds);
     final available = await _userRepository.availablePoints();
     if (available < paperCreationCost) {
       throw InsufficientPointsException(
@@ -111,6 +115,7 @@ class PaperCreationService {
     required int cost,
     required String description,
   }) async {
+    questionIds = await _canonicalizeQuestionIds(questionIds);
     return _createWithPoints(
       cost: cost,
       description: description,
@@ -206,5 +211,18 @@ class PaperCreationService {
       // The local paper is complete; a later sync pass can repair the queue.
     }
     return paperId;
+  }
+
+  Future<List<int>> _canonicalizeQuestionIds(List<int> questionIds) async {
+    final questions = await QuestionDao(
+      _databaseProvider,
+    ).getByIds(questionIds);
+    final typeById = {
+      for (final question in questions) question.id: question.questionType,
+    };
+    return canonicalizePaperQuestions(
+      questionIds,
+      (questionId) => typeById[questionId] ?? '',
+    );
   }
 }
