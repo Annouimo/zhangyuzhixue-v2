@@ -34,6 +34,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   bool _loadingOpts = true;
   bool _saving = false;
   String? _error;
+  String? _existingKeyword;
 
   // 筛选选项（内存缓存）
   List<String>? _yearOpts,
@@ -97,6 +98,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       final editData = await _repo.getEdit(widget.editId!);
       if (!mounted) return;
       _nameCtrl.text = editData.name;
+      _existingKeyword = editData.filter.keyword;
       // 先渲染 FilterPanel，再 applyFilter（否则 currentState 为 null 被静默丢弃）
       setState(() => _loading = false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -156,6 +158,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       await _repo.save(
         name: name,
         filter: PreferenceFilter(
+          keyword: _existingKeyword,
           years: state.selectedYears.toList(),
           regions: state.selectedRegions.toList(),
           conceptTags: state.selectedConceptTags.toList(),
@@ -225,7 +228,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const AppSectionHeader(
-                          title: '范围名称',
+                          title: '方案名称',
                           subtitle: '建议使用目标明确、容易识别的名称。',
                         ),
                         const SizedBox(height: AppSpacing.md),

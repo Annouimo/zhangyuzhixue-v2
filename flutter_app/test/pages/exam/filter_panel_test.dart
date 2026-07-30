@@ -125,5 +125,46 @@ void main() {
 
       expect(changes, before);
     });
+
+    testWidgets('grouped layout keeps summary, tabs and local reset in sync', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: FilterPanel(
+                yearOptions: const ['2025'],
+                regionOptions: const ['北京'],
+                groupedLayout: true,
+                onLoadPreference: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('筛选方案'), findsOneWidget);
+      expect(find.text('已选条件 · 暂未选择'), findsOneWidget);
+      expect(find.text('概念标签'), findsOneWidget);
+      expect(find.text('知识卡片'), findsOneWidget);
+      expect(find.text('试题来源'), findsOneWidget);
+      expect(find.text('题目特征'), findsOneWidget);
+
+      await tester.tap(find.text('试题来源'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2025'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('已选条件 · 1 组'), findsOneWidget);
+      expect(find.text('重置当前维度'), findsOneWidget);
+
+      await tester.tap(find.text('重置当前维度'));
+      await tester.pumpAndSettle();
+      expect(find.text('已选条件 · 暂未选择'), findsOneWidget);
+      expect(find.text('重置当前维度'), findsNothing);
+    });
   });
 }

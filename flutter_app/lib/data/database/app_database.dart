@@ -163,7 +163,7 @@ class CustomPaperQuestions extends Table {
   IntColumn get sortOrder => integer()();
 }
 
-/// 可持续编辑的组卷夹
+/// 可持续编辑的试题篮
 @DataClassName('PaperFolderRow')
 class PaperFolders extends Table {
   @override
@@ -181,7 +181,7 @@ class PaperFolders extends Table {
   IntColumn? get lastGeneratedPaperId => integer().nullable()();
 }
 
-/// 组卷夹中的有序题目
+/// 试题篮中的有序题目
 @DataClassName('PaperFolderQuestionRow')
 class PaperFolderQuestions extends Table {
   @override
@@ -222,13 +222,14 @@ class PaperCollects extends Table {
   Set<Column> get primaryKey => {paperId};
 }
 
-/// 筛选预设
+/// 筛选方案
 @DataClassName('PreferenceFilterRow')
 class PreferenceFilters extends Table {
   @override
   String get tableName => 'preference_filter';
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
+  TextColumn? get keyword => text().nullable()();
   TextColumn get years => text()();
   TextColumn get regions => text()();
   TextColumn get conceptTags => text()();
@@ -286,7 +287,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
   // ⚠️ 与 server/interactions/sync_views.py 的 USER_DB_SCHEMA 双轨演进。
   // 服务端 USER_DB_SCHEMA 建表 + _dump_* 写入列必须与此 schema 对齐。
   // 修改任一端时必须同步修改另一端。
@@ -320,6 +321,13 @@ class AppDatabase extends _$AppDatabase {
       if (from <= 7 && to >= 8) {
         await m.addColumn(paperFolders, paperFolders.revision);
         await m.addColumn(paperFolders, paperFolders.isDefault);
+      }
+      if (from <= 8 && to >= 9) {
+        await m.addColumn(preferenceFilters, preferenceFilters.keyword);
+        await customStatement(
+          "UPDATE paper_folder SET name = '默认试题篮' "
+          "WHERE is_default = 1 AND name = '默认组卷夹'",
+        );
       }
     },
   );

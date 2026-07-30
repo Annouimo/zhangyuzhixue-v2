@@ -14,7 +14,9 @@ void main() {
 
     expect(find.text('推荐练习'), findsOneWidget);
     expect(find.text('题库选题'), findsOneWidget);
-    expect(find.text('我的试卷'), findsOneWidget);
+    expect(find.text('试题篮'), findsOneWidget);
+    expect(find.text('套卷'), findsOneWidget);
+    expect(find.text('试卷中心'), findsOneWidget);
     expect(find.byType(TabBar), findsNothing);
   });
 }

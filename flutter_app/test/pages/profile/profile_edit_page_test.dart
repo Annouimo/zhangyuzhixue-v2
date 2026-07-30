@@ -55,7 +55,7 @@ void main() {
     expect(find.text('学号'), findsOneWidget);
     expect(find.text('手机号'), findsOneWidget);
     // 只读字段的统一说明
-    expect(find.textContaining('由管理员维护'), findsOneWidget);
+    expect(find.textContaining('请联系管理员'), findsNWidgets(2));
     // 加载的数据 — 出现在昵称TextField + 真实姓名只读区
     expect(find.text('张三'), findsNWidgets(2));
     expect(find.text('2026001'), findsOneWidget);

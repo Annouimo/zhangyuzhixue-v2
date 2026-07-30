@@ -8,20 +8,25 @@ import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
+import '../../domain/paper_content.dart';
 import '../../domain/paper_folder_repository.dart';
+import '../../domain/question_repository.dart';
 import '../router.dart';
 import 'widgets/exam_question_card.dart';
+import 'widgets/paper_action_bar.dart';
 import 'exam_session_timer.dart';
 
 /// 预览自己创建的组卷。
 class ExamQuicklookPage extends StatefulWidget {
   const ExamQuicklookPage({
     super.key,
-    required this.examId,
+    this.examId,
+    this.virtualPaper,
     this.examRepository,
-  });
+  }) : assert(examId != null || virtualPaper != null);
 
-  final int examId;
+  final int? examId;
+  final VirtualPaperRef? virtualPaper;
   final ExamRepository? examRepository;
 
   @override
@@ -31,7 +36,7 @@ class ExamQuicklookPage extends StatefulWidget {
 class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   late final ExamRepository _repo;
   final PopBackGuard _popGuard = PopBackGuard();
-  ExamPreview? _preview;
+  PaperContent? _paper;
   bool _loading = true;
   String? _error;
 
@@ -53,14 +58,14 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       _error = null;
     });
     try {
-      final preview = await _repo.getPreview(widget.examId);
+      final paper = await _loadPaper();
       if (!mounted) return;
       setState(() {
-        _preview = preview;
+        _paper = paper;
         _loading = false;
       });
       AuditLogger.instance.page('ExamQuicklookPage', {
-        'hasPreview': _preview != null,
+        'hasPreview': _paper != null,
       });
     } catch (error) {
       OperationLog.instance.error('exam_quicklook_page_load', error);
@@ -73,6 +78,41 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     }
   }
 
+  Future<PaperContent> _loadPaper() async {
+    final virtual = widget.virtualPaper;
+    if (virtual != null) {
+      final rows = await QuestionDao(DatabaseProvider())
+          .getVirtualPaperQuestions(
+            year: virtual.year,
+            examType: virtual.examType,
+            region: virtual.region,
+          );
+      return PaperContent(
+        ref: virtual,
+        title: virtual.title,
+        subtitle: '${virtual.year} · ${virtual.region} · ${virtual.examType}',
+        questions: rows
+            .map(
+              (q) => ExamQuestion(
+                questionId: q.id,
+                title: '${q.number} ${q.examType} ${q.region}',
+                questionType: q.questionType,
+              ),
+            )
+            .toList(growable: false),
+      );
+    }
+    final examId = widget.examId!;
+    final preview = await _repo.getPreview(examId);
+    return PaperContent(
+      ref: SavedPaperRef(examId),
+      title: preview.name,
+      subtitle: preview.authorInfo,
+      isPublic: preview.isPublic,
+      questions: preview.questions,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -82,72 +122,14 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         if (shouldPop && context.mounted) context.pop();
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(_preview?.name ?? '试卷预览'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.picture_as_pdf_outlined),
-              tooltip: '打印试卷',
-              onPressed: () => PdfHelper.downloadPdf(
-                sourceId: widget.examId,
-                sourceType: 'paper',
-                context: context,
-              ),
-            ),
-            PopupMenuButton<String>(
-              tooltip: '更多操作',
-              onSelected: (value) async {
-                if (value == 'visibility') {
-                  await _togglePublic();
-                } else if (value == 'delete') {
-                  await _delete();
-                } else if (value == 'copy_folder') {
-                  await _copyToFolder();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem<String>(
-                  value: 'copy_folder',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.create_new_folder_outlined),
-                    title: Text('基于此试卷新建组卷夹'),
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'visibility',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      _preview?.isPublic == true
-                          ? Icons.lock_outline
-                          : Icons.public,
-                    ),
-                    title: Text(_preview?.isPublic == true ? '设为私密' : '公开分享'),
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(AppIcons.delete, color: context.colors.error),
-                    title: Text(
-                      '删除试卷',
-                      style: TextStyle(color: context.colors.error),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        appBar: AppBar(title: Text(_paper?.title ?? '试卷预览')),
         body: _buildBody(),
       ),
     );
   }
 
   Future<void> _togglePublic() async {
-    await _repo.togglePublic(widget.examId);
+    await _repo.togglePublic(widget.examId!);
     if (mounted) {
       ScaffoldMessenger.of(
         context,
@@ -158,8 +140,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
 
   Future<void> _copyToFolder() async {
     final folderId = await PaperFolderRepository.local().copyFromPaper(
-      widget.examId,
-      name: '${_preview?.name ?? '试卷'}组卷夹',
+      widget.examId!,
+      name: '${_paper?.title ?? '试卷'}试题篮',
     );
     if (!mounted) return;
     RouterUtils.push(context, '${AppRoutes.paperFolderDetail}?id=$folderId');
@@ -185,8 +167,31 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       ),
     );
     if (confirmed != true) return;
-    await _repo.deleteExam(widget.examId);
+    await _repo.deleteExam(widget.examId!);
     if (mounted) safePop(context);
+  }
+
+  Future<void> _handleMenuAction(String value) async {
+    if (value == 'visibility') {
+      await _togglePublic();
+    } else if (value == 'copy_folder') {
+      await _copyToFolder();
+    } else if (value == 'delete') {
+      await _delete();
+    }
+  }
+
+  void _startVirtualPaper(PaperContent paper) {
+    if (paper.questions.isEmpty) return;
+    final first = paper.questions.first;
+    SolveRouteHelper.navigateTo(
+      context,
+      first.questionId,
+      first.questionType,
+      sequence: paper.questions
+          .map((question) => question.questionId)
+          .toList(growable: false),
+    );
   }
 
   Widget _buildBody() {
@@ -194,61 +199,101 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: _load);
     }
-    final preview = _preview;
-    if (preview == null) return const SizedBox.shrink();
+    final paper = _paper;
+    if (paper == null) return const SizedBox.shrink();
 
     return AppContentContainer(
       maxWidth: AppContentWidth.reading,
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              ListenableBuilder(
-                listenable: ExamSessionTimer.instance,
-                builder: (context, _) => AppButton(
-                  label: ExamSessionTimer.instance.isRunning
+          ListenableBuilder(
+            listenable: ExamSessionTimer.instance,
+            builder: (context, _) => PaperActionBar(
+              actions: [
+                PaperAction(
+                  label: widget.examId == null
+                      ? '开始练习'
+                      : ExamSessionTimer.instance.isRunning
                       ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
                       : '开始计时',
-                  icon: ExamSessionTimer.instance.isRunning
+                  icon: widget.examId == null
+                      ? Icons.play_arrow_rounded
+                      : ExamSessionTimer.instance.isRunning
                       ? Icons.timer_off_outlined
                       : Icons.timer_outlined,
+                  variant: AppButtonVariant.primary,
                   onPressed: () {
-                    if (ExamSessionTimer.instance.isRunning) {
+                    if (widget.examId == null) {
+                      _startVirtualPaper(paper);
+                    } else if (ExamSessionTimer.instance.isRunning) {
                       ExamSessionTimer.instance.stop();
                     } else {
-                      ExamSessionTimer.instance.start(widget.examId);
+                      ExamSessionTimer.instance.start(widget.examId!);
                     }
                   },
                 ),
-              ),
-              AppButton(
-                label: '快速对答案',
-                icon: Icons.fact_check_outlined,
-                variant: AppButtonVariant.secondary,
-                onPressed: () => RouterUtils.push(
-                  context,
-                  '${AppRoutes.answerSheet}?id=${widget.examId}',
+                PaperAction(
+                  label: '快速对答案',
+                  icon: Icons.fact_check_outlined,
+                  onPressed: () => RouterUtils.push(
+                    context,
+                    widget.examId != null
+                        ? '${AppRoutes.answerSheet}?id=${widget.examId}'
+                        : AppRoutes.answerSheet,
+                    extra: widget.virtualPaper,
+                  ),
                 ),
-              ),
-            ],
+                PaperAction(
+                  label: '打印试卷',
+                  icon: Icons.picture_as_pdf_outlined,
+                  variant: AppButtonVariant.outlined,
+                  onPressed: () => PdfHelper.downloadPaperPdf(
+                    source:
+                        widget.virtualPaper ?? SavedPaperRef(widget.examId!),
+                    context: context,
+                  ),
+                ),
+              ],
+              menuActions: widget.examId == null
+                  ? const []
+                  : [
+                      PaperMenuAction(
+                        value: 'visibility',
+                        label: paper.isPublic ? '设为私密' : '公开分享',
+                        icon: paper.isPublic
+                            ? Icons.lock_outline
+                            : Icons.public,
+                      ),
+                      const PaperMenuAction(
+                        value: 'copy_folder',
+                        label: '基于此试卷新建试题篮',
+                        icon: Icons.create_new_folder_outlined,
+                      ),
+                      const PaperMenuAction(
+                        value: 'delete',
+                        label: '删除试卷',
+                        icon: AppIcons.delete,
+                        destructive: true,
+                      ),
+                    ],
+              onMenuSelected: _handleMenuAction,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           AppSectionHeader(
             title: '试卷题目',
-            subtitle: '共 ${preview.questions.length} 题，按当前顺序排列。',
+            subtitle: '共 ${paper.questions.length} 题，按当前顺序排列。',
           ),
           const SizedBox(height: AppSpacing.md),
-          ...preview.questions.map(
+          ...paper.questions.map(
             (question) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: ExamQuestionCard(
                 questionId: question.questionId,
                 title: question.title,
                 questionType: question.questionType,
-                sequence: preview.questions
+                sequence: paper.questions
                     .map((item) => item.questionId)
                     .toList(growable: false),
               ),

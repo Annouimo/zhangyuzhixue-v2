@@ -217,7 +217,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 AppNavigationCard(
                   icon: Icons.tune_rounded,
-                  title: '常用范围',
+                  title: '我的筛选方案',
                   subtitle: '管理保存的选题条件',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profilePreferences),

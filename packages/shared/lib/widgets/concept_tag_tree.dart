@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/domain/models.dart';
+import 'package:shared/widgets/filter_panel_components.dart';
 
 /// 树状概念标签选择视图
 ///
@@ -121,7 +122,6 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
   }
 
   Widget _buildNode(ConceptTagNode node, int depth) {
-    final colors = context.colors;
     final isLeaf = node.children.isEmpty;
     final descendants = _descMap[node.name] ?? {node.name};
     final selectedCount = descendants
@@ -135,89 +135,34 @@ class _ConceptTagTreeViewState extends State<ConceptTagTreeView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => isLeaf
-                      ? widget.onChanged(
-                          _syncParents(
-                            Set<String>.from(widget.selectedNames)
-                              ..toggle(node.name),
-                            node.name,
-                          ),
-                        )
-                      : _toggleNode(node),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          isPartiallySelected
-                              ? Icons.indeterminate_check_box
-                              : isSelected
-                              ? Icons.check_box
-                              : Icons.check_box_outline_blank,
-                          size: 20,
-                          color: isSelected || isPartiallySelected
-                              ? colors.primary
-                              : colors.textSecondary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  node.name,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: isSelected || isPartiallySelected
-                                        ? colors.primary
-                                        : colors.textPrimary,
-                                    fontWeight:
-                                        isSelected || isPartiallySelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                              if (node.questionCount > 0) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${node.questionCount}题',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: colors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
+          FilterExpandableCategoryRow(
+            title: node.name,
+            subtitle: selectedCount == 0
+                ? '${descendants.length} 项${node.questionCount > 0 ? ' · ${node.questionCount}题' : ''}'
+                : '已选 $selectedCount/${descendants.length} 项',
+            selection: isSelected
+                ? FilterCategorySelection.all
+                : isPartiallySelected
+                ? FilterCategorySelection.partial
+                : FilterCategorySelection.none,
+            expanded: isExpanded,
+            onToggleSelection: () => isLeaf
+                ? widget.onChanged(
+                    _syncParents(
+                      Set<String>.from(widget.selectedNames)..toggle(node.name),
+                      node.name,
                     ),
-                  ),
-                ),
-              ),
-              if (!isLeaf)
-                IconButton(
-                  tooltip: isExpanded ? '收起${node.name}' : '展开${node.name}',
-                  onPressed: () => setState(() {
+                  )
+                : _toggleNode(node),
+            onToggleExpanded: isLeaf
+                ? null
+                : () => setState(() {
                     if (isExpanded) {
                       _expandedNames.remove(node.name);
                     } else {
                       _expandedNames.add(node.name);
                     }
                   }),
-                  icon: Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: colors.textSecondary,
-                  ),
-                ),
-            ],
           ),
           if (!isLeaf && isExpanded)
             if (widget.compactLeaves &&

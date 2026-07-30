@@ -4,18 +4,21 @@ import 'package:shared/shared.dart';
 import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
-import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
-import '../../widgets/shared/action_chip.dart';
 import '../../widgets/shared/async_load_widget.dart';
 import '../router.dart';
 import 'widgets/paper_card.dart';
 
 /// 发现公开组卷。
 class ExamExplorePage extends StatefulWidget {
-  const ExamExplorePage({super.key, this.examRepository});
+  const ExamExplorePage({
+    super.key,
+    this.examRepository,
+    this.embedded = false,
+  });
 
   final ExamRepository? examRepository;
+  final bool embedded;
 
   @override
   State<ExamExplorePage> createState() => _ExamExplorePageState();
@@ -25,6 +28,7 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   late final ExamRepository _repo;
   final GlobalKey<AsyncLoadWidgetState<List<ExploreExamSummary>>> _loadKey =
       GlobalKey();
+  final _searchController = TextEditingController();
   String _sortBy = 'latest';
 
   static const _sortOptions = [
@@ -45,54 +49,46 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
         );
   }
 
-  Future<void> _toggleLike(int examId) async {
-    _loadKey.currentState?.optimisticUpdate((list) {
-      final index = list.indexWhere((item) => item.id == examId);
-      if (index >= 0) {
-        final old = list[index];
-        list[index] = ExploreExamSummary(
-          id: old.id,
-          name: old.name,
-          authorInfo: old.authorInfo,
-          summary: old.summary,
-          likeCount: old.isLiked ? old.likeCount - 1 : old.likeCount + 1,
-          collectCount: old.collectCount,
-          createdAt: old.createdAt,
-          isLiked: !old.isLiked,
-          isCollected: old.isCollected,
-        );
-      }
-      return list;
-    });
-    await _repo.toggleLike(examId);
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _toggleCollect(int examId) async {
     _loadKey.currentState?.optimisticUpdate((list) {
       final index = list.indexWhere((item) => item.id == examId);
-      if (index >= 0) {
-        final old = list[index];
-        list[index] = ExploreExamSummary(
-          id: old.id,
-          name: old.name,
-          authorInfo: old.authorInfo,
-          summary: old.summary,
-          likeCount: old.likeCount,
-          collectCount: old.isCollected
-              ? old.collectCount - 1
-              : old.collectCount + 1,
-          createdAt: old.createdAt,
-          isLiked: old.isLiked,
-          isCollected: !old.isCollected,
-        );
-      }
+      if (index < 0) return list;
+      final old = list[index];
+      list[index] = ExploreExamSummary(
+        id: old.id,
+        name: old.name,
+        authorInfo: old.authorInfo,
+        summary: old.summary,
+        likeCount: old.likeCount,
+        collectCount: old.isCollected
+            ? old.collectCount - 1
+            : old.collectCount + 1,
+        createdAt: old.createdAt,
+        isLiked: old.isLiked,
+        isCollected: !old.isCollected,
+      );
       return list;
     });
     await _repo.toggleCollect(examId);
   }
 
   List<ExploreExamSummary> _sorted(List<ExploreExamSummary> source) {
-    final sorted = List<ExploreExamSummary>.from(source);
+    final query = _searchController.text.trim().toLowerCase();
+    final sorted = source
+        .where(
+          (paper) =>
+              query.isEmpty ||
+              paper.name.toLowerCase().contains(query) ||
+              paper.authorInfo.toLowerCase().contains(query) ||
+              paper.summary.toLowerCase().contains(query),
+        )
+        .toList(growable: false);
     switch (_sortBy) {
       case 'collectCount':
         sorted.sort((a, b) => b.collectCount.compareTo(a.collectCount));
@@ -114,9 +110,8 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('发现组卷')),
-    body: AsyncLoadWidget<List<ExploreExamSummary>>(
+  Widget build(BuildContext context) {
+    final body = AsyncLoadWidget<List<ExploreExamSummary>>(
       key: _loadKey,
       onLoad: _repo.getExploreList,
       contentIsScrollable: true,
@@ -153,6 +148,15 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                           icon: const Icon(AppIcons.refresh),
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          hintText: '搜索试卷名称、内容或作者',
+                          prefixIcon: Icon(Icons.search),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -186,48 +190,30 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                 subtitle: exam.authorInfo.isNotEmpty
                     ? '${exam.authorInfo} · $subtitle'
                     : subtitle,
+                trailingWidget: IconButton(
+                  tooltip: exam.isCollected ? '取消收藏' : '收藏试卷',
+                  icon: Icon(
+                    exam.isCollected
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_outline_rounded,
+                    color: exam.isCollected ? context.colors.primary : null,
+                  ),
+                  onPressed: () => _toggleCollect(exam.id),
+                ),
                 onTap: () => RouterUtils.push(
                   context,
                   '${AppRoutes.examQuicklookOther}?id=${exam.id}',
                 ),
-                actions: [
-                  ActionChipWidget(
-                    icon: exam.isLiked ? AppIcons.likeSelected : AppIcons.like,
-                    label: '${exam.likeCount}',
-                    active: exam.isLiked,
-                    onTap: () => _toggleLike(exam.id),
-                  ),
-                  ActionChipWidget(
-                    icon: exam.isCollected
-                        ? Icons.bookmark_rounded
-                        : Icons.bookmark_outline_rounded,
-                    label: '${exam.collectCount}',
-                    active: exam.isCollected,
-                    onTap: () => _toggleCollect(exam.id),
-                  ),
-                  ActionChipWidget(
-                    icon: Icons.picture_as_pdf_outlined,
-                    label: '打印试卷',
-                    onTap: () => PdfHelper.downloadPdf(
-                      sourceId: exam.id,
-                      sourceType: 'paper',
-                      context: context,
-                    ),
-                  ),
-                  ActionChipWidget(
-                    icon: Icons.visibility_outlined,
-                    label: '查看试卷',
-                    onTap: () => RouterUtils.push(
-                      context,
-                      '${AppRoutes.examQuicklookOther}?id=${exam.id}',
-                    ),
-                  ),
-                ],
               );
             },
           ),
         );
       },
-    ),
-  );
+    );
+    if (widget.embedded) return body;
+    return Scaffold(
+      appBar: AppBar(title: const Text('发现试卷')),
+      body: body,
+    );
+  }
 }

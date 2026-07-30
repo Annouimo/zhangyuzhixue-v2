@@ -13,6 +13,8 @@ import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 import 'exam_repository.dart';
 
+String normalizePaperBasketName(String name) => name.replaceAll('组卷夹', '试题篮');
+
 class PaperFolderSummary {
   const PaperFolderSummary({
     required this.id,
@@ -64,7 +66,7 @@ class PaperFolderRepository {
       result.add(
         PaperFolderSummary(
           id: folder.id,
-          name: folder.name,
+          name: normalizePaperBasketName(folder.name),
           questionCount: (await _folderDao.getQuestions(folder.id)).length,
           updatedAt: folder.updatedAt,
         ),
@@ -74,7 +76,7 @@ class PaperFolderRepository {
   }
 
   Future<int> create(String name) async {
-    return _create(name, isDefault: false);
+    return _create(normalizePaperBasketName(name), isDefault: false);
   }
 
   Future<int> _create(String name, {required bool isDefault}) async {
@@ -99,21 +101,21 @@ class PaperFolderRepository {
         return folder.id;
       }
     }
-    final id = await _create('默认组卷夹', isDefault: true);
+    final id = await _create('默认试题篮', isDefault: true);
     await AppPrefs().setActivePaperFolderId(id);
     return id;
   }
 
   Future<void> setActiveFolder(int folderId) async {
     if (await _folderDao.getFolder(folderId) == null) {
-      throw StateError('组卷夹不存在');
+      throw StateError('试题篮不存在');
     }
     await AppPrefs().setActivePaperFolderId(folderId);
   }
 
   Future<PaperFolderDetail> detail(int folderId) async {
     final folder = await _folderDao.getFolder(folderId);
-    if (folder == null) throw StateError('组卷夹不存在');
+    if (folder == null) throw StateError('试题篮不存在');
     final links = await _folderDao.getQuestions(folderId);
     final rows = await _questionDao.getByIds(
       links.map((item) => item.questionId).toList(growable: false),
@@ -133,13 +135,16 @@ class PaperFolderRepository {
           ),
         )
         .toList(growable: false);
-    return PaperFolderDetail(folder: folder, questions: questions);
+    return PaperFolderDetail(
+      folder: folder.copyWith(name: normalizePaperBasketName(folder.name)),
+      questions: questions,
+    );
   }
 
   Future<void> rename(int folderId, String name) async {
     await _mutateAndSync(
       folderId,
-      () => _folderDao.rename(folderId, name.trim()),
+      () => _folderDao.rename(folderId, normalizePaperBasketName(name.trim())),
     );
   }
 

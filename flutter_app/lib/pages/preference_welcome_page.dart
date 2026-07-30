@@ -37,7 +37,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   late final PreferenceRepository _repo;
   late final QuestionDao _qDao;
   bool _saving = false;
-  final _nameCtrl = TextEditingController(text: '我的常用范围');
+  final _nameCtrl = TextEditingController(text: '我的筛选方案');
 
   Set<String> _years = {};
   Set<String> _regions = {};
@@ -155,7 +155,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              '保存常用范围后，可以更快回到经常使用的选题条件。',
+              '保存筛选方案后，可以更快恢复经常使用的查找条件。',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
@@ -186,7 +186,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('请输入范围名称'),
+          content: Text('请输入方案名称'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -248,14 +248,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
   Widget build(BuildContext context) {
     if (_yearOpts == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('创建常用范围')),
+        appBar: AppBar(title: const Text('创建筛选方案')),
         body: const LoadingIndicator(message: '正在准备可选条件…'),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('创建常用范围'),
+        title: const Text('创建筛选方案'),
         actions: [
           TextButton(
             onPressed: _saving ? null : () => context.go(AppRoutes.mainShell),
@@ -296,7 +296,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const AppSectionHeader(
-                        title: '范围名称',
+                        title: '方案名称',
                         subtitle: '给这组条件起一个容易识别的名称。',
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -358,7 +358,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
-              label: '保存常用范围',
+              label: '保存筛选方案',
               icon: Icons.check_rounded,
               onPressed: _saving ? null : _saveAndGoHome,
               isLoading: _saving,

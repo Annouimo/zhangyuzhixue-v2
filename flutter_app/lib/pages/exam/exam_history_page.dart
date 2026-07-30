@@ -4,18 +4,21 @@ import 'package:shared/shared.dart';
 import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
-import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
-import '../../widgets/shared/action_chip.dart';
 import '../../widgets/shared/async_load_widget.dart';
 import '../router.dart';
 import 'widgets/paper_card.dart';
 
 /// 我的组卷列表。
 class ExamHistoryPage extends StatefulWidget {
-  const ExamHistoryPage({super.key, this.examRepository});
+  const ExamHistoryPage({
+    super.key,
+    this.examRepository,
+    this.embedded = false,
+  });
 
   final ExamRepository? examRepository;
+  final bool embedded;
 
   @override
   State<ExamHistoryPage> createState() => _ExamHistoryPageState();
@@ -37,31 +40,6 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
         );
   }
 
-  Future<void> _deleteExam(int examId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(AppIcons.delete, color: context.colors.error),
-        title: const Text('删除这份试卷？'),
-        content: const Text('删除后无法恢复，已经下载的 PDF 不受影响。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('删除', style: TextStyle(color: context.colors.error)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await _repo.deleteExam(examId);
-      _loadKey.currentState?.refresh();
-    }
-  }
-
   String _formatTime(String iso) {
     try {
       return iso.substring(0, 16).replaceFirst('T', ' ');
@@ -71,9 +49,8 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('我的试卷')),
-    body: AsyncLoadWidget<List<ExamSummary>>(
+  Widget build(BuildContext context) {
+    final body = AsyncLoadWidget<List<ExamSummary>>(
       contentIsScrollable: true,
       key: _loadKey,
       onLoad: _repo.getMyExams,
@@ -117,50 +94,16 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                   context,
                   '${AppRoutes.examQuicklook}?id=${exam.id}',
                 ),
-                actions: [
-                  ActionChipWidget(
-                    icon: exam.isPublic ? Icons.lock_outline : Icons.public,
-                    label: exam.isPublic ? '设为私密' : '公开分享',
-                    onTap: () async {
-                      await _repo.togglePublic(exam.id);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('公开状态已更新')),
-                        );
-                      }
-                      _loadKey.currentState?.refresh();
-                    },
-                  ),
-                  ActionChipWidget(
-                    icon: Icons.picture_as_pdf_outlined,
-                    label: '打印试卷',
-                    onTap: () => PdfHelper.downloadPdf(
-                      sourceId: exam.id,
-                      sourceType: 'paper',
-                      context: context,
-                    ),
-                  ),
-                  ActionChipWidget(
-                    icon: Icons.fact_check_outlined,
-                    iconColor: context.colors.success,
-                    label: '快速对答案',
-                    onTap: () => RouterUtils.push(
-                      context,
-                      '${AppRoutes.answerSheet}?id=${exam.id}',
-                    ),
-                  ),
-                  ActionChipWidget(
-                    icon: AppIcons.delete,
-                    iconColor: context.colors.error,
-                    label: '删除',
-                    onTap: () => _deleteExam(exam.id),
-                  ),
-                ],
               );
             },
           ),
         );
       },
-    ),
-  );
+    );
+    if (widget.embedded) return body;
+    return Scaffold(
+      appBar: AppBar(title: const Text('我创建的')),
+      body: body,
+    );
+  }
 }

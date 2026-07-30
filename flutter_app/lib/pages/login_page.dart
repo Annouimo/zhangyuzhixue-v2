@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
 
-      // 常用范围是可选快捷方式，不再阻断首次登录。
+      // 筛选方案是可选快捷方式，不再阻断首次登录。
       context.go(AppRoutes.mainShell);
       OperationLog.instance.action('login', 'ok');
     } catch (e) {

@@ -1,5 +1,6 @@
 """PDF API 测试 — 请求签名 Token + 视图权限验证"""
 import time
+from urllib.parse import urlsplit
 
 import pytest
 from django.contrib.auth.models import User
@@ -105,6 +106,44 @@ class TestPdfRequestToken:
         assert resp.status_code == 400
         assert resp.data['code'] == 40301
 
+    def test_request_token_virtual_paper(self, auth_client, db):
+        for number in ('10', '2', '1'):
+            BaseQuestion.objects.create(
+                year=2025,
+                exam_type='高考',
+                region='北京',
+                number=number,
+                question_type='fill',
+                stem='第 {0} 题'.format(number),
+            )
+
+        resp = auth_client.post(reverse('pdf-request-token'), {
+            'source_type': 'virtual_paper',
+            'source': {
+                'year': 2025,
+                'exam_type': '高考',
+                'region': '北京',
+            },
+        }, format='json')
+
+        assert resp.status_code == 200
+        url = resp.data['data']['url']
+        assert urlsplit(url).path == '/pdf/view/'
+        assert 'type=virtual_paper' in url
+
+    def test_request_token_virtual_paper_not_found(self, auth_client):
+        resp = auth_client.post(reverse('pdf-request-token'), {
+            'source_type': 'virtual_paper',
+            'source': {
+                'year': 1900,
+                'exam_type': '不存在',
+                'region': '不存在',
+            },
+        }, format='json')
+
+        assert resp.status_code == 404
+        assert resp.data['code'] == 40401
+
     def test_check_sig_ok(self):
         sig = _make_sig(1, 'paper', 42, 1000)
         assert _check_sig(sig, 1, 'paper', 42, 1000) is True
@@ -171,6 +210,39 @@ class TestPdfView:
         url = self._build_url(99999, 'paper', student_user.student.pk)
         resp = api_client.get(url)
         assert resp.status_code == 404
+
+    def test_view_virtual_paper_uses_numeric_question_order(
+        self, auth_client, api_client, student_user, settings, db,
+    ):
+        settings.ALLOWED_HOSTS = ['*']
+        for number in ('10', '2', '1'):
+            question = BaseQuestion.objects.create(
+                year=2025,
+                exam_type='高考',
+                region='北京',
+                number=number,
+                question_type='fill',
+                stem='题号 {0}'.format(number),
+            )
+            SubQuestion.objects.create(
+                question=question,
+                answer=number,
+                sort_order=1,
+            )
+        token_resp = auth_client.post(reverse('pdf-request-token'), {
+            'source_type': 'virtual_paper',
+            'source': {
+                'year': 2025,
+                'exam_type': '高考',
+                'region': '北京',
+            },
+        }, format='json')
+
+        resp = api_client.get(token_resp.data['data']['url'])
+
+        assert resp.status_code == 200
+        html = resp.content.decode()
+        assert html.index('题号 1') < html.index('题号 2') < html.index('题号 10')
 
     def test_view_renders_print_workspace(
         self, api_client, student_user, sample_paper, settings,

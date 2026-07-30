@@ -4,6 +4,7 @@ import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/domain/question_review_repository.dart';
 import 'package:flutter_app/domain/preference_repository.dart';
 import 'package:flutter_app/pages/question_bank/question_bank_page.dart';
+import 'package:flutter_app/widgets/question_search_results.dart';
 import 'package:shared/shared.dart';
 
 import '../test_setup.dart';
@@ -147,115 +148,108 @@ class _LargeQuestionLibraryRepository extends _QuestionLibraryRepository {
 void main() {
   setUp(setupTestHooks);
 
-  testWidgets('question bank reuses full filters and keyword search', (
-    tester,
-  ) async {
-    final repository = _QuestionLibraryRepository();
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        home: StudentQuestionBankPage(
-          examRepository: repository,
-          virtualPaperRepository: repository,
-          questionReviewRepository: repository,
-          preferenceRepository: repository,
-        ),
-      ),
-    );
-    await tester.pumpAndSettle(const Duration(milliseconds: 400));
-
-    expect(find.byTooltip('套卷'), findsOneWidget);
-    expect(find.text('专题'), findsOneWidget);
-    expect(find.text('知识卡片'), findsOneWidget);
-    expect(find.text('我的题目'), findsOneWidget);
-    expect(find.text('函数测试题'), findsNothing);
-    expect(repository.lastFilters, isNull);
-
-    await tester.tap(find.text('我的题目'));
-    await tester.pumpAndSettle();
-    expect(find.text('当前错题'), findsOneWidget);
-    expect(find.text('已订正'), findsOneWidget);
-    expect(find.text('高考常用'), findsOneWidget);
-
-    await tester.tap(find.text('高考常用'));
-    await tester.pumpAndSettle(const Duration(milliseconds: 400));
-    expect(repository.lastPreferenceId, 7);
-    expect(repository.lastFilters?.examTypes, contains('高考'));
-
-    await tester.ensureVisible(find.text('当前错题'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('当前错题'));
-    await tester.pumpAndSettle();
-    expect(repository.lastReviewScope, QuestionReviewScope.currentWrong);
-
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, 4000));
-    await tester.pumpAndSettle();
-    await tester.drag(
-      find.byType(SingleChildScrollView).first,
-      const Offset(-300, 0),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('搜索'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, '函数');
-    await tester.pumpAndSettle(const Duration(milliseconds: 400));
-    expect(repository.lastFilters?.keyword, '函数');
-    expect(repository.lastFilters?.years, isEmpty);
-    expect(repository.lastFilters?.examTypes, isEmpty);
-
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
-    await tester.pumpAndSettle();
-    expect(find.text('题目结果 · 1 题'), findsOneWidget);
-    expect(find.text('选择题 1'), findsOneWidget);
-    expect(find.text('填空题 0'), findsOneWidget);
-    expect(find.text('解答题 0'), findsOneWidget);
-    expect(find.text('平均难度 4.0'), findsOneWidget);
-    expect(find.text('手动选题'), findsNothing);
-    expect(find.text('全选当前结果'), findsOneWidget);
-    await tester.tap(find.text('智能组卷'));
-    await tester.pumpAndSettle();
-    expect(find.text('最终题数'), findsOneWidget);
-    await tester.tap(find.text('取消'));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('函数测试题'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('全选当前结果'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('默认组卷夹 · 1 题'), findsOneWidget);
-    expect(find.text('智能补足'), findsOneWidget);
-    expect(find.text('查看组卷夹'), findsOneWidget);
-  });
-
-  testWidgets('question modes keep scroll stable and can return to top', (
-    tester,
-  ) async {
+  Future<_QuestionLibraryRepository> pumpQuestionBank(
+    WidgetTester tester, {
+    _QuestionLibraryRepository? repository,
+    ScrollController? scrollController,
+  }) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final repository = _LargeQuestionLibraryRepository();
-    final scrollController = ScrollController();
-    addTearDown(scrollController.dispose);
+    final result = repository ?? _QuestionLibraryRepository();
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
         home: StudentQuestionBankPage(
-          examRepository: repository,
-          virtualPaperRepository: repository,
-          questionReviewRepository: repository,
-          preferenceRepository: repository,
+          examRepository: result,
+          virtualPaperRepository: result,
+          questionReviewRepository: result,
+          preferenceRepository: result,
           scrollController: scrollController,
         ),
       ),
     );
     await tester.pumpAndSettle();
+    return result;
+  }
 
-    await tester.tap(find.text('搜索'));
-    await tester.pumpAndSettle();
+  testWidgets('search and filters share one result flow', (tester) async {
+    final repository = await pumpQuestionBank(tester);
+
+    expect(find.text('搜索题目'), findsWidgets);
+    expect(find.text('我的筛选方案'), findsNothing);
+    expect(find.text('筛选条件'), findsOneWidget);
+    expect(find.text('题目结果'), findsOneWidget);
+    expect(find.text('选题'), findsOneWidget);
+    expect(find.text('全部加入试题篮'), findsNothing);
+    expect(find.text('智能选题'), findsNothing);
+    expect(repository.lastFilters, isNull);
+
     await tester.enterText(find.byType(TextField).first, '函数');
-    await tester.pumpAndSettle(const Duration(milliseconds: 400));
-    expect(find.text('题目结果 · 21 题'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+    expect(repository.lastFilters?.keyword, '函数');
+    expect(repository.lastFilters?.years, isEmpty);
+    expect(repository.lastFilters?.examTypes, isEmpty);
+    expect(find.text('函数测试题'), findsOneWidget);
+    expect(find.text('1 道'), findsOneWidget);
+    expect(find.text('选择题 1'), findsOneWidget);
+    expect(find.text('填空题 0'), findsOneWidget);
+    expect(find.text('解答题 0'), findsOneWidget);
+    expect(find.text('平均难度 4.0'), findsOneWidget);
+  });
+
+  testWidgets('selection mode exposes basket actions and selected state', (
+    tester,
+  ) async {
+    await pumpQuestionBank(tester);
+    await tester.enterText(find.byType(TextField).first, '函数');
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+    await tester.tap(find.text('选题'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('完成选题'), findsOneWidget);
+    expect(find.text('全部加入试题篮'), findsOneWidget);
+    expect(find.text('清空'), findsOneWidget);
+    expect(find.text('智能选题'), findsOneWidget);
+    expect(find.text('默认试题篮'), findsOneWidget);
+    expect(find.text('切换'), findsOneWidget);
+    expect(find.byTooltip('加入试题篮'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('加入试题篮'));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('移出试题篮'), findsOneWidget);
+    expect(find.text('智能补全'), findsOneWidget);
+
+    await tester.tap(find.text('完成选题'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('全部加入试题篮'), findsNothing);
+    expect(find.text('智能补全'), findsNothing);
+    await tester.ensureVisible(find.text('函数测试题'));
+    await tester.pumpAndSettle();
+    final resultCard = tester.widget<QuestionSearchResultCard>(
+      find.byType(QuestionSearchResultCard),
+    );
+    expect(resultCard.selected, isTrue);
+  });
+
+  testWidgets('question list keeps scroll stable and can return to top', (
+    tester,
+  ) async {
+    final repository = _LargeQuestionLibraryRepository();
+    final scrollController = ScrollController();
+    addTearDown(scrollController.dispose);
+    await pumpQuestionBank(
+      tester,
+      repository: repository,
+      scrollController: scrollController,
+    );
+
+    await tester.enterText(find.byType(TextField).first, '函数');
+    await tester.pumpAndSettle(const Duration(milliseconds: 500));
+    expect(find.text('21 道'), findsOneWidget);
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
     await tester.pumpAndSettle();
@@ -264,7 +258,7 @@ void main() {
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 2400));
     await tester.pumpAndSettle();
     expect(scrollController.offset, 0);
-    expect(find.byTooltip('套卷'), findsOneWidget);
-    expect(find.text('专题'), findsOneWidget);
+    expect(find.text('搜索题目'), findsWidgets);
+    expect(find.text('筛选条件'), findsOneWidget);
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/domain/models.dart';
+import 'package:shared/widgets/filter_panel_components.dart';
 
 /// 分类知识卡片组选择视图
 ///
@@ -30,7 +31,6 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widget.groups.map((group) {
@@ -40,39 +40,43 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
         final selectedCount = widget.selectedTitles
             .where(groupTitles.contains)
             .length;
-        return ExpansionTile(
+        final allSelected = selectedCount == group.cards.length;
+        return Column(
           key: PageStorageKey(group.category),
-          initiallyExpanded: expanded,
-          tilePadding: EdgeInsets.zero,
-          childrenPadding: const EdgeInsets.only(bottom: 8),
-          title: Text(group.category),
-          subtitle: Text(
-            selectedCount == 0
-                ? '${group.cards.length} 项'
-                : selectedCount == group.cards.length
-                ? '已全选 ${group.cards.length} 项'
-                : '已选 $selectedCount/${group.cards.length} 项',
-          ),
-          leading: Icon(
-            selectedCount == 0
-                ? Icons.check_box_outline_blank
-                : selectedCount == group.cards.length
-                ? Icons.check_box
-                : Icons.indeterminate_check_box,
-            color: selectedCount == 0 ? colors.textSecondary : colors.primary,
-          ),
-          onExpansionChanged: (value) {
-            if (value) {
-              if (_expandedCategory == group.category) return;
-              setState(() => _expandedCategory = group.category);
-            } else if (_expandedCategory == group.category) {
-              setState(() => _expandedCategory = null);
-            }
-          },
-          children: [_buildGroup(group, hideHeader: true, previewOnly: true)],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FilterExpandableCategoryRow(
+              title: group.category,
+              subtitle: selectedCount == 0
+                  ? '${group.cards.length} 项'
+                  : '已选 $selectedCount/${group.cards.length} 项',
+              selection: allSelected
+                  ? FilterCategorySelection.all
+                  : selectedCount > 0
+                  ? FilterCategorySelection.partial
+                  : FilterCategorySelection.none,
+              expanded: expanded,
+              onToggleSelection: () => _toggleGroup(group, allSelected),
+              onToggleExpanded: () => setState(() {
+                _expandedCategory = expanded ? null : group.category;
+              }),
+            ),
+            if (expanded)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _buildGroup(group, hideHeader: true, previewOnly: true),
+              ),
+          ],
         );
       }).toList(),
     );
+  }
+
+  void _toggleGroup(KnowledgeCardGroup group, bool allSelected) {
+    final titles = group.cards.map((card) => card.title).toSet();
+    final next = Set<String>.from(widget.selectedTitles);
+    allSelected ? next.removeAll(titles) : next.addAll(titles);
+    widget.onChanged(next);
   }
 
   Widget _buildGroup(
@@ -151,6 +155,7 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                           ],
                         ),
                         selected: widget.selectedTitles.contains(card.title),
+                        showCheckmark: true,
                         onSelected: (v) {
                           final newSet = Set<String>.from(
                             widget.selectedTitles,
@@ -162,8 +167,9 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                         },
                         selectedColor: colors.primaryContainer,
                         checkmarkColor: colors.primary,
+                        visualDensity: VisualDensity.compact,
                         side: widget.selectedTitles.contains(card.title)
-                            ? BorderSide.none
+                            ? BorderSide(color: colors.primary)
                             : BorderSide(color: colors.border),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,

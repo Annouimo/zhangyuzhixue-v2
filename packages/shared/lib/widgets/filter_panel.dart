@@ -9,7 +9,7 @@ import 'package:shared/widgets/filter_state.dart';
 
 export 'filter_state.dart';
 
-/// 筛选面板（题库工作台和常用范围页面共用）
+/// 筛选面板（题库工作台和筛选方案页面共用）
 
 final _difficultySegments = [
   FilterRangeSegment(max: 3.0, label: '基础', sample: '单选1-3·填空11·解答第一问'),
@@ -55,6 +55,9 @@ class FilterPanel extends StatefulWidget {
   final bool showConceptSection;
   final bool showKnowledgeSection;
 
+  /// Whether to group selectors into content, source, and question tabs.
+  final bool groupedLayout;
+
   /// 面板首次构建时使用的外部筛选状态。
   final FilterState? initialState;
 
@@ -77,6 +80,7 @@ class FilterPanel extends StatefulWidget {
     this.allowGlobalSelectAll = true,
     this.showConceptSection = true,
     this.showKnowledgeSection = true,
+    this.groupedLayout = false,
     this.initialState,
   });
 
@@ -105,6 +109,7 @@ class FilterPanelState extends State<FilterPanel> {
   bool _knowledgeExpanded = false;
   bool _difficultyExpanded = false;
   bool _calculationExpanded = false;
+  int _groupIndex = 0;
 
   bool _initialized = false;
 
@@ -421,6 +426,7 @@ class FilterPanelState extends State<FilterPanel> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.groupedLayout) return _buildGroupedLayout(context);
     final colors = context.colors;
     return Card(
       margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
@@ -485,7 +491,7 @@ class FilterPanelState extends State<FilterPanel> {
                             ),
                             SizedBox(width: 4),
                             Text(
-                              '保存为常用范围',
+                              '保存筛选方案',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colors.primary,
@@ -519,7 +525,7 @@ class FilterPanelState extends State<FilterPanel> {
                             ),
                             SizedBox(width: 4),
                             Text(
-                              '读取常用范围',
+                              '应用筛选方案',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: colors.primary,
@@ -681,6 +687,311 @@ class FilterPanelState extends State<FilterPanel> {
         ),
       ),
     );
+  }
+
+  Widget _buildGroupedLayout(BuildContext context) {
+    final colors = context.colors;
+    final groups = <Widget>[
+      ConceptTagTreeView(
+        nodes: widget.conceptTagTree,
+        selectedNames: _selectedConceptTagNames,
+        compactLeaves: true,
+        onChanged: (names) {
+          setState(() {
+            _selectedConceptTagNames
+              ..clear()
+              ..addAll(names);
+            _selectedConceptTags
+              ..clear()
+              ..addAll(names);
+          });
+          _emit();
+        },
+      ),
+      KnowledgeCardGroupView(
+        groups: widget.knowledgeCardGroups,
+        selectedTitles: _selectedKnowledgeCardTitles,
+        compact: true,
+        onChanged: (titles) {
+          setState(() {
+            _selectedKnowledgeCardTitles
+              ..clear()
+              ..addAll(titles);
+            _selectedKnowledgeCards
+              ..clear()
+              ..addAll(titles);
+          });
+          _emit();
+        },
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildChipGroup('年份', widget.yearOptions, _selectedYears),
+          const SizedBox(height: 16),
+          _buildChipGroup('地区', widget.regionOptions, _selectedRegions),
+          if (widget.examTypeOptions.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildChipGroup('考试类型', widget.examTypeOptions, _selectedExamTypes),
+          ],
+        ],
+      ),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.typeOptions.isNotEmpty) ...[
+            _buildTypeChipGroup(widget.typeOptions, _selectedTypes),
+            const SizedBox(height: 16),
+          ],
+          DifficultySlider(
+            label: '难度范围',
+            min: 0,
+            max: 10,
+            lower: _diffMin,
+            upper: _diffMax,
+            onChanged: (value) {
+              setState(() {
+                _diffMin = value.start;
+                _diffMax = value.end;
+              });
+              _emit();
+            },
+          ),
+          _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
+          const SizedBox(height: 16),
+          DifficultySlider(
+            label: '计算量范围',
+            min: 0,
+            max: 10,
+            lower: _calcMin,
+            upper: _calcMax,
+            onChanged: (value) {
+              setState(() {
+                _calcMin = value.start;
+                _calcMax = value.end;
+              });
+              _emit();
+            },
+          ),
+          _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
+        ],
+      ),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.onLoadPreference != null) ...[
+            InkWell(
+              onTap: widget.onLoadPreference,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(Icons.bookmarks_outlined, color: colors.primary),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        '筛选方案',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    Text(
+                      MediaQuery.sizeOf(context).width < 600
+                          ? '管理'
+                          : '应用、保存与管理',
+                      style: TextStyle(color: colors.textSecondary),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(height: 1, color: colors.border),
+            const SizedBox(height: 12),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildGroupedTab(
+                        0,
+                        '概念标签',
+                        _selectedConceptTagNames.length,
+                      ),
+                      _buildGroupedTab(
+                        1,
+                        '知识卡片',
+                        _selectedKnowledgeCardTitles.length,
+                      ),
+                      _buildGroupedTab(2, '试题来源', _sourceGroupCount),
+                      _buildGroupedTab(3, '题目特征', _featureGroupCount),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_currentGroupHasSelection)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _clearCurrentGroup,
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                label: const Text('重置当前维度'),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: groups[_groupIndex],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupedTab(int index, String label, int count) {
+    final colors = context.colors;
+    final selected = _groupIndex == index;
+    return InkWell(
+      onTap: () => setState(() => _groupIndex = index),
+      child: Container(
+        margin: const EdgeInsets.only(right: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? colors.primaryContainer : colors.surface,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: selected ? colors.primaryBorder : colors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected ? colors.primary : colors.textSecondary,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 4),
+              Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: colors.primary,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  int get _sourceGroupCount => [
+    _selectedYears.isNotEmpty,
+    _selectedRegions.isNotEmpty,
+    _selectedExamTypes.isNotEmpty,
+  ].where((selected) => selected).length;
+
+  int get _featureGroupCount => [
+    _selectedTypes.isNotEmpty,
+    _diffMin > 0 || _diffMax < 10,
+    _calcMin > 0 || _calcMax < 10,
+  ].where((selected) => selected).length;
+
+  bool get _currentGroupHasSelection => switch (_groupIndex) {
+    0 => _selectedConceptTagNames.isNotEmpty,
+    1 => _selectedKnowledgeCardTitles.isNotEmpty,
+    2 => _sourceGroupCount > 0,
+    _ => _featureGroupCount > 0,
+  };
+
+  void _clearCurrentGroup() {
+    setState(() {
+      switch (_groupIndex) {
+        case 0:
+          _selectedConceptTagNames.clear();
+          _selectedConceptTags.clear();
+          break;
+        case 1:
+          _selectedKnowledgeCardTitles.clear();
+          _selectedKnowledgeCards.clear();
+          break;
+        case 2:
+          _selectedYears.clear();
+          _selectedRegions.clear();
+          _selectedExamTypes.clear();
+          break;
+        default:
+          _selectedTypes.clear();
+          _diffMin = 0;
+          _diffMax = 10;
+          _calcMin = 0;
+          _calcMax = 10;
+      }
+    });
+    _emit();
+  }
+
+  void _clearGroupedSelection(String key) {
+    setState(() {
+      switch (key) {
+        case 'concept':
+          _selectedConceptTagNames.clear();
+          _selectedConceptTags.clear();
+          break;
+        case 'knowledge':
+          _selectedKnowledgeCardTitles.clear();
+          _selectedKnowledgeCards.clear();
+          break;
+        case 'years':
+          _selectedYears.clear();
+          break;
+        case 'regions':
+          _selectedRegions.clear();
+          break;
+        case 'examTypes':
+          _selectedExamTypes.clear();
+          break;
+        case 'types':
+          _selectedTypes.clear();
+          break;
+        case 'difficulty':
+          _diffMin = 0;
+          _diffMax = 10;
+          break;
+        case 'calculation':
+          _calcMin = 0;
+          _calcMax = 10;
+          break;
+      }
+    });
+    _emit();
   }
 
   Widget _buildSection(

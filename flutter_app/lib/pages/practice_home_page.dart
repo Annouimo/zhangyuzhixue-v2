@@ -25,7 +25,7 @@ class PracticeHomePage extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             const AppSectionHeader(
               title: '选题与出卷',
-              subtitle: '找题练习，也可快速组成并打印试卷',
+              subtitle: '找题、整理试题并管理已经生成的试卷',
             ),
             const SizedBox(height: AppSpacing.sm),
             AppResponsiveCardGrid(
@@ -33,14 +33,28 @@ class PracticeHomePage extends StatelessWidget {
                 AppNavigationCard(
                   icon: Icons.search_rounded,
                   title: '题库选题',
-                  subtitle: '按套卷、专题或知识点找题，练习或一键出卷',
+                  subtitle: '按专题或知识点找题，练习或一键出卷',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.questionBank),
                 ),
                 AppNavigationCard(
+                  icon: Icons.folder_outlined,
+                  title: '试题篮',
+                  subtitle: '持续收集、整理并生成试卷',
+                  onTap: () =>
+                      RouterUtils.push(context, AppRoutes.paperFolders),
+                ),
+                AppNavigationCard(
+                  icon: Icons.library_books_outlined,
+                  title: '套卷',
+                  subtitle: '按年份、地区和考试类型浏览完整试卷',
+                  onTap: () =>
+                      RouterUtils.push(context, AppRoutes.paperLibrary),
+                ),
+                AppNavigationCard(
                   icon: Icons.description_outlined,
-                  title: '我的试卷',
-                  subtitle: '管理已创建的试卷，开始作答或直接打印',
+                  title: '试卷中心',
+                  subtitle: '查看我创建的、发现和收藏的试卷',
                   onTap: () => RouterUtils.push(context, AppRoutes.examHome),
                 ),
               ],

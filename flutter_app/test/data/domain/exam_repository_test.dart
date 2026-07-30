@@ -243,6 +243,28 @@ void main() {
       expect(preview.totalCount, 1);
     });
 
+    test('getPreview preserves saved question order', () async {
+      for (final id in [1, 2]) {
+        await aDb.into(aDb.questions).insert(
+          adb.QuestionsCompanion(
+            id: Value(id),
+            year: const Value(2024),
+            examType: const Value('一模'),
+            region: const Value('海淀'),
+            number: Value('$id'),
+            questionType: const Value('choice'),
+            stem: Value('题$id'),
+          ),
+        );
+      }
+      final paperId = await eDao.savePaper(title: '自定义题序');
+      await eDao.savePaperQuestions(paperId, [2, 1]);
+
+      final preview = await repo.getPreview(paperId);
+
+      expect(preview.questions.map((question) => question.questionId), [2, 1]);
+    });
+
     test('deleteExam removes paper', () async {
       final id = await eDao.savePaper(title: '待删');
       await repo.deleteExam(id);

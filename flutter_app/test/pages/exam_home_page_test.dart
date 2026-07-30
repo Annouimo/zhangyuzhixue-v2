@@ -6,18 +6,15 @@ import '../test_setup.dart';
 void main() {
   setUp(() => setupTestHooks());
   group('ExamHomePage', () {
-    testWidgets('renders paper management without duplicate creation buttons', (
-      tester,
-    ) async {
+    testWidgets('renders the three paper center tabs', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: ExamHomePage()));
-      expect(find.text('我的试卷'), findsWidgets);
-      expect(find.text('试卷空间'), findsOneWidget);
-      expect(find.textContaining('智能组卷'), findsNothing);
-      expect(find.textContaining('自主选题'), findsNothing);
-      expect(find.text('组卷夹'), findsAtLeastNWidgets(1));
-      expect(find.text('已生成试卷'), findsAtLeastNWidgets(1));
-      expect(find.text('发现组卷'), findsAtLeastNWidgets(1));
-      expect(find.text('我的收藏'), findsAtLeastNWidgets(1));
+      expect(find.text('试卷中心'), findsOneWidget);
+      expect(find.text('我创建的'), findsOneWidget);
+      expect(find.text('发现试卷'), findsOneWidget);
+      expect(find.text('收藏'), findsOneWidget);
+      expect(find.byTooltip('新建试卷'), findsOneWidget);
+      expect(find.text('试题篮'), findsNothing);
+      expect(find.text('套卷'), findsNothing);
     });
   });
 }

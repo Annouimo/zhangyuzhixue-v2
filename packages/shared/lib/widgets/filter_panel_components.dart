@@ -178,16 +178,115 @@ class FilterChoiceGroup extends StatelessWidget {
               ),
               selected: isSelected,
               onSelected: (value) => onChanged(option, value),
+              showCheckmark: false,
+              backgroundColor: colors.background,
               selectedColor: colors.primaryContainer,
               checkmarkColor: colors.primary,
               side: isSelected
                   ? BorderSide.none
                   : BorderSide(color: colors.border),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
             );
           }).toList(),
         ),
       ],
+    );
+  }
+}
+
+enum FilterCategorySelection { none, partial, all }
+
+class FilterExpandableCategoryRow extends StatelessWidget {
+  const FilterExpandableCategoryRow({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.selection,
+    required this.onToggleSelection,
+    this.expanded = false,
+    this.onToggleExpanded,
+  });
+
+  final String title;
+  final String subtitle;
+  final FilterCategorySelection selection;
+  final VoidCallback onToggleSelection;
+  final bool expanded;
+  final VoidCallback? onToggleExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final selected = selection != FilterCategorySelection.none;
+    final icon = switch (selection) {
+      FilterCategorySelection.none => Icons.check_box_outline_blank_rounded,
+      FilterCategorySelection.partial => Icons.indeterminate_check_box_rounded,
+      FilterCategorySelection.all => Icons.check_box_rounded,
+    };
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.divider)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: selected ? '取消选择$title' : '选择$title',
+            visualDensity: VisualDensity.compact,
+            onPressed: onToggleSelection,
+            icon: Icon(
+              icon,
+              size: 22,
+              color: selected ? colors.primary : colors.textSecondary,
+            ),
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: onToggleExpanded ?? onToggleSelection,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: selected ? colors.primary : colors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (onToggleExpanded != null)
+            IconButton(
+              tooltip: expanded ? '收起$title' : '展开$title',
+              visualDensity: VisualDensity.compact,
+              onPressed: onToggleExpanded,
+              icon: Icon(
+                expanded
+                    ? Icons.keyboard_arrow_up_rounded
+                    : Icons.keyboard_arrow_down_rounded,
+                color: colors.textSecondary,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

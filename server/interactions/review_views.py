@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import BooleanField, Q
+from django.db.models import BooleanField, Count, Q
 from django.db.models.expressions import RawSQL
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -32,6 +32,7 @@ def reviewer_required(view_func):
             return redirect(f'{login_url}?next={request.get_full_path()}')
         if not is_content_reviewer(request.user):
             return HttpResponseForbidden('当前账号没有内容审核权限。')
+        request.workbench_queue_counts = _active_queue_counts()
         return view_func(request, *args, **kwargs)
     return wrapped
 
@@ -100,17 +101,49 @@ def _filter_contribution_kind(queryset, type_filter):
     return queryset, ''
 
 
+def _active_queue_counts():
+    active = _with_contribution_kind(ContentContribution.objects.filter(
+        status__in=[
+            ContentContribution.Status.PENDING,
+            ContentContribution.Status.RESUBMITTED,
+            ContentContribution.Status.PROCESSING,
+        ]
+    ))
+    return active.aggregate(
+        all=Count('pk'),
+        new_question=Count(
+            'pk', filter=Q(contribution_type='new_question')
+        ),
+        new_solution=Count(
+            'pk', filter=Q(contribution_type='new_solution')
+        ),
+        content_change=Count(
+            'pk', filter=Q(
+                contribution_type='question_correction',
+                has_proposed_question=True,
+            )
+        ),
+        problem_report=Count(
+            'pk', filter=Q(
+                contribution_type='question_correction',
+                has_proposed_question=False,
+            )
+        ),
+    )
+
+
 @reviewer_required
 def queue_view(request):
-    status_filter = request.GET.get('status', '')
+    requested_status = request.GET.get('status')
+    status_filter = 'active' if requested_status is None else requested_status
     type_filter = request.GET.get('type', '')
     query = request.GET.get('q', '').strip()[:100]
     mine_only = request.GET.get('mine') == '1'
     queryset = _with_contribution_kind(ContentContribution.objects).select_related(
         'student__user', 'question', 'reviewed_by'
     ).prefetch_related('revisions')
-    if not status_filter:
-        pass
+    if status_filter in {'', 'all'}:
+        status_filter = 'all'
     elif status_filter == 'active':
         queryset = queryset.filter(status__in=[
             ContentContribution.Status.PENDING,
@@ -118,9 +151,15 @@ def queue_view(request):
             ContentContribution.Status.PROCESSING,
         ])
     elif status_filter in ContentContribution.Status.values:
+        pass
         queryset = queryset.filter(status=status_filter)
     else:
-        status_filter = ''
+        status_filter = 'active'
+        queryset = queryset.filter(status__in=[
+            ContentContribution.Status.PENDING,
+            ContentContribution.Status.RESUBMITTED,
+            ContentContribution.Status.PROCESSING,
+        ])
     queryset, type_filter = _filter_contribution_kind(queryset, type_filter)
     if mine_only:
         queryset = queryset.filter(reviewed_by=request.user)
@@ -133,24 +172,6 @@ def queue_view(request):
     queryset = queryset.order_by('-updated_at', '-pk')
     paginator = Paginator(queryset, 30)
     page = paginator.get_page(request.GET.get('page'))
-    active = _with_contribution_kind(ContentContribution.objects.filter(
-        status__in=[
-            ContentContribution.Status.PENDING,
-            ContentContribution.Status.RESUBMITTED,
-            ContentContribution.Status.PROCESSING,
-        ]
-    ))
-    queue_counts = {
-        'all': active.count(),
-        'new_question': active.filter(contribution_type='new_question').count(),
-        'new_solution': active.filter(contribution_type='new_solution').count(),
-        'content_change': active.filter(
-            contribution_type='question_correction', has_proposed_question=True,
-        ).count(),
-        'problem_report': active.filter(
-            contribution_type='question_correction', has_proposed_question=False,
-        ).count(),
-    }
     return render(request, 'review_workbench/queue.html', {
         'contributions': page.object_list,
         'page': page,
@@ -161,7 +182,7 @@ def queue_view(request):
         'mine_only': mine_only,
         'status_choices': ContentContribution.Status.choices,
         'type_choices': ContentContribution.ContributionType.choices,
-        'queue_counts': queue_counts,
+        'queue_counts': request.workbench_queue_counts,
     })
 
 

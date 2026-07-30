@@ -56,7 +56,7 @@ void main() {
     testWidgets('renders register form with all elements', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
-      expect(find.text('创建学生账号'), findsOneWidget);
+      expect(find.text('创建账号'), findsOneWidget);
       expect(find.text('邀请码'), findsNothing);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('姓名'), findsOneWidget);
@@ -155,7 +155,7 @@ void main() {
       // 先进注册页
       await tester.tap(find.text('去注册'));
       await tester.pumpAndSettle();
-      expect(find.text('创建学生账号'), findsOneWidget);
+      expect(find.text('创建账号'), findsOneWidget);
 
       await _fillAllFields(tester);
       await _acceptAgreements(tester);

@@ -2,142 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
 import '../router.dart';
+import 'exam_explore_page.dart';
+import 'exam_favorites_page.dart';
+import 'exam_history_page.dart';
 
-/// 试卷空间 — 管理与发现试卷。创建入口已收敛到题库工作台。
-class ExamHomePage extends StatelessWidget {
-  const ExamHomePage({super.key});
+enum PaperCenterTab { created, explore, favorites }
+
+class ExamHomePage extends StatefulWidget {
+  const ExamHomePage({super.key, this.initialTab = PaperCenterTab.created});
+
+  final PaperCenterTab initialTab;
+
+  @override
+  State<ExamHomePage> createState() => _ExamHomePageState();
+}
+
+class _ExamHomePageState extends State<ExamHomePage> {
+  late int _selectedIndex;
+
+  late final List<Widget> _pages = const [
+    ExamHistoryPage(embedded: true),
+    ExamExplorePage(embedded: true),
+    ExamFavoritesPage(embedded: true),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialTab.index;
+    AuditLogger.instance.page('ExamHomePage', {'visited': true});
+  }
 
   @override
   Widget build(BuildContext context) {
-    AuditLogger.instance.page('ExamHomePage', {'visited': true});
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('我的试卷')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-        child: AppContentContainer(
-          maxWidth: AppContentWidth.dashboard,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.md),
-              const AppSectionHeader(
-                title: '试卷空间',
-                subtitle: '管理已创建的试卷，也可以发现和收藏其他同学分享的内容。',
-              ),
-              const SizedBox(height: AppSpacing.md),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final columns =
-                      constraints.maxWidth >= AppBreakpoints.expanded
-                      ? 3
-                      : constraints.maxWidth >= AppBreakpoints.compact
-                      ? 2
-                      : 1;
-                  const gap = AppSpacing.md;
-                  final width = columns == 1
-                      ? constraints.maxWidth
-                      : (constraints.maxWidth - gap * (columns - 1)) / columns;
-
-                  final entries = [
-                    _ExamEntry(
-                      icon: Icons.folder_outlined,
-                      title: '组卷夹',
-                      subtitle: '持续收集、整理并生成试卷',
-                      tone: AppStatusTone.primary,
-                      onTap: () =>
-                          RouterUtils.push(context, AppRoutes.paperFolders),
-                    ),
-                    _ExamEntry(
-                      icon: Icons.folder_copy_outlined,
-                      title: '已生成试卷',
-                      subtitle: '管理、公开或删除我创建的试卷',
-                      tone: AppStatusTone.primary,
-                      onTap: () =>
-                          RouterUtils.push(context, AppRoutes.examHistory),
-                    ),
-                    _ExamEntry(
-                      icon: Icons.explore_outlined,
-                      title: '发现组卷',
-                      subtitle: '浏览公开试卷，按热度或时间筛选',
-                      tone: AppStatusTone.recommendation,
-                      onTap: () =>
-                          RouterUtils.push(context, AppRoutes.examExplore),
-                    ),
-                    _ExamEntry(
-                      icon: Icons.bookmark_outline_rounded,
-                      title: '我的收藏',
-                      subtitle: '随时查看已经收藏的优质试卷',
-                      tone: AppStatusTone.success,
-                      onTap: () =>
-                          RouterUtils.push(context, AppRoutes.examFavorites),
-                    ),
-                  ];
-
-                  return Wrap(
-                    spacing: gap,
-                    runSpacing: gap,
-                    children: entries
-                        .map((entry) => SizedBox(width: width, child: entry))
-                        .toList(),
-                  );
-                },
-              ),
+    return DefaultTabController(
+      length: PaperCenterTab.values.length,
+      initialIndex: _selectedIndex,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('试卷中心'),
+          actions: [
+            IconButton(
+              tooltip: '新建试卷',
+              icon: const Icon(Icons.add),
+              onPressed: () =>
+                  RouterUtils.push(context, AppRoutes.questionBank),
+            ),
+          ],
+          bottom: TabBar(
+            onTap: (index) => setState(() => _selectedIndex = index),
+            tabs: const [
+              Tab(text: '我创建的'),
+              Tab(text: '发现试卷'),
+              Tab(text: '收藏'),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ExamEntry extends StatelessWidget {
-  const _ExamEntry({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.tone,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final AppStatusTone tone;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final textTheme = Theme.of(context).textTheme;
-
-    return AppCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      semanticLabel: title,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              AppStatusBadge(
-                label: title,
-                tone: tone,
-                icon: icon,
-                compact: true,
-              ),
-              const Spacer(),
-              Icon(AppIcons.chevronRight, color: colors.textMuted),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(title, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            subtitle,
-            style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
-          ),
-        ],
+        body: IndexedStack(index: _selectedIndex, children: _pages),
       ),
     );
   }

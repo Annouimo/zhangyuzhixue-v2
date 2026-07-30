@@ -14,9 +14,6 @@ import 'lecture/lecture_content_page.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'exam/exam_quicklook_page.dart';
 import 'exam/exam_quicklook_other_page.dart';
-import 'exam/exam_history_page.dart';
-import 'exam/exam_explore_page.dart';
-import 'exam/exam_favorites_page.dart';
 import 'exam/answer_sheet_page.dart';
 import 'profile/profile_edit_page.dart';
 import 'profile/achievement_page.dart';
@@ -38,6 +35,8 @@ import 'exam/paper_folder_list_page.dart';
 import 'exam/paper_folder_detail_page.dart';
 import 'review_page.dart';
 import 'question_bank/question_bank_page.dart';
+import '../domain/question_review_repository.dart';
+import '../domain/paper_content.dart';
 import 'question_bank/paper_library_page.dart';
 import 'contributions/contribution_editor_page.dart';
 import 'contributions/contribution_detail_page.dart';
@@ -258,17 +257,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.examHistory,
       name: 'exam-history',
-      builder: (_, _) => ExamHistoryPage(),
+      redirect: (_, _) => '${AppRoutes.examHome}?tab=created',
     ),
     GoRoute(
       path: AppRoutes.examExplore,
       name: 'exam-explore',
-      builder: (_, _) => ExamExplorePage(),
+      redirect: (_, _) => '${AppRoutes.examHome}?tab=explore',
     ),
     GoRoute(
       path: AppRoutes.examFavorites,
       name: 'exam-favorites',
-      builder: (_, _) => ExamFavoritesPage(),
+      redirect: (_, _) => '${AppRoutes.examHome}?tab=favorites',
     ),
     GoRoute(
       path: AppRoutes.answerSheet,
@@ -276,6 +275,9 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) {
         return AnswerSheetPage(
           examId: _intParam(state.uri.queryParameters, 'id') ?? 0,
+          virtualPaper: state.extra is VirtualPaperRef
+              ? state.extra as VirtualPaperRef
+              : null,
         );
       },
     ),
@@ -287,7 +289,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.examHome,
       name: 'exam-home',
-      builder: (_, _) => const ExamHomePage(),
+      builder: (_, state) => ExamHomePage(
+        initialTab: switch (state.uri.queryParameters['tab']) {
+          'explore' => PaperCenterTab.explore,
+          'favorites' => PaperCenterTab.favorites,
+          _ => PaperCenterTab.created,
+        },
+      ),
     ),
     GoRoute(
       path: AppRoutes.paperFolders,
@@ -309,7 +317,16 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.questionBank,
       name: 'question-bank',
-      builder: (_, _) => const StudentQuestionBankPage(),
+      builder: (_, state) {
+        final review = state.uri.queryParameters['review'];
+        return StudentQuestionBankPage(
+          initialReviewScope: switch (review) {
+            'current-wrong' => QuestionReviewScope.currentWrong,
+            'corrected' => QuestionReviewScope.corrected,
+            _ => null,
+          },
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.paperLibrary,
@@ -354,7 +371,15 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.profilePreferences,
       name: 'profile-preferences',
-      builder: (_, _) => PreferenceListPage(),
+      builder: (_, state) {
+        final selectionMode = state.uri.queryParameters['select'] == '1';
+        return PreferenceListPage(
+          selectionMode: selectionMode,
+          onSaveCurrent: selectionMode
+              ? state.extra as Future<void> Function()?
+              : null,
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.preferenceEdit,

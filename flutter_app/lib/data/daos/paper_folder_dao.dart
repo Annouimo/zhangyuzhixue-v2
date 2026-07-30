@@ -48,7 +48,7 @@ class PaperFolderDao {
     for (final folder in folders) {
       if (folder.isDefault == 1) return folder.id;
     }
-    return createFolder('默认组卷夹', isDefault: true);
+    return createFolder('默认试题篮', isDefault: true);
   }
 
   Future<void> rename(int folderId, String name) async {

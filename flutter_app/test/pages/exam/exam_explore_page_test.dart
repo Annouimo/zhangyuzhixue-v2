@@ -80,6 +80,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('海淀一模'), findsOneWidget);
       expect(find.textContaining('5 赞'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byTooltip('收藏试卷'), findsOneWidget);
     });
 
     testWidgets('shows empty state', (tester) async {

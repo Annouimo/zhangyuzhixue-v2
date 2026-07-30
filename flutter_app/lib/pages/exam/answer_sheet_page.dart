@@ -5,13 +5,20 @@ import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/exam_repository.dart';
+import '../../domain/paper_content.dart';
 import '../router.dart';
 
 /// 快速答案表。
 class AnswerSheetPage extends StatefulWidget {
-  const AnswerSheetPage({super.key, required this.examId, this.examRepository});
+  const AnswerSheetPage({
+    super.key,
+    this.examId,
+    this.virtualPaper,
+    this.examRepository,
+  }) : assert(examId != null || virtualPaper != null);
 
-  final int examId;
+  final int? examId;
+  final VirtualPaperRef? virtualPaper;
   final ExamRepository? examRepository;
 
   @override
@@ -44,13 +51,15 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       _error = null;
     });
     try {
-      final preview = await _repo.getPreview(widget.examId);
-      final answers = await _repo.getQuickAnswers(widget.examId);
+      final virtual = widget.virtualPaper;
+      final (name, totalCount, answers) = virtual == null
+          ? await _loadSavedPaper()
+          : await _loadVirtualPaper(virtual);
       if (!mounted) return;
       setState(() {
         _answers = answers;
-        _examName = preview.name;
-        _totalCount = preview.totalCount;
+        _examName = name;
+        _totalCount = totalCount;
         _loading = false;
       });
       AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
@@ -63,6 +72,51 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
         _loading = false;
       });
     }
+  }
+
+  Future<(String, int, List<AnswerItem>)> _loadSavedPaper() async {
+    final examId = widget.examId!;
+    final preview = await _repo.getPreview(examId);
+    final answers = await _repo.getQuickAnswers(examId);
+    return (preview.name, preview.totalCount, answers);
+  }
+
+  Future<(String, int, List<AnswerItem>)> _loadVirtualPaper(
+    VirtualPaperRef paper,
+  ) async {
+    final dao = QuestionDao(DatabaseProvider());
+    final questions = await dao.getVirtualPaperQuestions(
+      year: paper.year,
+      examType: paper.examType,
+      region: paper.region,
+    );
+    final answers = <AnswerItem>[];
+    const labels = {'choice': '选择题', 'fill': '填空题', 'solution': '解答题'};
+    for (final question in questions) {
+      final subs = await dao.getSubQuestions(question.id);
+      final title = '${question.number} ${question.examType} ${question.region}';
+      final type = labels[question.questionType] ?? question.questionType;
+      if (question.questionType == 'solution' && subs.length > 1) {
+        for (var index = 0; index < subs.length; index++) {
+          answers.add(
+            AnswerItem(
+              title: '$title (${index + 1})',
+              questionType: type,
+              answer: subs[index].answer ?? '',
+            ),
+          );
+        }
+      } else {
+        answers.add(
+          AnswerItem(
+            title: title,
+            questionType: type,
+            answer: subs.isEmpty ? '' : (subs.first.answer ?? ''),
+          ),
+        );
+      }
+    }
+    return (paper.title, questions.length, answers);
   }
 
   @override

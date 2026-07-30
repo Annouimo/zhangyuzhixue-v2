@@ -301,7 +301,7 @@ class SyncPushView(APIView):
 
         client_updated_at = parse_datetime(data.get('updated_at', ''))
         if client_updated_at is None:
-            raise ValueError('组卷夹更新时间无效')
+            raise ValueError('试题篮更新时间无效')
 
         if folder is None:
             folder = PaperFolder.objects.create(
@@ -410,6 +410,7 @@ class SyncPushView(APIView):
             client_id=client_id,
             defaults={
                 'name': data.get('name', ''),
+                'keyword': data.get('keyword', ''),
                 'years': _json(data.get('years')),
                 'regions': _json(data.get('regions')),
                 'concept_tags': _json(data.get('concept_tags')),

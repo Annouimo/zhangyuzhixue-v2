@@ -6493,6 +6493,17 @@ class $PreferenceFiltersTable extends PreferenceFilters
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _keywordMeta = const VerificationMeta(
+    'keyword',
+  );
+  @override
+  late final GeneratedColumn<String> keyword = GeneratedColumn<String>(
+    'keyword',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _yearsMeta = const VerificationMeta('years');
   @override
   late final GeneratedColumn<String> years = GeneratedColumn<String>(
@@ -6603,6 +6614,7 @@ class $PreferenceFiltersTable extends PreferenceFilters
   List<GeneratedColumn> get $columns => [
     id,
     name,
+    keyword,
     years,
     regions,
     conceptTags,
@@ -6636,6 +6648,12 @@ class $PreferenceFiltersTable extends PreferenceFilters
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('keyword')) {
+      context.handle(
+        _keywordMeta,
+        keyword.isAcceptableOrUnknown(data['keyword']!, _keywordMeta),
+      );
     }
     if (data.containsKey('years')) {
       context.handle(
@@ -6729,6 +6747,10 @@ class $PreferenceFiltersTable extends PreferenceFilters
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      keyword: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}keyword'],
+      ),
       years: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}years'],
@@ -6782,6 +6804,7 @@ class PreferenceFilterRow extends DataClass
     implements Insertable<PreferenceFilterRow> {
   final int id;
   final String name;
+  final String? keyword;
   final String years;
   final String regions;
   final String conceptTags;
@@ -6795,6 +6818,7 @@ class PreferenceFilterRow extends DataClass
   const PreferenceFilterRow({
     required this.id,
     required this.name,
+    this.keyword,
     required this.years,
     required this.regions,
     required this.conceptTags,
@@ -6811,6 +6835,9 @@ class PreferenceFilterRow extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || keyword != null) {
+      map['keyword'] = Variable<String>(keyword);
+    }
     map['years'] = Variable<String>(years);
     map['regions'] = Variable<String>(regions);
     map['concept_tags'] = Variable<String>(conceptTags);
@@ -6842,6 +6869,9 @@ class PreferenceFilterRow extends DataClass
     return PreferenceFiltersCompanion(
       id: Value(id),
       name: Value(name),
+      keyword: keyword == null && nullToAbsent
+          ? const Value.absent()
+          : Value(keyword),
       years: Value(years),
       regions: Value(regions),
       conceptTags: Value(conceptTags),
@@ -6877,6 +6907,7 @@ class PreferenceFilterRow extends DataClass
     return PreferenceFilterRow(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      keyword: serializer.fromJson<String?>(json['keyword']),
       years: serializer.fromJson<String>(json['years']),
       regions: serializer.fromJson<String>(json['regions']),
       conceptTags: serializer.fromJson<String>(json['conceptTags']),
@@ -6895,6 +6926,7 @@ class PreferenceFilterRow extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'keyword': serializer.toJson<String?>(keyword),
       'years': serializer.toJson<String>(years),
       'regions': serializer.toJson<String>(regions),
       'conceptTags': serializer.toJson<String>(conceptTags),
@@ -6911,6 +6943,7 @@ class PreferenceFilterRow extends DataClass
   PreferenceFilterRow copyWith({
     int? id,
     String? name,
+    Value<String?> keyword = const Value.absent(),
     String? years,
     String? regions,
     String? conceptTags,
@@ -6924,6 +6957,7 @@ class PreferenceFilterRow extends DataClass
   }) => PreferenceFilterRow(
     id: id ?? this.id,
     name: name ?? this.name,
+    keyword: keyword.present ? keyword.value : this.keyword,
     years: years ?? this.years,
     regions: regions ?? this.regions,
     conceptTags: conceptTags ?? this.conceptTags,
@@ -6943,6 +6977,7 @@ class PreferenceFilterRow extends DataClass
     return PreferenceFilterRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      keyword: data.keyword.present ? data.keyword.value : this.keyword,
       years: data.years.present ? data.years.value : this.years,
       regions: data.regions.present ? data.regions.value : this.regions,
       conceptTags: data.conceptTags.present
@@ -6967,6 +7002,7 @@ class PreferenceFilterRow extends DataClass
     return (StringBuffer('PreferenceFilterRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('keyword: $keyword, ')
           ..write('years: $years, ')
           ..write('regions: $regions, ')
           ..write('conceptTags: $conceptTags, ')
@@ -6985,6 +7021,7 @@ class PreferenceFilterRow extends DataClass
   int get hashCode => Object.hash(
     id,
     name,
+    keyword,
     years,
     regions,
     conceptTags,
@@ -7002,6 +7039,7 @@ class PreferenceFilterRow extends DataClass
       (other is PreferenceFilterRow &&
           other.id == this.id &&
           other.name == this.name &&
+          other.keyword == this.keyword &&
           other.years == this.years &&
           other.regions == this.regions &&
           other.conceptTags == this.conceptTags &&
@@ -7017,6 +7055,7 @@ class PreferenceFilterRow extends DataClass
 class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   final Value<int> id;
   final Value<String> name;
+  final Value<String?> keyword;
   final Value<String> years;
   final Value<String> regions;
   final Value<String> conceptTags;
@@ -7030,6 +7069,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   const PreferenceFiltersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.keyword = const Value.absent(),
     this.years = const Value.absent(),
     this.regions = const Value.absent(),
     this.conceptTags = const Value.absent(),
@@ -7044,6 +7084,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   PreferenceFiltersCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.keyword = const Value.absent(),
     required String years,
     required String regions,
     required String conceptTags,
@@ -7061,6 +7102,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   static Insertable<PreferenceFilterRow> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<String>? keyword,
     Expression<String>? years,
     Expression<String>? regions,
     Expression<String>? conceptTags,
@@ -7075,6 +7117,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (keyword != null) 'keyword': keyword,
       if (years != null) 'years': years,
       if (regions != null) 'regions': regions,
       if (conceptTags != null) 'concept_tags': conceptTags,
@@ -7091,6 +7134,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
   PreferenceFiltersCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<String?>? keyword,
     Value<String>? years,
     Value<String>? regions,
     Value<String>? conceptTags,
@@ -7105,6 +7149,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     return PreferenceFiltersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      keyword: keyword ?? this.keyword,
       years: years ?? this.years,
       regions: regions ?? this.regions,
       conceptTags: conceptTags ?? this.conceptTags,
@@ -7126,6 +7171,9 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (keyword.present) {
+      map['keyword'] = Variable<String>(keyword.value);
     }
     if (years.present) {
       map['years'] = Variable<String>(years.value);
@@ -7165,6 +7213,7 @@ class PreferenceFiltersCompanion extends UpdateCompanion<PreferenceFilterRow> {
     return (StringBuffer('PreferenceFiltersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('keyword: $keyword, ')
           ..write('years: $years, ')
           ..write('regions: $regions, ')
           ..write('conceptTags: $conceptTags, ')
@@ -11335,6 +11384,7 @@ typedef $$PreferenceFiltersTableCreateCompanionBuilder =
     PreferenceFiltersCompanion Function({
       Value<int> id,
       required String name,
+      Value<String?> keyword,
       required String years,
       required String regions,
       required String conceptTags,
@@ -11350,6 +11400,7 @@ typedef $$PreferenceFiltersTableUpdateCompanionBuilder =
     PreferenceFiltersCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<String?> keyword,
       Value<String> years,
       Value<String> regions,
       Value<String> conceptTags,
@@ -11378,6 +11429,11 @@ class $$PreferenceFiltersTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get keyword => $composableBuilder(
+    column: $table.keyword,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11451,6 +11507,11 @@ class $$PreferenceFiltersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get keyword => $composableBuilder(
+    column: $table.keyword,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get years => $composableBuilder(
     column: $table.years,
     builder: (column) => ColumnOrderings(column),
@@ -11516,6 +11577,9 @@ class $$PreferenceFiltersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get keyword =>
+      $composableBuilder(column: $table.keyword, builder: (column) => column);
 
   GeneratedColumn<String> get years =>
       $composableBuilder(column: $table.years, builder: (column) => column);
@@ -11596,6 +11660,7 @@ class $$PreferenceFiltersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> keyword = const Value.absent(),
                 Value<String> years = const Value.absent(),
                 Value<String> regions = const Value.absent(),
                 Value<String> conceptTags = const Value.absent(),
@@ -11609,6 +11674,7 @@ class $$PreferenceFiltersTableTableManager
               }) => PreferenceFiltersCompanion(
                 id: id,
                 name: name,
+                keyword: keyword,
                 years: years,
                 regions: regions,
                 conceptTags: conceptTags,
@@ -11624,6 +11690,7 @@ class $$PreferenceFiltersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<String?> keyword = const Value.absent(),
                 required String years,
                 required String regions,
                 required String conceptTags,
@@ -11637,6 +11704,7 @@ class $$PreferenceFiltersTableTableManager
               }) => PreferenceFiltersCompanion.insert(
                 id: id,
                 name: name,
+                keyword: keyword,
                 years: years,
                 regions: regions,
                 conceptTags: conceptTags,

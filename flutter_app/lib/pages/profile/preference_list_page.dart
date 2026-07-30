@@ -17,9 +17,16 @@ import '../router.dart';
 
 /// 常用选题范围管理。
 class PreferenceListPage extends StatefulWidget {
-  const PreferenceListPage({super.key, this.preferenceRepository});
+  const PreferenceListPage({
+    super.key,
+    this.preferenceRepository,
+    this.selectionMode = false,
+    this.onSaveCurrent,
+  });
 
   final PreferenceRepository? preferenceRepository;
+  final bool selectionMode;
+  final Future<void> Function()? onSaveCurrent;
 
   @override
   State<PreferenceListPage> createState() => _PreferenceListPageState();
@@ -43,7 +50,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.delete_outline_rounded, color: context.colors.error),
-        title: const Text('删除常用范围？'),
+        title: const Text('删除筛选方案？'),
         content: const Text('删除后无法恢复，但不会影响已有的练习和试卷。'),
         actions: [
           TextButton(
@@ -88,23 +95,32 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     _loadKey.currentState?.refresh();
   }
 
+  Future<void> _saveCurrent() async {
+    await widget.onSaveCurrent?.call();
+    _loadKey.currentState?.refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('常用范围')),
+      appBar: AppBar(title: Text(widget.selectionMode ? '选择筛选方案' : '我的筛选方案')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openEditor(),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('新建范围'),
+        onPressed: widget.selectionMode ? _saveCurrent : () => _openEditor(),
+        icon: Icon(
+          widget.selectionMode
+              ? Icons.bookmark_add_outlined
+              : Icons.add_rounded,
+        ),
+        label: Text(widget.selectionMode ? '保存当前条件' : '新建方案'),
       ),
       body: AsyncLoadWidget<List<PreferenceSummary>>(
         contentIsScrollable: true,
         key: _loadKey,
         onLoad: _repo.getList,
-        loadingMessage: '正在加载常用范围…',
+        loadingMessage: '正在加载筛选方案…',
         emptyWidget: EmptyPlaceholder(
           icon: Icons.tune_rounded,
-          message: '还没有常用范围。可以把经常使用的选题条件保存到这里。',
+          message: '还没有筛选方案。可以把经常使用的查找条件保存到这里。',
         ),
         builder: (context, preferences) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,12 +134,18 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               children: [
                 AppSectionHeader(
-                  title: '已保存范围',
-                  subtitle: '共 ${preferences.length} 组，可随时使用、编辑或删除。',
+                  title: widget.selectionMode ? '应用筛选方案' : '已保存方案',
+                  subtitle: widget.selectionMode
+                      ? '选择后立即应用到当前筛选条件。'
+                      : '共 ${preferences.length} 组，可随时使用、编辑或删除。',
                   action: AppButton(
-                    label: '新建范围',
-                    icon: Icons.add_rounded,
-                    onPressed: () => _openEditor(),
+                    label: widget.selectionMode ? '保存当前条件' : '新建方案',
+                    icon: widget.selectionMode
+                        ? Icons.bookmark_add_outlined
+                        : Icons.add_rounded,
+                    onPressed: widget.selectionMode
+                        ? _saveCurrent
+                        : () => _openEditor(),
                     expanded: false,
                   ),
                 ),
@@ -133,8 +155,12 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                   final preference = entry.value;
                   return AppCard(
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    onTap: () => _openEditor(preference.id),
-                    semanticLabel: '编辑范围 ${preference.name}',
+                    onTap: widget.selectionMode
+                        ? () => Navigator.of(context).pop(preference)
+                        : () => _openEditor(preference.id),
+                    semanticLabel: widget.selectionMode
+                        ? '应用筛选方案 ${preference.name}'
+                        : '编辑筛选方案 ${preference.name}',
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -167,11 +193,17 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                       ).textTheme.titleMedium,
                                     ),
                                   ),
-                                  const AppStatusBadge(
-                                    label: '已保存',
-                                    tone: AppStatusTone.success,
-                                    compact: true,
-                                  ),
+                                  if (widget.selectionMode)
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: context.colors.textSecondary,
+                                    )
+                                  else
+                                    const AppStatusBadge(
+                                      label: '已保存',
+                                      tone: AppStatusTone.success,
+                                      compact: true,
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: AppSpacing.xs),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/widgets/status_style.dart';
 
@@ -42,6 +43,7 @@ class QuestionCard extends StatelessWidget {
 
   /// 完全自定义尾部组件，覆盖默认的 chevron/checkbox
   final Widget? trailing;
+  final bool compact;
 
   const QuestionCard({
     super.key,
@@ -56,17 +58,25 @@ class QuestionCard extends StatelessWidget {
     this.selected = false,
     this.onTap,
     this.trailing,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     return Card(
+      shape: compact
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+        borderRadius: BorderRadius.circular(
+          compact ? AppRadius.md : AppSizes.cardRadius,
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(compact ? 10 : 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -91,7 +101,7 @@ class QuestionCard extends StatelessWidget {
                   _buildTrailing(context),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 6 : 8),
               // 第二行：题干
               MdLatexBody(title, fontSize: 14),
               // 第三行（可选）：副信息（在难度和题型同一行时有 subtitle）

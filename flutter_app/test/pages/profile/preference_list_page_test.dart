@@ -49,7 +49,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
-      expect(find.text('常用范围'), findsOneWidget);
+      expect(find.text('我的筛选方案'), findsOneWidget);
     });
 
     testWidgets('renders FAB with correct label', (tester) async {
@@ -57,8 +57,33 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
-      expect(find.text('新建范围'), findsOneWidget);
+      expect(find.text('新建方案'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsOneWidget);
+    });
+
+    testWidgets('selection mode exposes apply and save-current actions', (
+      tester,
+    ) async {
+      final repo = _MockPreferenceRepository(
+        results: [
+          const PreferenceSummary(id: 1, name: '北京真题', summary: '2025 北京'),
+        ],
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PreferenceListPage(
+            preferenceRepository: repo,
+            selectionMode: true,
+            onSaveCurrent: () async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('选择筛选方案'), findsOneWidget);
+      expect(find.text('应用筛选方案'), findsOneWidget);
+      expect(find.text('保存当前条件'), findsWidgets);
+      expect(find.text('北京真题'), findsOneWidget);
     });
 
     testWidgets('shows empty placeholder when no preferences', (tester) async {
@@ -67,7 +92,7 @@ void main() {
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       await tester.pumpAndSettle();
-      expect(find.text('还没有常用范围。可以把经常使用的选题条件保存到这里。'), findsOneWidget);
+      expect(find.text('还没有筛选方案。可以把经常使用的查找条件保存到这里。'), findsOneWidget);
     });
 
     testWidgets('renders preference list after loading', (tester) async {

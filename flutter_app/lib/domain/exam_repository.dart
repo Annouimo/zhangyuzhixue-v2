@@ -238,7 +238,7 @@ class PoolStats {
   });
 }
 
-/// 筛选预设摘要
+/// 筛选方案摘要
 class FilterPreset {
   final int id;
   final String name;
@@ -534,7 +534,9 @@ class ExamRepository implements QuestionLibraryRepository {
     if (paper == null) throw Exception('Paper not found: $examId');
     final questions = await _examDao.getQuestions(examId);
     final qIds = questions.map((q) => q.questionId).toList();
-    final qRows = await _questionDao.getByIds(qIds);
+    final unorderedRows = await _questionDao.getByIds(qIds);
+    final rowsById = {for (final row in unorderedRows) row.id: row};
+    final qRows = qIds.map((id) => rowsById[id]).whereType<assets_db.QuestionRow>().toList();
     return ExamPreview(
       name: paper.title,
       authorInfo: '创建于 ${paper.createdAt.substring(0, 10)}',
@@ -666,7 +668,7 @@ class ExamRepository implements QuestionLibraryRepository {
     return result;
   }
 
-  // ── 筛选预设（委托给 PreferenceRepository） ──
+  // ── 筛选方案（委托给 PreferenceRepository） ──
   Future<List<FilterPreset>> getFilterPresets() async {
     // 外部通过 PreferenceRepository.getList() 获取
     return [];
@@ -855,7 +857,7 @@ class ExamRepository implements QuestionLibraryRepository {
         operation: SyncOperationType.upsert,
         localId: paperId,
         payload: jsonEncode({
-          'title': filters.name.isNotEmpty ? filters.name : '智能组卷',
+          'title': filters.name.isNotEmpty ? filters.name : '智能选题',
           'questions': paperQuestions.map((item) => item.questionId).toList(),
         }),
       );
@@ -869,7 +871,7 @@ class ExamRepository implements QuestionLibraryRepository {
   }
 }
 
-// ── 智能组卷算法 ──
+// ── 智能选题算法 ──
 // Phase 1: 贪心初始化（按难度差排序取 top N）
 // Phase 2: 3 轮交换优化（遍历各题型找最优单题交换，改善整卷均值逼近 targetDifficulty）
 
@@ -1107,7 +1109,7 @@ class _ExamGenerator {
 
     // 6. 持久化
     final paperId = await _examDao.savePaper(
-      title: filters.name.isNotEmpty ? filters.name : '智能组卷',
+      title: filters.name.isNotEmpty ? filters.name : '智能选题',
     );
     await _examDao.savePaperQuestions(
       paperId,
@@ -1117,4 +1119,4 @@ class _ExamGenerator {
   }
 }
 
-// ── 智能组卷算法（极简 v1）
+// ── 智能选题算法（极简 v1）

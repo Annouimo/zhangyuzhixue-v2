@@ -92,7 +92,7 @@ class SyncRepository {
       case 'exitRating': return '退出评价';
       case 'paper_like': return '点赞';
       case 'paper_collect': return '收藏';
-      case 'preference': return '筛选预设';
+      case 'preference': return '筛选方案';
       case 'points_transaction': return '积分流水';
       default: return type;
     }
@@ -114,4 +114,3 @@ class SyncRepository {
     }
   }
 }
-

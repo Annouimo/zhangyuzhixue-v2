@@ -20,8 +20,13 @@ class QuestionSearchField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       decoration: InputDecoration(
-        labelText: '搜索题目',
-        hintText: '输入题干、地区或考试类型',
+        hintText: '题干关键词、知识点名称或题号',
+        filled: true,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         prefixIcon: const Icon(Icons.search_rounded),
         suffixIcon: IconButton(
           tooltip: '搜索',

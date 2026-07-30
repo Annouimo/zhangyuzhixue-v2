@@ -5,17 +5,22 @@ import json
 import re
 import time
 from collections import defaultdict
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from accounts.permissions import IsStudent
 from rest_framework.response import Response
 
 from interactions.models import CustomPaper, CustomPaperQuestion
-from qbank.models import ChoiceExt, SolutionMethod, SolutionStep, SubQuestion
+from qbank.models import (
+    BaseQuestion, ChoiceExt, SolutionMethod, SolutionStep, SubQuestion,
+)
 from accounts.throttles import PdfTokenRateThrottle
 
 
@@ -51,6 +56,46 @@ def _check_sig(sig, source_id, source_type, student_id, expire):
     return hmac.compare_digest(sig, expected)
 
 
+def _virtual_paper_source(data):
+    if not isinstance(data, dict):
+        raise ValueError('缺少套卷来源')
+    try:
+        year = int(data.get('year'))
+    except (TypeError, ValueError):
+        raise ValueError('套卷年份无效')
+    exam_type = data.get('exam_type')
+    region = data.get('region')
+    if not isinstance(exam_type, str) or not exam_type.strip():
+        raise ValueError('套卷考试类型无效')
+    if not isinstance(region, str) or not region.strip():
+        raise ValueError('套卷地区无效')
+    if len(exam_type) > 32 or len(region) > 32:
+        raise ValueError('套卷来源参数过长')
+    return {
+        'year': year,
+        'exam_type': exam_type.strip(),
+        'region': region.strip(),
+    }
+
+
+def _canonical_source(source):
+    return json.dumps(
+        source, ensure_ascii=False, sort_keys=True, separators=(',', ':'),
+    )
+
+
+def _virtual_paper_questions(source):
+    return list(
+        BaseQuestion.objects.filter(
+            year=source['year'],
+            exam_type=source['exam_type'],
+            region=source['region'],
+        ).annotate(
+            numeric_number=Cast('number', IntegerField()),
+        ).order_by('numeric_number', 'number', 'pk')
+    )
+
+
 # ── Request Token（POST /api/v1/interactions/pdf/request-token/）
 
 
@@ -66,9 +111,6 @@ def pdf_request_token(request):
     source_id = request.data.get('source_id')
     source_type = request.data.get('source_type', 'paper')
 
-    if not source_id:
-        return _err(40201, '缺少 source_id')
-
     if not PDF_KEY:
         return _err(50001, 'PDF 功能未配置')
 
@@ -77,20 +119,38 @@ def pdf_request_token(request):
         return _err(40301, '仅学生可使用 PDF')
 
     if source_type == 'paper':
+        if not source_id:
+            return _err(40201, '缺少 source_id')
         paper = get_object_or_404(CustomPaper, id=source_id)
         if paper.student_id != student.pk and not paper.is_public:
             return _err(40301, '无权访问该试卷')
+        signed_source = str(source_id)
+    elif source_type == 'virtual_paper':
+        try:
+            source = _virtual_paper_source(request.data.get('source'))
+        except ValueError as error:
+            return _err(40201, str(error))
+        if not _virtual_paper_questions(source):
+            return _err(40401, '套卷不存在', http_status=404)
+        signed_source = _canonical_source(source)
     else:
         return _err(40201, '无效的 source_type')
 
     expire = int(time.time()) + PDF_LINK_TTL_SECONDS
-    sig = _make_sig(source_id, source_type, student.pk, expire)
+    sig = _make_sig(signed_source, source_type, student.pk, expire)
+
+    query = {
+        'pid': signed_source,
+        'type': source_type,
+        'sid': student.pk,
+        'exp': expire,
+        'sig': sig,
+    }
 
     return _ok(data={
         'sig': sig,
         'expire_in': PDF_LINK_TTL_SECONDS,
-        'url': '/pdf/view/?pid={0}&type={1}&sid={2}&exp={3}&sig={4}'.format(
-            source_id, source_type, student.pk, expire, sig),
+        'url': '/pdf/view/?' + urlencode(query),
     })
 
 
@@ -183,7 +243,7 @@ def _build_sections(qs):
 
     # 批量查询 ChoiceExt + SubQuestion（N+1 -> 1）
     qs_list = list(qs)
-    q_ids = [pq.question_id for pq in qs_list]
+    q_ids = [question.pk for question in qs_list]
 
     ce_map = {}
     for ce in ChoiceExt.objects.filter(question_id__in=q_ids):
@@ -212,8 +272,7 @@ def _build_sections(qs):
 
     seen_types = []
     question_counter = 0
-    for pq in qs_list:
-        q = pq.question
+    for q in qs_list:
         qt = q.question_type
         question_counter += 1
 
@@ -366,7 +425,6 @@ def pdf_view(request):
 
     # O(1) 签名校验
     try:
-        source_id = int(source_id)
         student_id = int(sid)
         expire = int(exp)
     except (ValueError, TypeError):
@@ -385,15 +443,27 @@ def pdf_view(request):
     except StudentModel.DoesNotExist:
         return HttpResponseForbidden('用户不存在')
 
-    # 查题目
-    try:
-        paper = CustomPaper.objects.get(id=source_id)
-    except CustomPaper.DoesNotExist:
-        return HttpResponseNotFound('试卷不存在')
-    title = paper.title
-    qs = CustomPaperQuestion.objects.filter(
-        paper=paper
-    ).order_by('sort_order').select_related('question')
+    if source_type == 'paper':
+        try:
+            paper = CustomPaper.objects.get(id=int(source_id))
+        except (CustomPaper.DoesNotExist, TypeError, ValueError):
+            return HttpResponseNotFound('试卷不存在')
+        title = paper.title
+        links = CustomPaperQuestion.objects.filter(
+            paper=paper
+        ).order_by('sort_order').select_related('question')
+        qs = [link.question for link in links]
+    elif source_type == 'virtual_paper':
+        try:
+            source = _virtual_paper_source(json.loads(source_id))
+        except (ValueError, TypeError, json.JSONDecodeError):
+            return HttpResponseForbidden('参数格式错误')
+        qs = _virtual_paper_questions(source)
+        if not qs:
+            return HttpResponseNotFound('套卷不存在')
+        title = '{year}{region}{exam_type}'.format(**source)
+    else:
+        return HttpResponseForbidden('无效的来源类型')
 
     sections = _build_sections(qs)
 

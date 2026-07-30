@@ -54,8 +54,9 @@ class QuestionSearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compactViewport = MediaQuery.sizeOf(context).width < 600;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: QuestionCard(
         questionId: question.id,
         title: question.title,
@@ -63,22 +64,54 @@ class QuestionSearchResultCard extends StatelessWidget {
         subtitle: question.meta,
         difficulty: question.difficulty,
         onTap: onOpen,
-        trailing: _selectionMode
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    tooltip: selected! ? '移出试卷' : '加入试卷',
-                    visualDensity: VisualDensity.compact,
-                    onPressed: onToggle,
-                    icon: Icon(
-                      selected! ? Icons.check_circle : Icons.add_circle_outline,
-                      color: selected!
-                          ? context.colors.primary
-                          : context.colors.textSecondary,
-                    ),
-                  ),
-                ],
+        compact: true,
+        trailing: selected == true || _selectionMode
+            ? SizedBox(
+                width: compactViewport ? 44 : 132,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (selected == true && !compactViewport)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colors.successContainer,
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                        child: Text(
+                          '已在试题篮',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: context.colors.onSuccessContainer,
+                          ),
+                        ),
+                      ),
+                    if (_selectionMode || compactViewport)
+                      IconButton(
+                        tooltip: selected == true
+                            ? (_selectionMode ? '移出试题篮' : '已在试题篮')
+                            : '加入试题篮',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: onToggle,
+                        icon: Icon(
+                          selected == true
+                              ? (_selectionMode
+                                    ? Icons.close_rounded
+                                    : Icons.check_circle_rounded)
+                              : Icons.add_circle_outline,
+                          color: selected == true
+                              ? (_selectionMode
+                                    ? context.colors.textMuted
+                                    : context.colors.success)
+                              : context.colors.primary,
+                        ),
+                      ),
+                  ],
+                ),
               )
             : null,
       ),

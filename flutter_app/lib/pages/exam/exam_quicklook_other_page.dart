@@ -6,9 +6,9 @@ import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/helpers/pdf_helper.dart';
 import '../../domain/exam_repository.dart';
-import '../../widgets/shared/action_chip.dart';
 import '../router.dart';
 import 'widgets/exam_question_card.dart';
+import 'widgets/paper_action_bar.dart';
 
 /// 预览其他用户公开的组卷。
 class ExamQuicklookOtherPage extends StatefulWidget {
@@ -75,28 +75,7 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(_preview?.name ?? '试卷预览'),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.fact_check_outlined),
-          tooltip: '快速对答案',
-          onPressed: () => RouterUtils.push(
-            context,
-            '${AppRoutes.answerSheet}?id=${widget.examId}',
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.picture_as_pdf_outlined),
-          tooltip: '打印试卷',
-          onPressed: () => PdfHelper.downloadPdf(
-            sourceId: widget.examId,
-            sourceType: 'paper',
-            context: context,
-          ),
-        ),
-      ],
-    ),
+    appBar: AppBar(title: Text(_preview?.name ?? '试卷预览')),
     body: _buildBody(),
   );
 
@@ -113,23 +92,43 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
-            children: [
-              ActionChipWidget(
-                icon: _liked ? AppIcons.likeSelected : AppIcons.like,
-                label: '${preview.likeCount}',
-                active: _liked,
-                onTap: _toggleLike,
+          PaperActionBar(
+            actions: [
+              PaperAction(
+                label: '快速对答案',
+                icon: Icons.fact_check_outlined,
+                onPressed: () => RouterUtils.push(
+                  context,
+                  '${AppRoutes.answerSheet}?id=${widget.examId}',
+                ),
               ),
-              ActionChipWidget(
+              PaperAction(
+                label: '打印试卷',
+                icon: Icons.picture_as_pdf_outlined,
+                variant: AppButtonVariant.outlined,
+                onPressed: () => PdfHelper.downloadPdf(
+                  sourceId: widget.examId,
+                  sourceType: 'paper',
+                  context: context,
+                ),
+              ),
+              PaperAction(
+                label: _liked
+                    ? '${preview.likeCount} 已点赞'
+                    : '${preview.likeCount} 点赞',
+                icon: _liked ? AppIcons.likeSelected : AppIcons.like,
+                variant: AppButtonVariant.outlined,
+                onPressed: _toggleLike,
+              ),
+              PaperAction(
+                label: _collected
+                    ? '${preview.collectCount} 已收藏'
+                    : '${preview.collectCount} 收藏',
                 icon: _collected
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_outline_rounded,
-                label: '${preview.collectCount}',
-                active: _collected,
-                onTap: _toggleCollect,
+                variant: AppButtonVariant.outlined,
+                onPressed: _toggleCollect,
               ),
             ],
           ),

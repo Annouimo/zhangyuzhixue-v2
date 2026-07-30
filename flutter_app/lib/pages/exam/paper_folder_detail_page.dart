@@ -67,7 +67,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
         _error = null;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = '组卷夹加载失败，请稍后重试');
+      if (mounted) setState(() => _error = '试题篮加载失败，请稍后重试');
     }
   }
 
@@ -78,7 +78,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     final name = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('重命名组卷夹'),
+        title: const Text('重命名试题篮'),
         content: TextField(controller: controller, autofocus: true),
         actions: [
           TextButton(
@@ -103,8 +103,8 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('删除组卷夹？'),
-        content: const Text('只删除组卷夹，不影响已经生成的正式试卷。'),
+        title: const Text('删除试题篮？'),
+        content: const Text('只删除试题篮，不影响已经生成的正式试卷。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
@@ -142,7 +142,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('内容没有变化'),
-          content: const Text('当前组卷夹自上次生成后没有变化，继续生成仍会扣除 10 积分。'),
+          content: const Text('当前试题篮自上次生成后没有变化，继续生成仍会扣除 10 积分。'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -192,7 +192,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     final detail = _detail;
     return Scaffold(
       appBar: AppBar(
-        title: Text(detail?.folder.name ?? '组卷夹'),
+        title: Text(detail?.folder.name ?? '试题篮'),
         actions: [
           IconButton(
             tooltip: '重命名',
@@ -200,7 +200,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
             icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
-            tooltip: '删除组卷夹',
+            tooltip: '删除试题篮',
             onPressed: detail == null ? null : _delete,
             icon: const Icon(Icons.delete_outline),
           ),
@@ -209,7 +209,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
       body: _error != null
           ? ErrorPlaceholder(message: _error!, onRetry: _load)
           : detail == null
-          ? const LoadingIndicator(message: '正在加载组卷夹')
+          ? const LoadingIndicator(message: '正在加载试题篮')
           : AppContentContainer(
               maxWidth: AppContentWidth.standard,
               child: ReorderableListView.builder(

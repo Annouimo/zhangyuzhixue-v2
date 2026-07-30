@@ -194,13 +194,13 @@ class CustomPaperQuestion(models.Model):
 
 
 class PaperFolder(models.Model):
-    """可持续编辑的组卷夹。正式试卷仍是不可变快照。"""
+    """可持续编辑的试题篮。正式试卷仍是不可变快照。"""
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name='paper_folders'
     )
     name = models.CharField('名称', max_length=128)
     revision = models.PositiveIntegerField('版本号', default=0)
-    is_default = models.BooleanField('默认组卷夹', default=False)
+    is_default = models.BooleanField('默认试题篮', default=False)
     client_updated_at = models.DateTimeField('客户端更新时间')
     last_generated_at = models.DateTimeField(
         '最近生成时间', null=True, blank=True
@@ -221,8 +221,8 @@ class PaperFolder(models.Model):
     )
 
     class Meta:
-        verbose_name = '组卷夹'
-        verbose_name_plural = '组卷夹'
+        verbose_name = '试题篮'
+        verbose_name_plural = '试题篮'
         ordering = ['-updated_at', '-id']
 
     def __str__(self):
@@ -230,7 +230,7 @@ class PaperFolder(models.Model):
 
 
 class PaperFolderQuestion(models.Model):
-    """组卷夹中的有序题目。"""
+    """试题篮中的有序题目。"""
     folder = models.ForeignKey(
         PaperFolder, on_delete=models.CASCADE, related_name='folder_questions'
     )
@@ -242,8 +242,8 @@ class PaperFolderQuestion(models.Model):
     created_at = models.DateTimeField('加入时间', auto_now_add=True)
 
     class Meta:
-        verbose_name = '组卷夹题目'
-        verbose_name_plural = '组卷夹题目'
+        verbose_name = '试题篮题目'
+        verbose_name_plural = '试题篮题目'
         ordering = ['folder', 'sort_order']
         constraints = [
             models.UniqueConstraint(
@@ -353,6 +353,7 @@ class PreferenceFilter(models.Model):
     )
     client_id = models.IntegerField('客户端本地ID', null=True, blank=True)
     name = models.CharField('预设名称', max_length=128)
+    keyword = models.CharField('搜索词', max_length=256, blank=True, default='')
     years = models.TextField('年份(JSON list)', blank=True, default='')
     regions = models.TextField('地区(JSON list)', blank=True, default='')
     concept_tags = models.TextField('概念标签(JSON list)', blank=True, default='')

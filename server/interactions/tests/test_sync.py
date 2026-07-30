@@ -92,7 +92,7 @@ class TestPaperFolderSync:
                 'data': {
                     'client_id': 'folder-501-created-at',
                     'base_revision': 0,
-                    'name': '函数组卷夹',
+                    'name': '函数试题篮',
                     'updated_at': '2026-07-29T10:00:00+08:00',
                     'questions': [
                         {'question_id': sample_question.pk, 'sort_order': 0},

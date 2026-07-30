@@ -77,6 +77,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('函数练习'), findsOneWidget);
+      expect(find.text('打印试卷'), findsNothing);
+      expect(find.text('快速对答案'), findsNothing);
+      expect(find.text('删除'), findsNothing);
     });
 
     testWidgets('shows empty state', (tester) async {

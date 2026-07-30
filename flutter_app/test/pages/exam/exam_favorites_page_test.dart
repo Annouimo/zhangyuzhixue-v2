@@ -76,6 +76,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('海淀一模'), findsOneWidget);
+      expect(find.byTooltip('取消收藏'), findsOneWidget);
     });
 
     testWidgets('shows empty state', (tester) async {

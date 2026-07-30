@@ -8,6 +8,7 @@ import '../../widgets/pdf_guide_dialog.dart';
 import 'package:shared/constants/app_version.dart';
 import '../../data/api/api_client.dart';
 import '../../data/database/database_provider.dart';
+import '../../domain/paper_content.dart';
 
 /// PDF 下载引导工具
 class PdfHelper {
@@ -45,6 +46,33 @@ class PdfHelper {
     final data = res.data['data'] as Map<String, dynamic>;
     final url = data['url'] as String;
     return '$appServerOrigin$url';
+  }
+
+  static Future<String> requestPdfUrlForPaper(PaperRef source) async {
+    if (source is SavedPaperRef) {
+      return requestPdfUrl(sourceId: source.paperId, sourceType: 'paper');
+    }
+    final virtual = source as VirtualPaperRef;
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
+    final res = await ApiClient().dio.post(
+      '/interactions/pdf/request-token/',
+      data: {
+        'source_type': 'virtual_paper',
+        'source': {
+          'year': virtual.year,
+          'exam_type': virtual.examType,
+          'region': virtual.region,
+        },
+      },
+      options: Options(
+        sendTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+      cancelToken: _cancelToken,
+    );
+    final data = res.data['data'] as Map<String, dynamic>;
+    return '$appServerOrigin${data['url'] as String}';
   }
 
   /// 取消未完成的 HTTP 请求。
@@ -91,6 +119,47 @@ class PdfHelper {
         return;
       }
 
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('[PdfHelper] 打开 PDF 失败: $e');
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('无法打开 PDF，请检查网络后重试'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  static Future<void> downloadPaperPdf({
+    required PaperRef source,
+    BuildContext? context,
+  }) async {
+    try {
+      final url = await requestPdfUrlForPaper(source);
+      var action = PdfGuideAction.open;
+      if (context != null && context.mounted) {
+        final selected = await showPdfGuideDialog(context);
+        if (selected == null) return;
+        action = selected;
+      }
+      if (action == PdfGuideAction.copy) {
+        await Clipboard.setData(ClipboardData(text: url));
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('链接已复制，可通过微信、QQ等方式发送到电脑'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);

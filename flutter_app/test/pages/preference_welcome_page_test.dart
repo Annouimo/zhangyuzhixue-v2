@@ -108,7 +108,7 @@ void main() {
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.textContaining('保存常用范围'), findsOneWidget);
+      expect(find.textContaining('保存筛选方案'), findsOneWidget);
     });
 
     testWidgets('保存后偏好列表应有记录', (tester) async {
@@ -123,7 +123,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('开始设置'));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('保存常用范围'));
+      final saveButton = find.textContaining('保存筛选方案');
+      await tester.ensureVisible(saveButton);
+      await tester.pumpAndSettle();
+      await tester.tap(saveButton);
       await tester.pumpAndSettle();
       // 未选择任何筛选条件时点击保存，触发验证不保存
       expect(await repo.getCount(), 0);

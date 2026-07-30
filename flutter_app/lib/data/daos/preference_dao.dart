@@ -3,7 +3,7 @@ import '../database/app_database.dart' as db;
 import '../database/database_provider.dart';
 import 'package:shared/debug/audit_logger.dart';
 
-/// 筛选预设数据访问层（user 库）
+/// 筛选方案数据访问层（user 库）
 class PreferenceDao {
   final DatabaseProvider _provider;
   PreferenceDao(this._provider);
@@ -27,6 +27,7 @@ class PreferenceDao {
 
   Future<int> save({
     required String name,
+    String? keyword,
     required String years,
     required String regions,
     required String conceptTags,
@@ -40,6 +41,7 @@ class PreferenceDao {
   }) =>
       _db.into(_db.preferenceFilters).insert(db.PreferenceFiltersCompanion(
         name: Value(name),
+        keyword: Value(keyword),
         years: Value(years),
         regions: Value(regions),
         conceptTags: Value(conceptTags),
@@ -67,6 +69,7 @@ class PreferenceDao {
   Future<void> update({
     required int id,
     required String name,
+    String? keyword,
     required String years,
     required String regions,
     required String conceptTags,
@@ -81,6 +84,7 @@ class PreferenceDao {
     final q = _db.update(_db.preferenceFilters)..where((t) => t.id.equals(id));
     await q.write(db.PreferenceFiltersCompanion(
       name: Value(name),
+      keyword: Value(keyword),
       years: Value(years),
       regions: Value(regions),
       conceptTags: Value(conceptTags),

@@ -94,6 +94,9 @@ void main() {
       expect(find.text('测试卷'), findsAtLeast(1));
       expect(find.textContaining('共 0 题'), findsOneWidget);
       expect(find.text('开始计时'), findsOneWidget);
+      expect(find.text('快速对答案'), findsOneWidget);
+      expect(find.text('打印试卷'), findsOneWidget);
+      expect(find.byTooltip('更多试卷操作'), findsOneWidget);
     });
 
     testWidgets('starts and stops a session timer without persistence', (

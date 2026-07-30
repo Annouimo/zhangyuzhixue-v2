@@ -5,8 +5,9 @@ import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/exam_repository.dart';
-import '../../domain/paper_folder_repository.dart';
-import '../router.dart';
+import '../../domain/paper_content.dart';
+import '../exam/exam_quicklook_page.dart';
+import '../exam/widgets/paper_card.dart';
 
 class PaperLibraryPage extends StatefulWidget {
   const PaperLibraryPage({super.key});
@@ -16,12 +17,10 @@ class PaperLibraryPage extends StatefulWidget {
 }
 
 class _PaperLibraryPageState extends State<PaperLibraryPage> {
-  late final QuestionLibraryRepository _repository;
+  late final ExamRepository _repository;
   late final VirtualPaperRepository _virtualPaperRepository;
-  late final PaperFolderRepository _folderRepository;
   final _searchController = TextEditingController();
   List<VirtualPaper>? _papers;
-  bool _adding = false;
 
   @override
   void initState() {
@@ -31,7 +30,6 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
     _virtualPaperRepository = LocalVirtualPaperRepository(
       QuestionDao(provider),
     );
-    _folderRepository = PaperFolderRepository.local();
     _load();
   }
 
@@ -62,77 +60,19 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
         .toList(growable: false);
   }
 
-  Future<void> _add(VirtualPaper paper, {bool openFolder = false}) async {
-    if (_adding) return;
-    setState(() => _adding = true);
-    try {
-      final folder = await _chooseFolder();
-      if (folder == null) return;
-      final questions = await _repository.getFilteredQuestions(
-        SearchFilters(
-          name: '',
-          choiceCount: 0,
-          fillCount: 0,
-          solutionCount: 0,
-          targetDifficulty: 0,
-          years: [paper.year.toString()],
-          regions: [paper.region],
-          conceptTags: const [],
-          knowledgeCards: const [],
-          examTypes: [paper.examType],
+  void _openPaper(VirtualPaper paper) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ExamQuicklookPage(
+          virtualPaper: VirtualPaperRef(
+            year: paper.year,
+            examType: paper.examType,
+            region: paper.region,
+          ),
+          examRepository: _repository,
         ),
-      );
-      await _folderRepository.addQuestions(
-        folder.id,
-        questions.map((question) => question.id),
-      );
-      if (!mounted) return;
-      if (openFolder) {
-        RouterUtils.push(
-          context,
-          '${AppRoutes.paperFolderDetail}?id=${folder.id}',
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('已将 ${questions.length} 题加入“${folder.name}”')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _adding = false);
-    }
-  }
-
-  Future<PaperFolderSummary?> _chooseFolder() async {
-    var folders = await _folderRepository.list();
-    if (folders.isEmpty) {
-      final id = await _folderRepository.create('默认组卷夹');
-      folders = await _folderRepository.list();
-      if (folders.isEmpty) return null;
-      final created = folders.where((folder) => folder.id == id);
-      if (created.isNotEmpty) return created.first;
-    }
-    if (!mounted) return null;
-    final selectedId = await showDialog<int>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: const Text('加入哪个组卷夹？'),
-        children: folders
-            .map(
-              (folder) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(dialogContext, folder.id),
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.folder_outlined),
-                  title: Text(folder.name),
-                  trailing: Text('${folder.questionCount} 题'),
-                ),
-              ),
-            )
-            .toList(growable: false),
       ),
     );
-    if (selectedId == null) return null;
-    return folders.where((folder) => folder.id == selectedId).firstOrNull;
   }
 
   @override
@@ -175,29 +115,17 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
                               title: Text('${yearEntry.key} 年'),
                               children: yearEntry.value
                                   .map(
-                                    (paper) => ListTile(
-                                      title: Text(paper.title),
-                                      subtitle: Text(
-                                        '${paper.year} · ${paper.region} · ${paper.questionCount} 题',
+                                    (paper) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: AppSpacing.sm,
                                       ),
-                                      trailing: PopupMenuButton<String>(
-                                        tooltip: '套卷操作',
-                                        onSelected: (value) => _add(
-                                          paper,
-                                          openFolder: value == 'generate',
-                                        ),
-                                        itemBuilder: (_) => const [
-                                          PopupMenuItem(
-                                            value: 'add',
-                                            child: Text('整套加入组卷夹'),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 'generate',
-                                            child: Text('加入并打开组卷夹'),
-                                          ),
-                                        ],
+                                      child: PaperCard(
+                                        title: paper.title,
+                                        subtitle:
+                                            '${paper.year} · ${paper.region} · ${paper.questionCount} 题',
+                                        trailing: '整卷',
+                                        onTap: () => _openPaper(paper),
                                       ),
-                                      onTap: () => _add(paper),
                                     ),
                                   )
                                   .toList(growable: false),

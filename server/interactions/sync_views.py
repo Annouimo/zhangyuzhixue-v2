@@ -74,7 +74,7 @@ def _err(code, detail, http_status=400):
 #   - 服务端: USER_DB_SCHEMA (此文件) + _dump_* 函数
 #   - 客户端: AppDatabase (app_database.dart) schemaVersion + MigrationStrategy
 # 修改任一端时必须同时修改另一端。
-USER_DB_SCHEMA_VERSION = 4
+USER_DB_SCHEMA_VERSION = 5
 
 USER_DB_SCHEMA = """
 CREATE TABLE IF NOT EXISTS user_profile (
@@ -222,6 +222,7 @@ CREATE TABLE IF NOT EXISTS paper_collect (
 CREATE TABLE IF NOT EXISTS preference_filter (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
+    keyword TEXT,
     years TEXT NOT NULL,
     regions TEXT NOT NULL,
     concept_tags TEXT NOT NULL,
@@ -489,12 +490,12 @@ def _dump_preferences(conn, student):
     for pref in PreferenceFilter.objects.filter(student=student):
         conn.execute(
             'INSERT INTO preference_filter '
-            '(id, name, years, regions, concept_tags, types, '
+            '(id, name, keyword, years, regions, concept_tags, types, '
             'knowledge_cards, question_types, '
             'diff_min, diff_max, calc_min, calc_max) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
-                pref.pk, pref.name, pref.years, pref.regions,
+                pref.pk, pref.name, pref.keyword, pref.years, pref.regions,
                 pref.concept_tags, pref.types,
                 pref.knowledge_cards, pref.question_types,
                 pref.diff_min, pref.diff_max,

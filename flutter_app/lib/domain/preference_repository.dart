@@ -5,7 +5,7 @@ import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
 
-/// 筛选预设 — 委托 PreferenceDao
+/// 筛选方案 — 委托 PreferenceDao
 class PreferenceSummary {
   final int id;
   final String name;
@@ -19,6 +19,7 @@ class PreferenceSummary {
 }
 
 class PreferenceFilter {
+  final String? keyword;
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
@@ -31,6 +32,7 @@ class PreferenceFilter {
   final double? calcMax;
 
   const PreferenceFilter({
+    this.keyword,
     required this.years,
     required this.regions,
     required this.conceptTags,
@@ -44,6 +46,7 @@ class PreferenceFilter {
   });
 
   Map<String, dynamic> toJson() => {
+        if (keyword != null && keyword!.isNotEmpty) 'keyword': keyword,
         'years': years,
         'regions': regions,
         'concept_tags': conceptTags,
@@ -57,7 +60,7 @@ class PreferenceFilter {
       };
 }
 
-/// 筛选预设编辑数据（含名称）
+/// 筛选方案编辑数据（含名称）
 class PreferenceEditData {
   final String name;
   final PreferenceFilter filter;
@@ -124,6 +127,7 @@ class PreferenceRepository {
     return PreferenceEditData(
       name: row.name,
       filter: PreferenceFilter(
+        keyword: row.keyword,
         years: _parseJsonList(row.years),
         regions: _parseJsonList(row.regions),
         conceptTags: _parseJsonList(row.conceptTags),
@@ -154,6 +158,7 @@ class PreferenceRepository {
       await _dao.update(
         id: existingId,
         name: name,
+        keyword: filter.keyword,
         years: _jsonEncode(filter.years),
         regions: _jsonEncode(filter.regions),
         conceptTags: _jsonEncode(filter.conceptTags),
@@ -170,6 +175,7 @@ class PreferenceRepository {
       // 新建路径：插入新记录
       id = await _dao.save(
         name: name,
+        keyword: filter.keyword,
         years: _jsonEncode(filter.years),
         regions: _jsonEncode(filter.regions),
         conceptTags: _jsonEncode(filter.conceptTags),

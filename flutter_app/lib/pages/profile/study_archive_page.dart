@@ -1,10 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
+import '../../data/daos/progress_dao.dart';
+import '../../data/daos/question_dao.dart';
+import '../../data/database/database_provider.dart';
+import '../../domain/question_review_repository.dart';
 import '../router.dart';
 
-class StudyArchivePage extends StatelessWidget {
+class StudyArchivePage extends StatefulWidget {
   const StudyArchivePage({super.key});
+
+  @override
+  State<StudyArchivePage> createState() => _StudyArchivePageState();
+}
+
+class _StudyArchivePageState extends State<StudyArchivePage> {
+  late final QuestionReviewRepository _reviewRepository =
+      LocalQuestionReviewRepository(
+        ProgressDao(DatabaseProvider()),
+        QuestionDao(DatabaseProvider()),
+      );
+  QuestionReviewSummary? _reviewSummary;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviewSummary();
+  }
+
+  Future<void> _loadReviewSummary() async {
+    try {
+      final summary = await _reviewRepository.getSummary();
+      if (mounted) setState(() => _reviewSummary = summary);
+    } catch (_) {
+      // The archive remains usable if the local review summary is unavailable.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +66,28 @@ class StudyArchivePage extends StatelessWidget {
                   subtitle: '继续未完成的作答或回顾历史题目',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profileHistory),
+                ),
+                AppNavigationCard(
+                  icon: Icons.error_outline_rounded,
+                  title: '当前错题',
+                  subtitle: _reviewSummary == null
+                      ? '查看尚未订正的题目'
+                      : '${_reviewSummary!.currentWrongCount} 题尚未订正',
+                  onTap: () => RouterUtils.push(
+                    context,
+                    '${AppRoutes.questionBank}?review=current-wrong',
+                  ),
+                ),
+                AppNavigationCard(
+                  icon: Icons.task_alt_rounded,
+                  title: '已订正',
+                  subtitle: _reviewSummary == null
+                      ? '回顾已经订正的错题'
+                      : '${_reviewSummary!.correctedCount} 题已订正',
+                  onTap: () => RouterUtils.push(
+                    context,
+                    '${AppRoutes.questionBank}?review=corrected',
+                  ),
                 ),
               ],
             ),

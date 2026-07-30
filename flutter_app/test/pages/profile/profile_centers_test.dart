@@ -42,7 +42,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('常用范围'), findsOneWidget);
+    expect(find.text('我的筛选方案'), findsOneWidget);
     expect(find.text('同步状态'), findsOneWidget);
     expect(find.text('关于章鱼智学'), findsOneWidget);
     expect(find.text('修改密码'), findsOneWidget);

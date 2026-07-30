@@ -68,7 +68,7 @@ class PaperCreationService {
               source: const Value('PAPER_PURCHASE'),
               transactionType: const Value('SPEND'),
               createdAt: Value(now),
-              description: const Value('组卷夹生成试卷'),
+              description: const Value('试题篮生成试卷'),
             ),
           );
       final examDao = ExamDao(_databaseProvider);
@@ -96,7 +96,7 @@ class PaperCreationService {
           'source': 'PAPER_PURCHASE',
           'paper_client_id': paperClientId,
           'transaction_type': 'SPEND',
-          'description': '组卷夹生成试卷',
+          'description': '试题篮生成试卷',
           'created_at': now,
         }),
       );

@@ -34,16 +34,16 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
         _error = null;
       });
     } catch (_) {
-      if (mounted) setState(() => _error = '组卷夹加载失败，请稍后重试');
+      if (mounted) setState(() => _error = '试题篮加载失败，请稍后重试');
     }
   }
 
   Future<void> _create() async {
-    final controller = TextEditingController(text: '新组卷夹');
+    final controller = TextEditingController(text: '新试题篮');
     final name = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('新建组卷夹'),
+        title: const Text('新建试题篮'),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -74,10 +74,10 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('组卷夹'),
+      title: const Text('试题篮'),
       actions: [
         IconButton(
-          tooltip: '新建组卷夹',
+          tooltip: '新建试题篮',
           onPressed: _create,
           icon: const Icon(Icons.create_new_folder_outlined),
         ),
@@ -86,7 +86,7 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
     body: _error != null
         ? ErrorPlaceholder(message: _error!, onRetry: _load)
         : _folders == null
-        ? const LoadingIndicator(message: '正在加载组卷夹')
+        ? const LoadingIndicator(message: '正在加载试题篮')
         : _folders!.isEmpty
         ? Center(
             child: Column(
@@ -94,11 +94,11 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
               children: [
                 EmptyPlaceholder(
                   icon: Icons.folder_copy_outlined,
-                  message: '还没有组卷夹',
+                  message: '还没有试题篮',
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
-                  label: '新建组卷夹',
+                  label: '新建试题篮',
                   icon: Icons.create_new_folder_outlined,
                   expanded: false,
                   onPressed: _create,
@@ -133,7 +133,7 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
             ),
           ),
     floatingActionButton: FloatingActionButton(
-      tooltip: '新建组卷夹',
+      tooltip: '新建试题篮',
       onPressed: _create,
       child: const Icon(Icons.add),
     ),

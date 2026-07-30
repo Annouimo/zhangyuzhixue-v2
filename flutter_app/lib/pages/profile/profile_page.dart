@@ -454,7 +454,7 @@ class ProfilePageState extends State<ProfilePage> {
       AppNavigationCard(
         icon: Icons.settings_outlined,
         title: '设置',
-        subtitle: _syncSubtitle == null ? '常用范围、同步与账号管理' : _syncSubtitle!,
+        subtitle: _syncSubtitle == null ? '筛选方案、同步与账号管理' : _syncSubtitle!,
         tone: _syncSubtitle == null
             ? AppStatusTone.primary
             : AppStatusTone.warning,
