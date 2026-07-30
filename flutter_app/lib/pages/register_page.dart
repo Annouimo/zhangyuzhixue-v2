@@ -131,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _openAgreement(String path) async {
-    final uri = Uri.parse('https://zhangyuzhixue.top/$path');
+    final uri = Uri.parse('https://zhangyuzhixue.zhtec123.com/$path');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       _showError('无法打开页面，请稍后重试');
     }

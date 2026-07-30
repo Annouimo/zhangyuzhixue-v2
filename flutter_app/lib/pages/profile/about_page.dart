@@ -277,6 +277,16 @@ class _AboutPageState extends State<AboutPage> {
               ),
               Divider(height: 1),
               ListTile(
+                leading: Icon(Icons.email_outlined),
+                title: Text('联系支持'),
+                subtitle: Text('keen_personal@outlook.com'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () => launchUrl(
+                  Uri.parse('mailto:keen_personal@outlook.com'),
+                ),
+              ),
+              Divider(height: 1),
+              ListTile(
                 leading: Icon(Icons.description_outlined),
                 title: Text('开源许可证'),
                 trailing: Icon(Icons.chevron_right),
