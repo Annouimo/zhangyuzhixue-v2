@@ -108,6 +108,25 @@ void main() {
       expect(rows.first.retryCount, 0);
     });
 
+    test('resetFailed makes permanent failures retryable again', () async {
+      final id = await dao.enqueue(
+        entityType: 'rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
+      for (var i = 0; i < 5; i++) {
+        await dao.markFailed(id);
+      }
+      await dao.markPermanentFailures(5);
+
+      await dao.resetFailed();
+
+      final row = (await database.select(database.syncQueue).get()).single;
+      expect(row.status, 'pending');
+      expect(row.retryCount, 0);
+    });
+
     test('resetFailed no-ops when no failed items', () async {
       // 只有 pending 项
       await dao.enqueue(entityType: 'rating', operationType: 'upsert', entityId: 1, payload: '{}');

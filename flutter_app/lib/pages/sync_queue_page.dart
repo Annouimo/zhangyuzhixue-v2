@@ -113,7 +113,10 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
     final retryableCount =
         _items
             ?.where(
-              (item) => item.status == 'pending' || item.status == 'failed',
+              (item) =>
+                  item.status == 'pending' ||
+                  item.status == 'failed' ||
+                  item.status == 'permanentFailure',
             )
             .length ??
         0;

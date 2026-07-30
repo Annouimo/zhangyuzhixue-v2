@@ -18,6 +18,8 @@ class MockPushAdapter implements HttpClientAdapter {
   int callCount = 0;
   Map<int, int> serverIds = {};
   bool throwOnPush = false;
+  int statusCode = 200;
+  int responseCode = 0;
   final List<Object?> requestBodies = [];
 
   @override
@@ -33,12 +35,13 @@ class MockPushAdapter implements HttpClientAdapter {
     }
     return ResponseBody.fromString(
       jsonEncode({
-        'code': 0,
+        'code': responseCode,
+        'message': responseCode == 0 ? 'ok' : 'push rejected',
         'data': {
           'server_ids': serverIds.map((key, value) => MapEntry('$key', value)),
         },
       }),
-      200,
+      statusCode,
       headers: {
         'content-type': ['application/json'],
       },
@@ -162,6 +165,39 @@ void main() {
       final result = await pusher.pushAll();
       expect(result.successCount, 0);
       expect(result.failCount, 1);
+    });
+
+    test('server error remains retryable', () async {
+      await dao.enqueue(
+        entityType: 'question_rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
+      adapter.statusCode = 500;
+      adapter.responseCode = 50000;
+
+      await pusher.pushAll();
+
+      final row = (await database.select(database.syncQueue).get()).single;
+      expect(row.status, 'failed');
+      expect(row.retryCount, 1);
+    });
+
+    test('client business error is permanent', () async {
+      await dao.enqueue(
+        entityType: 'question_rating',
+        operationType: 'upsert',
+        entityId: 1,
+        payload: '{}',
+      );
+      adapter.statusCode = 400;
+      adapter.responseCode = 40301;
+
+      await pusher.pushAll();
+
+      final row = (await database.select(database.syncQueue).get()).single;
+      expect(row.status, 'permanentFailure');
     });
 
     test('marks expired retries as permanentFailure', () async {

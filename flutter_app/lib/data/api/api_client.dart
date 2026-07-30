@@ -17,7 +17,9 @@ class ApiException implements Exception {
   });
 
   bool get isAuthError => code >= 40001 && code <= 40099;
-  bool get shouldRetry => code >= 50001 && code <= 50099;
+  bool get shouldRetry =>
+      (httpStatus != null && httpStatus! >= 500) ||
+      (code >= 50000 && code <= 50099);
 
   @override
   String toString() => 'ApiException($code): $message';
@@ -194,6 +196,21 @@ class _ErrorInterceptor extends Interceptor {
           response.requestOptions.path, response.statusCode ?? 200);
       handler.next(response);
     }
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    final body = err.response?.data;
+    if (body is Map && body['code'] is int && body['code'] != 0) {
+      final apiError = ApiException(
+        code: body['code'] as int,
+        message: body['message'] as String? ?? '未知错误',
+        httpStatus: err.response?.statusCode,
+      );
+      handler.next(err.copyWith(error: apiError, message: apiError.message));
+      return;
+    }
+    handler.next(err);
   }
 }
 

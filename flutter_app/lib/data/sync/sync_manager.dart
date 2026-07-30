@@ -353,9 +353,7 @@ class SyncManager {
 
   Future<PushSummary?> _ensureOutboxDrained() async {
     final summary = await pushNow();
-    final pending = await _queueDao!.getPendingCount();
-    final failed = await _queueDao!.getFailedCount();
-    final remaining = pending + failed;
+    final remaining = await _queueDao!.getUnresolvedCount();
     if (remaining > 0) throw PendingSyncException(remaining);
     return summary;
   }

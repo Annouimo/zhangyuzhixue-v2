@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import '../daos/sync_queue_dao.dart';
 import '../api/sync_api.dart';
 import '../api/api_client.dart';
@@ -120,18 +121,24 @@ class SyncPusher {
         if (hasIncompleteResponse) break;
       } catch (e) {
         AuditLogger.instance.error('SyncPusher.pushAll', e);
+        final apiError = switch (e) {
+          ApiException error => error,
+          DioException(error: final ApiException error) => error,
+          _ => null,
+        };
         for (final entry in batch) {
-          // 4xx 业务错误 → permanentFailure（不可重试）
-          // 网络错误（DioException） → markFailed（可重试）
-          if (e is ApiException) {
+          // Client-side business errors are permanent. Server and transport
+          // failures stay retryable because the remote outcome is uncertain.
+          if (apiError != null && !apiError.shouldRetry) {
             await _dao.markPermanentFailure(entry.id);
           } else {
             await _dao.markFailed(entry.id, errorMessage: e.toString());
           }
           fail++;
         }
-        // 网络错误时中断后续批次，4xx 不中断
-        if (e is! ApiException) break;
+        // Retryable failures stop this run; permanent business errors can move
+        // on to the next batch.
+        if (apiError == null || apiError.shouldRetry) break;
       }
     }
 

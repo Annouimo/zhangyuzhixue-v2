@@ -464,6 +464,38 @@ class TestSyncMixedBatch:
 
 class TestSyncEdgeCases:
 
+    def test_failed_batch_rolls_back_prior_items(
+        self, auth_client, student_user, sample_question,
+    ):
+        initial_version = student_user.student.data_version
+        resp = auth_client.post(reverse('sync-push'), {
+            'batch': [
+                {
+                    'entity_type': 'submission',
+                    'local_id': 900,
+                    'data': {
+                        'details': [{
+                            'question_id': sample_question.pk,
+                            'status': 'completed',
+                        }],
+                    },
+                },
+                {
+                    'entity_type': 'points_transaction',
+                    'local_id': 901,
+                    'data': {
+                        'source': 'RATING_REWARD',
+                        'source_object_id': sample_question.pk,
+                    },
+                },
+            ],
+        }, format='json')
+
+        assert resp.status_code == 500
+        assert StudentSubmission.objects.count() == 0
+        student_user.student.refresh_from_db()
+        assert student_user.student.data_version == initial_version
+
     def test_rating_reward_is_granted_once_with_server_amount(
         self, auth_client, student_user, sample_question,
     ):

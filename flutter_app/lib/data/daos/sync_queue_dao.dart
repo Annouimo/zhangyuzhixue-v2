@@ -115,6 +115,20 @@ class SyncQueueDao {
     return rows.length;
   }
 
+  /// Count every queue item that has not completed, without double-counting
+  /// failed rows (which are also retryable pending rows).
+  Future<int> getUnresolvedCount() async {
+    final rows = await (_db.select(_db.syncQueue)
+          ..where((t) => t.status.isNotIn(['done'])))
+        .get();
+    AuditLogger.instance.dao(
+      'SyncQueueDao.getUnresolvedCount',
+      rows.length,
+      {},
+    );
+    return rows.length;
+  }
+
   Future<bool> hasFailed() async {
     final rows = await (_db.select(_db.syncQueue)
       ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
@@ -133,10 +147,10 @@ class SyncQueueDao {
     return DateTime.tryParse(rows.first.createdAt);
   }
 
-  /// 重置所有 failed 项为 pending（重试计数归零）
+  /// 重置所有失败项为 pending（重试计数归零）
   Future<void> resetFailed() async {
     final rows = await (_db.select(_db.syncQueue)
-      ..where((t) => t.status.equals('failed'))).get();
+      ..where((t) => t.status.isIn(['failed', 'permanentFailure']))).get();
     for (final row in rows) {
       final q = _db.update(_db.syncQueue)..where((t) => t.id.equals(row.id));
       await q.write(db.SyncQueueCompanion(

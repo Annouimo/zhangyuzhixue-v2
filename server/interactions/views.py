@@ -71,8 +71,7 @@ class SyncPushView(APIView):
             return _err(40301, '仅学生可提交数据')
 
         try:
-            result = self._process_batch(batch, student)
-            self._increment_user_version(student)
+            result = self._process_batch_and_increment(batch, student)
         except Exception as e:
             return _err(50000, str(e),
                         http_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -80,6 +79,11 @@ class SyncPushView(APIView):
         return _ok(result)
 
     @transaction.atomic
+    def _process_batch_and_increment(self, batch, student):
+        result = self._process_batch(batch, student)
+        self._increment_user_version(student)
+        return result
+
     def _process_batch(self, batch, student):
         """事务内处理全部 batch item，返回 local_id → server_id 映射"""
         server_ids = {}
