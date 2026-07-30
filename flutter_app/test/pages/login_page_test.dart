@@ -128,6 +128,7 @@ void main() {
             builder: (_, _) => LoginPage(
               authRepository: _MockAuthRepo(),
               preferenceRepository: _HasPrefs(),
+              loginSync: (onProgress) async => onProgress(1),
             ),
           ),
           GoRoute(

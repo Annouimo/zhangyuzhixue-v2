@@ -22,8 +22,14 @@ import 'package:shared/debug/operation_log.dart';
 class LoginPage extends StatefulWidget {
   final AuthRepository? authRepository;
   final PreferenceRepository? preferenceRepository;
+  final Future<void> Function(void Function(double) onProgress)? loginSync;
 
-  const LoginPage({super.key, this.authRepository, this.preferenceRepository});
+  const LoginPage({
+    super.key,
+    this.authRepository,
+    this.preferenceRepository,
+    this.loginSync,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -77,7 +83,12 @@ class _LoginPageState extends State<LoginPage> {
       final syncOk = await showUserSyncProgress(
         context,
         (onProgress) async {
-          await SyncManager().onLogin(onProgress: onProgress);
+          final sync = widget.loginSync;
+          if (sync != null) {
+            await sync(onProgress);
+          } else {
+            await SyncManager().onLogin(onProgress: onProgress);
+          }
         },
         title: '恢复数据',
         message: '正在从服务器恢复你的学习记录…',
