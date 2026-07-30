@@ -1,7 +1,9 @@
 import json
+from io import StringIO
 
 import pytest
 from django.contrib.auth.models import Group, User
+from django.core.management import call_command
 from django.urls import reverse
 
 from accounts.models import Student
@@ -151,6 +153,11 @@ def test_direct_edit_preserves_existing_solution_method(client, reviewer):
     question.refresh_from_db()
     assert question.stem == '修改后'
     assert SolutionMethod.objects.filter(pk=method.pk).exists()
+    revisions = list(WorkbenchRevision.objects.filter(
+        content_type='question', object_id=question.pk,
+    ).order_by('pk'))
+    assert [item.snapshot['stem'] for item in revisions] == ['修改前', '修改后']
+    assert [item.action for item in revisions] == ['baseline', 'update']
 
 
 @pytest.mark.django_db
@@ -200,15 +207,16 @@ def test_workbench_records_snapshots_and_shows_adjacent_diff(client, reviewer):
         ).order_by('pk')
     )
     assert [item.snapshot['name'] for item in revisions] == [
-        '第一版标签', '第二版标签',
+        '原标签', '第一版标签', '第二版标签',
     ]
+    assert revisions[0].action == 'baseline'
 
     history = client.get(reverse('review_workbench:revision_list', args=['tags']))
     assert history.status_code == 200
     assert '第二次修改。' in history.content.decode()
 
     diff = client.get(reverse(
-        'review_workbench:revision_diff', args=['tags', revisions[1].pk],
+        'review_workbench:revision_diff', args=['tags', revisions[2].pk],
     ))
     content = diff.content.decode()
     assert diff.status_code == 200
@@ -217,6 +225,48 @@ def test_workbench_records_snapshots_and_shows_adjacent_diff(client, reviewer):
     assert '标签名称' in content
     assert 'diff-remove' in content
     assert 'diff-add' in content
+
+
+@pytest.mark.django_db
+def test_backfill_workbench_revisions_is_complete_and_idempotent():
+    from courses.models import Course, Document
+
+    question = BaseQuestion.objects.create(question_type='fill', stem='基线题目')
+    question.sub_questions.create(answer='1', explanation='', sort_order=1)
+    tag = ConceptTag.objects.create(name='基线标签')
+    card = KnowledgeCard.objects.create(
+        title='基线卡片', category='定理', content='基线正文',
+    )
+    course = Course.objects.create(name='基线讲义')
+    document = Document.objects.create(
+        course=course, chapter='01', title='基线章节', md_content='正文',
+    )
+
+    output = StringIO()
+    call_command('backfill_workbench_revisions', stdout=output)
+    assert WorkbenchRevision.objects.count() == 5
+    assert set(WorkbenchRevision.objects.values_list(
+        'content_type', 'object_id',
+    )) == {
+        ('question', question.pk), ('tag', tag.pk), ('card', card.pk),
+        ('course', course.pk), ('document', document.pk),
+    }
+    assert set(WorkbenchRevision.objects.values_list('action', flat=True)) == {
+        'baseline',
+    }
+
+    call_command('backfill_workbench_revisions', stdout=StringIO())
+    assert WorkbenchRevision.objects.count() == 5
+    assert 'created=1' in output.getvalue()
+
+
+@pytest.mark.django_db
+def test_backfill_dry_run_does_not_write():
+    ConceptTag.objects.create(name='只演练')
+    output = StringIO()
+    call_command('backfill_workbench_revisions', '--dry-run', stdout=output)
+    assert WorkbenchRevision.objects.count() == 0
+    assert '工作台基线回填演练' in output.getvalue()
 
 
 @pytest.mark.django_db
