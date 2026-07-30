@@ -112,6 +112,7 @@ class _AboutPageState extends State<AboutPage> {
       if (mgr.updateManager != null) {
         final results = await mgr.checkUpdates();
         if (!mounted) return;
+        _versionError = results.any((result) => result.checkFailed);
         for (final r in results) {
           if (r.type == 'qbank') {
             _serverQbank = r.serverVersion;
@@ -395,6 +396,16 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Widget _buildUserTile() {
+    if (_versionError) {
+      return ListTile(
+        leading: Icon(Icons.devices, color: context.colors.primary),
+        title: Text('多设备同步数据'),
+        subtitle: Text(
+          '检查失败，请稍后重试',
+          style: TextStyle(fontSize: 12, color: context.colors.error),
+        ),
+      );
+    }
     final hasUpdate = _serverUser > _localUser;
     return ListTile(
       leading: Icon(Icons.devices, color: context.colors.primary),

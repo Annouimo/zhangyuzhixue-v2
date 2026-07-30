@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:flutter_app/data/api/api_client.dart';
@@ -17,6 +18,7 @@ import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
+import 'data/sync/foreground_sync_policy.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
@@ -95,42 +97,55 @@ void main() async {
   if (performanceTestMode) return;
 
   // 启动后推送积压 + 版本检查（不阻塞首帧）
-  final updates = await SyncManager().onAppStart();
+  final updates = (prefs.accessToken ?? '').isEmpty
+      ? <UpdateSummary>[]
+      : await SyncManager().onAppStart();
+  final actionableUpdates = updates
+      .where((summary) => summary.hasUpdate && !summary.checkFailed)
+      .toList();
+  final checkFailed = updates.any((summary) => summary.checkFailed);
 
   // 检查是否有未同步的积压数据
   try {
     final pendingCount = await SyncQueueDao(
       DatabaseProvider(),
     ).getPendingCount();
-    if (pendingCount > 0 && updates.isEmpty) {
+    if (pendingCount > 0 && actionableUpdates.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showPendingSyncBanner(pendingCount);
       });
     }
   } catch (_) {}
 
-  // 版本检查失败时（updates 为空 + lastCheckError 不为 null）显示连接提示
-  if (updates.isEmpty) {
-    final checkError = SyncManager().lastCheckError;
-    if (checkError != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final ctx = routerNavigatorKey.currentContext;
-        if (ctx == null) return;
-        AppToast.warning(ctx, '无法连接服务器，请检查网络');
-      });
-    }
-    return;
+  if (checkFailed) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ctx = routerNavigatorKey.currentContext;
+      if (ctx == null) return;
+      AppToast.warning(ctx, '部分数据更新检查失败，将在网络恢复后重试');
+    });
   }
+
+  if (actionableUpdates.isEmpty) return;
 
   // 首帧渲染后再弹出更新 UI
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    _processUpdates(updates);
+    _processUpdates(actionableUpdates);
   });
 }
+
+final Map<String, int> _promptedUpdateVersions = {};
 
 void _processUpdates(List<UpdateSummary> updates) {
   final ctx = routerNavigatorKey.currentContext;
   if (ctx == null) return;
+  updates = updates.where((summary) {
+    if (summary.checkFailed || !summary.hasUpdate) return false;
+    if (_promptedUpdateVersions[summary.type] == summary.serverVersion) {
+      return false;
+    }
+    _promptedUpdateVersions[summary.type] = summary.serverVersion;
+    return true;
+  }).toList();
 
   // 先处理强制更新（优先于 banner）
   for (final summary in updates) {
@@ -237,8 +252,120 @@ void _showPendingSyncBanner(int count) {
   );
 }
 
-class ZhangyuzhixueApp extends StatelessWidget {
+class ZhangyuzhixueApp extends StatefulWidget {
   const ZhangyuzhixueApp({super.key});
+
+  @override
+  State<ZhangyuzhixueApp> createState() => _ZhangyuzhixueAppState();
+}
+
+class _ZhangyuzhixueAppState extends State<ZhangyuzhixueApp>
+    with WidgetsBindingObserver {
+  Timer? _userCheckTimer;
+  StreamSubscription<bool>? _connectivitySubscription;
+  DateTime? _backgroundedAt;
+  bool _online = true;
+  bool _syncing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _online = ConnectivityMonitor().isOnline;
+    _connectivitySubscription = ConnectivityMonitor().onConnectivityChanged
+        .listen(_onConnectivityChanged);
+    _startForegroundTimers();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopForegroundTimers();
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startForegroundTimers();
+      final elapsed = _backgroundedAt == null
+          ? Duration.zero
+          : DateTime.now().difference(_backgroundedAt!);
+      _backgroundedAt = null;
+      unawaited(_syncOnResume(elapsed));
+      return;
+    }
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      _backgroundedAt ??= DateTime.now();
+      _stopForegroundTimers();
+    }
+  }
+
+  void _startForegroundTimers() {
+    _userCheckTimer ??= Timer.periodic(
+      ForegroundSyncPolicy.userCheckInterval,
+      (_) => unawaited(_onForegroundTick()),
+    );
+  }
+
+  void _stopForegroundTimers() {
+    _userCheckTimer?.cancel();
+    _userCheckTimer = null;
+  }
+
+  Future<void> _onForegroundTick() async {
+    final lastFullCheck = AppPrefs().lastVersionCheckTime;
+    final fullCheckDue = ForegroundSyncPolicy.shouldRunPeriodicFullCheck(
+      lastFullCheck,
+      DateTime.now(),
+    );
+    await _coordinate(userOnly: !fullCheckDue);
+  }
+
+  Future<void> _syncOnResume(Duration backgroundTime) async {
+    if (!_hasSession) return;
+    await SyncManager().pushNow();
+    if (!ForegroundSyncPolicy.shouldCheckAfterResume(backgroundTime)) return;
+    final lastFullCheck = AppPrefs().lastVersionCheckTime;
+    final fullCheckDue = ForegroundSyncPolicy.shouldRunFullCheck(
+      lastFullCheck,
+      DateTime.now(),
+    );
+    await _coordinate(userOnly: !fullCheckDue);
+  }
+
+  void _onConnectivityChanged(bool online) {
+    final restored = !_online && online;
+    _online = online;
+    if (restored && _hasSession) {
+      unawaited(_coordinate(userOnly: true, pushFirst: true));
+    }
+  }
+
+  bool get _hasSession => (AppPrefs().accessToken ?? '').isNotEmpty;
+
+  Future<void> _coordinate({
+    bool userOnly = false,
+    bool pushFirst = false,
+  }) async {
+    if (_syncing || !_online || !_hasSession) return;
+    _syncing = true;
+    try {
+      if (pushFirst) await SyncManager().pushNow();
+      final updates = userOnly
+          ? [await SyncManager().checkUserUpdate()]
+          : await SyncManager().checkUpdates();
+      if (!mounted) return;
+      _processUpdates(updates);
+    } catch (error, stack) {
+      AuditLogger.instance.error('foreground_sync', error, stack);
+    } finally {
+      _syncing = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -18,6 +18,7 @@ class UpdateSummary {
   final String? checksum;
   final int? sizeBytes;
   final String? message;
+  final Object? error;
 
   const UpdateSummary({
     required this.type,
@@ -28,6 +29,7 @@ class UpdateSummary {
     this.checksum,
     this.sizeBytes,
     this.message,
+    this.error,
   });
 
   bool get hasUpdate => serverVersion > localVersion;
@@ -44,6 +46,7 @@ class UpdateSummary {
   bool get canApply => type == 'user' ? hasUpdate : canDownload;
 
   bool get localIsNewer => localVersion > serverVersion;
+  bool get checkFailed => error != null;
 }
 
 /// 更新管理器：版本检查 + .db.gz 下载/校验/替换
@@ -69,6 +72,8 @@ class UpdateManager {
     ]);
     return results;
   }
+
+  Future<UpdateSummary> checkUser() => _checkOne('user');
 
   Future<UpdateSummary> _checkOne(String type) async {
     try {
@@ -100,6 +105,7 @@ class UpdateManager {
         localVersion: localVersion,
         serverVersion: localVersion, // 失败时视为无更新，不阻塞其他类型
         forceUpdate: false,
+        error: e,
       );
     }
   }

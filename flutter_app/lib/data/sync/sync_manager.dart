@@ -138,9 +138,29 @@ class SyncManager {
   Future<List<UpdateSummary>> checkUpdates() async {
     _ensureInitialized();
     final results = await _updateManager!.checkAll();
-    _pendingUpdates = results.where((s) => s.hasUpdate).toList();
-    lastCheckError = null;
+    _pendingUpdates = results
+        .where((s) => s.hasUpdate && !s.checkFailed)
+        .toList();
+    final failures = results.where((s) => s.checkFailed).toList();
+    lastCheckError = failures.isEmpty
+        ? null
+        : '${failures.map((item) => item.type).join('、')}版本检查失败';
+    if (failures.isEmpty) {
+      await AppPrefs().setLastVersionCheckTime(DateTime.now());
+    }
     return List.unmodifiable(results);
+  }
+
+  /// 前台高频检查仅查询用户数据版本，不下载或替换数据库。
+  Future<UpdateSummary> checkUserUpdate() async {
+    _ensureInitialized();
+    final result = await _updateManager!.checkUser();
+    _pendingUpdates.removeWhere((item) => item.type == 'user');
+    if (!result.checkFailed && result.hasUpdate) {
+      _pendingUpdates.add(result);
+    }
+    lastCheckError = result.checkFailed ? 'user版本检查失败' : null;
+    return result;
   }
 
   /// 执行指定类型的数据库更新（下载 → 校验 → 替换）
@@ -162,6 +182,7 @@ class SyncManager {
           onProgress: onProgress,
         );
         await _dbProvider!.deleteUserDbBackup();
+        await AppPrefs().setLastSyncTime(DateTime.now().toIso8601String());
       } catch (e) {
         final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
         if (!restored) {
@@ -209,6 +230,7 @@ class SyncManager {
           final current = AppPrefs().userVersion;
           await AppPrefs().setUserVersion(current + summary.batchesPushed);
         }
+        await AppPrefs().setLastSyncTime(DateTime.now().toIso8601String());
       }
 
       AuditLogger.instance.sync('pushAll', {
@@ -341,6 +363,7 @@ class SyncManager {
         onProgress: onProgress,
       );
       await _dbProvider!.deleteUserDbBackup();
+      await AppPrefs().setLastSyncTime(DateTime.now().toIso8601String());
     } catch (e) {
       final restored = await _dbProvider!.restoreUserDb(_currentUserIdentity);
       if (!restored) {

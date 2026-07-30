@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared/debug/audit_logger.dart';
+
 /// 全局 SharedPreferences key 定义
 ///
 /// 命名规范：所有全局 key 以 `app_` 开头。
@@ -13,6 +14,7 @@ abstract final class PrefKeys {
   static const ratingCooldownPrefix = 'app_rating_cooldown_';
   static const firstLaunchComplete = 'app_first_launch';
   static const lastSyncTime = 'app_last_sync_time';
+  static const lastVersionCheckTime = 'app_last_version_check_time';
   static const levelPercentile = 'app_level_percentile';
   static const userVersion = 'app_user_version';
   static const lastKnownLevel = 'app_last_known_level';
@@ -54,14 +56,18 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.accessToken, v);
     return v;
   }
-  Future<bool> setAccessToken(String val) => p.setString(PrefKeys.accessToken, val);
+
+  Future<bool> setAccessToken(String val) =>
+      p.setString(PrefKeys.accessToken, val);
 
   String? get refreshToken {
     final v = p.getString(PrefKeys.refreshToken);
     AuditLogger.instance.prefs(PrefKeys.refreshToken, v);
     return v;
   }
-  Future<bool> setRefreshToken(String val) => p.setString(PrefKeys.refreshToken, val);
+
+  Future<bool> setRefreshToken(String val) =>
+      p.setString(PrefKeys.refreshToken, val);
 
   // ── 数据库版本 ──
 
@@ -70,6 +76,7 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.qbankVersion, v);
     return v;
   }
+
   Future<bool> setQbankVersion(int v) => p.setInt(PrefKeys.qbankVersion, v);
 
   int get coursesVersion {
@@ -77,12 +84,14 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.coursesVersion, v);
     return v;
   }
+
   Future<bool> setCoursesVersion(int v) => p.setInt(PrefKeys.coursesVersion, v);
 
   // ── 等级百分位缓存 ──
 
   int get levelPercentile => p.getInt(PrefKeys.levelPercentile) ?? 0;
-  Future<bool> setLevelPercentile(int v) => p.setInt(PrefKeys.levelPercentile, v);
+  Future<bool> setLevelPercentile(int v) =>
+      p.setInt(PrefKeys.levelPercentile, v);
 
   // ── 同步时间 ──
 
@@ -91,8 +100,17 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.lastSyncTime, v);
     return v;
   }
+
   Future<bool> setLastSyncTime(String label) =>
       p.setString(PrefKeys.lastSyncTime, label);
+
+  DateTime? get lastVersionCheckTime {
+    final value = p.getString(PrefKeys.lastVersionCheckTime);
+    return value == null ? null : DateTime.tryParse(value);
+  }
+
+  Future<bool> setLastVersionCheckTime(DateTime value) =>
+      p.setString(PrefKeys.lastVersionCheckTime, value.toIso8601String());
 
   // ── 用户数据版本 ──
 
@@ -101,8 +119,8 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.userVersion, v);
     return v;
   }
-  Future<bool> setUserVersion(int v) =>
-      p.setInt(PrefKeys.userVersion, v);
+
+  Future<bool> setUserVersion(int v) => p.setInt(PrefKeys.userVersion, v);
 
   int? get activePaperFolderId => p.getInt(PrefKeys.activePaperFolderId);
   Future<bool> setActivePaperFolderId(int value) =>
@@ -118,8 +136,7 @@ class AppPrefs {
   // ── 等级缓存 ──
 
   int get lastKnownLevel => p.getInt(PrefKeys.lastKnownLevel) ?? 0;
-  Future<bool> setLastKnownLevel(int v) =>
-      p.setInt(PrefKeys.lastKnownLevel, v);
+  Future<bool> setLastKnownLevel(int v) => p.setInt(PrefKeys.lastKnownLevel, v);
 
   // ── 成就缓存 ──
 
@@ -134,6 +151,7 @@ class AppPrefs {
     AuditLogger.instance.prefs(PrefKeys.lastUpdatePrompt, v);
     return v;
   }
+
   Future<bool> setLastUpdatePromptTimestamp(int ts) =>
       p.setInt(PrefKeys.lastUpdatePrompt, ts);
 
@@ -149,9 +167,10 @@ class AppPrefs {
   }
 
   /// 设置评价弹窗冷却时间戳
-  Future<bool> setRatingCooldown(String pageUrl) =>
-      p.setInt(PrefKeys.ratingCooldownPrefix + pageUrl,
-          DateTime.now().millisecondsSinceEpoch);
+  Future<bool> setRatingCooldown(String pageUrl) => p.setInt(
+    PrefKeys.ratingCooldownPrefix + pageUrl,
+    DateTime.now().millisecondsSinceEpoch,
+  );
 
   // ── 全局共享 key 查询 ──
 

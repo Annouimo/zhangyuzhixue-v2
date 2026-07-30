@@ -2,6 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/data/sync/update_manager.dart';
 
 void main() {
+  test('UpdateSummary exposes version check failures', () {
+    const summary = UpdateSummary(
+      type: 'user',
+      localVersion: 3,
+      serverVersion: 3,
+      forceUpdate: false,
+      error: 'offline',
+    );
+
+    expect(summary.checkFailed, isTrue);
+    expect(summary.hasUpdate, isFalse);
+  });
+
   group('UpdateManager.shouldForceUpdate', () {
     test('force flag true returns true', () {
       expect(
