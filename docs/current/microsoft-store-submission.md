@@ -20,10 +20,6 @@
 
 https://zhangyuzhixue.zhtec123.com/privacy.html
 
-## 支持信息
-
-keen_personal@outlook.com
-
 ## Notes for Certification
 
 ```text
@@ -64,9 +60,6 @@ https://zhangyuzhixue.zhtec123.com/privacy.html
 
 Terms of service:
 https://zhangyuzhixue.zhtec123.com/terms.html
-
-Support:
-keen_personal@outlook.com
 ```
 
 ## 提交前人工确认
