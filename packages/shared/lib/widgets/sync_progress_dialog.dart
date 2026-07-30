@@ -176,6 +176,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
+            minimumSize: const Size(0, 40),
             backgroundColor: colors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
@@ -209,6 +210,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
           style: ElevatedButton.styleFrom(
+            minimumSize: const Size(0, 40),
             backgroundColor: colors.primary,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
@@ -252,6 +254,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
                 _runTask();
               },
               style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 40),
                 foregroundColor: colors.primary,
                 side: BorderSide(color: colors.primary),
                 shape: RoundedRectangleBorder(
@@ -264,6 +267,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
+                minimumSize: const Size(0, 40),
                 backgroundColor: colors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
