@@ -1,0 +1,67 @@
+{
+    "schemaVersion":  1,
+    "generatedAt":  "2026-07-30T05:39:06.9664112Z",
+    "platform":  "windows",
+    "mode":  "profile",
+    "dataScale":  "Small",
+    "aggregation":  "median",
+    "runCount":  3,
+    "sourceFiles":  [
+                        "performance-2026-07-30T132527-598550.json",
+                        "performance-2026-07-30T132139-764723.json",
+                        "performance-2026-07-30T125229-267570.json"
+                    ],
+    "journeys":  {
+                     "frames_startup":  {
+                                            "durationMs":  107.66
+                                        },
+                     "frames_tab_profile_cold":  {
+                                                     "durationMs":  1075.69
+                                                 },
+                     "frames_tab_profile_hot_1":  {
+                                                      "durationMs":  1062.5
+                                                  },
+                     "frames_tab_profile_hot_2":  {
+                                                      "durationMs":  1062.92
+                                                  },
+                     "frames_tab_profile_hot_3":  {
+                                                      "durationMs":  1066.14
+                                                  },
+                     "frames_recommend_cold":  {
+                                                   "durationMs":  230
+                                               },
+                     "frames_recommend_hot_1":  {
+                                                    "durationMs":  180.69
+                                                },
+                     "frames_recommend_hot_2":  {
+                                                    "durationMs":  180.78
+                                                },
+                     "frames_recommend_hot_3":  {
+                                                    "durationMs":  180.66
+                                                },
+                     "frames_statistics_cold":  {
+                                                    "durationMs":  300.04
+                                                },
+                     "frames_statistics_hot_1":  {
+                                                     "durationMs":  294.97
+                                                 },
+                     "frames_statistics_hot_2":  {
+                                                     "durationMs":  291.09
+                                                 },
+                     "frames_statistics_hot_3":  {
+                                                     "durationMs":  288.61
+                                                 },
+                     "frames_enter_solve_cold":  {
+                                                     "durationMs":  359.07
+                                                 },
+                     "frames_enter_solve_hot_1":  {
+                                                      "durationMs":  357.78
+                                                  },
+                     "frames_enter_solve_hot_2":  {
+                                                      "durationMs":  357.92
+                                                  },
+                     "frames_enter_solve_hot_3":  {
+                                                      "durationMs":  361.5
+                                                  }
+                 }
+}

@@ -107,6 +107,10 @@ class TaskState {
 
 /// 用户 Repository — 本地 + API
 class UserRepository {
+  static const bool _performanceTestMode = bool.fromEnvironment(
+    'PERFORMANCE_TEST_MODE',
+  );
+
   final UserDao _dao;
   final UserApi _api;
   final QuestionDao _questionDao;
@@ -117,7 +121,7 @@ class UserRepository {
     final local = await _dao.getProfile();
     if (local != null) {
       // 有本地缓存：立即返回，后台调 API 刷新
-      unawaited(_refreshProfileFromApi());
+      if (!_performanceTestMode) unawaited(_refreshProfileFromApi());
       return UserInfo(
         id: local.id,
         name: local.name,
@@ -472,4 +476,3 @@ class _PointsCalculator {
 
   double get available => earned + bonus - spent;
 }
-

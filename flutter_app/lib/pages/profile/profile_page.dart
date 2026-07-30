@@ -16,6 +16,7 @@ import '../../domain/statistics_repository.dart';
 import '../../data/daos/sync_queue_dao.dart';
 import '../../widgets/shared/format_utils.dart';
 import '../router.dart';
+import '../../debug/performance_trace.dart';
 
 class ProfilePage extends StatefulWidget {
   final UserRepository? userRepository;
@@ -48,12 +49,12 @@ class ProfilePageState extends State<ProfilePage> {
   String? _syncSubtitle;
 
   /// 供 MainShell 切 Tab 时调用，触发数据刷新
-  void reload() => _load();
+  void reload() => _load(showLoading: _info == null);
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _load(showLoading: true);
   }
 
   /// 每次 _load 时新鲜创建 Repository，确保拿到 DatabaseProvider 的最新连接引用
@@ -80,8 +81,18 @@ class ProfilePageState extends State<ProfilePage> {
         );
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
+  Future<void> _load({bool showLoading = false}) async {
+    final performanceSpan = PerformanceTrace.instance.start(
+      'page',
+      'ProfilePage.load',
+      metadata: {'hadContent': _info != null},
+    );
+    if (showLoading) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     _initRepos();
     try {
       final info = await _repo.getUserInfo();
@@ -126,15 +137,20 @@ class ProfilePageState extends State<ProfilePage> {
         'gaokaoYear': _info?.gaokaoYear,
         'avatar': _info?.avatar,
       });
+      performanceSpan.finish({
+        'hasUser': _info != null,
+        'hasStats': _statsTotalQuestions != null,
+      });
     } catch (e) {
       OperationLog.instance.error('profile_page_load', e);
       AuditLogger.instance.error('ProfilePage._load', e);
       if (mounted) {
         setState(() {
-          _error = '加载失败，请稍后重试';
+          if (_info == null) _error = '加载失败，请稍后重试';
           _loading = false;
         });
       }
+      performanceSpan.finish({'failed': true});
     }
   }
 
@@ -247,7 +263,10 @@ class ProfilePageState extends State<ProfilePage> {
     body: _loading
         ? const LoadingIndicator(message: '加载个人信息…')
         : _error != null
-        ? ErrorPlaceholder(message: _error!, onRetry: _load)
+        ? ErrorPlaceholder(
+            message: _error!,
+            onRetry: () => _load(showLoading: true),
+          )
         : AppContentContainer(
             maxWidth: AppContentWidth.dashboard,
             child: ListView(

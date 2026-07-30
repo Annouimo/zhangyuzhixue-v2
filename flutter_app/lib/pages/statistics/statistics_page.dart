@@ -10,6 +10,7 @@ import 'widgets/donut_chart.dart';
 import 'widgets/heatmap_chart.dart';
 import 'widgets/time_range_picker.dart';
 import 'widgets/trend_chart.dart';
+import '../../debug/performance_trace.dart';
 
 /// 学习统计页。
 class StatisticsPage extends StatefulWidget {
@@ -47,6 +48,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Future<void> _loadAll() async {
+    final performanceSpan = PerformanceTrace.instance.start(
+      'page',
+      'StatisticsPage.loadAll',
+      metadata: {'rangeDays': _rangeDays},
+    );
     setState(() {
       _loading = true;
       _error = null;
@@ -91,6 +97,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
       AuditLogger.instance.page('StatisticsPage', {
         'hasData': _overview != null,
       });
+      performanceSpan.finish({
+        'dailyRecords': dailyRecords.length,
+        'accuracyPoints': accuracyTrend.length,
+        'points': pointsTrend.length,
+        'distributionTotal': distribution.total,
+      });
     } catch (error) {
       OperationLog.instance.error('statistics_page_load', error);
       AuditLogger.instance.error('StatisticsPage._loadAll', error);
@@ -99,6 +111,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
         _error = '加载失败，请稍后重试';
         _loading = false;
       });
+      performanceSpan.finish({'failed': true});
     }
   }
 

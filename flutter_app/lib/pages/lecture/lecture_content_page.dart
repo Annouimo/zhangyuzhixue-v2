@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../widgets/pop_back_guard.dart';
 import 'package:shared/shared.dart';
 import '../../data/daos/lecture_dao.dart';
@@ -7,6 +6,7 @@ import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
 import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
+import '../../debug/performance_trace.dart';
 
 /// 讲义正文页 — 翻页 + 逐段展开
 class LectureContentPage extends StatefulWidget {
@@ -48,6 +48,11 @@ class _LectureContentPageState extends State<LectureContentPage> {
   }
 
   Future<void> _load() async {
+    final performanceSpan = PerformanceTrace.instance.start(
+      'page',
+      'LectureContentPage.load',
+      metadata: {'chapterId': widget.chapterId},
+    );
     setState(() {
       _loading = true;
       _error = null;
@@ -68,6 +73,14 @@ class _LectureContentPageState extends State<LectureContentPage> {
       AuditLogger.instance.page('LectureContentPage', {
         'hasContent': _content != null,
       });
+      performanceSpan.finish({
+        'markdownChars': content.mdContent.length,
+        'pages': parsed.pages.length,
+        'blocks': parsed.pages.fold<int>(
+          0,
+          (total, page) => total + page.blocks.length,
+        ),
+      });
     } catch (e) {
       OperationLog.instance.error('lecture_content_page_load', e);
       AuditLogger.instance.error('LectureContentPage._load', e);
@@ -76,6 +89,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
         _error = '加载失败，请稍后重试';
         _loading = false;
       });
+      performanceSpan.finish({'failed': true});
     }
   }
 
@@ -126,10 +140,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        final shouldPop = await _popGuard.consume(context, 'lecture_content');
-        if (shouldPop && context.mounted) context.pop();
-      },
+      onPopInvokedWithResult: (didPop, _) =>
+          _popGuard.handlePop(context, 'lecture_content'),
       child: Scaffold(
         appBar: AppBar(title: Text(_content?.title ?? '讲义内容')),
         body: Column(

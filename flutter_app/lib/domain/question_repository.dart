@@ -8,6 +8,7 @@ import '../data/database/database_provider.dart';
 import '../data/database/app_database.dart' as app_db;
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
+import '../debug/performance_trace.dart';
 
 /// 题目详情
 class QuestionDetail {
@@ -85,6 +86,15 @@ class SolveRouteHelper {
     List<int> quickPracticeSeen = const [],
     bool forceNewAttempt = false,
   }) async {
+    final navigationSpan = PerformanceTrace.instance.start(
+      'navigation',
+      'SolveRouteHelper.navigateTo',
+      metadata: {
+        'questionId': questionId,
+        'questionType': questionType,
+        'forceNewAttempt': forceNewAttempt,
+      },
+    );
     final repo = QuestionRepository(
       QuestionDao(DatabaseProvider()),
       ProgressDao(DatabaseProvider()),
@@ -111,7 +121,11 @@ class SolveRouteHelper {
     final quickPracticeParam = quickPracticeSeen.isNotEmpty
         ? '&quickPractice=${quickPracticeSeen.join(',')}'
         : '';
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      navigationSpan.finish({'cancelled': true, 'reason': 'unmounted'});
+      return;
+    }
+    navigationSpan.finish({'attemptCount': attempts.length, 'mode': mode});
     RouterUtils.push(
       context,
       '$page?id=$questionId'
@@ -167,18 +181,53 @@ class QuestionRepository {
   final ProgressDao _progressDao;
   const QuestionRepository(this._dao, this._progressDao);
 
-  Future<QuestionDetail> getDetail(int id) async {
-    final q = await _dao.getById(id);
-    if (q == null) throw Exception('Question not found: $id');
+  Future<QuestionDetail> getDetail(int id) =>
+      PerformanceTrace.instance.measureAsync(
+        'repository',
+        'QuestionRepository.getDetail',
+        () => _getDetail(id),
+        metadata: {'questionId': id},
+        resultMetadata: (detail) => {
+          'questionType': detail.questionType,
+          'tagCount': detail.conceptTags.length,
+          'optionCount': detail.options?.length ?? 0,
+          'imageCount': detail.images.length,
+        },
+      );
+
+  Future<QuestionDetail> _getDetail(int id) async {
+    final trace = PerformanceTrace.instance;
+    final q = await trace.measureAsync(
+      'dao',
+      'QuestionDao.getById',
+      () => _dao.getById(id),
+      metadata: {'questionId': id},
+      resultMetadata: (row) => {'rows': row == null ? 0 : 1},
+    );
+    if (q == null) {
+      throw Exception('Question not found: $id');
+    }
 
     // 概念标签
-    final tags = await _dao.getTagsByQuestion(id);
+    final tags = await trace.measureAsync(
+      'dao',
+      'QuestionDao.getTagsByQuestion',
+      () => _dao.getTagsByQuestion(id),
+      metadata: {'questionId': id},
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
     final tagNames = tags.map((t) => t.name).toList();
 
     // 选择题选项
     Map<String, String>? options;
     if (q.questionType == 'choice') {
-      final ext = await _dao.getChoiceExt(id);
+      final ext = await trace.measureAsync(
+        'dao',
+        'QuestionDao.getChoiceExt',
+        () => _dao.getChoiceExt(id),
+        metadata: {'questionId': id},
+        resultMetadata: (row) => {'rows': row == null ? 0 : 1},
+      );
       if (ext != null) {
         final raw = ext.options;
         final parsed = jsonDecode(raw) as Map<String, dynamic>;
@@ -190,15 +239,33 @@ class QuestionRepository {
     String? answer;
     String? explanation;
     if (q.questionType == 'choice' || q.questionType == 'fill') {
-      final subs = await _dao.getSubQuestions(id);
+      final subs = await trace.measureAsync(
+        'dao',
+        'QuestionDao.getSubQuestions',
+        () => _dao.getSubQuestions(id),
+        metadata: {'questionId': id},
+        resultMetadata: (rows) => {'rows': rows.length},
+      );
       if (subs.isNotEmpty) {
         answer = subs.first.answer;
         explanation = subs.first.explanation;
         if ((explanation ?? '').isEmpty) {
           try {
-            final methods = await _dao.getMethods(subs.first.id);
+            final methods = await trace.measureAsync(
+              'dao',
+              'QuestionDao.getMethods',
+              () => _dao.getMethods(subs.first.id),
+              metadata: {'subQuestionId': subs.first.id},
+              resultMetadata: (rows) => {'rows': rows.length},
+            );
             if (methods.isNotEmpty) {
-              final steps = await _dao.getSteps(methods.first.id);
+              final steps = await trace.measureAsync(
+                'dao',
+                'QuestionDao.getSteps',
+                () => _dao.getSteps(methods.first.id),
+                metadata: {'methodId': methods.first.id},
+                resultMetadata: (rows) => {'rows': rows.length},
+              );
               if (steps.isNotEmpty) explanation = steps.first.content;
             }
           } catch (_) {}
@@ -206,7 +273,7 @@ class QuestionRepository {
       }
     }
 
-    return QuestionDetail(
+    final detail = QuestionDetail(
       id: q.id,
       title: '${q.year} ${q.examType} ${q.region}',
       number: q.number,
@@ -220,6 +287,7 @@ class QuestionRepository {
       answer: answer,
       explanation: explanation,
     );
+    return detail;
   }
 
   Future<SolveAttempt> startSolve(int questionId) async {

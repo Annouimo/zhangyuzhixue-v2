@@ -431,10 +431,8 @@ class _SolveFillPageState extends State<SolveFillPage> {
     if (widget.embedded) return body;
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        final shouldPop = await _popGuard.consume(context, 'solve_fill');
-        if (shouldPop && context.mounted) context.pop();
-      },
+      onPopInvokedWithResult: (didPop, _) =>
+          _popGuard.handlePop(context, 'solve_fill'),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),

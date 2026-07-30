@@ -1,11 +1,17 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Server', 'E2E', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Server', 'E2E', 'Performance', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
 
     [string]$PythonPath = 'python',
+
+    [ValidateSet('Small', 'Normal', 'Large')]
+    [string]$PerformanceDataScale = 'Normal',
+
+    [ValidateRange(0, 10)]
+    [int]$PerformanceHotRuns = 3,
 
     [switch]$UpdateGoldens
 )
@@ -128,6 +134,29 @@ function Invoke-FlutterAnalyze {
         Arguments = @('--no-version-check', 'analyze')
         WorkingDirectory = $WorkingDirectory
         TimeoutMinutes = 10
+    }
+    return Invoke-TestProcess @processOptions
+}
+
+function Invoke-FlutterDrive {
+    param(
+        [string]$Name,
+        [string]$WorkingDirectory,
+        [string[]]$DriveArguments,
+        [int]$TimeoutMinutes
+    )
+
+    if (-not $FlutterPath -or -not (Test-Path $FlutterPath)) {
+        throw 'Flutter was not found. Pass -FlutterPath or add Flutter to PATH.'
+    }
+
+    $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
+    $processOptions = @{
+        Name = $Name
+        FilePath = $FlutterPath
+        Arguments = @('--no-version-check', 'drive') + $DriveArguments
+        WorkingDirectory = $WorkingDirectory
+        TimeoutMinutes = $TimeoutMinutes
     }
     return Invoke-TestProcess @processOptions
 }
@@ -269,6 +298,22 @@ try {
                 TimeoutMinutes = 15
             }
             $results.E2E = Invoke-FlutterSuite @options
+        }
+        'Performance' {
+            $results.Performance = Invoke-FlutterDrive `
+                -Name 'windows-performance' `
+                -WorkingDirectory $studentDir `
+                -DriveArguments @(
+                    '--driver', 'test_driver/performance_test.dart',
+                    '--target', 'integration_test/performance_smoke_test.dart',
+                    '-d', 'windows',
+                    '--profile',
+                    '--dart-define=PERFORMANCE_TRACE=true'
+                    '--dart-define=PERFORMANCE_TEST_MODE=true'
+                    "--dart-define=PERFORMANCE_DATA_SCALE=$PerformanceDataScale"
+                    "--dart-define=PERFORMANCE_HOT_RUNS=$PerformanceHotRuns"
+                ) `
+                -TimeoutMinutes 20
         }
         'All' {
             $results.StudentAnalyze = Invoke-FlutterAnalyze -Name 'student-analyze' -WorkingDirectory $studentDir

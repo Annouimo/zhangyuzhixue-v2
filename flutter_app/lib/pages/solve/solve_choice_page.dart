@@ -269,10 +269,8 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
     if (widget.embedded) return body;
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        final shouldPop = await _popGuard.consume(context, 'solve_choice');
-        if (shouldPop && context.mounted) context.pop();
-      },
+      onPopInvokedWithResult: (didPop, _) =>
+          _popGuard.handlePop(context, 'solve_choice'),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),

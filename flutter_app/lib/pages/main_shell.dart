@@ -9,6 +9,7 @@ import '../data/database/database_provider.dart';
 import 'content_home_page.dart';
 import 'practice_home_page.dart';
 import 'profile/profile_page.dart';
+import '../debug/performance_trace.dart';
 
 /// Tab 页枚举。
 enum MainTab { practice, content, profile }
@@ -29,16 +30,12 @@ class _MainShellState extends State<MainShell> {
 
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey();
 
-  late final List<Widget> _pages;
+  late final List<Widget?> _pages;
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const PracticeHomePage(),
-      const ContentHomePage(),
-      ProfilePage(key: _profileKey),
-    ];
+    _pages = [const PracticeHomePage(), const ContentHomePage(), null];
     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
     _refreshSyncPending();
   }
@@ -64,18 +61,34 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _selectTab(int index) {
+    final previousIndex = _currentIndex;
+    final performanceSpan = PerformanceTrace.instance.start(
+      'navigation',
+      'MainShell.selectTab',
+      metadata: {'from': previousIndex, 'to': index},
+    );
     if (_currentIndex != index) {
       setState(() => _currentIndex = index);
     }
 
     if (index == MainTab.profile.index) {
-      _profileKey.currentState?.reload();
+      if (_pages[index] == null) {
+        setState(() => _pages[index] = ProfilePage(key: _profileKey));
+      } else {
+        _profileKey.currentState?.reload();
+      }
       _refreshSyncPending();
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      performanceSpan.finish();
+    });
   }
 
   Widget _profileIcon({required bool selected}) {
-    final icon = Icon(selected ? AppIcons.profileSelected : AppIcons.profile);
+    final icon = Icon(
+      selected ? AppIcons.profileSelected : AppIcons.profile,
+      key: ValueKey('main-tab-profile-${selected ? 'selected' : 'unselected'}'),
+    );
     if (_syncPendingCount <= 0) return icon;
 
     return Badge(
@@ -87,14 +100,26 @@ class _MainShellState extends State<MainShell> {
 
   List<NavigationDestination> get _bottomDestinations => [
     const NavigationDestination(
-      icon: Icon(AppIcons.recommendation),
-      selectedIcon: Icon(AppIcons.recommendationSelected),
+      icon: Icon(
+        AppIcons.recommendation,
+        key: ValueKey('main-tab-practice-unselected'),
+      ),
+      selectedIcon: Icon(
+        AppIcons.recommendationSelected,
+        key: ValueKey('main-tab-practice-selected'),
+      ),
       label: '首页',
       tooltip: '学习与出卷',
     ),
     const NavigationDestination(
-      icon: Icon(Icons.menu_book_outlined),
-      selectedIcon: Icon(Icons.menu_book_rounded),
+      icon: Icon(
+        Icons.menu_book_outlined,
+        key: ValueKey('main-tab-content-unselected'),
+      ),
+      selectedIcon: Icon(
+        Icons.menu_book_rounded,
+        key: ValueKey('main-tab-content-selected'),
+      ),
       label: '内容',
       tooltip: '学习内容',
     ),
@@ -108,13 +133,25 @@ class _MainShellState extends State<MainShell> {
 
   List<NavigationRailDestination> get _railDestinations => [
     const NavigationRailDestination(
-      icon: Icon(AppIcons.recommendation),
-      selectedIcon: Icon(AppIcons.recommendationSelected),
+      icon: Icon(
+        AppIcons.recommendation,
+        key: ValueKey('main-tab-practice-unselected'),
+      ),
+      selectedIcon: Icon(
+        AppIcons.recommendationSelected,
+        key: ValueKey('main-tab-practice-selected'),
+      ),
       label: Text('首页'),
     ),
     const NavigationRailDestination(
-      icon: Icon(Icons.menu_book_outlined),
-      selectedIcon: Icon(Icons.menu_book_rounded),
+      icon: Icon(
+        Icons.menu_book_outlined,
+        key: ValueKey('main-tab-content-unselected'),
+      ),
+      selectedIcon: Icon(
+        Icons.menu_book_rounded,
+        key: ValueKey('main-tab-content-selected'),
+      ),
       label: Text('内容'),
     ),
     NavigationRailDestination(
@@ -125,7 +162,12 @@ class _MainShellState extends State<MainShell> {
   ];
 
   Widget _buildPageStack() {
-    return IndexedStack(index: _currentIndex, children: _pages);
+    return IndexedStack(
+      index: _currentIndex,
+      children: _pages
+          .map((page) => page ?? const SizedBox.shrink())
+          .toList(growable: false),
+    );
   }
 
   Widget _buildRailHeader(BuildContext context, {required bool extended}) {

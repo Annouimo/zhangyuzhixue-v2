@@ -6,6 +6,7 @@ import '../data/database/database_provider.dart';
 import '../data/database/assets_database.dart' as assets_db;
 import '../data/database/app_database.dart' as user_db;
 import 'preference_repository.dart';
+import '../debug/performance_trace.dart';
 
 /// 推荐题目
 class RecommendedQuestion {
@@ -66,7 +67,12 @@ class RecommendRepository {
 
   Future<List<RecommendedQuestion>> getSmartList() async {
     final engine = _RecommendationEngine(_questionDao, _progressDao);
-    return engine.compute();
+    return PerformanceTrace.instance.measureAsync(
+      'repository',
+      'RecommendRepository.getSmartList',
+      engine.compute,
+      resultMetadata: (questions) => {'resultCount': questions.length},
+    );
   }
 
   Future<List<RecommendPreset>> getPresets() async {
@@ -123,12 +129,35 @@ class _RecommendationEngine {
   /// 智能推荐计算 — 7 次 DB 查询（预加载 + 纯内存计算）
   Future<List<RecommendedQuestion>> compute() async {
     // ── 一次性预加载全部数据（共 7 次查询）──
-    final allQuestions = await _questionDao.getAll();
+    final trace = PerformanceTrace.instance;
+    final allQuestions = await trace.measureAsync(
+      'dao',
+      'recommend.questions.getAll',
+      _questionDao.getAll,
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
     if (allQuestions.isEmpty) return [];
 
-    final allAttemptRows = await _progressDao.getAllAttempts();
-    final tagLinks = await _questionDao.getAllQuestionTagLinks();
-    final allTags = await _questionDao.getAllConceptTags();
+    final allAttemptRows = await trace.measureAsync(
+      'dao',
+      'recommend.attempts.getAll',
+      _progressDao.getAllAttempts,
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
+    final tagLinks = await trace.measureAsync(
+      'dao',
+      'recommend.tagLinks.getAll',
+      _questionDao.getAllQuestionTagLinks,
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
+    final allTags = await trace.measureAsync(
+      'dao',
+      'recommend.tags.getAll',
+      _questionDao.getAllConceptTags,
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
+
+    final computeSpan = trace.start('compute', 'recommend.rankCandidates');
 
     // tagId → Set<questionId>
     final tagQuestionMap = <int, Set<int>>{};
@@ -153,7 +182,12 @@ class _RecommendationEngine {
     final doneIds = attemptedIds;
 
     // 路线 R：最近答错的原题。复习由系统混入，不单独暴露队列。
-    final recentWrongIds = await _progressDao.getRecentWrongQuestionIds(14);
+    final recentWrongIds = await trace.measureAsync(
+      'dao',
+      'recommend.recentWrongIds',
+      () => _progressDao.getRecentWrongQuestionIds(14),
+      resultMetadata: (rows) => {'rows': rows.length},
+    );
     final review = allQuestions
         .where((q) => recentWrongIds.contains(q.id))
         .map(
@@ -286,6 +320,12 @@ class _RecommendationEngine {
         result.add(review[reviewIndex++]);
       }
     }
+    computeSpan.finish({
+      'questions': allQuestions.length,
+      'attempts': allAttemptRows.length,
+      'tagLinks': tagLinks.length,
+      'resultCount': result.length,
+    });
     return result;
   }
 

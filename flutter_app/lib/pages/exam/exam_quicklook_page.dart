@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import '../../widgets/pop_back_guard.dart';
 import 'package:shared/shared.dart';
 
@@ -119,10 +118,8 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        final shouldPop = await _popGuard.consume(context, 'exam_quicklook');
-        if (shouldPop && context.mounted) context.pop();
-      },
+      onPopInvokedWithResult: (didPop, _) =>
+          _popGuard.handlePop(context, 'exam_quicklook'),
       child: Scaffold(
         appBar: AppBar(title: Text(_paper?.title ?? '试卷预览')),
         body: _buildBody(),

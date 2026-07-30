@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
 import 'package:flutter_app/pages/main_shell.dart';
+import 'package:flutter_app/pages/profile/profile_page.dart';
 import 'dart:io';
 import '../test_setup.dart';
 
@@ -48,6 +49,7 @@ void main() {
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 0);
+      expect(find.byType(ProfilePage), findsNothing);
     });
 
     testWidgets('tapping content tab switches content', (tester) async {
@@ -70,6 +72,7 @@ void main() {
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(navBar.selectedIndex, 2);
+      expect(find.byType(ProfilePage), findsOneWidget);
     });
 
     testWidgets('tapping practice tab switches content', (tester) async {

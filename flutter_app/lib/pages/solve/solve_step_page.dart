@@ -255,10 +255,8 @@ class _SolveStepPageState extends State<SolveStepPage> {
     final step = _currentStep();
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) async {
-        final shouldPop = await _popGuard.consume(context, 'solve_step');
-        if (shouldPop && context.mounted) context.pop();
-      },
+      onPopInvokedWithResult: (didPop, _) =>
+          _popGuard.handlePop(context, 'solve_step'),
       child: Scaffold(
         appBar: AppBar(title: const Text('逐步解析')),
         body: _loading

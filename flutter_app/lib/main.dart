@@ -48,6 +48,7 @@ void main() async {
   ApiClient().init(baseUrl: appBaseUrl);
 
   // 注册 token 提供器：所有 API 请求自动携带 Authorization header
+  const performanceTestMode = bool.fromEnvironment('PERFORMANCE_TEST_MODE');
   final prefs = AppPrefs();
   setTokenProvider(() => prefs.accessToken);
   setRefreshTokenProvider(() => prefs.refreshToken);
@@ -58,6 +59,7 @@ void main() async {
     }
   });
   setOnRefreshFailed(() {
+    if (performanceTestMode) return;
     prefs.clearAll();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ctx = routerNavigatorKey.currentContext;
@@ -65,6 +67,7 @@ void main() async {
     });
   });
   setOnAuthFailure(() {
+    if (performanceTestMode) return;
     prefs.clearAll();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ctx = routerNavigatorKey.currentContext;
@@ -73,7 +76,9 @@ void main() async {
   });
 
   await DatabaseProvider().init();
-  ConnectivityMonitor().init();
+  if (!performanceTestMode) {
+    ConnectivityMonitor().init();
+  }
 
   final syncApi = SyncApi(ApiClient());
   SyncManager().init(
@@ -83,6 +88,11 @@ void main() async {
   );
 
   runApp(const ZhangyuzhixueApp());
+
+  // Profile performance journeys use deterministic local fixtures. Network
+  // startup work is measured separately and must not add dialogs or mutate the
+  // fixture while local regression timings are being collected.
+  if (performanceTestMode) return;
 
   // 启动后推送积压 + 版本检查（不阻塞首帧）
   final updates = await SyncManager().onAppStart();
