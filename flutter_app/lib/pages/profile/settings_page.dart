@@ -156,9 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: context.colors.error),
-    );
+    AppToast.error(context, message);
   }
 
   @override

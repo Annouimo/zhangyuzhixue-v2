@@ -210,9 +210,7 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
       RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
     } on InsufficientPointsException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('积分不足，生成试卷需要 ${error.requiredPoints} 积分')),
-        );
+        AppToast.warning(context, '积分不足，生成试卷需要 ${error.requiredPoints} 积分');
       }
     } finally {
       if (mounted) setState(() => _saving = false);

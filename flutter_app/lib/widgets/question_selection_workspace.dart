@@ -402,18 +402,13 @@ Future<bool> addQuestionsToBaskets({
   final folderId = selectedFolderIds.first;
   await repository.setActiveFolder(folderId);
   if (!context.mounted) return false;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        '已加入 ${selectedFolderIds.length} 个试题篮：新增 ${result.added} 道次，${result.existing} 道次已存在',
-      ),
-      action: SnackBarAction(
-        label: '查看试题篮',
-        onPressed: () => RouterUtils.push(
-          context,
-          '${AppRoutes.paperFolderDetail}?id=$folderId',
-        ),
-      ),
+  AppToast.success(
+    context,
+    '已加入 ${selectedFolderIds.length} 个试题篮：新增 ${result.added} 道次，${result.existing} 道次已存在',
+    actionLabel: '查看试题篮',
+    onAction: () => RouterUtils.push(
+      context,
+      '${AppRoutes.paperFolderDetail}?id=$folderId',
     ),
   );
   return true;

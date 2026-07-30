@@ -8,6 +8,7 @@ import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
+import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
 
 import '../../data/daos/preference_dao.dart';
@@ -67,9 +68,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
       OperationLog.instance.error('preference_list_page_delete', error);
       AuditLogger.instance.error('PreferenceListPage._delete', error);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('删除失败，已恢复列表')));
+      AppToast.error(context, '删除失败，已恢复列表');
       _loadKey.currentState?.refresh();
     }
   }

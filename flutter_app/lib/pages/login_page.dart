@@ -6,6 +6,7 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_auth_layout.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../data/prefs/app_prefs.dart';
@@ -52,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    final colors = context.colors;
     if (!_formKey.currentState!.validate()) return;
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -87,21 +87,11 @@ class _LoginPageState extends State<LoginPage> {
       // 同步失败时页面内显示提示（登录流程已走完，token 已保存）
       if (!syncOk) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('数据同步失败，部分数据可能未恢复'),
-            backgroundColor: colors.warning,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 8),
-            action: SnackBarAction(
-              label: '去同步',
-              textColor: Colors.white,
-              onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                context.go(AppRoutes.syncQueue);
-              },
-            ),
-          ),
+        AppToast.warning(
+          context,
+          '数据同步失败，部分数据可能未恢复',
+          actionLabel: '去同步',
+          onAction: () => context.go(AppRoutes.syncQueue),
         );
       }
 
@@ -143,14 +133,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showError(String message) {
-    final colors = context.colors;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: colors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppToast.error(context, message);
   }
 
   void _showContactDialog() {
@@ -166,13 +149,7 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () {
               Clipboard.setData(const ClipboardData(text: 'zhangyubb101'));
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('微信号已复制'),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
+              AppToast.success(context, '微信号已复制');
             },
           ),
           TextButton(
@@ -238,9 +215,7 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (!mounted) return;
       _usernameController.text = credentials.$1;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('账号已恢复，请重新登录')));
+      AppToast.success(context, '账号已恢复，请重新登录');
     } catch (e) {
       if (!mounted) return;
       _showError(_extractErrorMessage(e));
@@ -380,8 +355,6 @@ class _LoginPageState extends State<LoginPage> {
       ExportResult.savedToFolder => '日志已导出到 Downloads 文件夹',
     };
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
-    );
+    AppToast.info(context, msg);
   }
 }

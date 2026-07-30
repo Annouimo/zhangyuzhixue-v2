@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../data/prefs/app_prefs.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
@@ -145,16 +146,9 @@ Future<bool> showExitRatingIfNeeded(
       if (ok) {
         final pts = await cfg.rewardPoints;
         if (!context.mounted) return false;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('感谢评价！+$pts积分')));
+        AppToast.success(context, '感谢评价！+$pts积分');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('提交失败，请重试'),
-            backgroundColor: context.colors.error,
-          ),
-        );
+        AppToast.error(context, '提交失败，请重试');
       }
     }
   }

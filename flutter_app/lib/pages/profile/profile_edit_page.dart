@@ -7,6 +7,8 @@ import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_action_sheet.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
 import '../../data/daos/question_dao.dart';
@@ -88,23 +90,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         ),
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('个人信息已保存'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.success(context, '个人信息已保存');
       context.pop();
     } catch (error) {
       AuditLogger.instance.error('ProfileEditPage._save', error);
       OperationLog.instance.error('ProfileEditPage._save', error);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('保存失败，请稍后重试'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.error(context, '保存失败，请稍后重试');
       setState(() => _saving = false);
     }
   }
@@ -140,56 +132,36 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
         );
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('头像更新成功'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.success(context, '头像更新成功');
       }
     } catch (e) {
       AuditLogger.instance.error('ProfileEditPage._pickAndUploadAvatar', e);
       OperationLog.instance.error('ProfileEditPage._pickAndUploadAvatar', e);
       if (mounted) {
         setState(() => _uploading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('头像上传失败: $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: context.colors.error,
-          ),
-        );
+        AppToast.error(context, '头像上传失败: $e');
       }
     }
   }
 
-  void _showAvatarPicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('拍照'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickAndUploadAvatar(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('从相册选择'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickAndUploadAvatar(ImageSource.gallery);
-              },
-            ),
-          ],
+  Future<void> _showAvatarPicker() async {
+    final source = await AppActionSheet.show<ImageSource>(
+      context,
+      title: '更换头像',
+      items: const [
+        AppActionSheetItem(
+          value: ImageSource.camera,
+          label: '拍照',
+          icon: Icons.camera_alt_outlined,
         ),
-      ),
+        AppActionSheetItem(
+          value: ImageSource.gallery,
+          label: '从相册选择',
+          icon: Icons.photo_library_outlined,
+        ),
+      ],
     );
+    if (source != null && mounted) await _pickAndUploadAvatar(source);
   }
 
   @override

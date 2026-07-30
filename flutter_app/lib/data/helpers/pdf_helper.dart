@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/pdf_guide_dialog.dart';
+import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/constants/app_version.dart';
 import '../../data/api/api_client.dart';
 import '../../data/database/database_provider.dart';
@@ -109,12 +110,7 @@ class PdfHelper {
       if (action == PdfGuideAction.copy) {
         await Clipboard.setData(ClipboardData(text: url));
         if (context != null && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('链接已复制，可通过微信、QQ等方式发送到电脑'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AppToast.success(context, '链接已复制，可通过微信、QQ等方式发送到电脑');
         }
         return;
       }
@@ -126,12 +122,7 @@ class PdfHelper {
     } catch (e) {
       if (kDebugMode) debugPrint('[PdfHelper] 打开 PDF 失败: $e');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('无法打开 PDF，请检查网络后重试'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.error(context, '无法打开 PDF，请检查网络后重试');
       }
     }
   }
@@ -151,12 +142,7 @@ class PdfHelper {
       if (action == PdfGuideAction.copy) {
         await Clipboard.setData(ClipboardData(text: url));
         if (context != null && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('链接已复制，可通过微信、QQ等方式发送到电脑'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          AppToast.success(context, '链接已复制，可通过微信、QQ等方式发送到电脑');
         }
         return;
       }
@@ -167,12 +153,7 @@ class PdfHelper {
     } catch (e) {
       if (kDebugMode) debugPrint('[PdfHelper] 打开 PDF 失败: $e');
       if (context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('无法打开 PDF，请检查网络后重试'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.error(context, '无法打开 PDF，请检查网络后重试');
       }
     }
   }

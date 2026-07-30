@@ -249,9 +249,7 @@ class _ContributionListPageState extends State<ContributionListPage>
       await _load();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('撤回失败，请稍后重试')));
+        AppToast.error(context, '撤回失败，请稍后重试');
       }
     }
   }

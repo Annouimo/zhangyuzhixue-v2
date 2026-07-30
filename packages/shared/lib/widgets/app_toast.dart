@@ -12,6 +12,8 @@ class AppToast {
     IconData? icon,
     Color? backgroundColor,
     int durationMs = 3000,
+    String? actionLabel,
+    VoidCallback? onAction,
   }) {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -41,24 +43,77 @@ class AppToast {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: backgroundColor ?? AppColors.textPrimary,
         duration: Duration(milliseconds: durationMs),
+        action: actionLabel == null || onAction == null
+            ? null
+            : SnackBarAction(label: actionLabel, onPressed: onAction),
       ),
     );
   }
 
-  static void success(BuildContext context, String message,
-      {IconData icon = Icons.check_circle}) {
-    show(context, icon: icon, message: message,
-        backgroundColor: AppColors.success);
+  static void success(
+    BuildContext context,
+    String message, {
+    IconData icon = Icons.check_circle_rounded,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    show(
+      context,
+      icon: icon,
+      message: message,
+      backgroundColor: context.colors.success,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
   }
 
-  static void error(BuildContext context, String message,
-      {IconData icon = Icons.error}) {
-    show(context, icon: icon, message: message,
-        backgroundColor: AppColors.error);
+  static void error(
+    BuildContext context,
+    String message, {
+    IconData icon = Icons.error_rounded,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    show(
+      context,
+      icon: icon,
+      message: message,
+      backgroundColor: context.colors.error,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
   }
 
-  static void info(BuildContext context, String message,
-      {IconData icon = Icons.info_outline}) {
-    show(context, icon: icon, message: message);
+  static void warning(
+    BuildContext context,
+    String message, {
+    IconData icon = Icons.warning_amber_rounded,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    show(
+      context,
+      icon: icon,
+      message: message,
+      backgroundColor: context.colors.warning,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
+  }
+
+  static void info(
+    BuildContext context,
+    String message, {
+    IconData icon = Icons.info_outline_rounded,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    show(
+      context,
+      icon: icon,
+      message: message,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
   }
 }

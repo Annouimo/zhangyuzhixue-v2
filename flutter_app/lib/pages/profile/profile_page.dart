@@ -206,55 +206,35 @@ class ProfilePageState extends State<ProfilePage> {
         );
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('头像更新成功'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AppToast.success(context, '头像更新成功');
       }
     } catch (e) {
       OperationLog.instance.error('profile_page_load', e);
       AuditLogger.instance.error('ProfilePage._pickAndUploadAvatar', e);
       if (!mounted) return;
       setState(() => _uploading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('头像上传失败: $e'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: context.colors.error,
-        ),
-      );
+      AppToast.error(context, '头像上传失败: $e');
     }
   }
 
-  void _showAvatarPicker() {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.camera_alt),
-              title: Text('拍照'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickAndUploadAvatar(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('从相册选择'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _pickAndUploadAvatar(ImageSource.gallery);
-              },
-            ),
-          ],
+  Future<void> _showAvatarPicker() async {
+    final source = await AppActionSheet.show<ImageSource>(
+      context,
+      title: '更换头像',
+      items: const [
+        AppActionSheetItem(
+          value: ImageSource.camera,
+          label: '拍照',
+          icon: Icons.camera_alt_outlined,
         ),
-      ),
+        AppActionSheetItem(
+          value: ImageSource.gallery,
+          label: '从相册选择',
+          icon: Icons.photo_library_outlined,
+        ),
+      ],
     );
+    if (source != null && mounted) await _pickAndUploadAvatar(source);
   }
 
   @override
@@ -462,13 +442,6 @@ class ProfilePageState extends State<ProfilePage> {
         subtitle: growthSubtitle,
         tone: AppStatusTone.recommendation,
         onTap: () => RouterUtils.push(context, AppRoutes.growthCenter),
-      ),
-      AppNavigationCard(
-        icon: Icons.rate_review_outlined,
-        title: '内容贡献',
-        subtitle: '投稿新题、查看审核进度',
-        tone: AppStatusTone.info,
-        onTap: () => RouterUtils.push(context, AppRoutes.contributions),
       ),
       AppNavigationCard(
         icon: Icons.settings_outlined,

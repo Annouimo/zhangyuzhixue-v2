@@ -6,6 +6,7 @@ import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/progress_dao.dart';
@@ -358,9 +359,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       widget.quickPracticeSeen,
     );
     if (!navigated && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('本轮题目已全部完成')));
+      AppToast.info(context, '本轮题目已全部完成');
       context.pop();
     }
   }

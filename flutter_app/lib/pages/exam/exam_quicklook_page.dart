@@ -130,9 +130,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   Future<void> _togglePublic() async {
     await _repo.togglePublic(widget.examId!);
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('公开状态已更新')));
+      AppToast.success(context, '公开状态已更新');
       _load();
     }
   }

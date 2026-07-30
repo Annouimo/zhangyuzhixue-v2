@@ -47,17 +47,14 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
     });
     await _repo.toggleCollect(exam.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('已取消收藏'),
-        action: SnackBarAction(
-          label: '撤销',
-          onPressed: () async {
-            await _repo.toggleCollect(exam.id);
-            _loadKey.currentState?.refresh();
-          },
-        ),
-      ),
+    AppToast.info(
+      context,
+      '已取消收藏',
+      actionLabel: '撤销',
+      onAction: () async {
+        await _repo.toggleCollect(exam.id);
+        _loadKey.currentState?.refresh();
+      },
     );
   }
 

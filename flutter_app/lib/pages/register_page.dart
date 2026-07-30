@@ -6,6 +6,7 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_auth_layout.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../data/api/auth_api.dart';
 import '../data/api/api_client.dart';
 import '../domain/auth_repository.dart';
@@ -77,13 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
 
       // 注册成功，不返回 token，跳回登录页
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('注册成功，请登录'),
-          backgroundColor: context.colors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.success(context, '注册成功，请登录');
       OperationLog.instance.action('register', 'ok');
       context.pop();
     } catch (e) {
@@ -121,13 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: context.colors.error,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppToast.error(context, message);
   }
 
   Future<void> _openAgreement(String path) async {

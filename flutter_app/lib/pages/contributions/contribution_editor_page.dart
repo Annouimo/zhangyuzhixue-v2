@@ -317,9 +317,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   Future<void> _saveDraftNow() async {
     await _saveDraft();
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('草稿已保存到本机')));
+    AppToast.success(context, '草稿已保存到本机');
   }
 
   Future<void> _offerDraftRestore() async {
@@ -1392,9 +1390,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       if (!mounted) return;
       await _draftStore.remove(_draftId);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已提交审核')));
+      AppToast.success(context, '已提交审核');
       Navigator.of(context).pop(true);
     } catch (error) {
       if (!mounted) return;
@@ -1408,9 +1404,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   Future<void> _copyPrompt() async {
     await Clipboard.setData(ClipboardData(text: _config?.aiPrompt ?? ''));
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('AI 转写提示词已复制')));
+      AppToast.success(context, 'AI 转写提示词已复制');
     }
   }
 

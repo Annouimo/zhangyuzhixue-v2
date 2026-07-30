@@ -81,32 +81,27 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
   }
 
   Future<void> _showFolderMenu(PaperFolderSummary folder) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text('重命名'),
-              onTap: () => Navigator.pop(sheetContext, 'rename'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.copy_outlined),
-              title: const Text('复制试题篮'),
-              onTap: () => Navigator.pop(sheetContext, 'copy'),
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_outline, color: context.colors.error),
-              title: Text(
-                '删除试题篮',
-                style: TextStyle(color: context.colors.error),
-              ),
-              onTap: () => Navigator.pop(sheetContext, 'delete'),
-            ),
-          ],
+    final action = await AppActionSheet.show<String>(
+      context,
+      title: folder.name,
+      items: const [
+        AppActionSheetItem(
+          value: 'rename',
+          label: '重命名',
+          icon: Icons.edit_outlined,
         ),
-      ),
+        AppActionSheetItem(
+          value: 'copy',
+          label: '复制试题篮',
+          icon: Icons.copy_outlined,
+        ),
+        AppActionSheetItem(
+          value: 'delete',
+          label: '删除试题篮',
+          icon: Icons.delete_outline,
+          destructive: true,
+        ),
+      ],
     );
     if (!mounted) return;
     if (action == 'rename') await _rename(folder);

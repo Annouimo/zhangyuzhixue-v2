@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../domain/preference_repository.dart';
 import 'package:shared/widgets/filter_panel.dart';
 import 'package:shared/widgets/app_dialog.dart';
+import 'package:shared/widgets/app_toast.dart';
 
 /// 保存筛选条件为筛选方案的弹窗
 Future<String?> showSavePreferenceDialog(BuildContext context) async {
@@ -37,12 +38,7 @@ Future<int?> showLoadPreferenceDialog(
 ) async {
   if (presets.isEmpty) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('暂无保存的筛选方案'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.info(context, '暂无保存的筛选方案');
     }
     return null;
   }

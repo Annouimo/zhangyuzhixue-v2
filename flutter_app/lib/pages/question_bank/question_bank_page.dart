@@ -413,9 +413,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     } catch (_) {
       _applyingExternalScope = false;
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('筛选方案加载失败，请稍后重试')));
+      AppToast.error(context, '筛选方案加载失败，请稍后重试');
     }
   }
 
@@ -604,14 +602,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _savedRanges = ranges;
         _selectedRangeId = id;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已保存筛选方案')));
+      AppToast.success(context, '已保存筛选方案');
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('保存失败，请稍后重试')));
+      AppToast.error(context, '保存失败，请稍后重试');
     }
   }
 
@@ -716,14 +710,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       RouterUtils.push(context, '${AppRoutes.examQuicklook}?id=$paperId');
     } on InsufficientPointsException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('积分不足，生成手选试卷需要 ${error.requiredPoints} 积分')),
-      );
+      AppToast.warning(context, '积分不足，生成手选试卷需要 ${error.requiredPoints} 积分');
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('生成试卷失败，请稍后重试')));
+      AppToast.error(context, '生成试卷失败，请稍后重试');
     } finally {
       if (mounted) setState(() => _creatingPaper = false);
     }
@@ -763,14 +753,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
       });
       _workspaceController.replace(_selectedQuestions.keys);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(selected.isEmpty ? '已完成智能选题' : '已完成智能补全')),
-      );
+      AppToast.success(context, selected.isEmpty ? '已完成智能选题' : '已完成智能补全');
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('智能选题失败，请调整条件后重试')));
+      AppToast.error(context, '智能选题失败，请调整条件后重试');
     } finally {
       if (mounted) setState(() => _creatingPaper = false);
     }

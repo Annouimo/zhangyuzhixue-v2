@@ -7,6 +7,7 @@ import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_feature_banner.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../data/daos/preference_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/daos/system_config_dao.dart';
@@ -184,24 +185,14 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
 
   Future<void> _saveAndGoHome() async {
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请输入方案名称'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.warning(context, '请输入方案名称');
       return;
     }
     if (_years.isEmpty &&
         _regions.isEmpty &&
         _conceptTags.isEmpty &&
         _examTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请至少选择一项筛选条件'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.warning(context, '请至少选择一项筛选条件');
       return;
     }
     setState(() => _saving = true);
@@ -225,12 +216,7 @@ class _PreferenceWelcomePageState extends State<PreferenceWelcomePage> {
       OperationLog.instance.error('PreferenceWelcomePage._save', e);
       AuditLogger.instance.error('PreferenceWelcomePage._save', e);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('保存失败，请重试'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.error(context, '保存失败，请重试');
       setState(() => _saving = false);
       return;
     }

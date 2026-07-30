@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
@@ -208,12 +209,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
     } else {
       // 最后一步显示完成提示后返回地图
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ 该题全部步骤已完成'),
-            duration: Duration(milliseconds: 1000),
-          ),
-        );
+        AppToast.success(context, '该题全部步骤已完成');
         await Future.delayed(const Duration(milliseconds: 800));
         if (mounted) context.pop();
       }

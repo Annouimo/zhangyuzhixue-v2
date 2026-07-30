@@ -5,6 +5,7 @@ import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -131,12 +132,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请输入名称'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.warning(context, '请输入名称');
       return;
     }
     final state = _filterKey.currentState;
@@ -145,12 +141,7 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         state.selectedRegions.isEmpty &&
         state.selectedConceptTags.isEmpty &&
         state.selectedExamTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请至少选择一项筛选条件'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.warning(context, '请至少选择一项筛选条件');
       return;
     }
     setState(() => _saving = true);
@@ -173,24 +164,14 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
         existingId: widget.editId,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('保存成功'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.success(context, '保存成功');
       if (context.mounted) context.pop(true);
     } catch (e) {
       OperationLog.instance.error('preference_edit_page_load', e);
       AuditLogger.instance.error('PreferenceEditPage._save', e);
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('保存失败: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.error(context, '保存失败: $e');
     }
   }
 

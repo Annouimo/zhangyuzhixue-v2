@@ -6,6 +6,7 @@ import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_toast.dart';
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/sync_repository.dart';
@@ -72,12 +73,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
       // 重试后刷新列表
       await _load();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('已重置失败项，将在下次同步时重试'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppToast.success(context, '已重置失败项，将在下次同步时重试');
     } catch (_) {}
     if (!mounted) return;
     setState(() => _retrying = false);

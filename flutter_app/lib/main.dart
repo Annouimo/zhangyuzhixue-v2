@@ -117,14 +117,7 @@ void main() async {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ctx = routerNavigatorKey.currentContext;
         if (ctx == null) return;
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            content: const Text('无法连接服务器，请检查网络'),
-            duration: const Duration(seconds: 4),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: ctx.colors.warning,
-          ),
-        );
+        AppToast.warning(ctx, '无法连接服务器，请检查网络');
       });
     }
     return;
@@ -215,12 +208,7 @@ Future<void> _startUpdate(
         );
   // 更新成功后显示 Toast
   if (ok && context.mounted) {
-    AppToast.show(
-      context,
-      icon: Icons.check_circle,
-      message: '$label更新完成',
-      backgroundColor: context.colors.success,
-    );
+    AppToast.success(context, '$label更新完成');
   }
 }
 
@@ -229,19 +217,11 @@ void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
       ? '题库'
       : (summary.type == 'courses' ? '内容数据' : '学习记录');
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('$label 有新版本（v${summary.serverVersion}）'),
-      duration: const Duration(seconds: 5),
-      behavior: SnackBarBehavior.floating,
-      action: SnackBarAction(
-        label: '更新',
-        onPressed: () {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          _showForcedUpdateDialog(context, summary);
-        },
-      ),
-    ),
+  AppToast.info(
+    context,
+    '$label 有新版本（v${summary.serverVersion}）',
+    actionLabel: '更新',
+    onAction: () => _showForcedUpdateDialog(context, summary),
   );
 }
 
@@ -249,19 +229,12 @@ void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
 void _showPendingSyncBanner(int count) {
   final ctx = routerNavigatorKey.currentContext;
   if (ctx == null) return;
-  ScaffoldMessenger.of(ctx).showSnackBar(
-    SnackBar(
-      content: Text('有 $count 条数据等待同步'),
-      duration: const Duration(seconds: 5),
-      behavior: SnackBarBehavior.floating,
-      action: SnackBarAction(
-        label: '查看',
-        onPressed: () {
-          ScaffoldMessenger.of(ctx).hideCurrentSnackBar();
-          GoRouter.of(ctx).push('/sync/queue');
-        },
-      ),
-    ),
+  AppToast.info(
+    ctx,
+    '有 $count 条数据等待同步',
+    icon: Icons.sync_rounded,
+    actionLabel: '查看',
+    onAction: () => GoRouter.of(ctx).push('/sync/queue'),
   );
 }
 
