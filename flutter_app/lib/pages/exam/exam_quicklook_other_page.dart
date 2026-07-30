@@ -77,8 +77,64 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(_preview?.name ?? '试卷预览')),
+    appBar: AppBar(
+      title: Text(_preview?.name ?? '试卷预览', overflow: TextOverflow.ellipsis),
+      actions: _preview == null
+          ? null
+          : [
+              SizedBox(
+                width: MediaQuery.sizeOf(context).width >= 800 ? 430 : 190,
+                child: _buildPaperActions(_preview!),
+              ),
+            ],
+    ),
     body: _buildBody(),
+  );
+
+  Widget _buildPaperActions(ExamPreviewOther preview) => PaperActionBar(
+    actions: [
+      PaperAction(
+        label: '快速对答案',
+        compactLabel: '对答案',
+        icon: Icons.fact_check_outlined,
+        onPressed: () => RouterUtils.push(
+          context,
+          '${AppRoutes.answerSheet}?id=${widget.examId}',
+        ),
+      ),
+      PaperAction(
+        label: _collected
+            ? '${preview.collectCount} 已收藏'
+            : '${preview.collectCount} 收藏',
+        icon: _collected
+            ? Icons.bookmark_rounded
+            : Icons.bookmark_outline_rounded,
+        variant: AppButtonVariant.outlined,
+        onPressed: _toggleCollect,
+      ),
+    ],
+    menuActions: [
+      PaperMenuAction(
+        value: 'like',
+        label: _liked ? '${preview.likeCount} 取消点赞' : '${preview.likeCount} 点赞',
+        icon: _liked ? AppIcons.likeSelected : AppIcons.like,
+      ),
+      const PaperMenuAction(
+        value: 'print',
+        label: '打印试卷',
+        icon: Icons.print_outlined,
+      ),
+    ],
+    onMenuSelected: (value) {
+      if (value == 'like') _toggleLike();
+      if (value == 'print') {
+        PdfHelper.downloadPdf(
+          sourceId: widget.examId,
+          sourceType: 'paper',
+          context: context,
+        );
+      }
+    },
   );
 
   Widget _buildBody() {
@@ -120,47 +176,6 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                PaperActionBar(
-                  actions: [
-                    PaperAction(
-                      label: '快速对答案',
-                      icon: Icons.fact_check_outlined,
-                      onPressed: () => RouterUtils.push(
-                        context,
-                        '${AppRoutes.answerSheet}?id=${widget.examId}',
-                      ),
-                    ),
-                    PaperAction(
-                      label: '打印试卷',
-                      icon: Icons.picture_as_pdf_outlined,
-                      variant: AppButtonVariant.outlined,
-                      onPressed: () => PdfHelper.downloadPdf(
-                        sourceId: widget.examId,
-                        sourceType: 'paper',
-                        context: context,
-                      ),
-                    ),
-                    PaperAction(
-                      label: _liked
-                          ? '${preview.likeCount} 已点赞'
-                          : '${preview.likeCount} 点赞',
-                      icon: _liked ? AppIcons.likeSelected : AppIcons.like,
-                      variant: AppButtonVariant.outlined,
-                      onPressed: _toggleLike,
-                    ),
-                    PaperAction(
-                      label: _collected
-                          ? '${preview.collectCount} 已收藏'
-                          : '${preview.collectCount} 收藏',
-                      icon: _collected
-                          ? Icons.bookmark_rounded
-                          : Icons.bookmark_outline_rounded,
-                      variant: AppButtonVariant.outlined,
-                      onPressed: _toggleCollect,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
                 AppSectionHeader(
                   title: '试卷题目',
                   subtitle: '共 ${preview.questions.length} 题，点击可进入练习。',

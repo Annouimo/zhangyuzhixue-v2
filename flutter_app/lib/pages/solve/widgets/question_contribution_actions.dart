@@ -6,20 +6,32 @@ List<Widget> questionContributionActions(
   BuildContext context,
   int questionId,
 ) => [
-  IconButton(
-    tooltip: '投稿新的解法',
-    icon: const Icon(Icons.account_tree_outlined),
-    onPressed: () => RouterUtils.push(
+  PopupMenuButton<String>(
+    tooltip: '更多题目操作',
+    icon: const Icon(Icons.more_horiz),
+    onSelected: (value) => RouterUtils.push(
       context,
-      '${AppRoutes.contributionNew}?mode=solution&questionId=$questionId',
+      value == 'solution'
+          ? '${AppRoutes.contributionNew}?mode=solution&questionId=$questionId'
+          : '${AppRoutes.contributionCorrection}?questionId=$questionId',
     ),
-  ),
-  IconButton(
-    tooltip: '反馈题目错误',
-    icon: const Icon(Icons.report_outlined),
-    onPressed: () => RouterUtils.push(
-      context,
-      '${AppRoutes.contributionCorrection}?questionId=$questionId',
-    ),
+    itemBuilder: (context) => const [
+      PopupMenuItem(
+        value: 'solution',
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.account_tree_outlined),
+          title: Text('投稿新的解法'),
+        ),
+      ),
+      PopupMenuItem(
+        value: 'correction',
+        child: ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.report_outlined),
+          title: Text('反馈题目错误'),
+        ),
+      ),
+    ],
   ),
 ];

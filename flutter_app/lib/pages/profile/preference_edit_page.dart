@@ -5,6 +5,7 @@ import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
 import '../../data/daos/preference_dao.dart';
 import '../../data/daos/question_dao.dart';
@@ -137,13 +138,6 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
     }
     final state = _filterKey.currentState;
     if (state == null) return;
-    if (state.selectedYears.isEmpty &&
-        state.selectedRegions.isEmpty &&
-        state.selectedConceptTags.isEmpty &&
-        state.selectedExamTypes.isEmpty) {
-      AppToast.warning(context, '请至少选择一项筛选条件');
-      return;
-    }
     setState(() => _saving = true);
     try {
       await _repo.save(
@@ -172,6 +166,33 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       if (!mounted) return;
       setState(() => _saving = false);
       AppToast.error(context, '保存失败: $e');
+    }
+  }
+
+  Future<void> _delete() async {
+    final id = widget.editId;
+    if (id == null || _saving) return;
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '删除筛选方案？',
+      message: '删除后无法恢复，但不会影响已有的练习和试卷。',
+      icon: Icons.delete_outline_rounded,
+      confirmLabel: '确认删除',
+      destructive: true,
+    );
+    if (!confirmed) return;
+    setState(() => _saving = true);
+    try {
+      await _repo.delete(id);
+      if (!mounted) return;
+      AppToast.success(context, '筛选方案已删除');
+      context.pop(true);
+    } catch (error) {
+      OperationLog.instance.error('preference_edit_page_delete', error);
+      AuditLogger.instance.error('PreferenceEditPage._delete', error);
+      if (!mounted) return;
+      setState(() => _saving = false);
+      AppToast.error(context, '删除失败，请稍后重试');
     }
   }
 
@@ -235,6 +256,10 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                     examTypeOptions: _examTypeOpts ?? [],
                     knowledgeCardOptions: _knowledgeCardOpts ?? [],
                     knowledgeCardGroups: _kcGroups ?? [],
+                    selectAllInitially: false,
+                    allowGlobalSelectAll: false,
+                    showConceptSection: true,
+                    showKnowledgeSection: true,
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   AppButton(
@@ -244,6 +269,23 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
                     isLoading: _saving,
                     fullWidth: true,
                   ),
+                  if (editing) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _saving ? null : _delete,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                        icon: const Icon(Icons.delete_outline_rounded),
+                        label: const Text('删除方案'),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.xl),
                 ],
               ),

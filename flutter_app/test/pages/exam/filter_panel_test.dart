@@ -20,14 +20,11 @@ void main() {
           ),
         ),
       );
-      expect(find.text('年份 · 全部'), findsOneWidget);
-      expect(find.text('地区 · 全部'), findsOneWidget);
-      await tester.tap(find.text('年份 · 全部'));
-      await tester.pumpAndSettle();
+      expect(find.text('试题来源'), findsOneWidget);
+      expect(find.text('年份'), findsOneWidget);
+      expect(find.text('地区'), findsOneWidget);
       expect(find.text('2025'), findsOneWidget);
       expect(find.text('2024'), findsOneWidget);
-      await tester.tap(find.text('地区 · 全部'));
-      await tester.pumpAndSettle();
       expect(find.text('海淀'), findsOneWidget);
       expect(find.text('西城'), findsOneWidget);
     });
@@ -64,18 +61,14 @@ void main() {
           ),
         ),
       );
-      // Section header visible even when collapsed
-      expect(find.text('专题 · 全部'), findsOneWidget);
-      // Root node hidden when collapsed
+      expect(find.text('概念标签'), findsOneWidget);
       expect(find.text('代数'), findsNothing);
-      // Tap to expand
-      await tester.tap(find.text('专题 · 全部'));
+      await tester.tap(find.text('概念标签'));
       await tester.pumpAndSettle();
-      // Now root node visible
       expect(find.text('代数'), findsOneWidget);
     });
 
-    testWidgets('difficulty section collapsed by default', (tester) async {
+    testWidgets('feature tab exposes difficulty controls', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -85,13 +78,11 @@ void main() {
           ),
         ),
       );
-      // Default collapsed: difficulty labels not visible
-      expect(find.textContaining('基础'), findsNothing);
-      expect(find.textContaining('压轴'), findsNothing);
-      // Tap section header to expand
-      await tester.tap(find.text('难度 · 全部'));
+      expect(find.text('难度范围'), findsNothing);
+      await tester.tap(find.text('题目特征'));
       await tester.pumpAndSettle();
-      // Now should be visible
+      expect(find.text('难度范围'), findsOneWidget);
+      expect(find.text('计算量范围'), findsOneWidget);
       expect(find.textContaining('基础'), findsWidgets);
       expect(find.textContaining('压轴'), findsWidgets);
     });
@@ -138,7 +129,6 @@ void main() {
               child: FilterPanel(
                 yearOptions: const ['2025'],
                 regionOptions: const ['北京'],
-                groupedLayout: true,
                 onLoadPreference: () {},
               ),
             ),
@@ -147,24 +137,24 @@ void main() {
       );
 
       expect(find.text('筛选方案'), findsOneWidget);
-      expect(find.text('已选条件 · 暂未选择'), findsOneWidget);
       expect(find.text('概念标签'), findsOneWidget);
       expect(find.text('知识卡片'), findsOneWidget);
       expect(find.text('试题来源'), findsOneWidget);
       expect(find.text('题目特征'), findsOneWidget);
+      expect(find.text('重置所有维度'), findsOneWidget);
+      expect(find.text('重置当前维度'), findsNothing);
 
       await tester.tap(find.text('试题来源'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('2025'));
       await tester.pumpAndSettle();
 
-      expect(find.text('已选条件 · 1 组'), findsOneWidget);
       expect(find.text('重置当前维度'), findsOneWidget);
 
       await tester.tap(find.text('重置当前维度'));
       await tester.pumpAndSettle();
-      expect(find.text('已选条件 · 暂未选择'), findsOneWidget);
       expect(find.text('重置当前维度'), findsNothing);
+      expect(find.text('重置所有维度'), findsOneWidget);
     });
   });
 }

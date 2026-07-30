@@ -58,11 +58,6 @@ class ReviewPageState extends State<ReviewPage> {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
             children: [
               _buildSummary(),
-              const SizedBox(height: AppSpacing.xl),
-              const AppSectionHeader(
-                title: '知识点状态',
-                subtitle: '当前为第一版动态判断，会随新的答题结果即时变化。',
-              ),
               const SizedBox(height: AppSpacing.md),
               _buildConcepts(),
             ],

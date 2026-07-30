@@ -7,6 +7,7 @@ import '../../data/daos/exam_dao.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
+import '../../data/prefs/app_prefs.dart';
 import '../../domain/exam_repository.dart';
 import '../../domain/paper_creation_service.dart';
 import '../../domain/paper_folder_repository.dart';
@@ -40,6 +41,8 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   PaperFolderDetail? _detail;
   String? _error;
   bool _saving = false;
+  bool _organizing = false;
+  late bool _showHelpBadge;
   final QuestionWorkspaceController _workspaceController =
       QuestionWorkspaceController();
 
@@ -65,7 +68,51 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   @override
   void initState() {
     super.initState();
+    _showHelpBadge = !AppPrefs().paperFolderHelpSeen;
     _load();
+  }
+
+  Future<void> _showHelp() async {
+    if (_showHelpBadge) {
+      setState(() => _showHelpBadge = false);
+      await AppPrefs().setPaperFolderHelpSeen();
+    }
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('操作说明'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.reorder_rounded),
+              title: Text('点击“整理题目”'),
+              subtitle: Text('进入排序和移除模式'),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.drag_handle_rounded),
+              title: Text('拖动右侧手柄'),
+              subtitle: Text('调整题目顺序'),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.remove_circle_outline),
+              title: Text('点击移除按钮'),
+              subtitle: Text('从当前试题篮移除这道题'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('知道了'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _load() async {
@@ -111,6 +158,39 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     if (!confirmed) return;
     await _repository.delete(widget.folderId);
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _clear() async {
+    final detail = _detail;
+    if (detail == null || detail.questions.isEmpty) return;
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '清空试题篮？',
+      message: '将从“${detail.folder.name}”移除全部 ${detail.questions.length} 道题。',
+      icon: Icons.remove_shopping_cart_outlined,
+      confirmLabel: '清空',
+      destructive: true,
+    );
+    if (!confirmed) return;
+    await _repository.replaceQuestions(widget.folderId, const []);
+    await _load();
+  }
+
+  Future<void> _removeQuestion(int questionId) async {
+    final detail = _detail;
+    if (detail == null) return;
+    await _saveQuestions(
+      detail.questions
+          .where((question) => question.id != questionId)
+          .toList(growable: false),
+    );
+  }
+
+  Future<void> _handleMenu(String value) async {
+    if (value == 'help') await _showHelp();
+    if (value == 'rename') await _rename();
+    if (value == 'clear') await _clear();
+    if (value == 'delete') await _delete();
   }
 
   Future<void> _saveQuestions(List<SearchQuestion> questions) async {
@@ -222,19 +302,81 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
     final detail = _detail;
     return Scaffold(
       appBar: AppBar(
-        title: Text(detail?.folder.name ?? '试题篮'),
-        actions: [
-          IconButton(
-            tooltip: '重命名',
-            onPressed: detail == null ? null : _rename,
-            icon: const Icon(Icons.edit_outlined),
-          ),
-          IconButton(
-            tooltip: '删除试题篮',
-            onPressed: detail == null ? null : _delete,
-            icon: const Icon(Icons.delete_outline),
-          ),
-        ],
+        leading: _organizing
+            ? IconButton(
+                tooltip: '退出整理',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => setState(() => _organizing = false),
+              )
+            : null,
+        title: Text(_organizing ? '整理试题篮' : detail?.folder.name ?? '试题篮'),
+        actions: _organizing
+            ? [
+                TextButton(
+                  onPressed: () => setState(() => _organizing = false),
+                  child: const Text('完成'),
+                ),
+              ]
+            : [
+                TextButton.icon(
+                  onPressed: detail == null || detail.questions.isEmpty
+                      ? null
+                      : () => setState(() => _organizing = true),
+                  icon: const Icon(Icons.reorder_rounded),
+                  label: const Text('整理题目'),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: '更多题篮操作',
+                  onSelected: _handleMenu,
+                  icon: Badge(
+                    isLabelVisible: _showHelpBadge,
+                    smallSize: 8,
+                    child: const Icon(Icons.more_horiz),
+                  ),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'help',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.help_outline_rounded),
+                        title: Text('操作说明'),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'rename',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.drive_file_rename_outline),
+                        title: Text('重命名题篮'),
+                      ),
+                    ),
+                    if (detail?.questions.isNotEmpty == true)
+                      const PopupMenuItem(
+                        value: 'clear',
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.remove_shopping_cart_outlined),
+                          title: Text('清空题目'),
+                        ),
+                      ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          Icons.delete_outline,
+                          color: context.colors.error,
+                        ),
+                        title: Text(
+                          '删除题篮',
+                          style: TextStyle(color: context.colors.error),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
       ),
       body: _error != null
           ? ErrorPlaceholder(message: _error!, onRetry: _load)
@@ -257,49 +399,47 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
                       ),
                     )
                     .toList(growable: false),
-                onOpen: (item) => _workspaceController.toggle(item.id),
-                onEdit: (item) => _editQuestionFolders(
-                  detail.questions.firstWhere(
-                    (question) => question.id == item.id,
-                  ),
-                ),
-                onReorder: (oldIndex, newIndex) {
-                  final questions = List<SearchQuestion>.of(detail.questions);
-                  final item = questions.removeAt(oldIndex);
-                  questions.insert(newIndex, item);
-                  _saveQuestions(questions);
+                onOpen: (item) {
+                  if (!_organizing) _workspaceController.toggle(item.id);
                 },
-                headerSliversBuilder: (context, selectedIds) => const [
-                  SliverPadding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.sm,
-                      AppSpacing.sm,
-                      AppSpacing.sm,
-                      0,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: MaterialBanner(
-                        content: Text('长按题目（桌面端右键）可编辑所在试题篮；长按右侧手柄可调整顺序。'),
-                        actions: [SizedBox.shrink()],
+                selectionEnabled: !_organizing,
+                onRemove: _organizing
+                    ? (item) => _removeQuestion(item.id)
+                    : null,
+                onEdit: _organizing
+                    ? null
+                    : (item) => _editQuestionFolders(
+                        detail.questions.firstWhere(
+                          (question) => question.id == item.id,
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-                bottomBuilder: (context, selectedIds) => SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: AppButton(
-                      label: selectedIds.isEmpty
-                          ? '请选择题目'
-                          : '用已选 ${selectedIds.length} 题组卷 · 10 积分',
-                      icon: Icons.description_outlined,
-                      onPressed: selectedIds.isEmpty || _saving
-                          ? null
-                          : _generate,
-                      loading: _saving,
-                    ),
-                  ),
-                ),
+                onReorder: !_organizing
+                    ? null
+                    : (oldIndex, newIndex) {
+                        final questions = List<SearchQuestion>.of(
+                          detail.questions,
+                        );
+                        final item = questions.removeAt(oldIndex);
+                        questions.insert(newIndex, item);
+                        _saveQuestions(questions);
+                      },
+                bottomBuilder: _organizing
+                    ? null
+                    : (context, selectedIds) => SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: AppButton(
+                            label: selectedIds.isEmpty
+                                ? '请选择题目'
+                                : '用已选 ${selectedIds.length} 题组卷 · 10 积分',
+                            icon: Icons.description_outlined,
+                            onPressed: selectedIds.isEmpty || _saving
+                                ? null
+                                : _generate,
+                            loading: _saving,
+                          ),
+                        ),
+                      ),
               ),
             ),
     );

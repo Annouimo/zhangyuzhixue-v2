@@ -75,11 +75,21 @@ class _ContributionListPageState extends State<ContributionListPage>
                 )
               : const Icon(Icons.refresh_rounded),
         ),
-        IconButton(
-          tooltip: '编辑格式说明',
-          icon: const Icon(Icons.help_outline_rounded),
-          onPressed: () =>
+        PopupMenuButton<String>(
+          tooltip: '更多贡献操作',
+          icon: const Icon(Icons.more_horiz),
+          onSelected: (_) =>
               RouterUtils.push(context, AppRoutes.contributionHelp),
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: 'help',
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.help_outline_rounded),
+                title: Text('编辑格式说明'),
+              ),
+            ),
+          ],
         ),
       ],
     ),

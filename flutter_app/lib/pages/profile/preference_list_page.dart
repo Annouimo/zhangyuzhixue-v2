@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared/debug/audit_logger.dart';
-import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
-import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
-import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
 
 import '../../data/daos/preference_dao.dart';
@@ -22,13 +18,9 @@ class PreferenceListPage extends StatefulWidget {
   const PreferenceListPage({
     super.key,
     this.preferenceRepository,
-    this.selectionMode = false,
-    this.onSaveCurrent,
   });
 
   final PreferenceRepository? preferenceRepository;
-  final bool selectionMode;
-  final Future<void> Function()? onSaveCurrent;
 
   @override
   State<PreferenceListPage> createState() => _PreferenceListPageState();
@@ -47,32 +39,6 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
         PreferenceRepository(PreferenceDao(DatabaseProvider()));
   }
 
-  Future<void> _delete(int id, int index) async {
-    final confirmed = await AppDialog.confirm(
-      context,
-      title: '删除筛选方案？',
-      message: '删除后无法恢复，但不会影响已有的练习和试卷。',
-      icon: Icons.delete_outline_rounded,
-      confirmLabel: '确认删除',
-      destructive: true,
-    );
-    if (!confirmed) return;
-
-    _loadKey.currentState?.optimisticUpdate((list) {
-      list.removeAt(index);
-      return list;
-    });
-    try {
-      await _repo.delete(id);
-    } catch (error) {
-      OperationLog.instance.error('preference_list_page_delete', error);
-      AuditLogger.instance.error('PreferenceListPage._delete', error);
-      if (!mounted) return;
-      AppToast.error(context, '删除失败，已恢复列表');
-      _loadKey.currentState?.refresh();
-    }
-  }
-
   Future<void> _openEditor([int? id]) async {
     final route = id == null
         ? AppRoutes.preferenceEdit
@@ -81,23 +47,14 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
     _loadKey.currentState?.refresh();
   }
 
-  Future<void> _saveCurrent() async {
-    await widget.onSaveCurrent?.call();
-    _loadKey.currentState?.refresh();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.selectionMode ? '选择筛选方案' : '我的筛选方案')),
+      appBar: AppBar(title: const Text('我的筛选方案')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: widget.selectionMode ? _saveCurrent : () => _openEditor(),
-        icon: Icon(
-          widget.selectionMode
-              ? Icons.bookmark_add_outlined
-              : Icons.add_rounded,
-        ),
-        label: Text(widget.selectionMode ? '保存当前条件' : '新建方案'),
+        onPressed: () => _openEditor(),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('新建方案'),
       ),
       body: AsyncLoadWidget<List<PreferenceSummary>>(
         contentIsScrollable: true,
@@ -119,34 +76,11 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               children: [
-                AppSectionHeader(
-                  title: widget.selectionMode ? '应用筛选方案' : '已保存方案',
-                  subtitle: widget.selectionMode
-                      ? '选择后立即应用到当前筛选条件。'
-                      : '共 ${preferences.length} 组，可随时使用、编辑或删除。',
-                  action: AppButton(
-                    label: widget.selectionMode ? '保存当前条件' : '新建方案',
-                    icon: widget.selectionMode
-                        ? Icons.bookmark_add_outlined
-                        : Icons.add_rounded,
-                    onPressed: widget.selectionMode
-                        ? _saveCurrent
-                        : () => _openEditor(),
-                    expanded: false,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ...preferences.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final preference = entry.value;
+                ...preferences.map((preference) {
                   return AppCard(
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    onTap: widget.selectionMode
-                        ? () => Navigator.of(context).pop(preference)
-                        : () => _openEditor(preference.id),
-                    semanticLabel: widget.selectionMode
-                        ? '应用筛选方案 ${preference.name}'
-                        : '编辑筛选方案 ${preference.name}',
+                    onTap: () => _openEditor(preference.id),
+                    semanticLabel: '编辑筛选方案 ${preference.name}',
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -179,17 +113,11 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                       ).textTheme.titleMedium,
                                     ),
                                   ),
-                                  if (widget.selectionMode)
-                                    Icon(
-                                      Icons.chevron_right_rounded,
-                                      color: context.colors.textSecondary,
-                                    )
-                                  else
-                                    const AppStatusBadge(
-                                      label: '已保存',
-                                      tone: AppStatusTone.success,
-                                      compact: true,
-                                    ),
+                                  const AppStatusBadge(
+                                    label: '已保存',
+                                    tone: AppStatusTone.success,
+                                    compact: true,
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: AppSpacing.xs),
@@ -201,31 +129,6 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                     ?.copyWith(
                                       color: context.colors.textSecondary,
                                     ),
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Row(
-                                children: [
-                                  TextButton.icon(
-                                    onPressed: () => _openEditor(preference.id),
-                                    icon: const Icon(
-                                      Icons.edit_outlined,
-                                      size: 18,
-                                    ),
-                                    label: const Text('编辑'),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        _delete(preference.id, index),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: context.colors.error,
-                                    ),
-                                    icon: const Icon(
-                                      Icons.delete_outline_rounded,
-                                      size: 18,
-                                    ),
-                                    label: const Text('删除'),
-                                  ),
-                                ],
                               ),
                             ],
                           ),

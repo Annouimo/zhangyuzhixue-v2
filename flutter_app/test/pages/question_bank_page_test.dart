@@ -205,9 +205,8 @@ void main() {
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
     expect(find.text('完成选题'), findsNothing);
-    expect(find.text('全选当前结果'), findsOneWidget);
-    expect(find.text('清空'), findsOneWidget);
     expect(find.text('智能选题'), findsOneWidget);
+    expect(find.byTooltip('更多选择操作'), findsOneWidget);
     expect(find.byTooltip('选择题目'), findsOneWidget);
 
     await tester.tap(find.byTooltip('选择题目'));
@@ -217,6 +216,11 @@ void main() {
     expect(find.text('智能补全'), findsOneWidget);
     expect(find.text('已选 1 道题'), findsOneWidget);
     expect(find.text('加入试题篮'), findsOneWidget);
+    await tester.tap(find.byTooltip('更多选择操作'));
+    await tester.pumpAndSettle();
+    expect(find.text('清空已选题目'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('函数测试题'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('取消选择'), findsOneWidget);

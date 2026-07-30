@@ -114,16 +114,7 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('试题篮'),
-      actions: [
-        IconButton(
-          tooltip: '新建试题篮',
-          onPressed: _create,
-          icon: const Icon(Icons.create_new_folder_outlined),
-        ),
-      ],
-    ),
+    appBar: AppBar(title: const Text('试题篮')),
     body: _error != null
         ? ErrorPlaceholder(message: _error!, onRetry: _load)
         : _folders == null
@@ -164,7 +155,11 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
                     subtitle: Text(
                       '${folder.questionCount} 题 · ${_time(folder.updatedAt)}',
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: IconButton(
+                      tooltip: '更多题篮操作',
+                      icon: const Icon(Icons.more_horiz),
+                      onPressed: () => _showFolderMenu(folder),
+                    ),
                     onTap: () async {
                       await RouterUtils.push(
                         context,

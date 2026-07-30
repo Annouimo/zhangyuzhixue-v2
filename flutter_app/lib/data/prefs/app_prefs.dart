@@ -18,6 +18,7 @@ abstract final class PrefKeys {
   static const lastKnownLevel = 'app_last_known_level';
   static const lastKnownUnlockCount = 'app_last_known_unlock_count';
   static const activePaperFolderId = 'app_active_paper_folder_id';
+  static const paperFolderHelpSeen = 'app_paper_folder_help_seen';
 }
 
 /// SharedPreferences 封装层
@@ -108,6 +109,11 @@ class AppPrefs {
       p.setInt(PrefKeys.activePaperFolderId, value);
   Future<bool> clearActivePaperFolderId() =>
       p.remove(PrefKeys.activePaperFolderId);
+
+  bool get paperFolderHelpSeen =>
+      p.getBool(PrefKeys.paperFolderHelpSeen) ?? false;
+  Future<bool> setPaperFolderHelpSeen() =>
+      p.setBool(PrefKeys.paperFolderHelpSeen, true);
 
   // ── 等级缓存 ──
 

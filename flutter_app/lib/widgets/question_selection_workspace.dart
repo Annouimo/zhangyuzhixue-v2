@@ -81,6 +81,8 @@ class QuestionWorkspace extends StatefulWidget {
     this.bottomBuilder,
     this.onReorder,
     this.onEdit,
+    this.onRemove,
+    this.selectionEnabled = true,
     this.scrollController,
     this.physics = const AlwaysScrollableScrollPhysics(),
     this.bottomSpacing = AppSpacing.xl,
@@ -96,6 +98,8 @@ class QuestionWorkspace extends StatefulWidget {
   final QuestionWorkspaceBottomBuilder? bottomBuilder;
   final ReorderCallback? onReorder;
   final ValueChanged<QuestionWorkspaceItem>? onEdit;
+  final ValueChanged<QuestionWorkspaceItem>? onRemove;
+  final bool selectionEnabled;
   final ScrollController? scrollController;
   final ScrollPhysics physics;
   final double bottomSpacing;
@@ -216,6 +220,8 @@ class _QuestionWorkspaceState extends State<QuestionWorkspace> {
       selected: selectedIds.contains(item.id),
       onOpen: () => widget.onOpen(item),
       onToggle: () => _controller.toggle(item.id),
+      onRemove: widget.onRemove == null ? null : () => widget.onRemove!(item),
+      selectionEnabled: widget.selectionEnabled,
       reorderIndex: reorderable ? index : null,
     );
     if (widget.onEdit == null) return card;
@@ -235,6 +241,8 @@ class _QuestionSelectionCard extends StatelessWidget {
     required this.selected,
     required this.onOpen,
     required this.onToggle,
+    required this.selectionEnabled,
+    this.onRemove,
     this.reorderIndex,
   });
 
@@ -242,6 +250,8 @@ class _QuestionSelectionCard extends StatelessWidget {
   final bool selected;
   final VoidCallback onOpen;
   final VoidCallback onToggle;
+  final VoidCallback? onRemove;
+  final bool selectionEnabled;
   final int? reorderIndex;
 
   @override
@@ -259,22 +269,33 @@ class _QuestionSelectionCard extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            tooltip: selected ? '取消选择' : '选择题目',
-            visualDensity: VisualDensity.compact,
-            onPressed: onToggle,
-            icon: Icon(
-              selected ? Icons.check_circle : Icons.add_circle_outline,
-              color: selected
-                  ? context.colors.primary
-                  : context.colors.textSecondary,
+          if (selectionEnabled)
+            IconButton(
+              tooltip: selected ? '取消选择' : '选择题目',
+              visualDensity: VisualDensity.compact,
+              onPressed: onToggle,
+              icon: Icon(
+                selected ? Icons.check_circle : Icons.add_circle_outline,
+                color: selected
+                    ? context.colors.primary
+                    : context.colors.textSecondary,
+              ),
             ),
-          ),
+          if (onRemove != null)
+            IconButton(
+              tooltip: '移除题目',
+              visualDensity: VisualDensity.compact,
+              onPressed: onRemove,
+              icon: Icon(
+                Icons.remove_circle_outline,
+                color: context.colors.error,
+              ),
+            ),
           if (reorderIndex != null)
-            ReorderableDelayedDragStartListener(
+            ReorderableDragStartListener(
               index: reorderIndex!,
               child: const Tooltip(
-                message: '长按拖动排序',
+                message: '拖动排序',
                 child: Padding(
                   padding: EdgeInsets.all(AppSpacing.sm),
                   child: Icon(Icons.drag_handle_rounded),

@@ -184,109 +184,324 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     _scheduleSearch();
   }
 
-  Future<void> _openSavedRangesFromFilter(
-    BuildContext overlayContext,
-    FilterState draft,
-  ) async {
-    Navigator.of(overlayContext).pop();
-    _commitFilterState(draft);
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    final selected = await RouterUtils.push<PreferenceSummary>(
-      context,
-      '${AppRoutes.profilePreferences}?select=1',
-      extra: _saveCurrentRange,
-    );
-    if (selected != null && mounted) await _applySavedRange(selected);
-    if (mounted) await _loadFilterOptions();
-  }
-
   Future<void> _openFilters() async {
     final options = _filterOptions;
     if (options == null) return;
     var draft = _currentFilterState;
-    final visibleResultCount = ValueNotifier<int?>(_questions?.length);
+    // null = calculating, -1 = no filter selected, 0 = no matching questions.
+    final visibleResultCount = ValueNotifier<int?>(
+      _hasExplicitScope ? _questions?.length : -1,
+    );
+    final visibleSavedRanges = ValueNotifier<List<PreferenceSummary>>(
+      _savedRanges,
+    );
     final filterPanelKey = GlobalKey<FilterPanelState>();
     var receivedInitialState = false;
+    Timer? countDebounce;
+    var countRequestId = 0;
+    var filterOverlayOpen = true;
 
-    Widget panel(BuildContext overlayContext) => SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.sm,
-              AppSpacing.sm,
+    void updateVisibleCount(FilterState state) {
+      countDebounce?.cancel();
+      final requestId = ++countRequestId;
+      final hasSelection =
+          _queryController.text.trim().isNotEmpty ||
+          state.years.isNotEmpty ||
+          state.regions.isNotEmpty ||
+          state.types.isNotEmpty ||
+          state.conceptTags.isNotEmpty ||
+          state.examTypes.isNotEmpty ||
+          state.knowledgeCards.isNotEmpty ||
+          state.diffMin > 0 ||
+          state.diffMax < 10 ||
+          state.calcMin > 0 ||
+          state.calcMax < 10;
+      if (!hasSelection) {
+        visibleResultCount.value = -1;
+        return;
+      }
+      visibleResultCount.value = null;
+      countDebounce = Timer(const Duration(milliseconds: 250), () async {
+        try {
+          final questions = await _repository.getFilteredQuestions(
+            SearchFilters(
+              name: '',
+              keyword: _queryController.text,
+              choiceCount: 0,
+              fillCount: 0,
+              solutionCount: 0,
+              targetDifficulty: 0,
+              years: state.years.toList(),
+              regions: state.regions.toList(),
+              conceptTags: state.conceptTags.toList(),
+              knowledgeCards: state.knowledgeCards.toList(),
+              diffMin: state.diffMin,
+              diffMax: state.diffMax,
+              calcMin: state.calcMin,
+              calcMax: state.calcMax,
+              examTypes: state.examTypes.toList(),
+              questionTypes: state.types.toList(),
             ),
-            child: Row(
-              children: [
-                Text(
-                  '筛选条件',
-                  style: Theme.of(overlayContext).textTheme.titleMedium,
+          );
+          if (filterOverlayOpen && requestId == countRequestId) {
+            visibleResultCount.value = questions.length;
+          }
+        } catch (_) {
+          if (filterOverlayOpen && requestId == countRequestId) {
+            visibleResultCount.value = 0;
+          }
+        }
+      });
+    }
+
+    Future<int?> countFor(PreferenceSummary summary) async {
+      try {
+        final data = await _preferenceRepository.getEdit(summary.id);
+        final f = data.filter;
+        final questions = await _repository.getFilteredQuestions(
+          SearchFilters(
+            name: '',
+            keyword: f.keyword ?? '',
+            choiceCount: 0,
+            fillCount: 0,
+            solutionCount: 0,
+            targetDifficulty: 0,
+            years: f.years,
+            regions: f.regions,
+            conceptTags: f.conceptTags,
+            knowledgeCards: f.knowledgeCards,
+            diffMin: f.diffMin ?? 0,
+            diffMax: f.diffMax ?? 10,
+            calcMin: f.calcMin ?? 0,
+            calcMax: f.calcMax ?? 10,
+            examTypes: f.types,
+            questionTypes: f.questionTypes,
+          ),
+        );
+        return questions.length;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    Widget conditionsPanel() => Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: FilterPanel(
+              key: filterPanelKey,
+              horizontalMargin: AppSpacing.md,
+              yearOptions: options.years,
+              regionOptions: options.regions,
+              typeOptions: options.questionTypes,
+              conceptTagOptions: options.conceptTags,
+              conceptTagTree: options.conceptTagTree,
+              examTypeOptions: options.examTypes,
+              knowledgeCardOptions: options.knowledgeCards,
+              knowledgeCardGroups: options.knowledgeCardGroups,
+              selectAllInitially: false,
+              allowGlobalSelectAll: false,
+              showConceptSection: true,
+              showKnowledgeSection: true,
+              initialState: draft,
+              onChanged: (state) {
+                draft = state;
+                if (!receivedInitialState) {
+                  receivedInitialState = true;
+                  if (visibleResultCount.value == null) {
+                    updateVisibleCount(state);
+                  }
+                  return;
+                }
+                updateVisibleCount(state);
+              },
+            ),
+          ),
+        ),
+        ValueListenableBuilder<int?>(
+          valueListenable: visibleResultCount,
+          builder: (_, count, _) => Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: AppButton(
+              label: switch (count) {
+                null => '正在计算题目数量',
+                -1 => '请先选择筛选条件',
+                0 => '当前条件下暂无题目',
+                _ => '查看当前的$count道题',
+              },
+              size: AppButtonSize.md,
+              onPressed: count != null && count > 0
+                  ? () {
+                      Navigator.of(context).pop();
+                      _commitFilterState(draft);
+                    }
+                  : null,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    Future<void> refreshSavedRanges() async {
+      final ranges = await _preferenceRepository.getList();
+      if (!filterOverlayOpen) return;
+      _savedRanges = ranges;
+      visibleSavedRanges.value = ranges;
+    }
+
+    Widget schemesPanel(BuildContext overlayContext) => Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              AppButton(
+                label: '保存当前条件',
+                icon: Icons.bookmark_add_outlined,
+                expanded: false,
+                onPressed: () async {
+                  await _saveCurrentRange(draft);
+                  await refreshSavedRanges();
+                },
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              TextButton(
+                onPressed: () async {
+                  await RouterUtils.push(context, AppRoutes.profilePreferences);
+                  await refreshSavedRanges();
+                },
+                child: const Text('筛选方案管理'),
+              ),
+            ],
+          ),
+        ),
+        ValueListenableBuilder<int?>(
+          valueListenable: visibleResultCount,
+          builder: (_, count, _) {
+            final warning = switch (count) {
+              -1 => '当前未设置筛选条件，保存后将包含全部题目。',
+              0 => '当前条件下暂无题目，仍可保存此方案。',
+              _ => null,
+            };
+            if (warning == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  warning,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: context.colors.error),
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => filterPanelKey.currentState?.clearAll(),
-                  child: const Text('清空'),
-                ),
-                IconButton(
-                  tooltip: '关闭',
-                  onPressed: () => Navigator.of(overlayContext).pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+              ),
+            );
+          },
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ValueListenableBuilder<List<PreferenceSummary>>(
+            valueListenable: visibleSavedRanges,
+            builder: (_, ranges, _) => ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              itemCount: ranges.length,
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (_, index) {
+                final summary = ranges[index];
+                return AppCard(
+                  onTap: () async {
+                    await _applySavedRange(summary);
+                    if (overlayContext.mounted) {
+                      Navigator.of(overlayContext).pop();
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.bookmark_outline_rounded,
+                        color: context.colors.primary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: AppSpacing.xs,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  summary.name,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                FutureBuilder<int?>(
+                                  future: countFor(summary),
+                                  builder: (_, snapshot) => Text(
+                                    snapshot.data == null
+                                        ? '计算中'
+                                        : '${snapshot.data}道',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: context.colors.textSecondary,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Text(
+                              summary.summary,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right_rounded),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+
+    Widget panel(BuildContext overlayContext) => DefaultTabController(
+      length: 2,
+      child: SafeArea(
+        child: Column(
+          children: [
+            const TabBar(
+              tabs: [
+                Tab(text: '筛选条件'),
+                Tab(text: '筛选方案'),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              child: FilterPanel(
-                key: filterPanelKey,
-                horizontalMargin: AppSpacing.md,
-                yearOptions: options.years,
-                regionOptions: options.regions,
-                typeOptions: options.questionTypes,
-                conceptTagOptions: options.conceptTags,
-                conceptTagTree: options.conceptTagTree,
-                examTypeOptions: options.examTypes,
-                knowledgeCardOptions: options.knowledgeCards,
-                knowledgeCardGroups: options.knowledgeCardGroups,
-                selectAllInitially: false,
-                allowGlobalSelectAll: false,
-                showConceptSection: true,
-                showKnowledgeSection: true,
-                groupedLayout: true,
-                initialState: draft,
-                onChanged: (state) {
-                  draft = state;
-                  if (!receivedInitialState) {
-                    receivedInitialState = true;
-                    return;
-                  }
-                  visibleResultCount.value = null;
-                },
-                onLoadPreference: () =>
-                    _openSavedRangesFromFilter(overlayContext, draft),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  _KeepAliveTab(child: conditionsPanel()),
+                  _KeepAliveTab(child: schemesPanel(overlayContext)),
+                ],
               ),
             ),
-          ),
-          ValueListenableBuilder<int?>(
-            valueListenable: visibleResultCount,
-            builder: (_, count, _) => Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: AppButton(
-                label: count == null ? '查看题目' : '查看 $count 道题',
-                size: AppButtonSize.md,
-                onPressed: () {
-                  Navigator.of(overlayContext).pop();
-                  _commitFilterState(draft);
-                },
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -302,7 +517,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
           child: panel(sheetContext),
         ),
       );
+      filterOverlayOpen = false;
+      countDebounce?.cancel();
       visibleResultCount.dispose();
+      visibleSavedRanges.dispose();
       return;
     }
 
@@ -332,7 +550,10 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         child: child,
       ),
     );
+    filterOverlayOpen = false;
+    countDebounce?.cancel();
     visibleResultCount.dispose();
+    visibleSavedRanges.dispose();
   }
 
   void _scheduleSearch() {
@@ -470,29 +691,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     }
   }
 
-  String? get _currentScopeLabel {
-    if (_reviewScope == QuestionReviewScope.currentWrong) return '当前错题';
-    if (_reviewScope == QuestionReviewScope.corrected) return '已订正';
-    final keyword = _queryController.text.trim();
-    if (_selectedRangeId != null) {
-      for (final range in _savedRanges) {
-        if (range.id == _selectedRangeId) {
-          return keyword.isEmpty ? range.name : '“$keyword” · ${range.name}';
-        }
-      }
-    }
-    final labels = <String>[
-      if (_years.isNotEmpty) _years.join('/'),
-      if (_regions.isNotEmpty) _regions.join('/'),
-      if (_examTypes.isNotEmpty) _examTypes.join('/'),
-      if (_conceptTags.isNotEmpty) '概念标签 ${_conceptTags.length}',
-      if (_knowledgeCards.isNotEmpty) '知识卡片 ${_knowledgeCards.length}',
-      if (_questionTypes.isNotEmpty) '题型 ${_questionTypes.length}',
-    ];
-    if (keyword.isNotEmpty) labels.insert(0, '“$keyword”');
-    return labels.isEmpty ? null : labels.join(' · ');
-  }
-
   int get _selectedFilterGroupCount => [
     _conceptTags.isNotEmpty,
     _knowledgeCards.isNotEmpty,
@@ -504,12 +702,11 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     _calculationMin > 0 || _calculationMax < 10,
   ].where((selected) => selected).length;
 
-  Future<void> _saveCurrentRange() async {
-    if (!_hasExplicitScope || _reviewScope != null) return;
+  Future<void> _saveCurrentRange([FilterState? draft]) async {
+    if (_reviewScope != null) return;
+    final state = draft ?? _currentFilterState;
     final keyword = _queryController.text.trim();
-    final controller = TextEditingController(
-      text: _currentScopeLabel ?? '我的筛选方案',
-    );
+    final controller = TextEditingController(text: '我的筛选方案');
     var includeKeyword = keyword.isNotEmpty;
     final result = await showDialog<(String, bool)>(
       context: context,
@@ -530,22 +727,24 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                 Text('保存内容', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: AppSpacing.sm),
                 if (keyword.isNotEmpty) Text('关键词：$keyword'),
-                if (_conceptTags.isNotEmpty)
-                  Text('概念标签：${_conceptTags.length}项'),
-                if (_knowledgeCards.isNotEmpty)
-                  Text('知识卡片：${_knowledgeCards.length}项'),
-                if (_years.isNotEmpty) Text('年份：${_years.join('、')}'),
-                if (_regions.isNotEmpty) Text('地区：${_regions.join('、')}'),
-                if (_examTypes.isNotEmpty) Text('考试类型：${_examTypes.join('、')}'),
-                if (_questionTypes.isNotEmpty)
+                if (state.conceptTags.isNotEmpty)
+                  Text('概念标签：${state.conceptTags.length}项'),
+                if (state.knowledgeCards.isNotEmpty)
+                  Text('知识卡片：${state.knowledgeCards.length}项'),
+                if (state.years.isNotEmpty) Text('年份：${state.years.join('、')}'),
+                if (state.regions.isNotEmpty)
+                  Text('地区：${state.regions.join('、')}'),
+                if (state.examTypes.isNotEmpty)
+                  Text('考试类型：${state.examTypes.join('、')}'),
+                if (state.types.isNotEmpty)
                   Text(
-                    '题型：${_questionTypes.map(QuestionTypeLabels.of).join('、')}',
+                    '题型：${state.types.map(QuestionTypeLabels.of).join('、')}',
                   ),
                 Text(
-                  '难度：${_difficultyMin.toStringAsFixed(0)}—${_difficultyMax.toStringAsFixed(0)}',
+                  '难度：${state.diffMin.toStringAsFixed(0)}—${state.diffMax.toStringAsFixed(0)}',
                 ),
                 Text(
-                  '计算量：${_calculationMin.toStringAsFixed(0)}—${_calculationMax.toStringAsFixed(0)}',
+                  '计算量：${state.calcMin.toStringAsFixed(0)}—${state.calcMax.toStringAsFixed(0)}',
                 ),
                 if (keyword.isNotEmpty)
                   CheckboxListTile(
@@ -584,16 +783,16 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         name: result.$1,
         filter: PreferenceFilter(
           keyword: result.$2 ? keyword : null,
-          years: _years.toList(),
-          regions: _regions.toList(),
-          conceptTags: _conceptTags.toList(),
-          types: _examTypes.toList(),
-          knowledgeCards: _knowledgeCards.toList(),
-          questionTypes: _questionTypes.toList(),
-          diffMin: _difficultyMin > 0 ? _difficultyMin : null,
-          diffMax: _difficultyMax < 10 ? _difficultyMax : null,
-          calcMin: _calculationMin > 0 ? _calculationMin : null,
-          calcMax: _calculationMax < 10 ? _calculationMax : null,
+          years: state.years.toList(),
+          regions: state.regions.toList(),
+          conceptTags: state.conceptTags.toList(),
+          types: state.examTypes.toList(),
+          knowledgeCards: state.knowledgeCards.toList(),
+          questionTypes: state.types.toList(),
+          diffMin: state.diffMin > 0 ? state.diffMin : null,
+          diffMax: state.diffMax < 10 ? state.diffMax : null,
+          calcMin: state.calcMin > 0 ? state.calcMin : null,
+          calcMax: state.calcMax < 10 ? state.calcMax : null,
         ),
       );
       final ranges = await _preferenceRepository.getList();
@@ -765,6 +964,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   @override
   Widget build(BuildContext context) {
     final options = _filterOptions;
+    final isReviewList = widget.initialReviewScope != null;
     return Scaffold(
       appBar: AppBar(toolbarHeight: 64, title: const Text('题库'), actions: []),
       body: options == null && _error == null
@@ -811,37 +1011,43 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                   },
                   stateSlivers: _buildResultSlivers(),
                   headerSliversBuilder: (context, selectedIds) => [
-                    if (options != null)
+                    if (isReviewList)
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.md),
+                      ),
+                    if (!isReviewList) ...[
+                      if (options != null)
+                        SliverPadding(
+                          padding: const EdgeInsets.only(top: AppSpacing.sm),
+                          sliver: SliverToBoxAdapter(
+                            child: _KeywordSearchBrowser(
+                              controller: _queryController,
+                              onChanged: (_) => _scheduleSearch(),
+                              onSubmitted: (_) => _search(),
+                              selectedGroupCount: _selectedFilterGroupCount,
+                              onOpenFilters: _openFilters,
+                            ),
+                          ),
+                        ),
                       SliverPadding(
-                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        padding: const EdgeInsets.only(
+                          top: AppSpacing.sm,
+                          bottom: AppSpacing.xs,
+                        ),
                         sliver: SliverToBoxAdapter(
-                          child: _KeywordSearchBrowser(
-                            controller: _queryController,
-                            onChanged: (_) => _scheduleSearch(),
-                            onSubmitted: (_) => _search(),
-                            selectedGroupCount: _selectedFilterGroupCount,
-                            onOpenFilters: _openFilters,
+                          child: _QuestionResultsHeader(
+                            key: _resultsKey,
+                            questions: _questions,
+                            onAddAll: _addAllVisibleQuestions,
+                            onClearBasket: _clearBasket,
+                            onSmartPaper: _createSmartPaper,
+                            creatingPaper: _creatingPaper,
+                            hasSelectedQuestions: _selectedQuestions.isNotEmpty,
+                            allVisibleSelected: _allVisibleQuestionsSelected,
                           ),
                         ),
                       ),
-                    SliverPadding(
-                      padding: const EdgeInsets.only(
-                        top: AppSpacing.sm,
-                        bottom: AppSpacing.xs,
-                      ),
-                      sliver: SliverToBoxAdapter(
-                        child: _QuestionResultsHeader(
-                          key: _resultsKey,
-                          questions: _questions,
-                          onAddAll: _addAllVisibleQuestions,
-                          onClearBasket: _clearBasket,
-                          onSmartPaper: _createSmartPaper,
-                          creatingPaper: _creatingPaper,
-                          hasSelectedQuestions: _selectedQuestions.isNotEmpty,
-                          allVisibleSelected: _allVisibleQuestionsSelected,
-                        ),
-                      ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -1143,16 +1349,10 @@ class _QuestionResultsHeader extends StatelessWidget {
             padding: const EdgeInsets.only(top: AppSpacing.xs),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final addAll = TextButton(
+                final addAll = TextButton.icon(
                   onPressed: allVisibleSelected ? null : onAddAll,
-                  child: const Text('全选当前结果'),
-                );
-                final clear = TextButton(
-                  onPressed: onClearBasket,
-                  child: Text(
-                    '清空',
-                    style: TextStyle(color: context.colors.textMuted),
-                  ),
+                  icon: const Icon(Icons.select_all_rounded),
+                  label: const Text('全选当前结果'),
                 );
                 final smart = FilledButton.icon(
                   style: FilledButton.styleFrom(
@@ -1169,15 +1369,51 @@ class _QuestionResultsHeader extends StatelessWidget {
                   icon: const Icon(Icons.auto_awesome_rounded),
                   label: Text(hasSelectedQuestions ? '智能补全' : '智能选题'),
                 );
-                if (constraints.maxWidth < 520) {
-                  return Wrap(
-                    spacing: AppSpacing.xs,
-                    runSpacing: AppSpacing.xs,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [addAll, clear, smart],
-                  );
-                }
-                return Row(children: [addAll, clear, const Spacer(), smart]);
+                final compact = constraints.maxWidth < 520;
+                final menuItems = <PopupMenuEntry<String>>[
+                  if (compact && !allVisibleSelected)
+                    const PopupMenuItem(
+                      value: 'select_all',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.select_all_rounded),
+                        title: Text('全选当前结果'),
+                      ),
+                    ),
+                  if (hasSelectedQuestions)
+                    const PopupMenuItem(
+                      value: 'clear',
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(Icons.clear_all_rounded),
+                        title: Text('清空已选题目'),
+                      ),
+                    ),
+                ];
+                final more = menuItems.isEmpty
+                    ? null
+                    : PopupMenuButton<String>(
+                        tooltip: '更多选择操作',
+                        icon: const Icon(Icons.more_horiz),
+                        onSelected: (value) {
+                          if (value == 'select_all') onAddAll();
+                          if (value == 'clear') onClearBasket();
+                        },
+                        itemBuilder: (context) => menuItems,
+                      );
+                return Row(
+                  children: [
+                    smart,
+                    if (!compact) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      addAll,
+                    ],
+                    if (more != null) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      more,
+                    ],
+                  ],
+                );
               },
             ),
           ),
@@ -1218,7 +1454,7 @@ class _FilterLauncher extends StatelessWidget {
                 '已选 $selectedGroupCount 组',
                 style: TextStyle(
                   color: context.colors.primary,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
@@ -1382,5 +1618,26 @@ class _SmartPaperCountDialogState extends State<_SmartPaperCountDialog> {
         ),
       ],
     );
+  }
+}
+
+class _KeepAliveTab extends StatefulWidget {
+  const _KeepAliveTab({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+}
+
+class _KeepAliveTabState extends State<_KeepAliveTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

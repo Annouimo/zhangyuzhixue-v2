@@ -51,20 +51,20 @@ abstract final class AppColors {
 
   // ── 语义色 — 主色 ──
   static const success = Color(0xFF087A55);
-  static const warning = Color(0xFFF5A524);
+  static const warning = Color(0xFFC2410C);
   static const error = Color(0xFFD92D20);
-  static const info = Color(0xFF006BD1);
+  static const info = Color(0xFF087E8B);
   static const recommendation = Color(0xFFE59A00);
 
   // ── 语义色 — 容器 ──
   static const successContainer = Color(0xFFE8F7F0);
   static const onSuccessContainer = Color(0xFF065F46);
-  static const warningContainer = Color(0xFFFFF3D6);
-  static const onWarningContainer = Color(0xFF6B3A00);
+  static const warningContainer = Color(0xFFFFF0E8);
+  static const onWarningContainer = Color(0xFF8A2C0A);
   static const errorContainer = Color(0xFFFFF0EF);
   static const onErrorContainer = Color(0xFF9F1B15);
-  static const infoContainer = Color(0xFFEAF4FF);
-  static const onInfoContainer = Color(0xFF0055AA);
+  static const infoContainer = Color(0xFFE6F6F7);
+  static const onInfoContainer = Color(0xFF075D66);
   static const recommendationContainer = Color(0xFFFFF4D6);
   static const onRecommendationContainer = Color(0xFF7A4500);
 
@@ -116,19 +116,19 @@ abstract final class AppColorsDark {
   static const disabledForeground = Color(0xFF8994A5);
 
   static const success = Color(0xFF67D6AD);
-  static const warning = Color(0xFFFFD37A);
+  static const warning = Color(0xFFFF9B62);
   static const error = Color(0xFFFF8B84);
-  static const info = Color(0xFF85C3FF);
+  static const info = Color(0xFF63D4DD);
   static const recommendation = Color(0xFFFFC65A);
 
   static const successContainer = Color(0xFF123B31);
   static const onSuccessContainer = Color(0xFFA7EACF);
-  static const warningContainer = Color(0xFF49350F);
-  static const onWarningContainer = Color(0xFFFFE2A5);
+  static const warningContainer = Color(0xFF4A2516);
+  static const onWarningContainer = Color(0xFFFFD2BA);
   static const errorContainer = Color(0xFF4A1D1D);
   static const onErrorContainer = Color(0xFFFFC1BD);
-  static const infoContainer = Color(0xFF12365B);
-  static const onInfoContainer = Color(0xFFCDE6FF);
+  static const infoContainer = Color(0xFF10383D);
+  static const onInfoContainer = Color(0xFFB9F3F6);
   static const recommendationContainer = Color(0xFF4A3510);
   static const onRecommendationContainer = Color(0xFFFFE1A1);
 

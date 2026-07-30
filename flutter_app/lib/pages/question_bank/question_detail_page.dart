@@ -76,21 +76,33 @@ class _StudentQuestionDetailPageState extends State<StudentQuestionDetailPage> {
       appBar: AppBar(
         title: const Text('题目详情'),
         actions: [
-          IconButton(
-            tooltip: '投稿新的解法',
-            icon: const Icon(Icons.account_tree_outlined),
-            onPressed: () => RouterUtils.push(
-              context,
-              '${AppRoutes.contributionNew}?mode=solution&questionId=${widget.questionId}',
-            ),
-          ),
-          IconButton(
-            tooltip: '反馈题目错误',
-            icon: const Icon(Icons.report_outlined),
-            onPressed: () => RouterUtils.push(
-              context,
-              '${AppRoutes.contributionCorrection}?questionId=${widget.questionId}',
-            ),
+          PopupMenuButton<String>(
+            tooltip: '更多题目操作',
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (value) {
+              final route = value == 'solution'
+                  ? '${AppRoutes.contributionNew}?mode=solution&questionId=${widget.questionId}'
+                  : '${AppRoutes.contributionCorrection}?questionId=${widget.questionId}';
+              RouterUtils.push(context, route);
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'solution',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.account_tree_outlined),
+                  title: Text('投稿新的解法'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'correction',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.report_outlined),
+                  title: Text('反馈题目错误'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

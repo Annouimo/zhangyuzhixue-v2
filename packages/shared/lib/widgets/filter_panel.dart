@@ -55,9 +55,6 @@ class FilterPanel extends StatefulWidget {
   final bool showConceptSection;
   final bool showKnowledgeSection;
 
-  /// Whether to group selectors into content, source, and question tabs.
-  final bool groupedLayout;
-
   /// 面板首次构建时使用的外部筛选状态。
   final FilterState? initialState;
 
@@ -80,7 +77,6 @@ class FilterPanel extends StatefulWidget {
     this.allowGlobalSelectAll = true,
     this.showConceptSection = true,
     this.showKnowledgeSection = true,
-    this.groupedLayout = false,
     this.initialState,
   });
 
@@ -101,27 +97,9 @@ class FilterPanelState extends State<FilterPanel> {
   double _calcMin = 0, _calcMax = 10;
   SortMode _sort = SortMode.newestFirst;
 
-  bool _yearExpanded = false;
-  bool _regionExpanded = false;
-  bool _examTypeExpanded = false;
-  bool _typeExpanded = false;
-  bool _conceptExpanded = false;
-  bool _knowledgeExpanded = false;
-  bool _difficultyExpanded = false;
-  bool _calculationExpanded = false;
   int _groupIndex = 0;
 
   bool _initialized = false;
-
-  bool get _allEmpty =>
-      _selectedYears.isEmpty &&
-      _selectedRegions.isEmpty &&
-      _selectedTypes.isEmpty &&
-      _selectedExamTypes.isEmpty &&
-      _selectedConceptTagNames.isEmpty &&
-      _selectedKnowledgeCardTitles.isEmpty &&
-      _selectedConceptTags.isEmpty &&
-      _selectedKnowledgeCards.isEmpty;
 
   Set<String> get selectedYears => _selectedYears;
   Set<String> get selectedRegions => _selectedRegions;
@@ -268,7 +246,6 @@ class FilterPanelState extends State<FilterPanel> {
   }
 
   void _emit() {
-    final colors = context.colors;
     final flatTags = _selectedConceptTagNames.isNotEmpty
         ? _selectedConceptTagNames
         : _selectedConceptTags;
@@ -302,393 +279,8 @@ class FilterPanelState extends State<FilterPanel> {
     );
   }
 
-  /// 空维度提示 — 有选项但用户未选任何项时，列出维度名
-  List<String> get _emptyHints {
-    final h = <String>[];
-    if (widget.yearOptions.isNotEmpty && _selectedYears.isEmpty) h.add('年份未选');
-    if (widget.regionOptions.isNotEmpty && _selectedRegions.isEmpty)
-      h.add('地区未选');
-    if (widget.examTypeOptions.isNotEmpty && _selectedExamTypes.isEmpty)
-      h.add('考试类型未选');
-    if (widget.typeOptions.isNotEmpty && _selectedTypes.isEmpty) h.add('题型未选');
-    if (widget.conceptTagOptions.isNotEmpty && _selectedConceptTagNames.isEmpty)
-      h.add('概念标签未选');
-    if (widget.knowledgeCardOptions.isNotEmpty &&
-        _selectedKnowledgeCardTitles.isEmpty)
-      h.add('知识卡片未选');
-    return h;
-  }
-
-  List<String> get _summaryLabels {
-    final labels = <String>[];
-    if (_selectedYears.isNotEmpty &&
-        _selectedYears.length < widget.yearOptions.length) {
-      labels.add(_selectedYears.join(' '));
-    }
-    if (_selectedRegions.isNotEmpty &&
-        _selectedRegions.length < widget.regionOptions.length) {
-      labels.add(_selectedRegions.join('/'));
-    }
-    if (_selectedTypes.isNotEmpty &&
-        _selectedTypes.length < widget.typeOptions.length) {
-      labels.add(
-        _selectedTypes.map((type) => QuestionTypeLabels.of(type)).join('/'),
-      );
-    }
-    if (_selectedExamTypes.isNotEmpty &&
-        _selectedExamTypes.length < widget.examTypeOptions.length) {
-      labels.add(_selectedExamTypes.join('/'));
-    }
-    final tagCount = _selectedConceptTagNames.length;
-    final kcCount = _selectedKnowledgeCardTitles.length;
-    if (tagCount > 0 && tagCount < widget.conceptTagOptions.length) {
-      labels.add('概念标签 $tagCount');
-    }
-    if (kcCount > 0 && kcCount < widget.knowledgeCardOptions.length) {
-      labels.add('知识卡片 $kcCount');
-    }
-    if ((_diffMin > 0 || _diffMax < 10) || (_calcMin > 0 || _calcMax < 10)) {
-      final d = _diffMin > 0 || _diffMax < 10
-          ? '难度 ${_diffMin.toStringAsFixed(0)}-${_diffMax.toStringAsFixed(0)}'
-          : null;
-      final c = _calcMin > 0 || _calcMax < 10
-          ? '计算量 ${_calcMin.toStringAsFixed(0)}-${_calcMax.toStringAsFixed(0)}'
-          : null;
-      labels.add([d, c].nonNulls.join(' '));
-    }
-    if (labels.isEmpty) {
-      labels.add(widget.selectAllInitially ? '全部' : '未选择');
-    }
-    return labels;
-  }
-
-  // ── 排序选择器（仅 showSort=true 时显示） ──
-  static const _sortOptions = {
-    SortMode.newestFirst: '最新优先',
-    SortMode.oldestFirst: '最早优先',
-    SortMode.difficultyDesc: '难度↓',
-    SortMode.difficultyAsc: '难度↑',
-    SortMode.byType: '按题型',
-  };
-
-  Widget _buildSortRow() {
-    final colors = context.colors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 8),
-        Padding(
-          padding: EdgeInsets.only(bottom: 4),
-          child: Text(
-            '排序方式',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-            ),
-          ),
-        ),
-        Wrap(
-          spacing: 6,
-          runSpacing: 4,
-          children: _sortOptions.entries.map((entry) {
-            final mode = entry.key;
-            final label = entry.value;
-            final isSelected = _sort == mode;
-            return GestureDetector(
-              onTap: () {
-                setState(() => _sort = mode);
-                _emit();
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected ? colors.primaryContainer : colors.surface,
-                  borderRadius: BorderRadius.circular(AppSizes.buttonRadius),
-                  border: isSelected
-                      ? Border.all(color: Colors.transparent)
-                      : Border.all(color: colors.border),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isSelected ? colors.primary : colors.textSecondary,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
-    if (widget.groupedLayout) return _buildGroupedLayout(context);
-    final colors = context.colors;
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        side: BorderSide(color: colors.border),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题行
-            Row(
-              children: [
-                Text(
-                  '筛选条件',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-                Spacer(),
-                if (!_allEmpty || widget.allowGlobalSelectAll)
-                  TextButton(
-                    onPressed: _allEmpty ? selectAll : clearAll,
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      _allEmpty ? '全选' : '清空',
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  ),
-              ],
-            ),
-            FilterPanelSummary(
-              labels: _summaryLabels,
-              emptyHints: _allEmpty ? const [] : _emptyHints,
-            ),
-            if (widget.onSavePreference != null ||
-                widget.onLoadPreference != null)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                margin: EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: colors.background,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  children: [
-                    if (widget.onSavePreference != null)
-                      GestureDetector(
-                        onTap: widget.onSavePreference,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.save_outlined,
-                              size: 14,
-                              color: colors.primary,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '保存筛选方案',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (widget.onSavePreference != null &&
-                        widget.onLoadPreference != null)
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          '|',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.textMuted,
-                          ),
-                        ),
-                      ),
-                    if (widget.onLoadPreference != null)
-                      GestureDetector(
-                        onTap: widget.onLoadPreference,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.folder_open_outlined,
-                              size: 14,
-                              color: colors.primary,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              '应用筛选方案',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            _buildSection(
-              _sectionTitle('年份', _selectedYears.length),
-              _yearExpanded,
-              () {
-                setState(() => _yearExpanded = !_yearExpanded);
-              },
-              [_buildChipGroup('年份', widget.yearOptions, _selectedYears)],
-            ),
-            const SizedBox(height: 8),
-            _buildSection(
-              _sectionTitle('地区', _selectedRegions.length),
-              _regionExpanded,
-              () => setState(() => _regionExpanded = !_regionExpanded),
-              [_buildChipGroup('地区', widget.regionOptions, _selectedRegions)],
-            ),
-            const SizedBox(height: 8),
-            if (widget.examTypeOptions.isNotEmpty) ...[
-              _buildSection(
-                _sectionTitle('考试类型', _selectedExamTypes.length),
-                _examTypeExpanded,
-                () => setState(() => _examTypeExpanded = !_examTypeExpanded),
-                [
-                  _buildChipGroup(
-                    '考试类型',
-                    widget.examTypeOptions,
-                    _selectedExamTypes,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.typeOptions.isNotEmpty) ...[
-              _buildSection(
-                _sectionTitle('题型', _selectedTypes.length),
-                _typeExpanded,
-                () => setState(() => _typeExpanded = !_typeExpanded),
-                [_buildTypeChipGroup(widget.typeOptions, _selectedTypes)],
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.showConceptSection && widget.conceptTagTree.isNotEmpty)
-              _section(
-                _sectionTitle('专题', _selectedConceptTagNames.length),
-                _conceptExpanded,
-                () {
-                  setState(() => _conceptExpanded = !_conceptExpanded);
-                },
-                ConceptTagTreeView(
-                  nodes: widget.conceptTagTree,
-                  selectedNames: _selectedConceptTagNames,
-                  compactLeaves: true,
-                  onChanged: (names) {
-                    setState(() {
-                      _selectedConceptTagNames
-                        ..clear()
-                        ..addAll(names);
-                      _selectedConceptTags
-                        ..clear()
-                        ..addAll(names);
-                    });
-                    _emit();
-                  },
-                ),
-              ),
-            if (widget.showConceptSection && widget.conceptTagTree.isNotEmpty)
-              const SizedBox(height: 8),
-            if (widget.showKnowledgeSection &&
-                widget.knowledgeCardGroups.isNotEmpty)
-              _section(
-                _sectionTitle('知识卡片', _selectedKnowledgeCardTitles.length),
-                _knowledgeExpanded,
-                () {
-                  setState(() => _knowledgeExpanded = !_knowledgeExpanded);
-                },
-                KnowledgeCardGroupView(
-                  groups: widget.knowledgeCardGroups,
-                  selectedTitles: _selectedKnowledgeCardTitles,
-                  compact: true,
-                  onChanged: (titles) {
-                    setState(() {
-                      _selectedKnowledgeCardTitles
-                        ..clear()
-                        ..addAll(titles);
-                      _selectedKnowledgeCards
-                        ..clear()
-                        ..addAll(titles);
-                    });
-                    _emit();
-                  },
-                ),
-              ),
-            if (widget.showKnowledgeSection &&
-                widget.knowledgeCardGroups.isNotEmpty)
-              const SizedBox(height: 8),
-            _buildSection(
-              _rangeTitle('难度', _diffMin, _diffMax),
-              _difficultyExpanded,
-              () {
-                setState(() => _difficultyExpanded = !_difficultyExpanded);
-              },
-              [
-                DifficultySlider(
-                  label: '难度范围',
-                  min: 0,
-                  max: 10,
-                  lower: _diffMin,
-                  upper: _diffMax,
-                  onChanged: (v) {
-                    setState(() {
-                      _diffMin = v.start;
-                      _diffMax = v.end;
-                    });
-                    _emit();
-                  },
-                ),
-                _buildSegmentDesc(_difficultySegments, _diffMin, _diffMax),
-                const SizedBox(height: 4),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildSection(
-              _rangeTitle('计算量', _calcMin, _calcMax),
-              _calculationExpanded,
-              () =>
-                  setState(() => _calculationExpanded = !_calculationExpanded),
-              [
-                DifficultySlider(
-                  label: '计算量范围',
-                  min: 0,
-                  max: 10,
-                  lower: _calcMin,
-                  upper: _calcMax,
-                  onChanged: (v) {
-                    setState(() {
-                      _calcMin = v.start;
-                      _calcMax = v.end;
-                    });
-                    _emit();
-                  },
-                ),
-                _buildSegmentDesc(_workloadSegments, _calcMin, _calcMax),
-              ],
-            ),
-            const SizedBox(height: 4),
-            // 排序方式
-            if (widget.showSort) _buildSortRow(),
-          ],
-        ),
-      ),
-    );
-  }
-
+  Widget build(BuildContext context) => _buildGroupedLayout(context);
   Widget _buildGroupedLayout(BuildContext context) {
     final colors = context.colors;
     final groups = <Widget>[
@@ -824,18 +416,18 @@ class FilterPanelState extends State<FilterPanel> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
+                      _buildGroupedTab(0, '试题来源', _sourceGroupCount),
+                      _buildGroupedTab(1, '题目特征', _featureGroupCount),
                       _buildGroupedTab(
-                        0,
+                        2,
                         '概念标签',
                         _selectedConceptTagNames.length,
                       ),
                       _buildGroupedTab(
-                        1,
+                        3,
                         '知识卡片',
                         _selectedKnowledgeCardTitles.length,
                       ),
-                      _buildGroupedTab(2, '试题来源', _sourceGroupCount),
-                      _buildGroupedTab(3, '题目特征', _featureGroupCount),
                     ],
                   ),
                 ),
@@ -843,26 +435,49 @@ class FilterPanelState extends State<FilterPanel> {
             ],
           ),
           const SizedBox(height: 8),
-          if (_currentGroupHasSelection)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: _clearCurrentGroup,
-                style: TextButton.styleFrom(
-                  minimumSize: Size.zero,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 4,
+              children: [
+                if (_currentGroupHasSelection)
+                  TextButton.icon(
+                    onPressed: _clearCurrentGroup,
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                    label: const Text('重置当前维度'),
                   ),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                TextButton.icon(
+                  onPressed: clearAll,
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                  label: const Text('重置所有维度'),
                 ),
-                icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                label: const Text('重置当前维度'),
-              ),
+              ],
             ),
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: groups[_groupIndex],
+            child: groups[switch (_groupIndex) {
+              0 => 2,
+              1 => 3,
+              2 => 0,
+              _ => 1,
+            }],
           ),
         ],
       ),
@@ -925,112 +540,37 @@ class FilterPanelState extends State<FilterPanel> {
   ].where((selected) => selected).length;
 
   bool get _currentGroupHasSelection => switch (_groupIndex) {
-    0 => _selectedConceptTagNames.isNotEmpty,
-    1 => _selectedKnowledgeCardTitles.isNotEmpty,
-    2 => _sourceGroupCount > 0,
-    _ => _featureGroupCount > 0,
+    0 => _sourceGroupCount > 0,
+    1 => _featureGroupCount > 0,
+    2 => _selectedConceptTagNames.isNotEmpty,
+    _ => _selectedKnowledgeCardTitles.isNotEmpty,
   };
 
   void _clearCurrentGroup() {
     setState(() {
       switch (_groupIndex) {
         case 0:
-          _selectedConceptTagNames.clear();
-          _selectedConceptTags.clear();
+          _selectedYears.clear();
+          _selectedRegions.clear();
+          _selectedExamTypes.clear();
           break;
         case 1:
-          _selectedKnowledgeCardTitles.clear();
-          _selectedKnowledgeCards.clear();
-          break;
-        case 2:
-          _selectedYears.clear();
-          _selectedRegions.clear();
-          _selectedExamTypes.clear();
-          break;
-        default:
           _selectedTypes.clear();
           _diffMin = 0;
           _diffMax = 10;
           _calcMin = 0;
           _calcMax = 10;
-      }
-    });
-    _emit();
-  }
-
-  void _clearGroupedSelection(String key) {
-    setState(() {
-      switch (key) {
-        case 'concept':
+          break;
+        case 2:
           _selectedConceptTagNames.clear();
           _selectedConceptTags.clear();
           break;
-        case 'knowledge':
+        default:
           _selectedKnowledgeCardTitles.clear();
           _selectedKnowledgeCards.clear();
-          break;
-        case 'years':
-          _selectedYears.clear();
-          break;
-        case 'regions':
-          _selectedRegions.clear();
-          break;
-        case 'examTypes':
-          _selectedExamTypes.clear();
-          break;
-        case 'types':
-          _selectedTypes.clear();
-          break;
-        case 'difficulty':
-          _diffMin = 0;
-          _diffMax = 10;
-          break;
-        case 'calculation':
-          _calcMin = 0;
-          _calcMax = 10;
-          break;
       }
     });
     _emit();
-  }
-
-  Widget _buildSection(
-    String title,
-    bool expanded,
-    VoidCallback onToggle,
-    List<Widget> children,
-  ) {
-    return FilterPanelSection(
-      title: title,
-      expanded: expanded,
-      onToggle: onToggle,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-
-  String _sectionTitle(String label, int count) =>
-      count == 0 ? '$label · 全部' : '$label · 已选 $count';
-
-  String _rangeTitle(String label, double min, double max) =>
-      min == 0 && max == 10
-      ? '$label · 全部'
-      : '$label · ${min.toStringAsFixed(0)}-${max.toStringAsFixed(0)}';
-
-  Widget _section(
-    String title,
-    bool expanded,
-    VoidCallback onToggle,
-    Widget child,
-  ) {
-    return FilterPanelSection(
-      title: title,
-      expanded: expanded,
-      onToggle: onToggle,
-      child: child,
-    );
   }
 
   Widget _buildChipGroup(

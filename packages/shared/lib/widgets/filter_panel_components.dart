@@ -256,7 +256,7 @@ class FilterExpandableCategoryRow extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: selected
                             ? FontWeight.w600
-                            : FontWeight.w500,
+                            : FontWeight.w400,
                         color: selected ? colors.primary : colors.textPrimary,
                       ),
                     ),

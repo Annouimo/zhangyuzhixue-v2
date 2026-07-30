@@ -11,10 +11,14 @@ class AppToast {
     required String message,
     IconData? icon,
     Color? backgroundColor,
+    Color? foregroundColor,
     int durationMs = 3000,
     String? actionLabel,
     VoidCallback? onAction,
   }) {
+    final colors = context.colors;
+    final effectiveBackground = backgroundColor ?? colors.textPrimary;
+    final effectiveForeground = foregroundColor ?? colors.textInverse;
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -22,15 +26,15 @@ class AppToast {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 18, color: Colors.white),
+              Icon(icon, size: 18, color: effectiveForeground),
               const SizedBox(width: 8),
             ],
             Flexible(
               child: Text(
                 message,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white,
+                  color: effectiveForeground,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -41,11 +45,16 @@ class AppToast {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        backgroundColor: backgroundColor ?? AppColors.textPrimary,
+        backgroundColor: effectiveBackground,
         duration: Duration(milliseconds: durationMs),
         action: actionLabel == null || onAction == null
             ? null
-            : SnackBarAction(label: actionLabel, onPressed: onAction),
+            : SnackBarAction(
+                label: actionLabel,
+                textColor: effectiveForeground,
+                disabledTextColor: effectiveForeground.withValues(alpha: 0.6),
+                onPressed: onAction,
+              ),
       ),
     );
   }
@@ -61,7 +70,8 @@ class AppToast {
       context,
       icon: icon,
       message: message,
-      backgroundColor: context.colors.success,
+      backgroundColor: context.colors.successContainer,
+      foregroundColor: context.colors.onSuccessContainer,
       actionLabel: actionLabel,
       onAction: onAction,
     );
@@ -78,7 +88,8 @@ class AppToast {
       context,
       icon: icon,
       message: message,
-      backgroundColor: context.colors.error,
+      backgroundColor: context.colors.errorContainer,
+      foregroundColor: context.colors.onErrorContainer,
       actionLabel: actionLabel,
       onAction: onAction,
     );
@@ -95,7 +106,8 @@ class AppToast {
       context,
       icon: icon,
       message: message,
-      backgroundColor: context.colors.warning,
+      backgroundColor: context.colors.warningContainer,
+      foregroundColor: context.colors.onWarningContainer,
       actionLabel: actionLabel,
       onAction: onAction,
     );
@@ -112,6 +124,8 @@ class AppToast {
       context,
       icon: icon,
       message: message,
+      backgroundColor: context.colors.infoContainer,
+      foregroundColor: context.colors.onInfoContainer,
       actionLabel: actionLabel,
       onAction: onAction,
     );

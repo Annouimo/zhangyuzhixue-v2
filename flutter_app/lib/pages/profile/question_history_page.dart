@@ -122,9 +122,11 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
               bottom: AppSpacing.md,
             ),
             sliver: SliverToBoxAdapter(
-              child: AppSectionHeader(
-                title: '最近记录',
-                subtitle: '共 ${history.length} 道，点击题目继续作答或查看解析。',
+              child: Text(
+                '共 ${history.length} 道，点击题目继续作答或查看解析。',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ),

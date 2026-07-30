@@ -371,15 +371,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.profilePreferences,
       name: 'profile-preferences',
-      builder: (_, state) {
-        final selectionMode = state.uri.queryParameters['select'] == '1';
-        return PreferenceListPage(
-          selectionMode: selectionMode,
-          onSaveCurrent: selectionMode
-              ? state.extra as Future<void> Function()?
-              : null,
-        );
-      },
+      builder: (_, _) => const PreferenceListPage(),
     ),
     GoRoute(
       path: AppRoutes.preferenceEdit,

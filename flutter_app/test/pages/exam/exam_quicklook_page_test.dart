@@ -106,8 +106,11 @@ void main() {
       expect(find.text('中难'), findsOneWidget);
       expect(find.text('开始计时'), findsOneWidget);
       expect(find.text('快速对答案'), findsOneWidget);
-      expect(find.text('打印试卷'), findsOneWidget);
+      expect(find.text('打印试卷'), findsNothing);
       expect(find.byTooltip('更多试卷操作'), findsOneWidget);
+      await tester.tap(find.byTooltip('更多试卷操作'));
+      await tester.pumpAndSettle();
+      expect(find.text('打印试卷'), findsOneWidget);
     });
 
     testWidgets('starts and stops a session timer without persistence', (

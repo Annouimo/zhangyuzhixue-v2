@@ -61,31 +61,6 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
     });
 
-    testWidgets('selection mode exposes apply and save-current actions', (
-      tester,
-    ) async {
-      final repo = _MockPreferenceRepository(
-        results: [
-          const PreferenceSummary(id: 1, name: '北京真题', summary: '2025 北京'),
-        ],
-      );
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PreferenceListPage(
-            preferenceRepository: repo,
-            selectionMode: true,
-            onSaveCurrent: () async {},
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('选择筛选方案'), findsOneWidget);
-      expect(find.text('应用筛选方案'), findsOneWidget);
-      expect(find.text('保存当前条件'), findsWidgets);
-      expect(find.text('北京真题'), findsOneWidget);
-    });
-
     testWidgets('shows empty placeholder when no preferences', (tester) async {
       final repo = _MockPreferenceRepository(results: []);
       await tester.pumpWidget(

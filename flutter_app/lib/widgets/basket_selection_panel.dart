@@ -140,7 +140,7 @@ class _BasketSelectionPanelState extends State<BasketSelectionPanel> {
                       Text(
                         widget.title,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
@@ -217,7 +217,7 @@ class _BasketSelectionPanelState extends State<BasketSelectionPanel> {
                             : context.colors.textSecondary,
                         fontWeight: footer.destructive
                             ? FontWeight.w600
-                            : FontWeight.normal,
+                            : FontWeight.w400,
                       ),
                     ),
                   ),

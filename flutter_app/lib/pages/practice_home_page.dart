@@ -9,27 +9,21 @@ class PracticeHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('学习与出卷')),
+      appBar: AppBar(title: const Text('首页')),
       body: AppContentContainer(
         maxWidth: AppContentWidth.reading,
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            AppNavigationCard(
-              icon: Icons.auto_awesome_rounded,
-              title: '推荐练习',
-              subtitle: '系统结合新题与旧题，安排当前最适合的练习',
-              tone: AppStatusTone.recommendation,
-              onTap: () => RouterUtils.push(context, AppRoutes.recommend),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const AppSectionHeader(
-              title: '选题与出卷',
-              subtitle: '找题、整理试题并管理已经生成的试卷',
-            ),
-            const SizedBox(height: AppSpacing.sm),
             AppResponsiveCardGrid(
               children: [
+                AppNavigationCard(
+                  icon: Icons.auto_awesome_rounded,
+                  title: '推荐练习',
+                  subtitle: '系统结合新题与旧题，安排当前最适合的练习',
+                  tone: AppStatusTone.recommendation,
+                  onTap: () => RouterUtils.push(context, AppRoutes.recommend),
+                ),
                 AppNavigationCard(
                   icon: Icons.search_rounded,
                   title: '题库选题',
@@ -56,6 +50,14 @@ class PracticeHomePage extends StatelessWidget {
                   title: '试卷中心',
                   subtitle: '查看我创建的、发现和收藏的试卷',
                   onTap: () => RouterUtils.push(context, AppRoutes.examHome),
+                ),
+                AppNavigationCard(
+                  icon: Icons.rate_review_outlined,
+                  title: '内容贡献',
+                  subtitle: '投稿新题、查看审核进度',
+                  tone: AppStatusTone.info,
+                  onTap: () =>
+                      RouterUtils.push(context, AppRoutes.contributions),
                 ),
               ],
             ),

@@ -139,14 +139,22 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppSectionHeader(
-                        title: '公开试卷',
-                        subtitle: '发现其他同学分享的内容，收藏后可以随时查看。',
-                        action: IconButton(
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '发现其他同学分享的内容，收藏后可以随时查看。',
+                              style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          IconButton(
                           tooltip: '刷新',
                           onPressed: () => _loadKey.currentState?.refresh(),
                           icon: const Icon(AppIcons.refresh),
-                        ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       TextField(

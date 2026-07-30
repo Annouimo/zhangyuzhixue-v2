@@ -84,11 +84,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('试卷'), findsAtLeast(1));
       expect(find.text('快速对答案'), findsOneWidget);
-      expect(find.text('打印试卷'), findsOneWidget);
-      expect(find.text('10 点赞'), findsOneWidget);
+      expect(find.text('打印试卷'), findsNothing);
+      expect(find.text('10 点赞'), findsNothing);
       expect(find.text('5 收藏'), findsOneWidget);
       expect(find.text('公开试卷中的题干'), findsOneWidget);
       expect(find.text('1. 2024 北京 模拟'), findsOneWidget);
+      await tester.tap(find.byTooltip('更多试卷操作'));
+      await tester.pumpAndSettle();
+      expect(find.text('打印试卷'), findsOneWidget);
+      expect(find.text('10 点赞'), findsOneWidget);
     });
   });
 }
