@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}内容工作台{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">
-  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=7">
+  <link rel="stylesheet" href="{% static 'review_workbench/workbench.css' %}?v=8">
   <script defer src="{% static 'katex/katex.min.js' %}"></script>
   <script defer src="{% static 'katex/contrib/auto-render.min.js' %}"></script>
   <script defer src="{% static 'review_workbench/workbench.js' %}?v=7"></script>
@@ -16,11 +16,12 @@
 <body>
   <div class="workbench-layout">
     <aside class="workbench-sidebar">
-      <a class="brand" href="{% url 'review_workbench:queue' %}">
+      <a class="brand" href="{% url 'review_workbench:home' %}">
         <span class="brand-mark">章</span>
         <span><strong>章鱼智学</strong><small>内容工作台</small></span>
       </a>
       <nav class="side-nav" aria-label="内容工作台导航">
+        <a class="side-nav-primary{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}" href="{% url 'review_workbench:home' %}"><span>首页</span></a>
         <a class="side-nav-primary{% if request.resolver_match.url_name == 'queue' or request.resolver_match.url_name == 'detail' %} is-active{% endif %}" href="{% url 'review_workbench:queue' %}"><span>贡献审核</span><span class="nav-count">{{ workbench_counts.all }}</span></a>
         <div class="side-nav-group" aria-label="贡献审核队列">
           <a href="{% url 'review_workbench:queue' %}?type=new_question"{% if request.GET.type == 'new_question' %} class="is-active"{% endif %}><span>新题投稿</span><span class="nav-count">{{ workbench_counts.new_question }}</span></a>
@@ -33,6 +34,12 @@
         <div class="side-nav-group">
           <a href="{% url 'review_workbench:tag_list' %}"{% if request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'tag_create' or request.resolver_match.url_name == 'tag_edit' %} class="is-active"{% endif %}><span>概念标签</span></a>
           <a href="{% url 'review_workbench:card_list' %}"{% if request.resolver_match.url_name == 'card_list' or request.resolver_match.url_name == 'card_create' or request.resolver_match.url_name == 'card_edit' %} class="is-active"{% endif %}><span>知识卡片</span></a>
+          <a href="{% url 'review_workbench:course_list' %}"{% if 'course' in request.resolver_match.url_name or 'document' in request.resolver_match.url_name %} class="is-active"{% endif %}><span>讲义维护</span></a>
+        </div>
+        <div class="side-nav-section">质量与发布</div>
+        <div class="side-nav-group">
+          <a href="{% url 'review_workbench:releases' %}"{% if request.resolver_match.url_name == 'releases' %} class="is-active"{% endif %}><span>版本发布</span></a>
+          <a href="{% url 'review_workbench:training' %}"{% if request.resolver_match.url_name == 'training' %} class="is-active"{% endif %}><span>审核员培训</span></a>
         </div>
       </nav>
       <div class="sidebar-bottom">
@@ -44,12 +51,14 @@
     </aside>
     <div class="workbench-main">
       <header class="mobile-header">
-        <a class="mobile-brand" href="{% url 'review_workbench:queue' %}"><span class="brand-mark">章</span><strong>内容工作台</strong></a>
+        <a class="mobile-brand" href="{% url 'review_workbench:home' %}"><span class="brand-mark">章</span><strong>内容工作台</strong></a>
         <nav class="mobile-nav" aria-label="手机导航">
           <a href="{% url 'review_workbench:queue' %}">审核</a>
           <a href="{% url 'review_workbench:question_list' %}">题库</a>
           <a href="{% url 'review_workbench:tag_list' %}">标签</a>
           <a href="{% url 'review_workbench:card_list' %}">卡片</a>
+          <a href="{% url 'review_workbench:course_list' %}">讲义</a>
+          <a href="{% url 'review_workbench:releases' %}">发布</a>
         </nav>
       </header>
       {% if messages %}<div class="messages">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}

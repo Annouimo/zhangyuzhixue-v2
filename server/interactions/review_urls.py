@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import content_workbench_views, review_views
+from . import content_workbench_views, review_views, workbench_views
 
 
 app_name = 'review_workbench'
@@ -8,7 +8,19 @@ app_name = 'review_workbench'
 urlpatterns = [
     path('login/', review_views.login_view, name='login'),
     path('logout/', review_views.logout_view, name='logout'),
-    path('', review_views.queue_view, name='queue'),
+    path('', workbench_views.home, name='home'),
+    path('queue/', review_views.queue_view, name='queue'),
+    path('lectures/', workbench_views.course_list, name='course_list'),
+    path('lectures/series/new/', workbench_views.course_edit, name='course_create'),
+    path('lectures/series/<int:object_id>/', workbench_views.course_edit, name='course_edit'),
+    path('lectures/documents/new/', workbench_views.document_edit, name='document_create'),
+    path(
+        'lectures/documents/<int:object_id>/', workbench_views.document_edit,
+        name='document_edit',
+    ),
+    path('releases/', workbench_views.releases, name='releases'),
+    path('training/', workbench_views.training, name='training'),
+    path('training/data.json', workbench_views.training_json, name='training_json'),
     path('<int:contribution_id>/', review_views.detail_view, name='detail'),
     path('questions/', content_workbench_views.question_list, name='question_list'),
     path('questions/new/', content_workbench_views.question_create, name='question_create'),

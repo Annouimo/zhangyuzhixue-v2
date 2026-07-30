@@ -562,3 +562,16 @@ class ContributionReview(models.Model):
         verbose_name = '贡献审核记录'
         verbose_name_plural = '贡献审核记录'
         ordering = ['created_at']
+
+
+class ReviewerTrainingProgress(models.Model):
+    reviewer = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='reviewer_training_progress',
+        verbose_name='审核员',
+    )
+    completed_steps = models.JSONField('已完成步骤', default=list, blank=True)
+    updated_at = models.DateTimeField('更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '审核员培训进度'
+        verbose_name_plural = '审核员培训进度'

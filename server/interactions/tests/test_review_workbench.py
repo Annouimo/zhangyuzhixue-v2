@@ -81,7 +81,7 @@ def test_reviewer_login_is_separate_from_student_and_admin(client, reviewer, con
         'username': reviewer.username, 'password': 'review-pass-123',
     })
     assert response.status_code == 302
-    assert response.url == reverse('review_workbench:queue')
+    assert response.url == reverse('review_workbench:home')
     assert reviewer.is_staff is False
     assert client.get(reverse('review_workbench:queue')).status_code == 200
 

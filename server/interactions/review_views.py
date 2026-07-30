@@ -38,7 +38,7 @@ def reviewer_required(view_func):
 
 def login_view(request):
     if is_content_reviewer(request.user):
-        return redirect('review_workbench:queue')
+        return redirect('review_workbench:home')
     form = ReviewerAuthenticationForm(request=request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         login(request, form.get_user())
@@ -49,7 +49,7 @@ def login_view(request):
             require_https=request.is_secure(),
         ):
             return redirect(next_url)
-        return redirect('review_workbench:queue')
+        return redirect('review_workbench:home')
     return render(request, 'review_workbench/login.html', {
         'form': form, 'next': request.GET.get('next', ''),
     })

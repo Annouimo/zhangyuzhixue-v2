@@ -1,0 +1,15 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}审核员培训 | 内容工作台{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>审核员全流程培训</h1><p>请使用培训环境和培训账号完成。每一步确认后才会解锁下一步。</p></div><form method="post">{% csrf_token %}<input type="hidden" name="step" value="reset"><button>重置进度</button></form></div>
+<section class="training-case panel">
+  <div class="section-title"><div><h2>指定训练题 {{ case_id }}</h2><p>在 App 选择“开始投稿 → 投稿新题 → 从 AI 结果导入”，粘贴下面的 JSON 并提交。不要在首次提交前修正其中的错误。</p></div><div class="heading-actions"><button type="button" data-copy-target="training-json">复制 JSON</button><a class="button-link" href="{% url 'review_workbench:training_json' %}">下载 JSON</a></div></div>
+  <pre id="training-json" class="training-json">{{ initial_json }}</pre>
+  <div class="training-target"><strong>审核时操作这道题</strong><p>进入贡献审核队列，搜索来源编号 <code>{{ case_id }}</code> 或来源名称“审核员培训样题 {{ case_id }}”。确认题干为“已知函数 $f(x)=x^2-4x+3$……”后再处理。</p><a href="{% url 'review_workbench:queue' %}?q={{ case_id }}">在审核队列搜索 {{ case_id }}</a></div>
+  <details class="training-answer"><summary>审核标准与打回要求</summary><dl><dt>错误</dt><dd>配方常数项错误，投稿把 $(x-2)^2-1$ 写成了 $(x-2)^2+1$。</dd><dt>正确答案</dt><dd><code>{{ expected.answer }}</code></dd><dt>正确解析</dt><dd>{{ expected.explanation }}</dd><dt>建议审核意见</dt><dd>{{ expected.review_note }}</dd></dl></details>
+</section>
+<ol class="training-list">
+{% for item in steps %}<li class="{% if item.key in done %}is-done{% endif %}"><span class="training-index">{{ forloop.counter }}</span><div><strong>{% if item.key == 'submit' %}从 App 提交培训题{% elif item.key == 'claim' %}在审核队列领取投稿{% elif item.key == 'return' %}核对内容并打回修改{% elif item.key == 'resubmit' %}从 App 修改后重新提交{% elif item.key == 'approve' %}复审并录入正式题库{% elif item.key == 'candidate' %}生成题库候选版本{% elif item.key == 'release' %}发布培训环境题库{% else %}在 App 同步并查看正式题目{% endif %}</strong><p>{% if item.key == 'submit' %}使用培训账号投稿指定的新题，来源注明“审核员培训”。{% elif item.key == 'claim' %}确认投稿人、来源和题目类型后标记为处理中。{% elif item.key == 'return' %}至少指出一个内容或格式问题，并填写可执行的审核意见。{% elif item.key == 'resubmit' %}按审核意见修改，确认 App 显示为修改后待复审。{% elif item.key == 'approve' %}核对答案、解析与标签，保存正式内容。{% elif item.key == 'candidate' %}进入版本发布，确认候选包通过完整性检查且未改变正式版本。{% elif item.key == 'release' %}仅在培训环境执行正式发布，并记录新版本号。{% else %}在 App 触发同步，打开正式题目核对内容和版本。{% endif %}</p></div><form method="post">{% csrf_token %}<input type="hidden" name="step" value="{{ item.key }}"><button {% if not item.enabled %}disabled{% endif %}>{% if item.key in done %}已完成{% else %}确认完成{% endif %}</button></form></li>{% endfor %}
+</ol>
+<script>document.addEventListener('click', function (event) { var button = event.target.closest('[data-copy-target]'); if (!button) return; var target = document.getElementById(button.dataset.copyTarget); navigator.clipboard.writeText(target.textContent).then(function () { button.textContent = '已复制'; }); });</script>
+{% endblock %}

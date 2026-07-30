@@ -1,0 +1,17 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}首页 | 内容工作台{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>工作台首页</h1><p>先处理待办，再维护内容；审核通过的内容需要随题库版本发布后才会到达 App。</p></div><a class="button-link primary" href="{% url 'review_workbench:queue' %}">进入审核队列</a></div>
+<section class="metric-grid">
+  <a href="{% url 'review_workbench:queue' %}?status=active"><strong>{{ workbench_counts.all }}</strong><span>待处理投稿</span></a>
+  <a href="{% url 'review_workbench:queue' %}?status=approved_pending_release"><strong>{{ status_counts.approved_pending_release|default:0 }}</strong><span>待题库发布</span></a>
+  <a href="{% url 'review_workbench:course_list' %}"><strong>{{ document_count }}</strong><span>讲义章节</span></a>
+  <a href="{% url 'review_workbench:training' %}"><strong>{{ training_done|length }}/8</strong><span>培训进度</span></a>
+</section>
+<div class="dashboard-grid">
+  <section class="panel"><h2>当前正式版本</h2><dl class="version-list"><div><dt>题库</dt><dd>v{{ versions.qbank.data_version|default:'-' }}</dd></div><div><dt>讲义</dt><dd>v{{ versions.courses.data_version|default:'-' }}</dd></div></dl><a href="{% url 'review_workbench:releases' %}">验证并生成候选版本</a></section>
+  <section class="panel"><h2>审核原则</h2><ul class="guidance-list"><li>核对题干、答案与解析是否自洽，不能只修格式。</li><li>外部内容必须填写可识别来源；不确定信息应打回确认。</li><li>审核通过只是进入待发布区，发布后还要在 App 同步验证。</li></ul></section>
+  <section class="panel"><h2>发布前检查</h2><ul class="guidance-list"><li>先生成候选版本并确认完整性检查通过。</li><li>核对版本号、内容数量和待发布投稿数量。</li><li>正式发布后检查版本接口、下载及 App 展示。</li></ul></section>
+  <section class="panel"><h2>常用入口</h2><div class="quick-links"><a href="{% url 'review_workbench:question_list' %}">题库维护</a><a href="{% url 'review_workbench:course_list' %}">讲义维护</a><a href="{% url 'review_workbench:training' %}">完整流程培训</a></div></section>
+</div>
+{% endblock %}
