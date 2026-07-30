@@ -197,7 +197,10 @@ Map<String, dynamic> _buildSummary(
       ? const <String, double>{}
       : _journeyDurations(baseline);
   final journeys = <Map<String, dynamic>>[];
+  final isScan =
+      (data['environment'] as Map<String, dynamic>?)?['suite'] == 'scan';
   var failed = false;
+  var candidateCount = 0;
   for (final entry in data.entries.where(
     (entry) => entry.key.startsWith('frames_'),
   )) {
@@ -210,28 +213,56 @@ Map<String, dynamic> _buildSummary(
         : null;
     final durationFailure = duration != null && duration > 1500;
     final regressionFailure = change != null && change > 20;
-    final status = durationFailure || regressionFailure ? 'FAIL' : 'PASS';
+    final buildP90 = _number(frames['90th_percentile_frame_build_time_millis']);
+    final rasterP90 = _number(
+      frames['90th_percentile_frame_rasterizer_time_millis'],
+    );
+    final slowFrames = (frames['slow_frame_count'] as num?)?.toInt() ?? 0;
+    final severeFrames = (frames['severe_frame_count'] as num?)?.toInt() ?? 0;
+    final scanCandidate =
+        isScan &&
+        entry.key != 'frames_startup' &&
+        ((duration ?? 0) > 500 ||
+            severeFrames > 0 ||
+            (buildP90 ?? 0) > 33 ||
+            (rasterP90 ?? 0) > 33);
+    final status = durationFailure || regressionFailure
+        ? 'FAIL'
+        : scanCandidate
+        ? 'REVIEW'
+        : 'PASS';
     if (status == 'FAIL') failed = true;
+    if (scanCandidate) candidateCount++;
     journeys.add({
       'name': entry.key,
       'durationMs': duration == null ? null : _round(duration),
-      'buildP90Ms': _number(frames['90th_percentile_frame_build_time_millis']),
-      'rasterP90Ms': _number(
-        frames['90th_percentile_frame_rasterizer_time_millis'],
-      ),
+      'buildP90Ms': buildP90,
+      'rasterP90Ms': rasterP90,
       'worstFrameMs': _number(frames['worst_frame_total_time_millis']),
-      'slowFrames': frames['slow_frame_count'] ?? 0,
-      'severeFrames': frames['severe_frame_count'] ?? 0,
+      'slowFrames': slowFrames,
+      'severeFrames': severeFrames,
       'baselineMs': baselineDuration == null ? null : _round(baselineDuration),
       'baselineChangePercent': change == null ? null : _round(change),
       'status': status,
       if (durationFailure) 'failureReason': 'operation_over_1500ms',
       if (regressionFailure)
         'regressionReason': 'baseline_regression_over_20_percent',
+      if (scanCandidate)
+        'reviewReasons': [
+          if ((duration ?? 0) > 500) 'content_ready_over_500ms',
+          if (severeFrames > 0) 'severe_frame',
+          if ((buildP90 ?? 0) > 33) 'build_p90_over_33ms',
+          if ((rasterP90 ?? 0) > 33) 'raster_p90_over_33ms',
+        ],
     });
   }
   return {
-    'status': failed ? 'FAIL' : (baseline == null ? 'NO_BASELINE' : 'PASS'),
+    'status': failed
+        ? 'FAIL'
+        : isScan
+        ? (candidateCount > 0 ? 'SCAN_REVIEW' : 'SCAN_PASS')
+        : (baseline == null ? 'NO_BASELINE' : 'PASS'),
+    'candidateCount': candidateCount,
     'baselineLoaded': baseline != null,
     'thresholds': {
       'operationFailureMs': 1500,

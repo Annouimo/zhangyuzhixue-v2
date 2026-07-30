@@ -26,6 +26,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _hotRuns = int.fromEnvironment('PERFORMANCE_HOT_RUNS', defaultValue: 3);
+const _scanMode = bool.fromEnvironment('PERFORMANCE_SCAN');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -84,6 +85,7 @@ void main() {
           'mode': 'profile',
           'viewport': '1200x800',
           'dataScale': dataScale,
+          'suite': _scanMode ? 'scan' : 'deepDive',
           'hotRuns': _hotRuns,
           'questionCount': questions.length,
           'attemptCount': attempts.length,
@@ -96,6 +98,16 @@ void main() {
           runName: 'windows-profile-smoke',
         );
       });
+
+      if (_scanMode) {
+        await _runPerformanceScan(
+          tester,
+          binding,
+          questions: questions,
+          chapters: chapters,
+        );
+        return;
+      }
 
       await _runJourneyVariants(
         binding,
@@ -180,6 +192,198 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 10)),
   );
+}
+
+Future<void> _runPerformanceScan(
+  WidgetTester tester,
+  IntegrationTestWidgetsFlutterBinding binding, {
+  required List<dynamic> questions,
+  required List<dynamic> chapters,
+}) async {
+  await _returnHome(tester);
+  await _traceScan(binding, 'frames_scan_tab_content', () async {
+    await _selectMainTab(tester, MainTab.content);
+    await _waitForScanReady(tester);
+  });
+  await _returnHome(tester);
+  await _traceScan(binding, 'frames_scan_tab_profile', () async {
+    await _selectMainTab(tester, MainTab.profile);
+    await _waitFor(tester, find.text('学习档案'));
+    await _waitForScanReady(tester);
+  });
+
+  final routes = <({String name, String location, String type})>[
+    (name: 'recommend', location: AppRoutes.recommend, type: 'RecommendPage'),
+    (
+      name: 'question_bank',
+      location: AppRoutes.questionBank,
+      type: 'StudentQuestionBankPage',
+    ),
+    (
+      name: 'paper_library',
+      location: AppRoutes.paperLibrary,
+      type: 'PaperLibraryPage',
+    ),
+    (name: 'exam_home', location: AppRoutes.examHome, type: 'ExamHomePage'),
+    (
+      name: 'paper_folders',
+      location: AppRoutes.paperFolders,
+      type: 'PaperFolderListPage',
+    ),
+    (
+      name: 'lecture_courses',
+      location: AppRoutes.lectureCourses,
+      type: 'LectureCoursesPage',
+    ),
+    (
+      name: 'statistics',
+      location: AppRoutes.statistics,
+      type: 'StatisticsPage',
+    ),
+    (
+      name: 'profile_edit',
+      location: AppRoutes.profileEdit,
+      type: 'ProfileEditPage',
+    ),
+    (
+      name: 'achievements',
+      location: AppRoutes.profileAchievements,
+      type: 'AchievementPage',
+    ),
+    (name: 'level', location: AppRoutes.profileLevel, type: 'LevelDetailPage'),
+    (name: 'points', location: AppRoutes.profilePoints, type: 'PointsPage'),
+    (
+      name: 'history',
+      location: AppRoutes.profileHistory,
+      type: 'QuestionHistoryPage',
+    ),
+    (
+      name: 'preferences',
+      location: AppRoutes.profilePreferences,
+      type: 'PreferenceListPage',
+    ),
+    (
+      name: 'study_archive',
+      location: AppRoutes.studyArchive,
+      type: 'StudyArchivePage',
+    ),
+    (
+      name: 'growth_center',
+      location: AppRoutes.growthCenter,
+      type: 'GrowthCenterPage',
+    ),
+    (name: 'settings', location: AppRoutes.settings, type: 'SettingsPage'),
+    (name: 'sync_queue', location: AppRoutes.syncQueue, type: 'SyncQueuePage'),
+    (
+      name: 'contributions',
+      location: AppRoutes.contributions,
+      type: 'ContributionListPage',
+    ),
+    (
+      name: 'contribution_help',
+      location: AppRoutes.contributionHelp,
+      type: 'ContributionHelpPage',
+    ),
+    (name: 'review', location: AppRoutes.review, type: 'ReviewPage'),
+  ];
+  for (final route in routes) {
+    await _scanRoute(tester, binding, route);
+  }
+
+  if (chapters.isNotEmpty) {
+    final chapter = chapters.first;
+    await _scanRoute(tester, binding, (
+      name: 'lecture_content',
+      location: '${AppRoutes.lectureContent}?chapterId=${chapter.id}',
+      type: 'LectureContentPage',
+    ));
+  }
+
+  for (final questionType in const ['choice', 'fill', 'map']) {
+    final question = questions
+        .cast<dynamic>()
+        .where((item) => item.questionType == questionType)
+        .firstOrNull;
+    if (question == null) continue;
+    final route = switch (questionType) {
+      'choice' => AppRoutes.solveChoice,
+      'fill' => AppRoutes.solveFill,
+      _ => AppRoutes.solveMap,
+    };
+    final pageType = switch (questionType) {
+      'choice' => 'SolveChoicePage',
+      'fill' => 'SolveFillPage',
+      _ => 'SolveMapPage',
+    };
+    await _scanRoute(tester, binding, (
+      name: 'solve_$questionType',
+      location: '$route?id=${question.id}&mode=review',
+      type: pageType,
+    ));
+  }
+}
+
+Future<void> _scanRoute(
+  WidgetTester tester,
+  IntegrationTestWidgetsFlutterBinding binding,
+  ({String name, String location, String type}) route,
+) => _traceScan(binding, 'frames_scan_${route.name}', () async {
+  NavigationThrottle.reset();
+  appRouter.go(route.location);
+  await _waitFor(
+    tester,
+    find.byWidgetPredicate(
+      (widget) => widget.runtimeType.toString() == route.type,
+      description: route.type,
+    ),
+  );
+  await _waitForScanReady(tester);
+});
+
+Future<void> _waitForScanReady(
+  WidgetTester tester, {
+  Duration timeout = const Duration(seconds: 3),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  var readyPumps = 0;
+  do {
+    await tester.pump(const Duration(milliseconds: 25));
+    if (find.byType(CircularProgressIndicator).evaluate().isEmpty) {
+      readyPumps++;
+      if (readyPumps >= 2) return;
+    } else {
+      readyPumps = 0;
+    }
+  } while (DateTime.now().isBefore(deadline));
+  throw TestFailure('Page did not become content-ready within $timeout');
+}
+
+Future<void> _traceScan(
+  IntegrationTestWidgetsFlutterBinding binding,
+  String reportKey,
+  Future<void> Function() action,
+) async {
+  await Future<void>.delayed(const Duration(milliseconds: 100));
+  final timings = <FrameTiming>[];
+  final callback = timings.addAll;
+  WidgetsBinding.instance.addTimingsCallback(callback);
+  final span = PerformanceTrace.instance.start('journey', reportKey);
+  try {
+    await action();
+    span.finish();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+  } catch (error) {
+    span.finish({'failed': true, 'errorType': error.runtimeType.toString()});
+    binding.reportData!['failure'] = {
+      'journey': reportKey,
+      'errorType': error.runtimeType.toString(),
+      'message': error.toString(),
+    };
+    rethrow;
+  } finally {
+    WidgetsBinding.instance.removeTimingsCallback(callback);
+    binding.reportData![reportKey] = _summarizeFrames(timings);
+  }
 }
 
 Future<void> _runJourneyVariants(

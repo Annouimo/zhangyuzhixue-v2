@@ -2,7 +2,7 @@
 
 ## 目标
 
-性能巡检在 Windows Profile 构建中启动真实应用，自动执行主 Tab、推荐、统计、进入做题和讲义正文五条核心路径，同时采集：
+性能巡检在 Windows Profile 构建中启动真实应用，分为全页面快速扫描和重点路径深度复测，同时采集：
 
 - Flutter Build/Raster 帧耗时
 - 页面、Repository、DAO 和同步计算 Span
@@ -15,8 +15,13 @@ Flutter SDK 位于工作区外，按项目约定以提升后的沙箱权限串�
 
 ```powershell
 $env:FLUTTER_SUPPRESS_ANALYTICS = 'true'
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite PerformanceScan -PerformanceDataScale Normal -PerformanceHotRuns 0
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite Performance -PerformanceDataScale Normal
 ```
+
+`PerformanceScan` 在一次应用启动内对主要页面各测一次，通常优先运行。它使用明确的页面类型和加载状态判断内容就绪，不建立严格基线；超过 500ms、出现严重帧或 Build/Raster P90 超过 33ms 的页面标记为 `REVIEW`。
+
+`Performance` 保留给已确认的重点路径，执行冷状态一次和热状态三次，用于优化前后对比与回归门禁。不要在尚未发现问题时为所有页面执行重复深测。
 
 不要同时启动其他 Flutter 测试或构建。性能数字只采信 Profile 结果，不使用 Debug 结果建立基线。
 
@@ -42,7 +47,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite
 | Normal | 500 | 日常性能巡检与 CI |
 | Large | 5000 | 数据增长压力检查 |
 
-每条可重复核心旅程先运行一次冷状态，再运行三次热状态。报告输出冷状态、热状态中位数、P90 和最差值。
+快速扫描固定使用 Normal 数据。Large 只复测题库、推荐、统计、历史和同步等数据敏感页面。重点旅程先运行一次冷状态，再运行三次热状态，报告输出冷状态、热状态中位数、P90 和最差值。
 
 ## 建立基线
 
@@ -80,10 +85,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\performance\build_ba
 
 ## CI
 
-CI 必须使用固定 Windows runner，并保持 Flutter 命令串行。建议日常运行 Normal，计划任务同时运行 Large：
+CI 必须使用固定 Windows runner，并保持 Flutter 命令串行。建议日常先运行 Normal 快速扫描，重点回归套件按需或在计划任务运行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite Performance -PerformanceDataScale Normal
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite PerformanceScan -PerformanceDataScale Normal -PerformanceHotRuns 0
 ```
 
 无论成功或失败，都上传 `.hermes/tmp/performance/performance-latest.json`、`performance-latest.md` 和本轮带时间戳 JSON。不同硬件 runner 的结果不能共用基线。
@@ -97,12 +102,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_tests.ps1 -Suite
 5. 数据加载快但帧慢，优先检查公式、图片、图表和大列表构建。
 6. 同一路径连续运行至少三次，以中位数作为基线。
 
-## 当前核心覆盖
+## 当前覆盖
 
-- 应用冷启动、三个主 Tab 往返
-- 首页点击推荐练习并显示第一题
-- 进入“我的”、退出后再次进入
-- 学习统计加载并切换到近一月
-- 从题目详情点击进入做题页
+- 快速扫描：主 Tab、推荐、题库、套卷、试题篮、讲义、统计、资料、成就、等级、积分、历史、偏好、学习档案、成长中心、设置、同步、投稿、复习及主要做题页
+- 深度复测：应用冷启动、主 Tab 往返、推荐并显示第一题、统计切换范围、题目详情进入做题页
 
-下一批覆盖讲义正文、题库筛选、试卷预览、组卷、积分、成就、学习档案、同步和资料编辑。
+下一步根据快速扫描的 `REVIEW` 排名补充交互级探针，例如题库筛选、试卷预览、组卷和连续下一题；只对实际慢页面运行 Normal/Large 深度复测。

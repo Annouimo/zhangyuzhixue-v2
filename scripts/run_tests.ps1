@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Server', 'E2E', 'Performance', 'All')]
+    [ValidateSet('Quick', 'StudentData', 'StudentUi', 'StudentIntegration', 'Golden', 'Student', 'Server', 'E2E', 'Performance', 'PerformanceScan', 'All')]
     [string]$Suite = 'Quick',
 
     [string]$FlutterPath = '',
@@ -299,7 +299,8 @@ try {
             }
             $results.E2E = Invoke-FlutterSuite @options
         }
-        'Performance' {
+        { $_ -in 'Performance', 'PerformanceScan' } {
+            $scanDefine = if ($Suite -eq 'PerformanceScan') { '--dart-define=PERFORMANCE_SCAN=true' } else { '--dart-define=PERFORMANCE_SCAN=false' }
             $results.Performance = Invoke-FlutterDrive `
                 -Name 'windows-performance' `
                 -WorkingDirectory $studentDir `
@@ -312,6 +313,7 @@ try {
                     '--dart-define=PERFORMANCE_TEST_MODE=true'
                     "--dart-define=PERFORMANCE_DATA_SCALE=$PerformanceDataScale"
                     "--dart-define=PERFORMANCE_HOT_RUNS=$PerformanceHotRuns"
+                    $scanDefine
                 ) `
                 -TimeoutMinutes 20
         }
