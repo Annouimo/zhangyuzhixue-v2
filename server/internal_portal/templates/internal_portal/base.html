@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=6">
+  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=7">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -27,7 +27,14 @@
         <a href="{% url 'internal_portal:lecture-library' %}"{% if is_lecture_library %} class="is-active"{% endif %}>讲义库</a>
       </nav>
       <div class="sidebar__bottom">
-        <a href="/">返回官网</a>
+        <span class="site-links__label">网站链接</span>
+        <nav class="site-links" aria-label="网站链接">
+          <a href="/">官网</a>
+          <a class="is-current" href="{% url 'internal_portal:index' %}">工作手册</a>
+          <a href="{% url 'review_workbench:home' %}">内容工作台</a>
+          <a href="{% url 'admin:index' %}">管理员后台</a>
+        </nav>
+        <span class="account-name">{{ request.user.get_full_name|default:request.user.username }}</span>
         <form method="post" action="{% url 'internal_portal:logout' %}">
           {% csrf_token %}
           <button type="submit">退出登录</button>
@@ -49,7 +56,11 @@
               <a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>
             {% endfor %}
             <a href="{% url 'internal_portal:lecture-library' %}">讲义库</a>
-            <a href="/">返回官网</a>
+            <span class="mobile-menu__label">网站链接</span>
+            <a href="/">官网</a>
+            <a href="{% url 'internal_portal:index' %}">工作手册</a>
+            <a href="{% url 'review_workbench:home' %}">内容工作台</a>
+            <a href="{% url 'admin:index' %}">管理员后台</a>
             <form method="post" action="{% url 'internal_portal:logout' %}">
               {% csrf_token %}
               <button type="submit">退出登录</button>

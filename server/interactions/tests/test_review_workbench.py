@@ -65,8 +65,8 @@ def test_workbench_follows_system_dark_mode_and_busts_css_cache():
     assert 'color-scheme: dark' in stylesheet
     assert '.diff-cell.diff-add' in stylesheet
     assert '.diff-cell.diff-remove' in stylesheet
-    assert "workbench.css' %}?v=10" in base
-    assert "workbench.css' %}?v=10" in login
+    assert "workbench.css' %}?v=11" in base
+    assert "workbench.css' %}?v=11" in login
 
 
 @pytest.fixture
@@ -127,6 +127,12 @@ def test_workbench_sidebar_contains_maintenance_and_review_queues(
     assert '?type=new_solution' in content
     assert '?type=content_change' in content
     assert '?type=problem_report' in content
+    assert 'aria-label="网站链接"' in content
+    assert '>官网</a>' in content
+    assert '>工作手册</a>' in content
+    assert '>内容工作台</a>' in content
+    assert '>管理员后台</a>' in content
+    assert reverse('admin:index') in content
     assert 'queue-tabs' not in content
     assert '>全部 <' not in content
     assert response.context['status_filter'] == 'active'

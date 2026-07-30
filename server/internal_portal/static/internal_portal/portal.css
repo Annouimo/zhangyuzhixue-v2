@@ -519,6 +519,41 @@ input {
   border-top: 1px solid var(--border);
 }
 
+.site-links__label,
+.mobile-menu__label {
+  padding: 5px 10px 3px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.site-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.sidebar__bottom .site-links a {
+  min-height: 30px;
+  padding: 6px 10px;
+}
+
+.sidebar__bottom .site-links a.is-current {
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+}
+
+.account-name {
+  margin-top: 6px;
+  padding: 7px 10px 3px;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sidebar__bottom a,
 .sidebar__bottom button {
   display: block;
@@ -969,7 +1004,7 @@ a.table-row:hover {
     top: 38px;
     right: 0;
     display: grid;
-    width: 180px;
+    width: 200px;
     padding: 6px;
     border: 1px solid var(--border-strong);
     background: #fff;
@@ -992,6 +1027,12 @@ a.table-row:hover {
 
   .mobile-menu nav button {
     cursor: pointer;
+  }
+
+  .mobile-menu__label {
+    display: block;
+    margin-top: 4px;
+    border-top: 1px solid var(--border);
   }
 
   .workspace-bar {
