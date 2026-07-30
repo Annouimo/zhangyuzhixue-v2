@@ -4,5 +4,15 @@
 <div class="detail-nav"><a href="{% url 'review_workbench:revision_list' category %}">← 返回{{ category_label }}版本历史</a></div>
 <div class="page-heading diff-heading"><div><h1>{{ revision.object_label|default:'未命名' }}</h1><p><span class="type-chip">{{ revision.get_content_type_display }}</span> #{{ revision.object_id }} · r{{ revision.pk }} 与 {% if previous %}r{{ previous.pk }}{% else %}空版本{% endif %} 的差异</p></div></div>
 <section class="commit-panel"><div class="commit-mark">r{{ revision.pk }}</div><dl><div><dt>修改说明</dt><dd>{{ revision.note }}</dd></div><div><dt>操作人</dt><dd>{{ revision.actor.get_full_name|default:revision.actor.username|default:'系统' }}</dd></div><div><dt>修订时间</dt><dd>{{ revision.created_at|date:'Y-m-d H:i:s' }}</dd></div></dl></section>
-<section class="git-diff"><header><strong>内容快照</strong><span>{% if previous %}r{{ previous.pk }} → r{{ revision.pk }}{% else %}空版本 → r{{ revision.pk }}{% endif %}</span></header><pre>{% for line in diff_lines %}<span class="diff-line diff-{{ line.kind }}">{{ line.text }}</span>{% empty %}<span class="diff-line diff-context">本次快照与上一版没有可显示的差异。</span>{% endfor %}</pre></section>
+<section class="diff-comparison">
+  <header class="diff-version-head"><div><strong>{% if previous %}r{{ previous.pk }}{% else %}空版本{% endif %}</strong><span>上一版</span></div><div><strong>r{{ revision.pk }}</strong><span>当前版</span></div></header>
+  {% for field in field_diffs %}
+  <section class="field-diff">
+    <header><strong>{{ field.label }}</strong><code>{{ field.path }}</code></header>
+    <div class="diff-columns" role="table" aria-label="{{ field.label }}差异">
+      {% for row in field.rows %}<div class="diff-cell diff-{{ row.old_kind }}" role="cell"><span class="line-no">{{ row.old_no }}</span><span class="change-mark">{% if row.old_kind == 'remove' %}−{% endif %}</span><pre>{{ row.old_text }}</pre></div><div class="diff-cell diff-{{ row.new_kind }}" role="cell"><span class="line-no">{{ row.new_no }}</span><span class="change-mark">{% if row.new_kind == 'add' %}+{% endif %}</span><pre>{{ row.new_text }}</pre></div>{% endfor %}
+    </div>
+  </section>
+  {% empty %}<div class="no-diff">本次快照与上一版没有差异。</div>{% endfor %}
+</section>
 {% endblock %}

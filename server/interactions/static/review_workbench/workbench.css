@@ -28,20 +28,34 @@
 .commit-panel dl div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
 .commit-panel dt { color: var(--muted); }
 .commit-panel dd { margin: 0; }
-.git-diff { overflow: hidden; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; }
-.git-diff header { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; border-bottom: 1px solid #d0d7de; background: #f6f8fa; }
-.git-diff header span { color: #57606a; font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
-.git-diff pre { overflow: auto; margin: 0; padding: 0; font: 13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
-.diff-line { display: block; min-width: max-content; padding: 0 16px; white-space: pre; }
-.diff-add { background: #e6ffec; color: #116329; }
-.diff-remove { background: #ffebe9; color: #82071e; }
-.diff-hunk { padding-top: 3px; padding-bottom: 3px; color: #0550ae; background: #ddf4ff; }
-.diff-file { color: #57606a; background: #f6f8fa; }
+.diff-comparison { overflow: hidden; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; }
+.diff-version-head { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #d0d7de; background: #f6f8fa; }
+.diff-version-head div { display: flex; gap: 10px; padding: 12px 16px; }
+.diff-version-head div + div { border-left: 1px solid #d0d7de; }
+.diff-version-head strong { font: 700 13px ui-monospace, SFMono-Regular, Consolas, monospace; }
+.diff-version-head span { color: #57606a; font-size: 13px; }
+.field-diff + .field-diff { border-top: 1px solid #d0d7de; }
+.field-diff > header { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid #d8dee4; background: #ddf4ff; }
+.field-diff > header strong { color: #0969da; }
+.field-diff > header code { color: #57606a; font-size: 11px; }
+.diff-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); overflow-x: auto; }
+.diff-cell { display: grid; grid-template-columns: 46px 24px minmax(320px, 1fr); min-height: 25px; border-bottom: 1px solid rgba(27, 31, 36, .06); font: 13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.diff-cell:nth-child(even) { border-left: 1px solid #d0d7de; }
+.diff-cell .line-no { padding: 2px 8px; color: #6e7781; background: rgba(175, 184, 193, .12); text-align: right; user-select: none; }
+.diff-cell .change-mark { padding: 2px 6px; text-align: center; user-select: none; }
+.diff-cell pre { margin: 0; padding: 2px 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.diff-cell.diff-add { color: #116329; background: #e6ffec; }
+.diff-cell.diff-add .line-no, .diff-cell.diff-add .change-mark { background: #ccffd8; }
+.diff-cell.diff-remove { color: #82071e; background: #ffebe9; }
+.diff-cell.diff-remove .line-no, .diff-cell.diff-remove .change-mark { background: #ffd7d5; }
+.diff-cell.diff-empty { background: #f6f8fa; background-image: repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(175, 184, 193, .12) 6px, rgba(175, 184, 193, .12) 8px); }
+.no-diff { padding: 30px; color: var(--muted); text-align: center; }
 
 @media (max-width: 700px) {
   .commit-panel { grid-template-columns: 1fr; }
   .commit-mark { width: 70px; }
   .commit-panel dl div { grid-template-columns: 74px minmax(0, 1fr); }
+  .diff-version-head, .diff-columns { grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr); }
 }
 
 [hidden] { display: none !important; }

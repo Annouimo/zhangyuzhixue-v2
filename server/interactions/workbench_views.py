@@ -20,7 +20,7 @@ from .training_data import (
 from .workbench_forms import CourseWorkbenchForm, DocumentWorkbenchForm
 from .workbench_release import build_candidate, publish
 from .workbench_revisions import (
-    CATEGORY_TYPES, diff_lines, previous_revision, record_revision,
+    CATEGORY_TYPES, field_diffs, previous_revision, record_revision,
 )
 
 
@@ -126,7 +126,7 @@ def revision_diff(request, category, revision_id):
         'category_label': label,
         'revision': revision,
         'previous': previous,
-        'diff_lines': diff_lines(previous, revision),
+        'field_diffs': field_diffs(previous, revision),
     })
 
 
