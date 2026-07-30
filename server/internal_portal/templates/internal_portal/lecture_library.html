@@ -1,0 +1,31 @@
+{% extends 'internal_portal/base.html' %}
+{% block title %}{% if selected_course %}{{ selected_course.name }}{% else %}讲义库{% endif %} | 项目工作手册{% endblock %}
+{% block content %}
+<header class="handbook-header lecture-library-header">
+  {% if selected_course %}<a class="lecture-back" href="{% url 'internal_portal:lecture-library' %}">← 返回讲义库</a>{% endif %}
+  <h1>{% if selected_course %}{{ selected_course.name }}{% else %}讲义库{% endif %}</h1>
+  <p>{% if selected_course %}{{ selected_course.description|default:'按讲次查看本系列内部讲义。' }}{% else %}团队内部只读讲义，与内容工作台中的最新内容保持同步。{% endif %}</p>
+</header>
+
+{% if selected_course %}
+<section class="lecture-chapter-list" aria-label="章节目录">
+  {% for document in documents %}
+  <a href="{% url 'internal_portal:lecture-document' document.pk %}">
+    <span class="lecture-number">{{ document.chapter }}</span>
+    <span><strong>{{ document.title }}</strong><small>更新于 {{ document.updated_at|date:'Y-m-d H:i' }}</small></span>
+    <span class="row-action">阅读 →</span>
+  </a>
+  {% empty %}<div class="empty-state">该系列还没有讲义章节。</div>{% endfor %}
+</section>
+{% else %}
+<section class="lecture-series-grid" aria-label="讲义系列">
+  {% for course in courses %}
+  <a href="{% url 'internal_portal:lecture-course' course.pk %}">
+    <div><strong>{{ course.name }}</strong><span>{{ course.document_count }} 讲</span></div>
+    <p>{{ course.description|default:'暂无系列说明'|truncatechars:120 }}</p>
+    <small>{% if course.latest_document_at %}最近更新 {{ course.latest_document_at|date:'Y-m-d' }}{% else %}尚无章节{% endif %}</small>
+  </a>
+  {% empty %}<div class="empty-state">目前还没有讲义系列。</div>{% endfor %}
+</section>
+{% endif %}
+{% endblock %}

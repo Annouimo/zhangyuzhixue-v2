@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=6">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
   <div class="portal-layout">
@@ -23,6 +24,7 @@
         {% for nav_area in navigation_areas %}
           <a href="{% url 'internal_portal:page-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
         {% endfor %}
+        <a href="{% url 'internal_portal:lecture-library' %}"{% if is_lecture_library %} class="is-active"{% endif %}>讲义库</a>
       </nav>
       <div class="sidebar__bottom">
         <a href="/">返回官网</a>
@@ -46,6 +48,7 @@
             {% for nav_area in navigation_areas %}
               <a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>
             {% endfor %}
+            <a href="{% url 'internal_portal:lecture-library' %}">讲义库</a>
             <a href="/">返回官网</a>
             <form method="post" action="{% url 'internal_portal:logout' %}">
               {% csrf_token %}
@@ -57,11 +60,12 @@
 
       <div class="workspace-bar">
         <span><strong>内部资料</strong>以当前页面内容为准</span>
-        <span><strong>最后更新</strong>{{ area.updated_at|date:'Y-m-d' }}</span>
+        {% if page_updated_at %}<span><strong>最后更新</strong>{{ page_updated_at|date:'Y-m-d' }}</span>{% endif %}
       </div>
 
       <main class="main-content">{% block content %}{% endblock %}</main>
     </div>
   </div>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>

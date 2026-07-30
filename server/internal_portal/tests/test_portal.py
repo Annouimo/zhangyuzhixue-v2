@@ -5,6 +5,7 @@ from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
+from courses.models import Course, Document
 from internal_portal.models import (
     BusinessArea,
     HandbookSection,
@@ -83,8 +84,8 @@ def test_handbook_follows_system_dark_mode_and_busts_css_cache():
     ).read_text(encoding='utf-8')
     assert '@media (prefers-color-scheme: dark)' in stylesheet
     assert 'color-scheme: dark' in stylesheet
-    assert "portal.css' %}?v=5" in base
-    assert "portal.css' %}?v=5" in login
+    assert "portal.css' %}?v=6" in base
+    assert "portal.css' %}?v=6" in login
 
 
 def test_logout_requires_post_and_ends_session(client, portal_user):
@@ -97,6 +98,70 @@ def test_logout_requires_post_and_ends_session(client, portal_user):
     post_response = client.post(reverse('internal_portal:logout'))
     assert post_response.status_code == 302
     assert '_auth_user_id' not in client.session
+
+
+def test_lecture_library_is_read_only_and_requires_portal_access(
+    client, portal_user,
+):
+    course = Course.objects.create(name='高考数学一轮复习', description='视频配套讲义')
+    first = Document.objects.create(
+        course=course, chapter='01', title='集合', md_content='# 集合',
+    )
+    second = Document.objects.create(
+        course=course, chapter='02', title='逻辑', md_content='# 逻辑',
+    )
+
+    anonymous = client.get(reverse('internal_portal:lecture-library'))
+    assert anonymous.status_code == 302
+    assert anonymous.url.startswith(reverse('internal_portal:login'))
+
+    client.force_login(portal_user)
+    library = client.get(reverse('internal_portal:lecture-library'))
+    assert library.status_code == 200
+    assert '高考数学一轮复习' in library.content.decode()
+    assert '2 讲' in library.content.decode()
+
+    course_page = client.get(reverse(
+        'internal_portal:lecture-course', args=[course.pk],
+    ))
+    content = course_page.content.decode()
+    assert content.index('集合') < content.index('逻辑')
+
+    document_page = client.get(reverse(
+        'internal_portal:lecture-document', args=[first.pk],
+    ))
+    content = document_page.content.decode()
+    assert document_page.status_code == 200
+    assert '下一讲' in content
+    assert second.title in content
+    assert '编辑讲义' not in content
+
+
+def test_lecture_reader_renders_markdown_math_and_separator_hints(
+    client, portal_user,
+):
+    course = Course.objects.create(name='测试讲义')
+    document = Document.objects.create(
+        course=course, chapter='01', title='函数', md_content=(
+            '# 函数\n\n已知 $f(x)=x^2$。\n\n'
+            '<!-- pagebreak -->\n\n## 例题\n\n'
+            '<!-- reveal -->\n\n<script>alert(1)</script>'
+        ),
+    )
+    client.force_login(portal_user)
+
+    response = client.get(reverse(
+        'internal_portal:lecture-document', args=[document.pk],
+    ))
+    content = response.content.decode()
+    assert '<h1>函数</h1>' in content
+    assert '$f(x)=x^2$' in content
+    assert 'katex/contrib/auto-render.min.js' in content
+    assert '分页分隔' in content
+    assert '此处在学生端开始新的一页' in content
+    assert '内容分隔' in content
+    assert '<script>alert(1)</script>' not in content
+    assert '&lt;script&gt;alert(1)&lt;/script&gt;' in content
 
 
 def test_initial_portal_data_excludes_teacher_product():
