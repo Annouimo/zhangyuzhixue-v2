@@ -86,6 +86,16 @@ def test_correction_virtual_queues_are_mutually_exclusive(
     assert response.status_code == 200
     assert list(response.context['contributions']) == [change]
 
+    report_response = client.get(
+        reverse('review_workbench:detail', args=[report.pk])
+    )
+    assert '纠错差异' not in report_response.content.decode()
+
+    change_response = client.get(
+        reverse('review_workbench:detail', args=[change.pk])
+    )
+    assert '纠错差异' in change_response.content.decode()
+
 
 @pytest.mark.django_db
 def test_reviewer_can_create_question_with_change_log(client, reviewer):
@@ -166,3 +176,12 @@ def test_content_maintenance_edits_without_delete_routes(client, reviewer):
     assert response.status_code == 302
     assert client.post(f'/review/content/tags/{tag.pk}/delete/').status_code == 404
     assert client.post(f'/review/content/cards/{card.pk}/delete/').status_code == 404
+
+
+@pytest.mark.django_db
+def test_tag_parent_field_uses_chinese_label(client, reviewer):
+    client.force_login(reviewer)
+    response = client.get(reverse('review_workbench:tag_create'))
+    content = response.content.decode()
+    assert '上级标签' in content
+    assert '>Parent<' not in content

@@ -93,6 +93,19 @@ def test_workbench_sidebar_contains_maintenance_and_review_queues(
     assert '?type=problem_report' in content
     assert 'queue-tabs' not in content
     assert '>全部 <' not in content
+    assert response.context['status_filter'] == 'active'
+    assert '<span class="nav-count">1</span>' in content
+    assert content.count('<span class="nav-count">0</span>') == 3
+
+
+@pytest.mark.django_db
+def test_sidebar_counts_are_available_outside_queue(
+    client, reviewer, contribution,
+):
+    client.force_login(reviewer)
+    response = client.get(reverse('review_workbench:question_list'))
+    assert response.status_code == 200
+    assert '<span class="nav-count">1</span>' in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -214,6 +227,35 @@ def test_terminal_contribution_is_read_only(client, reviewer, contribution):
 
 
 @pytest.mark.django_db
+def test_needs_revision_waits_for_resubmission_and_is_read_only(
+    client, reviewer, contribution,
+):
+    contribution.status = ContentContribution.Status.NEEDS_REVISION
+    contribution.review_note = '请补充条件。'
+    contribution.save()
+    client.force_login(reviewer)
+    response = client.get(
+        reverse('review_workbench:detail', args=[contribution.pk])
+    )
+    content = response.content.decode()
+    assert '已打回投稿者修改，等待重新提交' in content
+    assert 'data-review-action=' not in content
+
+    response = client.post(
+        reverse('review_workbench:detail', args=[contribution.pk]),
+        {
+            'content_json': json.dumps(payload()),
+            'note': '重复处理',
+            'version': contribution.updated_at.isoformat(),
+            'action': 'rejected',
+        },
+    )
+    assert response.status_code == 200
+    contribution.refresh_from_db()
+    assert contribution.status == ContentContribution.Status.NEEDS_REVISION
+
+
+@pytest.mark.django_db
 def test_approved_pending_release_is_read_only(client, reviewer, contribution):
     contribution.status = ContentContribution.Status.APPROVED_PENDING_RELEASE
     contribution.save()
@@ -308,6 +350,13 @@ def test_reviewer_can_append_solution_without_changing_existing_method(
         'steps': [{'title': '化简', 'content': '$x=1$', 'card_titles': []}],
     }
     client.force_login(reviewer)
+    detail_response = client.get(
+        reverse('review_workbench:detail', args=[contribution.pk])
+    )
+    detail_content = detail_response.content.decode()
+    assert '对应原题' in detail_content
+    assert '原题' in detail_content
+    assert '参考答案' in detail_content
     response = client.post(
         reverse('review_workbench:detail', args=[contribution.pk]),
         {

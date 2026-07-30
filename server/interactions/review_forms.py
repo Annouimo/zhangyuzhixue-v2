@@ -89,6 +89,7 @@ class ConceptTagWorkbenchForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['parent'].label = '上级标签'
         queryset = ConceptTag.objects.order_by('parent_id', 'name')
         if self.instance.pk:
             descendants = {self.instance.pk}

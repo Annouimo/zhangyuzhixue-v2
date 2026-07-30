@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import BooleanField, Count, Q
+from django.db.models import BooleanField, Q
 from django.db.models.expressions import RawSQL
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -32,7 +32,6 @@ def reviewer_required(view_func):
             return redirect(f'{login_url}?next={request.get_full_path()}')
         if not is_content_reviewer(request.user):
             return HttpResponseForbidden('当前账号没有内容审核权限。')
-        request.workbench_queue_counts = _active_queue_counts()
         return view_func(request, *args, **kwargs)
     return wrapped
 
@@ -101,37 +100,6 @@ def _filter_contribution_kind(queryset, type_filter):
     return queryset, ''
 
 
-def _active_queue_counts():
-    active = _with_contribution_kind(ContentContribution.objects.filter(
-        status__in=[
-            ContentContribution.Status.PENDING,
-            ContentContribution.Status.RESUBMITTED,
-            ContentContribution.Status.PROCESSING,
-        ]
-    ))
-    return active.aggregate(
-        all=Count('pk'),
-        new_question=Count(
-            'pk', filter=Q(contribution_type='new_question')
-        ),
-        new_solution=Count(
-            'pk', filter=Q(contribution_type='new_solution')
-        ),
-        content_change=Count(
-            'pk', filter=Q(
-                contribution_type='question_correction',
-                has_proposed_question=True,
-            )
-        ),
-        problem_report=Count(
-            'pk', filter=Q(
-                contribution_type='question_correction',
-                has_proposed_question=False,
-            )
-        ),
-    )
-
-
 @reviewer_required
 def queue_view(request):
     requested_status = request.GET.get('status')
@@ -151,7 +119,6 @@ def queue_view(request):
             ContentContribution.Status.PROCESSING,
         ])
     elif status_filter in ContentContribution.Status.values:
-        pass
         queryset = queryset.filter(status=status_filter)
     else:
         status_filter = 'active'
@@ -182,7 +149,6 @@ def queue_view(request):
         'mine_only': mine_only,
         'status_choices': ContentContribution.Status.choices,
         'type_choices': ContentContribution.ContributionType.choices,
-        'queue_counts': request.workbench_queue_counts,
     })
 
 
@@ -218,7 +184,7 @@ def detail_view(request, contribution_id):
     contribution = get_object_or_404(
         ContentContribution.objects.select_related(
             'student__user', 'question', 'target_sub_question',
-            'reviewed_by', 'completed_question'
+            'reviewed_by', 'completed_question', 'question__choice_ext',
         ).prefetch_related(
             'revisions', 'reviews__actor', 'tag_selections__concept_tag',
             'tag_suggestions__suggested_parent',
@@ -249,6 +215,7 @@ def detail_view(request, contribution_id):
         contribution_type=contribution.contribution_type,
     )
     is_terminal = contribution.status in {
+        ContentContribution.Status.NEEDS_REVISION,
         ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
@@ -356,6 +323,7 @@ def _apply_status_action(request, contribution_id, version, action, note):
     if version != contribution.updated_at.isoformat():
         raise ValueError('该投稿已被其他人更新，请刷新页面后重新处理。')
     if contribution.status in {
+        ContentContribution.Status.NEEDS_REVISION,
         ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
@@ -385,6 +353,7 @@ def _apply_action(request, contribution_id, form, action):
     if form.cleaned_data['version'] != contribution.updated_at.isoformat():
         raise ValueError('该投稿已被其他人更新，请刷新页面后重新处理。')
     if contribution.status in {
+        ContentContribution.Status.NEEDS_REVISION,
         ContentContribution.Status.APPROVED_PENDING_RELEASE,
         ContentContribution.Status.COMPLETED,
         ContentContribution.Status.REJECTED,
