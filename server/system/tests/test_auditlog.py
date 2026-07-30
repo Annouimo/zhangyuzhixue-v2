@@ -3,7 +3,7 @@
 from auditlog.registry import auditlog as auditlog_registry
 from django.contrib.auth.models import User
 
-from accounts.models import InvitationCode, Student
+from accounts.models import Student
 from courses.models import Course, Document
 from interactions.models import ContentContribution, ContributionTagSuggestion
 from qbank.models import (
@@ -21,7 +21,7 @@ from system.models import DbVersion
 # ── 应审计模型名单 ────────────────────────────────────────────
 
 EXPECTED_REGISTERED = [
-    Student, InvitationCode,
+    Student,
     BaseQuestion, ChoiceExt, SubQuestion,
     SolutionMethod, SolutionStep,
     KnowledgeCard, ConceptTag,
@@ -90,11 +90,6 @@ class TestAuditlogRegistration:
         """DbVersion 必须被审计（关键管理操作）"""
         registered = set(auditlog_registry.get_models())
         assert DbVersion in registered, 'DbVersion 必须注册审计'
-
-    def test_invitationcode_is_registered(self):
-        """InvitationCode 必须被审计"""
-        registered = set(auditlog_registry.get_models())
-        assert InvitationCode in registered, 'InvitationCode 必须注册审计'
 
     def test_register_all_idempotent(self):
         """重复注册不会报错"""

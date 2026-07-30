@@ -62,25 +62,6 @@ class Student(models.Model):
             )
 
 
-class InvitationCode(models.Model):
-    """邀请码"""
-    code = models.CharField('邀请码', max_length=32, unique=True)
-    is_used = models.BooleanField('已使用', default=False)
-    used_by = models.ForeignKey(User, on_delete=models.SET_NULL,
-                                null=True, blank=True,
-                                related_name='used_invitations')
-    used_at = models.DateTimeField('使用时间', null=True, blank=True)
-    expires_at = models.DateTimeField('过期时间', null=True, blank=True)
-    created_at = models.DateTimeField('创建时间', auto_now_add=True)
-
-    class Meta:
-        verbose_name = '邀请码'
-        verbose_name_plural = '邀请码'
-
-    def __str__(self):
-        return self.code
-
-
 class AccountDeletionRequest(models.Model):
     """账号注销申请：先禁用，冷静期结束后匿名化。"""
 

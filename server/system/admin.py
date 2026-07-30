@@ -110,7 +110,7 @@ class AdminHelpAdmin(admin.ModelAdmin):
 
 @method_decorator(staff_member_required, name='dispatch')
 class ToolsView(View):
-    """系统管理工具页面 — 构建/邀请码/批量导入"""
+    """系统管理工具页面 — 构建与积分调整"""
     template_name = 'admin/system/tools.html'
 
     def get(self, request):
@@ -124,8 +124,6 @@ class ToolsView(View):
             self._run_build('qbank', request.POST.get('mode') == 'test')
         elif action == 'build_courses':
             self._run_build('courses', request.POST.get('mode') == 'test')
-        elif action == 'generate_codes':
-            self._generate_codes(request)
         elif action == 'grant_points':
             self._grant_points(request)
 
@@ -133,7 +131,7 @@ class ToolsView(View):
 
     def _get_context(self, request):
         """准备模板上下文"""
-        from accounts.models import InvitationCode, Student
+        from accounts.models import Student
         from interactions.models import SubmissionDetail, StudentSubmission
         from accounts.models import UserLoginLog
         from django.utils import timezone as tz
@@ -141,7 +139,6 @@ class ToolsView(View):
         return {
             'qbank_version': DbVersion.objects.filter(db_type='qbank').first(),
             'courses_version': DbVersion.objects.filter(db_type='courses').first(),
-            'invitation_codes': InvitationCode.objects.all().order_by('-created_at')[:50],
             'students': Student.objects.select_related('user').order_by('user__username'),
             'has_error': False,
             'messages': [],
@@ -207,45 +204,6 @@ class ToolsView(View):
         finally:
             sys.stdout = old_stdout
         return buf.getvalue()
-
-    def _generate_codes(self, request):
-        """批量生成邀请码"""
-        from accounts.models import InvitationCode
-        import secrets
-        import string
-
-        try:
-            count = int(request.POST.get('count', 10))
-        except (ValueError, TypeError):
-            count = 10
-        count = max(1, min(100, count))
-
-        days = request.POST.get('days', '')
-        if days:
-            try:
-                expires = timezone.now() + timezone.timedelta(days=int(days))
-            except (ValueError, TypeError):
-                expires = None
-        else:
-            expires = None
-
-        chars = string.ascii_uppercase + string.digits
-        created = 0
-        for _ in range(count * 2):  # 最多尝试 2 倍次数去重
-            if created >= count:
-                break
-            code = '-'.join([
-                ''.join(secrets.choice(chars) for _ in range(4)),
-                ''.join(secrets.choice(chars) for _ in range(4)),
-                ''.join(secrets.choice(chars) for _ in range(4)),
-            ])
-            if not InvitationCode.objects.filter(code=code).exists():
-                InvitationCode.objects.create(
-                    code=code,
-                    is_used=False,
-                    expires_at=expires,
-                )
-                created += 1
 
     @transaction.atomic
     def _grant_points(self, request):

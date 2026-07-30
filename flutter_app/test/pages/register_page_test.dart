@@ -57,7 +57,6 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
 
       expect(find.text('创建账号'), findsOneWidget);
-      expect(find.text('邀请码'), findsNothing);
       expect(find.text('用户名'), findsOneWidget);
       expect(find.text('姓名'), findsOneWidget);
       expect(find.text('手机号'), findsOneWidget);

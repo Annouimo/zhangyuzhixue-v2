@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from accounts.models import AccountDeletionRequest, InvitationCode, Student
+from accounts.models import AccountDeletionRequest, Student
 
 
 DELETION_COOLDOWN_DAYS = 7
@@ -125,7 +125,6 @@ def anonymize_account(deletion_request):
     student.account_status = Student.AccountStatus.ANONYMIZED
     student.save()
 
-    InvitationCode.objects.filter(used_by=user).update(used_by=None)
     deletion_request.status = AccountDeletionRequest.Status.ANONYMIZED
     deletion_request.anonymized_at = timezone.now()
     deletion_request.save(update_fields=[

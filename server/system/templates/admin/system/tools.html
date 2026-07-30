@@ -18,10 +18,6 @@
 .tool-btn-warning:hover { background: #c4872e; }
 .version-info { font-size: 13px; color: #666; margin-bottom: 10px; }
 .version-info span { margin-right: 15px; }
-.invite-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.invite-table th, .invite-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-.invite-table th { background: #f8f8f8; font-weight: 600; }
-.used { color: #999; }
 .form-row { margin: 10px 0; }
 .form-row label { display: inline-block; width: 100px; font-size: 13px; }
 .form-row input[type=number] { width: 80px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 3px; }
@@ -96,41 +92,6 @@
       <button type="submit" class="tool-btn tool-btn-secondary">🧪 仅构建测试 · 课程</button>
     </form>
   </div>
-</div>
-
-<div class="tool-section">
-  <h2>🔑 邀请码管理</h2>
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="generate_codes">
-    <div class="form-row">
-      <label>生成数量：</label>
-      <input type="number" name="count" value="10" min="1" max="100">
-    </div>
-    <div class="form-row">
-      <label>有效期（天）：</label>
-      <input type="text" name="days" placeholder="留空=永不过期">
-    </div>
-    <button type="submit" class="tool-btn tool-btn-warning">✨ 生成邀请码</button>
-  </form>
-
-  <table class="invite-table">
-    <thead>
-      <tr><th>邀请码</th><th>状态</th><th>创建时间</th><th>使用人</th></tr>
-    </thead>
-    <tbody>
-      {% for code in invitation_codes %}
-      <tr class="{% if code.is_used %}used{% endif %}">
-        <td><code>{{ code.code }}</code></td>
-        <td>{% if code.is_used %}已使用{% elif code.expires_at and code.expires_at < now %}已过期{% else %}有效{% endif %}</td>
-        <td>{{ code.created_at|date:"Y-m-d H:i" }}</td>
-        <td>{{ code.used_by|default:"—" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4" style="text-align:center;color:#999">暂无邀请码</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
 </div>
 
 <div class="tool-section">

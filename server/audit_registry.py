@@ -10,7 +10,7 @@ def register_all():
     from auditlog.registry import auditlog as auditlog_registry
     from django.contrib.auth.models import User
 
-    from accounts.models import InvitationCode, Student
+    from accounts.models import Student
     from courses.models import Course, Document
     from internal_portal.models import (
         BusinessArea,
@@ -41,7 +41,6 @@ def register_all():
     # 审计范围随当前服务端模型维护。
 
     auditlog_registry.register(Student)
-    auditlog_registry.register(InvitationCode)
     auditlog_registry.register(BaseQuestion)
     auditlog_registry.register(ChoiceExt)
     auditlog_registry.register(SubQuestion)

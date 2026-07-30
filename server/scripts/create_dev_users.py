@@ -13,9 +13,7 @@ django.setup()
 
 # setup 之后才能导入 Django 模型
 from django.contrib.auth.models import User  # noqa: E402
-from django.utils import timezone  # noqa: E402
-
-from accounts.models import InvitationCode, Student  # noqa: E402
+from accounts.models import Student  # noqa: E402
 
 # ── 配置 ──────────────────────────────────────────────────────
 
@@ -29,12 +27,6 @@ USERS = [
     {'username': 'student3', 'password': 'test123', 'role': 'student',
      'real_name': '王五', 'gaokao_year': 2027},
 ]
-
-INVITATION_CODES = [
-    'GR7X-K2P9-M4VB', 'DEV1-ABCD-0001', 'DEV2-ABCD-0002',
-    'DEV3-ABCD-0003', 'DEV4-ABCD-0004',
-]
-
 
 def create_users():
     for u in USERS:
@@ -53,20 +45,7 @@ def create_users():
                 Student.objects.create(user=user, gaokao_year=u.get('gaokao_year'))
         print('  OK', u['username'], '(' + u['real_name'] + ')')
 
-
-def create_invitations():
-    expires = timezone.now() + timezone.timedelta(days=365)
-    for code_str in INVITATION_CODES:
-        if InvitationCode.objects.filter(code=code_str).exists():
-            print('  SKIP', code_str, '(exists)')
-            continue
-        InvitationCode.objects.create(code=code_str, is_used=False, expires_at=expires)
-        print('  OK', code_str)
-
-
 if __name__ == '__main__':
     print('Creating users...')
     create_users()
-    print('Creating invitation codes...')
-    create_invitations()
     print('Done.')

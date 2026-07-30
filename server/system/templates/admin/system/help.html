@@ -43,7 +43,6 @@
     <li class="nav-section"><a href="#s1">一、常用管理操作</a>
       <ul class="nav-sub">
         <li><a href="#s1-1">学生管理</a></li>
-        <li><a href="#s1-3">邀请码管理</a></li>
         <li><a href="#s1-5">课程与讲义</a></li>
         <li><a href="#s1-7">题库</a></li>
       </ul>
@@ -60,7 +59,6 @@
     <li class="nav-section"><a href="#s3">三、系统工具</a>
       <ul class="nav-sub">
         <li><a href="#s3-1">构建资产</a></li>
-        <li><a href="#s3-2">生成邀请码</a></li>
       </ul>
     </li>
     <li class="nav-section"><a href="#s4">四、服务器维护</a>
@@ -82,17 +80,9 @@
 
 <h3 id="s1-1">学生管理</h3>
 <ul>
-  <li><strong>创建学生：</strong>先确保该用户已注册（通过 App 用邀请码注册），在 Admin 中找到相应用户，加上 Student 关联。建议用"邀请码 → 注册"流程，不建议在 Admin 手动创建 Student。</li>
+  <li><strong>创建学生：</strong>学生应通过 App 自助注册，注册流程会同时创建 User、Student 和学生权限，不建议在 Admin 中拆分操作。</li>
   <li><strong>学号：</strong>系统会自动生成，不要手动填写。格式为 <code>XS-XXXXXX</code>（前缀 + LCG 混淆数字）。生成规则见系统配置 <code>student_id_template</code>。</li>
   <li><strong>删除学生：</strong>删除 Student 不会删除关联的 User。如需彻底删除，需分别删除 Student 和 User 两条记录。</li>
-</ul>
-
-<h3 id="s1-3">邀请码管理</h3>
-<ul>
-  <li><strong>生成：</strong>在「系统工具」页面批量生成。也可在 <code>/admin/accounts/invitationcode/add/</code> 手动创建单个。</li>
-  <li><strong>有效期：</strong>留空 = 永不过期；填写数字（如 <code>30</code>）= 从创建起 n 天后过期。</li>
-  <li><strong>使用状态：</strong><code>is_used</code> 标记已使用；<code>used_by</code> 关联使用人。已使用的邀请码不可复用。</li>
-  <li>列表中已使用的行为灰色显示，过期行有标记。</li>
 </ul>
 
 <h3 id="s1-5">课程与讲义</h3>
@@ -186,14 +176,6 @@
 </ul>
 <div class="warn">⚠️ 发布模式不可逆。确保在测试模式验证无误后再发布。</div>
 
-<h3 id="s3-2">生成邀请码</h3>
-<div class="tip">📍 进入方式：Admin 首页 → 系统工具 → 邀请码管理</div>
-<ul>
-  <li>单次最多生成 100 个。邀请码格式为 <code>XXXX-XXXX-XXXX</code>（大写字母+数字）。</li>
-  <li>可设置有效期天数，留空 = 永不过期。</li>
-  <li>已生成的邀请码在页面的表格中展示。可以使用浏览器搜索（Ctrl+F）查询特定邀请码状态。</li>
-  <li>如需手动创建单个邀请码或编辑过期时间，在 <code>/admin/accounts/invitationcode/</code> 操作。</li>
-</ul>
 </div>
 
 <!-- ============================================================ -->

@@ -23,7 +23,6 @@ DEFAULT_DB = os.path.join(PROJECT_DIR, 'db.sqlite3')
 FILE_TABLE_MAP = [
     ('auth_users',                    'auth_user'),
     ('accounts_students',             'accounts_student'),
-    ('accounts_invitation_codes',     'accounts_invitationcode'),
     ('accounts_user_login_logs',      'accounts_userloginlog'),
     ('system_config',                 'system_systemconfig'),
     ('system_level_config',           'system_levelconfig'),

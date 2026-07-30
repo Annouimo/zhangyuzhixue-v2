@@ -21,7 +21,6 @@ DEFAULT_DB = os.path.join(PROJECT_DIR, 'db.sqlite3')
 TABLES = [
     ('auth_user',                     'auth_users',               []),
     ('accounts_student',              'accounts_students',        []),
-    ('accounts_invitationcode',       'accounts_invitation_codes', []),
     ('accounts_userloginlog',         'accounts_user_login_logs',  []),
     ('system_systemconfig',           'system_config',            []),
     ('system_levelconfig',            'system_level_config',      []),

@@ -2,7 +2,6 @@
 
 from .models import (
     AccountDeletionRequest,
-    InvitationCode,
     RegistrationConsent,
     Student,
     UserLoginLog,
@@ -40,13 +39,6 @@ class RegistrationConsentAdmin(admin.ModelAdmin):
     readonly_fields = [
         'user', 'terms_version', 'privacy_version', 'source', 'accepted_at',
     ]
-
-
-@admin.register(InvitationCode)
-class InvitationCodeAdmin(admin.ModelAdmin):
-    list_display = ['code', 'is_used', 'used_by', 'expires_at', 'created_at']
-    list_filter = ['is_used']
-    search_fields = ['code']
 
 
 @admin.register(UserLoginLog)

@@ -94,7 +94,6 @@ void main() {
         ),
       );
 
-      expect(requestBody.containsKey('invitation_code'), isFalse);
       expect(requestBody['username'], 'newuser');
       expect(requestBody['accepted_terms'], isTrue);
       expect(requestBody['accepted_privacy'], isTrue);

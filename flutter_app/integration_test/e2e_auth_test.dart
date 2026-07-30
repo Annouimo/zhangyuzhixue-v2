@@ -22,9 +22,9 @@ void main() {
       // 3. 填写注册表单
       final now = DateTime.now().millisecondsSinceEpoch;
       final username = 'e2e_user_$now';
-      await tester.enterText(find.byType(TextField).at(0), '123456'); // 邀请码
-      await tester.enterText(find.byType(TextField).at(1), username);
-      await tester.enterText(find.byType(TextField).at(2), '张三');
+      await tester.enterText(find.byType(TextField).at(0), username);
+      await tester.enterText(find.byType(TextField).at(1), '张三');
+      await tester.enterText(find.byType(TextField).at(2), '13800138000');
       await tester.enterText(find.byType(TextField).at(3), 'pass_$now');
       await tester.enterText(find.byType(TextField).at(4), 'pass_$now');
 
