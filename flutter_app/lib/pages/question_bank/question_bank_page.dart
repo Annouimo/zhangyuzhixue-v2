@@ -640,24 +640,14 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         .toList(growable: false);
     if (missingQuestions.isEmpty) return;
     if (missingQuestions.length > 50) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('全部加入试题篮？'),
-          content: Text('将把当前结果中的 ${missingQuestions.length} 道题加入试题篮。'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('全部加入'),
-            ),
-          ],
-        ),
+      final confirmed = await AppDialog.confirm(
+        context,
+        title: '全部加入试题篮？',
+        message: '将把当前结果中的 ${missingQuestions.length} 道题加入试题篮。',
+        icon: Icons.playlist_add_rounded,
+        confirmLabel: '全部加入',
       );
-      if (confirmed != true || !mounted) return;
+      if (!confirmed || !mounted) return;
     }
     setState(() {
       for (final question in missingQuestions) {

@@ -87,50 +87,28 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
   Future<void> _rename() async {
     final detail = _detail;
     if (detail == null) return;
-    final controller = TextEditingController(text: detail.folder.name);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('重命名试题篮'),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogContext, controller.text.trim()),
-            child: const Text('保存'),
-          ),
-        ],
-      ),
+    final name = await AppDialog.prompt(
+      context,
+      title: '重命名试题篮',
+      initialValue: detail.folder.name,
+      confirmLabel: '保存',
+      validator: (value) => value.isEmpty ? '请输入名称' : null,
     );
-    controller.dispose();
     if (name == null || name.isEmpty) return;
     await _repository.rename(widget.folderId, name);
     await _load();
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('删除试题篮？'),
-        content: const Text('只删除试题篮，不影响已经生成的正式试卷。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('删除', style: TextStyle(color: context.colors.error)),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '删除试题篮？',
+      message: '只删除试题篮，不影响已经生成的正式试卷。',
+      icon: Icons.delete_outline_rounded,
+      confirmLabel: '删除',
+      destructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await _repository.delete(widget.folderId);
     if (mounted) Navigator.of(context).pop();
   }
@@ -202,24 +180,14 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
         detail.folder.lastGeneratedFingerprint.isNotEmpty &&
         detail.folder.lastGeneratedFingerprint == _repository.fingerprint(ids);
     if (unchanged) {
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('内容没有变化'),
-          content: const Text('当前试题篮自上次生成后没有变化，继续生成仍会扣除 10 积分。'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('继续生成'),
-            ),
-          ],
-        ),
+      final proceed = await AppDialog.confirm(
+        context,
+        title: '内容没有变化',
+        message: '当前试题篮自上次生成后没有变化，继续生成仍会扣除 10 积分。',
+        icon: Icons.info_outline_rounded,
+        confirmLabel: '继续生成',
       );
-      if (proceed != true || !mounted) return;
+      if (!proceed || !mounted) return;
     }
     final draft = await showDialog<PaperDraft>(
       context: context,

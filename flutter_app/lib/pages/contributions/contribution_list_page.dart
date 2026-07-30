@@ -106,9 +106,7 @@ class _ContributionListPageState extends State<ContributionListPage>
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       const Expanded(
-                        child: Text(
-                          '做题过程中，你可以在解题页面或题目详情中反馈题目错误、投稿新的解法。',
-                        ),
+                        child: Text('做题过程中，你可以在解题页面或题目详情中反馈题目错误、投稿新的解法。'),
                       ),
                     ],
                   ),
@@ -238,24 +236,14 @@ class _ContributionListPageState extends State<ContributionListPage>
   }
 
   Future<void> _withdraw(int id) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('撤回贡献'),
-        content: const Text('撤回后不能继续修改这条记录。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('撤回'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '撤回贡献？',
+      message: '撤回后不能继续修改这条记录。',
+      icon: Icons.undo_rounded,
+      confirmLabel: '撤回',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     try {
       await _api.withdraw(id);
       await _load();

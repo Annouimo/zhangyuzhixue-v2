@@ -5,6 +5,7 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/empty_placeholder.dart';
@@ -46,29 +47,15 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
   }
 
   Future<void> _delete(int id, int index) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        icon: Icon(Icons.delete_outline_rounded, color: context.colors.error),
-        title: const Text('删除筛选方案？'),
-        content: const Text('删除后无法恢复，但不会影响已有的练习和试卷。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: context.colors.error,
-              foregroundColor: context.colors.onError,
-            ),
-            child: const Text('确认删除'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '删除筛选方案？',
+      message: '删除后无法恢复，但不会影响已有的练习和试卷。',
+      icon: Icons.delete_outline_rounded,
+      confirmLabel: '确认删除',
+      destructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     _loadKey.currentState?.optimisticUpdate((list) {
       list.removeAt(index);

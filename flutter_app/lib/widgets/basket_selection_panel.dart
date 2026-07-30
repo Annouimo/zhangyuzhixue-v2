@@ -61,8 +61,7 @@ Future<Set<int>?> showBasketSelectionPanel({
   }
   return showDialog<Set<int>>(
     context: context,
-    builder: (_) =>
-        Dialog(child: SizedBox(width: 520, height: 640, child: panel)),
+    builder: (_) => AppDialogFrame(child: SizedBox(height: 640, child: panel)),
   );
 }
 
@@ -240,48 +239,11 @@ class _BasketSelectionPanelState extends State<BasketSelectionPanel> {
 }
 
 Future<String?> showCreateBasketDialog(BuildContext context) {
-  return showDialog<String>(
-    context: context,
-    builder: (_) => const _CreateBasketDialog(),
-  );
-}
-
-class _CreateBasketDialog extends StatefulWidget {
-  const _CreateBasketDialog();
-
-  @override
-  State<_CreateBasketDialog> createState() => _CreateBasketDialogState();
-}
-
-class _CreateBasketDialogState extends State<_CreateBasketDialog> {
-  final _controller = TextEditingController(text: '新试题篮');
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final name = _controller.text.trim();
-    if (name.isNotEmpty) Navigator.pop(context, name);
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('新建试题篮'),
-    content: TextField(
-      controller: _controller,
-      autofocus: true,
-      decoration: const InputDecoration(labelText: '名称'),
-      onSubmitted: (_) => _submit(),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('取消'),
-      ),
-      FilledButton(onPressed: _submit, child: const Text('创建')),
-    ],
+  return AppDialog.prompt(
+    context,
+    title: '新建试题篮',
+    initialValue: '新试题篮',
+    confirmLabel: '创建',
+    validator: (value) => value.isEmpty ? '请输入名称' : null,
   );
 }

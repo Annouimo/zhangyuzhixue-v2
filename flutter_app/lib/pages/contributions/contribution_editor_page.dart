@@ -329,26 +329,16 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         .toList();
     if (drafts.isEmpty || !mounted) return;
     final latest = drafts.first;
-    final restore = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('继续本地草稿？'),
-        content: Text(
+    final restore = await AppDialog.confirm(
+      context,
+      title: '继续本地草稿？',
+      message:
           '${latest['summary']?.toString().trim().isNotEmpty == true ? latest['summary'] : '未命名投稿'}\n\n草稿只保存在本机。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('新建'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('继续编辑'),
-          ),
-        ],
-      ),
+      cancelLabel: '新建',
+      confirmLabel: '继续编辑',
+      icon: Icons.drafts_outlined,
     );
-    if (restore != true) return;
+    if (!restore) return;
     final draft = _draftStore.read('${latest['draft_id']}');
     if (draft == null || !mounted) return;
     final savedStep = draft['step'] as int? ?? 0;

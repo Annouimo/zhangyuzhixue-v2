@@ -147,25 +147,15 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(AppIcons.delete, color: context.colors.error),
-        title: const Text('删除这份试卷？'),
-        content: const Text('删除后无法恢复。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('删除', style: TextStyle(color: context.colors.error)),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '删除这份试卷？',
+      message: '删除后无法恢复。',
+      icon: AppIcons.delete,
+      confirmLabel: '删除',
+      destructive: true,
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await _repo.deleteExam(widget.examId!);
     if (mounted) safePop(context);
   }

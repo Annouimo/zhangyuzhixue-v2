@@ -108,26 +108,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _logout() async {
     final pending = _pendingSyncCount ?? 0;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('退出登录'),
-        content: Text(
-          pending > 0 ? '还有 $pending 条数据尚未同步，退出后将丢失。确定退出吗？' : '确定要退出当前账号吗？',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text('退出', style: TextStyle(color: context.colors.error)),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '退出登录？',
+      message: pending > 0
+          ? '还有 $pending 条数据尚未同步，退出后将丢失。确定退出吗？'
+          : '确定要退出当前账号吗？',
+      icon: Icons.logout_rounded,
+      confirmLabel: '退出',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     try {
       await _authRepository().logout();
       if (mounted) context.go(AppRoutes.login);
@@ -142,42 +133,15 @@ class _SettingsPageState extends State<SettingsPage> {
       _showError('还有 $pending 条数据未同步，请先完成同步再注销账号');
       return;
     }
-    final controller = TextEditingController();
-    final password = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('注销账号'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('提交后账号会立即停用。7 天内可撤销；到期后身份信息将被匿名化。'),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: controller,
-              obscureText: true,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: '当前密码'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (controller.text.isNotEmpty) {
-                Navigator.pop(dialogContext, controller.text);
-              }
-            },
-            child: const Text('确认注销'),
-          ),
-        ],
-      ),
+    final password = await AppDialog.prompt(
+      context,
+      title: '注销账号',
+      message: '提交后账号会立即停用。7 天内可撤销；到期后身份信息将被匿名化。',
+      label: '当前密码',
+      confirmLabel: '确认注销',
+      obscureText: true,
+      validator: (value) => value.isEmpty ? '请输入当前密码' : null,
     );
-    controller.dispose();
     if (password == null || !mounted) return;
 
     try {

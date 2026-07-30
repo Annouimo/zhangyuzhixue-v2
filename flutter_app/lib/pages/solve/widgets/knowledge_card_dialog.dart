@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/md_latex_body.dart';
+import 'package:shared/widgets/app_dialog.dart';
 
 /// 知识卡片弹层
 class KnowledgeCardDialog extends StatelessWidget {
@@ -21,10 +22,8 @@ class KnowledgeCardDialog extends StatelessWidget {
   }) {
     return showDialog<String>(
       context: context,
-      builder: (_) => KnowledgeCardDialog(
-        cardTitle: title,
-        cardContent: content,
-      ),
+      builder: (_) =>
+          KnowledgeCardDialog(cardTitle: title, cardContent: content),
     );
   }
 
@@ -32,10 +31,8 @@ class KnowledgeCardDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final viewport = MediaQuery.sizeOf(context);
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.large),
-      ),
+    return AppDialogFrame(
+      size: AppDialogSize.wide,
       child: ConstrainedBox(
         key: const Key('knowledge-card-surface'),
         constraints: BoxConstraints(
@@ -50,8 +47,11 @@ class KnowledgeCardDialog extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.lightbulb_outline,
-                      color: colors.primary, size: 20),
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: colors.primary,
+                    size: 20,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -75,9 +75,9 @@ class KnowledgeCardDialog extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 '这张知识卡你掌握得怎么样？',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: colors.textSecondary),
               ),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
@@ -113,9 +113,9 @@ class KnowledgeCardDialog extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: color,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(color: color),
           ),
         ),
       ),

@@ -1,40 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../domain/preference_repository.dart';
 import 'package:shared/widgets/filter_panel.dart';
+import 'package:shared/widgets/app_dialog.dart';
 
 /// 保存筛选条件为筛选方案的弹窗
 Future<String?> showSavePreferenceDialog(BuildContext context) async {
-  final nameCtrl = TextEditingController();
-  final name = await showDialog<String>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('保存筛选方案'),
-      content: TextField(
-        controller: nameCtrl,
-        decoration: const InputDecoration(
-          hintText: '方案名称（如"北京高考模拟"）',
-          border: OutlineInputBorder(),
-        ),
-        autofocus: true,
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (ctx.mounted) Navigator.of(ctx).pop();
-          }),
-          child: const Text('取消'),
-        ),
-        TextButton(
-          onPressed: () => WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (ctx.mounted) Navigator.of(ctx).pop(nameCtrl.text);
-          }),
-          child: const Text('保存'),
-        ),
-      ],
-    ),
+  return AppDialog.prompt(
+    context,
+    title: '保存筛选方案',
+    label: '方案名称（如“北京高考模拟”）',
+    confirmLabel: '保存',
+    validator: (value) => value.isEmpty ? '请输入方案名称' : null,
   );
-  nameCtrl.dispose();
-  return name;
 }
 
 /// 从筛选面板状态构建 PreferenceFilter
@@ -69,34 +46,18 @@ Future<int?> showLoadPreferenceDialog(
     }
     return null;
   }
-  final selected = await showDialog<int>(
-    context: context,
-    builder: (ctx) => SimpleDialog(
-      title: const Text('应用筛选方案'),
-      children: presets
-          .map(
-            (p) => SimpleDialogOption(
-              onPressed: () =>
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (ctx.mounted) Navigator.of(ctx).pop(p.id);
-                  }),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(p.name, style: Theme.of(ctx).textTheme.titleSmall),
-                  if (p.summary.isNotEmpty)
-                    Text(
-                      p.summary,
-                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    ),
+  final selected = await AppDialog.select<int>(
+    context,
+    title: '应用筛选方案',
+    options: presets
+        .map(
+          (preset) => AppDialogOption(
+            value: preset.id,
+            label: preset.name,
+            detail: preset.summary.isEmpty ? null : preset.summary,
+          ),
+        )
+        .toList(),
   );
   return selected;
 }

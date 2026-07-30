@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+
+import 'app_dialog.dart';
 import 'package:shared/theme/app_theme.dart';
 
 /// 同步进度弹窗
@@ -128,26 +130,15 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Future<void> _confirmForceSync() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('放弃未同步记录？'),
-        content: const Text('这些本地记录将不会上传，随后会以服务器数据覆盖本机学习记录。此操作不可撤销。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            style: TextButton.styleFrom(minimumSize: const Size(0, 40)),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
-            child: const Text('确认放弃并同步'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: '放弃未同步记录？',
+      message: '这些本地记录将不会上传，随后会以服务器数据覆盖本机学习记录。此操作不可撤销。',
+      icon: Icons.sync_problem_rounded,
+      confirmLabel: '确认放弃并同步',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     setState(() {
       _status = 'progress';
       _progress = 0;
@@ -161,24 +152,22 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
     return PopScope(
       canPop: _status != 'progress',
       child: AlertDialog(
-        contentPadding: EdgeInsets.fromLTRB(24, 28, 24, 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: SizedBox(
           width: 280,
           child: _status == 'progress'
               ? _buildProgress()
               : _status == 'done'
-                  ? _buildDone()
-                  : _status == 'no_data'
-                      ? _buildNoData()
-                      : _buildFail(),
+              ? _buildDone()
+              : _status == 'no_data'
+              ? _buildNoData()
+              : _buildFail(),
         ),
       ),
     );
   }
 
   Widget _buildProgress() {
-      final colors = context.colors;
+    final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -213,7 +202,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildDone() {
-      final colors = context.colors;
+    final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -246,7 +235,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildNoData() {
-      final colors = context.colors;
+    final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -280,7 +269,7 @@ class _SyncProgressDialogState extends State<_SyncProgressDialog> {
   }
 
   Widget _buildFail() {
-      final colors = context.colors;
+    final colors = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

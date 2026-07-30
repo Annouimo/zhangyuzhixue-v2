@@ -14,6 +14,7 @@ import 'package:flutter_app/pages/router.dart'
 import 'package:shared/widgets/sync_progress_dialog.dart';
 import 'package:flutter_app/widgets/user_sync_progress.dart';
 import 'package:shared/widgets/app_toast.dart';
+import 'package:shared/widgets/app_button.dart';
 import 'package:shared/constants/app_version.dart';
 import 'data/sync/update_manager.dart';
 import 'package:shared/debug/audit_logger.dart';
@@ -170,44 +171,19 @@ void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
     builder: (ctx) => PopScope(
       canPop: false,
       child: AlertDialog(
-        contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: SizedBox(
-          width: 280,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.system_update, size: 40, color: ctx.colors.primary),
-              const SizedBox(height: 12),
-              const Text(
-                '数据更新',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                summary.message ?? '$label 有新版本（v$summary.serverVersion），请立即更新',
-                style: TextStyle(fontSize: 13, color: ctx.colors.textMuted),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _startUpdate(ctx, summary, label),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ctx.colors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: const Text('立即更新', style: TextStyle(fontSize: 15)),
-                ),
-              ),
-            ],
-          ),
+        icon: Icon(Icons.system_update_rounded, color: ctx.colors.primary),
+        title: const Text('数据更新'),
+        content: Text(
+          summary.message ?? '$label 有新版本（v$summary.serverVersion），请立即更新',
+          textAlign: TextAlign.center,
         ),
+        actions: [
+          AppButton(
+            label: '立即更新',
+            icon: Icons.download_rounded,
+            onPressed: () => _startUpdate(ctx, summary, label),
+          ),
+        ],
       ),
     ),
   );
