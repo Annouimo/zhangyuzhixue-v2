@@ -1,0 +1,11 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}{{ category_label }}版本历史 | 内容工作台{% endblock %}
+{% block content %}
+<div class="detail-nav"><a href="{% if category == 'questions' %}{% url 'review_workbench:question_list' %}{% elif category == 'tags' %}{% url 'review_workbench:tag_list' %}{% elif category == 'cards' %}{% url 'review_workbench:card_list' %}{% else %}{% url 'review_workbench:course_list' %}{% endif %}">← 返回{{ category_label }}</a></div>
+<div class="page-heading"><div><h1>{{ category_label }}版本历史</h1><p>每条记录显示本次保存；点击后可查看与同一内容对象上一版的差异。</p></div></div>
+<div class="table-wrap revision-table"><table><thead><tr><th>修订</th><th>时间</th><th>内容对象</th><th>操作人</th><th>修改说明</th><th></th></tr></thead><tbody>
+{% for item in revisions %}<tr><td><code>r{{ item.pk }}</code></td><td>{{ item.created_at|date:'Y-m-d H:i' }}</td><td><span class="type-chip">{{ item.get_content_type_display }}</span> {{ item.object_label|default:'未命名' }} <span class="muted">#{{ item.object_id }}</span></td><td>{{ item.actor.get_full_name|default:item.actor.username|default:'系统' }}</td><td>{{ item.note }}</td><td><a href="{% url 'review_workbench:revision_diff' category item.pk %}">查看差异</a></td></tr>
+{% empty %}<tr><td colspan="6" class="empty">还没有版本记录。首次新建或保存内容后会在这里生成版本。</td></tr>{% endfor %}
+</tbody></table></div>
+{% if page.paginator.num_pages > 1 %}<nav class="pagination">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">上一页</a>{% endif %}<span>{{ page.number }} / {{ page.paginator.num_pages }}</span>{% if page.has_next %}<a href="?page={{ page.next_page_number }}">下一页</a>{% endif %}</nav>{% endif %}
+{% endblock %}

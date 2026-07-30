@@ -18,6 +18,7 @@ from .review_forms import (
 )
 from .review_services import question_payload, save_official_question
 from .review_views import reviewer_required
+from .workbench_revisions import record_revision
 
 
 def _question_initial(question=None):
@@ -142,6 +143,11 @@ def _question_editor(request, question=None):
                     action='create' if question is None else 'update',
                     note=form.cleaned_data['note'].strip(),
                 )
+                record_revision(
+                    'question', saved, request.user,
+                    'create' if question is None else 'update',
+                    form.cleaned_data['note'],
+                )
                 messages.success(
                     request,
                     f'正式题目 #{saved.pk} 已保存，将进入下一版题库。',
@@ -219,6 +225,11 @@ def _content_editor(request, form_class, kind, instance=None):
                 object_label=str(saved)[:255],
                 action='create' if instance is None else 'update',
                 note=form.cleaned_data['note'].strip(),
+            )
+            record_revision(
+                kind, saved, request.user,
+                'create' if instance is None else 'update',
+                form.cleaned_data['note'],
             )
         messages.success(request, '内容已保存。')
         route = 'tag_edit' if kind == 'tag' else 'card_edit'

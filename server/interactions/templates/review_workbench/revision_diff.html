@@ -1,0 +1,8 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}r{{ revision.pk }} 差异 | 内容工作台{% endblock %}
+{% block content %}
+<div class="detail-nav"><a href="{% url 'review_workbench:revision_list' category %}">← 返回{{ category_label }}版本历史</a></div>
+<div class="page-heading diff-heading"><div><h1>{{ revision.object_label|default:'未命名' }}</h1><p><span class="type-chip">{{ revision.get_content_type_display }}</span> #{{ revision.object_id }} · r{{ revision.pk }} 与 {% if previous %}r{{ previous.pk }}{% else %}空版本{% endif %} 的差异</p></div></div>
+<section class="commit-panel"><div class="commit-mark">r{{ revision.pk }}</div><dl><div><dt>修改说明</dt><dd>{{ revision.note }}</dd></div><div><dt>操作人</dt><dd>{{ revision.actor.get_full_name|default:revision.actor.username|default:'系统' }}</dd></div><div><dt>修订时间</dt><dd>{{ revision.created_at|date:'Y-m-d H:i:s' }}</dd></div></dl></section>
+<section class="git-diff"><header><strong>内容快照</strong><span>{% if previous %}r{{ previous.pk }} → r{{ revision.pk }}{% else %}空版本 → r{{ revision.pk }}{% endif %}</span></header><pre>{% for line in diff_lines %}<span class="diff-line diff-{{ line.kind }}">{{ line.text }}</span>{% empty %}<span class="diff-line diff-context">本次快照与上一版没有可显示的差异。</span>{% endfor %}</pre></section>
+{% endblock %}
