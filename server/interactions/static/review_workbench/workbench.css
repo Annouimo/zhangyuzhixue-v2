@@ -144,8 +144,9 @@ th { background: #f8f9fb; color: var(--muted); font-size: 12px; }
 .question-preview h2, .correction-diff h2, .review-sidebar h2 { margin: 0 0 12px; font-size: 16px; }
 .question-stem { margin-bottom: 20px; font-size: 17px; line-height: 1.8; white-space: pre-wrap; }
 .question-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 22px; padding: 0; list-style: none; }
-.question-options li { padding: 9px 11px; border: 1px solid var(--border); border-radius: 5px; }
-.option-key { display: inline-block; min-width: 24px; font-weight: 700; color: var(--blue); }
+.question-options li { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: start; padding: 9px 11px; border: 1px solid var(--border); border-radius: 5px; }
+.option-key { font-weight: 700; color: var(--blue); }
+.option-content { min-width: 0; white-space: pre-wrap; }
 .answer-block { display: grid; gap: 12px; }
 .subquestion-preview { padding: 14px; border-left: 3px solid #b8c6d5; background: #f8fafc; }
 .subquestion-preview h3 { margin: 0 0 8px; font-size: 14px; }

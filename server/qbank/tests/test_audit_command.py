@@ -50,6 +50,18 @@ def test_visually_empty_choice_is_a_blocker():
 
 
 @pytest.mark.django_db
+def test_embedded_choice_image_is_a_blocker():
+    create_choice(options={
+        'A': '1',
+        'B': '2',
+        'C': '3',
+        'D': "4\n\n<imgsrc='/static/questions/q01.png'>",
+    })
+    with pytest.raises(CommandError, match='题库存在发布阻断项'):
+        call_command('audit_question_bank', '--fail-on-blockers')
+
+
+@pytest.mark.django_db
 def test_test_data_is_excluded_by_default():
     create_choice(year=2099, options={'A': '', 'B': '2', 'C': '3', 'D': '4'})
     call_command('audit_question_bank', '--fail-on-blockers')

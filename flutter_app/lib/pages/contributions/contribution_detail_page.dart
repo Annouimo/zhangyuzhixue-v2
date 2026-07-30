@@ -230,7 +230,10 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
         for (final raw in options)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: MdLatexBody('${(raw as Map)['key']}. ${raw['content']}'),
+            child: QuestionOptionRow(
+              label: '${(raw as Map)['key']}',
+              content: '${raw['content']}',
+            ),
           ),
         for (final raw in subs) ...[
           const SizedBox(height: AppSpacing.md),
@@ -334,7 +337,10 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
         for (final entry in options.entries)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: MdLatexBody('${entry.key}. ${entry.value}'),
+            child: QuestionOptionRow(
+              label: entry.key,
+              content: '${entry.value}',
+            ),
           ),
         const SizedBox(height: AppSpacing.sm),
         Text(
@@ -359,7 +365,10 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
         for (final raw in options)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: MdLatexBody('${(raw as Map)['key']}. ${raw['content']}'),
+            child: QuestionOptionRow(
+              label: '${(raw as Map)['key']}',
+              content: '${raw['content']}',
+            ),
           ),
         for (final raw in subs) ...[
           const SizedBox(height: AppSpacing.sm),

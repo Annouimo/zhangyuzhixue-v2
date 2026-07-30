@@ -298,10 +298,9 @@ def _build_sections(qs):
             except (json.JSONDecodeError, TypeError):
                 raw = None
             if isinstance(raw, dict):
-                opts = ['<strong>({0})</strong> {1}'.format(k, v)
-                        for k, v in raw.items()]
+                opts = [{'key': k, 'content': v} for k, v in raw.items()]
             elif isinstance(raw, list):
-                opts = raw
+                opts = [{'key': '', 'content': value} for value in raw]
 
         # 图片
         imgs = _prepare_images(q.images)

@@ -8,7 +8,8 @@
 用法：通过 run_fix.py 执行
 """
 
-import re, json
+import json
+import re
 
 
 def fix(conn):
@@ -18,7 +19,6 @@ def fix(conn):
     print(f"  找到 {len(rows)} 行含 <img>")
 
     img_pattern = re.compile(r'<img[^>]*>', re.IGNORECASE)
-    trailing_newlines = re.compile(r'\\n+$')
     fixed = 0
 
     for cid, options_json in rows:
@@ -33,8 +33,7 @@ def fix(conn):
         for key in parsed:
             val = parsed[key]
             if isinstance(val, str) and img_pattern.search(val):
-                new_val = img_pattern.sub('', val)
-                new_val = trailing_newlines.sub('', new_val)
+                new_val = img_pattern.sub('', val).rstrip()
                 if new_val != val:
                     parsed[key] = new_val
                     changed = True

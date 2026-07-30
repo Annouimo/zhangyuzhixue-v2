@@ -168,20 +168,10 @@ class _StudentQuestionDetailPageState extends State<StudentQuestionDetailPage> {
                   for (final option in detail.options!.entries)
                     Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 28,
-                            child: Text(
-                              option.key,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                          Expanded(
-                            child: MdLatexBody(option.value, fontSize: 15),
-                          ),
-                        ],
+                      child: QuestionOptionRow(
+                        label: option.key,
+                        content: option.value,
+                        fontSize: 15,
                       ),
                     ),
                 ],

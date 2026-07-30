@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pytest
 from django.contrib.auth.models import Group, User
@@ -31,6 +32,22 @@ def payload(stem='函数 $f(x)=x^2$ 的最小值为'):
         'calculation': 'very_low',
         'uncertainties': [],
     }
+
+
+def test_option_preview_uses_separate_label_and_content_columns():
+    script = (
+        Path(__file__).parents[1]
+        / 'static' / 'review_workbench' / 'workbench.js'
+    ).read_text(encoding='utf-8')
+    assert "make('span', 'option-content'" in script
+
+
+def test_solution_target_uses_separate_option_content_column():
+    template = (
+        Path(__file__).parents[1]
+        / 'templates' / 'review_workbench' / 'detail.html'
+    ).read_text(encoding='utf-8')
+    assert '<span class="option-content">{{ value }}</span>' in template
 
 
 @pytest.fixture

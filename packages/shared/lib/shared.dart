@@ -22,6 +22,7 @@ export 'constants/app_version.dart';
 export 'widgets/md_latex_body.dart';
 export 'widgets/question_card.dart';
 export 'widgets/question_image.dart';
+export 'widgets/question_option_row.dart';
 export 'widgets/app_toast.dart';
 export 'widgets/app_button.dart';
 export 'widgets/app_card.dart';

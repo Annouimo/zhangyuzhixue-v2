@@ -16,7 +16,9 @@ from interactions.pdf_views import (
     _make_sig,
     _prepare_images,
 )
-from qbank.models import BaseQuestion, SolutionMethod, SolutionStep, SubQuestion
+from qbank.models import (
+    BaseQuestion, ChoiceExt, SolutionMethod, SolutionStep, SubQuestion,
+)
 
 
 @pytest.fixture
@@ -260,6 +262,10 @@ class TestPdfView:
         choice_question = BaseQuestion.objects.create(
             question_type='choice', stem='1+1=( )', default_score=5,
         )
+        ChoiceExt.objects.create(
+            question=choice_question,
+            options={'A': '较长的第一行<br>换行内容', 'B': '$2$'},
+        )
         SubQuestion.objects.create(
             question=choice_question, answer='B', sort_order=1,
         )
@@ -349,6 +355,9 @@ class TestPdfView:
         assert 'solution-sheet-section' in html
         assert '参考答案' in html
         assert 'choice-answer-table' in html
+        assert 'choice-label' in html
+        assert 'choice-content' in html
+        assert '较长的第一行<br>换行内容' in html
         assert 'fill-answer-grid' in html
         assert '三、解答题答案' in html
         assert '$a=b$，结论成立。' in html

@@ -5,6 +5,7 @@ import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/widgets/question_image.dart';
+import 'package:shared/widgets/question_option_row.dart';
 
 /// 做题页统一题目容器。
 ///
@@ -52,10 +53,7 @@ class SolveQuestionSurface extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               if (hasNumber)
-                Text(
-                  '第 ${number!.trim()} 题',
-                  style: textTheme.titleMedium,
-                ),
+                Text('第 ${number!.trim()} 题', style: textTheme.titleMedium),
               AppStatusBadge(
                 label: questionTypeLabel,
                 tone: AppStatusTone.primary,
@@ -68,9 +66,7 @@ class SolveQuestionSurface extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               title!.trim(),
-              style: textTheme.bodySmall?.copyWith(
-                color: colors.textSecondary,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
             ),
           ],
           if (isReviewMode) ...[
@@ -95,10 +91,7 @@ class SolveQuestionSurface extends StatelessWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.lg),
-          Semantics(
-            header: true,
-            child: MdLatexBody(stem, fontSize: 16),
-          ),
+          Semantics(header: true, child: MdLatexBody(stem, fontSize: 16)),
           if (imagePaths.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             ...imagePaths.map(
@@ -139,9 +132,9 @@ class _ReviewBanner extends StatelessWidget {
           Expanded(
             child: Text(
               '回顾模式 · 当前记录仅供浏览，不会修改历史答案',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colors.onInfoContainer,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colors.onInfoContainer),
             ),
           ),
         ],
@@ -203,52 +196,47 @@ class SolveAnswerOption extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.medium),
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AnimatedContainer(
-                  duration: AppMotion.fast,
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: scheme.indicatorBackground,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: scheme.indicatorBorder),
-                  ),
-                  child: Center(
-                    child: switch (state) {
-                      SolveOptionState.correct => Icon(
-                          Icons.check_rounded,
-                          size: 18,
-                          color: scheme.indicatorForeground,
-                        ),
-                      SolveOptionState.incorrect => Icon(
-                          Icons.close_rounded,
-                          size: 18,
-                          color: scheme.indicatorForeground,
-                        ),
-                      _ => Text(
-                          label,
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: scheme.indicatorForeground,
-                              ),
-                        ),
-                    },
-                  ),
+            child: QuestionOptionRow(
+              label: label,
+              content: content,
+              labelWidth: 28,
+              labelBuilder: (context, label) => AnimatedContainer(
+                duration: AppMotion.fast,
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: scheme.indicatorBackground,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: scheme.indicatorBorder),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: MdLatexBody(content, fontSize: 15),
-                  ),
+                child: Center(
+                  child: switch (state) {
+                    SolveOptionState.correct => Icon(
+                      Icons.check_rounded,
+                      size: 18,
+                      color: scheme.indicatorForeground,
+                    ),
+                    SolveOptionState.incorrect => Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: scheme.indicatorForeground,
+                    ),
+                    _ => Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: scheme.indicatorForeground,
+                      ),
+                    ),
+                  },
                 ),
-                if (state == SolveOptionState.selected) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  Icon(Icons.check_circle_outline_rounded,
-                      size: 20, color: colors.primary),
-                ],
-              ],
+              ),
+              trailing: state == SolveOptionState.selected
+                  ? Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 20,
+                      color: colors.primary,
+                    )
+                  : null,
             ),
           ),
         ),
@@ -259,40 +247,40 @@ class SolveAnswerOption extends StatelessWidget {
   _OptionScheme _resolveScheme(AppSemanticColors colors) {
     return switch (state) {
       SolveOptionState.selected => _OptionScheme(
-          background: colors.primaryContainer,
-          border: colors.primary,
-          indicatorBackground: colors.primary,
-          indicatorBorder: colors.primary,
-          indicatorForeground: colors.onPrimary,
-        ),
+        background: colors.primaryContainer,
+        border: colors.primary,
+        indicatorBackground: colors.primary,
+        indicatorBorder: colors.primary,
+        indicatorForeground: colors.onPrimary,
+      ),
       SolveOptionState.correct => _OptionScheme(
-          background: colors.successContainer,
-          border: colors.success,
-          indicatorBackground: colors.success,
-          indicatorBorder: colors.success,
-          indicatorForeground: colors.onSuccess,
-        ),
+        background: colors.successContainer,
+        border: colors.success,
+        indicatorBackground: colors.success,
+        indicatorBorder: colors.success,
+        indicatorForeground: colors.onSuccess,
+      ),
       SolveOptionState.incorrect => _OptionScheme(
-          background: colors.errorContainer,
-          border: colors.error,
-          indicatorBackground: colors.error,
-          indicatorBorder: colors.error,
-          indicatorForeground: colors.onError,
-        ),
+        background: colors.errorContainer,
+        border: colors.error,
+        indicatorBackground: colors.error,
+        indicatorBorder: colors.error,
+        indicatorForeground: colors.onError,
+      ),
       SolveOptionState.disabled => _OptionScheme(
-          background: colors.disabledBackground,
-          border: colors.border,
-          indicatorBackground: colors.surfaceSubtle,
-          indicatorBorder: colors.border,
-          indicatorForeground: colors.disabledForeground,
-        ),
+        background: colors.disabledBackground,
+        border: colors.border,
+        indicatorBackground: colors.surfaceSubtle,
+        indicatorBorder: colors.border,
+        indicatorForeground: colors.disabledForeground,
+      ),
       SolveOptionState.idle => _OptionScheme(
-          background: colors.surface,
-          border: colors.border,
-          indicatorBackground: colors.surfaceSubtle,
-          indicatorBorder: colors.border,
-          indicatorForeground: colors.textSecondary,
-        ),
+        background: colors.surface,
+        border: colors.border,
+        indicatorBackground: colors.surfaceSubtle,
+        indicatorBorder: colors.border,
+        indicatorForeground: colors.textSecondary,
+      ),
     };
   }
 }

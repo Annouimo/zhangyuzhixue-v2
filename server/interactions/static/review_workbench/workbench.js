@@ -105,7 +105,7 @@
       payload.options.forEach(function (option) {
         var item = make('li', 'math-content');
         item.appendChild(make('span', 'option-key', (option.key || '?') + '.'));
-        item.appendChild(document.createTextNode(option.content || ''));
+        item.appendChild(make('span', 'option-content', option.content || ''));
         options.appendChild(item);
       });
       container.appendChild(options);

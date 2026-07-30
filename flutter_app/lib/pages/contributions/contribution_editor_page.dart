@@ -420,8 +420,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     'question_type': 'choice',
     'stem': '',
     'options': [
-      for (final key in const ['A', 'B', 'C', 'D'])
-        {'key': key, 'content': ''},
+      for (final key in const ['A', 'B', 'C', 'D']) {'key': key, 'content': ''},
     ],
     'sub_questions': [
       {'stem': '', 'answer': '', 'explanation': '', 'methods': <dynamic>[]},
@@ -496,19 +495,18 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         ..clear()
         ..addAll(
           importedSubs.map(
-            (item) => _SubQuestionEditor(Map<String, dynamic>.from(item as Map)),
+            (item) =>
+                _SubQuestionEditor(Map<String, dynamic>.from(item as Map)),
           ),
         );
     }
     void fill(TextEditingController controller, Object? value) {
       if (controller.text.trim().isEmpty) controller.text = '${value ?? ''}';
     }
+
     fill(_sourceYearController, source['year']);
     fill(_sourceRegionController, source['region']);
-    fill(
-      _sourceExamController,
-      source['source_name'] ?? source['exam_name'],
-    );
+    fill(_sourceExamController, source['source_name'] ?? source['exam_name']);
     fill(
       _sourceNumberController,
       source['question_number'] ?? source['number'],
@@ -579,9 +577,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                   const SizedBox(height: AppSpacing.md),
                   RadioGroup<bool>(
                     groupValue: onlyFillBlanks,
-                    onChanged: (value) => setDialogState(
-                      () => onlyFillBlanks = value ?? true,
-                    ),
+                    onChanged: (value) =>
+                        setDialogState(() => onlyFillBlanks = value ?? true),
                     child: const Column(
                       children: [
                         RadioListTile<bool>(
@@ -711,10 +708,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                '选择题目和小题',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('选择题目和小题', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
               TextField(
                 controller: _targetQuestionController,
@@ -898,7 +892,10 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
               for (var index = 0; index < _solutionSteps.length; index++)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(radius: 13, child: Text('${index + 1}')),
+                  leading: CircleAvatar(
+                    radius: 13,
+                    child: Text('${index + 1}'),
+                  ),
                   title: Text(_solutionSteps[index].title.text),
                   subtitle: MdLatexBody(_solutionSteps[index].content.text),
                 ),
@@ -928,12 +925,9 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
               for (final option in _options)
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.xs),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 28, child: Text(option.key.text)),
-                      Expanded(child: MdLatexBody(option.content.text)),
-                    ],
+                  child: QuestionOptionRow(
+                    label: option.key.text,
+                    content: option.content.text,
                   ),
                 ),
               const Divider(height: AppSpacing.xl),
@@ -959,9 +953,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       const SizedBox(height: AppSpacing.md),
       _buildSubmissionChecks(),
       const SizedBox(height: AppSpacing.md),
-      const AppCard(
-        child: Text('提交后将进入人工审核；需要修改时，审核意见会显示在贡献详情中。'),
-      ),
+      const AppCard(child: Text('提交后将进入人工审核；需要修改时，审核意见会显示在贡献详情中。')),
     ],
   );
 
@@ -996,36 +988,38 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
 
     String subQuestionText(Iterable<Map<String, dynamic>> items) {
       var index = 0;
-      return items.map((item) {
-        index++;
-        final stem = '${item['stem'] ?? ''}'.trim();
-        final answer = '${item['answer'] ?? ''}'.trim();
-        final explanation = '${item['explanation'] ?? ''}'.trim();
-        final methods = (item['solution_methods'] as List? ?? const [])
-            .map((rawMethod) {
-              final method = rawMethod as Map;
-              final steps = (method['steps'] as List? ?? const [])
-                  .map((rawStep) {
-                    final step = rawStep as Map;
-                    return '${step['title'] ?? ''}：${step['content'] ?? ''}';
-                  })
-                  .join('\n');
-              final source = '${method['source'] ?? ''}'.trim();
-              return [
-                '解法：${method['method_name'] ?? ''}',
-                if (source.isNotEmpty) '来源：$source',
-                steps,
-              ].where((item) => item.isNotEmpty).join('\n');
-            })
-            .join('\n');
-        return [
-          '第 $index 小题',
-          if (stem.isNotEmpty) '题干：$stem',
-          '答案：$answer',
-          if (explanation.isNotEmpty) '解析：$explanation',
-          if (methods.isNotEmpty) methods,
-        ].join('\n');
-      }).join('\n\n');
+      return items
+          .map((item) {
+            index++;
+            final stem = '${item['stem'] ?? ''}'.trim();
+            final answer = '${item['answer'] ?? ''}'.trim();
+            final explanation = '${item['explanation'] ?? ''}'.trim();
+            final methods = (item['solution_methods'] as List? ?? const [])
+                .map((rawMethod) {
+                  final method = rawMethod as Map;
+                  final steps = (method['steps'] as List? ?? const [])
+                      .map((rawStep) {
+                        final step = rawStep as Map;
+                        return '${step['title'] ?? ''}：${step['content'] ?? ''}';
+                      })
+                      .join('\n');
+                  final source = '${method['source'] ?? ''}'.trim();
+                  return [
+                    '解法：${method['method_name'] ?? ''}',
+                    if (source.isNotEmpty) '来源：$source',
+                    steps,
+                  ].where((item) => item.isNotEmpty).join('\n');
+                })
+                .join('\n');
+            return [
+              '第 $index 小题',
+              if (stem.isNotEmpty) '题干：$stem',
+              '答案：$answer',
+              if (explanation.isNotEmpty) '解析：$explanation',
+              if (methods.isNotEmpty) methods,
+            ].join('\n');
+          })
+          .join('\n\n');
     }
 
     String sourceText(Map<String, dynamic> source) => [
@@ -1036,10 +1030,12 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       '${source['question_number'] ?? source['number'] ?? ''}',
     ].where((item) => item.isNotEmpty).join(' · ');
 
-    final originalOptions = (original['options'] as List? ?? const [])
-        .map((item) => Map<String, dynamic>.from(item as Map));
-    final originalSubs = (original['sub_questions'] as List? ?? const [])
-        .map((item) => Map<String, dynamic>.from(item as Map));
+    final originalOptions = (original['options'] as List? ?? const []).map(
+      (item) => Map<String, dynamic>.from(item as Map),
+    );
+    final originalSubs = (original['sub_questions'] as List? ?? const []).map(
+      (item) => Map<String, dynamic>.from(item as Map),
+    );
     final currentSubs = _subQuestions.map((item) => item.toJson());
     final originalSource = Map<String, dynamic>.from(
       original['source'] as Map? ?? const {},
@@ -1047,20 +1043,20 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     final currentSource = Map<String, dynamic>.from(
       _editedPayload()['source'] as Map? ?? const {},
     );
-    final originalTags = (original['tags'] as List? ??
-            original['suggested_tags'] as List? ??
-            const [])
-        .map((item) => '$item')
-        .toList()
-      ..sort();
+    final originalTags =
+        (original['tags'] as List? ??
+                original['suggested_tags'] as List? ??
+                const [])
+            .map((item) => '$item')
+            .toList()
+          ..sort();
     final originalTagText = originalTags.join('、');
     final currentTagNames = [
       for (final id in _tagIds)
         _config!.tags.firstWhere((tag) => tag.id == id).name,
       for (final tag in _newTags) '${tag['name']}',
     ]..sort();
-    final currentTags = currentTagNames
-        .join('、');
+    final currentTags = currentTagNames.join('、');
 
     add(
       '题型',
@@ -1106,8 +1102,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             before: changes[index].before,
             after: changes[index].after,
           ),
-          if (index < changes.length - 1)
-            const SizedBox(height: AppSpacing.md),
+          if (index < changes.length - 1) const SizedBox(height: AppSpacing.md),
         ],
       ],
     );
@@ -1123,7 +1118,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       ));
       checks.add((
         label: '解法名称和步骤完整',
-        passed: _methodNameController.text.trim().isNotEmpty &&
+        passed:
+            _methodNameController.text.trim().isNotEmpty &&
             _solutionSteps.every(
               (step) =>
                   step.title.text.trim().isNotEmpty &&
@@ -1157,7 +1153,8 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       ));
       checks.add((
         label: '每个小题均填写参考答案',
-        passed: _subQuestions.isNotEmpty &&
+        passed:
+            _subQuestions.isNotEmpty &&
             _subQuestions.every((sub) => sub.answer.text.trim().isNotEmpty),
         warning: false,
       ));
@@ -1227,26 +1224,34 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         .join('\n');
     if (originalOptions != currentOptions) return true;
 
-    String subText(Iterable<Map<String, dynamic>> items) => items.map((item) {
-      final methods = (item['solution_methods'] as List? ?? const []).map((raw) {
-        final method = raw as Map;
-        final steps = (method['steps'] as List? ?? const []).map((rawStep) {
-          final step = rawStep as Map;
-          return '${step['title'] ?? ''}|${step['content'] ?? ''}';
-        }).join('||');
-        return '${method['method_name'] ?? ''}|${method['source'] ?? ''}|$steps';
-      }).join('|||');
-      return '${item['stem'] ?? ''}|${item['answer'] ?? ''}|'
-          '${item['explanation'] ?? ''}|$methods';
-    }).join('\n');
+    String subText(Iterable<Map<String, dynamic>> items) => items
+        .map((item) {
+          final methods = (item['solution_methods'] as List? ?? const [])
+              .map((raw) {
+                final method = raw as Map;
+                final steps = (method['steps'] as List? ?? const [])
+                    .map((rawStep) {
+                      final step = rawStep as Map;
+                      return '${step['title'] ?? ''}|${step['content'] ?? ''}';
+                    })
+                    .join('||');
+                return '${method['method_name'] ?? ''}|${method['source'] ?? ''}|$steps';
+              })
+              .join('|||');
+          return '${item['stem'] ?? ''}|${item['answer'] ?? ''}|'
+              '${item['explanation'] ?? ''}|$methods';
+        })
+        .join('\n');
 
-    final originalSubs = (original['sub_questions'] as List? ?? const [])
-        .map((item) => Map<String, dynamic>.from(item as Map));
+    final originalSubs = (original['sub_questions'] as List? ?? const []).map(
+      (item) => Map<String, dynamic>.from(item as Map),
+    );
     if (subText(originalSubs) !=
         subText(_subQuestions.map((item) => item.toJson()))) {
       return true;
     }
-    final originalTagIds = (original['tag_ids'] as List? ?? const []).cast<int>();
+    final originalTagIds = (original['tag_ids'] as List? ?? const [])
+        .cast<int>();
     final originalTagSet = originalTagIds.toSet();
     if (originalTagSet.difference(_tagIds).isNotEmpty ||
         _tagIds.difference(originalTagSet).isNotEmpty ||
@@ -1881,12 +1886,9 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
           for (final option in _options)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(width: 28, child: Text(option.key.text)),
-                  Expanded(child: MdLatexBody(option.content.text)),
-                ],
+              child: QuestionOptionRow(
+                label: option.key.text,
+                content: option.content.text,
               ),
             ),
           if (uncertainties.isNotEmpty) ...[
@@ -2266,9 +2268,7 @@ class _DiffBlock extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('+ ', style: TextStyle(color: context.colors.success)),
-            Expanded(
-              child: MdLatexBody(after.isEmpty ? '未提供修改方案' : after),
-            ),
+            Expanded(child: MdLatexBody(after.isEmpty ? '未提供修改方案' : after)),
           ],
         ),
       ),

@@ -111,6 +111,14 @@ def audit_question_bank(include_test_data=False):
                 if empty:
                     add('blocker', 'empty_choice_options', 'question',
                         question.pk, f'空选项: {"/".join(empty)}')
+                embedded_images = sorted(
+                    str(key).upper() for key, value in options.items()
+                    if '<img' in str(value).lower()
+                )
+                if embedded_images:
+                    add('blocker', 'embedded_choice_images', 'question',
+                        question.pk,
+                        f'选项中残留图片标签: {"/".join(embedded_images)}')
 
         sub_questions = list(question.sub_questions.all())
         if not sub_questions:

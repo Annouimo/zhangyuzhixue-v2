@@ -53,7 +53,9 @@ body {
 .question-body p { margin: 0; text-indent: 2em; }
 .question-body p:first-of-type { text-indent: 0; }
 .fill-blank { display: inline-block; min-width: 6em; border-bottom: 1pt solid #333; margin: 0 0.2em; }
-.choice { margin: 0.15em 0; font-size: 10.5pt; }
+.choice { display: grid; grid-template-columns: 2.4em minmax(0, 1fr); align-items: start; margin: 0.15em 0; font-size: 10.5pt; }
+.choice-label { font-weight: 700; }
+.choice-content { min-width: 0; }
 .figure { float: right; margin: 0.5em 0 0.5em 1em; }
 .figure img { max-width: 180px; height: auto; }
 .figure.option-grid { float: none; margin: 0.5em auto; text-align: center; }
@@ -296,7 +298,10 @@ button:disabled { border-color: #aab2bd; background: #aab2bd; cursor: wait; }
     <div class="question-body">
       <p>{{ question.stem|safe }}</p>
       {% for opt in question.options %}
-      <div class="choice">{{ opt|safe }}</div>
+      <div class="choice">
+        <span class="choice-label">{% if opt.key %}({{ opt.key }}){% endif %}</span>
+        <span class="choice-content">{{ opt.content|safe }}</span>
+      </div>
       {% endfor %}
       {% for img in question.images %}
       <div class="figure{% if img.is_option_grid %} option-grid{% endif %}">
