@@ -1,0 +1,25 @@
+{% extends 'internal_portal/base.html' %}
+{% load static %}
+{% block title %}{{ document.title }} | 讲义库{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'katex/katex.min.css' %}">{% endblock %}
+{% block content %}
+<div class="lecture-reader-layout">
+  <aside class="lecture-toc">
+    <a class="lecture-back" href="{% url 'internal_portal:lecture-course' document.course_id %}">← {{ document.course.name }}</a>
+    <strong>章节目录</strong>
+    <nav>{% for item in documents %}<a href="{% url 'internal_portal:lecture-document' item.pk %}"{% if item.pk == document.pk %} class="is-active" aria-current="page"{% endif %}><span>{{ item.chapter }}</span>{{ item.title }}</a>{% endfor %}</nav>
+  </aside>
+  <article class="lecture-reader">
+    <header><span>第 {{ document.chapter }} 讲</span><h1>{{ document.title }}</h1><p>{{ document.course.name }} · 更新于 {{ document.updated_at|date:'Y-m-d H:i' }}</p></header>
+    <div class="lecture-markdown math-content">{{ rendered_content }}</div>
+    <nav class="lecture-pager" aria-label="相邻讲义">
+      {% if previous_document %}<a href="{% url 'internal_portal:lecture-document' previous_document.pk %}"><span>上一讲</span><strong>{{ previous_document.title }}</strong></a>{% else %}<span></span>{% endif %}
+      {% if next_document %}<a class="next" href="{% url 'internal_portal:lecture-document' next_document.pk %}"><span>下一讲</span><strong>{{ next_document.title }}</strong></a>{% endif %}
+    </nav>
+  </article>
+</div>
+{% endblock %}
+{% block extra_scripts %}
+<script defer src="{% static 'katex/katex.min.js' %}"></script>
+<script defer src="{% static 'katex/contrib/auto-render.min.js' %}" onload="renderMathInElement(document.querySelector('.math-content'),{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+{% endblock %}

@@ -1,15 +1,17 @@
 from functools import wraps
 
 from django.contrib.auth import login, logout
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Max, Prefetch
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from qbank.models import BaseQuestion, ConceptTag, KnowledgeCard
+from courses.models import Course, Document
 
 from .forms import PortalAuthenticationForm, has_portal_access
+from .lecture_rendering import render_lecture_markdown
 from .models import BusinessArea, HandbookUpdate, PortalEntry, ProjectProfile
 
 
@@ -76,6 +78,7 @@ def logout_view(request):
 def _page_context(page):
     context = _shared_context()
     context['area'] = page
+    context['page_updated_at'] = page.updated_at
     sections = list(
         page.sections.filter(is_visible=True)
         .prefetch_related(Prefetch(
@@ -149,3 +152,59 @@ def page_detail(request, slug):
         return redirect('internal_portal:index')
     context = _page_context(page)
     return render(request, 'internal_portal/page_detail.html', context)
+
+
+def _lecture_context():
+    context = _shared_context()
+    context.update({'area': None, 'is_lecture_library': True})
+    return context
+
+
+@portal_member_required
+def lecture_library(request, course_id=None):
+    courses = Course.objects.annotate(
+        document_count=Count('documents'),
+        latest_document_at=Max('documents__updated_at'),
+    ).order_by('name')
+    selected_course = None
+    documents = []
+    if course_id is not None:
+        selected_course = get_object_or_404(Course, pk=course_id)
+        documents = list(
+            selected_course.documents.order_by('chapter', 'pk')
+        )
+    context = _lecture_context()
+    context.update({
+        'courses': courses,
+        'selected_course': selected_course,
+        'documents': documents,
+        'page_updated_at': (
+            max((item.updated_at for item in documents), default=None)
+            if selected_course else
+            max((item.latest_document_at for item in courses), default=None)
+        ),
+    })
+    return render(request, 'internal_portal/lecture_library.html', context)
+
+
+@portal_member_required
+def lecture_document(request, document_id):
+    document = get_object_or_404(
+        Document.objects.select_related('course'), pk=document_id,
+    )
+    documents = list(
+        document.course.documents.order_by('chapter', 'pk')
+    )
+    index = next(i for i, item in enumerate(documents) if item.pk == document.pk)
+    context = _lecture_context()
+    context.update({
+        'document': document,
+        'documents': documents,
+        'previous_document': documents[index - 1] if index else None,
+        'next_document': (
+            documents[index + 1] if index + 1 < len(documents) else None
+        ),
+        'rendered_content': render_lecture_markdown(document.md_content),
+        'page_updated_at': document.updated_at,
+    })
+    return render(request, 'internal_portal/lecture_document.html', context)
