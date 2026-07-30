@@ -59,9 +59,16 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
 
     response = client.get(reverse('internal_portal:index'))
     assert response.status_code == 200
-    assert '项目工作手册' in response.content.decode()
-    assert '章鱼智学软件' in response.content.decode()
-    assert '圆明智学自媒体后期' in response.content.decode()
+    content = response.content.decode()
+    assert '项目工作手册' in content
+    assert '章鱼智学软件' in content
+    assert '圆明智学自媒体后期' in content
+    assert 'aria-label="网站链接"' in content
+    assert '>官网</a>' in content
+    assert '>工作手册</a>' in content
+    assert '>内容工作台</a>' in content
+    assert '>管理员后台</a>' in content
+    assert reverse('admin:index') in content
 
     response = client.get(
         reverse('internal_portal:page-detail', args=['software']),
@@ -84,8 +91,8 @@ def test_handbook_follows_system_dark_mode_and_busts_css_cache():
     ).read_text(encoding='utf-8')
     assert '@media (prefers-color-scheme: dark)' in stylesheet
     assert 'color-scheme: dark' in stylesheet
-    assert "portal.css' %}?v=6" in base
-    assert "portal.css' %}?v=6" in login
+    assert "portal.css' %}?v=7" in base
+    assert "portal.css' %}?v=7" in login
 
 
 def test_logout_requires_post_and_ends_session(client, portal_user):
@@ -265,9 +272,10 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
 
     index_response = client.get(reverse('internal_portal:index'))
     index_content = index_response.content.decode()
+    assert '新增只读讲义库并统一内部导航' in index_content
     assert '重构项目工作手册' in index_content
     assert '完善自媒体视频工作分类' in index_content
-    assert HandbookUpdate.objects.count() == 2
+    assert HandbookUpdate.objects.count() == 3
     assert 'update-list' in index_content
     assert 'changelog-table' not in index_content
 
