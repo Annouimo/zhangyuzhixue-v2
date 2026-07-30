@@ -19,6 +19,28 @@
   --sidebar: 196px;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-muted: #21262d;
+    --text: #e6edf3;
+    --text-secondary: #8b949e;
+    --border: #30363d;
+    --border-strong: #484f58;
+    --blue: #58a6ff;
+    --blue-dark: #79c0ff;
+    --blue-soft: #0d2d4a;
+    --green: #56d364;
+    --green-soft: #12351f;
+    --amber: #e3b341;
+    --amber-soft: #3b2e0b;
+    --red: #ff7b72;
+    --red-soft: #3d161b;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1014,4 +1036,20 @@ a.table-row:hover {
     padding-left: 0;
     border-left: 0;
   }
+}
+
+/* Keep dark component overrides after all base and responsive rules. */
+@media (prefers-color-scheme: dark) {
+  .structure-tree { color: var(--text); }
+  .sidebar, .workspace-bar, .data-table, .quick-links, .empty-state,
+  .login-panel, .mobile-header, .mobile-menu nav { background: var(--surface); }
+  a.table-row:hover { background: var(--blue-soft); }
+  .status--archived { background: #30363d; }
+  .login-page { background: var(--bg); }
+  .login-form input { color: var(--text); background: #0d1117; border-color: var(--border-strong); }
+  .login-form input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px #58a6ff33; }
+  .primary-button { color: #fff; background: #1f6feb; }
+  .primary-button:hover { background: #388bfd; }
+  .brand__mark { color: #fff; background: #1f6feb; }
+  .mobile-menu nav { box-shadow: 0 8px 24px #0008; }
 }
