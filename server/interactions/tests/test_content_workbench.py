@@ -214,8 +214,48 @@ def test_workbench_records_snapshots_and_shows_adjacent_diff(client, reviewer):
     assert diff.status_code == 200
     assert '第一版标签' in content
     assert '第二版标签' in content
+    assert '标签名称' in content
     assert 'diff-remove' in content
     assert 'diff-add' in content
+
+
+@pytest.mark.django_db
+def test_document_diff_separates_metadata_and_body_fields(client, reviewer):
+    from courses.models import Course, Document
+
+    course = Course.objects.create(name='高考数学')
+    document = Document.objects.create(
+        course=course, chapter='01', title='集合', md_content='旧正文',
+    )
+    first = WorkbenchRevision.objects.create(
+        content_type='document', object_id=document.pk,
+        object_label=str(document), actor=reviewer, action='create', note='初版。',
+        snapshot={
+            'course': '高考数学', 'chapter': '01',
+            'title': '集合', 'md_content': '旧正文',
+        },
+    )
+    second = WorkbenchRevision.objects.create(
+        content_type='document', object_id=document.pk,
+        object_label='第02讲 集合与逻辑', actor=reviewer,
+        action='update', note='更新全部字段。',
+        snapshot={
+            'course': '高考数学一轮复习', 'chapter': '02',
+            'title': '集合与逻辑', 'md_content': '新正文',
+        },
+    )
+    client.force_login(reviewer)
+
+    response = client.get(reverse(
+        'review_workbench:revision_diff', args=['lectures', second.pk],
+    ))
+    content = response.content.decode()
+    assert response.status_code == 200
+    for label in ('所属讲义系列', '讲次', '标题', '正文'):
+        assert label in content
+    assert f'r{first.pk}' in content
+    assert '旧正文' in content
+    assert '新正文' in content
 
 
 @pytest.mark.django_db

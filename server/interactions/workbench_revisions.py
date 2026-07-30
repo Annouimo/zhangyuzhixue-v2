@@ -79,26 +79,99 @@ def previous_revision(revision):
     ).order_by('-pk').first()
 
 
-def diff_lines(previous, current):
-    before = json.dumps(
-        previous.snapshot if previous else {}, ensure_ascii=False,
-        indent=2, sort_keys=True,
-    ).splitlines()
-    after = json.dumps(
-        current.snapshot, ensure_ascii=False, indent=2, sort_keys=True,
-    ).splitlines()
-    lines = []
-    for line in difflib.unified_diff(
-        before, after, fromfile='上一版', tofile='当前版', lineterm='', n=3,
-    ):
-        kind = 'context'
-        if line.startswith('+++') or line.startswith('---'):
-            kind = 'file'
-        elif line.startswith('@@'):
-            kind = 'hunk'
-        elif line.startswith('+'):
-            kind = 'add'
-        elif line.startswith('-'):
-            kind = 'remove'
-        lines.append({'kind': kind, 'text': line})
-    return lines
+FIELD_SPECS = {
+    'question': [
+        ('question_type', '题型'), ('stem', '题干'), ('options', '选项'),
+        ('sub_questions', '子题、答案、解析与解法'),
+        ('source.source_type', '来源类型'), ('source.year', '年份'),
+        ('source.region', '地区'), ('source.source_name', '来源名称'),
+        ('source.question_number', '题号'), ('content_origin', '内容来源性质'),
+        ('contributor_username', '投稿人'), ('images', '配图'),
+        ('default_score', '参考分值'), ('tags', '概念标签'),
+        ('knowledge_cards', '知识卡片'), ('difficulty', '难度'),
+        ('calculation', '计算量'), ('uncertainties', '待确认项'),
+    ],
+    'tag': [('name', '标签名称'), ('parent', '上级标签')],
+    'card': [('title', '标题'), ('category', '分类'), ('content', '正文')],
+    'course': [('name', '讲义系列名称'), ('description', '系列说明')],
+    'document': [
+        ('course', '所属讲义系列'), ('chapter', '讲次'),
+        ('title', '标题'), ('md_content', '正文'),
+    ],
+}
+
+
+_MISSING = object()
+
+
+def _value_at(snapshot, path):
+    value = snapshot
+    for part in path.split('.'):
+        if not isinstance(value, dict) or part not in value:
+            return _MISSING
+        value = value[part]
+    return value
+
+
+def _display_lines(value):
+    if value is _MISSING:
+        return []
+    if isinstance(value, str):
+        return value.splitlines() or ['（空）']
+    if value is None:
+        return ['（未填写）']
+    if isinstance(value, bool):
+        return ['是' if value else '否']
+    if isinstance(value, (dict, list)):
+        if not value:
+            return ['（空）']
+        return json.dumps(
+            value, ensure_ascii=False, indent=2, sort_keys=True,
+        ).splitlines()
+    return [str(value)]
+
+
+def _side_by_side_rows(before_lines, after_lines):
+    rows = []
+    matcher = difflib.SequenceMatcher(None, before_lines, after_lines)
+    for operation, old_start, old_end, new_start, new_end in matcher.get_opcodes():
+        old_block = before_lines[old_start:old_end]
+        new_block = after_lines[new_start:new_end]
+        size = max(len(old_block), len(new_block))
+        for offset in range(size):
+            old_exists = offset < len(old_block)
+            new_exists = offset < len(new_block)
+            rows.append({
+                'old_text': old_block[offset] if old_exists else '',
+                'new_text': new_block[offset] if new_exists else '',
+                'old_no': old_start + offset + 1 if old_exists else '',
+                'new_no': new_start + offset + 1 if new_exists else '',
+                'old_kind': (
+                    'context' if operation == 'equal' else
+                    'remove' if old_exists else 'empty'
+                ),
+                'new_kind': (
+                    'context' if operation == 'equal' else
+                    'add' if new_exists else 'empty'
+                ),
+            })
+    return rows
+
+
+def field_diffs(previous, current):
+    before = previous.snapshot if previous else {}
+    after = current.snapshot
+    fields = []
+    for path, label in FIELD_SPECS[current.content_type]:
+        old_value = _value_at(before, path)
+        new_value = _value_at(after, path)
+        if old_value == new_value:
+            continue
+        old_lines = _display_lines(old_value)
+        new_lines = _display_lines(new_value)
+        fields.append({
+            'path': path,
+            'label': label,
+            'rows': _side_by_side_rows(old_lines, new_lines),
+        })
+    return fields
