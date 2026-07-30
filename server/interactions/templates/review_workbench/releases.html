@@ -1,0 +1,9 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}版本发布 | 内容工作台{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>版本发布</h1><p>候选构建与线上文件完全隔离；正式发布会重新构建并更新 App 版本接口。</p></div></div>
+<div class="release-grid">
+  <section class="panel release-panel"><h2>题库</h2><p>当前 v{{ versions.qbank.data_version|default:'-' }}</p><div class="release-actions"><form method="post">{% csrf_token %}<input type="hidden" name="db_type" value="qbank"><input type="hidden" name="action" value="candidate"><button>验证并生成候选版本</button></form>{% if can_publish %}<form method="post">{% csrf_token %}<input type="hidden" name="db_type" value="qbank"><input type="hidden" name="action" value="publish"><button class="primary">构建并发布</button></form>{% endif %}</div></section>
+  <section class="panel release-panel"><h2>讲义</h2><p>当前 v{{ versions.courses.data_version|default:'-' }}</p><div class="release-actions"><form method="post">{% csrf_token %}<input type="hidden" name="db_type" value="courses"><input type="hidden" name="action" value="candidate"><button>验证并生成候选版本</button></form>{% if can_publish %}<form method="post">{% csrf_token %}<input type="hidden" name="db_type" value="courses"><input type="hidden" name="action" value="publish"><button class="primary">构建并发布</button></form>{% endif %}</div></section>
+</div>{% if not can_publish %}<p class="permission-note">当前账号可以生成候选版本，但没有正式发布权限。</p>{% endif %}{% if result %}<section class="panel result-panel"><h2>本次结果</h2><dl><div><dt>版本</dt><dd>v{{ result.data_version }}</dd></div><div><dt>大小</dt><dd>{{ result.size_bytes }} bytes</dd></div><div><dt>SHA-256</dt><dd><code>{{ result.checksum }}</code></dd></div></dl></section>{% endif %}
+{% endblock %}

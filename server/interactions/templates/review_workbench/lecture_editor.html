@@ -1,0 +1,6 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}{% if kind == 'course' %}讲义系列{% else %}讲义章节{% endif %} | 内容工作台{% endblock %}
+{% block content %}
+<div class="detail-nav"><a href="{% url 'review_workbench:course_list' %}">← 返回讲义维护</a></div><div class="page-heading"><div><h1>{% if object %}编辑{% else %}新建{% endif %}{% if kind == 'course' %}讲义系列{% else %}讲义章节{% endif %}</h1><p>{% if kind == 'document' %}Markdown 可包含现有公式及分页分隔符，发布前请在候选版本中验证。{% else %}系列名称会显示在 App 的讲义列表中。{% endif %}</p></div></div>
+<form method="post" class="simple-editor lecture-editor">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}{% endfor %}<div class="simple-actions"><button class="primary" type="submit">保存</button></div></form>
+{% endblock %}
