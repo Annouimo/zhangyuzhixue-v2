@@ -21,6 +21,7 @@ import '../../data/api/user_api.dart';
 import '../../data/daos/user_dao.dart';
 import '../../widgets/question_search_field.dart';
 import '../../widgets/question_search_results.dart';
+import '../../widgets/basket_selection_panel.dart';
 import '../router.dart';
 import 'question_detail_page.dart';
 import 'paper_draft_dialog.dart';
@@ -94,12 +95,9 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   Timer? _debounce;
   bool _loadingQuestions = false;
   bool _creatingPaper = false;
-  bool _selectionMode = false;
   final Map<int, SearchQuestion> _selectedQuestions = {};
   QuestionReviewScope? _reviewScope;
   int? _selectedRangeId;
-  int? _currentFolderId;
-  String _currentFolderName = '默认试题篮';
   bool _applyingExternalScope = false;
   bool _initialReviewScopeApplied = false;
   String? _error;
@@ -118,80 +116,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
   void initState() {
     super.initState();
     _loadFilterOptions();
-    _loadCurrentFolder();
-  }
-
-  Future<void> _loadCurrentFolder() async {
-    try {
-      final id = await _paperFolderRepository.defaultFolderId();
-      final detail = await _paperFolderRepository.detail(id);
-      if (!mounted) return;
-      setState(() {
-        _currentFolderId = id;
-        _currentFolderName = detail.folder.name;
-        _selectedQuestions
-          ..clear()
-          ..addEntries(
-            detail.questions.map((question) => MapEntry(question.id, question)),
-          );
-      });
-    } on StateError {
-      // Repository-injected widget tests may not initialize the user database.
-    }
-  }
-
-  Future<void> _persistCurrentFolder() async {
-    final folderId = _currentFolderId;
-    if (folderId == null) return;
-    try {
-      await _paperFolderRepository.replaceQuestions(
-        folderId,
-        _selectedQuestions.keys.toList(growable: false),
-      );
-    } on StateError {
-      // Repository-injected widget tests may not initialize the user database.
-    }
-  }
-
-  Future<void> _selectCurrentFolder() async {
-    final folders = await _paperFolderRepository.list();
-    if (!mounted || folders.isEmpty) return;
-    final selectedId = await showDialog<int>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: const Text('切换试题篮'),
-        children: folders
-            .map(
-              (folder) => SimpleDialogOption(
-                onPressed: () => Navigator.pop(dialogContext, folder.id),
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    folder.id == _currentFolderId
-                        ? Icons.shopping_cart
-                        : Icons.shopping_cart_outlined,
-                  ),
-                  title: Text(folder.name),
-                  trailing: Text('${folder.questionCount} 道'),
-                ),
-              ),
-            )
-            .toList(growable: false),
-      ),
-    );
-    if (selectedId == null) return;
-    final detail = await _paperFolderRepository.detail(selectedId);
-    await _paperFolderRepository.setActiveFolder(selectedId);
-    if (!mounted) return;
-    setState(() {
-      _currentFolderId = selectedId;
-      _currentFolderName = detail.folder.name;
-      _selectedQuestions
-        ..clear()
-        ..addEntries(
-          detail.questions.map((question) => MapEntry(question.id, question)),
-        );
-    });
   }
 
   @override
@@ -705,7 +629,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _selectedQuestions[question.id] = question;
       }
     });
-    await _persistCurrentFolder();
   }
 
   bool get _allVisibleQuestionsSelected {
@@ -749,13 +672,95 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
         _selectedQuestions[question.id] = question;
       }
     });
-    await _persistCurrentFolder();
   }
 
   Future<void> _clearBasket() async {
     if (_selectedQuestions.isEmpty) return;
     setState(_selectedQuestions.clear);
-    await _persistCurrentFolder();
+  }
+
+  Future<void> _addSelectionToFolder() async {
+    if (_selectedQuestions.isEmpty) return;
+    var folders = await _paperFolderRepository.list();
+    if (folders.isEmpty) {
+      await _paperFolderRepository.defaultFolderId();
+      folders = await _paperFolderRepository.list();
+    }
+    if (!mounted) return;
+    final selectedIds = _selectedQuestions.keys.toSet();
+    final duplicateCounts = <int, int>{};
+    final items = await Future.wait(
+      folders.map((folder) async {
+        final detail = await _paperFolderRepository.detail(folder.id);
+        final duplicateCount = detail.questions
+            .where((question) => selectedIds.contains(question.id))
+            .length;
+        duplicateCounts[folder.id] = duplicateCount;
+        return BasketSelectionItem(
+          id: folder.id,
+          name: folder.name,
+          subtitle:
+              '${folder.questionCount} 道题 · 新增 ${selectedIds.length - duplicateCount} 道 · 已有 $duplicateCount 道',
+        );
+      }),
+    );
+    if (!mounted) return;
+    final selectedFolderIds = await showBasketSelectionPanel(
+      context: context,
+      title: '加入试题篮',
+      subtitle: '已选择 ${selectedIds.length} 道题',
+      items: items,
+      initialSelectedIds: items.isEmpty ? const {} : {items.first.id},
+      multiple: true,
+      footerBuilder: (ids) {
+        final duplicateCount = ids.fold<int>(
+          0,
+          (sum, id) => sum + (duplicateCounts[id] ?? 0),
+        );
+        final addedCount = ids.length * selectedIds.length - duplicateCount;
+        return BasketSelectionFooter(
+          summary: ids.isEmpty
+              ? '请选择至少一个试题篮'
+              : '将 ${selectedIds.length} 道题加入 ${ids.length} 个试题篮，新增 $addedCount 道次，已有 $duplicateCount 道次',
+          confirmLabel: ids.isEmpty ? '请选择试题篮' : '加入所选试题篮',
+          confirmIcon: Icons.shopping_cart_checkout_outlined,
+        );
+      },
+      onCreate: () async {
+        final name = await showCreateBasketDialog(context);
+        if (name == null || name.isEmpty) return null;
+        final id = await _paperFolderRepository.create(name);
+        duplicateCounts[id] = 0;
+        return BasketSelectionItem(
+          id: id,
+          name: name,
+          subtitle: '0 道题 · 新增 ${selectedIds.length} 道 · 已有 0 道',
+        );
+      },
+    );
+    if (selectedFolderIds == null || selectedFolderIds.isEmpty) return;
+    final result = await _paperFolderRepository.prependQuestionsToFolders(
+      selectedFolderIds,
+      _selectedQuestions.keys,
+    );
+    final folderId = selectedFolderIds.first;
+    await _paperFolderRepository.setActiveFolder(folderId);
+    if (!mounted) return;
+    setState(_selectedQuestions.clear);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '已加入 ${selectedFolderIds.length} 个试题篮：新增 ${result.added} 道次，${result.existing} 道次已存在',
+        ),
+        action: SnackBarAction(
+          label: '查看试题篮',
+          onPressed: () => RouterUtils.push(
+            context,
+            '${AppRoutes.paperFolderDetail}?id=$folderId',
+          ),
+        ),
+      ),
+    );
   }
 
   // Retained for compatibility with older deep-link flows during migration.
@@ -855,7 +860,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
             draftQuestions.map((question) => MapEntry(question.id, question)),
           );
       });
-      await _persistCurrentFolder();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(selected.isEmpty ? '已完成智能选题' : '已完成智能补全')),
@@ -875,7 +879,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     final options = _filterOptions;
     return Scaffold(
       appBar: AppBar(toolbarHeight: 64, title: const Text('题库'), actions: []),
-      bottomNavigationBar: _selectionMode
+      bottomNavigationBar: _selectedQuestions.isNotEmpty
           ? SafeArea(
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -888,69 +892,19 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: context.colors.primaryContainer,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          IconButton(
-                            tooltip: '查看试题篮',
-                            onPressed: _currentFolderId == null
-                                ? null
-                                : () => RouterUtils.push(
-                                    context,
-                                    '${AppRoutes.paperFolderDetail}?id=$_currentFolderId',
-                                  ),
-                            color: context.colors.primary,
-                            icon: const Icon(Icons.shopping_cart_outlined),
-                          ),
-                          if (_selectedQuestions.isNotEmpty)
-                            Positioned(
-                              right: 2,
-                              top: 0,
-                              child: Container(
-                                constraints: const BoxConstraints(
-                                  minWidth: 18,
-                                  minHeight: 18,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.colors.error,
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.pill,
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '${_selectedQuestions.length}',
-                                  style: TextStyle(
-                                    color: context.colors.onError,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
-                        _currentFolderName,
+                        '已选 ${_selectedQuestions.length} 道题',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    TextButton(
-                      onPressed: _selectCurrentFolder,
-                      child: const Text('切换'),
+                    AppButton(
+                      onPressed: _addSelectionToFolder,
+                      icon: Icons.shopping_cart_checkout_outlined,
+                      label: '加入试题篮',
+                      expanded: false,
                     ),
                   ],
                 ),
@@ -989,9 +943,6 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
                         child: _QuestionResultsHeader(
                           key: _resultsKey,
                           questions: _questions,
-                          selectionMode: _selectionMode,
-                          onToggleSelectionMode: () =>
-                              setState(() => _selectionMode = !_selectionMode),
                           onAddAll: _addAllVisibleQuestions,
                           onClearBasket: _clearBasket,
                           onSmartPaper: _createSmartPaper,
@@ -1054,12 +1005,8 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
           return QuestionSearchResultCard(
             question: question,
             onOpen: () => _openQuestion(question),
-            selected: _selectedQuestions.containsKey(question.id)
-                ? true
-                : _selectionMode
-                ? false
-                : null,
-            onToggle: _selectionMode ? () => _toggleQuestion(question) : null,
+            selected: _selectedQuestions.containsKey(question.id),
+            onToggle: () => _toggleQuestion(question),
           );
         },
       ),
@@ -1243,8 +1190,6 @@ class _QuestionResultsHeader extends StatelessWidget {
   const _QuestionResultsHeader({
     super.key,
     required this.questions,
-    required this.selectionMode,
-    required this.onToggleSelectionMode,
     required this.onAddAll,
     required this.onClearBasket,
     required this.onSmartPaper,
@@ -1254,8 +1199,6 @@ class _QuestionResultsHeader extends StatelessWidget {
   });
 
   final List<SearchQuestion>? questions;
-  final bool selectionMode;
-  final VoidCallback onToggleSelectionMode;
   final VoidCallback onAddAll;
   final VoidCallback onClearBasket;
   final VoidCallback onSmartPaper;
@@ -1267,20 +1210,7 @@ class _QuestionResultsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = questions;
     if (items == null || items.isEmpty) {
-      return Row(
-        children: [
-          const Expanded(child: AppSectionHeader(title: '题目结果')),
-          TextButton.icon(
-            onPressed: onToggleSelectionMode,
-            icon: Icon(
-              selectionMode
-                  ? Icons.close_rounded
-                  : Icons.playlist_add_check_rounded,
-            ),
-            label: Text(selectionMode ? '完成选题' : '选题'),
-          ),
-        ],
-      );
+      return const AppSectionHeader(title: '题目结果');
     }
     final choice = items
         .where((question) => question.questionType == 'choice')
@@ -1320,16 +1250,6 @@ class _QuestionResultsHeader extends StatelessWidget {
                   color: context.colors.textMuted,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              TextButton.icon(
-                onPressed: onToggleSelectionMode,
-                icon: Icon(
-                  selectionMode
-                      ? Icons.close_rounded
-                      : Icons.playlist_add_check_rounded,
-                ),
-                label: Text(selectionMode ? '完成选题' : '选题'),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -1346,49 +1266,48 @@ class _QuestionResultsHeader extends StatelessWidget {
               ),
             ],
           ),
-          if (selectionMode)
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xs),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final addAll = TextButton(
-                    onPressed: allVisibleSelected ? null : onAddAll,
-                    child: const Text('全部加入试题篮'),
-                  );
-                  final clear = TextButton(
-                    onPressed: onClearBasket,
-                    child: Text(
-                      '清空',
-                      style: TextStyle(color: context.colors.textMuted),
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final addAll = TextButton(
+                  onPressed: allVisibleSelected ? null : onAddAll,
+                  child: const Text('全选当前结果'),
+                );
+                final clear = TextButton(
+                  onPressed: onClearBasket,
+                  child: Text(
+                    '清空',
+                    style: TextStyle(color: context.colors.textMuted),
+                  ),
+                );
+                final smart = FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
                     ),
-                  );
-                  final smart = FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
-                    onPressed: creatingPaper ? null : onSmartPaper,
-                    icon: const Icon(Icons.auto_awesome_rounded),
-                    label: Text(hasSelectedQuestions ? '智能补全' : '智能选题'),
+                  ),
+                  onPressed: creatingPaper ? null : onSmartPaper,
+                  icon: const Icon(Icons.auto_awesome_rounded),
+                  label: Text(hasSelectedQuestions ? '智能补全' : '智能选题'),
+                );
+                if (constraints.maxWidth < 520) {
+                  return Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [addAll, clear, smart],
                   );
-                  if (constraints.maxWidth < 520) {
-                    return Wrap(
-                      spacing: AppSpacing.xs,
-                      runSpacing: AppSpacing.xs,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [addAll, clear, smart],
-                    );
-                  }
-                  return Row(children: [addAll, clear, const Spacer(), smart]);
-                },
-              ),
+                }
+                return Row(children: [addAll, clear, const Spacer(), smart]);
+              },
             ),
+          ),
         ],
       ),
     );

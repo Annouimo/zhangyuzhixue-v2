@@ -52,4 +52,20 @@ void main() {
       expect(await dao.getQuestions(folderId), isEmpty);
     },
   );
+
+  test('prependQuestions adds only new questions at the top', () async {
+    final folderId = await dao.createFolder('函数题');
+    await dao.replaceQuestions(folderId, [1, 2, 3]);
+
+    final added = await dao.prependQuestions(folderId, [3, 4, 4, 5]);
+
+    expect(added, 2);
+    expect((await dao.getQuestions(folderId)).map((row) => row.questionId), [
+      4,
+      5,
+      1,
+      2,
+      3,
+    ]);
+  });
 }

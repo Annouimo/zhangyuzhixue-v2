@@ -36,6 +36,13 @@ class PaperFolderDetail {
   final List<SearchQuestion> questions;
 }
 
+class AddQuestionsResult {
+  const AddQuestionsResult({required this.added, required this.existing});
+
+  final int added;
+  final int existing;
+}
+
 class PaperFolderRepository {
   PaperFolderRepository(
     this._folderDao,
@@ -153,6 +160,99 @@ class PaperFolderRepository {
       folderId,
       () => _folderDao.addQuestions(folderId, ids),
     );
+  }
+
+  Future<AddQuestionsResult> prependQuestions(
+    int folderId,
+    Iterable<int> ids,
+  ) async {
+    final uniqueIds = ids.toSet();
+    var added = 0;
+    await _mutateAndSync(folderId, () async {
+      added = await _folderDao.prependQuestions(folderId, uniqueIds);
+    });
+    return AddQuestionsResult(added: added, existing: uniqueIds.length - added);
+  }
+
+  Future<AddQuestionsResult> prependQuestionsToFolders(
+    Iterable<int> folderIds,
+    Iterable<int> ids,
+  ) async {
+    final targets = folderIds.toSet();
+    final uniqueIds = ids.toSet();
+    var added = 0;
+    await _provider.appDb.transaction(() async {
+      for (final folderId in targets) {
+        added += await _folderDao.prependQuestions(folderId, uniqueIds);
+        await _enqueueSnapshot(folderId);
+      }
+    });
+    if (targets.isNotEmpty) SyncManager().scheduleOutboxPush();
+    return AddQuestionsResult(
+      added: added,
+      existing: targets.length * uniqueIds.length - added,
+    );
+  }
+
+  Future<int> copyFolder(int folderId, {String? name}) async {
+    final source = await detail(folderId);
+    late int copiedId;
+    await _provider.appDb.transaction(() async {
+      copiedId = await _folderDao.createFolder(
+        name ?? '${source.folder.name} 副本',
+      );
+      await _folderDao.replaceQuestions(
+        copiedId,
+        source.questions.map((question) => question.id).toList(),
+      );
+      await _enqueueSnapshot(copiedId);
+    });
+    SyncManager().scheduleOutboxPush();
+    return copiedId;
+  }
+
+  Future<Set<int>> folderIdsForQuestion(int questionId) async {
+    final folders = await _folderDao.listFolders();
+    final result = <int>{};
+    for (final folder in folders) {
+      final questions = await _folderDao.getQuestions(folder.id);
+      if (questions.any((row) => row.questionId == questionId)) {
+        result.add(folder.id);
+      }
+    }
+    return result;
+  }
+
+  Future<void> setQuestionFolders(
+    int questionId,
+    Set<int> targetFolderIds,
+  ) async {
+    final folders = await _folderDao.listFolders();
+    final changedFolderIds = <int>[];
+    await _provider.appDb.transaction(() async {
+      for (final folder in folders) {
+        final questions = await _folderDao.getQuestions(folder.id);
+        final contains = questions.any((row) => row.questionId == questionId);
+        final shouldContain = targetFolderIds.contains(folder.id);
+        if (contains == shouldContain) continue;
+        changedFolderIds.add(folder.id);
+        if (shouldContain) {
+          await _folderDao.prependQuestions(folder.id, [questionId]);
+        } else {
+          await _folderDao.replaceQuestions(
+            folder.id,
+            questions
+                .map((row) => row.questionId)
+                .where((id) => id != questionId)
+                .toList(),
+          );
+        }
+      }
+      for (final folderId in changedFolderIds) {
+        await _enqueueSnapshot(folderId);
+      }
+    });
+    if (changedFolderIds.isNotEmpty) SyncManager().scheduleOutboxPush();
   }
 
   Future<void> replaceQuestions(int folderId, List<int> ids) async {

@@ -179,7 +179,7 @@ void main() {
     expect(find.text('我的筛选方案'), findsNothing);
     expect(find.text('筛选条件'), findsOneWidget);
     expect(find.text('题目结果'), findsOneWidget);
-    expect(find.text('选题'), findsOneWidget);
+    expect(find.text('选题'), findsNothing);
     expect(find.text('全部加入试题篮'), findsNothing);
     expect(find.text('智能选题'), findsNothing);
     expect(repository.lastFilters, isNull);
@@ -198,22 +198,17 @@ void main() {
     expect(find.text('平均难度 4.0'), findsOneWidget);
   });
 
-  testWidgets('selection mode exposes basket actions and selected state', (
+  testWidgets('checking a question exposes add-to-basket actions', (
     tester,
   ) async {
     await pumpQuestionBank(tester);
     await tester.enterText(find.byType(TextField).first, '函数');
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
-    await tester.tap(find.text('选题'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('完成选题'), findsOneWidget);
-    expect(find.text('全部加入试题篮'), findsOneWidget);
+    expect(find.text('完成选题'), findsNothing);
+    expect(find.text('全选当前结果'), findsOneWidget);
     expect(find.text('清空'), findsOneWidget);
     expect(find.text('智能选题'), findsOneWidget);
-    expect(find.text('默认试题篮'), findsOneWidget);
-    expect(find.text('切换'), findsOneWidget);
     expect(find.byTooltip('加入试题篮'), findsOneWidget);
 
     await tester.tap(find.byTooltip('加入试题篮'));
@@ -221,12 +216,8 @@ void main() {
 
     expect(find.byTooltip('移出试题篮'), findsOneWidget);
     expect(find.text('智能补全'), findsOneWidget);
-
-    await tester.tap(find.text('完成选题'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('全部加入试题篮'), findsNothing);
-    expect(find.text('智能补全'), findsNothing);
+    expect(find.text('已选 1 道题'), findsOneWidget);
+    expect(find.text('加入试题篮'), findsOneWidget);
     await tester.ensureVisible(find.text('函数测试题'));
     await tester.pumpAndSettle();
     final resultCard = tester.widget<QuestionSearchResultCard>(

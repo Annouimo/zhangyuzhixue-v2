@@ -99,6 +99,21 @@ class PaperFolderDao {
     ]);
   }
 
+  Future<int> prependQuestions(int folderId, Iterable<int> questionIds) async {
+    final existing = await getQuestions(folderId);
+    final existingIds = existing.map((row) => row.questionId).toSet();
+    final added = <int>[];
+    for (final id in questionIds) {
+      if (!existingIds.contains(id) && !added.contains(id)) added.add(id);
+    }
+    if (added.isEmpty) return 0;
+    await replaceQuestions(folderId, [
+      ...added,
+      ...existing.map((row) => row.questionId),
+    ]);
+    return added.length;
+  }
+
   Future<void> deleteFolder(int folderId) async {
     await _db.transaction(() async {
       await (_db.delete(

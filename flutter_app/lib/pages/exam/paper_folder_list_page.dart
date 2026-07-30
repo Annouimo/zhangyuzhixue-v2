@@ -71,6 +71,92 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
     await _load();
   }
 
+  Future<void> _rename(PaperFolderSummary folder) async {
+    final controller = TextEditingController(text: folder.name);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('重命名试题篮'),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogContext, controller.text.trim()),
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty) return;
+    await _repository.rename(folder.id, name);
+    await _load();
+  }
+
+  Future<void> _delete(PaperFolderSummary folder) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('删除试题篮？'),
+        content: Text('将删除“${folder.name}”，已生成的试卷不受影响。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text('删除', style: TextStyle(color: context.colors.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _repository.delete(folder.id);
+    await _load();
+  }
+
+  Future<void> _showFolderMenu(PaperFolderSummary folder) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('重命名'),
+              onTap: () => Navigator.pop(sheetContext, 'rename'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy_outlined),
+              title: const Text('复制试题篮'),
+              onTap: () => Navigator.pop(sheetContext, 'copy'),
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: context.colors.error),
+              title: Text(
+                '删除试题篮',
+                style: TextStyle(color: context.colors.error),
+              ),
+              onTap: () => Navigator.pop(sheetContext, 'delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (action == 'rename') await _rename(folder);
+    if (action == 'copy') {
+      await _repository.copyFolder(folder.id);
+      await _load();
+    }
+    if (action == 'delete') await _delete(folder);
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
@@ -114,20 +200,24 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final folder = _folders![index];
-                return ListTile(
-                  leading: const Icon(Icons.folder_outlined),
-                  title: Text(folder.name),
-                  subtitle: Text(
-                    '${folder.questionCount} 题 · ${_time(folder.updatedAt)}',
+                return GestureDetector(
+                  onLongPress: () => _showFolderMenu(folder),
+                  onSecondaryTap: () => _showFolderMenu(folder),
+                  child: ListTile(
+                    leading: const Icon(Icons.folder_outlined),
+                    title: Text(folder.name),
+                    subtitle: Text(
+                      '${folder.questionCount} 题 · ${_time(folder.updatedAt)}',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      await RouterUtils.push(
+                        context,
+                        '${AppRoutes.paperFolderDetail}?id=${folder.id}',
+                      );
+                      await _load();
+                    },
                   ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () async {
-                    await RouterUtils.push(
-                      context,
-                      '${AppRoutes.paperFolderDetail}?id=${folder.id}',
-                    );
-                    await _load();
-                  },
                 );
               },
             ),
