@@ -12,7 +12,7 @@ from interactions.models import (
 from interactions.review_services import question_payload
 from qbank.models import (
     BaseQuestion, ConceptTag, ContentChangeLog, KnowledgeCard,
-    SolutionMethod,
+    SolutionMethod, WorkbenchRevision,
 )
 
 
@@ -176,6 +176,63 @@ def test_content_maintenance_edits_without_delete_routes(client, reviewer):
     assert response.status_code == 302
     assert client.post(f'/review/content/tags/{tag.pk}/delete/').status_code == 404
     assert client.post(f'/review/content/cards/{card.pk}/delete/').status_code == 404
+
+
+@pytest.mark.django_db
+def test_workbench_records_snapshots_and_shows_adjacent_diff(client, reviewer):
+    tag = ConceptTag.objects.create(name='原标签')
+    client.force_login(reviewer)
+
+    response = client.post(
+        reverse('review_workbench:tag_edit', args=[tag.pk]),
+        {'name': '第一版标签', 'parent': '', 'note': '第一次修改。'},
+    )
+    assert response.status_code == 302
+    response = client.post(
+        reverse('review_workbench:tag_edit', args=[tag.pk]),
+        {'name': '第二版标签', 'parent': '', 'note': '第二次修改。'},
+    )
+    assert response.status_code == 302
+
+    revisions = list(
+        WorkbenchRevision.objects.filter(
+            content_type='tag', object_id=tag.pk,
+        ).order_by('pk')
+    )
+    assert [item.snapshot['name'] for item in revisions] == [
+        '第一版标签', '第二版标签',
+    ]
+
+    history = client.get(reverse('review_workbench:revision_list', args=['tags']))
+    assert history.status_code == 200
+    assert '第二次修改。' in history.content.decode()
+
+    diff = client.get(reverse(
+        'review_workbench:revision_diff', args=['tags', revisions[1].pk],
+    ))
+    content = diff.content.decode()
+    assert diff.status_code == 200
+    assert '第一版标签' in content
+    assert '第二版标签' in content
+    assert 'diff-remove' in content
+    assert 'diff-add' in content
+
+
+@pytest.mark.django_db
+def test_revision_category_cannot_open_another_category_revision(
+    client, reviewer,
+):
+    tag = ConceptTag.objects.create(name='分类隔离')
+    revision = WorkbenchRevision.objects.create(
+        content_type='tag', object_id=tag.pk, object_label=tag.name,
+        actor=reviewer, action='create', note='创建。',
+        snapshot={'name': tag.name, 'parent': None},
+    )
+    client.force_login(reviewer)
+    response = client.get(reverse(
+        'review_workbench:revision_diff', args=['cards', revision.pk],
+    ))
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db

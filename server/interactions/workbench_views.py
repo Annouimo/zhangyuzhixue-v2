@@ -1,13 +1,15 @@
 import json
 
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.roles import PUBLISH_CONTRIBUTION
 from courses.models import Course, Document
-from qbank.models import ContentChangeLog
+from qbank.models import ContentChangeLog, WorkbenchRevision
 from system.models import DbVersion
 
 from .models import ContentContribution, ReviewerTrainingProgress
@@ -17,6 +19,9 @@ from .training_data import (
 )
 from .workbench_forms import CourseWorkbenchForm, DocumentWorkbenchForm
 from .workbench_release import build_candidate, publish
+from .workbench_revisions import (
+    CATEGORY_TYPES, diff_lines, previous_revision, record_revision,
+)
 
 
 @reviewer_required
@@ -48,12 +53,17 @@ def course_edit(request, object_id=None):
     instance = get_object_or_404(Course, pk=object_id) if object_id else None
     form = CourseWorkbenchForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
-        saved = form.save()
-        ContentChangeLog.objects.create(
-            actor=request.user, object_type='course', object_id=saved.pk,
-            object_label=saved.name, action='create' if instance is None else 'update',
-            note=form.cleaned_data['note'],
-        )
+        with transaction.atomic():
+            saved = form.save()
+            action = 'create' if instance is None else 'update'
+            ContentChangeLog.objects.create(
+                actor=request.user, object_type='course', object_id=saved.pk,
+                object_label=saved.name, action=action,
+                note=form.cleaned_data['note'],
+            )
+            record_revision(
+                'course', saved, request.user, action, form.cleaned_data['note'],
+            )
         messages.success(request, f'讲义系列“{saved.name}”已保存。')
         return redirect('review_workbench:course_edit', object_id=saved.pk)
     return render(request, 'review_workbench/lecture_editor.html', {
@@ -66,16 +76,57 @@ def document_edit(request, object_id=None):
     instance = get_object_or_404(Document, pk=object_id) if object_id else None
     form = DocumentWorkbenchForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
-        saved = form.save()
-        ContentChangeLog.objects.create(
-            actor=request.user, object_type='document', object_id=saved.pk,
-            object_label=saved.title, action='create' if instance is None else 'update',
-            note=form.cleaned_data['note'],
-        )
+        with transaction.atomic():
+            saved = form.save()
+            action = 'create' if instance is None else 'update'
+            ContentChangeLog.objects.create(
+                actor=request.user, object_type='document', object_id=saved.pk,
+                object_label=saved.title, action=action,
+                note=form.cleaned_data['note'],
+            )
+            record_revision(
+                'document', saved, request.user, action, form.cleaned_data['note'],
+            )
         messages.success(request, f'讲义“{saved.title}”已保存，等待下一版发布。')
         return redirect('review_workbench:document_edit', object_id=saved.pk)
     return render(request, 'review_workbench/lecture_editor.html', {
         'form': form, 'object': instance, 'kind': 'document',
+    })
+
+
+@reviewer_required
+def revision_list(request, category):
+    if category not in CATEGORY_TYPES:
+        return HttpResponseForbidden('未知内容分类。')
+    label, content_types = CATEGORY_TYPES[category]
+    queryset = WorkbenchRevision.objects.filter(
+        content_type__in=content_types,
+    ).select_related('actor')
+    page = Paginator(queryset, 40).get_page(request.GET.get('page'))
+    return render(request, 'review_workbench/revision_list.html', {
+        'category': category,
+        'category_label': label,
+        'revisions': page.object_list,
+        'page': page,
+    })
+
+
+@reviewer_required
+def revision_diff(request, category, revision_id):
+    if category not in CATEGORY_TYPES:
+        return HttpResponseForbidden('未知内容分类。')
+    label, content_types = CATEGORY_TYPES[category]
+    revision = get_object_or_404(
+        WorkbenchRevision.objects.select_related('actor'),
+        pk=revision_id, content_type__in=content_types,
+    )
+    previous = previous_revision(revision)
+    return render(request, 'review_workbench/revision_diff.html', {
+        'category': category,
+        'category_label': label,
+        'revision': revision,
+        'previous': previous,
+        'diff_lines': diff_lines(previous, revision),
     })
 
 

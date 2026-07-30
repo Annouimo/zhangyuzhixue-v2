@@ -1,7 +1,7 @@
 {% extends 'review_workbench/base.html' %}
 {% block title %}题库维护 | 内容工作台{% endblock %}
 {% block content %}
-<div class="page-heading"><div><h1>题库维护 <span class="count-badge">{{ total_count }}</span></h1><p>通过编号或关键词找到题目并编辑，不提供删除。</p></div><a class="button-link primary" href="{% url 'review_workbench:question_create' %}">新建题目</a></div>
+<div class="page-heading"><div><h1>题库维护 <span class="count-badge">{{ total_count }}</span></h1><p>通过编号或关键词找到题目并编辑，不提供删除。</p></div><div class="heading-actions"><a class="button-link" href="{% url 'review_workbench:revision_list' 'questions' %}">版本历史</a><a class="button-link primary" href="{% url 'review_workbench:question_create' %}">新建题目</a></div></div>
 <form method="get" class="queue-filters">
   <label class="search-field"><span>搜索</span><input name="q" value="{{ query }}" placeholder="题目 ID、题干、来源或地区"></label>
   <label><span>题型</span><select name="type"><option value="">全部</option>{% for value, label in type_choices %}<option value="{{ value }}"{% if question_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>

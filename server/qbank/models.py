@@ -247,3 +247,43 @@ class ContentChangeLog(models.Model):
 
     def __str__(self):
         return f'{self.object_type} #{self.object_id or "-"}: {self.note}'
+
+
+class WorkbenchRevision(models.Model):
+    """内容工作台一次保存产生的不可变内容快照。"""
+
+    CONTENT_TYPE_CHOICES = [
+        ('question', '题目'),
+        ('tag', '概念标签'),
+        ('card', '知识卡片'),
+        ('course', '讲义系列'),
+        ('document', '讲义章节'),
+    ]
+
+    content_type = models.CharField(
+        '内容类型', max_length=16, choices=CONTENT_TYPE_CHOICES,
+    )
+    object_id = models.PositiveIntegerField('内容 ID')
+    object_label = models.CharField('内容标题', max_length=255, blank=True)
+    actor = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='workbench_revisions', verbose_name='操作人',
+    )
+    action = models.CharField('操作', max_length=16)
+    note = models.CharField('修改说明', max_length=500)
+    snapshot = models.JSONField('内容快照')
+    created_at = models.DateTimeField('修订时间', auto_now_add=True)
+
+    class Meta:
+        verbose_name = '工作台内容修订'
+        verbose_name_plural = '工作台内容修订'
+        ordering = ['-created_at', '-pk']
+        indexes = [
+            models.Index(
+                fields=['content_type', 'object_id', '-created_at'],
+                name='qbank_wbrev_object_idx',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.get_content_type_display()} #{self.object_id}'

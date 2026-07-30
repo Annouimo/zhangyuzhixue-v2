@@ -21,6 +21,14 @@ urlpatterns = [
     path('releases/', workbench_views.releases, name='releases'),
     path('training/', workbench_views.training, name='training'),
     path('training/data.json', workbench_views.training_json, name='training_json'),
+    path(
+        'history/<slug:category>/', workbench_views.revision_list,
+        name='revision_list',
+    ),
+    path(
+        'history/<slug:category>/<int:revision_id>/',
+        workbench_views.revision_diff, name='revision_diff',
+    ),
     path('<int:contribution_id>/', review_views.detail_view, name='detail'),
     path('questions/', content_workbench_views.question_list, name='question_list'),
     path('questions/new/', content_workbench_views.question_create, name='question_create'),
