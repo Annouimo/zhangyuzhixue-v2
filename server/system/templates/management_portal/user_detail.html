@@ -1,0 +1,54 @@
+{% extends 'management_portal/base.html' %}
+{% block title %}{{ managed_user.username }} | 用户管理{% endblock %}
+{% block content %}
+<nav class="breadcrumb"><a href="{% url 'management_portal:user_list' %}">用户管理</a><span>/</span><span>{{ managed_user.username }}</span></nav>
+<div class="page-heading detail-heading">
+  <div><h1>{{ managed_user.get_full_name|default:managed_user.username }}</h1><p>@{{ managed_user.username }} · 注册于 {{ managed_user.date_joined|date:'Y-m-d H:i' }}</p></div>
+  <div class="heading-actions">
+    {% if managed_user.is_active %}<span class="status success">账号启用</span>{% else %}<span class="status danger">账号停用</span>{% endif %}
+    {% if student %}<span class="status neutral">{{ student.get_account_status_display }}</span>{% endif %}
+  </div>
+</div>
+
+{% if not student %}
+<section class="notice warning"><div><strong>该用户没有学生档案</strong><span>转换会同时创建 Student 档案、加入 student 用户组并授予学生端权限。</span></div>{% if not managed_user.is_staff %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="ensure_student"><button class="primary" type="submit">设为学生</button></form>{% endif %}</section>
+{% endif %}
+
+<div class="detail-grid">
+  <section class="panel span-2">
+    <h2>基本资料</h2>
+    {% if student %}<form class="form-grid" method="post">{% csrf_token %}<input type="hidden" name="action" value="save_profile">
+      {% for field in profile_form %}<label><span>{{ field.label }}</span>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</label>{% endfor %}
+      <div class="form-actions"><button class="primary" type="submit">保存资料</button></div>
+    </form>{% else %}<dl class="meta-list"><div><dt>姓名</dt><dd>{{ managed_user.get_full_name|default:'-' }}</dd></div><div><dt>邮箱</dt><dd>{{ managed_user.email|default:'-' }}</dd></div></dl>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>账号控制</h2>
+    <dl class="meta-list"><div><dt>最近登录</dt><dd>{{ managed_user.last_login|date:'Y-m-d H:i'|default:'从未登录' }}</dd></div><div><dt>后台权限</dt><dd>{% if managed_user.is_staff %}管理员{% else %}无{% endif %}</dd></div></dl>
+    {% if not managed_user.is_superuser %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_active"><button class="{% if managed_user.is_active %}danger-button{% else %}primary{% endif %}" type="submit">{% if managed_user.is_active %}停用账号{% else %}启用账号{% endif %}</button></form>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>重置密码</h2>
+    <form class="stack-form" method="post">{% csrf_token %}<input type="hidden" name="action" value="reset_password">
+      {% for field in password_form %}<label><span>{{ field.label }}</span>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</label>{% endfor %}
+      {% for error in password_form.non_field_errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      <button type="submit">重置密码</button>
+    </form>
+  </section>
+  {% if student %}
+  <section class="panel">
+    <div class="panel-heading"><h2>积分调整</h2><strong class="point-total">{{ point_total|floatformat:1 }}</strong></div>
+    <form class="stack-form" method="post">{% csrf_token %}<input type="hidden" name="action" value="adjust_points">
+      {% for field in points_form %}<label><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</label>{% endfor %}
+      <button class="primary" type="submit">确认调整</button>
+    </form>
+  </section>
+  <section class="panel">
+    <h2>最近登录</h2><div class="compact-list plain">{% for log in login_logs %}<div><span>{{ log.login_date|date:'Y-m-d' }}</span></div>{% empty %}<p class="empty">暂无登录记录</p>{% endfor %}</div>
+  </section>
+  <section class="panel span-2">
+    <h2>最近积分流水</h2><div class="table-wrap flat"><table class="data-table"><thead><tr><th>时间</th><th>来源</th><th>说明</th><th>变动</th></tr></thead><tbody>{% for item in transactions %}<tr><td>{{ item.created_at|date:'m-d H:i' }}</td><td>{{ item.get_source_display }}</td><td>{{ item.description|default:'-' }}</td><td class="{% if item.amount > 0 %}positive{% else %}negative{% endif %}">{{ item.amount|floatformat:1 }}</td></tr>{% empty %}<tr><td colspan="4" class="empty">暂无积分流水</td></tr>{% endfor %}</tbody></table></div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

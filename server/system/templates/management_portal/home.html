@@ -1,0 +1,48 @@
+{% extends 'management_portal/base.html' %}
+{% block title %}首页 | 管理工作台{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><h1>管理首页</h1><p>处理账号与运营事项；内容维护和发布继续在内容工作台完成。</p></div>
+  <a class="button primary" href="{% url 'management_portal:user_list' %}">查找用户</a>
+</div>
+
+<section class="metric-grid">
+  <a href="{% url 'management_portal:user_list' %}?role=student&status=active"><strong>{{ student_count }}</strong><span>正常学生</span></a>
+  <a href="{% url 'management_portal:user_list' %}"><strong>{{ active_today }}</strong><span>今日活跃学生</span></a>
+  <a href="{% url 'management_portal:user_list' %}"><strong>{{ submission_students }}</strong><span>今日做题学生</span><small>{{ submission_count }} 次作答</small></a>
+  <a href="{% url 'management_portal:deletion_list' %}"><strong>{{ pending_deletion_count }}</strong><span>待处理注销</span>{% if due_deletion_count %}<small class="danger-text">{{ due_deletion_count }} 个已到期</small>{% endif %}</a>
+</section>
+
+{% if inconsistency_count %}<section class="notice warning"><strong>发现 {{ inconsistency_count }} 个身份不一致账号</strong><span>学生档案与学生权限不匹配，请进入用户详情执行“校正学生身份”。</span></section>{% endif %}
+
+<div class="dashboard-grid">
+  <section class="panel">
+    <div class="panel-heading"><h2>最近注册</h2><a href="{% url 'management_portal:user_list' %}">查看全部</a></div>
+    <div class="compact-list">
+      {% for student in recent_students %}
+      <a href="{% url 'management_portal:user_detail' student.user_id %}"><span><strong>{{ student.user.get_full_name|default:student.user.username }}</strong><small>{{ student.student_id }}</small></span><time>{{ student.created_at|date:'m-d H:i' }}</time></a>
+      {% empty %}<p class="empty">暂无学生</p>{% endfor %}
+    </div>
+  </section>
+  <section class="panel">
+    <h2>当前内容版本</h2>
+    <dl class="version-list">
+      <div><dt>题库</dt><dd>v{{ versions.qbank.data_version|default:'-' }}</dd></div>
+      <div><dt>讲义</dt><dd>v{{ versions.courses.data_version|default:'-' }}</dd></div>
+    </dl>
+    <a href="{% url 'review_workbench:releases' %}">进入版本发布</a>
+  </section>
+  <section class="panel action-panel">
+    <h2>常用操作</h2>
+    <a href="{% url 'management_portal:user_list' %}?role=plain">转换已有用户为学生</a>
+    <a href="{% url 'management_portal:user_list' %}?status=inactive">查看已停用账号</a>
+    <a href="{% url 'management_portal:deletion_list' %}">处理注销申请</a>
+  </section>
+  <section class="panel action-panel">
+    <h2>工作入口</h2>
+    <a href="{% url 'review_workbench:home' %}">内容工作台</a>
+    <a href="{% url 'internal_portal:index' %}">项目工作手册</a>
+    <a href="{% url 'admin:index' %}">高级数据管理</a>
+  </section>
+</div>
+{% endblock %}

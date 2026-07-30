@@ -32,7 +32,8 @@
           <a href="/">官网</a>
           <a class="is-current" href="{% url 'internal_portal:index' %}">工作手册</a>
           <a href="{% url 'review_workbench:home' %}">内容工作台</a>
-          <a href="{% url 'admin:index' %}">管理员后台</a>
+          <a href="{% url 'management_portal:home' %}">管理工作台</a>
+          <a href="{% url 'admin:index' %}">高级数据管理</a>
         </nav>
         <span class="account-name">{{ request.user.get_full_name|default:request.user.username }}</span>
         <form method="post" action="{% url 'internal_portal:logout' %}">

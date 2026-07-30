@@ -67,7 +67,9 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
     assert '>官网</a>' in content
     assert '>工作手册</a>' in content
     assert '>内容工作台</a>' in content
-    assert '>管理员后台</a>' in content
+    assert '>管理工作台</a>' in content
+    assert reverse('management_portal:home') in content
+    assert '>高级数据管理</a>' in content
     assert reverse('admin:index') in content
 
     response = client.get(

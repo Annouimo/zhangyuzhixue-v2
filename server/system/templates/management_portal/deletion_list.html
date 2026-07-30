@@ -1,0 +1,10 @@
+{% extends 'management_portal/base.html' %}
+{% block title %}注销申请 | 管理工作台{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>注销申请</h1><p>冷静期内可以撤销；到期申请由每日匿名化任务自动处理。</p></div></div>
+<nav class="tabs"><a{% if status == 'pending' %} class="is-active"{% endif %} href="?status=pending">待处理</a><a{% if status == 'cancelled' %} class="is-active"{% endif %} href="?status=cancelled">已撤销</a><a{% if status == 'anonymized' %} class="is-active"{% endif %} href="?status=anonymized">已匿名化</a><a{% if status == 'all' %} class="is-active"{% endif %} href="?status=all">全部</a></nav>
+<div class="table-wrap"><table class="data-table deletion-table"><thead><tr><th>用户</th><th>申请时间</th><th>计划匿名化</th><th>状态</th><th></th></tr></thead><tbody>
+{% for item in requests %}<tr><td><a href="{% url 'management_portal:user_detail' item.user_id %}"><strong>{{ item.user.get_full_name|default:item.user.username }}</strong><small>@{{ item.user.username }}</small></a></td><td>{{ item.requested_at|date:'Y-m-d H:i' }}</td><td>{{ item.scheduled_for|date:'Y-m-d H:i' }}{% if item.status == 'pending' and item.scheduled_for <= now %}<small class="danger-text">已到期，等待自动处理</small>{% endif %}</td><td><span class="status {% if item.status == 'pending' %}warning{% elif item.status == 'cancelled' %}neutral{% else %}danger{% endif %}">{{ item.get_status_display }}</span></td><td>{% if item.status == 'pending' and item.scheduled_for > now %}<form method="post">{% csrf_token %}<input type="hidden" name="request_id" value="{{ item.pk }}"><button type="submit">撤销并恢复账号</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="empty">当前没有相关申请</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

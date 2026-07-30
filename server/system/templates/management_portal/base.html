@@ -1,0 +1,51 @@
+{% load static %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>{% block title %}管理工作台{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'system/management.css' %}?v=1">
+</head>
+<body>
+  <div class="management-layout">
+    <aside class="sidebar">
+      <a class="brand" href="{% url 'management_portal:home' %}">
+        <span class="brand-mark">章</span>
+        <span><strong>章鱼智学</strong><small>管理工作台</small></span>
+      </a>
+      <nav class="side-nav" aria-label="管理工作台导航">
+        <a{% if request.resolver_match.url_name == 'home' %} class="is-active"{% endif %} href="{% url 'management_portal:home' %}">首页</a>
+        <a{% if request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'user_detail' %} class="is-active"{% endif %} href="{% url 'management_portal:user_list' %}">用户管理</a>
+        <a{% if request.resolver_match.url_name == 'deletion_list' %} class="is-active"{% endif %} href="{% url 'management_portal:deletion_list' %}">注销申请</a>
+        <div class="side-nav-section">其他工作台</div>
+        <a href="{% url 'review_workbench:home' %}">内容工作台</a>
+        <a href="{% url 'internal_portal:index' %}">项目工作手册</a>
+        <a href="{% url 'admin:index' %}">高级数据管理</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+        <form method="post" action="{% url 'admin:logout' %}">
+          {% csrf_token %}<button type="submit">退出登录</button>
+        </form>
+      </div>
+    </aside>
+    <div class="main-column">
+      <header class="mobile-header">
+        <a href="{% url 'management_portal:home' %}"><span class="brand-mark">章</span><strong>管理工作台</strong></a>
+        <details><summary>菜单</summary><nav>
+          <a href="{% url 'management_portal:home' %}">首页</a>
+          <a href="{% url 'management_portal:user_list' %}">用户管理</a>
+          <a href="{% url 'management_portal:deletion_list' %}">注销申请</a>
+          <a href="{% url 'review_workbench:home' %}">内容工作台</a>
+          <a href="{% url 'internal_portal:index' %}">工作手册</a>
+          <a href="{% url 'admin:index' %}">高级数据管理</a>
+        </nav></details>
+      </header>
+      {% if messages %}<div class="messages">{% for message in messages %}<p class="{{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      <main class="workspace">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+</body>
+</html>
