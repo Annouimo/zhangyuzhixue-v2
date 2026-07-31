@@ -29,7 +29,7 @@ export 'widgets/app_action_sheet.dart';
 export 'widgets/app_selection.dart';
 export 'widgets/app_button.dart';
 export 'widgets/app_card.dart';
-export 'widgets/app_navigation_card.dart';
+export 'widgets/app_navigation_list.dart';
 export 'widgets/app_page_layout.dart';
 export 'widgets/app_state_panel.dart';
 export 'widgets/app_status_badge.dart';

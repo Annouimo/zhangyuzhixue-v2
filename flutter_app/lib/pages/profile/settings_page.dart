@@ -175,16 +175,16 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             const AppSectionHeader(title: '学习与数据'),
             const SizedBox(height: AppSpacing.sm),
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.tune_rounded,
                   title: '我的筛选方案',
                   subtitle: '管理保存的选题条件',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profilePreferences),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.sync_rounded,
                   title: '同步状态',
                   subtitle: syncSubtitle,
@@ -195,29 +195,29 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: AppSpacing.lg),
             const AppSectionHeader(title: '应用与账号'),
             const SizedBox(height: AppSpacing.sm),
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.info_outline_rounded,
                   title: '关于章鱼智学',
                   subtitle: '版本、隐私与开源许可',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profileAbout),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.password_rounded,
                   title: '修改密码',
                   subtitle: '验证当前密码后设置新密码',
                   onTap: _changePassword,
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.person_off_outlined,
                   title: '注销账号',
                   subtitle: '停用账号并进入撤销期限',
                   tone: AppStatusTone.error,
                   onTap: _requestAccountDeletion,
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.logout_rounded,
                   title: '退出登录',
                   subtitle: '退出当前账号并返回登录页',

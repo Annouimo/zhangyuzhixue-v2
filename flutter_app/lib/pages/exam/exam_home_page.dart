@@ -24,22 +24,22 @@ class _ExamHomePageState extends State<ExamHomePage> {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.folder_outlined,
                   title: '试题篮',
                   subtitle: '持续收集、整理并生成试卷',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.paperFolders),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.library_books_outlined,
                   title: '浏览试卷',
                   subtitle: '浏览真题、模拟和广场试卷',
                   onTap: () => RouterUtils.push(context, AppRoutes.examBrowse),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.description_outlined,
                   title: '我的试卷',
                   subtitle: '查看已生成和收藏的试卷',

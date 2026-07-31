@@ -15,23 +15,23 @@ class GrowthCenterPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.trending_up_rounded,
                   title: '等级',
                   subtitle: '查看当前等级和升级进度',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profileLevel),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.toll_rounded,
                   title: '积分',
                   subtitle: '查看积分余额和变动记录',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profilePoints),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.emoji_events_outlined,
                   title: '成就',
                   subtitle: '查看已经达成的学习里程碑',

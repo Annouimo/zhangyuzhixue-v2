@@ -46,28 +46,28 @@ class _StudyArchivePageState extends State<StudyArchivePage> {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.radar_rounded,
                   title: '学习复盘',
                   subtitle: '查看掌握状态和需要巩固的知识点',
                   onTap: () => RouterUtils.push(context, AppRoutes.review),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.insights_rounded,
                   title: '学习统计',
                   subtitle: '查看正确率、活跃度和题型分布',
                   onTap: () => RouterUtils.push(context, AppRoutes.statistics),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.history_rounded,
                   title: '做题记录',
                   subtitle: '继续未完成的作答或回顾历史题目',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.profileHistory),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.error_outline_rounded,
                   title: '当前错题',
                   subtitle: _reviewSummary == null
@@ -78,7 +78,7 @@ class _StudyArchivePageState extends State<StudyArchivePage> {
                     '${AppRoutes.questionBank}?review=current-wrong',
                   ),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.task_alt_rounded,
                   title: '已订正',
                   subtitle: _reviewSummary == null

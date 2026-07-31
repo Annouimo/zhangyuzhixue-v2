@@ -430,33 +430,33 @@ class ProfilePageState extends State<ProfilePage> {
         : growthParts.join(' · ');
 
     final entries = [
-      AppNavigationCard(
+      AppNavigationListItem(
         icon: Icons.person_outline_rounded,
         title: '个人资料',
         subtitle: '编辑头像、姓名和个人信息',
         onTap: () => RouterUtils.push(context, AppRoutes.profileEdit),
       ),
-      AppNavigationCard(
+      AppNavigationListItem(
         icon: Icons.folder_copy_outlined,
         title: '学习档案',
         subtitle: archiveSubtitle,
         onTap: () => RouterUtils.push(context, AppRoutes.studyArchive),
       ),
-      AppNavigationCard(
+      AppNavigationListItem(
         icon: Icons.workspace_premium_outlined,
         title: '成长中心',
         subtitle: growthSubtitle,
         tone: AppStatusTone.recommendation,
         onTap: () => RouterUtils.push(context, AppRoutes.growthCenter),
       ),
-      AppNavigationCard(
+      AppNavigationListItem(
         icon: Icons.edit_note_outlined,
         title: '创作者中心',
         subtitle: '投稿新题、查看审核进度',
         tone: AppStatusTone.info,
         onTap: () => RouterUtils.push(context, AppRoutes.contributions),
       ),
-      AppNavigationCard(
+      AppNavigationListItem(
         icon: Icons.settings_outlined,
         title: '设置',
         subtitle: _syncSubtitle == null ? '筛选方案、同步与账号管理' : _syncSubtitle!,
@@ -467,6 +467,11 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     ];
 
-    return AppResponsiveCardGrid(children: entries);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppContentWidth.reading),
+        child: AppNavigationList(children: entries),
+      ),
+    );
   }
 }

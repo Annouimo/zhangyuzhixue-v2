@@ -15,23 +15,23 @@ class PracticeHomePage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            AppResponsiveCardGrid(
+            AppNavigationList(
               children: [
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.auto_awesome_rounded,
                   title: '推荐练习',
                   subtitle: '系统结合新题与旧题，安排当前最适合的练习',
                   tone: AppStatusTone.recommendation,
                   onTap: () => RouterUtils.push(context, AppRoutes.recommend),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.search_rounded,
                   title: '题库选题',
                   subtitle: '按专题或知识点找题，练习或一键出卷',
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.questionBank),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.assignment_late_outlined,
                   title: '错题本',
                   subtitle: '订正错题并回顾已掌握的题目',
@@ -40,11 +40,10 @@ class PracticeHomePage extends StatelessWidget {
                     '${AppRoutes.questionBank}?review=current-wrong',
                   ),
                 ),
-                AppNavigationCard(
+                AppNavigationListItem(
                   icon: Icons.menu_book_outlined,
                   title: '学习资料',
                   subtitle: '浏览视频课程和配套讲义',
-                  tone: AppStatusTone.info,
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.learningMaterials),
                 ),
