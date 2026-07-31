@@ -7,16 +7,15 @@ import '../test_setup.dart';
 void main() {
   setUp(setupTestHooks);
 
-  testWidgets('shows unified question workspace and paper management', (
+  testWidgets('shows learning and practice entrances', (
     tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: PracticeHomePage()));
 
     expect(find.text('推荐练习'), findsOneWidget);
     expect(find.text('题库选题'), findsOneWidget);
-    expect(find.text('试题篮'), findsOneWidget);
-    expect(find.text('套卷'), findsOneWidget);
-    expect(find.text('试卷中心'), findsOneWidget);
+    expect(find.text('错题本'), findsOneWidget);
+    expect(find.text('学习资料'), findsOneWidget);
     expect(find.byType(TabBar), findsNothing);
   });
 }

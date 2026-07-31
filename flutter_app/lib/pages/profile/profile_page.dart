@@ -431,6 +431,12 @@ class ProfilePageState extends State<ProfilePage> {
 
     final entries = [
       AppNavigationCard(
+        icon: Icons.person_outline_rounded,
+        title: '个人资料',
+        subtitle: '编辑头像、姓名和个人信息',
+        onTap: () => RouterUtils.push(context, AppRoutes.profileEdit),
+      ),
+      AppNavigationCard(
         icon: Icons.folder_copy_outlined,
         title: '学习档案',
         subtitle: archiveSubtitle,
@@ -442,6 +448,13 @@ class ProfilePageState extends State<ProfilePage> {
         subtitle: growthSubtitle,
         tone: AppStatusTone.recommendation,
         onTap: () => RouterUtils.push(context, AppRoutes.growthCenter),
+      ),
+      AppNavigationCard(
+        icon: Icons.edit_note_outlined,
+        title: '创作者中心',
+        subtitle: '投稿新题、查看审核进度',
+        tone: AppStatusTone.info,
+        onTap: () => RouterUtils.push(context, AppRoutes.contributions),
       ),
       AppNavigationCard(
         icon: Icons.settings_outlined,

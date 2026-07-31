@@ -9,7 +9,7 @@ class PracticeHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('首页')),
+      appBar: AppBar(title: const Text('学习')),
       body: AppContentContainer(
         maxWidth: AppContentWidth.reading,
         child: ListView(
@@ -32,32 +32,21 @@ class PracticeHomePage extends StatelessWidget {
                       RouterUtils.push(context, AppRoutes.questionBank),
                 ),
                 AppNavigationCard(
-                  icon: Icons.folder_outlined,
-                  title: '试题篮',
-                  subtitle: '持续收集、整理并生成试卷',
-                  onTap: () =>
-                      RouterUtils.push(context, AppRoutes.paperFolders),
+                  icon: Icons.assignment_late_outlined,
+                  title: '错题本',
+                  subtitle: '订正错题并回顾已掌握的题目',
+                  onTap: () => RouterUtils.push(
+                    context,
+                    '${AppRoutes.questionBank}?review=current-wrong',
+                  ),
                 ),
                 AppNavigationCard(
-                  icon: Icons.library_books_outlined,
-                  title: '套卷',
-                  subtitle: '按年份、地区和考试类型浏览完整试卷',
-                  onTap: () =>
-                      RouterUtils.push(context, AppRoutes.paperLibrary),
-                ),
-                AppNavigationCard(
-                  icon: Icons.description_outlined,
-                  title: '试卷中心',
-                  subtitle: '查看我创建的、发现和收藏的试卷',
-                  onTap: () => RouterUtils.push(context, AppRoutes.examHome),
-                ),
-                AppNavigationCard(
-                  icon: Icons.rate_review_outlined,
-                  title: '内容贡献',
-                  subtitle: '投稿新题、查看审核进度',
+                  icon: Icons.menu_book_outlined,
+                  title: '学习资料',
+                  subtitle: '浏览视频课程和配套讲义',
                   tone: AppStatusTone.info,
                   onTap: () =>
-                      RouterUtils.push(context, AppRoutes.contributions),
+                      RouterUtils.push(context, AppRoutes.learningMaterials),
                 ),
               ],
             ),

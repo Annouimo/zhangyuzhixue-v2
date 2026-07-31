@@ -5,61 +5,106 @@ import '../router.dart';
 import 'exam_explore_page.dart';
 import 'exam_favorites_page.dart';
 import 'exam_history_page.dart';
-
-enum PaperCenterTab { created, explore, favorites }
+import '../question_bank/paper_library_page.dart';
 
 class ExamHomePage extends StatefulWidget {
-  const ExamHomePage({super.key, this.initialTab = PaperCenterTab.created});
-
-  final PaperCenterTab initialTab;
+  const ExamHomePage({super.key});
 
   @override
   State<ExamHomePage> createState() => _ExamHomePageState();
 }
 
 class _ExamHomePageState extends State<ExamHomePage> {
-  late int _selectedIndex;
-
-  late final List<Widget> _pages = const [
-    ExamHistoryPage(embedded: true),
-    ExamExplorePage(embedded: true),
-    ExamFavoritesPage(embedded: true),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedIndex = widget.initialTab.index;
-    AuditLogger.instance.page('ExamHomePage', {'visited': true});
-  }
-
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: PaperCenterTab.values.length,
-      initialIndex: _selectedIndex,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('试卷中心'),
-          actions: [
-            IconButton(
-              tooltip: '新建试卷',
-              icon: const Icon(Icons.add),
-              onPressed: () =>
-                  RouterUtils.push(context, AppRoutes.questionBank),
+    return Scaffold(
+      appBar: AppBar(title: const Text('试卷')),
+      body: AppContentContainer(
+        maxWidth: AppContentWidth.reading,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          children: [
+            AppResponsiveCardGrid(
+              children: [
+                AppNavigationCard(
+                  icon: Icons.folder_outlined,
+                  title: '试题篮',
+                  subtitle: '持续收集、整理并生成试卷',
+                  onTap: () =>
+                      RouterUtils.push(context, AppRoutes.paperFolders),
+                ),
+                AppNavigationCard(
+                  icon: Icons.library_books_outlined,
+                  title: '浏览试卷',
+                  subtitle: '浏览真题、模拟和广场试卷',
+                  onTap: () => RouterUtils.push(context, AppRoutes.examBrowse),
+                ),
+                AppNavigationCard(
+                  icon: Icons.description_outlined,
+                  title: '我的试卷',
+                  subtitle: '查看已生成和收藏的试卷',
+                  onTap: () => RouterUtils.push(context, AppRoutes.myPapers),
+                ),
+              ],
             ),
           ],
-          bottom: TabBar(
-            onTap: (index) => setState(() => _selectedIndex = index),
-            tabs: const [
-              Tab(text: '我创建的'),
-              Tab(text: '发现试卷'),
-              Tab(text: '收藏'),
-            ],
-          ),
         ),
-        body: IndexedStack(index: _selectedIndex, children: _pages),
       ),
     );
   }
+}
+
+class ExamBrowsePage extends StatelessWidget {
+  const ExamBrowsePage({super.key});
+  static const _realRegions = ['北京'];
+  static const _mockRegions = ['东城', '西城', '海淀', '朝阳'];
+
+  @override
+  Widget build(BuildContext context) => DefaultTabController(
+    length: 3,
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text('浏览试卷'),
+        bottom: const TabBar(
+          tabs: [
+            Tab(text: '真题'),
+            Tab(text: '模拟'),
+            Tab(text: '广场'),
+          ],
+        ),
+      ),
+      body: const TabBarView(
+        children: [
+          PaperLibraryPage(embedded: true, regions: _realRegions),
+          PaperLibraryPage(embedded: true, regions: _mockRegions),
+          ExamExplorePage(embedded: true),
+        ],
+      ),
+    ),
+  );
+}
+
+class MyPapersPage extends StatelessWidget {
+  const MyPapersPage({super.key});
+  @override
+  Widget build(BuildContext context) => DefaultTabController(
+    length: 2,
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text('我的试卷'),
+        bottom: const TabBar(
+          tabs: [
+            Tab(text: '已生成'),
+            Tab(text: '收藏'),
+          ],
+        ),
+      ),
+      body: const TabBarView(
+        children: [
+          ExamHistoryPage(embedded: true),
+          ExamFavoritesPage(embedded: true),
+        ],
+      ),
+    ),
+  );
 }

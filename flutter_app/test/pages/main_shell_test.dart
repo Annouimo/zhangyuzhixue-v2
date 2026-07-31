@@ -39,12 +39,12 @@ void main() {
       await pumpShell(tester);
 
       expect(find.byType(NavigationBar), findsOneWidget);
-      expect(find.text('首页'), findsAtLeastNWidgets(1));
-      expect(find.text('内容'), findsOneWidget);
+      expect(find.text('学习'), findsAtLeastNWidgets(1));
+      expect(find.text('试卷'), findsOneWidget);
       expect(find.text('我的'), findsOneWidget);
     });
 
-    testWidgets('default tab is practice (index 0)', (tester) async {
+    testWidgets('default tab is learning (index 0)', (tester) async {
       await pumpShell(tester);
 
       final navBar = tester.widget<NavigationBar>(find.byType(NavigationBar));
@@ -52,10 +52,10 @@ void main() {
       expect(find.byType(ProfilePage), findsNothing);
     });
 
-    testWidgets('tapping content tab switches content', (tester) async {
+    testWidgets('tapping exam tab switches content', (tester) async {
       await pumpShell(tester);
 
-      await tester.tap(find.text('内容'));
+      await tester.tap(find.text('试卷'));
       await tester.pump();
       await tester.pump();
 
@@ -75,12 +75,12 @@ void main() {
       expect(find.byType(ProfilePage), findsOneWidget);
     });
 
-    testWidgets('tapping practice tab switches content', (tester) async {
+    testWidgets('tapping learning tab switches content', (tester) async {
       await pumpShell(tester);
 
-      await tester.tap(find.text('内容'));
+      await tester.tap(find.text('试卷'));
       await tester.pump();
-      await tester.tap(find.text('首页'));
+      await tester.tap(find.text('学习'));
       await tester.pump();
       await tester.pump();
 

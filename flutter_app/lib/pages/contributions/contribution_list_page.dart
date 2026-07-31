@@ -63,7 +63,7 @@ class _ContributionListPageState extends State<ContributionListPage>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('内容贡献'),
+      title: const Text('创作者中心'),
       actions: [
         IconButton(
           tooltip: '刷新贡献记录',

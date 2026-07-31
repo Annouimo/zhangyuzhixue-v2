@@ -10,7 +10,10 @@ import '../exam/exam_quicklook_page.dart';
 import '../exam/widgets/paper_card.dart';
 
 class PaperLibraryPage extends StatefulWidget {
-  const PaperLibraryPage({super.key});
+  const PaperLibraryPage({super.key, this.embedded = false, this.regions});
+
+  final bool embedded;
+  final List<String>? regions;
 
   @override
   State<PaperLibraryPage> createState() => _PaperLibraryPageState();
@@ -47,8 +50,12 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
   List<VirtualPaper> get _visible {
     final query = _searchController.text.trim().toLowerCase();
     final papers = _papers ?? const [];
-    if (query.isEmpty) return papers;
-    return papers
+    final regions = widget.regions;
+    final scoped = regions == null
+        ? papers
+        : papers.where((paper) => regions.contains(paper.region)).toList();
+    if (query.isEmpty) return scoped;
+    return scoped
         .where(
           (paper) => [
             paper.title,
@@ -85,58 +92,60 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
           .putIfAbsent(paper.year, () => [])
           .add(paper);
     }
-    return Scaffold(
-      appBar: AppBar(title: const Text('套卷')),
-      body: _papers == null
-          ? const LoadingIndicator(message: '正在加载套卷')
-          : AppContentContainer(
-              maxWidth: AppContentWidth.standard,
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                children: [
-                  TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: '搜索年份、地区或考试类型',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onChanged: (_) => setState(() {}),
+    final body = _papers == null
+        ? const LoadingIndicator(message: '正在加载套卷')
+        : AppContentContainer(
+            maxWidth: AppContentWidth.standard,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: '搜索年份、地区或考试类型',
+                    prefixIcon: Icon(Icons.search),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  ...grouped.entries.map(
-                    (typeEntry) => ExpansionTile(
-                      title: Text(typeEntry.key),
-                      subtitle: Text(
-                        '${typeEntry.value.values.fold<int>(0, (sum, items) => sum + items.length)} 套',
-                      ),
-                      children: typeEntry.value.entries
-                          .map(
-                            (yearEntry) => ExpansionTile(
-                              title: Text('${yearEntry.key} 年'),
-                              children: yearEntry.value
-                                  .map(
-                                    (paper) => Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: AppSpacing.sm,
-                                      ),
-                                      child: PaperCard(
-                                        title: paper.title,
-                                        subtitle:
-                                            '${paper.year} · ${paper.region} · ${paper.questionCount} 题',
-                                        trailing: '整卷',
-                                        onTap: () => _openPaper(paper),
-                                      ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ...grouped.entries.map(
+                  (typeEntry) => ExpansionTile(
+                    title: Text(typeEntry.key),
+                    subtitle: Text(
+                      '${typeEntry.value.values.fold<int>(0, (sum, items) => sum + items.length)} 套',
+                    ),
+                    children: typeEntry.value.entries
+                        .map(
+                          (yearEntry) => ExpansionTile(
+                            title: Text('${yearEntry.key} 年'),
+                            children: yearEntry.value
+                                .map(
+                                  (paper) => Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: AppSpacing.sm,
                                     ),
-                                  )
-                                  .toList(growable: false),
-                            ),
-                          )
-                          .toList(growable: false),
-                    ),
+                                    child: PaperCard(
+                                      title: paper.title,
+                                      subtitle:
+                                          '${paper.year} · ${paper.region} · ${paper.questionCount} 题',
+                                      trailing: '整卷',
+                                      onTap: () => _openPaper(paper),
+                                    ),
+                                  ),
+                                )
+                                .toList(growable: false),
+                          ),
+                        )
+                        .toList(growable: false),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          );
+    if (widget.embedded) return body;
+    return Scaffold(
+      appBar: AppBar(title: const Text('浏览试卷')),
+      body: body,
     );
   }
 }

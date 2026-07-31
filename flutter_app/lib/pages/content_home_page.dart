@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared/shared.dart';
 
-import 'router.dart';
 import 'lecture/lecture_courses_page.dart';
 import 'video/video_catalog_page.dart';
 
@@ -17,7 +15,12 @@ class ContentHomePage extends StatelessWidget {
         length: 2,
         child: Column(
           children: const [
-            TabBar(tabs: [Tab(text: '视频'), Tab(text: '讲义')]),
+            TabBar(
+              tabs: [
+                Tab(text: '视频'),
+                Tab(text: '讲义'),
+              ],
+            ),
             Expanded(
               child: TabBarView(
                 children: [

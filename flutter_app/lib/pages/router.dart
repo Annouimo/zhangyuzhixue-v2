@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../data/prefs/app_prefs.dart';
 import 'main_shell.dart';
+import 'content_home_page.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 import 'solve/solve_choice_page.dart';
@@ -51,6 +52,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const mainShell = '/';
+  static const learningMaterials = '/learning/materials';
   static const solveChoice = '/solve/choice';
   static const solveFill = '/solve/fill';
   static const solveMap = '/solve/map';
@@ -73,6 +75,8 @@ abstract final class AppRoutes {
   static const questionBank = '/question-bank';
   static const paperLibrary = '/question-bank/papers';
   static const examHome = '/exam';
+  static const examBrowse = '/exam/browse';
+  static const myPapers = '/exam/mine';
   static const paperFolders = '/exam/folders';
   static const paperFolderDetail = '/exam/folders/detail';
   static const review = '/review';
@@ -273,17 +277,17 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.examHistory,
       name: 'exam-history',
-      redirect: (_, _) => '${AppRoutes.examHome}?tab=created',
+      redirect: (_, _) => AppRoutes.myPapers,
     ),
     GoRoute(
       path: AppRoutes.examExplore,
       name: 'exam-explore',
-      redirect: (_, _) => '${AppRoutes.examHome}?tab=explore',
+      redirect: (_, _) => AppRoutes.examBrowse,
     ),
     GoRoute(
       path: AppRoutes.examFavorites,
       name: 'exam-favorites',
-      redirect: (_, _) => '${AppRoutes.examHome}?tab=favorites',
+      redirect: (_, _) => AppRoutes.myPapers,
     ),
     GoRoute(
       path: AppRoutes.answerSheet,
@@ -303,15 +307,24 @@ final GoRouter appRouter = GoRouter(
       builder: (_, _) => RecommendPage(),
     ),
     GoRoute(
+      path: AppRoutes.learningMaterials,
+      name: 'learning-materials',
+      builder: (_, _) => const ContentHomePage(),
+    ),
+    GoRoute(
       path: AppRoutes.examHome,
       name: 'exam-home',
-      builder: (_, state) => ExamHomePage(
-        initialTab: switch (state.uri.queryParameters['tab']) {
-          'explore' => PaperCenterTab.explore,
-          'favorites' => PaperCenterTab.favorites,
-          _ => PaperCenterTab.created,
-        },
-      ),
+      builder: (_, _) => const ExamHomePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.examBrowse,
+      name: 'exam-browse',
+      builder: (_, _) => const ExamBrowsePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.myPapers,
+      name: 'my-papers',
+      builder: (_, _) => const MyPapersPage(),
     ),
     GoRoute(
       path: AppRoutes.paperFolders,

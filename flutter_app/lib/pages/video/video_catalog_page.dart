@@ -9,7 +9,11 @@ import '../../domain/video_repository.dart';
 import '../router.dart';
 
 class VideoCatalogPage extends StatefulWidget {
-  const VideoCatalogPage({super.key, this.videoRepository, this.embedded = false});
+  const VideoCatalogPage({
+    super.key,
+    this.videoRepository,
+    this.embedded = false,
+  });
 
   final VideoRepository? videoRepository;
   final bool embedded;
@@ -29,7 +33,8 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
   void initState() {
     super.initState();
     final provider = DatabaseProvider();
-    _repository = widget.videoRepository ??
+    _repository =
+        widget.videoRepository ??
         VideoRepository(VideoDao(provider), LectureDao(provider));
     _load();
   }
@@ -61,7 +66,10 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
   Widget build(BuildContext context) {
     final body = _buildBody();
     if (widget.embedded) return body;
-    return Scaffold(appBar: AppBar(title: const Text('视频')), body: body);
+    return Scaffold(
+      appBar: AppBar(title: const Text('视频')),
+      body: body,
+    );
   }
 
   Widget _buildBody() {
@@ -89,10 +97,12 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
             scrollDirection: Axis.horizontal,
             child: SegmentedButton<int>(
               segments: catalog
-                  .map((category) => ButtonSegment<int>(
-                        value: category.id,
-                        label: Text(category.name),
-                      ))
+                  .map(
+                    (category) => ButtonSegment<int>(
+                      value: category.id,
+                      label: Text(category.name),
+                    ),
+                  )
                   .toList(),
               selected: {_selectedCategoryId ?? catalog.first.id},
               onSelectionChanged: (selection) =>
@@ -111,23 +121,30 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
               message: '该分类暂无已发布视频',
             )
           else
-            LayoutBuilder(builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 900 ? 3 :
-                  constraints.maxWidth >= 560 ? 2 : 1;
-              final width = (constraints.maxWidth -
-                      AppSpacing.md * (columns - 1)) /
-                  columns;
-              return Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.md,
-                children: selected.videos
-                    .map((video) => SizedBox(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 900
+                    ? 3
+                    : constraints.maxWidth >= 560
+                    ? 2
+                    : 1;
+                final width =
+                    (constraints.maxWidth - AppSpacing.md * (columns - 1)) /
+                    columns;
+                return Wrap(
+                  spacing: AppSpacing.md,
+                  runSpacing: AppSpacing.md,
+                  children: selected.videos
+                      .map(
+                        (video) => SizedBox(
                           width: width,
                           child: _VideoCard(video: video),
-                        ))
-                    .toList(),
-              );
-            }),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
+            ),
         ],
       ),
     );
@@ -141,54 +158,59 @@ class _VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppCard(
-        onTap: () => RouterUtils.push(
-          context,
-          '${AppRoutes.videoDetail}?videoId=${video.id}',
+    onTap: () => RouterUtils.push(
+      context,
+      '${AppRoutes.videoDetail}?videoId=${video.id}',
+    ),
+    semanticLabel: video.title,
+    padding: EdgeInsets.zero,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.medium),
+            ),
+            child: video.coverUrl.isEmpty
+                ? ColoredBox(
+                    color: context.colors.surfaceSubtle,
+                    child: const Icon(
+                      Icons.play_circle_outline_rounded,
+                      size: 48,
+                    ),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: video.coverUrl,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, _, _) =>
+                        const Center(child: Icon(Icons.broken_image_outlined)),
+                  ),
+          ),
         ),
-        semanticLabel: video.title,
-        padding: EdgeInsets.zero,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.medium),
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                video.title,
+                style: Theme.of(context).textTheme.titleMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (video.platformName.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  video.platformName,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                child: video.coverUrl.isEmpty
-                    ? ColoredBox(
-                        color: context.colors.surfaceSubtle,
-                        child: const Icon(Icons.play_circle_outline_rounded,
-                            size: 48),
-                      )
-                    : CachedNetworkImage(
-                        imageUrl: video.coverUrl,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, _, _) => const Center(
-                          child: Icon(Icons.broken_image_outlined),
-                        ),
-                      ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(video.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
-                  if (video.platformName.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(video.platformName,
-                        style: Theme.of(context).textTheme.bodySmall),
-                  ],
-                ],
-              ),
-            ),
-          ],
+              ],
+            ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }

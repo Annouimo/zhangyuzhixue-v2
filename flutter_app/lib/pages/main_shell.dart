@@ -6,13 +6,13 @@ import 'package:shared/theme/app_tokens.dart';
 
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
-import 'content_home_page.dart';
 import 'practice_home_page.dart';
+import 'exam/exam_home_page.dart';
 import 'profile/profile_page.dart';
 import '../debug/performance_trace.dart';
 
 /// Tab 页枚举。
-enum MainTab { practice, content, profile }
+enum MainTab { learning, exam, profile }
 
 /// 应用主导航框架。
 ///
@@ -35,7 +35,7 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    _pages = [const PracticeHomePage(), const ContentHomePage(), null];
+    _pages = [const PracticeHomePage(), const ExamHomePage(), null];
     DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
     _refreshSyncPending();
   }
@@ -108,20 +108,20 @@ class _MainShellState extends State<MainShell> {
         AppIcons.recommendationSelected,
         key: ValueKey('main-tab-practice-selected'),
       ),
-      label: '首页',
-      tooltip: '学习与出卷',
+      label: '学习',
+      tooltip: '学习与练习',
     ),
     const NavigationDestination(
       icon: Icon(
-        Icons.menu_book_outlined,
-        key: ValueKey('main-tab-content-unselected'),
+        Icons.description_outlined,
+        key: ValueKey('main-tab-exam-unselected'),
       ),
       selectedIcon: Icon(
-        Icons.menu_book_rounded,
-        key: ValueKey('main-tab-content-selected'),
+        Icons.description_rounded,
+        key: ValueKey('main-tab-exam-selected'),
       ),
-      label: '内容',
-      tooltip: '学习内容',
+      label: '试卷',
+      tooltip: '试卷与组卷',
     ),
     NavigationDestination(
       icon: _profileIcon(selected: false),
@@ -141,18 +141,18 @@ class _MainShellState extends State<MainShell> {
         AppIcons.recommendationSelected,
         key: ValueKey('main-tab-practice-selected'),
       ),
-      label: Text('首页'),
+      label: Text('学习'),
     ),
     const NavigationRailDestination(
       icon: Icon(
-        Icons.menu_book_outlined,
-        key: ValueKey('main-tab-content-unselected'),
+        Icons.description_outlined,
+        key: ValueKey('main-tab-exam-unselected'),
       ),
       selectedIcon: Icon(
-        Icons.menu_book_rounded,
-        key: ValueKey('main-tab-content-selected'),
+        Icons.description_rounded,
+        key: ValueKey('main-tab-exam-selected'),
       ),
-      label: Text('内容'),
+      label: Text('试卷'),
     ),
     NavigationRailDestination(
       icon: _profileIcon(selected: false),

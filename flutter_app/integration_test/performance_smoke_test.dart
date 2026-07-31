@@ -114,11 +114,11 @@ void main() {
         'frames_tab_profile',
         reset: () => _returnHome(tester),
         action: () async {
-          await _selectMainTab(tester, MainTab.content);
-          await _selectMainTab(tester, MainTab.practice);
+          await _selectMainTab(tester, MainTab.exam);
+          await _selectMainTab(tester, MainTab.learning);
           await _selectMainTab(tester, MainTab.profile);
           await _waitFor(tester, find.text('学习档案'));
-          await _selectMainTab(tester, MainTab.practice);
+          await _selectMainTab(tester, MainTab.learning);
           await _selectMainTab(tester, MainTab.profile);
           await _waitFor(tester, find.text('学习档案'));
         },
@@ -202,7 +202,7 @@ Future<void> _runPerformanceScan(
 }) async {
   await _returnHome(tester);
   await _traceScan(binding, 'frames_scan_tab_content', () async {
-    await _selectMainTab(tester, MainTab.content);
+    await _selectMainTab(tester, MainTab.exam);
     await _waitForScanReady(tester);
   });
   await _returnHome(tester);
@@ -601,8 +601,8 @@ Future<void> _returnHome(WidgetTester tester) async {
   NavigationThrottle.reset();
   appRouter.go(AppRoutes.mainShell);
   await _waitFor(tester, find.byType(MainShell));
-  if (find.text('学习与出卷').evaluate().isNotEmpty) return;
-  await _selectMainTab(tester, MainTab.practice);
+  if (find.text('学习与练习').evaluate().isNotEmpty) return;
+  await _selectMainTab(tester, MainTab.learning);
 }
 
 Future<void> _tapAndWait(
