@@ -1,12 +1,51 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:drift/drift.dart' hide isNull;
+import 'package:flutter_app/data/api/api_client.dart';
+import 'package:flutter_app/data/api/sync_api.dart';
 import 'package:flutter_app/data/database/assets_database.dart' as adb;
 import 'package:flutter_app/data/database/app_database.dart' as udb;
 import 'package:flutter_app/data/daos/question_dao.dart';
 import 'package:flutter_app/data/daos/exam_dao.dart';
+import 'package:flutter_app/data/daos/sync_queue_dao.dart';
+import 'package:flutter_app/data/prefs/app_prefs.dart';
+import 'package:flutter_app/data/sync/sync_manager.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/data/database/database_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class _SuccessfulSyncAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<dynamic>? cancelFuture,
+  ) async {
+    final body = options.data! as Map<String, dynamic>;
+    final batch = body['batch']! as List<dynamic>;
+    final serverIds = <String, int>{
+      for (final raw in batch)
+        '${(raw as Map<String, dynamic>)['client_ref']}':
+            (raw['local_id'] as int) + 1000,
+    };
+    return ResponseBody.fromString(
+      jsonEncode({
+        'code': 0,
+        'data': {'server_ids': serverIds},
+      }),
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool? force}) {}
+}
 
 void main() {
   late adb.AssetsDatabase aDb;
@@ -15,7 +54,9 @@ void main() {
   late ExamDao eDao;
   late ExamRepository repo;
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await AppPrefs().init();
     aDb = adb.AssetsDatabase(NativeDatabase.memory());
     uDb = udb.AppDatabase(NativeDatabase.memory());
     DatabaseProvider().setAssetsDbForTesting(aDb);
@@ -23,11 +64,18 @@ void main() {
     qDao = QuestionDao(DatabaseProvider());
     eDao = ExamDao(DatabaseProvider());
     repo = ExamRepository(qDao, eDao);
+    final client = ApiClient()..init(baseUrl: 'https://exam.test');
+    client.setMockAdapter(_SuccessfulSyncAdapter());
+    await SyncManager().init(
+      SyncQueueDao(DatabaseProvider()),
+      SyncApi(client),
+      DatabaseProvider(),
+    );
   });
 
-  tearDown(() {
-    aDb.close();
-    uDb.close();
+  tearDown(() async {
+    await SyncManager.resetForTesting();
+    await DatabaseProvider().reset();
   });
 
   group('ExamRepository', () {
@@ -245,17 +293,19 @@ void main() {
 
     test('getPreview preserves saved question order', () async {
       for (final id in [1, 2]) {
-        await aDb.into(aDb.questions).insert(
-          adb.QuestionsCompanion(
-            id: Value(id),
-            year: const Value(2024),
-            examType: const Value('一模'),
-            region: const Value('海淀'),
-            number: Value('$id'),
-            questionType: const Value('choice'),
-            stem: Value('题$id'),
-          ),
-        );
+        await aDb
+            .into(aDb.questions)
+            .insert(
+              adb.QuestionsCompanion(
+                id: Value(id),
+                year: const Value(2024),
+                examType: const Value('一模'),
+                region: const Value('海淀'),
+                number: Value('$id'),
+                questionType: const Value('choice'),
+                stem: Value('题$id'),
+              ),
+            );
       }
       final paperId = await eDao.savePaper(title: '自定义题序');
       await eDao.savePaperQuestions(paperId, [2, 1]);
@@ -268,6 +318,7 @@ void main() {
     test('deleteExam removes paper', () async {
       final id = await eDao.savePaper(title: '待删');
       await repo.deleteExam(id);
+      await SyncManager().pushNow();
       expect(await repo.getMyExams(), isEmpty);
     });
 

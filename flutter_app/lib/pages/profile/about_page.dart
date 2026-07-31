@@ -35,7 +35,9 @@ class _AboutPageState extends State<AboutPage> {
   int _serverCourses = 0;
   int _serverUser = 0;
   bool _versionLoaded = false;
-  bool _versionError = false;
+  bool _qbankVersionError = false;
+  bool _coursesVersionError = false;
+  bool _userVersionError = false;
   bool _updatingQbank = false;
   bool _updatingCourses = false;
   bool _updatingUser = false;
@@ -114,17 +116,21 @@ class _AboutPageState extends State<AboutPage> {
       if (mgr.updateManager != null) {
         final results = await mgr.checkUpdates();
         if (!mounted) return;
-        _versionError = results.any((result) => result.checkFailed);
         for (final r in results) {
           if (r.type == 'qbank') {
+            _qbankVersionError = r.checkFailed;
             _serverQbank = r.serverVersion;
             _qbankDownloadReady = r.canDownload;
           }
           if (r.type == 'courses') {
+            _coursesVersionError = r.checkFailed;
             _serverCourses = r.serverVersion;
             _coursesDownloadReady = r.canDownload;
           }
-          if (r.type == 'user') _serverUser = r.serverVersion;
+          if (r.type == 'user') {
+            _userVersionError = r.checkFailed;
+            _serverUser = r.serverVersion;
+          }
         }
         setState(() => _versionLoaded = true);
         for (final result in results) {
@@ -137,7 +143,9 @@ class _AboutPageState extends State<AboutPage> {
       if (mounted) {
         setState(() {
           _versionLoaded = true;
-          _versionError = true;
+          _qbankVersionError = true;
+          _coursesVersionError = true;
+          _userVersionError = true;
         });
       }
     }
@@ -259,6 +267,7 @@ class _AboutPageState extends State<AboutPage> {
                 server: _serverQbank,
                 updating: _updatingQbank,
                 downloadReady: _qbankDownloadReady,
+                checkFailed: _qbankVersionError,
                 onUpdate: () => _onUpdate('qbank'),
               ),
               Divider(height: 1, indent: 48),
@@ -269,6 +278,7 @@ class _AboutPageState extends State<AboutPage> {
                 server: _serverCourses,
                 updating: _updatingCourses,
                 downloadReady: _coursesDownloadReady,
+                checkFailed: _coursesVersionError,
                 onUpdate: () => _onUpdate('courses'),
               ),
               Divider(height: 1, indent: 48),
@@ -371,14 +381,15 @@ class _AboutPageState extends State<AboutPage> {
     required int server,
     required bool updating,
     required bool downloadReady,
+    required bool checkFailed,
     required VoidCallback onUpdate,
   }) {
-    if (_versionError) {
+    if (checkFailed) {
       return ListTile(
         leading: Icon(icon, color: context.colors.primary),
         title: Text(label),
         subtitle: Text(
-          '⚠ 检查失败',
+          '检查失败，请稍后重试',
           style: TextStyle(fontSize: 12, color: context.colors.error),
         ),
         trailing: null,
@@ -424,7 +435,7 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Widget _buildUserTile() {
-    if (_versionError) {
+    if (_userVersionError) {
       return ListTile(
         leading: Icon(Icons.devices, color: context.colors.primary),
         title: Text('多设备同步数据'),

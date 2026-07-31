@@ -37,7 +37,7 @@ class _SuccessfulSyncAdapter implements HttpClientAdapter {
     batches.add(batch);
     final serverIds = <String, int>{
       for (final item in batch)
-        '${item['local_id']}': (item['local_id'] as int) + 1000,
+        '${item['client_ref']}': (item['local_id'] as int) + 1000,
     };
     return ResponseBody.fromString(
       jsonEncode({
@@ -212,7 +212,7 @@ void main() {
       expect(paperQuestions.map((item) => item.questionId), [11, 12]);
       final queue = await appDb.select(appDb.syncQueue).get();
       expect(queue, hasLength(1));
-    expect(queue.single.entityType, 'custom_paper');
+      expect(queue.single.entityType, 'custom_paper');
       expect(queue.single.status, 'done');
       final payload = jsonDecode(queue.single.payload) as Map<String, dynamic>;
       expect(payload['title'], '函数基础卷');

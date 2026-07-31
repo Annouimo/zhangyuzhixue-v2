@@ -76,11 +76,9 @@ class UpdateManager {
   Future<UpdateSummary> checkUser() => _checkOne('user');
 
   Future<UpdateSummary> _checkOne(String type) async {
+    final localVersion = await _readLocalVersion(type);
     try {
       final status = await _syncApi.checkVersion(type);
-      final localVersion = type == 'user'
-          ? AppPrefs().userVersion
-          : await _dbProvider.dataVersion(type);
       return UpdateSummary(
         type: type,
         localVersion: localVersion,
@@ -97,9 +95,7 @@ class UpdateManager {
       );
     } catch (e) {
       AuditLogger.instance.error('UpdateManager._checkOne($type)', e);
-      final localVersion = type == 'user'
-          ? AppPrefs().userVersion
-          : await _dbProvider.dataVersion(type);
+      OperationLog.instance.error('UpdateManager.checkVersion.$type', e);
       return UpdateSummary(
         type: type,
         localVersion: localVersion,
@@ -107,6 +103,22 @@ class UpdateManager {
         forceUpdate: false,
         error: e,
       );
+    }
+  }
+
+  Future<int> _readLocalVersion(String type) async {
+    if (type == 'user') return AppPrefs().userVersion;
+    try {
+      return await _dbProvider.dataVersion(type);
+    } catch (error, stack) {
+      OperationLog.instance.error(
+        'UpdateManager.localVersion.$type',
+        error,
+        stack,
+      );
+      return type == 'qbank'
+          ? AppPrefs().qbankVersion
+          : AppPrefs().coursesVersion;
     }
   }
 
@@ -194,7 +206,7 @@ class UpdateManager {
   }) {
     return serverVersion > localVersion;
   }
-}
 
   static bool shouldUpdateSilently(UpdateSummary summary) =>
       summary.hasUpdate && summary.canApply && !summary.forceUpdate;
+}
