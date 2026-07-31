@@ -8,9 +8,10 @@ import '../router.dart';
 
 /// 讲义课程列表页。
 class LectureCoursesPage extends StatefulWidget {
-  const LectureCoursesPage({super.key, this.lectureRepository});
+  const LectureCoursesPage({super.key, this.lectureRepository, this.embedded = false});
 
   final LectureRepository? lectureRepository;
+  final bool embedded;
 
   @override
   State<LectureCoursesPage> createState() => _LectureCoursesPageState();
@@ -58,10 +59,11 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('内容')),
-    body: _buildBody(),
-  );
+  Widget build(BuildContext context) {
+    final body = _buildBody();
+    if (widget.embedded) return body;
+    return Scaffold(appBar: AppBar(title: const Text('讲义')), body: body);
+  }
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载讲义目录…');

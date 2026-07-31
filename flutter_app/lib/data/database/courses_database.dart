@@ -85,18 +85,60 @@ class Meta extends Table {
 // Database
 // ═══════════════════════════════════════════════
 
-@DriftDatabase(tables: [
-  Courses,
-  Chapters,
-  LectureContents,
-  VideoCategories,
-  Videos,
-  VideoDocumentLinks,
-  Meta,
-])
+@DriftDatabase(
+  tables: [
+    Courses,
+    Chapters,
+    LectureContents,
+    VideoCategories,
+    Videos,
+    VideoDocumentLinks,
+    Meta,
+  ],
+)
 class CoursesDatabase extends _$CoursesDatabase {
   CoursesDatabase(super.e);
 
   @override
   int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2 && to >= 2) {
+        // Published database bundles are created outside Drift and may already
+        // contain these tables while PRAGMA user_version is still 0.
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS video_category (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            sort_order INTEGER NOT NULL
+          )
+        ''');
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS video (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            category_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            cover_url TEXT NOT NULL,
+            platform_name TEXT NOT NULL,
+            video_url TEXT NOT NULL,
+            published_at TEXT NULL,
+            sort_order INTEGER NOT NULL
+          )
+        ''');
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS video_document_link (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            video_id INTEGER NOT NULL,
+            chapter_id INTEGER NOT NULL,
+            relation_label TEXT NOT NULL,
+            sort_order INTEGER NOT NULL
+          )
+        ''');
+      }
+    },
+  );
 }

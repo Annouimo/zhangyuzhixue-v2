@@ -9,9 +9,10 @@ import '../../domain/video_repository.dart';
 import '../router.dart';
 
 class VideoCatalogPage extends StatefulWidget {
-  const VideoCatalogPage({super.key, this.videoRepository});
+  const VideoCatalogPage({super.key, this.videoRepository, this.embedded = false});
 
   final VideoRepository? videoRepository;
+  final bool embedded;
 
   @override
   State<VideoCatalogPage> createState() => _VideoCatalogPageState();
@@ -57,10 +58,11 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('视频')),
-        body: _buildBody(),
-      );
+  Widget build(BuildContext context) {
+    final body = _buildBody();
+    if (widget.embedded) return body;
+    return Scaffold(appBar: AppBar(title: const Text('视频')), body: body);
+  }
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载视频目录…');
