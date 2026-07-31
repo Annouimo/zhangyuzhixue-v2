@@ -38,6 +38,21 @@
     document.querySelectorAll('.math-content').forEach(renderMath);
   }
 
+  function initTextCopy() {
+    document.querySelectorAll('[data-copy-text]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        try {
+          await navigator.clipboard.writeText(button.dataset.copyText || '');
+          var original = button.textContent;
+          button.textContent = '已复制';
+          window.setTimeout(function () { button.textContent = original; }, 1200);
+        } catch (error) {
+          window.prompt('复制失败，请手动复制：', button.dataset.copyText || '');
+        }
+      });
+    });
+  }
+
   function textValue(value) {
     if (value === null || value === undefined || value === '') return '-';
     if (Array.isArray(value)) return value.join('\n');
@@ -564,6 +579,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     initQueue();
+    initTextCopy();
     var form = document.getElementById('review-form');
     if (form) initReviewForm(form);
   });

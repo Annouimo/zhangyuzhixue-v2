@@ -244,6 +244,9 @@ PDF_SECRET_KEY = config(
     'PDF_SECRET_KEY',
     default='' if IS_PRODUCTION else 'dev-pdf-key-for-testing',
 )
+PUBLIC_SITE_ORIGIN = config(
+    'PUBLIC_SITE_ORIGIN', default='https://zhangyuzhixue.top',
+).rstrip('/')
 if IS_PRODUCTION:
     PDF_SECRET_KEY = require_production_value(
         'PDF_SECRET_KEY', PDF_SECRET_KEY, min_length=32,

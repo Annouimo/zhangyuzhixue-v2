@@ -162,6 +162,18 @@ def test_video_publish_records_relation_and_history(
     assert history.status_code == 200
     assert '集合专题精讲' in history.content.decode()
 
+    editor = client.get(reverse(
+        'review_workbench:video_edit', args=[video.pk],
+    ))
+    editor_content = editor.content.decode()
+    public_url = f'https://zhangyuzhixue.top/v/{video.pk}'
+    assert public_url in editor_content
+    assert '复制公开链接' in editor_content
+
+    listing = client.get(reverse('review_workbench:video_list'))
+    assert public_url in listing.content.decode()
+    assert '复制链接' in listing.content.decode()
+
 
 @pytest.mark.django_db
 def test_reviewer_without_publish_permission_cannot_publish(

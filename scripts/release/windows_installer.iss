@@ -56,5 +56,11 @@ Source: "D:\Hermes\zhangyuzhixue_app_v2\flutter_app\build\windows\x64\runner\Rel
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
+[Registry]
+Root: HKA; Subkey: "Software\Classes\zhangyuzhixue"; ValueType: string; ValueName: ""; ValueData: "URL:章鱼智学"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\zhangyuzhixue"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\zhangyuzhixue\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
+Root: HKA; Subkey: "Software\Classes\zhangyuzhixue\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

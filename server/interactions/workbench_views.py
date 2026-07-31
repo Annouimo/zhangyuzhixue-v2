@@ -1,11 +1,13 @@
 import json
 
 from django.contrib import messages
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from accounts.roles import PUBLISH_CONTRIBUTION
 from courses.models import Course, Document, Video, VideoCategory
@@ -54,13 +56,16 @@ def course_list(request):
 
 @reviewer_required
 def video_list(request):
+    videos = list(Video.objects.select_related('category').order_by(
+        'category__sort_order', 'sort_order', '-published_at', 'id',
+    ))
+    for video in videos:
+        video.public_url = _public_video_url(video.pk)
     return render(request, 'review_workbench/video_list.html', {
         'categories': VideoCategory.objects.annotate(
             video_count=Count('videos'),
         ).order_by('sort_order', 'id'),
-        'videos': Video.objects.select_related('category').order_by(
-            'category__sort_order', 'sort_order', '-published_at', 'id',
-        ),
+        'videos': videos,
         'courses_version': DbVersion.objects.filter(db_type='courses').first(),
     })
 
@@ -132,7 +137,13 @@ def video_edit(request, object_id=None):
         'form': form,
         'link_formset': links,
         'object': instance if instance.pk else None,
+        'public_url': _public_video_url(instance.pk) if instance.pk else None,
     })
+
+
+def _public_video_url(video_id):
+    path = reverse('public-video-landing', args=[video_id])
+    return f'{settings.PUBLIC_SITE_ORIGIN}{path}'
 
 
 @reviewer_required
