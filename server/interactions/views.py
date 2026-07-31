@@ -380,6 +380,14 @@ class SyncPushView(APIView):
         return folder
 
     def _handle_paper_like(self, data, student, server_ids, detail_cache):
+        if data.get('deleted'):
+            like = PaperLike.objects.filter(
+                student=student, paper_id=data['paper_id']
+            ).first()
+            object_id = like.pk if like else data['paper_id']
+            if like:
+                like.delete()
+            return PaperLike(pk=object_id)
         like, _ = PaperLike.objects.get_or_create(
             student=student,
             paper_id=data['paper_id'],
@@ -387,6 +395,14 @@ class SyncPushView(APIView):
         return like
 
     def _handle_paper_collect(self, data, student, server_ids, detail_cache):
+        if data.get('deleted'):
+            collect = PaperCollect.objects.filter(
+                student=student, paper_id=data['paper_id']
+            ).first()
+            object_id = collect.pk if collect else data['paper_id']
+            if collect:
+                collect.delete()
+            return PaperCollect(pk=object_id)
         collect, _ = PaperCollect.objects.get_or_create(
             student=student,
             paper_id=data['paper_id'],
@@ -528,18 +544,18 @@ class ExamExploreView(APIView):
         papers = CustomPaper.objects.filter(
             is_public=True
         ).order_by('-created_at').prefetch_related(
-            'paper_questions', 'paper_likes', 'paper_collects'
+            'paper_questions', 'likes', 'collects'
         )
 
         result = []
         for p in papers:
-            like_count = p.paper_likes.count()
-            collect_count = p.paper_collects.count()
+            like_count = p.likes.count()
+            collect_count = p.collects.count()
             author_student = p.student
             author_user = author_student.user
             # 作者等级
             from system.models import LevelConfig
-            total_pts = author_student.points_transactions.aggregate(
+            total_pts = author_student.point_transactions.aggregate(
                 total=Sum('amount')
             )['total'] or 0
             level = LevelConfig.get_level(total_pts)
@@ -557,8 +573,8 @@ class ExamExploreView(APIView):
                 ),
                 'like_count': like_count,
                 'collect_count': collect_count,
-                'is_liked': p.paper_likes.filter(student=student).exists(),
-                'is_collected': p.paper_collects.filter(student=student).exists(),
+                'is_liked': p.likes.filter(student=student).exists(),
+                'is_collected': p.collects.filter(student=student).exists(),
                 'created_at': p.created_at.isoformat() if p.created_at else '',
             })
 
@@ -601,15 +617,15 @@ class ExamPreviewOtherView(APIView):
         fill_count = sum(1 for q in q_list if q['question_type'] == 'fill')
         solution_count = sum(1 for q in q_list if q['question_type'] == 'solution')
 
-        like_count = paper.paper_likes.count()
-        collect_count = paper.paper_collects.count()
-        is_liked = paper.paper_likes.filter(student=student).exists()
-        is_collected = paper.paper_collects.filter(student=student).exists()
+        like_count = paper.likes.count()
+        collect_count = paper.collects.count()
+        is_liked = paper.likes.filter(student=student).exists()
+        is_collected = paper.collects.filter(student=student).exists()
 
         author_student = paper.student
         author_user = author_student.user
         from system.models import LevelConfig
-        total_pts = author_student.points_transactions.aggregate(
+        total_pts = author_student.point_transactions.aggregate(
             total=Sum('amount')
         )['total'] or 0
         level = LevelConfig.get_level(total_pts)
@@ -650,16 +666,16 @@ class ExamFavoritesView(APIView):
 
         papers = CustomPaper.objects.filter(
             pk__in=paper_ids, is_public=True
-        ).prefetch_related('paper_likes', 'paper_collects', 'paper_questions')
+        ).prefetch_related('likes', 'collects', 'paper_questions')
 
         result = []
         for p in papers:
-            like_count = p.paper_likes.count()
-            collect_count = p.paper_collects.count()
+            like_count = p.likes.count()
+            collect_count = p.collects.count()
             author_student = p.student
             author_user = author_student.user
             from system.models import LevelConfig
-            total_pts = author_student.points_transactions.aggregate(
+            total_pts = author_student.point_transactions.aggregate(
                 total=Sum('amount')
             )['total'] or 0
             level = LevelConfig.get_level(total_pts)
@@ -679,7 +695,7 @@ class ExamFavoritesView(APIView):
                 ),
                 'like_count': like_count,
                 'collect_count': collect_count,
-                'is_liked': p.paper_likes.filter(student=student).exists(),
+                'is_liked': p.likes.filter(student=student).exists(),
                 'created_at': p.created_at.isoformat() if p.created_at else '',
             })
 

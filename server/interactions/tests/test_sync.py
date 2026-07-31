@@ -9,6 +9,7 @@ from interactions.models import (
     CardFeedback,
     CustomPaper,
     PaperFolder,
+    PaperCollect,
     PaperLike,
     QuestionRating,
     StepFeedback,
@@ -338,6 +339,73 @@ class TestSyncPaperLike:
         }, format='json')
         assert resp.status_code == 200
         assert PaperLike.objects.count() == 1
+
+
+@pytest.mark.django_db
+class TestExamEngagementReadApi:
+
+    def test_explore_and_preview_return_real_engagement_state(
+        self, auth_client, student_user
+    ):
+        author = User.objects.create_user('paper-author', password='test123')
+        paper = CustomPaper.objects.create(
+            student=author.student,
+            title='公开试卷',
+            is_public=True,
+        )
+        PaperLike.objects.create(student=student_user.student, paper=paper)
+        PaperCollect.objects.create(student=student_user.student, paper=paper)
+
+        explore = auth_client.get(reverse('exam-explore'))
+        assert explore.status_code == 200
+        item = next(row for row in explore.data['data'] if row['id'] == paper.pk)
+        assert item['is_liked'] is True
+        assert item['is_collected'] is True
+
+        preview = auth_client.get(
+            reverse('exam-preview-other', kwargs={'paper_id': paper.pk})
+        )
+        assert preview.status_code == 200
+        assert preview.data['data']['is_liked'] is True
+        assert preview.data['data']['is_collected'] is True
+
+    def test_sync_delete_removes_like_and_collect(
+        self, auth_client, student_user
+    ):
+        author = User.objects.create_user('delete-author', password='test123')
+        paper = CustomPaper.objects.create(
+            student=author.student,
+            title='取消互动测试',
+            is_public=True,
+        )
+        PaperLike.objects.create(student=student_user.student, paper=paper)
+        PaperCollect.objects.create(student=student_user.student, paper=paper)
+
+        response = auth_client.post(reverse('sync-push'), {
+            'batch': [
+                {
+                    'entity_type': 'paper_like',
+                    'local_id': paper.pk,
+                    'data': {'paper_id': paper.pk, 'deleted': True},
+                },
+                {
+                    'entity_type': 'paper_collect',
+                    'local_id': paper.pk,
+                    'data': {'paper_id': paper.pk, 'deleted': True},
+                },
+            ],
+        }, format='json')
+
+        assert response.status_code == 200
+        assert not PaperLike.objects.filter(
+            student=student_user.student, paper=paper
+        ).exists()
+        assert not PaperCollect.objects.filter(
+            student=student_user.student, paper=paper
+        ).exists()
+
+
+class TestSyncPaperLikeIdempotent:
 
     def test_like_idempotent(self, auth_client, student_user):
         paper = CustomPaper.objects.create(
