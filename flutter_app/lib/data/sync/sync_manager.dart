@@ -31,6 +31,7 @@ class SyncManager {
   SyncApi? _api;
   DatabaseProvider? _dbProvider;
   bool _initialized = false;
+  final Set<String> _backgroundUpdatesInFlight = <String>{};
 
   /// 并发锁 — 防止 pushNow 重叠（定时器 tick 和主动调用之间）
   bool _pushing = false;
@@ -210,6 +211,20 @@ class SyncManager {
       onProgress: onProgress,
     );
     _pendingUpdates.removeWhere((s) => s.type == type);
+  }
+
+  /// Runs an ordinary update without UI. Duplicate requests for the same
+  /// database share the in-flight operation and return immediately.
+  Future<bool> runBackgroundUpdate(UpdateSummary summary) async {
+    _ensureInitialized();
+    if (!UpdateManager.shouldUpdateSilently(summary)) return false;
+    if (!_backgroundUpdatesInFlight.add(summary.type)) return false;
+    try {
+      await runUpdate(summary.type);
+      return true;
+    } finally {
+      _backgroundUpdatesInFlight.remove(summary.type);
+    }
   }
 
   /// 立即推送所有待同步数据。
@@ -399,6 +414,7 @@ class SyncManager {
     _instance._api = null;
     _instance._dbProvider = null;
     _instance._initialized = false;
+    _instance._backgroundUpdatesInFlight.clear();
     _instance._pendingUpdates = [];
   }
 }

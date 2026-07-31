@@ -134,7 +134,6 @@ void main() async {
 }
 
 final Map<String, int> _promptedUpdateVersions = {};
-final Set<String> _backgroundUpdatesInFlight = <String>{};
 
 void _processUpdates(List<UpdateSummary> updates) {
   final ctx = routerNavigatorKey.currentContext;
@@ -156,6 +155,9 @@ void _processUpdates(List<UpdateSummary> updates) {
       _showForcedUpdateDialog(ctx, summary);
       return; // 一次只处理一个强制更新，完成后再处理下一个
     }
+    if (summary.forceUpdate && !summary.canApply) {
+      AppToast.warning(ctx, '检测到强制更新，但更新包信息不完整，请稍后重试');
+    }
   }
 
   // 普通更新在后台下载并应用，避免打断当前学习流程。
@@ -167,12 +169,11 @@ void _processUpdates(List<UpdateSummary> updates) {
 }
 
 void _startBackgroundUpdate(UpdateSummary summary) {
-  if (!_backgroundUpdatesInFlight.add(summary.type)) return;
   unawaited(() async {
     try {
-      await SyncManager().runUpdate(summary.type);
+      final completed = await SyncManager().runBackgroundUpdate(summary);
       final ctx = routerNavigatorKey.currentContext;
-      if (ctx != null && ctx.mounted) {
+      if (completed && ctx != null && ctx.mounted) {
         final label = summary.type == 'qbank'
             ? '题库'
             : (summary.type == 'courses' ? '内容数据' : '学习记录');
@@ -184,8 +185,10 @@ void _startBackgroundUpdate(UpdateSummary summary) {
         error,
         stack,
       );
-    } finally {
-      _backgroundUpdatesInFlight.remove(summary.type);
+      final ctx = routerNavigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        AppToast.warning(ctx, '后台更新失败，将在下次检查时重试');
+      }
     }
   }());
 }

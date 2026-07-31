@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
@@ -8,6 +9,7 @@ import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/sync/sync_manager.dart';
+import '../../data/sync/update_manager.dart';
 import '../../data/prefs/app_prefs.dart';
 import '../../data/daos/sync_queue_dao.dart';
 import '../../data/database/database_provider.dart';
@@ -125,6 +127,11 @@ class _AboutPageState extends State<AboutPage> {
           if (r.type == 'user') _serverUser = r.serverVersion;
         }
         setState(() => _versionLoaded = true);
+        for (final result in results) {
+          if (UpdateManager.shouldUpdateSilently(result)) {
+            unawaited(_runSilentUpdate(result));
+          }
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -137,6 +144,27 @@ class _AboutPageState extends State<AboutPage> {
 
     if (mounted) setState(() {});
     AuditLogger.instance.page('AboutPage', {'version': appVersion});
+  }
+
+  Future<void> _runSilentUpdate(UpdateSummary summary) async {
+    try {
+      final completed = await SyncManager().runBackgroundUpdate(summary);
+      if (!completed || !mounted) return;
+      await _load();
+      if (mounted) {
+        final label = summary.type == 'qbank'
+            ? '题库'
+            : (summary.type == 'courses' ? '内容数据' : '学习记录');
+        AppToast.info(context, '$label已在后台更新');
+      }
+    } catch (error, stack) {
+      AuditLogger.instance.error(
+        'AboutPage.background_update.${summary.type}',
+        error,
+        stack,
+      );
+      if (mounted) AppToast.warning(context, '后台更新失败，将在下次检查时重试');
+    }
   }
 
   Future<void> _onUpdate(String type) async {
