@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared/shared.dart';
 import '../../data/api/api_client.dart';
 import '../../data/api/user_api.dart';
+import '../../data/api/contribution_api.dart';
 import '../../data/daos/question_dao.dart';
 import '../../data/daos/user_dao.dart';
 import '../../data/daos/achievement_dao.dart';
@@ -48,6 +49,7 @@ class ProfilePageState extends State<ProfilePage> {
   double? _availablePoints;
   int? _currentLevel;
   String? _syncSubtitle;
+  bool _hasContributions = false;
 
   /// 供 MainShell 切 Tab 时调用，触发数据刷新
   void reload() => _load(showLoading: _info == null);
@@ -102,6 +104,7 @@ class ProfilePageState extends State<ProfilePage> {
         _optional(_achieveRepo.unlockedCount()),
         _optional(_repo.getPointsSummary()),
         _optional(_repo.currentLevel()),
+        _optional(ContributionApi(ApiClient()).list()),
       ]);
       if (!mounted) return;
       final ps =
@@ -130,6 +133,8 @@ class ProfilePageState extends State<ProfilePage> {
         _achievementUnlocked = summaries[1] as int?;
         _availablePoints = ps?.available;
         _currentLevel = summaries[3] as int?;
+        _hasContributions =
+            (summaries[4] as List<Map<String, dynamic>>?)?.isNotEmpty == true;
         _syncSubtitle = syncSubtitle;
         _loading = false;
       });
@@ -254,7 +259,7 @@ class ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               children: [
                 _buildUserHeader(),
-                const SizedBox(height: AppSpacing.lg),
+                const Divider(height: 1),
                 _buildPrimaryEntries(context),
                 const SizedBox(height: AppSpacing.xl),
               ],
@@ -268,15 +273,24 @@ class ProfilePageState extends State<ProfilePage> {
     final textTheme = Theme.of(context).textTheme;
     final colors = context.colors;
 
-    return AppCard(
-      elevated: true,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < AppBreakpoints.medium;
-          final avatar = AppAvatarEditor(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () async {
+          await RouterUtils.push(context, AppRoutes.profileEdit);
+          if (mounted) _load();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.lg,
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final avatar = AppAvatarEditor(
             uploading: _uploading,
             onPressed: _showAvatarPicker,
+            radius: 38,
             imageProvider: info?.avatar != null && info!.avatar!.isNotEmpty
                 ? CachedNetworkImageProvider(info.avatar!)
                 : null,
@@ -290,41 +304,24 @@ class ProfilePageState extends State<ProfilePage> {
             ),
           );
 
-          final copy = Column(
+              final copy = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(displayName, style: textTheme.headlineSmall),
               const SizedBox(height: AppSpacing.xs),
-              Wrap(
-                spacing: AppSpacing.xs,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  if (info?.studentId != null)
-                    AppStatusBadge(
-                      label: '学号 ${info!.studentId}',
-                      tone: AppStatusTone.info,
-                      icon: Icons.badge_outlined,
-                      compact: true,
-                    ),
-                  if (info?.school?.isNotEmpty == true)
-                    AppStatusBadge(
-                      label: info!.school!,
-                      tone: AppStatusTone.neutral,
-                      icon: Icons.school_outlined,
-                      compact: true,
-                    ),
-                  if (info?.gaokaoYear != null)
-                    AppStatusBadge(
-                      label: '${info!.gaokaoYear} 届',
-                      tone: AppStatusTone.recommendation,
-                      icon: Icons.flag_outlined,
-                      compact: true,
-                    ),
-                ],
+              Text(
+                [
+                  if (info?.studentId?.isNotEmpty == true)
+                    '学号 ${info!.studentId}',
+                  if (info?.gaokaoYear != null) '${info!.gaokaoYear}届',
+                ].join(' · '),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colors.textSecondary,
+                ),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                '学习记录会帮助系统安排更合适的推荐内容。',
+                '学习记录将用于个性化推荐',
                 style: textTheme.bodySmall?.copyWith(
                   color: colors.textSecondary,
                 ),
@@ -332,45 +329,21 @@ class ProfilePageState extends State<ProfilePage> {
             ],
           );
 
-          final editButton = AppButton(
-            label: '编辑资料',
-            icon: AppIcons.edit,
-            variant: AppButtonVariant.secondary,
-            fullWidth: compact,
-            onPressed: () async {
-              await RouterUtils.push(context, AppRoutes.profileEdit);
-              if (mounted) _load();
+              return Row(
+                children: [
+                  avatar,
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(child: copy),
+                  Icon(
+                    AppIcons.chevronRight,
+                    size: 18,
+                    color: colors.textMuted,
+                  ),
+                ],
+              );
             },
-          );
-
-          if (compact) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    avatar,
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(child: copy),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                editButton,
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              avatar,
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(child: copy),
-              const SizedBox(width: AppSpacing.lg),
-              editButton,
-            ],
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -379,41 +352,27 @@ class ProfilePageState extends State<ProfilePage> {
     final archiveSubtitle = _statsTotalQuestions == null
         ? '复盘、统计与做题记录'
         : '累计 $_statsTotalQuestions 题 · 正确率 ${_statsAccuracy?.toStringAsFixed(0) ?? '—'}%';
-    final growthParts = <String>[
-      if (_currentLevel != null) 'Lv.$_currentLevel',
-      if (_availablePoints != null) '${formatAmount(_availablePoints!)} 积分',
-      if (_achievementUnlocked != null) '$_achievementUnlocked 项成就',
-    ];
-    final growthSubtitle = growthParts.isEmpty
-        ? '等级、积分与成就'
-        : growthParts.join(' · ');
-
     final entries = [
-      AppNavigationListItem(
-        icon: Icons.person_outline_rounded,
-        title: '个人资料',
-        subtitle: '编辑头像、姓名和个人信息',
-        onTap: () => RouterUtils.push(context, AppRoutes.profileEdit),
-      ),
       AppNavigationListItem(
         icon: Icons.folder_copy_outlined,
         title: '学习档案',
         subtitle: archiveSubtitle,
         onTap: () => RouterUtils.push(context, AppRoutes.studyArchive),
       ),
+      if (_hasContributions)
+        AppNavigationListItem(
+          icon: Icons.edit_note_outlined,
+          title: '创作者中心',
+          subtitle: '投稿与审核进度',
+          tone: AppStatusTone.info,
+          onTap: () => RouterUtils.push(context, AppRoutes.contributions),
+        ),
       AppNavigationListItem(
         icon: Icons.workspace_premium_outlined,
         title: '成长中心',
-        subtitle: growthSubtitle,
+        subtitle: _growthSubtitle,
         tone: AppStatusTone.recommendation,
         onTap: () => RouterUtils.push(context, AppRoutes.growthCenter),
-      ),
-      AppNavigationListItem(
-        icon: Icons.edit_note_outlined,
-        title: '创作者中心',
-        subtitle: '投稿新题、查看审核进度',
-        tone: AppStatusTone.info,
-        onTap: () => RouterUtils.push(context, AppRoutes.contributions),
       ),
       AppNavigationListItem(
         icon: Icons.settings_outlined,
@@ -433,4 +392,14 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
+  String get _growthSubtitle {
+    final parts = <String>[
+      if (_currentLevel != null) 'Lv.$_currentLevel',
+      if (_availablePoints != null) '${formatAmount(_availablePoints!)} 积分',
+      if (_achievementUnlocked != null) '$_achievementUnlocked 项成就',
+    ];
+    return parts.isEmpty ? '等级、积分与成就' : parts.join(' · ');
+  }
+
 }

@@ -77,7 +77,7 @@ void main() {
           selected: true,
         ),
       )));
-      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
     });
 
     testWidgets('selectable mode shows radio when not selected', (tester) async {
@@ -90,7 +90,7 @@ void main() {
           selected: false,
         ),
       )));
-      expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
+      expect(find.byIcon(Icons.radio_button_unchecked_rounded), findsOneWidget);
     });
 
     testWidgets('default mode shows chevron', (tester) async {

@@ -39,22 +39,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('uses wrapping category chips on compact screens', (tester) async {
+  testWidgets('shows database category names in a flat navigation list', (tester) async {
     await pumpCatalog(tester, const Size(390, 844));
 
-    expect(find.byKey(const ValueKey('video-category-wrap')), findsOneWidget);
-    expect(find.byType(ChoiceChip), findsNWidgets(4));
-    expect(find.byType(SegmentedButton<int>), findsNothing);
+    expect(find.text('系列系统课程'), findsOneWidget);
+    expect(find.text('专题深度解析'), findsOneWidget);
+    expect(find.text('学习经验分享'), findsOneWidget);
+    expect(find.text('学术交流'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
   });
 
-  testWidgets('keeps segmented categories on wider screens', (tester) async {
+  testWidgets('uses the same flat navigation on wider screens', (tester) async {
     await pumpCatalog(tester, const Size(900, 844));
 
-    expect(
-      find.byKey(const ValueKey('video-category-segmented')),
-      findsOneWidget,
-    );
-    expect(find.byType(SegmentedButton<int>), findsOneWidget);
+    expect(find.text('系列系统课程'), findsOneWidget);
+    expect(find.byType(SegmentedButton<int>), findsNothing);
   });
 
   testWidgets('omits the large media area when the cover is empty', (
@@ -62,7 +61,9 @@ void main() {
   ) async {
     await pumpCatalog(tester, const Size(390, 844));
 
-    expect(find.byKey(const ValueKey('video-cover')), findsNothing);
+    await tester.tap(find.text('系列系统课程'));
+    await tester.pumpAndSettle();
+
     expect(find.text('没有封面的视频'), findsOneWidget);
     expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
   });

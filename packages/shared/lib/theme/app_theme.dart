@@ -691,6 +691,28 @@ class AppTheme {
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(foregroundColor: colors.textSecondary),
       ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: colors.primary,
+        unselectedLabelColor: colors.textSecondary,
+        labelStyle: const TextStyle(
+          fontFamily: fontFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontFamily: fontFamily,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: colors.primary, width: 3),
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          insets: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+        ),
+        indicatorSize: TabBarIndicatorSize.label,
+        dividerColor: colors.divider,
+        dividerHeight: 1,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colors.surface,
@@ -749,10 +771,14 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: colors.surfaceSubtle,
+        backgroundColor: Colors.transparent,
+        selectedColor: colors.primaryContainer,
+        checkmarkColor: colors.primary,
+        showCheckmark: false,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
         labelStyle: TextStyle(
           fontFamily: fontFamily,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
           color: colors.textSecondary,
         ),

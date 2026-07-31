@@ -79,7 +79,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          AppCard(
+          AppSection(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -122,7 +122,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          AppCard(
+          AppSection(
             child: isCorrection
                 ? _buildCorrection(submissionPayload)
                 : isSolution
@@ -295,7 +295,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
   Widget _buildCorrectionQuestionComparison(
     Map<String, dynamic> snapshot,
     Map<String, dynamic>? official,
-  ) => AppCard(
+  ) => AppSection(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -382,7 +382,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
           Chip(label: Text('${(raw as Map)['name'] ?? '-'}')),
       ],
     );
-    return AppCard(
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -411,7 +411,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
     final visible = _showAllHistory || history.length <= 3
         ? history
         : history.sublist(history.length - 3);
-    return AppCard(
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -101,11 +101,11 @@ class _MainShellState extends State<MainShell> {
   List<NavigationDestination> get _bottomDestinations => [
     const NavigationDestination(
       icon: Icon(
-        AppIcons.recommendation,
+        AppIcons.learning,
         key: ValueKey('main-tab-practice-unselected'),
       ),
       selectedIcon: Icon(
-        AppIcons.recommendationSelected,
+        AppIcons.learningSelected,
         key: ValueKey('main-tab-practice-selected'),
       ),
       label: '学习',
@@ -134,11 +134,11 @@ class _MainShellState extends State<MainShell> {
   List<NavigationRailDestination> get _railDestinations => [
     const NavigationRailDestination(
       icon: Icon(
-        AppIcons.recommendation,
+        AppIcons.learning,
         key: ValueKey('main-tab-practice-unselected'),
       ),
       selectedIcon: Icon(
-        AppIcons.recommendationSelected,
+        AppIcons.learningSelected,
         key: ValueKey('main-tab-practice-selected'),
       ),
       label: Text('学习'),

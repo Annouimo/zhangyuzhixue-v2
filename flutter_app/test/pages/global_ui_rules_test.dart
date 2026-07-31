@@ -44,6 +44,38 @@ void main() {
   });
 
   group('interactive shared surfaces', () {
+    testWidgets('section header compact mode removes duplicate top spacing', (
+      tester,
+    ) async {
+      await pumpUiScenario(
+        tester,
+        const Scaffold(
+          body: Column(
+            children: [
+              AppSectionHeader(title: '常规标题'),
+              AppSectionHeader(title: '紧凑标题', compact: true),
+            ],
+          ),
+        ),
+      );
+
+      final headers = find.byType(AppSectionHeader);
+      final regularPadding = tester.widget<Padding>(
+        find.descendant(of: headers.at(0), matching: find.byType(Padding)).first,
+      );
+      final compactPadding = tester.widget<Padding>(
+        find.descendant(of: headers.at(1), matching: find.byType(Padding)).first,
+      );
+      expect(
+        regularPadding.padding,
+        const EdgeInsets.only(top: AppSpacing.lg, bottom: AppSpacing.sm),
+      );
+      expect(
+        compactPadding.padding,
+        const EdgeInsets.only(bottom: AppSpacing.sm),
+      );
+    });
+
     for (final theme in UiTestTheme.values) {
       testWidgets('card exposes feedback and semantics in ${theme.name}', (
         tester,

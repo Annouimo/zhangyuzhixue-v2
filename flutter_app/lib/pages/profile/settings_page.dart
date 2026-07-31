@@ -44,27 +44,30 @@ class _SettingsPageState extends State<SettingsPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('修改密码'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: currentController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: '当前密码'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: '新密码（至少 8 位）'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: confirmationController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: '再次输入新密码'),
-            ),
-          ],
+        content: SizedBox(
+          width: AppDialog.maxWidth(AppDialogSize.compact),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: currentController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '当前密码'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: newController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '新密码（至少 8 位）'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: confirmationController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: '再次输入新密码'),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -193,7 +196,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            const AppSectionHeader(title: '应用与账号'),
+            const AppSectionHeader(title: '应用与账号', compact: true),
             const SizedBox(height: AppSpacing.sm),
             AppNavigationList(
               children: [

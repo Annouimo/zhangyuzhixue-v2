@@ -98,6 +98,7 @@ class AppSectionHeader extends StatelessWidget {
     this.icon,
     this.trailing,
     this.action,
+    this.compact = false,
   });
 
   /// 分区标题
@@ -121,13 +122,17 @@ class AppSectionHeader extends StatelessWidget {
   /// 自定义操作组件别名（兼容 Phase 1 命名，优先级高于 trailing）
   final Widget? action;
 
+  /// Removes the default top section spacing when the caller already provides
+  /// separation above the header.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: AppSpacing.lg,
+      padding: EdgeInsets.only(
+        top: compact ? 0 : AppSpacing.lg,
         bottom: AppSpacing.sm,
       ),
       child: Row(

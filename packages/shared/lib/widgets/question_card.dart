@@ -64,23 +64,27 @@ class QuestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Card(
-      shape: compact
-          ? RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            )
-          : null,
+    final radius = BorderRadius.circular(AppRadius.lg);
+    final shape = RoundedRectangleBorder(
+      borderRadius: radius,
+      side: BorderSide(
+        color: selected ? colors.primary : colors.border,
+        width: 1,
+      ),
+    );
+    return Material(
+      color: selected ? colors.primaryContainer : colors.surface,
+      shape: shape,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(
-          compact ? AppRadius.md : AppSizes.cardRadius,
-        ),
+        borderRadius: radius,
+        hoverColor: selected ? colors.primaryContainer : colors.surfaceSubtle,
         child: Padding(
           padding: EdgeInsets.all(compact ? 10 : 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 第一行：标签行 + 尾部
               Row(
                 children: [
                   _buildTypeTag(colors),
@@ -88,39 +92,50 @@ class QuestionCard extends StatelessWidget {
                     const SizedBox(width: 6),
                     _buildDiffTag(colors),
                   ],
-                  if (subtitle != null && difficulty == null) ...[
-                    // 无难度标签时，subtitle 前加分隔点
-                    const SizedBox(width: 6),
-                    Text(subtitle!, style: TextStyle(height: 1.2, fontSize: 11, color: colors.textSecondary)),
+                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const Spacer(),
                   ],
-                  const Spacer(),
                   if (status != null) ...[
                     _buildStatusTag(colors),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: AppSpacing.xs),
                   ],
                   _buildTrailing(context),
                 ],
               ),
               SizedBox(height: compact ? 6 : 8),
-              // 第二行：题干
-              MdLatexBody(title, fontSize: 14),
-              // 第三行（可选）：副信息（在难度和题型同一行时有 subtitle）
-              if (subtitle != null && difficulty != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(subtitle!,
-                    style: TextStyle(fontSize: 11, color: colors.textSecondary),
-                  ),
-                ),
-              // 第四行（可选）：推荐原因
+              MdLatexBody(
+                _previewSource(title, maxCharacters: 72),
+                fontSize: 14,
+              ),
               if (reason != null && reason!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Row(
                   children: [
-                    Icon(Icons.lightbulb_outline, size: 14, color: colors.warning),
-                    const SizedBox(width: 4),
-                    Text('推荐原因：$reason',
-                      style: TextStyle(fontSize: 12, color: colors.warning),
+                    Icon(
+                      Icons.lightbulb_outline,
+                      size: 14,
+                      color: colors.warning,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        '推荐原因：$reason',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: colors.warning),
+                      ),
                     ),
                   ],
                 ),
@@ -130,6 +145,53 @@ class QuestionCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _previewSource(String source, {required int maxCharacters}) {
+    if (source.length <= maxCharacters) return source;
+
+    final output = StringBuffer();
+    var index = 0;
+    var used = 0;
+    while (index < source.length && used < maxCharacters) {
+      final formulaStart = source.indexOf(r'$', index);
+      if (formulaStart < 0) {
+        final remaining = maxCharacters - used;
+        final available = source.length - index;
+        final take = available < remaining ? available : remaining;
+        output.write(source.substring(index, index + take));
+        used += take;
+        break;
+      }
+
+      final plainText = source.substring(index, formulaStart);
+      final plainRemaining = maxCharacters - used;
+      if (plainText.length >= plainRemaining) {
+        output.write(plainText.substring(0, plainRemaining));
+        used += plainRemaining;
+        break;
+      }
+      output.write(plainText);
+      used += plainText.length;
+
+      final delimiter = source.startsWith(r'$$', formulaStart) ? r'$$' : r'$';
+      final formulaEnd = source.indexOf(
+        delimiter,
+        formulaStart + delimiter.length,
+      );
+      if (formulaEnd < 0) break;
+      final formula = source.substring(
+        formulaStart,
+        formulaEnd + delimiter.length,
+      );
+      if (used + formula.length > maxCharacters && used > 0) break;
+      output.write(formula);
+      used += formula.length;
+      index = formulaEnd + delimiter.length;
+    }
+
+    final preview = output.toString().trimRight();
+    return preview == source ? preview : '$preview…';
   }
 
   Widget _buildTypeTag(AppSemanticColors colors) {
@@ -158,17 +220,23 @@ class QuestionCard extends StatelessWidget {
       ),
       child: Text(
         style.label,
-        style: TextStyle(fontSize: 11, color: style.color, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          fontSize: 11,
+          color: style.color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 
   Widget _buildTrailing(BuildContext context) {
-      final colors = context.colors;
+    final colors = context.colors;
     if (trailing != null) return trailing!;
     if (selectable) {
       return Icon(
-        selected ? Icons.check_circle : Icons.radio_button_unchecked,
+        selected
+            ? Icons.check_circle_rounded
+            : Icons.radio_button_unchecked_rounded,
         color: selected ? colors.primary : colors.textSecondary,
         size: 24,
       );
@@ -191,15 +259,27 @@ class _Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(text,
-        style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w600, height: 1.3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          color: fg,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+        ),
       ),
     );
   }
 }
 
 /// 状态标签样式
-({String label, Color color, Color bg}) _statusStyle(String status, AppSemanticColors colors) {
+({String label, Color color, Color bg}) _statusStyle(
+  String status,
+  AppSemanticColors colors,
+) {
   return statusStyle(status, colors);
 }

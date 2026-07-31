@@ -16,6 +16,8 @@ class ContentHomePage extends StatelessWidget {
         child: Column(
           children: const [
             TabBar(
+              isScrollable: true,
+              tabAlignment: TabAlignment.center,
               tabs: [
                 Tab(text: '视频'),
                 Tab(text: '讲义'),

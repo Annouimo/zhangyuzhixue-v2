@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
@@ -36,7 +35,6 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
   bool _loadingOpts = true;
   bool _saving = false;
   String? _error;
-  String? _existingKeyword;
 
   // 筛选选项（内存缓存）
   List<String>? _yearOpts,
@@ -100,7 +98,6 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       final editData = await _repo.getEdit(widget.editId!);
       if (!mounted) return;
       _nameCtrl.text = editData.name;
-      _existingKeyword = editData.filter.keyword;
       // 先渲染 FilterPanel，再 applyFilter（否则 currentState 为 null 被静默丢弃）
       setState(() => _loading = false);
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -143,7 +140,6 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
       await _repo.save(
         name: name,
         filter: PreferenceFilter(
-          keyword: _existingKeyword,
           years: state.selectedYears.toList(),
           regions: state.selectedRegions.toList(),
           conceptTags: state.selectedConceptTags.toList(),
@@ -225,21 +221,14 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 children: [
-                  AppSection(
-                    title: '方案名称',
-                    description: '建议使用目标明确、容易识别的名称。',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _nameCtrl,
-                          decoration: const InputDecoration(
-                            labelText: '名称',
-                            hintText: '例如：函数选择题专项',
-                            prefixIcon: Icon(Icons.bookmark_outline_rounded),
-                          ),
-                        ),
-                      ],
+                  SizedBox(
+                    height: 52,
+                    child: TextField(
+                      controller: _nameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: '名称',
+                        hintText: '例如：函数选择题专项',
+                      ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),

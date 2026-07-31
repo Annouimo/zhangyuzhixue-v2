@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
-import 'app_button.dart';
 
 /// 通用列表选择状态。
 ///
@@ -73,13 +72,15 @@ class AppSelectionToggle extends StatelessWidget {
     visualDensity: VisualDensity.compact,
     onPressed: onPressed,
     icon: Icon(
-      selected ? Icons.check_circle : Icons.add_circle_outline,
+      selected
+          ? Icons.check_circle_rounded
+          : Icons.radio_button_unchecked_rounded,
       color: selected ? context.colors.primary : context.colors.textSecondary,
     ),
   );
 }
 
-/// 通用选择操作底栏。未选中任何项目时不占用布局空间。
+/// 通用选择操作底栏。仅在存在选中项时显示。
 class AppSelectionActionBar extends StatelessWidget {
   const AppSelectionActionBar({
     super.key,
@@ -109,42 +110,98 @@ class AppSelectionActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (selectedCount == 0) return const SizedBox.shrink();
+    final partiallySelected = selectedCount > 0 && !_allSelected;
+    final canSelect = totalCount > 0;
     return SafeArea(
       top: false,
       child: Container(
+        constraints: const BoxConstraints(minHeight: 72),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: context.colors.surfaceSubtle,
-          border: Border(top: BorderSide(color: context.colors.border)),
+          color: context.colors.surface,
+          border: Border(top: BorderSide(color: context.colors.divider)),
         ),
         child: Row(
           children: [
-            AppButton(
-              onPressed: _allSelected ? onClear : onSelectAll,
-              label: _allSelected ? '取消全选' : '全选 $totalCount$itemUnit',
-              type: AppButtonType.text,
-              size: AppButtonSize.md,
-              expanded: false,
+            Semantics(
+              checked: _allSelected,
+              mixed: partiallySelected,
+              button: true,
+              label: '全选',
+              child: InkWell(
+                onTap: !canSelect
+                    ? null
+                    : _allSelected
+                    ? onClear
+                    : onSelectAll,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Checkbox(
+                        value: partiallySelected ? null : _allSelected,
+                        tristate: true,
+                        onChanged: !canSelect
+                            ? null
+                            : (_) => _allSelected ? onClear() : onSelectAll(),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Text(
+                        '全选',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: context.colors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
             Expanded(
-              child: Text(
-                '已选 $selectedCount$itemUnit',
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(text: '已选 '),
+                    TextSpan(
+                      text: '$selectedCount',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    TextSpan(text: ' / $totalCount'),
+                  ],
+                ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.colors.textSecondary,
+                ),
               ),
             ),
-            AppButton(
-              onPressed: onAction,
-              icon: actionIcon,
-              label: actionLabel,
-              size: AppButtonSize.md,
-              expanded: false,
-              loading: actionLoading,
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 44),
+                maximumSize: const Size.fromHeight(48),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+              ),
+              onPressed: selectedCount == 0 || actionLoading ? null : onAction,
+              icon: actionLoading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(actionIcon ?? Icons.check_rounded, size: 18),
+              label: Text(actionLabel, maxLines: 1),
             ),
           ],
         ),

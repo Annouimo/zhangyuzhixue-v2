@@ -146,7 +146,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('张三'), findsOneWidget);
       expect(find.text('学号 2024001'), findsOneWidget);
-      expect(find.text('编辑资料'), findsOneWidget);
+      expect(find.text('编辑资料'), findsNothing);
       expect(find.text('学习档案'), findsOneWidget);
       expect(find.text('成长中心'), findsOneWidget);
       expect(find.text('设置'), findsOneWidget);

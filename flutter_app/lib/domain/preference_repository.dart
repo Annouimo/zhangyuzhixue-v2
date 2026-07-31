@@ -4,7 +4,6 @@ import 'package:shared/debug/audit_logger.dart';
 import '../data/sync/sync_manager.dart';
 import '../data/sync/sync_types.dart';
 
-
 /// 筛选方案 — 委托 PreferenceDao
 class PreferenceSummary {
   final int id;
@@ -19,7 +18,6 @@ class PreferenceSummary {
 }
 
 class PreferenceFilter {
-  final String? keyword;
   final List<String> years;
   final List<String> regions;
   final List<String> conceptTags;
@@ -32,7 +30,6 @@ class PreferenceFilter {
   final double? calcMax;
 
   const PreferenceFilter({
-    this.keyword,
     required this.years,
     required this.regions,
     required this.conceptTags,
@@ -46,18 +43,17 @@ class PreferenceFilter {
   });
 
   Map<String, dynamic> toJson() => {
-        if (keyword != null && keyword!.isNotEmpty) 'keyword': keyword,
-        'years': years,
-        'regions': regions,
-        'concept_tags': conceptTags,
-        if (types.isNotEmpty) 'types': types,
-        if (knowledgeCards.isNotEmpty) 'knowledge_cards': knowledgeCards,
-        if (questionTypes.isNotEmpty) 'question_types': questionTypes,
-        if (diffMin != null) 'diff_min': diffMin,
-        if (diffMax != null) 'diff_max': diffMax,
-        if (calcMin != null) 'calc_min': calcMin,
-        if (calcMax != null) 'calc_max': calcMax,
-      };
+    'years': years,
+    'regions': regions,
+    'concept_tags': conceptTags,
+    if (types.isNotEmpty) 'types': types,
+    if (knowledgeCards.isNotEmpty) 'knowledge_cards': knowledgeCards,
+    if (questionTypes.isNotEmpty) 'question_types': questionTypes,
+    if (diffMin != null) 'diff_min': diffMin,
+    if (diffMax != null) 'diff_max': diffMax,
+    if (calcMin != null) 'calc_min': calcMin,
+    if (calcMax != null) 'calc_max': calcMax,
+  };
 }
 
 /// 筛选方案编辑数据（含名称）
@@ -73,15 +69,31 @@ class PreferenceRepository {
 
   Future<List<PreferenceSummary>> getList() async {
     final rows = await _dao.listAll();
-    return rows.map((r) => PreferenceSummary(
-      id: r.id,
-      name: r.name,
-      summary: _buildSummary(r.years, r.regions, r.conceptTags, r.diffMin, r.diffMax),
-    )).toList();
+    return rows
+        .map(
+          (r) => PreferenceSummary(
+            id: r.id,
+            name: r.name,
+            summary: _buildSummary(
+              r.years,
+              r.regions,
+              r.conceptTags,
+              r.diffMin,
+              r.diffMax,
+            ),
+          ),
+        )
+        .toList();
   }
 
   /// 构建偏好摘要文本，格式：'2022~2025 · 海淀/西城等 4 区 · 5个概念标签 · 难度 2-8'
-  String _buildSummary(String years, String regions, String conceptTags, double? diffMin, double? diffMax) {
+  String _buildSummary(
+    String years,
+    String regions,
+    String conceptTags,
+    double? diffMin,
+    double? diffMax,
+  ) {
     final parts = <String>[];
     final yearList = _parseJsonList(years);
     final regionList = _parseJsonList(regions);
@@ -90,7 +102,9 @@ class PreferenceRepository {
     // 年份：>3 个时缩为范围 "2022~2025"
     String yearStr;
     if (yearList.length > 3) {
-      final nums = yearList.map((y) => int.tryParse(y)).whereType<int>().toList()..sort();
+      final nums =
+          yearList.map((y) => int.tryParse(y)).whereType<int>().toList()
+            ..sort();
       yearStr = '${nums.first}~${nums.last}';
     } else {
       yearStr = yearList.join(' ');
@@ -127,13 +141,16 @@ class PreferenceRepository {
     return PreferenceEditData(
       name: row.name,
       filter: PreferenceFilter(
-        keyword: row.keyword,
         years: _parseJsonList(row.years),
         regions: _parseJsonList(row.regions),
         conceptTags: _parseJsonList(row.conceptTags),
         types: row.types != null ? _parseJsonList(row.types!) : [],
-        knowledgeCards: row.knowledgeCards != null ? _parseJsonList(row.knowledgeCards!) : [],
-        questionTypes: row.questionTypes != null ? _parseJsonList(row.questionTypes!) : [],
+        knowledgeCards: row.knowledgeCards != null
+            ? _parseJsonList(row.knowledgeCards!)
+            : [],
+        questionTypes: row.questionTypes != null
+            ? _parseJsonList(row.questionTypes!)
+            : [],
         diffMin: row.diffMin,
         diffMax: row.diffMax,
         calcMin: row.calcMin,
@@ -158,13 +175,17 @@ class PreferenceRepository {
       await _dao.update(
         id: existingId,
         name: name,
-        keyword: filter.keyword,
+        keyword: null,
         years: _jsonEncode(filter.years),
         regions: _jsonEncode(filter.regions),
         conceptTags: _jsonEncode(filter.conceptTags),
         types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
-        knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
-        questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
+        knowledgeCards: filter.knowledgeCards.isNotEmpty
+            ? _jsonEncode(filter.knowledgeCards)
+            : null,
+        questionTypes: filter.questionTypes.isNotEmpty
+            ? _jsonEncode(filter.questionTypes)
+            : null,
         diffMin: filter.diffMin,
         diffMax: filter.diffMax,
         calcMin: filter.calcMin,
@@ -175,13 +196,17 @@ class PreferenceRepository {
       // 新建路径：插入新记录
       id = await _dao.save(
         name: name,
-        keyword: filter.keyword,
+        keyword: null,
         years: _jsonEncode(filter.years),
         regions: _jsonEncode(filter.regions),
         conceptTags: _jsonEncode(filter.conceptTags),
         types: filter.types.isNotEmpty ? _jsonEncode(filter.types) : null,
-        knowledgeCards: filter.knowledgeCards.isNotEmpty ? _jsonEncode(filter.knowledgeCards) : null,
-        questionTypes: filter.questionTypes.isNotEmpty ? _jsonEncode(filter.questionTypes) : null,
+        knowledgeCards: filter.knowledgeCards.isNotEmpty
+            ? _jsonEncode(filter.knowledgeCards)
+            : null,
+        questionTypes: filter.questionTypes.isNotEmpty
+            ? _jsonEncode(filter.questionTypes)
+            : null,
         diffMin: filter.diffMin,
         diffMax: filter.diffMax,
         calcMin: filter.calcMin,
@@ -194,13 +219,13 @@ class PreferenceRepository {
         entityType: SyncEntityType.preference,
         operation: SyncOperationType.upsert,
         localId: id,
-        payload: jsonEncode({
-          'name': name,
-          ...filter.toJson(),
-        }),
+        payload: jsonEncode({'name': name, ...filter.toJson()}),
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'preference_save', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'preference_save',
+        'error': '$e',
+      });
     }
     return id;
   }
@@ -216,7 +241,10 @@ class PreferenceRepository {
         payload: '{}',
       );
     } catch (e) {
-      AuditLogger.instance.sync('enqueue_error', {'type': 'preference_delete', 'error': '$e'});
+      AuditLogger.instance.sync('enqueue_error', {
+        'type': 'preference_delete',
+        'error': '$e',
+      });
     }
   }
 

@@ -11,6 +11,9 @@ abstract final class AppIcons {
   static const IconData recommendation = Icons.auto_awesome_outlined;
   static const IconData recommendationSelected = Icons.auto_awesome;
 
+  static const IconData learning = Icons.school_outlined;
+  static const IconData learningSelected = Icons.school;
+
   static const IconData exam = Icons.description_outlined;
   static const IconData examSelected = Icons.description;
 

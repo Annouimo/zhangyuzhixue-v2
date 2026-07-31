@@ -87,7 +87,7 @@ void main() {
       expect(find.text('测试偏好'), findsOneWidget);
       await tester.tap(find.byTooltip('选择筛选方案'));
       await tester.pump();
-      expect(find.text('已选 1 个'), findsOneWidget);
+      expect(find.textContaining('已选 1'), findsOneWidget);
       expect(find.text('管理方案'), findsOneWidget);
     });
   });

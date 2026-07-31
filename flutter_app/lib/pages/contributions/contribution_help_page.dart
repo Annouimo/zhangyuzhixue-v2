@@ -40,28 +40,16 @@ $$'''),
             'Markdown',
             '''使用空行分段，使用 `**重点内容**` 表示强调，也可以使用有序或无序列表。请勿粘贴 HTML、脚本、Markdown 图片或完整的 LaTeX 文档。''',
           ),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('可视化公式编辑', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'LaTeXLive 支持可视化编辑、实时预览和 JSON 字符串转义。第三方网站可能提供图片识别，请勿上传包含个人信息的内容。',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.colors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                AppButton(
-                  label: '打开 LaTeXLive',
-                  icon: Icons.open_in_new_rounded,
-                  onPressed: () => launchUrl(
-                    _latexLive,
-                    mode: LaunchMode.externalApplication,
-                  ),
-                ),
-              ],
+          AppSection(
+            title: '可视化公式编辑',
+            description:
+                'LaTeXLive 支持可视化编辑、实时预览和 JSON 字符串转义。第三方网站可能提供图片识别，请勿上传包含个人信息的内容。',
+            showDivider: true,
+            child: AppButton(
+              label: '打开 LaTeXLive',
+              icon: Icons.open_in_new_rounded,
+              onPressed: () =>
+                  launchUrl(_latexLive, mode: LaunchMode.externalApplication),
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -71,16 +59,7 @@ $$'''),
   );
 
   Widget _section(BuildContext context, String title, String body) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-    child: AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          MdLatexBody(body, fontSize: 15),
-        ],
-      ),
-    ),
+    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+    child: AppSection(title: title, child: MdLatexBody(body, fontSize: 15)),
   );
 }

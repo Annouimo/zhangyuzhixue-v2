@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
@@ -27,7 +26,6 @@ class VideoCatalogPage extends StatefulWidget {
 class _VideoCatalogPageState extends State<VideoCatalogPage> {
   late final Future<List<VideoCategorySection>> Function() _loadCatalog;
   List<VideoCategorySection>? _catalog;
-  int? _selectedCategoryId;
   bool _loading = true;
   String? _error;
 
@@ -56,7 +54,6 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
       if (!mounted) return;
       setState(() {
         _catalog = catalog;
-        _selectedCategoryId ??= catalog.isEmpty ? null : catalog.first.id;
         _loading = false;
       });
     } catch (error) {
@@ -91,187 +88,80 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
         message: '视频目录暂时为空',
       );
     }
-    final selected = catalog.firstWhere(
-      (category) => category.id == _selectedCategoryId,
-      orElse: () => catalog.first,
-    );
     return AppContentContainer(
-      maxWidth: AppContentWidth.dashboard,
+      maxWidth: AppContentWidth.standard,
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final selectedId = _selectedCategoryId ?? catalog.first.id;
-              if (constraints.maxWidth < AppBreakpoints.medium) {
-                return Wrap(
-                  key: const ValueKey('video-category-wrap'),
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: catalog
-                      .map(
-                        (category) => ChoiceChip(
-                          label: Text(category.name),
-                          selected: category.id == selectedId,
-                          onSelected: (_) => setState(
-                            () => _selectedCategoryId = category.id,
-                          ),
+          AppNavigationList(
+            children: catalog
+                .map(
+                  (category) => AppNavigationListItem(
+                    icon: Icons.video_library_outlined,
+                    title: category.name,
+                    subtitle: [
+                      category.description,
+                      '共 ${category.videos.length} 个视频',
+                    ].where((value) => value.isNotEmpty).join(' · '),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => _VideoCategoryPage(
+                          category: category,
                         ),
-                      )
-                      .toList(),
-                );
-              }
-              return SingleChildScrollView(
-                key: const ValueKey('video-category-segmented'),
-                scrollDirection: Axis.horizontal,
-                child: SegmentedButton<int>(
-                  segments: catalog
-                      .map(
-                        (category) => ButtonSegment<int>(
-                          value: category.id,
-                          label: Text(category.name),
-                        ),
-                      )
-                      .toList(),
-                  selected: {selectedId},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _selectedCategoryId = selection.first),
-                ),
-              );
-            },
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          AppSectionHeader(
-            title: selected.name,
-            subtitle: selected.description,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (selected.videos.isEmpty)
-            EmptyPlaceholder(
-              icon: Icons.video_library_outlined,
-              message: '该分类暂无已发布视频',
-            )
-          else
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth >= 900
-                    ? 3
-                    : constraints.maxWidth >= 560
-                    ? 2
-                    : 1;
-                final width =
-                    (constraints.maxWidth - AppSpacing.md * (columns - 1)) /
-                    columns;
-                return Wrap(
-                  spacing: AppSpacing.md,
-                  runSpacing: AppSpacing.md,
-                  children: selected.videos
-                      .map(
-                        (video) => SizedBox(
-                          width: width,
-                          child: _VideoCard(video: video),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
         ],
       ),
     );
   }
+
 }
 
-class _VideoCard extends StatelessWidget {
-  const _VideoCard({required this.video});
+class _VideoCategoryPage extends StatelessWidget {
+  const _VideoCategoryPage({required this.category});
 
-  final VideoSummary video;
+  final VideoCategorySection category;
 
   @override
-  Widget build(BuildContext context) => AppCard(
-    onTap: () => RouterUtils.push(
-      context,
-      '${AppRoutes.videoDetail}?videoId=${video.id}',
-    ),
-    semanticLabel: video.title,
-    padding: EdgeInsets.zero,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (video.coverUrl.isNotEmpty)
-          _VideoCover(url: video.coverUrl),
-        Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.play_circle_outline_rounded,
-                size: AppControlSize.sm,
-                color: context.colors.primary,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      video.title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (video.platformName.isNotEmpty) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        video.platformName,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ],
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(category.name)),
+    body: category.videos.isEmpty
+        ? EmptyPlaceholder(
+            icon: Icons.video_library_outlined,
+            message: '该分类暂无已发布视频',
+          )
+        : AppContentContainer(
+            maxWidth: AppContentWidth.standard,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              children: [
+                if (category.description.isNotEmpty) ...[
+                  AppPageHint(message: category.description),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                AppNavigationList(
+                  children: category.videos
+                      .map(
+                        (video) => AppNavigationListItem(
+                          icon: Icons.play_circle_outline_rounded,
+                          title: video.title,
+                          subtitle: video.description.isNotEmpty
+                              ? video.description
+                              : video.platformName,
+                          onTap: () => RouterUtils.push(
+                            context,
+                            '${AppRoutes.videoDetail}?videoId=${video.id}',
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
   );
-}
-
-class _VideoCover extends StatefulWidget {
-  const _VideoCover({required this.url});
-
-  final String url;
-
-  @override
-  State<_VideoCover> createState() => _VideoCoverState();
-}
-
-class _VideoCoverState extends State<_VideoCover> {
-  bool _failed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_failed) return const SizedBox.shrink();
-    return AspectRatio(
-      key: const ValueKey('video-cover'),
-      aspectRatio: 16 / 9,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppRadius.medium),
-        ),
-        child: CachedNetworkImage(
-          imageUrl: widget.url,
-          fit: BoxFit.cover,
-          errorWidget: (_, _, _) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _failed = true);
-            });
-            return const SizedBox.shrink();
-          },
-        ),
-      ),
-    );
-  }
 }

@@ -139,14 +139,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   const SizedBox(height: AppSpacing.md),
                   const AppSectionHeader(
                     title: '核心概览',
-                    subtitle: '总览数据不受当前时间范围筛选影响。',
+                    compact: true,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _buildOverviewCards(),
                   const SizedBox(height: AppSpacing.xl),
                   AppSectionHeader(
                     title: '趋势与分布',
-                    subtitle: '当前展示：${_rangeLabel(_rangeDays)}',
+                    compact: true,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   LayoutBuilder(
@@ -261,11 +261,4 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  String _rangeLabel(int days) => switch (days) {
-    7 => '近一周',
-    30 => '近一月',
-    90 => '近三月',
-    365 => '近一年',
-    _ => '全部记录',
-  };
 }

@@ -95,7 +95,10 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
                     (course) => AppNavigationListItem(
                       icon: Icons.menu_book_rounded,
                       title: course.name,
-                      subtitle: '共 ${course.chapterCount} 讲',
+                      subtitle: [
+                        course.description,
+                        '共 ${course.chapterCount} 讲',
+                      ].where((value) => value.isNotEmpty).join(' · '),
                       semanticLabel: course.name,
                       onTap: () => RouterUtils.push(
                         context,

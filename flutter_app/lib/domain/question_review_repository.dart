@@ -47,9 +47,7 @@ class LocalQuestionReviewRepository implements QuestionReviewRepository {
         .map(
           (row) => SearchQuestion(
             id: row.id,
-            title: row.stem.length > 80
-                ? '${row.stem.substring(0, 80)}...'
-                : row.stem,
+            title: row.stem,
             questionType: row.questionType,
             meta: '${row.year} ${row.examType} ${row.region}',
             difficulty: row.difficulty ?? 0,

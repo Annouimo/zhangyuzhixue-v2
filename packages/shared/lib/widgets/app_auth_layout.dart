@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
 import 'app_card.dart';
+import 'app_page_hint.dart';
 
 /// 登录、注册等认证页面的统一品牌布局。
 class AppAuthLayout extends StatelessWidget {
@@ -55,12 +56,7 @@ class AppAuthLayout extends StatelessWidget {
                     ],
                     Text(title, style: textTheme.headlineSmall),
                     const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      subtitle,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
+                    AppPageHint(message: subtitle, icon: null),
                     const SizedBox(height: AppSpacing.lg),
                     child,
                     if (footer != null) ...[

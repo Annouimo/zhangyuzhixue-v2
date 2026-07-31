@@ -93,21 +93,6 @@ class _ContributionListPageState extends State<ContributionListPage>
             maxWidth: AppContentWidth.dashboard,
             child: Column(
               children: [
-                AppCard(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.tips_and_updates_outlined,
-                        color: context.colors.primary,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const Expanded(
-                        child: Text('做题过程中，你可以在解题页面或题目详情中反馈题目错误、投稿新的解法。'),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: AppSpacing.sm),
                 Expanded(
                   child: _items!.isEmpty

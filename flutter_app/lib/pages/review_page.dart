@@ -5,6 +5,7 @@ import '../data/daos/progress_dao.dart';
 import '../data/daos/question_dao.dart';
 import '../data/database/database_provider.dart';
 import '../domain/review_repository.dart';
+import 'router.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({super.key, this.reviewRepository});
@@ -68,86 +69,130 @@ class ReviewPageState extends State<ReviewPage> {
   }
 
   Widget _buildSummary() {
-    final needsReview = _concepts
-        ?.where(
-          (concept) => concept.status == ConceptProgressStatus.needsReview,
-        )
-        .length;
-    return AppSectionHeader(
-      title: needsReview == null ? '学习反馈' : '$needsReview 个知识点需要复习',
-      subtitle: '掌握状态会随作答结果自动更新。',
+    final concepts = _reviewConcepts;
+    return AppSection(
+      title: _concepts == null ? '学习反馈' : '${concepts.length} 个知识点需要复习',
+      description: _concepts == null || concepts.isEmpty ? null : '按复习优先级排列',
+      trailing: FilledButton(
+        onPressed: concepts.isEmpty ? null : _startReview,
+        child: const Text('开始复习'),
+      ),
+      child: const SizedBox.shrink(),
     );
   }
+
+  List<ConceptProgress> get _reviewConcepts {
+    final concepts = (_concepts ?? const <ConceptProgress>[])
+        .where((concept) => concept.status == ConceptProgressStatus.needsReview)
+        .toList();
+    concepts.sort((a, b) {
+      final accuracy = a.accuracy.compareTo(b.accuracy);
+      return accuracy != 0
+          ? accuracy
+          : b.attemptCount.compareTo(a.attemptCount);
+    });
+    return concepts;
+  }
+
+  void _startReview() => RouterUtils.push(context, AppRoutes.recommend);
 
   Widget _buildConcepts() {
     if (_error != null) {
       return ErrorPlaceholder(message: _error!, onRetry: refresh);
     }
-    final concepts = _concepts;
-    if (concepts == null) return const LoadingIndicator(message: '正在整理学习记录…');
+    if (_concepts == null) {
+      return const LoadingIndicator(message: '正在整理学习记录…');
+    }
+    final concepts = _reviewConcepts;
     if (concepts.isEmpty) {
       return EmptyPlaceholder(
-        icon: Icons.radar_outlined,
-        message: '完成几道推荐题后，这里会显示知识点掌握状态',
+        icon: Icons.task_alt_rounded,
+        message: _concepts!.isEmpty ? '完成几道推荐题后，这里会生成复习任务' : '当前没有需要复习的知识点',
       );
     }
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns = constraints.maxWidth < 600
-            ? 1
-            : constraints.maxWidth < 900
-            ? 2
-            : constraints.maxWidth < 1200
-            ? 3
-            : 4;
-        const gap = AppSpacing.sm;
-        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: concepts
-              .take(12)
-              .map(
-                (concept) => SizedBox(
-                  width: width,
-                  child: _buildConceptCard(concept, compact: columns == 1),
-                ),
-              )
-              .toList(),
-        );
-      },
+    return Column(
+      children: [
+        for (var index = 0; index < concepts.length; index++) ...[
+          _ReviewTaskRow(concept: concepts[index], onTap: _startReview),
+          if (index < concepts.length - 1)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Divider(height: 1),
+            ),
+        ],
+      ],
     );
   }
+}
 
-  Widget _buildConceptCard(ConceptProgress concept, {required bool compact}) {
-    final (label, tone) = switch (concept.status) {
-      ConceptProgressStatus.insufficient => ('数据不足', AppStatusTone.neutral),
-      ConceptProgressStatus.forming => ('正在形成', AppStatusTone.info),
-      ConceptProgressStatus.needsReview => ('待巩固', AppStatusTone.warning),
-      ConceptProgressStatus.stable => ('基本掌握', AppStatusTone.success),
-    };
-    return AppSection(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  concept.name,
-                  style: Theme.of(context).textTheme.titleSmall,
+class _ReviewTaskRow extends StatelessWidget {
+  const _ReviewTaskRow({required this.concept, required this.onTap});
+
+  final ConceptProgress concept;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final accuracy = (concept.accuracy * 100).round();
+    final accuracyColor = accuracy < 30
+        ? colors.warning
+        : accuracy <= 60
+        ? colors.textPrimary
+        : colors.textSecondary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        overlayColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return colors.primary.withValues(alpha: 0.06);
+          }
+          return null;
+        }),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        concept.name,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        '${concept.attemptCount} 次记录',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              AppStatusBadge(label: label, tone: tone, compact: true),
-            ],
+                Text(
+                  '$accuracy%',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: accuracyColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: colors.textMuted,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '${concept.attemptCount} 次记录 · 正确率 ${(concept.accuracy * 100).round()}%',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
+        ),
       ),
     );
   }

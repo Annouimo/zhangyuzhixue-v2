@@ -4,8 +4,6 @@ import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_section.dart';
-import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 
@@ -16,7 +14,7 @@ import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../data/prefs/app_prefs.dart';
 import '../../domain/user_repository.dart';
-import '../../widgets/shared/point_summary_card.dart';
+import '../../widgets/shared/format_utils.dart';
 
 /// 等级成长详情。
 class LevelDetailPage extends StatefulWidget {
@@ -79,7 +77,7 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
       });
       try {
         final percentile = await _repo.levelPercentile();
-        if (mounted) setState(() => _percentile = percentile);
+        if (mounted) setState(() => _percentile = percentile.clamp(0, 100));
       } catch (_) {}
     } catch (error) {
       OperationLog.instance.error('level_detail_page_load', error);
@@ -105,28 +103,15 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 children: [
-                  AppSectionHeader(
-                    title: 'Lv.$_level',
-                    subtitle: '超过 $_percentile% 的用户',
-                  ),
+                  _buildProgressSummary(),
                   const SizedBox(height: AppSpacing.lg),
-                  PointSummaryCard(
-                    earned: _earned,
-                    bonus: _bonus,
-                    spent: _spent,
-                    available: _available,
-                    valueFontSize: 20,
-                  ),
+                  Text('积分概览', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildPointsSummary(),
                   const SizedBox(height: AppSpacing.lg),
-                  AppSection(
-                    title: '等级对照',
-                    description: '当前等级会随累计学习积分自动更新。',
-                    showDivider: true,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [..._levels.map(_buildLevelRow)],
-                    ),
-                  ),
+                  Text('等级对照', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.sm),
+                  ..._levels.map(_buildLevelRow),
                   const SizedBox(height: AppSpacing.xl),
                 ],
               ),
@@ -134,61 +119,121 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
     );
   }
 
+  Widget _buildProgressSummary() {
+    final currentMin = _currentMin;
+    final nextMin = _nextMin;
+    final progress = currentMin == null || nextMin == null
+        ? 0.0
+        : ((_earned - currentMin) / (nextMin - currentMin)).clamp(0.0, 1.0);
+    final remaining = nextMin == null
+        ? 0.0
+        : (nextMin - _earned).clamp(0.0, double.infinity);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Lv.$_level', style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          nextMin == null
+              ? '学习积分 ${formatAmount(_earned)}'
+              : '学习积分 ${formatAmount(_earned)} / ${formatAmount(nextMin)}',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          child: LinearProgressIndicator(value: progress, minHeight: 8),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (nextMin != null)
+          Text('距离 Lv.${_level + 1} 还差 ${formatAmount(remaining)} 学习积分'),
+        if (_percentile > 0) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text('超过 $_percentile% 的用户'),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPointsSummary() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('可用积分', style: Theme.of(context).textTheme.labelLarge),
+        Text(
+          formatAmount(_available),
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: context.colors.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '学习获得 ${formatAmount(_earned)} · 赠送 ${formatAmount(_bonus)} · 已消耗 ${formatAmount(_spent)}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '赠送积分和可用积分不影响等级。',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: context.colors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  double? get _currentMin => _levels
+      .where((row) => row.level == _level)
+      .map((row) => double.tryParse(row.range.split(' ').first))
+      .firstOrNull;
+
+  double? get _nextMin {
+    final next = _levels.where((row) => row.level > _level).toList();
+    if (next.isEmpty) return null;
+    return double.tryParse(next.first.range.split(' ').first);
+  }
+
   Widget _buildLevelRow(LevelRow row) {
     final current = row.level == _level;
     final future = row.level > _level;
     final colors = context.colors;
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: current ? colors.primaryContainer : colors.surfaceSubtle,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(
-          color: current ? colors.primaryBorder : colors.border,
+        color: current ? colors.primaryContainer.withValues(alpha: 0.35) : null,
+        border: Border(
+          bottom: BorderSide(color: colors.divider),
+          left: current
+              ? BorderSide(color: colors.primary, width: 3)
+              : BorderSide.none,
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: current ? colors.primary : colors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.small),
-            ),
-            child: Text(
-              'Lv.${row.level}',
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: current ? colors.onPrimary : colors.textSecondary,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            SizedBox(width: 56, child: Text('Lv.${row.level}')),
+            Expanded(
+              child: Text(
+                row.range,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: future ? colors.textMuted : colors.textPrimary,
+                  fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              row.range,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: future ? colors.textMuted : colors.textPrimary,
-                fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+            Text(
+              current ? '当前' : future ? '未达成' : '已达成',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: current ? colors.primary : colors.textMuted,
+                fontWeight: current ? FontWeight.w600 : null,
               ),
             ),
-          ),
-          if (current)
-            const AppStatusBadge(
-              label: '当前',
-              tone: AppStatusTone.primary,
-              compact: true,
-            )
-          else if (future)
-            Icon(Icons.lock_outline_rounded, size: 18, color: colors.textMuted)
-          else
-            Icon(Icons.check_circle_rounded, size: 18, color: colors.success),
-        ],
+          ],
+        ),
       ),
     );
   }

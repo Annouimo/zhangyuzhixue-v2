@@ -143,19 +143,31 @@ class _KnowledgeCardGroupViewState extends State<KnowledgeCardGroupView> {
                           children: [
                             Text(
                               card.title,
-                              style: const TextStyle(fontSize: 12),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color:
+                                    widget.selectedTitles.contains(card.title)
+                                    ? colors.primary
+                                    : colors.textPrimary,
+                              ),
                             ),
                             if (card.questionCount > 0) ...[
                               const SizedBox(width: 4),
                               Text(
                                 '${card.questionCount}题',
-                                style: const TextStyle(fontSize: 10),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color:
+                                      widget.selectedTitles.contains(card.title)
+                                      ? colors.primary
+                                      : colors.textSecondary,
+                                ),
                               ),
                             ],
                           ],
                         ),
                         selected: widget.selectedTitles.contains(card.title),
-                        showCheckmark: true,
+                        showCheckmark: false,
                         onSelected: (v) {
                           final newSet = Set<String>.from(
                             widget.selectedTitles,

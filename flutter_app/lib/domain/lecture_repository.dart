@@ -1,4 +1,3 @@
-
 import '../data/daos/lecture_dao.dart';
 
 /// 一讲的讲义内容（镜像服务端 Document）
@@ -39,8 +38,14 @@ class LectureContentParsed {
 class Course {
   final int id;
   final String name;
+  final String description;
   final int chapterCount;
-  const Course({required this.id, required this.name, required this.chapterCount});
+  const Course({
+    required this.id,
+    required this.name,
+    this.description = '',
+    required this.chapterCount,
+  });
 }
 
 /// 讲
@@ -48,7 +53,11 @@ class Chapter {
   final int id;
   final String title;
   final int pageCount;
-  const Chapter({required this.id, required this.title, required this.pageCount});
+  const Chapter({
+    required this.id,
+    required this.title,
+    required this.pageCount,
+  });
 }
 
 /// 章节目录
@@ -72,7 +81,14 @@ class LectureRepository {
     final result = <Course>[];
     for (final r in rows) {
       final chCount = await _dao.chapterCount(r.id);
-      result.add(Course(id: r.id, name: r.name, chapterCount: chCount));
+      result.add(
+        Course(
+          id: r.id,
+          name: r.name,
+          description: r.description ?? '',
+          chapterCount: chCount,
+        ),
+      );
     }
     return result;
   }
@@ -82,18 +98,20 @@ class LectureRepository {
     final chapters = await _dao.getChapters(courseId);
     return ChapterList(
       courseName: course?.name ?? '',
-      items: chapters.map((c) => Chapter(
-        id: c.id,
-        title: c.title,
-        pageCount: 0,
-      )).toList(),
+      items: chapters
+          .map((c) => Chapter(id: c.id, title: c.title, pageCount: 0))
+          .toList(),
     );
   }
 
   Future<LectureContent> getContent(int chapterId) async {
     final row = await _dao.getContent(chapterId);
     if (row == null) throw Exception('Lecture content not found: $chapterId');
-    return LectureContent(chapterId: chapterId, title: row.title, mdContent: row.mdContent);
+    return LectureContent(
+      chapterId: chapterId,
+      title: row.title,
+      mdContent: row.mdContent,
+    );
   }
 
   /// 解析 mdContent（带内存缓存），渲染层直接使用
@@ -111,38 +129,42 @@ class LectureRepository {
 // ── 私有函数：分隔符解析 ──
 
 LectureContentParsed _parseMdContent(String mdContent) {
-  final knowcardPattern =
-      RegExp(r'<!--\s*knowcard:\s*([\s\S]*?)\s*\|\s*([\s\S]*?)\s*-->');
+  final knowcardPattern = RegExp(
+    r'<!--\s*knowcard:\s*([\s\S]*?)\s*\|\s*([\s\S]*?)\s*-->',
+  );
 
   final pages = mdContent
       .split('<!-- pagebreak -->')
       .where((p) => p.trim().isNotEmpty)
       .map((pageMd) {
-    final blocks = pageMd
-        .split('<!-- reveal -->')
-        .map((b) => b.trim())
-        .where((b) => b.isNotEmpty)
-        .toList();
+        final blocks = pageMd
+            .split('<!-- reveal -->')
+            .map((b) => b.trim())
+            .where((b) => b.isNotEmpty)
+            .toList();
 
-    // 从所有块中提取知识卡片引用
-    final cardRefs = <KnownCardRef>[];
-    for (int i = 0; i < blocks.length; i++) {
-      final matches = knowcardPattern.allMatches(blocks[i]);
-      if (matches.isNotEmpty) {
-        for (final m in matches) {
-          cardRefs.add(KnownCardRef(
-            title: m.group(1)!.trim(),
-            content: m.group(2)!.trim(),
-          ));
+        // 从所有块中提取知识卡片引用
+        final cardRefs = <KnownCardRef>[];
+        for (int i = 0; i < blocks.length; i++) {
+          final matches = knowcardPattern.allMatches(blocks[i]);
+          if (matches.isNotEmpty) {
+            for (final m in matches) {
+              cardRefs.add(
+                KnownCardRef(
+                  title: m.group(1)!.trim(),
+                  content: m.group(2)!.trim(),
+                ),
+              );
+            }
+            // 从块内容中移除标记
+            blocks[i] = blocks[i].replaceAll(knowcardPattern, '').trim();
+          }
         }
-        // 从块内容中移除标记
-        blocks[i] = blocks[i].replaceAll(knowcardPattern, '').trim();
-      }
-    }
-    // 过滤掉被清空的块
-    blocks.removeWhere((b) => b.isEmpty);
+        // 过滤掉被清空的块
+        blocks.removeWhere((b) => b.isEmpty);
 
-    return LecturePage(blocks: blocks, cardRefs: cardRefs);
-  }).toList();
+        return LecturePage(blocks: blocks, cardRefs: cardRefs);
+      })
+      .toList();
   return LectureContentParsed(pages: pages);
 }

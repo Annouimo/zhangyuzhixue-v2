@@ -58,6 +58,8 @@ class HistoryItem {
 class PointsRecord {
   final String time;
   final String type;
+  final String source;
+  final String? description;
   final double change;
   final double earned;
   final double bonus;
@@ -67,6 +69,8 @@ class PointsRecord {
   const PointsRecord({
     required this.time,
     required this.type,
+    this.source = '',
+    this.description,
     required this.change,
     required this.earned,
     required this.bonus,
@@ -274,6 +278,8 @@ class UserRepository {
         PointsRecord(
           time: r.createdAt,
           type: _sourceLabels[r.source] ?? r.source,
+          source: r.source,
+          description: r.description,
           change: r.amount,
           earned: cumEarned,
           bonus: cumBonus,

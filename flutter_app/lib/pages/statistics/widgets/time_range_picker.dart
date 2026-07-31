@@ -21,20 +21,21 @@ class TimeRangePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SegmentedButton<int>(
-        segments: _options
+    return Center(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: _options
             .map(
-              (option) => ButtonSegment<int>(
-                value: option.days,
+              (option) => ChoiceChip(
                 label: Text(option.label),
+                selected: valueDays == option.days,
+                showCheckmark: false,
+                onSelected: (_) => onChanged(option.days),
               ),
             )
             .toList(),
-        selected: {valueDays},
-        showSelectedIcon: false,
-        onSelectionChanged: (selection) => onChanged(selection.first),
       ),
     );
   }

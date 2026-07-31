@@ -5,9 +5,9 @@ import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_callout.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/app_toast.dart';
 import '../../domain/question_repository.dart';
 import '../../data/daos/question_dao.dart';
@@ -321,8 +321,9 @@ class _SolveFillPageState extends State<SolveFillPage> {
 
   Widget _buildFeedbackButtons() {
     final colors = context.colors;
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return AppSection(
+      title: '自评反馈',
+      description: '对照答案后，根据完整推导过程判断掌握情况。',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -518,31 +519,17 @@ class _SolveFillPageState extends State<SolveFillPage> {
   }
 
   Widget _buildFeedbackResult() {
-    final colors = context.colors;
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          AppStatusBadge(
-            label: _feedbackCorrect ? '自评：回答正确' : '自评：仍需巩固',
-            tone: _feedbackCorrect
-                ? AppStatusTone.success
-                : AppStatusTone.warning,
-            icon: _feedbackCorrect
-                ? Icons.check_circle_rounded
-                : Icons.replay_rounded,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              _feedbackCorrect ? '这道题已经掌握，可以继续下一题。' : '建议结合解析再梳理一遍关键步骤。',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: colors.textSecondary),
-            ),
-          ),
-        ],
-      ),
+    return AppCallout(
+      title: _feedbackCorrect ? '自评：回答正确' : '自评：仍需巩固',
+      message: _feedbackCorrect
+          ? '这道题已经掌握，可以继续下一题。'
+          : '建议结合解析再梳理一遍关键步骤。',
+      tone: _feedbackCorrect
+          ? AppCalloutTone.success
+          : AppCalloutTone.warning,
+      icon: _feedbackCorrect
+          ? Icons.check_circle_rounded
+          : Icons.replay_rounded,
     );
   }
 

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/app_toast.dart';
@@ -360,8 +360,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         children: [
           if (_detail != null)
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.md),
+            AppSection(
               child: Wrap(
                 spacing: AppSpacing.xs,
                 runSpacing: AppSpacing.xs,
@@ -442,8 +441,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: AppCard(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+              child: AppSection(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

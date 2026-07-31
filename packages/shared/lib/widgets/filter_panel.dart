@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
+import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/domain/models.dart';
 import 'package:shared/widgets/difficulty_slider.dart';
 import 'package:shared/widgets/concept_tag_tree.dart';
@@ -409,121 +410,97 @@ class FilterPanelState extends State<FilterPanel> {
             Divider(height: 1, color: colors.border),
             const SizedBox(height: 12),
           ],
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildGroupedTab(0, '试题来源', _sourceGroupCount),
-                      _buildGroupedTab(1, '题目特征', _featureGroupCount),
-                      _buildGroupedTab(
-                        2,
-                        '概念标签',
-                        _selectedConceptTagNames.length,
-                      ),
-                      _buildGroupedTab(
-                        3,
-                        '知识卡片',
-                        _selectedKnowledgeCardTitles.length,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
+          Center(
             child: Wrap(
-              spacing: 4,
+              alignment: WrapAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
               children: [
-                if (_currentGroupHasSelection)
-                  TextButton.icon(
-                    onPressed: _clearCurrentGroup,
-                    style: TextButton.styleFrom(
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                    label: const Text('重置当前维度'),
-                  ),
-                TextButton.icon(
-                  onPressed: clearAll,
-                  style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                  label: const Text('重置所有维度'),
-                ),
+                _dimensionChip(0, '试题来源', _sourceGroupCount),
+                _dimensionChip(1, '题目特征', _featureGroupCount),
+                _dimensionChip(2, '概念标签', _selectedConceptTagNames.length),
+                _dimensionChip(3, '知识卡片', _selectedKnowledgeCardTitles.length),
               ],
             ),
           ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (_currentGroupHasSelection)
+                TextButton(
+                  onPressed: _clearCurrentGroup,
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    textStyle: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  child: const Text('清除当前维度'),
+                ),
+              TextButton(
+                onPressed: clearAll,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  textStyle: Theme.of(context).textTheme.bodySmall,
+                ),
+                child: const Text('清除全部'),
+              ),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.only(top: 4),
-            child: groups[switch (_groupIndex) {
-              0 => 2,
-              1 => 3,
-              2 => 0,
-              _ => 1,
-            }],
+            child:
+                groups[switch (_groupIndex) {
+                  0 => 2,
+                  1 => 3,
+                  2 => 0,
+                  _ => 1,
+                }],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGroupedTab(int index, String label, int count) {
+  Widget _dimensionChip(int index, String label, int count) {
     final colors = context.colors;
     final selected = _groupIndex == index;
-    return InkWell(
-      onTap: () => setState(() => _groupIndex = index),
-      child: Container(
-        margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        decoration: BoxDecoration(
-          color: selected ? colors.primaryContainer : colors.surface,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: selected ? colors.primaryBorder : colors.border,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                color: selected ? colors.primary : colors.textSecondary,
-              ),
-            ),
-            if (count > 0) ...[
-              const SizedBox(width: 4),
-              Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: colors.primary,
-                ),
-              ),
-            ],
-          ],
+    final hasSelection = count > 0;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: selected
+              ? colors.primary
+              : hasSelection
+              ? colors.textPrimary
+              : colors.textSecondary,
+          fontWeight: selected
+              ? FontWeight.w600
+              : hasSelection
+              ? FontWeight.w600
+              : FontWeight.w400,
         ),
       ),
+      selected: selected,
+      showCheckmark: false,
+      labelPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      backgroundColor: hasSelection
+          ? colors.primary.withValues(alpha: 0.06)
+          : Colors.transparent,
+      selectedColor: colors.primaryContainer,
+      side: BorderSide(
+        color: selected
+            ? colors.primary
+            : hasSelection
+            ? colors.primary.withValues(alpha: 0.16)
+            : colors.border,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      onSelected: (_) => setState(() => _groupIndex = index),
     );
   }
 

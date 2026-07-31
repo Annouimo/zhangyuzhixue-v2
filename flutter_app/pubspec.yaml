@@ -54,10 +54,14 @@ dependencies:
   # Image picker
   image_picker: ^1.1.0
 
+  # Flutter's generated Android plugin registrant is shared by debug and
+  # release source sets, so this native plugin must be available to release
+  # compilation as well as integration tests.
+  integration_test:
+    sdk: flutter
+
 dev_dependencies:
   flutter_test:
-    sdk: flutter
-  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   drift_dev: ^2.20.0

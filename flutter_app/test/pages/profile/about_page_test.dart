@@ -13,10 +13,11 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: AboutPage()));
     await tester.pump();
     expect(find.text('关于章鱼智学'), findsOneWidget);
-    expect(find.text('版本 1.2.0（公测版 Beta 1）'), findsOneWidget);
+    expect(find.text('1.2.0 · 公测版 Beta 1'), findsOneWidget);
     expect(find.text('用户协议'), findsOneWidget);
     expect(find.text('隐私政策'), findsOneWidget);
-    expect(find.text('数据与同步'), findsOneWidget);
+    expect(find.text('数据版本'), findsOneWidget);
+    expect(find.text('同步'), findsOneWidget);
     expect(find.text('应用与支持'), findsOneWidget);
     expect(find.text('开源许可证'), findsOneWidget);
     expect(find.text('导出运行日志'), findsOneWidget);

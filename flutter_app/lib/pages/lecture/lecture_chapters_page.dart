@@ -82,53 +82,27 @@ class _LectureChaptersPageState extends State<LectureChaptersPage> {
     }
 
     return AppContentContainer(
-      maxWidth: AppContentWidth.reading,
-      child: ListView.separated(
+      maxWidth: AppContentWidth.standard,
+      child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        itemCount: chapterList.items.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-        itemBuilder: (context, index) {
-          final chapter = chapterList.items[index];
-          return AppCard(
-            onTap: () => RouterUtils.push(
-              context,
-              '/lecture/content?chapterId=${chapter.id}&page=1',
-            ),
-            semanticLabel: chapter.title,
-            child: Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: context.colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(AppRadius.medium),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '$index',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: context.colors.primary,
+        children: [
+          AppNavigationList(
+            children: chapterList.items.indexed
+                .map(
+                  (entry) => AppNavigationListItem(
+                    icon: Icons.article_outlined,
+                    title: entry.$2.title,
+                    subtitle: '第 ${entry.$1 + 1} 讲',
+                    semanticLabel: entry.$2.title,
+                    onTap: () => RouterUtils.push(
+                      context,
+                      '/lecture/content?chapterId=${entry.$2.id}&page=1',
                     ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    chapter.title,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                const AppStatusBadge(
-                  label: '阅读',
-                  tone: AppStatusTone.info,
-                  icon: Icons.arrow_forward_rounded,
-                  compact: true,
-                ),
-              ],
-            ),
-          );
-        },
+                )
+                .toList(),
+          ),
+        ],
       ),
     );
   }

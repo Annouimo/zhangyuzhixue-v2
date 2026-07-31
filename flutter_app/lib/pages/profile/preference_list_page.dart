@@ -164,8 +164,10 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                     ),
                     children: [
                       ...preferences.map((preference) {
+                        final selected = _selection.isSelected(preference.id);
                         return AppCard(
                           margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          selected: selected,
                           onTap: () => _openEditor(preference.id),
                           semanticLabel: '编辑筛选方案 ${preference.name}',
                           child: Row(
@@ -206,9 +208,7 @@ class _PreferenceListPageState extends State<PreferenceListPage> {
                                           compact: true,
                                         ),
                                         AppSelectionToggle(
-                                          selected: _selection.isSelected(
-                                            preference.id,
-                                          ),
+                                          selected: selected,
                                           onPressed: () =>
                                               _toggleSelection(preference.id),
                                           selectTooltip: '选择筛选方案',

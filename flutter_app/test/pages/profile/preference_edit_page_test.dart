@@ -62,7 +62,7 @@ void main() {
       );
       // Wait for async option loading to complete (will fail gracefully)
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('方案名称'), findsOneWidget);
+      expect(find.text('名称'), findsOneWidget);
       expect(find.text('试题来源'), findsOneWidget);
       expect(find.text('创建范围'), findsOneWidget);
     });

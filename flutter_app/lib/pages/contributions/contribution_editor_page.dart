@@ -692,7 +692,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     final subs = _questionContext?['sub_questions'] as List? ?? const [];
     return Column(
       children: [
-        AppCard(
+        AppSection(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -739,7 +739,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     );
   }
 
-  Widget _buildSolutionForm() => AppCard(
+  Widget _buildSolutionForm() => AppSection(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -750,20 +750,26 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
           decoration: const InputDecoration(labelText: '解法名称'),
         ),
         const SizedBox(height: AppSpacing.sm),
-        SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(value: true, label: Text('本人原创')),
-            ButtonSegment(value: false, label: Text('外部资料')),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          children: [
+            for (final option in const [(true, '本人原创'), (false, '外部资料')])
+              ChoiceChip(
+                label: Text(option.$2),
+                selected: _isOriginal == option.$1,
+                showCheckmark: false,
+                onSelected: (_) {
+                  setState(() {
+                    _mode = option.$1
+                        ? 'solution_original'
+                        : 'solution_external';
+                  });
+                  _queueDraftSave();
+                },
+              ),
           ],
-          selected: {_isOriginal},
-          onSelectionChanged: (selection) {
-            setState(() {
-              _mode = selection.first
-                  ? 'solution_original'
-                  : 'solution_external';
-            });
-            _queueDraftSave();
-          },
         ),
         if (!_isOriginal) ...[
           const SizedBox(height: AppSpacing.sm),
@@ -835,7 +841,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   Widget _buildReview() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      AppCard(
+      AppSection(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -941,7 +947,6 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
       const SizedBox(height: AppSpacing.md),
       _buildSubmissionChecks(),
       const SizedBox(height: AppSpacing.md),
-      const AppCard(child: Text('提交后将进入人工审核；需要修改时，审核意见会显示在贡献详情中。')),
     ],
   );
 
@@ -1157,7 +1162,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         warning: true,
       ));
     }
-    return AppCard(
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1472,7 +1477,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                 if (_reviewNote.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: AppCard(child: Text('审核意见：$_reviewNote')),
+                    child: AppCallout(message: '审核意见：$_reviewNote'),
                   ),
                 _buildCurrentStep(),
                 const SizedBox(height: AppSpacing.lg),
@@ -1590,7 +1595,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         : _buildReview();
   }
 
-  Widget _buildRepairs() => AppCard(
+  Widget _buildRepairs() => AppSection(
     child: ExpansionTile(
       tilePadding: EdgeInsets.zero,
       title: Text('已自动修复 ${_repairs.length} 处格式问题'),
@@ -1608,7 +1613,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
   Widget _buildStructuredEditor() {
     final type = _payload!['question_type'] as String;
     final uncertainties = _payload!['uncertainties'] as List? ?? const [];
-    return AppCard(
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1997,7 +2002,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
         .where((tag) => query.isEmpty || tag.name.toLowerCase().contains(query))
         .take(40)
         .toList();
-    return AppCard(
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -2135,7 +2140,7 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
     };
     return Column(
       children: [
-        AppCard(
+        AppSection(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -2151,14 +2156,22 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: false, label: Text('只报告问题')),
-                  ButtonSegment(value: true, label: Text('提供修改方案')),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final option in const [
+                    (false, '只报告问题'),
+                    (true, '提供修改方案'),
+                  ])
+                    ChoiceChip(
+                      label: Text(option.$2),
+                      selected: _provideCorrection == option.$1,
+                      showCheckmark: false,
+                      onSelected: (_) => _setCorrectionProposalMode(option.$1),
+                    ),
                 ],
-                selected: {_provideCorrection},
-                onSelectionChanged: (selection) =>
-                    _setCorrectionProposalMode(selection.first),
               ),
               const SizedBox(height: AppSpacing.md),
               Wrap(

@@ -136,7 +136,7 @@ class _VideoDetailPageState extends State<VideoDetailPage> {
           ),
           if (video.relatedLectures.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
-            const AppSectionHeader(title: '相关讲义'),
+            const AppSectionHeader(title: '相关讲义', compact: true),
             const SizedBox(height: AppSpacing.sm),
             for (final lecture in video.relatedLectures) ...[
               AppCard(

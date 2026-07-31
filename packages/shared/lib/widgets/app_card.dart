@@ -72,12 +72,12 @@ class _AppCardState extends State<AppCard> {
         color: widget.selected
             ? colors.primary
             : (widget.borderColor ?? colors.border),
-        width: widget.selected ? 1.5 : 1,
+        width: 1,
       ),
     );
 
     Widget content = Material(
-      color: colors.surface,
+      color: widget.selected ? colors.primaryContainer : colors.surface,
       shape: shape,
       clipBehavior: Clip.antiAlias,
       child: isClickable

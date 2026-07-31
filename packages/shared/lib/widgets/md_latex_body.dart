@@ -26,8 +26,7 @@ class MdLatexBody extends StatelessWidget {
       color: colors.textPrimary,
       height: 1.6,
     );
-    if (data.isEmpty) return SizedBox.shrink();
-
+    if (data.isEmpty) return const SizedBox.shrink();
     return MarkdownBody(
       data: data,
       selectable: false,
@@ -84,6 +83,7 @@ class MdLatexBody extends StatelessWidget {
       ),
     );
   }
+
 }
 
 // ─── 填空题答题空格 ───

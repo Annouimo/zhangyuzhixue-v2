@@ -231,38 +231,49 @@ class _AboutPageState extends State<AboutPage> {
       maxWidth: AppContentWidth.reading,
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: context.colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
+                  child: Image.asset('assets/logo_mark.png'),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '章鱼智学',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        appVersion.replaceFirst('（', ' · ').replaceFirst('）', ''),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.colors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSpacing.lg),
-            // ── 品牌标识 ──
-            Container(
-              width: 72,
-              height: 72,
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: context.colors.primaryContainer,
-                borderRadius: BorderRadius.circular(AppRadius.xl),
-              ),
-              child: Image.asset('assets/logo_mark.png'),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text('章鱼智学', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              '版本 $appVersion',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.colors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
 
-            _buildSectionLabel('数据与同步'),
-            const SizedBox(height: AppSpacing.sm),
-
-            // ── 数据版本卡片 ──
-            _buildSectionCard([
+            _buildSectionLabel('数据版本'),
+            const SizedBox(height: AppSpacing.xs),
+            _buildSectionList([
               _buildVersionTile(
-                icon: Icons.storage,
-                label: '题库',
+                label: '题库数据',
                 local: _localQbank,
                 server: _serverQbank,
                 updating: _updatingQbank,
@@ -270,9 +281,7 @@ class _AboutPageState extends State<AboutPage> {
                 checkFailed: _qbankVersionError,
                 onUpdate: () => _onUpdate('qbank'),
               ),
-              Divider(height: 1, indent: 48),
               _buildVersionTile(
-                icon: Icons.article,
                 label: '内容数据',
                 local: _localCourses,
                 server: _serverCourses,
@@ -281,42 +290,37 @@ class _AboutPageState extends State<AboutPage> {
                 checkFailed: _coursesVersionError,
                 onUpdate: () => _onUpdate('courses'),
               ),
-              Divider(height: 1, indent: 48),
-              _buildUserTile(),
             ]),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.lg),
 
-            // ── 法律信息 ──
+            _buildSectionLabel('同步'),
+            const SizedBox(height: AppSpacing.xs),
+            _buildSectionList([_buildUserTile()]),
+            const SizedBox(height: AppSpacing.lg),
+
             _buildSectionLabel('应用与支持'),
-            const SizedBox(height: AppSpacing.sm),
-            _buildSectionCard([
+            const SizedBox(height: AppSpacing.xs),
+            _buildSectionList([
               ListTile(
-                leading: Icon(Icons.description_outlined),
                 title: Text('用户协议'),
-                trailing: Icon(Icons.chevron_right),
+                trailing: Icon(Icons.open_in_new_rounded, size: 20),
                 onTap: () => launchUrl(
                   Uri.parse('https://zhangyuzhixue.zhtec123.com/terms.html'),
                 ),
               ),
-              Divider(height: 1),
               ListTile(
-                leading: Icon(Icons.privacy_tip_outlined),
                 title: Text('隐私政策'),
-                trailing: Icon(Icons.chevron_right),
+                trailing: Icon(Icons.open_in_new_rounded, size: 20),
                 onTap: () => launchUrl(
                   Uri.parse('https://zhangyuzhixue.zhtec123.com/privacy.html'),
                 ),
               ),
-              Divider(height: 1),
               ListTile(
-                leading: Icon(Icons.language_outlined),
                 title: Text('官方网站'),
-                trailing: Icon(Icons.chevron_right),
+                trailing: Icon(Icons.open_in_new_rounded, size: 20),
                 onTap: () => launchUrl(Uri.parse('https://zhangyuzhixue.top/')),
               ),
-              Divider(height: 1),
               ListTile(
-                leading: Icon(Icons.description_outlined),
                 title: Text('开源许可证'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () => showLicensePage(
@@ -325,9 +329,7 @@ class _AboutPageState extends State<AboutPage> {
                   applicationVersion: appVersion,
                 ),
               ),
-              Divider(height: 1),
               ListTile(
-                leading: Icon(Icons.bug_report_outlined),
                 title: Text('导出运行日志'),
                 subtitle: Text('用于问题诊断，不包含账号密码'),
                 trailing: Icon(Icons.chevron_right),
@@ -356,13 +358,15 @@ class _AboutPageState extends State<AboutPage> {
     ),
   );
 
-  Widget _buildSectionCard(List<Widget> children) {
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Column(children: children),
-    );
-  }
+  Widget _buildSectionList(List<Widget> children) => Column(
+    children: [
+      for (var index = 0; index < children.length; index++) ...[
+        children[index],
+        if (index < children.length - 1)
+          Divider(height: 1, color: context.colors.divider),
+      ],
+    ],
+  );
 
   Widget _buildSectionLabel(String label) => Align(
     alignment: Alignment.centerLeft,
@@ -375,7 +379,6 @@ class _AboutPageState extends State<AboutPage> {
   );
 
   Widget _buildVersionTile({
-    required IconData icon,
     required String label,
     required int local,
     required int server,
@@ -386,7 +389,6 @@ class _AboutPageState extends State<AboutPage> {
   }) {
     if (checkFailed) {
       return ListTile(
-        leading: Icon(icon, color: context.colors.primary),
         title: Text(label),
         subtitle: Text(
           '检查失败，请稍后重试',
@@ -398,14 +400,14 @@ class _AboutPageState extends State<AboutPage> {
     final hasUpdate = _versionLoaded && server > local;
     final localIsNewer = _versionLoaded && local > server;
     final statusText = !_versionLoaded
-        ? '本机 v$local · 正在检查'
+        ? '正在检查'
         : hasUpdate
         ? downloadReady
-              ? '本机 v$local · 最新 v$server'
-              : '本机 v$local · 更新暂不可用'
+              ? '发现 v$server'
+              : '更新暂不可用'
         : localIsNewer
-        ? '本机 v$local · 服务器 v$server（本机较新）'
-        : '本机 v$local · 已是最新';
+        ? '本机较新'
+        : '已是最新';
     final statusColor = !_versionLoaded
         ? context.colors.textSecondary
         : hasUpdate && downloadReady
@@ -413,12 +415,8 @@ class _AboutPageState extends State<AboutPage> {
         : context.colors.success;
 
     return ListTile(
-      leading: Icon(icon, color: context.colors.primary),
       title: Text(label),
-      subtitle: Text(
-        statusText,
-        style: TextStyle(fontSize: 12, color: statusColor),
-      ),
+      subtitle: Text('v$local'),
       trailing: hasUpdate && downloadReady
           ? ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 80),
@@ -430,15 +428,19 @@ class _AboutPageState extends State<AboutPage> {
                 size: AppButtonSize.sm,
               ),
             )
-          : null,
+          : Text(
+              statusText,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: statusColor,
+              ),
+            ),
     );
   }
 
   Widget _buildUserTile() {
     if (_userVersionError) {
       return ListTile(
-        leading: Icon(Icons.devices, color: context.colors.primary),
-        title: Text('多设备同步数据'),
+        title: Text('多设备同步'),
         subtitle: Text(
           '检查失败，请稍后重试',
           style: TextStyle(fontSize: 12, color: context.colors.error),
@@ -447,8 +449,7 @@ class _AboutPageState extends State<AboutPage> {
     }
     final hasUpdate = _serverUser > _localUser;
     return ListTile(
-      leading: Icon(Icons.devices, color: context.colors.primary),
-      title: Text('多设备同步数据'),
+      title: Text('多设备同步'),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
