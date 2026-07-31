@@ -195,3 +195,6 @@ class UpdateManager {
     return serverVersion > localVersion;
   }
 }
+
+  static bool shouldUpdateSilently(UpdateSummary summary) =>
+      summary.hasUpdate && summary.canApply && !summary.forceUpdate;

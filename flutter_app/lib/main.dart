@@ -134,16 +134,19 @@ void main() async {
 }
 
 final Map<String, int> _promptedUpdateVersions = {};
+final Set<String> _backgroundUpdatesInFlight = <String>{};
 
 void _processUpdates(List<UpdateSummary> updates) {
   final ctx = routerNavigatorKey.currentContext;
   if (ctx == null) return;
   updates = updates.where((summary) {
     if (summary.checkFailed || !summary.hasUpdate) return false;
-    if (_promptedUpdateVersions[summary.type] == summary.serverVersion) {
-      return false;
+    if (summary.forceUpdate) {
+      if (_promptedUpdateVersions[summary.type] == summary.serverVersion) {
+        return false;
+      }
+      _promptedUpdateVersions[summary.type] = summary.serverVersion;
     }
-    _promptedUpdateVersions[summary.type] = summary.serverVersion;
     return true;
   }).toList();
 
@@ -155,16 +158,36 @@ void _processUpdates(List<UpdateSummary> updates) {
     }
   }
 
-  // 非强制更新 → 显示 banner
+  // 普通更新在后台下载并应用，避免打断当前学习流程。
   for (final summary in updates) {
-    if (summary.canApply &&
-        UpdateManager.shouldShowBanner(
-          localVersion: summary.localVersion,
-          serverVersion: summary.serverVersion,
-        )) {
-      _showUpdateBanner(ctx, summary);
+    if (UpdateManager.shouldUpdateSilently(summary)) {
+      _startBackgroundUpdate(summary);
     }
   }
+}
+
+void _startBackgroundUpdate(UpdateSummary summary) {
+  if (!_backgroundUpdatesInFlight.add(summary.type)) return;
+  unawaited(() async {
+    try {
+      await SyncManager().runUpdate(summary.type);
+      final ctx = routerNavigatorKey.currentContext;
+      if (ctx != null && ctx.mounted) {
+        final label = summary.type == 'qbank'
+            ? '题库'
+            : (summary.type == 'courses' ? '内容数据' : '学习记录');
+        AppToast.info(ctx, '$label已在后台更新');
+      }
+    } catch (error, stack) {
+      AuditLogger.instance.error(
+        'background_update.${summary.type}',
+        error,
+        stack,
+      );
+    } finally {
+      _backgroundUpdatesInFlight.remove(summary.type);
+    }
+  }());
 }
 
 void _showForcedUpdateDialog(BuildContext context, UpdateSummary summary) {
@@ -224,19 +247,6 @@ Future<void> _startUpdate(
   if (ok && context.mounted) {
     AppToast.success(context, '$label更新完成');
   }
-}
-
-void _showUpdateBanner(BuildContext context, UpdateSummary summary) {
-  final label = summary.type == 'qbank'
-      ? '题库'
-      : (summary.type == 'courses' ? '内容数据' : '学习记录');
-
-  AppToast.info(
-    context,
-    '$label 有新版本（v${summary.serverVersion}）',
-    actionLabel: '更新',
-    onAction: () => _showForcedUpdateDialog(context, summary),
-  );
 }
 
 /// 启动后提示有未同步数据

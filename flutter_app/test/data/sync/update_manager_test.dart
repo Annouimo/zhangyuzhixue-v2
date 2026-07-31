@@ -84,6 +84,41 @@ void main() {
     });
   });
 
+  group('UpdateManager.shouldUpdateSilently', () {
+    test('accepts an applicable ordinary update', () {
+      const summary = UpdateSummary(
+        type: 'user',
+        localVersion: 2,
+        serverVersion: 3,
+        forceUpdate: false,
+      );
+
+      expect(UpdateManager.shouldUpdateSilently(summary), isTrue);
+    });
+
+    test('keeps forced updates in the blocking flow', () {
+      const summary = UpdateSummary(
+        type: 'user',
+        localVersion: 2,
+        serverVersion: 3,
+        forceUpdate: true,
+      );
+
+      expect(UpdateManager.shouldUpdateSilently(summary), isFalse);
+    });
+
+    test('rejects ordinary database updates without download metadata', () {
+      const summary = UpdateSummary(
+        type: 'qbank',
+        localVersion: 2,
+        serverVersion: 3,
+        forceUpdate: false,
+      );
+
+      expect(UpdateManager.shouldUpdateSilently(summary), isFalse);
+    });
+  });
+
   group('UpdateSummary download state', () {
     test('complete newer metadata is downloadable', () {
       final summary = UpdateSummary(
