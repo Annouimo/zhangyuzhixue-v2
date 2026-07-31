@@ -48,7 +48,7 @@ class ReviewPageState extends State<ReviewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('复盘')),
+      appBar: AppBar(title: const Text('学习复盘')),
       body: RefreshIndicator(
         onRefresh: refresh,
         child: AppContentContainer(

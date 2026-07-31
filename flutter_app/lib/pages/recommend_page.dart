@@ -161,7 +161,7 @@ class RecommendPageState extends State<RecommendPage> {
     final current = _current;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('推荐'),
+        title: const Text('推荐练习'),
         actions: [
           if (current != null)
             ...questionContributionActions(context, current.id),

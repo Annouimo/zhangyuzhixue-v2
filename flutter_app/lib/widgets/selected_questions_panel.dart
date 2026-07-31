@@ -60,7 +60,14 @@ Future<SelectedQuestionsPanelResult?> showSelectedQuestionsPanel({
   }
   return showDialog<SelectedQuestionsPanelResult>(
     context: context,
-    builder: (_) => AppDialogFrame(child: SizedBox(height: 680, child: panel)),
+    builder: (dialogContext) {
+      // Leave room for the dialog's vertical insets on short desktop windows.
+      final panelHeight = (MediaQuery.sizeOf(dialogContext).height * 0.8)
+          .clamp(320.0, 680.0);
+      return AppDialogFrame(
+        child: SizedBox(height: panelHeight, child: panel),
+      );
+    },
   );
 }
 

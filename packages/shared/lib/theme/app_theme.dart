@@ -637,7 +637,7 @@ class AppTheme {
           foregroundColor: brightness == Brightness.light
               ? AppColors.textInverse
               : AppColorsDark.textInverse,
-          minimumSize: const Size(double.infinity, AppControlSize.lg),
+          minimumSize: const Size(0, AppControlSize.lg),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
@@ -652,7 +652,7 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: colors.primary,
           foregroundColor: colors.textInverse,
-          minimumSize: const Size(double.infinity, AppControlSize.lg),
+          minimumSize: const Size(0, AppControlSize.lg),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
@@ -666,7 +666,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colors.primary,
-          minimumSize: const Size(double.infinity, AppControlSize.lg),
+          minimumSize: const Size(0, AppControlSize.lg),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),

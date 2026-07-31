@@ -226,37 +226,37 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('关于')),
+    appBar: AppBar(title: Text('关于章鱼智学')),
     body: AppContentContainer(
       maxWidth: AppContentWidth.reading,
       child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
             // ── 品牌标识 ──
             Container(
               width: 72,
               height: 72,
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: context.colors.primaryContainer,
                 borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
               child: Image.asset('assets/logo_mark.png'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             Text('章鱼智学', style: Theme.of(context).textTheme.headlineSmall),
-            SizedBox(height: 2),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
               '版本 $appVersion',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: context.colors.textSecondary,
               ),
             ),
-            SizedBox(height: 28),
+            const SizedBox(height: AppSpacing.xl),
 
             _buildSectionLabel('数据与同步'),
-            SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
 
             // ── 数据版本卡片 ──
             _buildSectionCard([
@@ -284,11 +284,11 @@ class _AboutPageState extends State<AboutPage> {
               Divider(height: 1, indent: 48),
               _buildUserTile(),
             ]),
-            SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
 
             // ── 法律信息 ──
             _buildSectionLabel('应用与支持'),
-            SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             _buildSectionCard([
               ListTile(
                 leading: Icon(Icons.description_outlined),
@@ -335,7 +335,7 @@ class _AboutPageState extends State<AboutPage> {
               ),
             ]),
 
-            SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
 
             Text(
               '© ${DateTime.now().year} 章鱼智学 · 北京',
@@ -349,7 +349,7 @@ class _AboutPageState extends State<AboutPage> {
                 color: context.colors.textSecondary,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),

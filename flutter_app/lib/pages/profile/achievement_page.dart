@@ -78,7 +78,7 @@ class _AchievementPageState extends State<AchievementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('学习成就')),
+      appBar: AppBar(title: const Text('成就')),
       body: _buildBody(),
     );
   }

@@ -256,7 +256,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
     );
     if (widget.embedded) return body;
     return Scaffold(
-      appBar: AppBar(title: const Text('我创建的')),
+      appBar: AppBar(title: const Text('已生成')),
       body: body,
     );
   }

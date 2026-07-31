@@ -74,7 +74,7 @@ class _QuestionHistoryPageState extends State<QuestionHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('做题历史')),
+      appBar: AppBar(title: const Text('做题记录')),
       body: _loading
           ? const LoadingIndicator(message: '正在整理做题记录…')
           : _error != null

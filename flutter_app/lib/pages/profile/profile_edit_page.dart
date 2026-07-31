@@ -174,7 +174,7 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('个人信息')),
+      appBar: AppBar(title: const Text('个人资料')),
       body: _loading
           ? const LoadingIndicator(message: '正在加载个人信息…')
           : AppContentContainer(

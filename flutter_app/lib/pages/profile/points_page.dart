@@ -6,6 +6,7 @@ import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_callout.dart';
+import 'package:shared/widgets/app_page_hint.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_status_badge.dart';
@@ -86,7 +87,7 @@ class _PointsPageState extends State<PointsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('积分流水')),
+      appBar: AppBar(title: const Text('积分明细')),
       body: _loading
           ? const LoadingIndicator(message: '正在加载积分记录…')
           : _error != null
@@ -140,7 +141,9 @@ class _PointsPageState extends State<PointsPage> {
               },
             ),
           const SizedBox(height: AppSpacing.md),
-          const AppCallout(message: '做题会增加学习积分；签到、任务和评价会增加赠送积分；组卷会消耗可用积分。'),
+          AppPageHint(
+            message: '做题、签到、任务和评价可获得积分，组卷会消耗积分。',
+          ),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),
