@@ -1,12 +1,12 @@
 name: flutter_app
 description: "个性定制高考数学智能学习系统"
 publish_to: 'none'
-version: 1.2.0+4
+version: 1.3.0+5
 
 # Public-facing release channel. Kept separate from `version` because iOS
 # requires a numeric CFBundleShortVersionString.
-release_channel: beta
-release_iteration: 1
+release_channel: release
+release_iteration: 0
 
 environment:
   sdk: ^3.12.2
@@ -75,7 +75,7 @@ msix_config:
   identity_name: Annouimo.526026C9DD952
   # The msix package ignores Flutter's +build suffix unless this is explicit.
   # Keep the Store-reserved fourth component at zero.
-  msix_version: 1.2.4.0
+  msix_version: 1.3.5.0
   # Use the high-resolution PNG as the source for MSIX scale/targetsize assets.
   # The runner ICO tops out at 256 px and becomes blurry on high-DPI devices.
   logo_path: ../assets/brand/icon_final_1024.png

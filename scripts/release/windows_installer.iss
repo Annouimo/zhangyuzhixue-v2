@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "章鱼智学"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "ZhangYuZhiXue, Inc."
 #define MyAppURL "https://zhangyuzhixue.top/"
 #define MyAppExeName "flutter_app.exe"
@@ -36,7 +36,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=D:\Hermes\zhangyuzhixue_app_v2\dist\windows\student
-OutputBaseFilename=章鱼智学-1.2.0-beta.1-windows
+OutputBaseFilename=章鱼智学-1.3.0-windows
 SolidCompression=yes
 WizardStyle=modern dynamic
 

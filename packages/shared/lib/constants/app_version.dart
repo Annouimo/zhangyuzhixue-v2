@@ -4,11 +4,11 @@
 /// 不要手动编辑。
 class AppVersion {
   AppVersion._();
-  static const String version = '1.2.0';
-  static const int buildNumber = 4;
-  static const String releaseChannel = 'beta';
-  static const int releaseIteration = 1;
-  static const String displayVersion = '1.2.0（公测版 Beta 1）';
+  static const String version = '1.3.0';
+  static const int buildNumber = 5;
+  static const String releaseChannel = 'release';
+  static const int releaseIteration = 0;
+  static const String displayVersion = '1.3.0';
 }
 
 /// 面向用户显示的版本字符串（自动生成）
