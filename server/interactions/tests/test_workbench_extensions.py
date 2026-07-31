@@ -40,7 +40,7 @@ def test_reviewer_can_create_lecture_document(client, reviewer):
         'md_content': '# 函数\n\n$f(x)=x$', 'note': '新增培训讲义',
     })
     assert response.status_code == 302
-    document = Document.objects.get()
+    document = Document.objects.get(course=course, title='函数')
     assert document.title == '函数'
     assert response.url == reverse(
         'review_workbench:document_edit', args=[document.pk]
