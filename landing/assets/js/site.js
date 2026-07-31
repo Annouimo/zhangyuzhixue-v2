@@ -262,6 +262,36 @@
     if (event.target === modal) closeModal();
   });
 
+  if (page === "software") {
+    const harmonyModal = document.getElementById("harmonyos-modal");
+    const harmonyClose = harmonyModal?.querySelector(".modal__close");
+    const harmonyDownload = harmonyModal?.querySelector("[data-harmonyos-apk-download]");
+    const harmonyUrl = config.downloads?.harmonyos || config.downloads?.android || "#";
+    if (harmonyDownload) harmonyDownload.href = harmonyUrl;
+    const closeHarmony = () => {
+      if (!harmonyModal) return;
+      harmonyModal.classList.remove("is-open");
+      harmonyModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    };
+    document.querySelectorAll('[data-download-platform="harmonyos"]').forEach(button => {
+      button.addEventListener("click", event => {
+        if (!harmonyModal || harmonyUrl === "#") return;
+        event.preventDefault();
+        harmonyModal.classList.add("is-open");
+        harmonyModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("modal-open");
+        harmonyClose?.focus();
+      });
+    });
+    harmonyClose?.addEventListener("click", closeHarmony);
+    harmonyModal?.querySelector("[data-close-harmonyos]")?.addEventListener("click", closeHarmony);
+    harmonyModal?.addEventListener("click", event => { if (event.target === harmonyModal) closeHarmony(); });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && harmonyModal?.classList.contains("is-open")) closeHarmony();
+    });
+  }
+
   const channelsModal = document.getElementById("channels-modal");
   const channelsClose = channelsModal?.querySelector(".modal__close");
   const channelsName = config.media?.name || "圆明智学";
