@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_button.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 
 /// 完成后的下一步操作区。
@@ -25,8 +25,7 @@ class DoneBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+    return AppSection(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < 520;

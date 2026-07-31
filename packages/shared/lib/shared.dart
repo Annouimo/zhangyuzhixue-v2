@@ -21,6 +21,7 @@ export 'constants/app_version.dart';
 // ── 通用 Widget ──
 export 'widgets/md_latex_body.dart';
 export 'widgets/question_card.dart';
+export 'widgets/question_content.dart';
 export 'widgets/question_image.dart';
 export 'widgets/question_option_row.dart';
 export 'widgets/app_toast.dart';
@@ -29,6 +30,9 @@ export 'widgets/app_action_sheet.dart';
 export 'widgets/app_selection.dart';
 export 'widgets/app_button.dart';
 export 'widgets/app_card.dart';
+export 'widgets/app_section.dart';
+export 'widgets/app_callout.dart';
+export 'widgets/app_async_content.dart';
 export 'widgets/app_navigation_list.dart';
 export 'widgets/app_page_layout.dart';
 export 'widgets/app_state_panel.dart';

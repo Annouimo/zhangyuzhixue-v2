@@ -4,8 +4,9 @@ import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_button.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_callout.dart';
 import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/app_toast.dart';
 import 'package:shared/widgets/error_placeholder.dart';
@@ -159,29 +160,15 @@ class _SolveRatePageState extends State<SolveRatePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AppCard(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const AppStatusBadge(
-                            label: '完成后反馈',
-                            tone: AppStatusTone.recommendation,
-                            icon: Icons.star_rounded,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            '请为这道题打分',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colors.textSecondary),
-                          ),
-                        ],
+                    const AppSection(
+                      title: '请为这道题打分',
+                      description: '你的真实感受会帮助其他同学更准确地判断题目难度和学习成本。',
+                      leading: AppStatusBadge(
+                        label: '完成后反馈',
+                        tone: AppStatusTone.recommendation,
+                        icon: Icons.star_rounded,
                       ),
+                      child: SizedBox.shrink(),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _StarRating(
@@ -229,46 +216,28 @@ class _SolveRatePageState extends State<SolveRatePage> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     if (_submitted)
-                      AppCard(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                      AppCallout(
+                        title: '评分已提交',
+                        message: '你的反馈已保存，可以返回继续学习。',
+                        tone: AppCalloutTone.success,
+                        action: Wrap(
+                          alignment: WrapAlignment.end,
+                          spacing: AppSpacing.xs,
+                          runSpacing: AppSpacing.xs,
                           children: [
-                            const Align(
-                              alignment: Alignment.centerLeft,
-                              child: AppStatusBadge(
-                                label: '评分已提交',
-                                tone: AppStatusTone.success,
-                                icon: Icons.check_circle_rounded,
-                              ),
+                            AppButton(
+                              label: '修改评分',
+                              icon: Icons.edit_outlined,
+                              variant: AppButtonVariant.text,
+                              fullWidth: false,
+                              onPressed: () =>
+                                  setState(() => _submitted = false),
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              '你的反馈已保存，可以返回继续学习。',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: colors.textSecondary),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            Wrap(
-                              alignment: WrapAlignment.end,
-                              spacing: AppSpacing.xs,
-                              runSpacing: AppSpacing.xs,
-                              children: [
-                                AppButton(
-                                  label: '修改评分',
-                                  icon: Icons.edit_outlined,
-                                  variant: AppButtonVariant.text,
-                                  fullWidth: false,
-                                  onPressed: () =>
-                                      setState(() => _submitted = false),
-                                ),
-                                AppButton(
-                                  label: '完成并返回',
-                                  icon: Icons.check_rounded,
-                                  fullWidth: false,
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                              ],
+                            AppButton(
+                              label: '完成并返回',
+                              icon: Icons.check_rounded,
+                              fullWidth: false,
+                              onPressed: () => Navigator.pop(context),
                             ),
                           ],
                         ),
@@ -310,39 +279,21 @@ class _StarRating extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return AppSection(
+      title: label,
+      description: description,
+      showDivider: true,
+      trailing: algorithmScore != null && algorithmScore! > 0
+          ? AppStatusBadge(
+              label: '算法 ${formatAmount(algorithmScore!)}',
+              tone: AppStatusTone.info,
+              icon: Icons.auto_awesome_rounded,
+              compact: true,
+            )
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (algorithmScore != null && algorithmScore! > 0)
-                AppStatusBadge(
-                  label: '算法 ${formatAmount(algorithmScore!)}',
-                  tone: AppStatusTone.info,
-                  icon: Icons.auto_awesome_rounded,
-                  compact: true,
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
           Wrap(
             alignment: WrapAlignment.center,
             spacing: AppSpacing.xxs,
@@ -356,8 +307,8 @@ class _StarRating extends StatelessWidget {
                 label: '$label $score 分',
                 child: IconButton(
                   constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
+                    minWidth: AppControlSize.lg,
+                    minHeight: AppControlSize.lg,
                   ),
                   padding: const EdgeInsets.all(AppSpacing.xs),
                   tooltip: '$score 分',

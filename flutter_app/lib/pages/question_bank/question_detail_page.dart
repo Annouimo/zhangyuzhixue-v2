@@ -165,29 +165,11 @@ class _StudentQuestionDetailPageState extends State<StudentQuestionDetailPage> {
             ),
           ],
           const SizedBox(height: AppSpacing.md),
-          AppCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                MdLatexBody(detail.stem, fontSize: 16),
-                for (final path in detail.images) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  QuestionImage(relativePath: path),
-                ],
-                if (detail.options?.isNotEmpty == true) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  for (final option in detail.options!.entries)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: QuestionOptionRow(
-                        label: option.key,
-                        content: option.value,
-                        fontSize: 15,
-                      ),
-                    ),
-                ],
-              ],
+          AppSection(
+            child: QuestionContent(
+              stem: detail.stem,
+              imagePaths: detail.images,
+              options: detail.options ?? const {},
             ),
           ),
           const SizedBox(height: AppSpacing.md),

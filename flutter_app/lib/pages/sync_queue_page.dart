@@ -4,7 +4,7 @@ import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_toast.dart';
 import '../data/daos/sync_queue_dao.dart';
@@ -167,8 +167,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
           ...items.map((item) {
             final failed =
                 item.status == 'failed' || item.status == 'permanentFailure';
-            return AppCard(
-              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            return AppSection(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

@@ -126,8 +126,7 @@ class ReviewPageState extends State<ReviewPage> {
       ConceptProgressStatus.needsReview => ('待巩固', AppStatusTone.warning),
       ConceptProgressStatus.stable => ('基本掌握', AppStatusTone.success),
     };
-    return AppCard(
-      padding: EdgeInsets.all(compact ? AppSpacing.sm : AppSpacing.md),
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

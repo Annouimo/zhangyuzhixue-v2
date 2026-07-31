@@ -75,9 +75,8 @@ class _LectureContentPageState extends State<LectureContentPage> {
     try {
       final content = await _repo.getContent(widget.chapterId);
       final parsed = _repo.parseContent(content);
-      final relatedVideos = await _videoRepository?.getRelatedVideos(
-            widget.chapterId,
-          ) ??
+      final relatedVideos =
+          await _videoRepository?.getRelatedVideos(widget.chapterId) ??
           const <RelatedVideo>[];
       if (!mounted) return;
       setState(() {
@@ -239,8 +238,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            AppCard(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+            AppSection(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -283,15 +281,13 @@ class _LectureContentPageState extends State<LectureContentPage> {
             ),
             if (cardRefs.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.lg),
-              AppCard(
+              AppSection(
+                title: '相关知识卡片',
+                description: '点击标签可快速查看本页涉及的概念。',
+                showDivider: true,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const AppSectionHeader(
-                      title: '相关知识卡片',
-                      subtitle: '点击标签可快速查看本页涉及的概念。',
-                    ),
-                    const SizedBox(height: AppSpacing.md),
                     Wrap(
                       spacing: AppSpacing.xs,
                       runSpacing: AppSpacing.xs,
@@ -305,21 +301,23 @@ class _LectureContentPageState extends State<LectureContentPage> {
             ],
             if (_relatedVideos.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.lg),
-              AppCard(
+              AppSection(
+                title: '相关视频',
+                showDivider: true,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const AppSectionHeader(title: '相关视频'),
-                    const SizedBox(height: AppSpacing.sm),
                     for (final video in _relatedVideos)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.play_circle_outline_rounded),
                         title: Text(video.title),
-                        subtitle: Text([
-                          video.categoryName,
-                          video.relationLabel,
-                        ].where((value) => value.isNotEmpty).join(' · ')),
+                        subtitle: Text(
+                          [
+                            video.categoryName,
+                            video.relationLabel,
+                          ].where((value) => value.isNotEmpty).join(' · '),
+                        ),
                         trailing: const Icon(Icons.arrow_forward_rounded),
                         onTap: () => RouterUtils.push(
                           context,

@@ -4,6 +4,8 @@ import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
+import 'package:shared/widgets/app_callout.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_status_badge.dart';
@@ -42,7 +44,8 @@ class _PointsPageState extends State<PointsPage> {
   @override
   void initState() {
     super.initState();
-    _repo = widget.userRepository ??
+    _repo =
+        widget.userRepository ??
         UserRepository(
           UserDao(DatabaseProvider()),
           UserApi(ApiClient()),
@@ -87,8 +90,8 @@ class _PointsPageState extends State<PointsPage> {
       body: _loading
           ? const LoadingIndicator(message: '正在加载积分记录…')
           : _error != null
-              ? ErrorPlaceholder(message: _error!, onRetry: _load)
-              : _buildContent(),
+          ? ErrorPlaceholder(message: _error!, onRetry: _load)
+          : _buildContent(),
     );
   }
 
@@ -126,29 +129,18 @@ class _PointsPageState extends State<PointsPage> {
                 }
                 return Column(
                   children: records
-                      .map((record) => _PointsRecordCard(record: record))
+                      .map(
+                        (record) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _PointsRecordCard(record: record),
+                        ),
+                      )
                       .toList(),
                 );
               },
             ),
           const SizedBox(height: AppSpacing.md),
-          AppCard(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline_rounded, color: context.colors.primary),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    '做题会增加学习积分；签到、任务和评价会增加赠送积分；组卷会消耗可用积分。',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.colors.textSecondary,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const AppCallout(message: '做题会增加学习积分；签到、任务和评价会增加赠送积分；组卷会消耗可用积分。'),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),
@@ -164,15 +156,17 @@ class _PointsRecordCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final positive = record.change >= 0;
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: Text(record.type, style: Theme.of(context).textTheme.titleMedium),
+                child: Text(
+                  record.type,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               AppStatusBadge(
                 label: '${positive ? '+' : ''}${formatAmount(record.change)}',
@@ -191,7 +185,11 @@ class _PointsRecordCard extends StatelessWidget {
               _ValueLabel(label: '学习', value: record.earned),
               _ValueLabel(label: '赠送', value: record.bonus),
               _ValueLabel(label: '消耗', value: record.spent),
-              _ValueLabel(label: '可用', value: record.available, emphasize: true),
+              _ValueLabel(
+                label: '可用',
+                value: record.available,
+                emphasize: true,
+              ),
             ],
           ),
         ],
@@ -221,8 +219,8 @@ class _ValueLabel extends StatelessWidget {
           TextSpan(
             text: formatAmount(value),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: emphasize ? context.colors.primary : null,
-                ),
+              color: emphasize ? context.colors.primary : null,
+            ),
           ),
         ],
       ),
@@ -258,29 +256,37 @@ class _PointsTable extends StatelessWidget {
             final positive = record.change >= 0;
             return DataRow(
               cells: [
-                DataCell(Text(record.time.length >= 10
-                    ? record.time.substring(0, 10)
-                    : record.time)),
-                DataCell(Text(record.type)),
-                DataCell(Text(
-                  '${positive ? '+' : ''}${formatAmount(record.change)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: positive
-                        ? context.colors.success
-                        : context.colors.error,
+                DataCell(
+                  Text(
+                    record.time.length >= 10
+                        ? record.time.substring(0, 10)
+                        : record.time,
                   ),
-                )),
+                ),
+                DataCell(Text(record.type)),
+                DataCell(
+                  Text(
+                    '${positive ? '+' : ''}${formatAmount(record.change)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: positive
+                          ? context.colors.success
+                          : context.colors.error,
+                    ),
+                  ),
+                ),
                 DataCell(Text(formatAmount(record.earned))),
                 DataCell(Text(formatAmount(record.bonus))),
                 DataCell(Text(formatAmount(record.spent))),
-                DataCell(Text(
-                  formatAmount(record.available),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: context.colors.primary,
+                DataCell(
+                  Text(
+                    formatAmount(record.available),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: context.colors.primary,
+                    ),
                   ),
-                )),
+                ),
               ],
             );
           }).toList(),

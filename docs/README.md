@@ -19,6 +19,7 @@
 - [数据架构](current/data-architecture.md)
 - [API 概览](current/api-overview.md)
 - [开发与测试](current/development-and-testing.md)
+- [Flutter UI 设计与实现规范](current/flutter-ui-design-guidelines.md)
 - [发布与运维](current/deployment-and-operations.md)
 - [仓库维护规则](current/maintenance-rules.md)
 

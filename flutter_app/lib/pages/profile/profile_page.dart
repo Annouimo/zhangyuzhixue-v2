@@ -15,6 +15,7 @@ import '../../domain/achievement_repository.dart';
 import '../../domain/statistics_repository.dart';
 import '../../data/daos/sync_queue_dao.dart';
 import '../../widgets/shared/format_utils.dart';
+import '../../widgets/app_avatar_editor.dart';
 import '../router.dart';
 import '../../debug/performance_trace.dart';
 
@@ -273,62 +274,20 @@ class ProfilePageState extends State<ProfilePage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < AppBreakpoints.medium;
-          final avatar = Stack(
-            clipBehavior: Clip.none,
-            children: [
-              GestureDetector(
-                onTap: _uploading ? null : _showAvatarPicker,
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: colors.primaryContainer,
-                  backgroundImage:
-                      info?.avatar != null && info!.avatar!.isNotEmpty
-                      ? CachedNetworkImageProvider(info.avatar!)
-                      : null,
-                  child: info?.avatar == null || info!.avatar!.isEmpty
-                      ? Text(
-                          info?.realName?.isNotEmpty == true
-                              ? info!.realName![0]
-                              : displayName.isNotEmpty
-                              ? displayName[0]
-                              : '?',
-                          style: textTheme.headlineSmall?.copyWith(
-                            color: colors.primary,
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-              Positioned(
-                right: -2,
-                bottom: -2,
-                child: Material(
-                  color: colors.primary,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: _uploading ? null : _showAvatarPicker,
-                    child: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: _uploading
-                          ? Padding(
-                              padding: const EdgeInsets.all(6),
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colors.onPrimary,
-                              ),
-                            )
-                          : Icon(
-                              Icons.camera_alt_outlined,
-                              size: 16,
-                              color: colors.onPrimary,
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          final avatar = AppAvatarEditor(
+            uploading: _uploading,
+            onPressed: _showAvatarPicker,
+            imageProvider: info?.avatar != null && info!.avatar!.isNotEmpty
+                ? CachedNetworkImageProvider(info.avatar!)
+                : null,
+            fallback: Text(
+              info?.realName?.isNotEmpty == true
+                  ? info!.realName![0]
+                  : displayName.isNotEmpty
+                  ? displayName[0]
+                  : '?',
+              style: textTheme.headlineSmall?.copyWith(color: colors.primary),
+            ),
           );
 
           final copy = Column(

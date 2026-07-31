@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 import 'package:shared/widgets/question_image.dart';
@@ -42,8 +42,7 @@ class SolveQuestionSurface extends StatelessWidget {
     final hasNumber = number != null && number!.trim().isNotEmpty;
     final hasTitle = title != null && title!.trim().isNotEmpty;
 
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return AppSection(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

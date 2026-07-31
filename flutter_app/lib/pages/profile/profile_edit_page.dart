@@ -5,7 +5,7 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_action_sheet.dart';
 import 'package:shared/widgets/app_toast.dart';
@@ -15,6 +15,7 @@ import '../../data/daos/question_dao.dart';
 import '../../data/daos/user_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/user_repository.dart';
+import '../../widgets/app_avatar_editor.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 
@@ -223,51 +224,21 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
 
   Widget _buildAvatarCard() {
     final colors = context.colors;
-    return AppCard(
-      onTap: _uploading ? null : _showAvatarPicker,
-      semanticLabel: '更换头像',
+    return AppSection(
       child: Column(
         children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              CircleAvatar(
-                radius: 52,
-                backgroundColor: colors.surfaceSubtle,
-                backgroundImage: _avatarUrl == null
-                    ? null
-                    : NetworkImage(_avatarUrl!),
-                child: _avatarUrl == null
-                    ? Icon(
-                        Icons.person_rounded,
-                        size: 44,
-                        color: colors.textMuted,
-                      )
-                    : null,
-              ),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.surface, width: 3),
-                ),
-                child: _uploading
-                    ? Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colors.onPrimary,
-                        ),
-                      )
-                    : Icon(
-                        Icons.camera_alt_rounded,
-                        size: 18,
-                        color: colors.onPrimary,
-                      ),
-              ),
-            ],
+          AppAvatarEditor(
+            radius: 52,
+            uploading: _uploading,
+            onPressed: _showAvatarPicker,
+            imageProvider: _avatarUrl == null
+                ? null
+                : NetworkImage(_avatarUrl!),
+            fallback: Icon(
+              Icons.person_rounded,
+              size: 44,
+              color: colors.textMuted,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text('头像', style: Theme.of(context).textTheme.titleMedium),
@@ -285,12 +256,13 @@ class _ProfileEditPageState extends State<ProfileEditPage> {
   }
 
   Widget _buildProfileForm() {
-    return AppCard(
+    return AppSection(
+      title: '基本信息',
+      description: '可编辑字段会同步到你的账号资料。',
+      showDivider: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AppSectionHeader(title: '基本信息', subtitle: '可编辑字段会同步到你的账号资料。'),
-          const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _nameCtrl,
             decoration: const InputDecoration(

@@ -715,13 +715,6 @@ class AppTheme {
           borderSide: BorderSide(color: colors.error),
         ),
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colors.surface,
-        selectedItemColor: colors.primary,
-        unselectedItemColor: colors.textMuted,
-        type: BottomNavigationBarType.fixed,
-        elevation: 8,
-      ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colors.surface,
         indicatorColor: colors.primaryContainer,

@@ -175,7 +175,7 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
     final colors = context.colors;
     final textTheme = Theme.of(context).textTheme;
 
-    return AppCard(
+    return AppSection(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact = constraints.maxWidth < AppBreakpoints.medium;

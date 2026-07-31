@@ -73,39 +73,38 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
   }
 
   Widget _buildBody() {
-    if (_loading) return const LoadingIndicator(message: '加载讲义目录…');
-    if (_error != null) {
-      return ErrorPlaceholder(message: _error!, onRetry: _load);
-    }
     final courses = _courses ?? [];
-    if (courses.isEmpty) {
-      return EmptyPlaceholder(
-        icon: Icons.menu_book_outlined,
-        message: '暂时没有讲义内容，后续会陆续上线',
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-      child: AppContentContainer(
-        maxWidth: AppContentWidth.standard,
-        child: Padding(
-          padding: const EdgeInsets.only(top: AppSpacing.sm),
-          child: AppNavigationList(
-            children: courses
-                .map(
-                  (course) => AppNavigationListItem(
-                    icon: Icons.menu_book_rounded,
-                    title: course.name,
-                    subtitle: '共 ${course.chapterCount} 讲',
-                    semanticLabel: course.name,
-                    onTap: () => RouterUtils.push(
-                      context,
-                      '/lecture/chapters?courseId=${course.id}',
+    return AppAsyncContent(
+      loading: _loading,
+      loadingTitle: '加载讲义目录…',
+      error: _error,
+      onRetry: _load,
+      empty: courses.isEmpty,
+      emptyTitle: '暂无讲义',
+      emptyMessage: '暂时没有讲义内容，后续会陆续上线',
+      emptyIcon: Icons.menu_book_outlined,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+        child: AppContentContainer(
+          maxWidth: AppContentWidth.standard,
+          child: Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: AppNavigationList(
+              children: courses
+                  .map(
+                    (course) => AppNavigationListItem(
+                      icon: Icons.menu_book_rounded,
+                      title: course.name,
+                      subtitle: '共 ${course.chapterCount} 讲',
+                      semanticLabel: course.name,
+                      onTap: () => RouterUtils.push(
+                        context,
+                        '/lecture/chapters?courseId=${course.id}',
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
+                  )
+                  .toList(),
+            ),
           ),
         ),
       ),

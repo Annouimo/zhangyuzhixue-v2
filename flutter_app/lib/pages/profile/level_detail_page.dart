@@ -3,8 +3,8 @@ import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
-import 'package:shared/widgets/app_card.dart';
 import 'package:shared/widgets/app_page_layout.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/loading_indicator.dart';
@@ -118,17 +118,13 @@ class _LevelDetailPageState extends State<LevelDetailPage> {
                     valueFontSize: 20,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  AppCard(
+                  AppSection(
+                    title: '等级对照',
+                    description: '当前等级会随累计学习积分自动更新。',
+                    showDivider: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppSectionHeader(
-                          title: '等级对照',
-                          subtitle: '当前等级会随累计学习积分自动更新。',
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        ..._levels.map(_buildLevelRow),
-                      ],
+                      children: [..._levels.map(_buildLevelRow)],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),

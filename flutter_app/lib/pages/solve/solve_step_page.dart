@@ -4,7 +4,7 @@ import 'package:shared/widgets/loading_indicator.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_toast.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/theme/app_theme.dart';
@@ -278,8 +278,7 @@ class _SolveStepPageState extends State<SolveStepPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      AppCard(
-                        padding: const EdgeInsets.all(AppSpacing.md),
+                      AppSection(
                         child: Row(
                           children: [
                             const AppStatusBadge(
