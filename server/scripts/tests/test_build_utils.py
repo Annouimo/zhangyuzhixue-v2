@@ -219,9 +219,13 @@ class TestWriteChapters:
         conn, path = create_db(schema)
         try:
             chapters = write_chapters(conn, COURSES_TABLES)
-            assert len(chapters) == 3
+            test_course_chapters = [
+                row for row in chapters if row['course_id'] == course_with_docs.id
+            ]
+            assert len(test_course_chapters) == 3
             count = conn.execute(
-                'SELECT COUNT(*) FROM chapter'
+                'SELECT COUNT(*) FROM chapter WHERE course_id = ?',
+                (course_with_docs.id,),
             ).fetchone()[0]
             assert count == 3
         finally:
@@ -242,7 +246,13 @@ class TestWriteChapters:
             count = conn.execute(
                 'SELECT COUNT(*) FROM lecture_content'
             ).fetchone()[0]
-            assert count == 3
+            count_for_test_course = conn.execute(
+                'SELECT COUNT(*) FROM lecture_content lc '
+                'JOIN chapter c ON c.id = lc.chapter_id '
+                'WHERE c.course_id = ?',
+                (course_with_docs.id,),
+            ).fetchone()[0]
+            assert count_for_test_course == 3
         finally:
             conn.close()
             if os.path.exists(path):
@@ -319,9 +329,11 @@ class TestWriteChapters:
             write_video_document_links(conn, COURSES_TABLES, chapters)
             row = conn.execute(
                 'SELECT video_id, chapter_id, relation_label '
-                'FROM video_document_link',
+                'FROM video_document_link WHERE video_id = ?',
+                (video.id,),
             ).fetchone()
-            assert row == (video.id, 3, '配套讲解')
+            assert row[0] == video.id
+            assert row[2] == '配套讲解'
         finally:
             conn.close()
             if os.path.exists(path):

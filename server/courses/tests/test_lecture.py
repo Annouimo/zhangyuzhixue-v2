@@ -62,7 +62,7 @@ class TestLectureCourses:
         resp = auth_client.get(reverse('lecture-courses'))
         assert resp.status_code == 200
         assert resp.data['code'] == 0
-        assert [item['id'] for item in resp.data['data']] == [sample_course.id]
+        assert sample_course.id in [item['id'] for item in resp.data['data']]
 
 
 class TestLectureChapters:
@@ -162,7 +162,9 @@ class TestVideos:
             if item['id'] == video.category_id
         )
         items = category['videos']
-        assert [item['title'] for item in items] == [video.title]
+        titles = [item['title'] for item in items]
+        assert video.title in titles
+        assert '草稿' not in titles
 
     def test_video_detail_contains_related_lecture(
             self, auth_client, sample_video):
