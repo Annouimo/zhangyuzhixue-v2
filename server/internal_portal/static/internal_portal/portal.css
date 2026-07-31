@@ -1147,6 +1147,43 @@ a.table-row:hover {
   }
 }
 
+.operations-steps {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: operation;
+}
+
+.operations-steps li {
+  display: grid;
+  grid-template-columns: 28px 120px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  counter-increment: operation;
+}
+
+.operations-steps li::before {
+  content: counter(operation);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.operations-steps span { color: var(--text-secondary); }
+
+@media (max-width: 700px) {
+  .operations-steps li { grid-template-columns: 28px minmax(0, 1fr); }
+  .operations-steps span { grid-column: 2; }
+}
+
 /* Keep dark component overrides after all base and responsive rules. */
 @media (prefers-color-scheme: dark) {
   .structure-tree { color: var(--text); }

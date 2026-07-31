@@ -7,8 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from qbank.models import BaseQuestion, ConceptTag, KnowledgeCard
-from courses.models import Course, Document
+from qbank.models import BaseQuestion, ConceptTag, ContentChangeLog, KnowledgeCard
+from courses.models import Course, Document, Video
+from system.models import DbVersion
 
 from .forms import PortalAuthenticationForm, has_portal_access
 from .lecture_rendering import render_lecture_markdown
@@ -208,3 +209,27 @@ def lecture_document(request, document_id):
         'page_updated_at': document.updated_at,
     })
     return render(request, 'internal_portal/lecture_document.html', context)
+
+
+@portal_member_required
+def video_operations(request):
+    videos = Video.objects.all()
+    recent_changes = ContentChangeLog.objects.filter(
+        object_type='video',
+    ).select_related('actor')[:8]
+    context = _shared_context()
+    context.update({
+        'area': None,
+        'is_video_operations': True,
+        'video_counts': {
+            'total': videos.count(),
+            'published': videos.filter(is_published=True).count(),
+            'draft': videos.filter(is_published=False).count(),
+        },
+        'recent_video_changes': recent_changes,
+        'courses_version': DbVersion.objects.filter(db_type='courses').first(),
+        'page_updated_at': (
+            recent_changes[0].created_at if recent_changes else None
+        ),
+    })
+    return render(request, 'internal_portal/video_operations.html', context)

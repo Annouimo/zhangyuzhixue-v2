@@ -1,0 +1,7 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}视频分类 | 内容工作台{% endblock %}
+{% block content %}
+<div class="detail-nav"><a href="{% url 'review_workbench:video_list' %}">← 返回视频内容</a></div>
+<div class="page-heading"><div><h1>{% if object %}编辑{% else %}新建{% endif %}视频分类</h1><p>分类名称和顺序会显示在学生端视频目录中。</p></div></div>
+<form method="post" class="simple-editor lecture-editor">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}{% endfor %}<div class="simple-actions"><button class="primary" type="submit">保存</button></div></form>
+{% endblock %}

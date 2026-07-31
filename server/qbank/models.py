@@ -258,6 +258,7 @@ class WorkbenchRevision(models.Model):
         ('card', '知识卡片'),
         ('course', '讲义系列'),
         ('document', '讲义章节'),
+        ('video', '视频'),
     ]
 
     content_type = models.CharField(

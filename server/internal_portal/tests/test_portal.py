@@ -5,7 +5,7 @@ from django.contrib.admin.sites import site
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
-from courses.models import Course, Document
+from courses.models import Course, Document, Video, VideoCategory
 from internal_portal.models import (
     BusinessArea,
     HandbookSection,
@@ -15,6 +15,8 @@ from internal_portal.models import (
     TeamMember,
 )
 from qbank.models import BaseQuestion
+from qbank.models import ContentChangeLog
+from system.models import DbVersion
 
 
 pytestmark = pytest.mark.django_db
@@ -93,8 +95,8 @@ def test_handbook_follows_system_dark_mode_and_busts_css_cache():
     ).read_text(encoding='utf-8')
     assert '@media (prefers-color-scheme: dark)' in stylesheet
     assert 'color-scheme: dark' in stylesheet
-    assert "portal.css' %}?v=7" in base
-    assert "portal.css' %}?v=7" in login
+    assert "portal.css' %}?v=8" in base
+    assert "portal.css' %}?v=8" in login
 
 
 def test_logout_requires_post_and_ends_session(client, portal_user):
@@ -171,6 +173,38 @@ def test_lecture_reader_renders_markdown_math_and_separator_hints(
     assert '内容分隔' in content
     assert '<script>alert(1)</script>' not in content
     assert '&lt;script&gt;alert(1)&lt;/script&gt;' in content
+
+
+def test_video_operations_is_read_only_status_and_guidance(client, portal_user):
+    category = VideoCategory.objects.create(name='课程视频')
+    Video.objects.create(
+        category=category, title='已上架视频',
+        video_url='https://example.com/published', is_published=True,
+    )
+    draft = Video.objects.create(
+        category=category, title='草稿视频',
+        video_url='https://example.com/draft', is_published=False,
+    )
+    ContentChangeLog.objects.create(
+        actor=portal_user, object_type='video', object_id=draft.pk,
+        object_label=draft.title, action='create', note='建立草稿',
+    )
+    DbVersion.objects.create(
+        db_type='courses', schema_version=1, data_version=9,
+    )
+    client.force_login(portal_user)
+
+    response = client.get(reverse('internal_portal:video-operations'))
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert '视频运营与发布' in content
+    assert '已上架' in content and '草稿' in content
+    assert 'v9' in content
+    assert '链接与封面规范' in content
+    assert '建立草稿' in content
+    assert reverse('review_workbench:video_list') in content
+    assert '保存草稿' not in content
+    assert '>上架</button>' not in content
 
 
 def test_initial_portal_data_excludes_teacher_product():

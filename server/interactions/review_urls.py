@@ -18,6 +18,21 @@ urlpatterns = [
         'lectures/documents/<int:object_id>/', workbench_views.document_edit,
         name='document_edit',
     ),
+    path('videos/', workbench_views.video_list, name='video_list'),
+    path('videos/new/', workbench_views.video_edit, name='video_create'),
+    path('videos/<int:object_id>/', workbench_views.video_edit, name='video_edit'),
+    path(
+        'videos/<int:object_id>/preview/', workbench_views.video_preview,
+        name='video_preview',
+    ),
+    path(
+        'videos/categories/new/', workbench_views.video_category_edit,
+        name='video_category_create',
+    ),
+    path(
+        'videos/categories/<int:object_id>/',
+        workbench_views.video_category_edit, name='video_category_edit',
+    ),
     path('releases/', workbench_views.releases, name='releases'),
     path('training/', workbench_views.training, name='training'),
     path('training/data.json', workbench_views.training_json, name='training_json'),

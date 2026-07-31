@@ -11,6 +11,7 @@ CATEGORY_TYPES = {
     'tags': ('概念标签', ('tag',)),
     'cards': ('知识卡片', ('card',)),
     'lectures': ('讲义', ('course', 'document')),
+    'videos': ('视频', ('video',)),
 }
 
 
@@ -54,6 +55,31 @@ def snapshot_for(content_type, instance):
             'chapter': instance.chapter,
             'title': instance.title,
             'md_content': instance.md_content,
+        }
+    if content_type == 'video':
+        return {
+            'category': instance.category.name,
+            'title': instance.title,
+            'description': instance.description,
+            'cover_url': instance.cover_url,
+            'platform_name': instance.platform_name,
+            'video_url': instance.video_url,
+            'published_at': (
+                instance.published_at.isoformat()
+                if instance.published_at else None
+            ),
+            'sort_order': instance.sort_order,
+            'is_published': instance.is_published,
+            'documents': [
+                {
+                    'document': str(link.document),
+                    'relation_label': link.relation_label,
+                    'sort_order': link.sort_order,
+                }
+                for link in instance.videodocumentlink_set.select_related(
+                    'document', 'document__course',
+                ).order_by('sort_order', 'id')
+            ],
         }
     raise ValueError(f'未知内容类型：{content_type}')
 
@@ -110,6 +136,13 @@ FIELD_SPECS = {
     'document': [
         ('course', '所属讲义系列'), ('chapter', '讲次'),
         ('title', '标题'), ('md_content', '正文'),
+    ],
+    'video': [
+        ('category', '分类'), ('title', '标题'), ('description', '简介'),
+        ('cover_url', '封面地址'), ('platform_name', '发布平台'),
+        ('video_url', '视频地址'), ('published_at', '发布日期'),
+        ('sort_order', '排序'), ('is_published', '上架状态'),
+        ('documents', '配套讲义'),
     ],
 }
 

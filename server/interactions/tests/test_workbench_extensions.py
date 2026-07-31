@@ -3,8 +3,9 @@ from django.contrib.auth.models import Group, Permission, User
 from django.urls import reverse
 
 from accounts.roles import CONTENT_REVIEWER_GROUP
-from courses.models import Course, Document
+from courses.models import Course, Document, Video, VideoCategory, VideoDocumentLink
 from interactions.models import ReviewerTrainingProgress
+from qbank.models import ContentChangeLog, WorkbenchRevision
 from system.models import DbVersion
 
 
@@ -45,6 +46,121 @@ def test_reviewer_can_create_lecture_document(client, reviewer):
     assert response.url == reverse(
         'review_workbench:document_edit', args=[document.pk]
     )
+
+
+@pytest.fixture
+def video_content(db):
+    course = Course.objects.create(name='视频讲义')
+    document = Document.objects.create(
+        course=course, chapter='01', title='集合', md_content='# 集合',
+    )
+    category = VideoCategory.objects.create(name='专题讲解')
+    return category, document
+
+
+@pytest.mark.django_db
+def test_video_draft_save_records_actor_and_can_be_previewed(
+    client, reviewer, video_content,
+):
+    category, document = video_content
+    client.force_login(reviewer)
+    response = client.post(reverse('review_workbench:video_create'), {
+        'category': category.pk, 'title': '集合入门',
+        'description': '测试简介', 'cover_url': '',
+        'platform_name': '', 'video_url': 'https://example.com/video',
+        'published_at': '', 'sort_order': 10, 'note': '建立视频草稿',
+        'action': 'draft', 'links-TOTAL_FORMS': '1',
+        'links-INITIAL_FORMS': '0', 'links-MIN_NUM_FORMS': '0',
+        'links-MAX_NUM_FORMS': '1000', 'links-0-document': document.pk,
+        'links-0-relation_label': '配套讲解', 'links-0-sort_order': 0,
+    })
+
+    video = Video.objects.get(title='集合入门')
+    assert response.status_code == 302
+    assert video.is_published is False
+    revision = WorkbenchRevision.objects.get(
+        content_type='video', object_id=video.pk,
+    )
+    assert revision.actor == reviewer
+    assert revision.note == '建立视频草稿'
+    assert revision.snapshot['documents'][0]['document'].endswith('集合')
+    assert ContentChangeLog.objects.filter(
+        object_type='video', object_id=video.pk, actor=reviewer,
+    ).exists()
+
+    preview = client.get(reverse(
+        'review_workbench:video_preview', args=[video.pk],
+    ))
+    assert preview.status_code == 200
+    assert '内部预览' in preview.content.decode()
+    assert 'open_app' not in preview.content.decode()
+
+
+@pytest.mark.django_db
+def test_video_cannot_publish_without_document(client, reviewer, video_content):
+    category, _ = video_content
+    client.force_login(reviewer)
+    response = client.post(reverse('review_workbench:video_create'), {
+        'category': category.pk, 'title': '待关联讲义',
+        'description': '', 'cover_url': 'https://example.com/cover.jpg',
+        'platform_name': '哔哩哔哩',
+        'video_url': 'https://example.com/video',
+        'published_at': '2026-07-31', 'sort_order': 0,
+        'note': '尝试上架', 'action': 'publish',
+        'links-TOTAL_FORMS': '1', 'links-INITIAL_FORMS': '0',
+        'links-MIN_NUM_FORMS': '0', 'links-MAX_NUM_FORMS': '1000',
+        'links-0-document': '', 'links-0-relation_label': '',
+        'links-0-sort_order': 0,
+    })
+
+    assert response.status_code == 200
+    assert '上架前请至少关联一篇讲义' in response.content.decode()
+    assert not Video.objects.filter(title='待关联讲义').exists()
+
+
+@pytest.mark.django_db
+def test_video_publish_records_relation_and_history(
+    client, reviewer, video_content,
+):
+    category, document = video_content
+    video = Video.objects.create(
+        category=category, title='集合专题',
+        video_url='https://example.com/video',
+    )
+    client.force_login(reviewer)
+    response = client.post(reverse(
+        'review_workbench:video_edit', args=[video.pk],
+    ), {
+        'category': category.pk, 'title': '集合专题精讲',
+        'description': '完整简介',
+        'cover_url': 'https://example.com/cover.jpg',
+        'platform_name': '哔哩哔哩',
+        'video_url': 'https://example.com/video',
+        'published_at': '2026-07-31', 'sort_order': 0,
+        'note': '资料齐全，正式上架', 'action': 'publish',
+        'links-TOTAL_FORMS': '1', 'links-INITIAL_FORMS': '0',
+        'links-MIN_NUM_FORMS': '0', 'links-MAX_NUM_FORMS': '1000',
+        'links-0-document': document.pk,
+        'links-0-relation_label': '配套讲解', 'links-0-sort_order': 0,
+    })
+
+    video.refresh_from_db()
+    assert response.status_code == 302
+    assert video.is_published is True
+    assert VideoDocumentLink.objects.filter(
+        video=video, document=document,
+    ).exists()
+    revisions = WorkbenchRevision.objects.filter(
+        content_type='video', object_id=video.pk,
+    ).order_by('pk')
+    assert revisions.count() == 2
+    assert revisions[0].action == 'baseline'
+    assert revisions[1].action == 'publish'
+    history = client.get(reverse(
+        'review_workbench:revision_list', args=['videos'],
+    ))
+    assert history.status_code == 200
+    assert '集合专题精讲' in history.content.decode()
 
 
 @pytest.mark.django_db

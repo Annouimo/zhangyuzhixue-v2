@@ -1,0 +1,53 @@
+{% extends 'internal_portal/base.html' %}
+
+{% block title %}视频运营与发布 | 项目工作手册{% endblock %}
+
+{% block content %}
+<header class="handbook-header">
+  <h1>视频运营与发布</h1>
+  <p>视频资料、录入规则和发布状态的只读工作说明。</p>
+</header>
+
+<section class="handbook-section">
+  <h2>当前状态</h2>
+  <dl class="stat-grid">
+    <div><dt>视频总数</dt><dd>{{ video_counts.total }}</dd></div>
+    <div><dt>已上架</dt><dd>{{ video_counts.published }}</dd></div>
+    <div><dt>草稿</dt><dd>{{ video_counts.draft }}</dd></div>
+    <div><dt>学生端数据</dt><dd>{% if courses_version %}v{{ courses_version.data_version }}{% else %}-{% endif %}</dd></div>
+  </dl>
+  <div class="quick-links"><a href="{% url 'review_workbench:video_list' %}">进入内容工作台管理视频 →</a></div>
+</section>
+
+<section class="handbook-section">
+  <h2>录入与发布流程</h2>
+  <ol class="operations-steps">
+    <li><strong>录入草稿</strong><span>填写标题、分类、简介、平台和视频地址，先保存为草稿。</span></li>
+    <li><strong>准备公开资料</strong><span>使用稳定的 HTTPS 视频地址和 16:9 封面；确认平台名称和发布日期。</span></li>
+    <li><strong>关联讲义</strong><span>至少选择一篇配套讲义，填写“配套讲解”“例题演示”等关联说明并调整顺序。</span></li>
+    <li><strong>审核预览</strong><span>通过内部预览核对标题、封面、简介和讲义顺序，再执行上架。</span></li>
+    <li><strong>发布数据包</strong><span>上架仅更新服务端内容；随后在内容工作台构建并发布新的 courses.db。</span></li>
+  </ol>
+</section>
+
+<section class="handbook-section">
+  <h2>链接与封面规范</h2>
+  <div class="handbook-table direction-table">
+    <div class="handbook-table__head"><span>项目</span><span>要求</span></div>
+    <div class="handbook-table__row"><strong>视频地址</strong><span>填写平台最终公开页的 HTTPS 地址，避免临时链接、短期签名地址和后台编辑地址。</span></div>
+    <div class="handbook-table__row"><strong>封面地址</strong><span>使用可公开访问的 HTTPS 图片，推荐 16:9；画面应能辨认主题，避免仅含装饰背景。</span></div>
+    <div class="handbook-table__row"><strong>分类</strong><span>优先复用现有分类；新增分类前确认它代表稳定的内容目录，而不是一次活动。</span></div>
+    <div class="handbook-table__row"><strong>配套讲义</strong><span>只关联确实能辅助学习的视频内容，并用关联说明交代讲义的作用。</span></div>
+  </div>
+</section>
+
+<section class="handbook-section">
+  <h2>最近更新</h2>
+  <div class="handbook-table direction-table">
+    <div class="handbook-table__head"><span>视频</span><span>修改记录</span></div>
+    {% for change in recent_video_changes %}
+      <div class="handbook-table__row"><strong>{{ change.object_label }}</strong><span>{{ change.created_at|date:'Y-m-d H:i' }} · {% if change.actor %}{{ change.actor.get_full_name|default:change.actor.username }}{% else %}系统{% endif %} · {{ change.note }}</span></div>
+    {% empty %}<div class="handbook-table__row"><strong>暂无记录</strong><span>通过内容工作台保存视频后，更新记录会显示在这里。</span></div>{% endfor %}
+  </div>
+</section>
+{% endblock %}

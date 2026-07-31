@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.roles import PUBLISH_CONTRIBUTION
-from courses.models import Course, Document
+from courses.models import Course, Document, Video, VideoCategory
 from qbank.models import ContentChangeLog, WorkbenchRevision
 from system.models import DbVersion
 
@@ -17,7 +17,10 @@ from .review_views import reviewer_required
 from .training_data import (
     TRAINING_CASE_ID, TRAINING_EXPECTED, TRAINING_INITIAL_PAYLOAD,
 )
-from .workbench_forms import CourseWorkbenchForm, DocumentWorkbenchForm
+from .workbench_forms import (
+    CourseWorkbenchForm, DocumentWorkbenchForm, VideoCategoryWorkbenchForm,
+    VideoDocumentLinkFormSet, VideoWorkbenchForm,
+)
 from .workbench_release import build_candidate, publish
 from .workbench_revisions import (
     CATEGORY_TYPES, ensure_baseline_revision, field_diffs, previous_revision,
@@ -46,6 +49,104 @@ def course_list(request):
     return render(request, 'review_workbench/course_list.html', {
         'courses': Course.objects.annotate(document_count=Count('documents')).order_by('name'),
         'documents': Document.objects.select_related('course').order_by('course__name', 'chapter'),
+    })
+
+
+@reviewer_required
+def video_list(request):
+    return render(request, 'review_workbench/video_list.html', {
+        'categories': VideoCategory.objects.annotate(
+            video_count=Count('videos'),
+        ).order_by('sort_order', 'id'),
+        'videos': Video.objects.select_related('category').order_by(
+            'category__sort_order', 'sort_order', '-published_at', 'id',
+        ),
+        'courses_version': DbVersion.objects.filter(db_type='courses').first(),
+    })
+
+
+@reviewer_required
+def video_category_edit(request, object_id=None):
+    instance = (
+        get_object_or_404(VideoCategory, pk=object_id) if object_id else None
+    )
+    form = VideoCategoryWorkbenchForm(request.POST or None, instance=instance)
+    if request.method == 'POST' and form.is_valid():
+        saved = form.save()
+        messages.success(request, f'视频分类“{saved.name}”已保存。')
+        return redirect('review_workbench:video_list')
+    return render(request, 'review_workbench/video_category_editor.html', {
+        'form': form, 'object': instance,
+    })
+
+
+@reviewer_required
+def video_edit(request, object_id=None):
+    instance = get_object_or_404(Video, pk=object_id) if object_id else Video()
+    form = VideoWorkbenchForm(request.POST or None, instance=instance)
+    links = VideoDocumentLinkFormSet(
+        request.POST or None, instance=instance, prefix='links',
+    )
+    action = request.POST.get('action', 'draft')
+    if request.method == 'POST' and form.is_valid() and links.is_valid():
+        has_document = any(
+            item.get('document') and not item.get('DELETE', False)
+            for item in links.cleaned_data
+        )
+        publish_valid = form.validate_for_publish() if action == 'publish' else True
+        if action == 'publish' and not has_document:
+            form.add_error(None, '上架前请至少关联一篇讲义。')
+            publish_valid = False
+        if publish_valid:
+            with transaction.atomic():
+                creating = not instance.pk
+                if not creating:
+                    baseline_instance = Video.objects.select_for_update().get(
+                        pk=instance.pk,
+                    )
+                    ensure_baseline_revision('video', baseline_instance)
+                saved = form.save(commit=False)
+                saved.is_published = action == 'publish'
+                saved.save()
+                links.instance = saved
+                links.save()
+                ContentChangeLog.objects.create(
+                    actor=request.user, object_type='video', object_id=saved.pk,
+                    object_label=saved.title,
+                    action='publish' if saved.is_published else (
+                        'create' if creating else 'update'
+                    ),
+                    note=form.cleaned_data['note'],
+                )
+                record_revision(
+                    'video', saved, request.user,
+                    'publish' if saved.is_published else (
+                        'create' if creating else 'update'
+                    ),
+                    form.cleaned_data['note'],
+                )
+            status = '已上架' if saved.is_published else '已保存为草稿'
+            messages.success(request, f'视频“{saved.title}”{status}。')
+            return redirect('review_workbench:video_edit', object_id=saved.pk)
+    return render(request, 'review_workbench/video_editor.html', {
+        'form': form,
+        'link_formset': links,
+        'object': instance if instance.pk else None,
+    })
+
+
+@reviewer_required
+def video_preview(request, object_id):
+    video = get_object_or_404(
+        Video.objects.select_related('category'), pk=object_id,
+    )
+    links = video.videodocumentlink_set.select_related(
+        'document', 'document__course',
+    ).order_by('sort_order', 'id')
+    return render(request, 'courses/video_landing.html', {
+        'video': video,
+        'lecture_links': links,
+        'preview_mode': True,
     })
 
 

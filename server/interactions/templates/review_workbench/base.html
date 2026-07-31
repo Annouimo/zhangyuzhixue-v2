@@ -26,6 +26,7 @@
     <a href="{% url 'review_workbench:tag_list' %}"{% if request.resolver_match.url_name == 'tag_list' or request.resolver_match.url_name == 'tag_create' or request.resolver_match.url_name == 'tag_edit' %} class="is-active"{% endif %}>概念标签</a>
     <a href="{% url 'review_workbench:card_list' %}"{% if request.resolver_match.url_name == 'card_list' or request.resolver_match.url_name == 'card_create' or request.resolver_match.url_name == 'card_edit' %} class="is-active"{% endif %}>知识卡片</a>
     <a href="{% url 'review_workbench:course_list' %}"{% if 'course' in request.resolver_match.url_name or 'document' in request.resolver_match.url_name %} class="is-active"{% endif %}>讲义维护</a>
+    <a href="{% url 'review_workbench:video_list' %}"{% if 'video' in request.resolver_match.url_name %} class="is-active"{% endif %}>视频内容</a>
   </div>
   <div class="internal-nav__section">质量与发布</div>
   <div class="internal-nav__group">
@@ -40,6 +41,7 @@
   <a href="{% url 'review_workbench:tag_list' %}">概念标签</a>
   <a href="{% url 'review_workbench:card_list' %}">知识卡片</a>
   <a href="{% url 'review_workbench:course_list' %}">讲义维护</a>
+  <a href="{% url 'review_workbench:video_list' %}">视频内容</a>
   <a href="{% url 'review_workbench:releases' %}">版本发布</a>
   <a href="{% url 'review_workbench:training' %}">审核员培训</a>
 {% endblock %}

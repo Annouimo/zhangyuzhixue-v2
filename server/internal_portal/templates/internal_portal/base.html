@@ -1,6 +1,6 @@
 {% extends 'internal_shell/base.html' %}
 {% load static %}
-{% block app_styles %}<link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=7">{% endblock %}
+{% block app_styles %}<link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=8">{% endblock %}
 {% block shell_class %}portal-layout{% endblock %}
 {% block main_class %}workspace{% endblock %}
 {% block workspace_class %}main-content{% endblock %}
@@ -10,11 +10,13 @@
     <a href="{% url 'internal_portal:page-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
   {% endfor %}
   <a href="{% url 'internal_portal:lecture-library' %}"{% if is_lecture_library %} class="is-active"{% endif %}>讲义库</a>
+  <a href="{% url 'internal_portal:video-operations' %}"{% if is_video_operations %} class="is-active"{% endif %}>视频运营</a>
 {% endblock %}
 {% block mobile_nav %}
   <a href="{% url 'internal_portal:index' %}">总览</a>
   {% for nav_area in navigation_areas %}<a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>{% endfor %}
   <a href="{% url 'internal_portal:lecture-library' %}">讲义库</a>
+  <a href="{% url 'internal_portal:video-operations' %}">视频运营</a>
 {% endblock %}
 {% block workspace_header %}
   <div class="workspace-bar">

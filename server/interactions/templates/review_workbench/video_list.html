@@ -1,0 +1,10 @@
+{% extends 'review_workbench/base.html' %}
+{% block title %}视频内容 | 内容工作台{% endblock %}
+{% block content %}
+<div class="page-heading"><div><h1>视频内容</h1><p>维护视频目录、公开信息和配套讲义；草稿不会在学生端显示。</p></div><div class="heading-actions"><a class="button-link" href="{% url 'review_workbench:revision_list' 'videos' %}">版本历史</a><a class="button-link" href="{% url 'review_workbench:video_category_create' %}">新建分类</a><a class="button-link primary" href="{% url 'review_workbench:video_create' %}">新建视频</a></div></div>
+<section class="notice warning"><strong>学生端数据包不会随保存自动更新。</strong><span>当前 courses.db {% if courses_version %}为 v{{ courses_version.data_version }}{% else %}尚无版本记录{% endif %}；视频上架后请进入<a href="{% url 'review_workbench:releases' %}">版本发布</a>构建并发布新版本。</span></section>
+<div class="dashboard-grid lecture-layout">
+  <section class="panel"><h2>视频分类</h2><ul class="item-list">{% for category in categories %}<li><a href="{% url 'review_workbench:video_category_edit' category.pk %}">{{ category.name }}</a><span>{{ category.video_count }} 个视频</span></li>{% empty %}<li>暂无视频分类</li>{% endfor %}</ul></section>
+  <section class="panel lecture-documents"><h2>视频</h2><div class="table-wrap"><table><thead><tr><th>标题</th><th>分类</th><th>平台</th><th>发布日期</th><th>状态</th></tr></thead><tbody>{% for video in videos %}<tr><td><a href="{% url 'review_workbench:video_edit' video.pk %}">{{ video.title }}</a></td><td>{{ video.category.name }}</td><td>{{ video.platform_name|default:'-' }}</td><td>{{ video.published_at|date:'Y-m-d'|default:'-' }}</td><td>{% if video.is_published %}已上架{% else %}草稿{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="empty">暂无视频</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+{% endblock %}
