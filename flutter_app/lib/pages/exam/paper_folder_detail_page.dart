@@ -184,14 +184,6 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
             ),
             itemBuilder: (context) => [
               const PopupMenuItem(
-                value: 'help',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.help_outline_rounded),
-                  title: Text('操作说明'),
-                ),
-              ),
-              const PopupMenuItem(
                 value: 'rename',
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -233,10 +225,16 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
           ? const LoadingIndicator(message: '正在加载试题篮')
           : AppContentContainer(
               maxWidth: AppContentWidth.standard,
-              child: QuestionWorkspace(
-                controller: _workspaceController,
-                basketRepository: _repository,
-                items: orderedQuestions
+              child: Column(
+                children: [
+                  const AppPageHint(
+                    message: '拖动右侧手柄调整顺序，勾选题目后可批量管理。',
+                  ),
+                  Expanded(
+                    child: QuestionWorkspace(
+                      controller: _workspaceController,
+                      basketRepository: _repository,
+                      items: orderedQuestions
                     .asMap()
                     .entries
                     .map(
@@ -248,9 +246,9 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
                         difficulty: entry.value.difficulty,
                       ),
                     )
-                    .toList(growable: false),
-                onOpen: (item) => _workspaceController.toggle(item.id),
-                onEdit: (item) => manageSelectedQuestions(
+                        .toList(growable: false),
+                      onOpen: (item) => _workspaceController.toggle(item.id),
+                      onEdit: (item) => manageSelectedQuestions(
                   context: context,
                   repository: _repository,
                   questionIds: {item.id},
@@ -274,6 +272,9 @@ class _PaperFolderDetailPageState extends State<PaperFolderDetailPage> {
                   questions.insert(insertionIndex, item);
                   _saveQuestions(questions);
                 },
+                      ),
+                    ),
+                ],
               ),
             ),
     );

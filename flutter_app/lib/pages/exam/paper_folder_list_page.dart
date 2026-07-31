@@ -359,33 +359,17 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
                       vertical: AppSpacing.md,
                     ),
                     itemCount: _folders!.length,
-                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final folder = _folders![index];
+                      final selected = _selection.isSelected(folder.id);
                       return GestureDetector(
                         onLongPress: () => _showFolderMenu(folder),
                         onSecondaryTap: () => _showFolderMenu(folder),
-                        child: ListTile(
-                          leading: const Icon(Icons.folder_outlined),
-                          title: Text(folder.name),
-                          subtitle: Text(
-                            '${folder.questionCount} 题 · ${_time(folder.updatedAt)}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: '更多题篮操作',
-                                icon: const Icon(Icons.more_horiz),
-                                onPressed: () => _showFolderMenu(folder),
-                              ),
-                              AppSelectionToggle(
-                                selected: _selection.isSelected(folder.id),
-                                onPressed: () => _toggleSelection(folder.id),
-                                selectTooltip: '选择试题篮',
-                              ),
-                            ],
-                          ),
+                        child: AppCard(
+                          selected: selected,
+                          padding: EdgeInsets.zero,
                           onTap: () async {
                             await RouterUtils.push(
                               context,
@@ -393,6 +377,50 @@ class _PaperFolderListPageState extends State<PaperFolderListPage> {
                             );
                             await _load();
                           },
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.folder_outlined),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        folder.name,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall,
+                                      ),
+                                      const SizedBox(height: AppSpacing.xxs),
+                                      Text(
+                                        '${folder.questionCount} 题 · ${_time(folder.updatedAt)}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  context.colors.textSecondary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: '更多题篮操作',
+                                  icon: const Icon(Icons.more_horiz),
+                                  onPressed: () => _showFolderMenu(folder),
+                                ),
+                                AppSelectionToggle(
+                                  selected: selected,
+                                  onPressed: () => _toggleSelection(folder.id),
+                                  selectTooltip: '选择试题篮',
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },

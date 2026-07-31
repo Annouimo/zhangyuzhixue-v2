@@ -40,7 +40,11 @@ class _MockFavRepo implements ExamRepository {
   @override
   Future<void> toggleLike(int id) async {}
   @override
+  Future<void> setLike(int id, bool active) async {}
+  @override
   Future<void> toggleCollect(int id) async {}
+  @override
+  Future<void> setCollect(int id, bool active) async {}
   @override
   Future<void> togglePublic(int id) async {}
   @override
@@ -79,7 +83,7 @@ void main() {
       expect(find.byTooltip('取消收藏'), findsOneWidget);
       await tester.tap(find.byTooltip('选择试卷'));
       await tester.pump();
-      expect(find.text('已选 1 份'), findsOneWidget);
+      expect(find.textContaining('已选 1'), findsOneWidget);
       expect(find.text('管理收藏'), findsOneWidget);
     });
 

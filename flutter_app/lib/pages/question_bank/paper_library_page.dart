@@ -7,13 +7,20 @@ import '../../data/database/database_provider.dart';
 import '../../domain/exam_repository.dart';
 import '../../domain/paper_content.dart';
 import '../exam/exam_quicklook_page.dart';
-import '../exam/widgets/paper_card.dart';
+
+enum PaperLibraryMode { all, real, mock }
 
 class PaperLibraryPage extends StatefulWidget {
-  const PaperLibraryPage({super.key, this.embedded = false, this.regions});
+  const PaperLibraryPage({
+    super.key,
+    this.embedded = false,
+    this.regions,
+    this.mode = PaperLibraryMode.all,
+  });
 
   final bool embedded;
   final List<String>? regions;
+  final PaperLibraryMode mode;
 
   @override
   State<PaperLibraryPage> createState() => _PaperLibraryPageState();
@@ -22,8 +29,8 @@ class PaperLibraryPage extends StatefulWidget {
 class _PaperLibraryPageState extends State<PaperLibraryPage> {
   late final ExamRepository _repository;
   late final VirtualPaperRepository _virtualPaperRepository;
-  final _searchController = TextEditingController();
   List<VirtualPaper>? _papers;
+  String _mockType = '一模';
 
   @override
   void initState() {
@@ -36,35 +43,28 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
     _load();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   Future<void> _load() async {
     final papers = await _virtualPaperRepository.getVirtualPapers();
     if (mounted) setState(() => _papers = papers);
   }
 
   List<VirtualPaper> get _visible {
-    final query = _searchController.text.trim().toLowerCase();
     final papers = _papers ?? const [];
     final regions = widget.regions;
     final scoped = regions == null
         ? papers
         : papers.where((paper) => regions.contains(paper.region)).toList();
-    if (query.isEmpty) return scoped;
-    return scoped
-        .where(
-          (paper) => [
-            paper.title,
-            paper.year.toString(),
-            paper.region,
-            paper.examType,
-          ].any((value) => value.toLowerCase().contains(query)),
-        )
-        .toList(growable: false);
+    return switch (widget.mode) {
+      PaperLibraryMode.real =>
+        scoped
+            .where((paper) => paper.examType.contains('高考'))
+            .toList(growable: false),
+      PaperLibraryMode.mock =>
+        scoped
+            .where((paper) => paper.examType.contains(_mockType))
+            .toList(growable: false),
+      PaperLibraryMode.all => scoped,
+    };
   }
 
   void _openPaper(VirtualPaper paper) {
@@ -85,13 +85,11 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
   @override
   Widget build(BuildContext context) {
     final papers = _visible;
-    final grouped = <String, Map<int, List<VirtualPaper>>>{};
+    final grouped = <int, List<VirtualPaper>>{};
     for (final paper in papers) {
-      grouped
-          .putIfAbsent(paper.examType, () => {})
-          .putIfAbsent(paper.year, () => [])
-          .add(paper);
+      grouped.putIfAbsent(paper.year, () => []).add(paper);
     }
+    final years = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
     final body = _papers == null
         ? const LoadingIndicator(message: '正在加载套卷')
         : AppContentContainer(
@@ -99,46 +97,99 @@ class _PaperLibraryPageState extends State<PaperLibraryPage> {
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               children: [
-                TextField(
-                  controller: _searchController,
-                  decoration: const InputDecoration(
-                    hintText: '搜索年份、地区或考试类型',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                ...grouped.entries.map(
-                  (typeEntry) => ExpansionTile(
-                    title: Text(typeEntry.key),
-                    subtitle: Text(
-                      '${typeEntry.value.values.fold<int>(0, (sum, items) => sum + items.length)} 套',
+                if (widget.mode == PaperLibraryMode.mock) ...[
+                  Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: ['一模', '二模']
+                          .map(
+                            (type) => ChoiceChip(
+                              label: Text(type),
+                              selected: _mockType == type,
+                              showCheckmark: false,
+                              onSelected: (_) =>
+                                  setState(() => _mockType = type),
+                            ),
+                          )
+                          .toList(),
                     ),
-                    children: typeEntry.value.entries
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                ...years.map((year) {
+                  final yearPapers = grouped[year]!
+                    ..sort((a, b) => a.region.compareTo(b.region));
+                  return ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                    ),
+                    childrenPadding: EdgeInsets.zero,
+                    shape: Border(
+                      bottom: BorderSide(color: context.colors.divider),
+                    ),
+                    collapsedShape: Border(
+                      bottom: BorderSide(color: context.colors.divider),
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$year年',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        Text(
+                          '${yearPapers.length}套',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: context.colors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    children: yearPapers
                         .map(
-                          (yearEntry) => ExpansionTile(
-                            title: Text('${yearEntry.key} 年'),
-                            children: yearEntry.value
-                                .map(
-                                  (paper) => Padding(
-                                    padding: const EdgeInsets.only(
-                                      bottom: AppSpacing.sm,
+                          (paper) => Column(
+                            children: [
+                              ListTile(
+                                minTileHeight: 56,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                hoverColor: context.colors.surfaceSubtle,
+                                title: Text(paper.title),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${paper.questionCount}题',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: context.colors.textSecondary,
+                                          ),
                                     ),
-                                    child: PaperCard(
-                                      title: paper.title,
-                                      subtitle:
-                                          '${paper.year} · ${paper.region} · ${paper.questionCount} 题',
-                                      trailing: '整卷',
-                                      onTap: () => _openPaper(paper),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: context.colors.textSecondary,
                                     ),
-                                  ),
-                                )
-                                .toList(growable: false),
+                                  ],
+                                ),
+                                onTap: () => _openPaper(paper),
+                              ),
+                              Divider(
+                                height: 1,
+                                indent: AppSpacing.md,
+                                color: context.colors.divider,
+                              ),
+                            ],
                           ),
                         )
                         .toList(growable: false),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           );

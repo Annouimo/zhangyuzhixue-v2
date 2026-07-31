@@ -35,6 +35,7 @@ class SyncManager {
 
   /// 并发锁 — 防止 pushNow 重叠（定时器 tick 和主动调用之间）
   bool _pushing = false;
+  Future<PushSummary?>? _activePush;
 
   /// 后台重试定时器（30 秒间隔，首次 enqueue 启动，队列空后停止）
   Timer? _retryTimer;
@@ -231,7 +232,19 @@ class SyncManager {
   /// 并发锁：[_pushing] 防止重叠调用，重叠时返回 null。
   Future<PushSummary?> pushNow() async {
     _ensureInitialized();
-    if (_pushing) return null;
+    final activePush = _activePush;
+    if (activePush != null) return activePush;
+
+    final push = _performPush();
+    _activePush = push;
+    try {
+      return await push;
+    } finally {
+      if (identical(_activePush, push)) _activePush = null;
+    }
+  }
+
+  Future<PushSummary?> _performPush() async {
     _pushing = true;
     try {
       final summary = await _pusher!.pushAll();
@@ -407,6 +420,8 @@ class SyncManager {
   static Future<void> resetForTesting() async {
     _instance._retryTimer?.cancel();
     _instance._retryTimer = null;
+    await _instance._activePush;
+    _instance._activePush = null;
     _instance._pushing = false;
     _instance._queueDao = null;
     _instance._pusher = null;

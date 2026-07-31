@@ -141,20 +141,20 @@ void main() {
       expect(find.text('知识卡片'), findsOneWidget);
       expect(find.text('试题来源'), findsOneWidget);
       expect(find.text('题目特征'), findsOneWidget);
-      expect(find.text('重置所有维度'), findsOneWidget);
-      expect(find.text('重置当前维度'), findsNothing);
+      expect(find.text('清除全部'), findsOneWidget);
+      expect(find.text('清除当前维度'), findsNothing);
 
       await tester.tap(find.text('试题来源'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('2025'));
       await tester.pumpAndSettle();
 
-      expect(find.text('重置当前维度'), findsOneWidget);
+      expect(find.text('清除当前维度'), findsOneWidget);
 
-      await tester.tap(find.text('重置当前维度'));
+      await tester.tap(find.text('清除当前维度'));
       await tester.pumpAndSettle();
-      expect(find.text('重置当前维度'), findsNothing);
-      expect(find.text('重置所有维度'), findsOneWidget);
+      expect(find.text('清除当前维度'), findsNothing);
+      expect(find.text('清除全部'), findsOneWidget);
     });
   });
 }

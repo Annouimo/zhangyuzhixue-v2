@@ -172,60 +172,33 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
         source: widget.virtualPaper ?? SavedPaperRef(widget.examId!),
         context: context,
       );
-    } else if (value == 'visibility') {
-      await _togglePublic();
     } else if (value == 'delete') {
       await _delete();
     }
   }
 
-  void _startVirtualPaper(PaperContent paper) {
-    if (paper.questions.isEmpty) return;
-    final first = paper.questions.first;
-    SolveRouteHelper.navigateTo(
-      context,
-      first.questionId,
-      first.questionType,
-      sequence: paper.questions
-          .map((question) => question.questionId)
-          .toList(growable: false),
-    );
-  }
-
   Widget _buildPaperActions(PaperContent paper) => PaperActionBar(
     actions: [
-      if (widget.examId == null)
+      if (widget.examId != null)
         PaperAction(
-          label: '开始练习',
-          compactLabel: '开始',
-          icon: Icons.play_arrow_rounded,
-          variant: AppButtonVariant.primary,
-          onPressed: () => _startVirtualPaper(paper),
+          label: paper.isPublic ? '公开' : '私密',
+          icon: paper.isPublic ? Icons.public : Icons.lock_outline,
+          variant: AppButtonVariant.outlined,
+          onPressed: _togglePublic,
         ),
-      PaperAction(
-        label: '快速对答案',
-        icon: Icons.fact_check_outlined,
-        onPressed: () => RouterUtils.push(
-          context,
-          widget.examId != null
-              ? '${AppRoutes.answerSheet}?id=${widget.examId}'
-              : AppRoutes.answerSheet,
-          extra: widget.virtualPaper,
-        ),
-      ),
     ],
     menuActions: [
+      const PaperMenuAction(
+        value: 'answers',
+        label: '快速对答案',
+        icon: Icons.fact_check_outlined,
+      ),
       const PaperMenuAction(
         value: 'print',
         label: '打印试卷',
         icon: Icons.print_outlined,
       ),
       if (widget.examId != null) ...[
-        PaperMenuAction(
-          value: 'visibility',
-          label: paper.isPublic ? '设为私密' : '公开分享',
-          icon: paper.isPublic ? Icons.lock_outline : Icons.public,
-        ),
         const PaperMenuAction(
           value: 'delete',
           label: '删除试卷',
@@ -278,7 +251,6 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
               children: [
                 AppSectionHeader(
                   title: '试卷题目',
-                  subtitle: '共 ${paper.questions.length} 题，按当前顺序排列。',
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],

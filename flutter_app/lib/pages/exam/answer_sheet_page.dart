@@ -29,7 +29,6 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
   late final ExamRepository _repo;
   List<AnswerItem>? _answers;
   String? _examName;
-  int _totalCount = 0;
   bool _loading = true;
   String? _error;
 
@@ -59,7 +58,6 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
       setState(() {
         _answers = answers;
         _examName = name;
-        _totalCount = totalCount;
         _loading = false;
       });
       AuditLogger.instance.page('AnswerSheetPage', {'total': _answers?.length});
@@ -167,7 +165,6 @@ class _AnswerSheetPageState extends State<AnswerSheetPage> {
   Widget _buildHeader() {
     return AppSectionHeader(
       title: _examName ?? '试卷答案',
-      subtitle: '共 $_totalCount 题',
     );
   }
 

@@ -10,7 +10,6 @@ import '../../domain/paper_folder_repository.dart';
 import '../../domain/question_repository.dart';
 import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
-import 'widgets/paper_action_bar.dart';
 
 /// 预览其他用户公开的组卷。
 class ExamQuicklookOtherPage extends StatefulWidget {
@@ -32,8 +31,11 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
   ExamPreviewOther? _preview;
   bool _loading = true;
   String? _error;
-  bool _liked = false;
-  bool _collected = false;
+  bool _updatingLike = false;
+  bool _updatingCollect = false;
+
+  bool get _liked => _preview?.isLiked ?? false;
+  bool get _collected => _preview?.isCollected ?? false;
 
   @override
   void initState() {
@@ -57,8 +59,6 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
       if (!mounted) return;
       setState(() {
         _preview = preview;
-        _liked = preview.isLiked;
-        _collected = preview.isCollected;
         _loading = false;
       });
       AuditLogger.instance.page('ExamQuicklookOtherPage', {
@@ -79,63 +79,80 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: Text(_preview?.name ?? '试卷预览', overflow: TextOverflow.ellipsis),
-      actions: _preview == null
-          ? null
-          : [
-              SizedBox(
-                width: MediaQuery.sizeOf(context).width >= 800 ? 430 : 190,
-                child: _buildPaperActions(_preview!),
-              ),
-            ],
+      actions: _preview == null ? null : _buildPaperActions(),
     ),
     body: _buildBody(),
   );
 
-  Widget _buildPaperActions(ExamPreviewOther preview) => PaperActionBar(
-    actions: [
-      PaperAction(
-        label: '快速对答案',
-        compactLabel: '对答案',
-        icon: Icons.fact_check_outlined,
-        onPressed: () => RouterUtils.push(
-          context,
-          '${AppRoutes.answerSheet}?id=${widget.examId}',
+  List<Widget> _buildPaperActions() => [
+    IconButton(
+      tooltip: _liked ? '取消点赞' : '点赞',
+      onPressed: _updatingLike ? null : _toggleLike,
+      style: IconButton.styleFrom(
+        foregroundColor: _liked
+            ? context.colors.primary
+            : context.colors.textSecondary,
+        backgroundColor: _liked
+            ? context.colors.primaryContainer
+            : Colors.transparent,
+      ),
+      icon: Icon(
+        _liked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
+      ),
+    ),
+    IconButton(
+      tooltip: _collected ? '取消收藏' : '收藏',
+      onPressed: _updatingCollect ? null : _toggleCollect,
+      style: IconButton.styleFrom(
+        foregroundColor: _collected
+            ? context.colors.primary
+            : context.colors.textSecondary,
+        backgroundColor: _collected
+            ? context.colors.primaryContainer
+            : Colors.transparent,
+      ),
+      icon: Icon(
+        _collected ? Icons.star_rounded : Icons.star_border_rounded,
+      ),
+    ),
+    PopupMenuButton<String>(
+      tooltip: '更多试卷操作',
+      icon: const Icon(Icons.more_horiz),
+      onSelected: (value) {
+        if (value == 'answers') {
+          RouterUtils.push(
+            context,
+            '${AppRoutes.answerSheet}?id=${widget.examId}',
+          );
+        }
+        if (value == 'print') {
+          PdfHelper.downloadPdf(
+            sourceId: widget.examId,
+            sourceType: 'paper',
+            context: context,
+          );
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: 'answers',
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.fact_check_outlined),
+            title: Text('快速对答案'),
+          ),
         ),
-      ),
-      PaperAction(
-        label: _collected
-            ? '${preview.collectCount} 已收藏'
-            : '${preview.collectCount} 收藏',
-        icon: _collected
-            ? Icons.bookmark_rounded
-            : Icons.bookmark_outline_rounded,
-        variant: AppButtonVariant.outlined,
-        onPressed: _toggleCollect,
-      ),
-    ],
-    menuActions: [
-      PaperMenuAction(
-        value: 'like',
-        label: _liked ? '${preview.likeCount} 取消点赞' : '${preview.likeCount} 点赞',
-        icon: _liked ? AppIcons.likeSelected : AppIcons.like,
-      ),
-      const PaperMenuAction(
-        value: 'print',
-        label: '打印试卷',
-        icon: Icons.print_outlined,
-      ),
-    ],
-    onMenuSelected: (value) {
-      if (value == 'like') _toggleLike();
-      if (value == 'print') {
-        PdfHelper.downloadPdf(
-          sourceId: widget.examId,
-          sourceType: 'paper',
-          context: context,
-        );
-      }
-    },
-  );
+        PopupMenuItem(
+          value: 'print',
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.print_outlined),
+            title: Text('打印试卷'),
+          ),
+        ),
+      ],
+    ),
+  ];
 
   Widget _buildBody() {
     if (_loading) return const LoadingIndicator(message: '加载试卷预览…');
@@ -178,7 +195,6 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
               children: [
                 AppSectionHeader(
                   title: '试卷题目',
-                  subtitle: '共 ${preview.questions.length} 题，点击可进入练习。',
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
@@ -190,24 +206,63 @@ class _ExamQuicklookOtherPageState extends State<ExamQuicklookOtherPage> {
   }
 
   Future<void> _toggleLike() async {
-    await _repo.toggleLike(widget.examId);
-    if (!mounted || _preview == null) return;
+    if (_updatingLike || _preview == null) return;
+    final previous = _liked;
+    final target = !previous;
     setState(() {
-      _liked = !_liked;
+      _updatingLike = true;
       _preview = _preview!.copyWith(
-        likeCount: _preview!.likeCount + (_liked ? 1 : -1),
+        isLiked: target,
+        likeCount: (_preview!.likeCount + (target ? 1 : -1)).clamp(0, 1 << 30),
       );
     });
+    try {
+      await _repo.setLike(widget.examId, target);
+    } catch (_) {
+      if (mounted && _preview != null) {
+        setState(() {
+          _preview = _preview!.copyWith(
+            isLiked: previous,
+            likeCount: (_preview!.likeCount + (previous ? 1 : -1))
+                .clamp(0, 1 << 30),
+          );
+        });
+        AppToast.error(context, '点赞操作失败，请稍后重试');
+      }
+    } finally {
+      _updatingLike = false;
+      if (mounted) setState(() {});
+    }
   }
 
   Future<void> _toggleCollect() async {
-    await _repo.toggleCollect(widget.examId);
-    if (!mounted || _preview == null) return;
+    if (_updatingCollect || _preview == null) return;
+    final previous = _collected;
+    final target = !previous;
     setState(() {
-      _collected = !_collected;
+      _updatingCollect = true;
       _preview = _preview!.copyWith(
-        collectCount: _preview!.collectCount + (_collected ? 1 : -1),
+        isCollected: target,
+        collectCount: (_preview!.collectCount + (target ? 1 : -1))
+            .clamp(0, 1 << 30),
       );
     });
+    try {
+      await _repo.setCollect(widget.examId, target);
+    } catch (_) {
+      if (mounted && _preview != null) {
+        setState(() {
+          _preview = _preview!.copyWith(
+            isCollected: previous,
+            collectCount: (_preview!.collectCount + (previous ? 1 : -1))
+                .clamp(0, 1 << 30),
+          );
+        });
+        AppToast.error(context, '收藏操作失败，请稍后重试');
+      }
+    } finally {
+      _updatingCollect = false;
+      if (mounted) setState(() {});
+    }
   }
 }

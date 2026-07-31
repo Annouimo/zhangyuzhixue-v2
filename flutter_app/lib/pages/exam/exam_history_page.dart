@@ -192,22 +192,15 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                 maxWidth: AppContentWidth.standard,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  itemCount: list.length + 1,
+                  itemCount: list.length,
                   separatorBuilder: (_, _) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (ctx, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                        child: AppSectionHeader(
-                          title: '共 ${list.length} 份试卷',
-                          subtitle: '可以切换公开状态、打印试卷、查看答案或删除。',
-                        ),
-                      );
-                    }
-                    final exam = list[index - 1];
+                    final exam = list[index];
+                    final selected = _selection.isSelected(exam.id);
                     return PaperCard(
                       title: exam.name,
+                      selected: selected,
                       subtitle: '创建于 ${_formatTime(exam.createdAt)}',
                       trailingWidget: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -223,7 +216,7 @@ class _ExamHistoryPageState extends State<ExamHistoryPage> {
                             compact: true,
                           ),
                           AppSelectionToggle(
-                            selected: _selection.isSelected(exam.id),
+                            selected: selected,
                             onPressed: () => _toggleSelection(exam.id),
                             selectTooltip: '选择试卷',
                           ),

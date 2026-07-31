@@ -98,7 +98,6 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
   }
 
   Widget _buildQuestionGroups() {
-    var numberOffset = 0;
     final sections = <Widget>[];
     final types = [
       ...paperQuestionTypeOrder,
@@ -112,8 +111,6 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
           .where((question) => question.questionType == type)
           .toList();
       if (questions.isEmpty) continue;
-      final startNumber = numberOffset;
-      numberOffset += questions.length;
       sections.add(
         Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -139,10 +136,6 @@ class _PaperDraftDialogState extends State<PaperDraftDialog> {
             return ListTile(
               key: ValueKey(question.id),
               contentPadding: EdgeInsets.zero,
-              leading: SizedBox(
-                width: 28,
-                child: Text('${startNumber + index + 1}.'),
-              ),
               title: MdLatexBody(question.title, fontSize: 14),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,

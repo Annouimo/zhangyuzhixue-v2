@@ -174,10 +174,10 @@ void main() {
   testWidgets('search and filters share one result flow', (tester) async {
     final repository = await pumpQuestionBank(tester);
 
-    expect(find.text('搜索题目'), findsWidgets);
+    expect(find.text('搜索题干、知识点或题号'), findsWidgets);
     expect(find.text('我的筛选方案'), findsNothing);
-    expect(find.text('筛选条件'), findsOneWidget);
-    expect(find.text('题目结果'), findsOneWidget);
+    expect(find.text('筛选'), findsOneWidget);
+    expect(find.text('题目结果'), findsNothing);
     expect(find.text('选题'), findsNothing);
     expect(find.text('全部加入试题篮'), findsNothing);
     expect(find.text('智能选题'), findsNothing);
@@ -190,10 +190,8 @@ void main() {
     expect(repository.lastFilters?.years, isEmpty);
     expect(repository.lastFilters?.examTypes, isEmpty);
     expect(find.text('函数测试题'), findsOneWidget);
-    expect(find.text('1 道'), findsOneWidget);
-    expect(find.text('选择题 1'), findsOneWidget);
-    expect(find.text('填空题 0'), findsOneWidget);
-    expect(find.text('解答题 0'), findsOneWidget);
+    expect(find.textContaining('共 1 道'), findsOneWidget);
+    expect(find.text('选择题 1 · 填空题 0 · 解答题 0'), findsOneWidget);
     expect(find.text('平均难度 4.0'), findsOneWidget);
   });
 
@@ -206,7 +204,7 @@ void main() {
 
     expect(find.text('完成选题'), findsNothing);
     expect(find.text('智能选题'), findsOneWidget);
-    expect(find.byTooltip('更多选择操作'), findsOneWidget);
+    expect(find.byTooltip('更多选择操作'), findsNothing);
     expect(find.byTooltip('选择题目'), findsOneWidget);
 
     await tester.tap(find.byTooltip('选择题目'));
@@ -214,16 +212,11 @@ void main() {
 
     expect(find.byTooltip('取消选择'), findsOneWidget);
     expect(find.text('智能补全'), findsOneWidget);
-    expect(find.text('已选 1 道题'), findsOneWidget);
-    expect(find.text('管理已选题目'), findsOneWidget);
-    await tester.tap(find.byTooltip('更多选择操作'));
+    expect(find.textContaining('已选 1'), findsOneWidget);
+    expect(find.text('整理已选'), findsOneWidget);
+    await tester.tap(find.byTooltip('取消选择'));
     await tester.pumpAndSettle();
-    expect(find.text('清空已选题目'), findsOneWidget);
-    await tester.tapAt(const Offset(10, 10));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('函数测试题'));
-    await tester.pumpAndSettle();
-    expect(find.byTooltip('取消选择'), findsOneWidget);
+    expect(find.byTooltip('选择题目'), findsOneWidget);
   });
 
   testWidgets('question list keeps scroll stable and can return to top', (
@@ -240,7 +233,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, '函数');
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
-    expect(find.text('21 道'), findsOneWidget);
+    expect(find.textContaining('共 21 道'), findsOneWidget);
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -1200));
     await tester.pumpAndSettle();
@@ -249,7 +242,7 @@ void main() {
     await tester.drag(find.byType(CustomScrollView), const Offset(0, 2400));
     await tester.pumpAndSettle();
     expect(scrollController.offset, 0);
-    expect(find.text('搜索题目'), findsWidgets);
-    expect(find.text('筛选条件'), findsOneWidget);
+    expect(find.text('搜索题干、知识点或题号'), findsWidgets);
+    expect(find.text('筛选'), findsOneWidget);
   });
 }

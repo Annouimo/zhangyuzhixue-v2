@@ -67,7 +67,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
       context,
       title: '取消收藏所选试卷？',
       message: '将从收藏中移除 ${selected.length} 份试卷。',
-      icon: Icons.bookmark_remove_outlined,
+      icon: Icons.star_outline_rounded,
       confirmLabel: '取消收藏',
       destructive: true,
     );
@@ -127,7 +127,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
         AppActionSheetItem(
           value: 'remove',
           label: '取消收藏',
-          icon: Icons.bookmark_remove_outlined,
+          icon: Icons.star_outline_rounded,
           destructive: true,
         ),
       ],
@@ -162,7 +162,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
       key: _loadKey,
       onLoad: _repo.getFavorites,
       emptyWidget: EmptyPlaceholder(
-        icon: Icons.bookmark_outline_rounded,
+        icon: Icons.star_border_rounded,
         message: '还没有收藏试卷，可以去发现页看看',
       ),
       builder: (ctx, list) {
@@ -179,22 +179,15 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                 maxWidth: AppContentWidth.standard,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  itemCount: list.length + 1,
+                  itemCount: list.length,
                   separatorBuilder: (_, _) =>
                       const SizedBox(height: AppSpacing.sm),
                   itemBuilder: (ctx, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                        child: AppSectionHeader(
-                          title: '已收藏 ${list.length} 份',
-                          subtitle: '收藏的公开试卷会集中保存在这里。',
-                        ),
-                      );
-                    }
-                    final exam = list[index - 1];
+                    final exam = list[index];
+                    final selected = _selection.isSelected(exam.id);
                     return PaperCard(
                       title: exam.name,
+                      selected: selected,
                       subtitle: exam.authorInfo.isNotEmpty
                           ? exam.authorInfo
                           : exam.summary,
@@ -204,13 +197,13 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
                           IconButton(
                             tooltip: '取消收藏',
                             icon: Icon(
-                              Icons.bookmark_rounded,
+                              Icons.star_rounded,
                               color: context.colors.primary,
                             ),
                             onPressed: () => _removeCollect(exam),
                           ),
                           AppSelectionToggle(
-                            selected: _selection.isSelected(exam.id),
+                            selected: selected,
                             onPressed: () => _toggleSelection(exam.id),
                             selectTooltip: '选择试卷',
                           ),
@@ -232,7 +225,7 @@ class _ExamFavoritesPageState extends State<ExamFavoritesPage> {
               onSelectAll: () => _selectAll(list.map((item) => item.id)),
               onClear: _clearSelection,
               actionLabel: '管理收藏',
-              actionIcon: Icons.bookmarks_outlined,
+              actionIcon: Icons.star_outline_rounded,
               onAction: () => _manageSelected(list),
             ),
           ],

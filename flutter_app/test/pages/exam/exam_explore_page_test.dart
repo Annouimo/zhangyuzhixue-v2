@@ -40,7 +40,11 @@ class _MockExploreRepo implements ExamRepository {
   @override
   Future<void> toggleLike(int id) async {}
   @override
+  Future<void> setLike(int id, bool active) async {}
+  @override
   Future<void> toggleCollect(int id) async {}
+  @override
+  Future<void> setCollect(int id, bool active) async {}
   @override
   Future<void> togglePublic(int id) async {}
   @override
@@ -81,7 +85,8 @@ void main() {
       expect(find.text('海淀一模'), findsOneWidget);
       expect(find.textContaining('5 赞'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
-      expect(find.byTooltip('收藏试卷'), findsOneWidget);
+      expect(find.text('综合热度'), findsOneWidget);
+      expect(find.byTooltip('收藏试卷'), findsNothing);
     });
 
     testWidgets('shows empty state', (tester) async {

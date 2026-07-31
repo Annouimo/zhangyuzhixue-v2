@@ -75,8 +75,16 @@ class ExamBrowsePage extends StatelessWidget {
       ),
       body: const TabBarView(
         children: [
-          PaperLibraryPage(embedded: true, regions: _realRegions),
-          PaperLibraryPage(embedded: true, regions: _mockRegions),
+          PaperLibraryPage(
+            embedded: true,
+            regions: _realRegions,
+            mode: PaperLibraryMode.real,
+          ),
+          PaperLibraryPage(
+            embedded: true,
+            regions: _mockRegions,
+            mode: PaperLibraryMode.mock,
+          ),
           ExamExplorePage(embedded: true),
         ],
       ),

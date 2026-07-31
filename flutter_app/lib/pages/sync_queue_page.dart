@@ -6,6 +6,7 @@ import 'package:shared/widgets/app_state_panel.dart';
 import 'package:shared/widgets/app_page_layout.dart';
 import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_button.dart';
+import 'package:shared/widgets/app_page_hint.dart';
 import 'package:shared/widgets/app_toast.dart';
 import '../data/daos/sync_queue_dao.dart';
 import '../data/database/database_provider.dart';
@@ -153,7 +154,6 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
         children: [
           AppSectionHeader(
             title: '同步队列',
-            subtitle: '$retryableCount 项等待处理',
             action: AppButton(
               label: '全部重试',
               icon: Icons.refresh,
@@ -163,6 +163,7 @@ class _SyncQueuePageState extends State<SyncQueuePage> {
               expanded: false,
             ),
           ),
+          AppPageHint(message: '$retryableCount 项等待处理'),
           const SizedBox(height: AppSpacing.md),
           ...items.map((item) {
             final failed =

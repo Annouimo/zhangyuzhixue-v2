@@ -24,6 +24,8 @@ class _MockAnswerRepo implements ExamRepository {
   @override Future<int> confirm(SearchFilters f, {bool allowShortfall = false}) async => throw UnimplementedError();
   @override Future<void> toggleLike(int id) async {}
   @override Future<void> toggleCollect(int id) async {}
+  @override Future<void> setLike(int id, bool active) async {}
+  @override Future<void> setCollect(int id, bool active) async {}
   @override Future<void> togglePublic(int id) async {}
   @override Future<void> deleteExam(int id) async {}
   @override Future<void> removeFavorite(int id) async {}

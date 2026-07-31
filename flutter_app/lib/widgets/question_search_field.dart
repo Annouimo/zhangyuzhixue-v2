@@ -6,11 +6,15 @@ class QuestionSearchField extends StatelessWidget {
     required this.controller,
     required this.onSubmitted,
     this.onChanged,
+    this.trailing,
+    this.hintText = '搜索题干、知识点或题号',
   });
 
   final TextEditingController controller;
   final ValueChanged<String> onSubmitted;
   final ValueChanged<String>? onChanged;
+  final Widget? trailing;
+  final String hintText;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +24,7 @@ class QuestionSearchField extends StatelessWidget {
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       decoration: InputDecoration(
-        hintText: '题干关键词、知识点名称或题号',
+        hintText: hintText,
         filled: true,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
@@ -28,11 +32,10 @@ class QuestionSearchField extends StatelessWidget {
           vertical: 14,
         ),
         prefixIcon: const Icon(Icons.search_rounded),
-        suffixIcon: IconButton(
-          tooltip: '搜索',
-          onPressed: () => onSubmitted(controller.text),
-          icon: const Icon(Icons.arrow_forward_rounded),
-        ),
+        suffixIcon: trailing,
+        suffixIconConstraints: trailing == null
+            ? null
+            : const BoxConstraints(minWidth: 72),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import '../database/app_database.dart' as db;
 import '../database/database_provider.dart';
 import 'package:shared/debug/audit_logger.dart';
+import 'dart:convert';
 
 /// 组卷/收藏/点赞数据访问层（user 库）
 class ExamDao {
@@ -107,18 +108,20 @@ class ExamDao {
     return result;
   }
 
-  Future<void> toggleLike(int paperId) async {
+  Future<bool> toggleLike(int paperId) async {
     final existing = await (_db.select(_db.paperLikes)
       ..where((t) => t.paperId.equals(paperId))).getSingleOrNull();
     if (existing != null) {
       final q = _db.delete(_db.paperLikes)..where((t) => t.paperId.equals(paperId));
       await q.go();
+      return false;
     } else {
       final now = DateTime.now().toIso8601String();
       await _db.into(_db.paperLikes).insert(db.PaperLikesCompanion(
         paperId: Value(paperId),
         createdAt: Value(now),
       ));
+      return true;
     }
   }
 
@@ -130,18 +133,81 @@ class ExamDao {
     return result;
   }
 
-  Future<void> toggleCollect(int paperId) async {
+  Future<bool> toggleCollect(int paperId) async {
     final existing = await (_db.select(_db.paperCollects)
       ..where((t) => t.paperId.equals(paperId))).getSingleOrNull();
     if (existing != null) {
       await (_db.delete(_db.paperCollects)
         ..where((t) => t.paperId.equals(paperId))).go();
+      return false;
     } else {
       await _db.into(_db.paperCollects).insert(db.PaperCollectsCompanion(
         paperId: Value(paperId),
         createdAt: Value(DateTime.now().toIso8601String()),
       ));
+      return true;
     }
+  }
+
+  Future<bool> toggleLikeWithOutbox(int paperId) => _db.transaction(() async {
+    final active = await toggleLike(paperId);
+    await _enqueueEngagement(
+      entityType: 'paper_like',
+      paperId: paperId,
+      active: active,
+    );
+    return active;
+  });
+
+  Future<void> setLikeWithOutbox(int paperId, bool active) =>
+      _db.transaction(() async {
+        final exists = await getLike(paperId) != null;
+        if (exists != active) await toggleLike(paperId);
+        await _enqueueEngagement(
+          entityType: 'paper_like',
+          paperId: paperId,
+          active: active,
+        );
+      });
+
+  Future<bool> toggleCollectWithOutbox(int paperId) =>
+      _db.transaction(() async {
+        final active = await toggleCollect(paperId);
+        await _enqueueEngagement(
+          entityType: 'paper_collect',
+          paperId: paperId,
+          active: active,
+        );
+        return active;
+      });
+
+  Future<void> setCollectWithOutbox(int paperId, bool active) =>
+      _db.transaction(() async {
+        final exists = await getCollect(paperId) != null;
+        if (exists != active) await toggleCollect(paperId);
+        await _enqueueEngagement(
+          entityType: 'paper_collect',
+          paperId: paperId,
+          active: active,
+        );
+      });
+
+  Future<void> _enqueueEngagement({
+    required String entityType,
+    required int paperId,
+    required bool active,
+  }) async {
+    await _db.into(_db.syncQueue).insert(
+      db.SyncQueueCompanion(
+        entityType: Value(entityType),
+        operationType: Value(active ? 'upsert' : 'delete'),
+        entityId: Value(paperId),
+        payload: Value(
+          jsonEncode({'paper_id': paperId, 'deleted': !active}),
+        ),
+        createdAt: Value(DateTime.now().toIso8601String()),
+      ),
+    );
   }
 
   /// 获取所有收藏的试卷 ID

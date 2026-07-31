@@ -128,7 +128,7 @@ class _QuestionWorkspaceState extends State<QuestionWorkspace> {
             onSelectAll: () =>
                 _controller.selectAll(widget.items.map((item) => item.id)),
             onClear: _controller.clear,
-            actionLabel: '管理已选题目',
+            actionLabel: '整理已选',
             actionIcon: Icons.checklist_rounded,
             onAction: selectedIds.isEmpty ? null : _manageSelected,
           )
@@ -222,7 +222,7 @@ class _QuestionSelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+    padding: const EdgeInsets.only(bottom: 12),
     child: QuestionCard(
       questionId: item.id,
       title: item.title,
@@ -230,6 +230,7 @@ class _QuestionSelectionCard extends StatelessWidget {
       subtitle: item.subtitle,
       difficulty: item.difficulty,
       status: item.status,
+      selected: selected,
       compact: true,
       onTap: onOpen,
       trailing: Row(

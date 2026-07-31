@@ -107,7 +107,7 @@ class SyncRepository {
       case 'custom_paper': return Icons.description;
       case 'exitRating': return Icons.chat;
       case 'paper_like': return Icons.thumb_up;
-      case 'paper_collect': return Icons.push_pin;
+      case 'paper_collect': return Icons.star_rounded;
       case 'preference': return Icons.tune;
       case 'points_transaction': return Icons.account_balance_wallet;
       default: return Icons.push_pin;

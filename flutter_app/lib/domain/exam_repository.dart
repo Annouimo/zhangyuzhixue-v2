@@ -133,7 +133,12 @@ class ExamPreviewOther {
     required this.questions,
   });
 
-  ExamPreviewOther copyWith({int? likeCount, int? collectCount}) {
+  ExamPreviewOther copyWith({
+    int? likeCount,
+    int? collectCount,
+    bool? isLiked,
+    bool? isCollected,
+  }) {
     return ExamPreviewOther(
       name: name,
       authorInfo: authorInfo,
@@ -143,8 +148,8 @@ class ExamPreviewOther {
       totalCount: totalCount,
       likeCount: likeCount ?? this.likeCount,
       collectCount: collectCount ?? this.collectCount,
-      isLiked: isLiked,
-      isCollected: isCollected,
+      isLiked: isLiked ?? this.isLiked,
+      isCollected: isCollected ?? this.isCollected,
       questions: questions,
     );
   }
@@ -250,21 +255,6 @@ class FilterPreset {
 }
 
 /// 安全截断 stem：避免截断点在 $...$ 公式内部导致未闭合 $
-String _safeStemCut(String stem, int maxLen) {
-  assert(maxLen > 0);
-  if (stem.length <= maxLen) return stem;
-  int cut = maxLen;
-  int dollarCount = RegExp(r'\$').allMatches(stem.substring(0, cut)).length;
-  if (dollarCount.isOdd) {
-    // 截断点在 $...$ 内部，回退到上一个已闭合的 $（即最后一个 $ 之前）
-    int lastDollar = stem.lastIndexOf(r'$', cut - 1);
-    if (lastDollar > 0) {
-      cut = lastDollar; // 去掉未匹配的 $
-    }
-  }
-  return '${stem.substring(0, cut)}...';
-}
-
 /// 搜索到的题目
 class SearchQuestion {
   final int id;
@@ -361,7 +351,7 @@ class ExamRepository implements QuestionLibraryRepository {
     // 优先走 API 获取全平台公开组卷
     try {
       final items = await _userApi.getExplorePapers();
-      return items.map((j) {
+      final summaries = items.map((j) {
         final m = j as Map<String, dynamic>;
         return ExploreExamSummary(
           id: m['id'] as int,
@@ -376,6 +366,21 @@ class ExamRepository implements QuestionLibraryRepository {
           isCollected: m['is_collected'] as bool? ?? false,
         );
       }).toList();
+      return summaries
+          .map((item) {
+            return ExploreExamSummary(
+              id: item.id,
+              name: item.name,
+              authorInfo: item.authorInfo,
+              summary: item.summary,
+              likeCount: item.likeCount,
+              collectCount: item.collectCount,
+              createdAt: item.createdAt,
+              isLiked: item.isLiked,
+              isCollected: item.isCollected,
+            );
+          })
+          .toList(growable: false);
     } catch (e) {
       AuditLogger.instance.error('ExamRepository.getExploreList.api', e);
     }
@@ -402,15 +407,9 @@ class ExamRepository implements QuestionLibraryRepository {
   }
 
   Future<void> toggleLike(int paperId) async {
-    await _examDao.toggleLike(paperId);
-    // 入同步队列
+    await _examDao.toggleLikeWithOutbox(paperId);
     try {
-      await SyncManager().enqueue(
-        entityType: SyncEntityType.paperLike,
-        operation: SyncOperationType.upsert,
-        localId: paperId,
-        payload: jsonEncode({'paper_id': paperId}),
-      );
+      SyncManager().scheduleOutboxPush();
     } catch (e) {
       AuditLogger.instance.sync('enqueue_error', {
         'type': 'toggleLike',
@@ -419,19 +418,37 @@ class ExamRepository implements QuestionLibraryRepository {
     }
   }
 
-  Future<void> toggleCollect(int paperId) async {
-    await _examDao.toggleCollect(paperId);
-    // 入同步队列
+  Future<void> setLike(int paperId, bool active) async {
+    await _examDao.setLikeWithOutbox(paperId, active);
     try {
-      await SyncManager().enqueue(
-        entityType: SyncEntityType.paperCollect,
-        operation: SyncOperationType.upsert,
-        localId: paperId,
-        payload: jsonEncode({'paper_id': paperId}),
-      );
+      await SyncManager().pushNow();
+    } catch (e) {
+      AuditLogger.instance.sync('schedule_error', {
+        'type': 'setLike',
+        'error': '$e',
+      });
+    }
+  }
+
+  Future<void> toggleCollect(int paperId) async {
+    await _examDao.toggleCollectWithOutbox(paperId);
+    try {
+      SyncManager().scheduleOutboxPush();
     } catch (e) {
       AuditLogger.instance.sync('enqueue_error', {
         'type': 'toggleCollect',
+        'error': '$e',
+      });
+    }
+  }
+
+  Future<void> setCollect(int paperId, bool active) async {
+    await _examDao.setCollectWithOutbox(paperId, active);
+    try {
+      await SyncManager().pushNow();
+    } catch (e) {
+      AuditLogger.instance.sync('schedule_error', {
+        'type': 'setCollect',
         'error': '$e',
       });
     }
@@ -473,7 +490,7 @@ class ExamRepository implements QuestionLibraryRepository {
   }
 
   Future<void> removeFavorite(int examId) async {
-    await _examDao.toggleCollect(examId);
+    await toggleCollect(examId);
   }
 
   // ── 我的组卷 ──
@@ -570,6 +587,8 @@ class ExamRepository implements QuestionLibraryRepository {
     // 优先走 API 获取全局数据
     try {
       final data = await _userApi.getPreviewOther(examId);
+      final serverLiked = data['is_liked'] as bool? ?? false;
+      final serverCollected = data['is_collected'] as bool? ?? false;
       final qList =
           (data['questions'] as List<dynamic>?)?.map((j) {
             final m = j as Map<String, dynamic>;
@@ -592,8 +611,8 @@ class ExamRepository implements QuestionLibraryRepository {
         totalCount: data['total_count'] as int? ?? 0,
         likeCount: data['like_count'] as int? ?? 0,
         collectCount: data['collect_count'] as int? ?? 0,
-        isLiked: data['is_liked'] as bool? ?? false,
-        isCollected: data['is_collected'] as bool? ?? false,
+        isLiked: serverLiked,
+        isCollected: serverCollected,
         questions: qList,
       );
     } catch (e) {
@@ -605,6 +624,7 @@ class ExamRepository implements QuestionLibraryRepository {
     final questions = await _examDao.getQuestions(examId);
     final qIds = questions.map((q) => q.questionId).toList();
     final qRows = await _questionDao.getByIds(qIds);
+    final localStatus = (await _examDao.getExploreStatuses([examId]))[examId];
     return ExamPreviewOther(
       name: paper.title,
       authorInfo: '',
@@ -614,6 +634,8 @@ class ExamRepository implements QuestionLibraryRepository {
       totalCount: qRows.length,
       likeCount: 0,
       collectCount: 0,
+      isLiked: localStatus?.liked ?? false,
+      isCollected: localStatus?.collected ?? false,
       questions: qRows
           .map(
             (q) => ExamQuestion(
@@ -833,7 +855,7 @@ class ExamRepository implements QuestionLibraryRepository {
         .map(
           (r) => SearchQuestion(
             id: r.id,
-            title: r.stem.length > 80 ? _safeStemCut(r.stem, 80) : r.stem,
+            title: r.stem,
             questionType: r.questionType,
             meta: '${r.year} ${r.examType} ${r.region}',
             difficulty: r.difficulty ?? 0,

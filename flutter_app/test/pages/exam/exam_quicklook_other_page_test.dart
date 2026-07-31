@@ -55,7 +55,11 @@ class _MockOtherRepo implements ExamRepository {
   @override
   Future<void> toggleLike(int id) async {}
   @override
+  Future<void> setLike(int id, bool active) async {}
+  @override
   Future<void> toggleCollect(int id) async {}
+  @override
+  Future<void> setCollect(int id, bool active) async {}
   @override
   Future<void> togglePublic(int id) async {}
   @override
@@ -83,16 +87,18 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('试卷'), findsAtLeast(1));
-      expect(find.text('快速对答案'), findsOneWidget);
+      expect(find.text('快速对答案'), findsNothing);
+      expect(find.byTooltip('点赞'), findsOneWidget);
+      expect(find.byTooltip('收藏'), findsOneWidget);
       expect(find.text('打印试卷'), findsNothing);
       expect(find.text('10 点赞'), findsNothing);
-      expect(find.text('5 收藏'), findsOneWidget);
+      expect(find.text('5 收藏'), findsNothing);
       expect(find.text('公开试卷中的题干'), findsOneWidget);
       expect(find.text('1. 2024 北京 模拟'), findsOneWidget);
       await tester.tap(find.byTooltip('更多试卷操作'));
       await tester.pumpAndSettle();
       expect(find.text('打印试卷'), findsOneWidget);
-      expect(find.text('10 点赞'), findsOneWidget);
+      expect(find.text('快速对答案'), findsOneWidget);
     });
   });
 }

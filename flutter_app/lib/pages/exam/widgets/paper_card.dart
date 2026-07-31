@@ -10,6 +10,7 @@ class PaperCard extends StatelessWidget {
     this.trailing,
     required this.onTap,
     this.trailingWidget,
+    this.selected = false,
   });
 
   final String title;
@@ -17,6 +18,7 @@ class PaperCard extends StatelessWidget {
   final String? trailing;
   final VoidCallback onTap;
   final Widget? trailingWidget;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,7 @@ class PaperCard extends StatelessWidget {
 
     return AppCard(
       padding: EdgeInsets.zero,
+      selected: selected,
       child: InkWell(
         onTap: onTap,
         borderRadius: const BorderRadius.vertical(
