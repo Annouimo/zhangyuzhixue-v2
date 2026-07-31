@@ -33,6 +33,56 @@ class MockAdapter implements HttpClientAdapter {
   void close({bool? force}) {}
 }
 
+class ConcurrentRefreshAdapter implements HttpClientAdapter {
+  int refreshCount = 0;
+  int successfulRetries = 0;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<dynamic>? cancelFuture,
+  ) async {
+    if (options.path == '/auth/refresh/') {
+      refreshCount++;
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return ResponseBody.fromString(
+        '{"code":0,"data":{"access":"new_access","refresh":"new_refresh"}}',
+        200,
+        headers: {
+          'content-type': ['application/json'],
+        },
+      );
+    }
+
+    if (options.headers['Authorization'] == 'Bearer new_access') {
+      successfulRetries++;
+      return ResponseBody.fromString(
+        '{"code":0,"data":{"ok":true}}',
+        200,
+        headers: {
+          'content-type': ['application/json'],
+        },
+      );
+    }
+
+    if (options.path == '/secure/three') {
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+
+    return ResponseBody.fromString(
+      '{"code":40002,"message":"expired"}',
+      401,
+      headers: {
+        'content-type': ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool? force}) {}
+}
+
 void main() {
   setUp(() {
     setTokenProvider(() => null);
@@ -80,8 +130,13 @@ void main() {
       String? authHeader;
       adapter.add((opts) {
         authHeader = opts.headers['Authorization'] as String?;
-        return ResponseBody.fromString('{"code":0,"data":{}}', 200,
-            headers: {'content-type': ['application/json']});
+        return ResponseBody.fromString(
+          '{"code":0,"data":{}}',
+          200,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        );
       });
       client.setMockAdapter(adapter);
 
@@ -98,8 +153,13 @@ void main() {
       String? authHeader;
       adapter.add((opts) {
         authHeader = opts.headers['Authorization'] as String?;
-        return ResponseBody.fromString('{"code":0,"data":{}}', 200,
-            headers: {'content-type': ['application/json']});
+        return ResponseBody.fromString(
+          '{"code":0,"data":{}}',
+          200,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        );
       });
       client.setMockAdapter(adapter);
 
@@ -110,6 +170,34 @@ void main() {
   });
 
   group('RefreshInterceptor failure path', () {
+    test('concurrent 401 responses share one refresh and all retry', () async {
+      var accessToken = 'expired_access';
+      setTokenProvider(() => accessToken);
+      setRefreshTokenProvider(() => 'valid_refresh');
+      setOnTokenRefreshed((newAccess, _) async {
+        accessToken = newAccess;
+      });
+
+      final client = ApiClient();
+      client.init(baseUrl: 'https://test/');
+      final adapter = ConcurrentRefreshAdapter();
+      client.setMockAdapter(adapter);
+
+      final responses = await Future.wait([
+        client.dio.get('/secure/one'),
+        client.dio.get('/secure/two'),
+        client.dio.get('/secure/three'),
+      ]);
+
+      expect(
+        responses.map((response) => response.statusCode),
+        everyElement(200),
+      );
+      expect(adapter.refreshCount, 1);
+      expect(adapter.successfulRetries, 3);
+      expect(accessToken, 'new_access');
+    });
+
     test('401 without refresh token triggers auth failure callback', () async {
       bool authFailed = false;
       setRefreshTokenProvider(() => null);
@@ -118,8 +206,15 @@ void main() {
       final client = ApiClient();
       client.init(baseUrl: 'https://test/');
       final adapter = MockAdapter();
-      adapter.add((_) => ResponseBody.fromString('{}', 401,
-          headers: {'content-type': ['application/json']}));
+      adapter.add(
+        (_) => ResponseBody.fromString(
+          '{}',
+          401,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        ),
+      );
       client.setMockAdapter(adapter);
 
       try {
@@ -139,8 +234,15 @@ void main() {
       final client = ApiClient();
       client.init(baseUrl: 'https://test/');
       final adapter = MockAdapter();
-      adapter.add((_) => ResponseBody.fromString('{}', 401,
-          headers: {'content-type': ['application/json']}));
+      adapter.add(
+        (_) => ResponseBody.fromString(
+          '{}',
+          401,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        ),
+      );
       client.setMockAdapter(adapter);
 
       try {
@@ -150,25 +252,35 @@ void main() {
       expect(usedRefreshToken, 'my_refresh');
     });
 
-    test('401 with refresh token triggers onRefreshFailed on network error', () async {
-      bool refreshFailed = false;
-      setRefreshTokenProvider(() => 'rt');
-      setOnRefreshFailed(() => refreshFailed = true);
+    test(
+      '401 with refresh token triggers onRefreshFailed on network error',
+      () async {
+        bool refreshFailed = false;
+        setRefreshTokenProvider(() => 'rt');
+        setOnRefreshFailed(() => refreshFailed = true);
 
-      final client = ApiClient();
-      client.init(baseUrl: 'https://test/');
-      final adapter = MockAdapter();
-      adapter.add((_) => ResponseBody.fromString('{}', 401,
-          headers: {'content-type': ['application/json']}));
-      client.setMockAdapter(adapter);
+        final client = ApiClient();
+        client.init(baseUrl: 'https://test/');
+        final adapter = MockAdapter();
+        adapter.add(
+          (_) => ResponseBody.fromString(
+            '{}',
+            401,
+            headers: {
+              'content-type': ['application/json'],
+            },
+          ),
+        );
+        client.setMockAdapter(adapter);
 
-      try {
-        await client.dio.get('/secure');
-      } catch (_) {}
+        try {
+          await client.dio.get('/secure');
+        } catch (_) {}
 
-      // Dio().post('/auth/refresh/') will fail in test → triggers onRefreshFailed
-      expect(refreshFailed, true);
-    });
+        // Dio().post('/auth/refresh/') will fail in test → triggers onRefreshFailed
+        expect(refreshFailed, true);
+      },
+    );
   });
 
   group('ErrorInterceptor', () {
@@ -181,20 +293,30 @@ void main() {
 
     test('passes code=0 response through', () async {
       dio.httpClientAdapter = MockAdapter()
-        ..add((_) => ResponseBody.fromString(
-              '{"code":0,"data":{"ok":true}}', 200,
-              headers: {'content-type': ['application/json']},
-            ));
+        ..add(
+          (_) => ResponseBody.fromString(
+            '{"code":0,"data":{"ok":true}}',
+            200,
+            headers: {
+              'content-type': ['application/json'],
+            },
+          ),
+        );
       final res = await dio.get('/test');
       expect(res.data['code'], 0);
     });
 
     test('rejects non-zero code as ApiException', () async {
       dio.httpClientAdapter = MockAdapter()
-        ..add((_) => ResponseBody.fromString(
-              '{"code":40001,"message":"认证失败","data":null}', 200,
-              headers: {'content-type': ['application/json']},
-            ));
+        ..add(
+          (_) => ResponseBody.fromString(
+            '{"code":40001,"message":"认证失败","data":null}',
+            200,
+            headers: {
+              'content-type': ['application/json'],
+            },
+          ),
+        );
       try {
         await dio.get('/test');
         fail('should throw');
@@ -211,15 +333,17 @@ class TestErrorInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final body = response.data;
     if (body is Map && body['code'] != null && body['code'] != 0) {
-      handler.reject(DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        error: ApiException(
-          code: body['code'] as int,
-          message: body['message'] as String? ?? '',
-          httpStatus: response.statusCode,
+      handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          error: ApiException(
+            code: body['code'] as int,
+            message: body['message'] as String? ?? '',
+            httpStatus: response.statusCode,
+          ),
         ),
-      ));
+      );
     } else {
       handler.next(response);
     }

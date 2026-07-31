@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/data/database/database_provider.dart';
 import 'package:flutter_app/domain/video_repository.dart';
 import 'package:flutter_app/pages/video/video_catalog_page.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,5 +67,30 @@ void main() {
 
     expect(find.text('没有封面的视频'), findsOneWidget);
     expect(find.byIcon(Icons.play_circle_outline_rounded), findsOneWidget);
+  });
+
+  testWidgets('reloads the catalog after a database replacement', (
+    tester,
+  ) async {
+    var loadCount = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: VideoCatalogPage(
+          catalogLoader: () async {
+            loadCount++;
+            return loadCount == 1 ? const [] : _categories;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('视频目录暂时为空'), findsOneWidget);
+
+    DatabaseProvider().dbVersionNotifier.value++;
+    await tester.pumpAndSettle();
+
+    expect(loadCount, 2);
+    expect(find.text('系列系统课程'), findsOneWidget);
   });
 }

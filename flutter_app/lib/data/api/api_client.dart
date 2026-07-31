@@ -29,7 +29,8 @@ class ApiException implements Exception {
 
 typedef TokenProvider = String? Function();
 typedef RefreshTokenProvider = String? Function();
-typedef OnTokenRefreshed = Future<void> Function(String newAccess, String? newRefresh);
+typedef OnTokenRefreshed =
+    Future<void> Function(String newAccess, String? newRefresh);
 typedef OnRefreshFailed = void Function();
 typedef OnAuthFailure = void Function();
 
@@ -37,7 +38,8 @@ TokenProvider _tokenProvider = () => null;
 void setTokenProvider(TokenProvider p) => _tokenProvider = p;
 
 RefreshTokenProvider _refreshTokenProvider = () => null;
-void setRefreshTokenProvider(RefreshTokenProvider p) => _refreshTokenProvider = p;
+void setRefreshTokenProvider(RefreshTokenProvider p) =>
+    _refreshTokenProvider = p;
 
 OnTokenRefreshed _onTokenRefreshed = (_, _) async {};
 void setOnTokenRefreshed(OnTokenRefreshed cb) => _onTokenRefreshed = cb;
@@ -63,12 +65,14 @@ class ApiClient {
 
   void init({String baseUrl = appBaseUrl}) {
     if (_initialized) return;
-    _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 15),
-      headers: {'Content-Type': 'application/json'},
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    );
     _dio!.interceptors.addAll([
       _AuthInterceptor(),
       _RefreshInterceptor(),
@@ -113,11 +117,14 @@ class _AuthInterceptor extends Interceptor {
 
 /// 401 时自动刷新 token（失败跳登录）
 class _RefreshInterceptor extends Interceptor {
-  bool _refreshing = false;
+  static const _skipRefreshKey = 'skip_token_refresh';
+
+  Future<String>? _activeRefresh;
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode != 401) {
+    if (err.response?.statusCode != 401 ||
+        err.requestOptions.extra[_skipRefreshKey] == true) {
       AuditLogger.instance.apiResponse(
         err.requestOptions.path,
         err.response?.statusCode ?? 0,
@@ -133,30 +140,47 @@ class _RefreshInterceptor extends Interceptor {
         return handler.reject(err);
       }
 
-      if (_refreshing) return handler.next(err);
-      _refreshing = true;
-
       try {
-        final response = await ApiClient().dio.post(
-          '/auth/refresh/',
-          data: {'refresh': refreshToken},
-        );
-        final newAccess = response.data['data']['access'] as String;
-        final newRefresh = response.data['data']['refresh'] as String?;
-        await _onTokenRefreshed.call(newAccess, newRefresh);
-        _refreshing = false;
+        final failedAuthorization =
+            err.requestOptions.headers['Authorization'] as String?;
+        final currentAccess = _tokenProvider.call();
+        final tokenWasAlreadyRefreshed =
+            currentAccess != null &&
+            currentAccess.isNotEmpty &&
+            failedAuthorization != 'Bearer $currentAccess';
+        final newAccess = tokenWasAlreadyRefreshed
+            ? currentAccess
+            : await (_activeRefresh ??= _refreshAccessToken(refreshToken));
 
         final retryOpts = err.requestOptions;
         retryOpts.headers['Authorization'] = 'Bearer $newAccess';
+        retryOpts.extra[_skipRefreshKey] = true;
         final retryRes = await ApiClient().dio.fetch(retryOpts);
         handler.resolve(retryRes);
       } catch (_) {
-        _refreshing = false;
-        _onRefreshFailed.call();
         handler.reject(err);
+      } finally {
+        _activeRefresh = null;
       }
     } catch (_) {
       handler.reject(err);
+    }
+  }
+
+  Future<String> _refreshAccessToken(String refreshToken) async {
+    try {
+      final response = await ApiClient().dio.post(
+        '/auth/refresh/',
+        data: {'refresh': refreshToken},
+        options: Options(extra: {_skipRefreshKey: true}),
+      );
+      final newAccess = response.data['data']['access'] as String;
+      final newRefresh = response.data['data']['refresh'] as String?;
+      await _onTokenRefreshed.call(newAccess, newRefresh);
+      return newAccess;
+    } catch (_) {
+      _onRefreshFailed.call();
+      rethrow;
     }
   }
 }
@@ -170,21 +194,30 @@ class _ErrorInterceptor extends Interceptor {
       AuditLogger.instance.apiResponse(
         response.requestOptions.path,
         response.statusCode ?? 200,
-        ApiException(code: body['code'] as int, message: body['message'] as String? ?? '', httpStatus: response.statusCode),
-      );
-      OperationLog.instance.api(response.requestOptions.method,
-          response.requestOptions.path, response.statusCode ?? 200,
-          '业务错误: code=${body['code']}');
-      handler.reject(DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        message: body['message'] as String? ?? '业务错误',
-        error: ApiException(
+        ApiException(
           code: body['code'] as int,
-          message: body['message'] as String? ?? '未知错误',
+          message: body['message'] as String? ?? '',
           httpStatus: response.statusCode,
         ),
-      ));
+      );
+      OperationLog.instance.api(
+        response.requestOptions.method,
+        response.requestOptions.path,
+        response.statusCode ?? 200,
+        '业务错误: code=${body['code']}',
+      );
+      handler.reject(
+        DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: body['message'] as String? ?? '业务错误',
+          error: ApiException(
+            code: body['code'] as int,
+            message: body['message'] as String? ?? '未知错误',
+            httpStatus: response.statusCode,
+          ),
+        ),
+      );
     } else {
       // 成功响应也记录审计
       AuditLogger.instance.api(
@@ -192,8 +225,11 @@ class _ErrorInterceptor extends Interceptor {
         response.statusCode ?? 200,
         body is Map ? {'code': body['code'], 'success': true} : null,
       );
-      OperationLog.instance.api(response.requestOptions.method,
-          response.requestOptions.path, response.statusCode ?? 200);
+      OperationLog.instance.api(
+        response.requestOptions.method,
+        response.requestOptions.path,
+        response.statusCode ?? 200,
+      );
       handler.next(response);
     }
   }
@@ -221,7 +257,7 @@ class _NetworkLogInterceptor extends Interceptor {
     String serverMsg = "";
     if (err.response?.data is Map) {
       final m = (err.response!.data as Map)["message"];
-      if (m is String && m.isNotEmpty) serverMsg = " | $m" ;
+      if (m is String && m.isNotEmpty) serverMsg = " | $m";
     }
     OperationLog.instance.api(
       err.requestOptions.method,

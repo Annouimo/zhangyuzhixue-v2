@@ -28,6 +28,7 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
   List<VideoCategorySection>? _catalog;
   bool _loading = true;
   String? _error;
+  int _loadRevision = 0;
 
   @override
   void initState() {
@@ -41,24 +42,34 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
           VideoRepository(VideoDao(provider), LectureDao(provider));
       _loadCatalog = repository.getCatalog;
     }
+    DatabaseProvider().dbVersionNotifier.addListener(_onDbVersionChanged);
     _load();
   }
 
+  @override
+  void dispose() {
+    DatabaseProvider().dbVersionNotifier.removeListener(_onDbVersionChanged);
+    super.dispose();
+  }
+
+  void _onDbVersionChanged() => _load();
+
   Future<void> _load() async {
+    final revision = ++_loadRevision;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       final catalog = await _loadCatalog();
-      if (!mounted) return;
+      if (!mounted || revision != _loadRevision) return;
       setState(() {
         _catalog = catalog;
         _loading = false;
       });
     } catch (error) {
       OperationLog.instance.error('video_catalog_page_load', error);
-      if (!mounted) return;
+      if (!mounted || revision != _loadRevision) return;
       setState(() {
         _error = '加载失败，请稍后重试';
         _loading = false;
