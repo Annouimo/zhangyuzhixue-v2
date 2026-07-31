@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
@@ -134,6 +135,23 @@ def validate(root: Path) -> list[str]:
         for private_path in ("/internal.html", "/internal/"):
             if f"Disallow: {private_path}" not in content:
                 issues.append(f"robots.txt: missing Disallow for {private_path}")
+
+    software = root / "software.html"
+    config = root / "assets/js/config.js"
+    if software.is_file() and config.is_file():
+        software_text = software.read_text(encoding="utf-8")
+        config_text = config.read_text(encoding="utf-8")
+        for platform in ("Android", "鸿蒙", "iOS", "Windows"):
+            if platform not in software_text:
+                issues.append(f"software.html: missing platform label: {platform}")
+        if 'data-platform="harmonyos"' not in software_text:
+            issues.append("software.html: missing HarmonyOS download card")
+        android_url = re.search(r"android:\s*[\"']([^\"']+)", config_text)
+        harmony_url = re.search(r"harmonyos:\s*[\"']([^\"']+)", config_text)
+        if not android_url or not harmony_url:
+            issues.append("config.js: Android and HarmonyOS download URLs are required")
+        elif android_url.group(1) != harmony_url.group(1):
+            issues.append("config.js: HarmonyOS URL must reuse the Android APK URL")
 
     return issues
 

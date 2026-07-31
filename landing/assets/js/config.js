@@ -3,7 +3,7 @@
   章鱼智学官网集中配置
 
   上线前请替换：
-  1. 三个平台下载链接（已填入当前 release 链接）
+  1. 四个平台下载链接（鸿蒙复用 Android APK，已填入当前 release 链接）
   2. 微信二维码图片（已替换为真实二维码）
   3. 页脚主体与备案信息（已填入 ICP）
   4. 软件功能文案与截图
@@ -31,6 +31,7 @@ window.SITE_CONFIG = {
 
   downloads: {
     android: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.2.0-beta.1/app-release.apk",
+    harmonyos: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.2.0-beta.1/app-release.apk",
     ios: "https://testflight.apple.com/join/tg29y4wF",
     windows: "https://gitee.com/annouimo/zhangyuzhixue-v2/releases/download/v1.2.0-beta.1/%E7%AB%A0%E9%B1%BC%E6%99%BA%E5%AD%A6-1.2.0-beta.1-windows.exe",
     netdisk: "https://pan.baidu.com/s/1vFe6MaYHI3b8tGQMOaOh3Q?pwd=6bjf"

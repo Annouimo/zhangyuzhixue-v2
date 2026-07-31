@@ -346,6 +346,7 @@
   function platformLabel(platform) {
     return {
       android: "Android",
+      harmonyos: "鸿蒙",
       ios: "iOS",
       windows: "Windows",
       netdisk: "网盘"
@@ -365,25 +366,19 @@
   // ── 平台感知下载卡片排序 ──
   if (page === 'software') {
     const container = document.getElementById('download-cards');
-    if (container) {
+    const platformRow = document.getElementById('default-platforms');
+    if (container && platformRow) {
       const ua = navigator.userAgent.toLowerCase();
       let detected = 'unknown';
       if (/android/.test(ua)) detected = 'android';
       else if (/iphone|ipad|ipod/.test(ua)) detected = 'ios';
       else if (/windows/.test(ua)) detected = 'windows';
 
-      const detectedCard = container.querySelector(`[data-platform="${detected}"]`);
+      const detectedCard = platformRow.querySelector(`[data-platform="${detected}"]`);
       if (detectedCard && detected !== 'unknown') {
-        const cards = [...container.querySelectorAll('.platform-card')];
-        const others = cards.filter(c => c !== detectedCard);
-        container.innerHTML = '';
         detectedCard.classList.add('platform-card--detected');
-        container.appendChild(detectedCard);
-        const row = document.createElement('div');
-        row.className = 'platform-row';
-        row.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
-        others.forEach(c => row.appendChild(c));
-        container.appendChild(row);
+        container.insertBefore(detectedCard, platformRow);
+        platformRow.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))';
       }
     }
   }
