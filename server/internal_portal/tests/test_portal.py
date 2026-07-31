@@ -78,7 +78,7 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
         reverse('internal_portal:page-detail', args=['software']),
     )
     assert response.status_code == 200
-    assert 'Gitee 主仓库' in response.content.decode()
+    assert '章鱼智学代码仓库' in response.content.decode()
     assert '题库结构' in response.content.decode()
 
 
@@ -216,8 +216,8 @@ def test_initial_portal_data_excludes_teacher_product():
 def test_current_portal_documents_use_current_gitee_paths():
     document_entries = PortalEntry.objects.filter(entry_type='document')
 
-    assert document_entries.filter(name='系统架构').exists()
-    assert document_entries.filter(name='项目文档索引').exists()
+    assert not document_entries.filter(name='系统架构').exists()
+    assert not document_entries.filter(name='项目文档索引').exists()
     assert not document_entries.filter(url__contains='/docs/01-').exists()
     assert not document_entries.filter(url__contains='/docs/03-').exists()
     assert not document_entries.filter(url__contains='/docs/07-').exists()
@@ -277,6 +277,7 @@ def test_handbook_pages_follow_the_confirmed_structure(client, portal_user):
         content_types.entries.values_list('name', flat=True)
     ) == [
         '系列系统课程', '专题深度解析', '学习经验分享', '学术交流',
+        '章鱼智学数字资产库',
     ]
 
     post_response = client.get(
@@ -321,12 +322,8 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
         for section in software.sections.all()
         if section.entries.exists()
     }
-    assert groups['产品与系统资料'] == {'产品边界', '系统架构', '数据架构'}
-    assert groups['开发与运维资料'] == {
-        '开发与测试', '发布与运维', '项目文档索引', '仓库地图',
-    }
-    assert groups['技术与管理入口'] == {
-        'Gitee 主仓库', 'API 文档', 'Django 管理后台',
+    assert groups['软件版本与下载'] == {
+        '学生端 Android', '学生端 Windows', '学生端 iOS', '章鱼智学代码仓库',
     }
 
     website = BusinessArea.objects.get(slug='website')
@@ -339,7 +336,7 @@ def test_changelog_is_curated_and_entries_are_grouped_by_meaning(
         reverse('internal_portal:page-detail', args=['software']),
     )
     content = response.content.decode()
-    assert content.index('产品与系统资料') < content.index('开发与运维资料')
+    assert '章鱼智学代码仓库' in content
 
 
 def test_media_pages_explain_content_and_post_production(client, portal_user):
@@ -354,10 +351,9 @@ def test_media_pages_explain_content_and_post_production(client, portal_user):
     assert '系列系统课程' in content
     assert '专题深度解析' in content
     assert '学习经验分享' in content
-    assert '内容制作' in content
-    assert '视觉内容' in content
-    assert '可视化是视觉内容的一种实现形式' in content
-    assert '视频类型与视觉呈现' in content
+    assert '内容制作' not in content
+    assert '视频类型与视觉呈现' not in content
+    assert '章鱼智学数字资产库' in content
     assert '当前负责人' not in content
 
     response = client.get(
@@ -370,6 +366,7 @@ def test_media_pages_explain_content_and_post_production(client, portal_user):
     assert '剪辑与包装' in post_content
     assert '音画调整' in post_content
     assert '成片输出' in post_content
+    assert '视频运营与发布' in post_content
 
     update = HandbookUpdate.objects.get(title='完善自媒体视频工作分类')
     assert update.description == (
