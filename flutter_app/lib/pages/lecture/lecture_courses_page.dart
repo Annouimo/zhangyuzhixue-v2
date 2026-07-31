@@ -85,109 +85,29 @@ class _LectureCoursesPageState extends State<LectureCoursesPage> {
       );
     }
 
-    final chapterCount = courses.fold<int>(
-      0,
-      (sum, course) => sum + course.chapterCount,
-    );
-
     return SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: AppSpacing.xl),
       child: AppContentContainer(
-        maxWidth: AppContentWidth.dashboard,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: AppSpacing.md),
-            AppSectionHeader(
-              title: '选择课程',
-              subtitle: '${courses.length} 门课程 · 共 $chapterCount 讲',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth >= AppBreakpoints.expanded
-                    ? 3
-                    : constraints.maxWidth >= AppBreakpoints.compact
-                    ? 2
-                    : 1;
-                const gap = AppSpacing.md;
-                final width = columns == 1
-                    ? constraints.maxWidth
-                    : (constraints.maxWidth - gap * (columns - 1)) / columns;
-                return Wrap(
-                  spacing: gap,
-                  runSpacing: gap,
-                  children: courses
-                      .map(
-                        (course) => SizedBox(
-                          width: width,
-                          child: _CourseCard(
-                            name: course.name,
-                            chapterCount: course.chapterCount,
-                            onTap: () => RouterUtils.push(
-                              context,
-                              '/lecture/chapters?courseId=${course.id}',
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                );
-              },
-            ),
-          ],
+        maxWidth: AppContentWidth.standard,
+        child: Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          child: AppNavigationList(
+            children: courses
+                .map(
+                  (course) => AppNavigationListItem(
+                    icon: Icons.menu_book_rounded,
+                    title: course.name,
+                    subtitle: '共 ${course.chapterCount} 讲',
+                    semanticLabel: course.name,
+                    onTap: () => RouterUtils.push(
+                      context,
+                      '/lecture/chapters?courseId=${course.id}',
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _CourseCard extends StatelessWidget {
-  const _CourseCard({
-    required this.name,
-    required this.chapterCount,
-    required this.onTap,
-  });
-
-  final String name;
-  final int chapterCount;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final textTheme = Theme.of(context).textTheme;
-
-    return AppCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      semanticLabel: name,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(AppRadius.medium),
-                ),
-                child: Icon(Icons.menu_book_rounded, color: colors.primary),
-              ),
-              const Spacer(),
-              Icon(AppIcons.chevronRight, color: colors.textMuted),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(name, style: textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '共 $chapterCount 讲 · 点击进入目录',
-            style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
-          ),
-        ],
       ),
     );
   }

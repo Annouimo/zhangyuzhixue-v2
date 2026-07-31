@@ -5,6 +5,7 @@ import 'package:flutter_app/domain/lecture_repository.dart';
 import 'package:flutter_app/pages/lecture/lecture_courses_page.dart';
 import 'package:flutter_app/pages/lecture/lecture_chapters_page.dart';
 import '../../test_setup.dart';
+import 'package:shared/shared.dart';
 
 /// Mock LectureRepository
 class _MockLectureRepo implements LectureRepository {
@@ -74,10 +75,14 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
       await tester.pumpAndSettle();
+      expect(find.text('选择课程'), findsNothing);
+      expect(find.text('2 门课程 · 共 8 讲'), findsNothing);
       expect(find.text('代数'), findsOneWidget);
       expect(find.textContaining('共 5 讲'), findsOneWidget);
       expect(find.text('几何'), findsOneWidget);
       expect(find.textContaining('共 3 讲'), findsOneWidget);
+      expect(find.byType(AppNavigationList), findsOneWidget);
+      expect(find.byType(AppNavigationListItem), findsNWidgets(2));
     });
 
     testWidgets('shows empty state when no courses', (tester) async {

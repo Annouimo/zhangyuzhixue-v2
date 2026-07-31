@@ -12,10 +12,12 @@ class VideoCatalogPage extends StatefulWidget {
   const VideoCatalogPage({
     super.key,
     this.videoRepository,
+    this.catalogLoader,
     this.embedded = false,
   });
 
   final VideoRepository? videoRepository;
+  final Future<List<VideoCategorySection>> Function()? catalogLoader;
   final bool embedded;
 
   @override
@@ -23,7 +25,7 @@ class VideoCatalogPage extends StatefulWidget {
 }
 
 class _VideoCatalogPageState extends State<VideoCatalogPage> {
-  late final VideoRepository _repository;
+  late final Future<List<VideoCategorySection>> Function() _loadCatalog;
   List<VideoCategorySection>? _catalog;
   int? _selectedCategoryId;
   bool _loading = true;
@@ -32,10 +34,15 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
   @override
   void initState() {
     super.initState();
-    final provider = DatabaseProvider();
-    _repository =
-        widget.videoRepository ??
-        VideoRepository(VideoDao(provider), LectureDao(provider));
+    if (widget.catalogLoader case final loader?) {
+      _loadCatalog = loader;
+    } else {
+      final provider = DatabaseProvider();
+      final repository =
+          widget.videoRepository ??
+          VideoRepository(VideoDao(provider), LectureDao(provider));
+      _loadCatalog = repository.getCatalog;
+    }
     _load();
   }
 
@@ -45,7 +52,7 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
       _error = null;
     });
     try {
-      final catalog = await _repository.getCatalog();
+      final catalog = await _loadCatalog();
       if (!mounted) return;
       setState(() {
         _catalog = catalog;
@@ -93,21 +100,45 @@ class _VideoCatalogPageState extends State<VideoCatalogPage> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SegmentedButton<int>(
-              segments: catalog
-                  .map(
-                    (category) => ButtonSegment<int>(
-                      value: category.id,
-                      label: Text(category.name),
-                    ),
-                  )
-                  .toList(),
-              selected: {_selectedCategoryId ?? catalog.first.id},
-              onSelectionChanged: (selection) =>
-                  setState(() => _selectedCategoryId = selection.first),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final selectedId = _selectedCategoryId ?? catalog.first.id;
+              if (constraints.maxWidth < AppBreakpoints.medium) {
+                return Wrap(
+                  key: const ValueKey('video-category-wrap'),
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: catalog
+                      .map(
+                        (category) => ChoiceChip(
+                          label: Text(category.name),
+                          selected: category.id == selectedId,
+                          onSelected: (_) => setState(
+                            () => _selectedCategoryId = category.id,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                );
+              }
+              return SingleChildScrollView(
+                key: const ValueKey('video-category-segmented'),
+                scrollDirection: Axis.horizontal,
+                child: SegmentedButton<int>(
+                  segments: catalog
+                      .map(
+                        (category) => ButtonSegment<int>(
+                          value: category.id,
+                          label: Text(category.name),
+                        ),
+                      )
+                      .toList(),
+                  selected: {selectedId},
+                  onSelectionChanged: (selection) =>
+                      setState(() => _selectedCategoryId = selection.first),
+                ),
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.lg),
           AppSectionHeader(
@@ -167,50 +198,80 @@ class _VideoCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.medium),
-            ),
-            child: video.coverUrl.isEmpty
-                ? ColoredBox(
-                    color: context.colors.surfaceSubtle,
-                    child: const Icon(
-                      Icons.play_circle_outline_rounded,
-                      size: 48,
-                    ),
-                  )
-                : CachedNetworkImage(
-                    imageUrl: video.coverUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) =>
-                        const Center(child: Icon(Icons.broken_image_outlined)),
-                  ),
-          ),
-        ),
+        if (video.coverUrl.isNotEmpty)
+          _VideoCover(url: video.coverUrl),
         Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                video.title,
-                style: Theme.of(context).textTheme.titleMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              Icon(
+                Icons.play_circle_outline_rounded,
+                size: AppControlSize.sm,
+                color: context.colors.primary,
               ),
-              if (video.platformName.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  video.platformName,
-                  style: Theme.of(context).textTheme.bodySmall,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      video.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (video.platformName.isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        video.platformName,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
       ],
     ),
   );
+}
+
+class _VideoCover extends StatefulWidget {
+  const _VideoCover({required this.url});
+
+  final String url;
+
+  @override
+  State<_VideoCover> createState() => _VideoCoverState();
+}
+
+class _VideoCoverState extends State<_VideoCover> {
+  bool _failed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_failed) return const SizedBox.shrink();
+    return AspectRatio(
+      key: const ValueKey('video-cover'),
+      aspectRatio: 16 / 9,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppRadius.medium),
+        ),
+        child: CachedNetworkImage(
+          imageUrl: widget.url,
+          fit: BoxFit.cover,
+          errorWidget: (_, _, _) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _failed = true);
+            });
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+  }
 }
