@@ -44,7 +44,7 @@ void main() {
     expect(find.text('集合'), findsOneWidget);
     expect(selected, isEmpty);
 
-    await tester.tap(find.text('代数'));
+    await tester.tap(find.byTooltip('选择代数'));
     await tester.pump();
     expect(selected, {'代数', '集合', '函数'});
   });
@@ -69,11 +69,11 @@ void main() {
 
     await tester.tap(find.byTooltip('展开代数'));
     await tester.pump();
-    await tester.tap(find.text('集合'));
+    await tester.tap(find.byTooltip('选择集合'));
     await tester.pump();
 
     expect(selected, {'集合'});
-    expect(find.byIcon(Icons.indeterminate_check_box), findsOneWidget);
+    expect(find.byIcon(Icons.indeterminate_check_box_rounded), findsOneWidget);
   });
 
   testWidgets('selecting a collapsed parent does not expand its children', (
@@ -94,7 +94,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('代数'));
+    await tester.tap(find.byTooltip('选择代数'));
     await tester.pump();
 
     expect(selected, {'代数', '集合', '函数'});

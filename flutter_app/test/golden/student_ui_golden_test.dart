@@ -82,7 +82,15 @@ void main() {
         viewport: scenario.$1,
         theme: scenario.$2,
       );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1));
       await tester.pumpAndSettle();
+      expect(
+        tester
+            .state<RecommendPageState>(find.byType(RecommendPage))
+            .debugLoading,
+        isFalse,
+      );
 
       await expectLater(
         find.byType(RecommendPage),

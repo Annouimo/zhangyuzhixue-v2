@@ -63,6 +63,14 @@ void main() {
     await tester.pump();
     expect(find.byTooltip('取消选择'), findsOneWidget);
   });
+
+  test('question controller keeps the shared selection contract', () {
+    final controller = QuestionWorkspaceController();
+    controller.selectAll(const [1, 2, 3]);
+    expect(controller.selectedIds, const {1, 2, 3});
+    controller.retain(const [2, 3]);
+    expect(controller.selectedIds, const {2, 3});
+  });
 }
 
 void _ignoreQuestion(QuestionWorkspaceItem _) {}

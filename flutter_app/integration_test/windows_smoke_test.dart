@@ -37,7 +37,7 @@ void main() {
     await tester.ensureVisible(registerLink);
     await tester.tap(registerLink);
     await tester.pumpAndSettle();
-    expect(find.text('创建学生账号'), findsOneWidget);
+    expect(find.text('创建账号'), findsOneWidget);
     expect(find.text('我已阅读并同意'), findsOneWidget);
 
     final registerButton = tester.widget<FilledButton>(

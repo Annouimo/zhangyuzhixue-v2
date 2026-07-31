@@ -23,46 +23,7 @@ class QuestionWorkspaceItem {
   final String? status;
 }
 
-class QuestionWorkspaceController extends ChangeNotifier {
-  final Set<int> _selectedIds = {};
-
-  Set<int> get selectedIds => Set.unmodifiable(_selectedIds);
-  int get selectedCount => _selectedIds.length;
-
-  void toggle(int id) {
-    _selectedIds.contains(id) ? _selectedIds.remove(id) : _selectedIds.add(id);
-    notifyListeners();
-  }
-
-  void selectAll(Iterable<int> ids) {
-    _selectedIds.addAll(ids);
-    notifyListeners();
-  }
-
-  void clear() {
-    if (_selectedIds.isEmpty) return;
-    _selectedIds.clear();
-    notifyListeners();
-  }
-
-  void replace(Iterable<int> ids) {
-    final next = ids.toSet();
-    if (_selectedIds.length == next.length && _selectedIds.containsAll(next)) {
-      return;
-    }
-    _selectedIds
-      ..clear()
-      ..addAll(next);
-    notifyListeners();
-  }
-
-  void retain(Iterable<int> ids) {
-    final allowed = ids.toSet();
-    if (_selectedIds.every(allowed.contains)) return;
-    _selectedIds.removeWhere((id) => !allowed.contains(id));
-    notifyListeners();
-  }
-}
+class QuestionWorkspaceController extends AppSelectionController<int> {}
 
 typedef QuestionWorkspaceSliversBuilder =
     List<Widget> Function(BuildContext context, Set<int> selectedIds);
@@ -160,11 +121,17 @@ class _QuestionWorkspaceState extends State<QuestionWorkspace> {
   Widget build(BuildContext context) {
     final selectedIds = _controller.selectedIds;
     final customBottom = widget.bottomBuilder?.call(context, selectedIds);
-    final defaultBottom =
-        widget.basketRepository != null && selectedIds.isNotEmpty
-        ? _QuestionSelectionBottomBar(
+    final defaultBottom = widget.basketRepository != null
+        ? AppSelectionActionBar(
             selectedCount: selectedIds.length,
-            onAddToBasket: _addToBasket,
+            totalCount: widget.items.length,
+            itemUnit: ' 道题',
+            onSelectAll: () =>
+                _controller.selectAll(widget.items.map((item) => item.id)),
+            onClear: _controller.clear,
+            actionLabel: '加入试题篮',
+            actionIcon: Icons.shopping_cart_checkout_outlined,
+            onAction: selectedIds.isEmpty ? null : _addToBasket,
           )
         : null;
     return Column(
@@ -270,16 +237,10 @@ class _QuestionSelectionCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (selectionEnabled)
-            IconButton(
-              tooltip: selected ? '取消选择' : '选择题目',
-              visualDensity: VisualDensity.compact,
+            AppSelectionToggle(
+              selected: selected,
               onPressed: onToggle,
-              icon: Icon(
-                selected ? Icons.check_circle : Icons.add_circle_outline,
-                color: selected
-                    ? context.colors.primary
-                    : context.colors.textSecondary,
-              ),
+              selectTooltip: '选择题目',
             ),
           if (onRemove != null)
             IconButton(
@@ -306,51 +267,6 @@ class _QuestionSelectionCard extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _QuestionSelectionBottomBar extends StatelessWidget {
-  const _QuestionSelectionBottomBar({
-    required this.selectedCount,
-    required this.onAddToBasket,
-  });
-
-  final int selectedCount;
-  final VoidCallback onAddToBasket;
-
-  @override
-  Widget build(BuildContext context) {
-    if (selectedCount == 0) return const SizedBox.shrink();
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        decoration: BoxDecoration(
-          color: context.colors.surfaceSubtle,
-          border: Border(top: BorderSide(color: context.colors.border)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '已选 $selectedCount 道题',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            AppButton(
-              onPressed: onAddToBasket,
-              icon: Icons.shopping_cart_checkout_outlined,
-              label: '加入试题篮',
-              expanded: false,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 Future<bool> addQuestionsToBaskets({
