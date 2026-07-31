@@ -1,12 +1,19 @@
 from datetime import timedelta
 
 import pytest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import User
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import AccountDeletionRequest, Student
-from accounts.roles import ACCESS_STUDENT_APP, STUDENT_GROUP
+from accounts.roles import (
+    ACCESS_LEVEL_HANDBOOK,
+    ACCESS_LEVEL_REVIEWER,
+    ACCESS_LEVEL_SUPERUSER,
+    CONTENT_REVIEWER_GROUP,
+    INTERNAL_PORTAL_GROUP,
+    get_access_level,
+)
 from system.models import PointsTransaction
 
 
@@ -31,10 +38,11 @@ def student_user(db):
         username='student-user', password='test-password-123',
         first_name='测试学生',
     )
-    student = Student.objects.create(
-        user=user, phone='13800138000', school='测试中学', gaokao_year=2027,
-    )
-    user.groups.add(Group.objects.get(name=STUDENT_GROUP))
+    student = user.student
+    student.phone = '13800138000'
+    student.school = '测试中学'
+    student.gaokao_year = 2027
+    student.save(update_fields=['phone', 'school', 'gaokao_year', 'updated_at'])
     return user, student
 
 
@@ -51,34 +59,43 @@ def test_management_home_and_user_list_render(client, admin_user, student_user):
     client.force_login(admin_user)
     response = client.get(reverse('management_portal:home'))
     assert response.status_code == 200
-    assert '管理首页' in response.content.decode()
+    content = response.content.decode()
+    assert '管理首页' in content
+    assert 'aria-label="内部工作台切换"' in content
+    assert '>管理工作台</strong>' in content
+    assert '>内容工作台</strong>' in content
+    assert '>工作手册</strong>' in content
+    assert '>高级数据管理</a>' in content
     response = client.get(reverse('management_portal:user_list'), {'q': '测试学生'})
     assert response.status_code == 200
     assert 'student-user' in response.content.decode()
 
 
-def test_ensure_student_is_atomic_and_idempotent(client, admin_user, plain_user):
+def test_access_level_service_keeps_group_hierarchy(client, admin_user, plain_user):
     client.force_login(admin_user)
     url = reverse('management_portal:user_detail', args=[plain_user.pk])
-    response = client.post(url, {'action': 'ensure_student'})
+    response = client.post(url, {'action': 'save_access_level', 'access_level': 'reviewer'})
     assert response.status_code == 302
     plain_user.refresh_from_db()
-    assert Student.objects.filter(user=plain_user).count() == 1
-    assert plain_user.groups.filter(name=STUDENT_GROUP).exists()
-    assert plain_user.has_perm(ACCESS_STUDENT_APP)
+    assert get_access_level(plain_user) == ACCESS_LEVEL_REVIEWER
+    assert plain_user.groups.filter(name=CONTENT_REVIEWER_GROUP).exists()
+    assert plain_user.groups.filter(name=INTERNAL_PORTAL_GROUP).exists()
+    client.post(url, {'action': 'save_access_level', 'access_level': 'handbook'})
+    plain_user.refresh_from_db()
+    assert get_access_level(plain_user) == ACCESS_LEVEL_HANDBOOK
+    assert plain_user.groups.filter(name=INTERNAL_PORTAL_GROUP).exists()
+    assert plain_user.groups.filter(name=CONTENT_REVIEWER_GROUP).exists() is False
+    client.post(url, {'action': 'save_access_level', 'access_level': 'regular'})
+    plain_user.refresh_from_db()
+    assert plain_user.groups.filter(name=INTERNAL_PORTAL_GROUP).exists() is False
 
-    client.post(url, {'action': 'ensure_student'})
-    assert Student.objects.filter(user=plain_user).count() == 1
 
-
-def test_staff_user_cannot_be_converted_to_student(client, admin_user):
+def test_superuser_is_shown_as_separate_access_level(client, admin_user):
     client.force_login(admin_user)
-    response = client.post(
-        reverse('management_portal:user_detail', args=[admin_user.pk]),
-        {'action': 'ensure_student'}, follow=True,
-    )
-    assert '管理员账号不能同时设为学生账号' in response.content.decode()
-    assert not Student.objects.filter(user=admin_user).exists()
+    response = client.get(reverse('management_portal:user_detail', args=[admin_user.pk]))
+    assert response.status_code == 200
+    assert get_access_level(admin_user) == ACCESS_LEVEL_SUPERUSER
+    assert '系统超级用户' in response.content.decode()
 
 
 def test_profile_and_points_adjustment_update_related_state(
@@ -118,7 +135,7 @@ def test_superuser_cannot_be_disabled(client, admin_user):
     )
     admin_user.refresh_from_db()
     assert admin_user.is_active is True
-    assert '不能在管理工作台停用超级管理员' in response.content.decode()
+    assert '不能在管理工作台停用系统超级用户' in response.content.decode()
 
 
 def test_admin_can_cancel_pending_deletion(

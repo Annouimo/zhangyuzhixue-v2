@@ -4,7 +4,6 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import Student
 from interactions.models import ContentContribution, ContributionRevision
 from qbank.models import BaseQuestion, ConceptTag, SubQuestion
 
@@ -12,7 +11,9 @@ from qbank.models import BaseQuestion, ConceptTag, SubQuestion
 @pytest.fixture
 def auth_client(db):
     user = User.objects.create_user('contributor', password='test123')
-    Student.objects.create(user=user, gaokao_year=2026)
+    student = user.student
+    student.gaokao_year = 2026
+    student.save(update_fields=['gaokao_year', 'updated_at'])
     client = APIClient()
     client.credentials(
         HTTP_AUTHORIZATION=f'Bearer {RefreshToken.for_user(user).access_token}'

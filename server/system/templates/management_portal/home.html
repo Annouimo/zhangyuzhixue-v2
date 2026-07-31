@@ -7,7 +7,8 @@
 </div>
 
 <section class="metric-grid">
-  <a href="{% url 'management_portal:user_list' %}?role=student&status=active"><strong>{{ student_count }}</strong><span>正常学生</span></a>
+  <a href="{% url 'management_portal:user_list' %}"><strong>{{ user_count }}</strong><span>全部用户</span></a>
+  <a href="{% url 'management_portal:user_list' %}?view=internal"><strong>{{ internal_member_count }}</strong><span>内部成员</span></a>
   <a href="{% url 'management_portal:user_list' %}"><strong>{{ active_today }}</strong><span>今日活跃学生</span></a>
   <a href="{% url 'management_portal:user_list' %}"><strong>{{ submission_students }}</strong><span>今日做题学生</span><small>{{ submission_count }} 次作答</small></a>
   <a href="{% url 'management_portal:deletion_list' %}"><strong>{{ pending_deletion_count }}</strong><span>待处理注销</span>{% if due_deletion_count %}<small class="danger-text">{{ due_deletion_count }} 个已到期</small>{% endif %}</a>
@@ -34,7 +35,8 @@
   </section>
   <section class="panel action-panel">
     <h2>常用操作</h2>
-    <a href="{% url 'management_portal:user_list' %}?role=plain">转换已有用户为学生</a>
+    <a href="{% url 'management_portal:user_list' %}?view=internal">管理内部成员</a>
+    <a href="{% url 'management_portal:user_list' %}?view=superuser">查看系统超级用户</a>
     <a href="{% url 'management_portal:user_list' %}?status=inactive">查看已停用账号</a>
     <a href="{% url 'management_portal:deletion_list' %}">处理注销申请</a>
   </section>

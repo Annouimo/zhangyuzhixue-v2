@@ -7,7 +7,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from accounts.models import Student
 from interactions.models import CustomPaper
 from interactions.models import CustomPaperQuestion
 from interactions.pdf_views import (
@@ -55,7 +54,9 @@ def api_client():
 @pytest.fixture
 def student_user(db):
     user = User.objects.create_user('pdfstudent', password='test123')
-    Student.objects.create(user=user, gaokao_year=2026)
+    student = user.student
+    student.gaokao_year = 2026
+    student.save(update_fields=['gaokao_year', 'updated_at'])
     return user
 
 
@@ -80,7 +81,7 @@ def sample_paper(db, student_user):
 @pytest.fixture
 def private_paper(db):
     user2 = User.objects.create_user('otheruser', password='test123')
-    s2 = Student.objects.create(user=user2)
+    s2 = user2.student
     return CustomPaper.objects.create(
         student=s2, title='私密试卷', is_public=False,
     )
@@ -117,7 +118,7 @@ class TestPdfRequestToken:
             'source_id': sample_paper.pk,
         }, format='json')
         user2 = User.objects.create_user('pdfstudent2', password='test123')
-        Student.objects.create(user=user2)
+        user2.student
         client2 = APIClient()
         from rest_framework_simplejwt.tokens import RefreshToken
         refresh = RefreshToken.for_user(user2)

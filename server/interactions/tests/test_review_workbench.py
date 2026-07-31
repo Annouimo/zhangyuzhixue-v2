@@ -5,7 +5,6 @@ import pytest
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 
-from accounts.models import Student
 from accounts.roles import CONTENT_REVIEWER_GROUP
 from interactions.models import (
     ContentContribution, ContributionReview, ContributionRevision,
@@ -79,7 +78,7 @@ def reviewer(db):
 @pytest.fixture
 def contribution(db):
     user = User.objects.create_user('student-author', password='student-pass-123')
-    student = Student.objects.create(user=user)
+    student = user.student
     item = ContentContribution.objects.create(
         student=student,
         contribution_type=ContentContribution.ContributionType.NEW_QUESTION,
@@ -119,7 +118,7 @@ def test_workbench_sidebar_contains_maintenance_and_review_queues(
     client.force_login(reviewer)
     response = client.get(reverse('review_workbench:queue'))
     content = response.content.decode()
-    assert 'class="workbench-sidebar"' in content
+    assert 'class="internal-sidebar"' in content
     assert '题库维护' in content
     assert '概念标签' in content
     assert '知识卡片' in content
@@ -127,19 +126,19 @@ def test_workbench_sidebar_contains_maintenance_and_review_queues(
     assert '?type=new_solution' in content
     assert '?type=content_change' in content
     assert '?type=problem_report' in content
-    assert 'aria-label="网站链接"' in content
-    assert '>官网</a>' in content
-    assert '>工作手册</a>' in content
-    assert '>内容工作台</a>' in content
-    assert '>管理工作台</a>' in content
-    assert reverse('management_portal:home') in content
-    assert '>高级数据管理</a>' in content
-    assert reverse('admin:index') in content
+    assert '内部平台' in content
+    assert '返回官网' in content
+    assert '>工作手册</a>' not in content
+    assert '>内容工作台</strong>' in content
+    assert '>管理工作台</a>' not in content
+    assert reverse('management_portal:home') not in content
+    assert '>高级数据管理</a>' not in content
+    assert reverse('admin:index') not in content
     assert 'queue-tabs' not in content
     assert '>全部 <' not in content
     assert response.context['status_filter'] == 'active'
-    assert '<span class="nav-count">1</span>' in content
-    assert content.count('<span class="nav-count">0</span>') == 3
+    assert '<span class="internal-nav__count">1</span>' in content
+    assert content.count('<span class="internal-nav__count">0</span>') == 3
 
 
 @pytest.mark.django_db
@@ -149,7 +148,7 @@ def test_sidebar_counts_are_available_outside_queue(
     client.force_login(reviewer)
     response = client.get(reverse('review_workbench:question_list'))
     assert response.status_code == 200
-    assert '<span class="nav-count">1</span>' in response.content.decode()
+    assert '<span class="internal-nav__count">1</span>' in response.content.decode()
 
 
 @pytest.mark.django_db

@@ -1,0 +1,51 @@
+{% load static internal_shell %}
+{% internal_shell_state request as shell %}
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>{% block title %}{{ shell.current.name }}{% endblock %}</title>
+  {% block app_styles %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'internal_shell/shell.css' %}?v=1">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="internal-shell {% block shell_class %}{% endblock %}">
+    <aside class="internal-sidebar">
+      <a class="internal-brand" href="{{ shell.current.url }}">
+        <span class="internal-brand__mark">章</span>
+        <span><strong>章鱼智学</strong><small>内部平台</small></span>
+      </a>
+      {% include 'internal_shell/_app_switcher.html' %}
+      <nav class="internal-nav" aria-label="{{ shell.current.name }}导航">
+        {% block sidebar_nav %}{% endblock %}
+      </nav>
+      <div class="internal-sidebar__bottom">
+        <a class="internal-site-link" href="/">返回官网</a>
+        <span class="internal-account">{{ request.user.get_full_name|default:request.user.username }}</span>
+        <form method="post" action="{{ shell.logout_url }}">
+          {% csrf_token %}<button type="submit">退出登录</button>
+        </form>
+      </div>
+    </aside>
+    <div class="internal-main {% block main_class %}{% endblock %}">
+      <header class="internal-mobile-header">
+        <a class="internal-mobile-brand" href="{{ shell.current.url }}"><span class="internal-brand__mark">章</span><strong>{{ shell.current.name }}</strong></a>
+        <div class="internal-mobile-actions">
+          {% include 'internal_shell/_app_switcher.html' %}
+          <details class="internal-mobile-menu">
+            <summary>菜单</summary>
+            <nav aria-label="手机导航">{% block mobile_nav %}{% endblock %}</nav>
+          </details>
+        </div>
+      </header>
+      {% if messages %}<div class="internal-messages">{% for message in messages %}<p class="{{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+      {% block workspace_header %}{% endblock %}
+      <main class="internal-workspace {% block workspace_class %}{% endblock %}">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

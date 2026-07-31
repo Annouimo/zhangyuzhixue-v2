@@ -40,7 +40,7 @@ class TestBuildAssets:
             confirm_qbank_publication, rollback_qbank_publication,
         )
 
-        student = Student.objects.create(user=User.objects.create_user('builder'))
+        student = User.objects.create_user('builder').student
         question = BaseQuestion.objects.create(
             year=2026,
             exam_type='原创',

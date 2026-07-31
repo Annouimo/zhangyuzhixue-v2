@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.password_validation import validate_password
 
 from accounts.models import Student
+from accounts.roles import ACCESS_LEVEL_CHOICES
 
 
 class StudentProfileForm(forms.Form):
@@ -31,6 +32,14 @@ class StudentProfileForm(forms.Form):
         if phone and Student.objects.filter(phone=phone).exclude(user=self.user).exists():
             raise forms.ValidationError('该手机号已被其他学生使用')
         return phone
+
+
+class AccessLevelForm(forms.Form):
+    access_level = forms.ChoiceField(label='日常权限', choices=ACCESS_LEVEL_CHOICES)
+
+    def __init__(self, *args, user, **kwargs):
+        kwargs.setdefault('initial', {'access_level': user.access_level})
+        super().__init__(*args, **kwargs)
 
 
 class PointsAdjustmentForm(forms.Form):

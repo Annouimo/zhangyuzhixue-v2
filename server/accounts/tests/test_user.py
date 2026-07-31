@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from accounts.models import Student
 from system.models import PointsTransaction
 
 
@@ -17,7 +16,10 @@ def api_client():
 @pytest.fixture
 def student_user(db):
     user = User.objects.create_user('usertest', password='test123')
-    Student.objects.create(user=user, gaokao_year=2026, school='北京四中')
+    student = user.student
+    student.gaokao_year = 2026
+    student.school = '北京四中'
+    student.save(update_fields=['gaokao_year', 'school', 'updated_at'])
     return user
 
 

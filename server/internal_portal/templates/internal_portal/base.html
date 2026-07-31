@@ -1,83 +1,24 @@
+{% extends 'internal_shell/base.html' %}
 {% load static %}
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow,noarchive">
-  <title>{% block title %}章鱼智学项目中心{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=7">
-  {% block extra_head %}{% endblock %}
-</head>
-<body>
-  <div class="portal-layout">
-    <aside class="sidebar">
-      <a class="brand" href="{% url 'internal_portal:index' %}">
-        <span class="brand__mark">章</span>
-        <span>
-          <strong>章鱼智学</strong>
-          <small>项目工作手册</small>
-        </span>
-      </a>
-      <nav class="side-nav" aria-label="项目中心导航">
-        <a href="{% url 'internal_portal:index' %}"{% if not area %} class="is-active"{% endif %}>总览</a>
-        {% for nav_area in navigation_areas %}
-          <a href="{% url 'internal_portal:page-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
-        {% endfor %}
-        <a href="{% url 'internal_portal:lecture-library' %}"{% if is_lecture_library %} class="is-active"{% endif %}>讲义库</a>
-      </nav>
-      <div class="sidebar__bottom">
-        <span class="site-links__label">网站链接</span>
-        <nav class="site-links" aria-label="网站链接">
-          <a href="/">官网</a>
-          <a class="is-current" href="{% url 'internal_portal:index' %}">工作手册</a>
-          <a href="{% url 'review_workbench:home' %}">内容工作台</a>
-          <a href="{% url 'management_portal:home' %}">管理工作台</a>
-          <a href="{% url 'admin:index' %}">高级数据管理</a>
-        </nav>
-        <span class="account-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-        <form method="post" action="{% url 'internal_portal:logout' %}">
-          {% csrf_token %}
-          <button type="submit">退出登录</button>
-        </form>
-      </div>
-    </aside>
-
-    <div class="workspace">
-      <header class="mobile-header">
-        <a class="mobile-brand" href="{% url 'internal_portal:index' %}">
-          <span class="brand__mark">章</span>
-          <strong>项目工作手册</strong>
-        </a>
-        <details class="mobile-menu">
-          <summary>菜单</summary>
-          <nav aria-label="手机导航">
-            <a href="{% url 'internal_portal:index' %}">总览</a>
-            {% for nav_area in navigation_areas %}
-              <a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>
-            {% endfor %}
-            <a href="{% url 'internal_portal:lecture-library' %}">讲义库</a>
-            <span class="mobile-menu__label">网站链接</span>
-            <a href="/">官网</a>
-            <a href="{% url 'internal_portal:index' %}">工作手册</a>
-            <a href="{% url 'review_workbench:home' %}">内容工作台</a>
-            <a href="{% url 'admin:index' %}">管理员后台</a>
-            <form method="post" action="{% url 'internal_portal:logout' %}">
-              {% csrf_token %}
-              <button type="submit">退出登录</button>
-            </form>
-          </nav>
-        </details>
-      </header>
-
-      <div class="workspace-bar">
-        <span><strong>内部资料</strong>以当前页面内容为准</span>
-        {% if page_updated_at %}<span><strong>最后更新</strong>{{ page_updated_at|date:'Y-m-d' }}</span>{% endif %}
-      </div>
-
-      <main class="main-content">{% block content %}{% endblock %}</main>
-    </div>
+{% block app_styles %}<link rel="stylesheet" href="{% static 'internal_portal/portal.css' %}?v=7">{% endblock %}
+{% block shell_class %}portal-layout{% endblock %}
+{% block main_class %}workspace{% endblock %}
+{% block workspace_class %}main-content{% endblock %}
+{% block sidebar_nav %}
+  <a href="{% url 'internal_portal:index' %}"{% if not area and not is_lecture_library %} class="is-active"{% endif %}>总览</a>
+  {% for nav_area in navigation_areas %}
+    <a href="{% url 'internal_portal:page-detail' nav_area.slug %}"{% if area.slug == nav_area.slug %} class="is-active"{% endif %}>{{ nav_area.name }}</a>
+  {% endfor %}
+  <a href="{% url 'internal_portal:lecture-library' %}"{% if is_lecture_library %} class="is-active"{% endif %}>讲义库</a>
+{% endblock %}
+{% block mobile_nav %}
+  <a href="{% url 'internal_portal:index' %}">总览</a>
+  {% for nav_area in navigation_areas %}<a href="{% url 'internal_portal:page-detail' nav_area.slug %}">{{ nav_area.name }}</a>{% endfor %}
+  <a href="{% url 'internal_portal:lecture-library' %}">讲义库</a>
+{% endblock %}
+{% block workspace_header %}
+  <div class="workspace-bar">
+    <span><strong>内部资料</strong>以当前页面内容为准</span>
+    {% if page_updated_at %}<span><strong>最后更新</strong>{{ page_updated_at|date:'Y-m-d' }}</span>{% endif %}
   </div>
-  {% block extra_scripts %}{% endblock %}
-</body>
-</html>
+{% endblock %}

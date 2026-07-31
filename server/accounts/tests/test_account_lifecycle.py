@@ -16,12 +16,11 @@ def account(db):
     user = User.objects.create_user(
         'delete_me', password='test-password-123', first_name='测试学生',
     )
-    student = Student.objects.create(
-        user=user,
-        school='测试学校',
-        phone='13800000000',
-        gaokao_year=2027,
-    )
+    student = user.student
+    student.school = '测试学校'
+    student.phone = '13800000000'
+    student.gaokao_year = 2027
+    student.save(update_fields=['school', 'phone', 'gaokao_year', 'updated_at'])
     return user, student
 
 

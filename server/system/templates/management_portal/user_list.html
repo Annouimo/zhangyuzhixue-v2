@@ -1,45 +1,36 @@
 {% extends 'management_portal/base.html' %}
 {% block title %}用户管理 | 管理工作台{% endblock %}
 {% block content %}
-<div class="page-heading"><div><h1>用户管理</h1><p>搜索账号并进入详情处理身份、资料、状态和积分。</p></div></div>
+<div class="page-heading"><div><h1>用户管理</h1><p>账号基础资料、日常权限和生命周期状态分开管理。</p></div></div>
+<nav class="view-tabs" aria-label="用户范围">
+  <a{% if view == 'all' %} class="is-active"{% endif %} href="{% url 'management_portal:user_list' %}">全部用户</a>
+  <a{% if view == 'internal' %} class="is-active"{% endif %} href="{% url 'management_portal:user_list' %}?view=internal">内部成员</a>
+  <a{% if view == 'pending' %} class="is-active"{% endif %} href="{% url 'management_portal:user_list' %}?view=pending">待处理</a>
+  <a{% if view == 'superuser' %} class="is-active"{% endif %} href="{% url 'management_portal:user_list' %}?view=superuser">系统超级用户</a>
+</nav>
 <form class="filter-bar" method="get">
+  <input type="hidden" name="view" value="{{ view }}">
   <input type="search" name="q" value="{{ query }}" placeholder="用户名、姓名、学号或手机号">
-  <select name="role">
-    <option value="">全部身份</option>
-    <option value="student"{% if role == 'student' %} selected{% endif %}>学生</option>
-    <option value="staff"{% if role == 'staff' %} selected{% endif %}>管理员</option>
-    <option value="plain"{% if role == 'plain' %} selected{% endif %}>未分配身份</option>
-  </select>
-  <select name="status">
-    <option value="">全部状态</option>
-    <option value="active"{% if status == 'active' %} selected{% endif %}>账号启用</option>
-    <option value="inactive"{% if status == 'inactive' %} selected{% endif %}>账号停用</option>
-    {% for value, label in student_statuses %}<option value="{{ value }}"{% if status == value %} selected{% endif %}>学生：{{ label }}</option>{% endfor %}
-  </select>
+  <select name="access_level"><option value="">全部权限</option>{% for value, label in access_levels %}<option value="{{ value }}"{% if access_level == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <select name="account_status"><option value="">账号状态</option><option value="active"{% if account_status == 'active' %} selected{% endif %}>启用</option><option value="inactive"{% if account_status == 'inactive' %} selected{% endif %}>停用</option></select>
+  <select name="student_status"><option value="">学生状态</option>{% for value, label in student_statuses %}<option value="{{ value }}"{% if student_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
   <button class="primary" type="submit">筛选</button>
-  {% if query or role or status %}<a class="button" href="{% url 'management_portal:user_list' %}">清除</a>{% endif %}
+  {% if query or access_level or account_status or student_status %}<a class="button" href="{% url 'management_portal:user_list' %}?view={{ view }}">清除</a>{% endif %}
 </form>
-<div class="table-wrap">
-  <table class="data-table user-table">
-    <thead><tr><th>用户</th><th>身份</th><th>学号</th><th>学校 / 年级</th><th>状态</th><th>最近登录</th><th></th></tr></thead>
-    <tbody>
-    {% for user in page %}
-      <tr>
-        <td><strong>{{ user.get_full_name|default:user.username }}</strong><small>@{{ user.username }}</small></td>
-        <td>{% if user.is_staff %}<span class="status neutral">管理员</span>{% elif user.student %}<span class="status success">学生</span>{% else %}<span class="status warning">未分配</span>{% endif %}</td>
-        <td>{{ user.student.student_id|default:'-' }}</td>
-        <td>{{ user.student.school|default:'-' }}{% if user.student.gaokao_year %}<small>{{ user.student.gaokao_year }} 届</small>{% endif %}</td>
-        <td>{% if not user.is_active %}<span class="status danger">已停用</span>{% elif user.student.account_status == 'pending_deletion' %}<span class="status warning">待注销</span>{% elif user.student.account_status == 'anonymized' %}<span class="status neutral">已匿名</span>{% else %}<span class="status success">正常</span>{% endif %}</td>
-        <td>{{ user.last_login|date:'Y-m-d H:i'|default:'-' }}</td>
-        <td><a href="{% url 'management_portal:user_detail' user.pk %}">查看</a></td>
-      </tr>
-    {% empty %}<tr><td colspan="7" class="empty">没有符合条件的用户</td></tr>{% endfor %}
-    </tbody>
-  </table>
-</div>
-{% if page.paginator.num_pages > 1 %}<nav class="pagination">
-  {% if page.has_previous %}<a href="?q={{ query|urlencode }}&role={{ role }}&status={{ status }}&page={{ page.previous_page_number }}">上一页</a>{% endif %}
-  <span>第 {{ page.number }} / {{ page.paginator.num_pages }} 页</span>
-  {% if page.has_next %}<a href="?q={{ query|urlencode }}&role={{ role }}&status={{ status }}&page={{ page.next_page_number }}">下一页</a>{% endif %}
-</nav>{% endif %}
+<div class="table-wrap"><table class="data-table user-table">
+  <thead><tr><th>用户</th><th>学号</th><th>学校 / 届别</th><th>权限级别</th><th>账号状态</th><th>学生状态</th><th>最近登录</th><th></th></tr></thead>
+  <tbody>{% for user in page %}
+    <tr>
+      <td><strong>{{ user.get_full_name|default:user.username }}</strong><small>@{{ user.username }}</small></td>
+      <td>{{ user.student.student_id|default:'-' }}</td>
+      <td>{{ user.student.school|default:'-' }}{% if user.student.gaokao_year %}<small>{{ user.student.gaokao_year }} 届</small>{% endif %}</td>
+      <td><span class="status {% if user.access_level == 'superuser' or user.access_level == 'reviewer' %}neutral{% elif user.access_level == 'handbook' %}success{% else %}muted{% endif %}">{{ user.access_level_label }}</span></td>
+      <td>{% if user.is_active %}<span class="status success">启用</span>{% else %}<span class="status danger">停用</span>{% endif %}</td>
+      <td>{% if user.student %}<span class="status {% if user.student.account_status == 'active' %}success{% elif user.student.account_status == 'pending_deletion' %}warning{% else %}neutral{% endif %}">{{ user.student.get_account_status_display }}</span>{% else %}<span class="status warning">缺少档案</span>{% endif %}</td>
+      <td>{{ user.last_login|date:'Y-m-d H:i'|default:'-' }}</td>
+      <td><a href="{% url 'management_portal:user_detail' user.pk %}">查看</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="empty">没有符合条件的用户</td></tr>{% endfor %}</tbody>
+</table></div>
+{% if page.paginator.num_pages > 1 %}<nav class="pagination">{% if page.has_previous %}<a href="?view={{ view }}&q={{ query|urlencode }}&access_level={{ access_level }}&account_status={{ account_status }}&student_status={{ student_status }}&page={{ page.previous_page_number }}">上一页</a>{% endif %}<span>第 {{ page.number }} / {{ page.paginator.num_pages }} 页</span>{% if page.has_next %}<a href="?view={{ view }}&q={{ query|urlencode }}&access_level={{ access_level }}&account_status={{ account_status }}&student_status={{ student_status }}&page={{ page.next_page_number }}">下一页</a>{% endif %}</nav>{% endif %}
 {% endblock %}

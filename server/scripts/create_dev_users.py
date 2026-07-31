@@ -42,7 +42,9 @@ def create_users():
             user.first_name = u['real_name']
             user.save()
             if u['role'] == 'student':
-                Student.objects.create(user=user, gaokao_year=u.get('gaokao_year'))
+                student = user.student
+                student.gaokao_year = u.get('gaokao_year')
+                student.save(update_fields=['gaokao_year', 'updated_at'])
         print('  OK', u['username'], '(' + u['real_name'] + ')')
 
 if __name__ == '__main__':

@@ -10,10 +10,6 @@
   </div>
 </div>
 
-{% if not student %}
-<section class="notice warning"><div><strong>该用户没有学生档案</strong><span>转换会同时创建 Student 档案、加入 student 用户组并授予学生端权限。</span></div>{% if not managed_user.is_staff %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="ensure_student"><button class="primary" type="submit">设为学生</button></form>{% endif %}</section>
-{% endif %}
-
 <div class="detail-grid">
   <section class="panel span-2">
     <h2>基本资料</h2>
@@ -26,6 +22,17 @@
     <h2>账号控制</h2>
     <dl class="meta-list"><div><dt>最近登录</dt><dd>{{ managed_user.last_login|date:'Y-m-d H:i'|default:'从未登录' }}</dd></div><div><dt>后台权限</dt><dd>{% if managed_user.is_staff %}管理员{% else %}无{% endif %}</dd></div></dl>
     {% if not managed_user.is_superuser %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_active"><button class="{% if managed_user.is_active %}danger-button{% else %}primary{% endif %}" type="submit">{% if managed_user.is_active %}停用账号{% else %}启用账号{% endif %}</button></form>{% endif %}
+  </section>
+  <section class="panel">
+    <h2>日常权限</h2>
+    {% if managed_user.is_superuser %}
+      <p class="status neutral">系统超级用户</p><p class="muted-copy">通过高级数据管理维护，不在此处授予或降级。</p>
+    {% else %}
+      <form class="stack-form" method="post">{% csrf_token %}<input type="hidden" name="action" value="save_access_level">
+        {% for field in access_level_form %}<label><span>{{ field.label }}</span>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</label>{% endfor %}
+        <small>内容审核员自动拥有工作手册访问权限。</small><button class="primary" type="submit">保存权限</button>
+      </form>
+    {% endif %}
   </section>
   <section class="panel">
     <h2>重置密码</h2>

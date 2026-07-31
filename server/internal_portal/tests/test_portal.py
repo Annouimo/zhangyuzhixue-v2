@@ -63,14 +63,14 @@ def test_portal_group_user_can_log_in_and_view_pages(client, portal_user):
     assert '项目工作手册' in content
     assert '章鱼智学软件' in content
     assert '圆明智学自媒体后期' in content
-    assert 'aria-label="网站链接"' in content
-    assert '>官网</a>' in content
-    assert '>工作手册</a>' in content
-    assert '>内容工作台</a>' in content
-    assert '>管理工作台</a>' in content
-    assert reverse('management_portal:home') in content
-    assert '>高级数据管理</a>' in content
-    assert reverse('admin:index') in content
+    assert '内部平台' in content
+    assert '返回官网' in content
+    assert '>工作手册</strong>' in content
+    assert '>内容工作台</a>' not in content
+    assert '>管理工作台</a>' not in content
+    assert reverse('management_portal:home') not in content
+    assert '>高级数据管理</a>' not in content
+    assert reverse('admin:index') not in content
 
     response = client.get(
         reverse('internal_portal:page-detail', args=['software']),

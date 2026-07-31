@@ -84,12 +84,11 @@ def register_view(request):
         user.first_name = data.get('real_name', '')
         user.save(update_fields=['first_name'])
 
-        student = Student.objects.create(
-            user=user,
-            school=data.get('school', ''),
-            phone=data.get('phone', ''),
-            gaokao_year=data.get('gaokao_year'),
-        )
+        student = user.student
+        student.school = data.get('school', '')
+        student.phone = data.get('phone', '')
+        student.gaokao_year = data.get('gaokao_year')
+        student.save(update_fields=['school', 'phone', 'gaokao_year', 'updated_at'])
         add_user_to_group(user, STUDENT_GROUP)
         RegistrationConsent.objects.create(
             user=user,

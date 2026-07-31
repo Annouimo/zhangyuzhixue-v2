@@ -6,7 +6,6 @@ from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.urls import reverse
 
-from accounts.models import Student
 from accounts.roles import CONTENT_REVIEWER_GROUP
 from interactions.models import (
     ContentContribution, ContributionRevision,
@@ -28,7 +27,7 @@ def reviewer(db):
 @pytest.fixture
 def student(db):
     user = User.objects.create_user('workbench-student')
-    return Student.objects.create(user=user)
+    return user.student
 
 
 def valid_payload(stem='已知 $x=1$，求 $x+1$'):
@@ -231,6 +230,7 @@ def test_workbench_records_snapshots_and_shows_adjacent_diff(client, reviewer):
 def test_backfill_workbench_revisions_is_complete_and_idempotent():
     from courses.models import Course, Document
 
+    WorkbenchRevision.objects.all().delete()
     question = BaseQuestion.objects.create(question_type='fill', stem='基线题目')
     question.sub_questions.create(answer='1', explanation='', sort_order=1)
     tag = ConceptTag.objects.create(name='基线标签')

@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from accounts.models import Student
 from interactions.models import (
     CardFeedback,
     CustomPaper,
@@ -28,7 +27,9 @@ def api_client():
 @pytest.fixture
 def student_user(db):
     user = User.objects.create_user('syncstudent', password='test123')
-    Student.objects.create(user=user, gaokao_year=2026)
+    student = user.student
+    student.gaokao_year = 2026
+    student.save(update_fields=['gaokao_year', 'updated_at'])
     return user
 
 
@@ -562,15 +563,15 @@ class TestSyncPullUserDB:
         resp = api_client.get(reverse('sync-user-pull'))
         assert resp.status_code == 401
 
-    def test_non_student_pull(self, api_client, db):
-        """无学生权限的普通用户在权限层被拒绝。"""
+    def test_default_user_can_pull_student_database(self, api_client, db):
+        """所有账号都有学生基础档案和同步权限。"""
         from django.contrib.auth.models import User
         from rest_framework_simplejwt.tokens import RefreshToken
         user = User.objects.create_user('plain_user', password='test123')
         refresh = RefreshToken.for_user(user)
         api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(refresh.access_token))
         resp = api_client.get(reverse('sync-user-pull'))
-        assert resp.status_code == 403
+        assert resp.status_code == 200
 
     def test_pull_success_empty(self, auth_client):
         """学生无数据可拉 — 仍返回有效响应"""

@@ -1,0 +1,14 @@
+<details class="app-switcher">
+  <summary aria-label="切换内部工作台">
+    <span class="app-switcher__label">当前工作台</span>
+    <span class="app-switcher__current">{{ shell.current.name }}</span>
+  </summary>
+  <nav class="app-switcher__menu" aria-label="内部工作台切换">
+    {% for app in shell.apps %}
+      <a href="{{ app.url }}"{% if app.key == shell.current.key %} class="is-current" aria-current="page"{% endif %}>
+        <span><strong>{{ app.name }}</strong><small>{{ app.description }}</small></span>
+        {% if app.key == shell.current.key %}<span class="app-switcher__check" aria-hidden="true">✓</span>{% endif %}
+      </a>
+    {% endfor %}
+  </nav>
+</details>

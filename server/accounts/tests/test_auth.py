@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from rest_framework.reverse import reverse
 
-from accounts.models import RegistrationConsent, Student
+from accounts.models import RegistrationConsent
 from accounts.roles import STUDENT_GROUP
 
 
@@ -15,9 +15,7 @@ def api_client():
 
 @pytest.fixture
 def registered_user(db):
-    u = User.objects.create_user('teststudent', password='test123456')
-    Student.objects.create(user=u)
-    return u
+    return User.objects.create_user('teststudent', password='test123456')
 
 
 # ── 登录测试 ──
@@ -46,13 +44,13 @@ class TestLogin:
         assert resp.status_code == 400
         assert resp.data['code'] == 40001
 
-    def test_login_rejects_user_without_student_role(self, db, api_client):
+    def test_login_accepts_default_user_with_student_access(self, db, api_client):
         User.objects.create_user('plain-user', password='test123456')
         resp = api_client.post(reverse('auth-login'), {
             'username': 'plain-user', 'password': 'test123456',
         }, format='json')
-        assert resp.status_code == 400
-        assert resp.data['code'] == 40003
+        assert resp.status_code == 200
+        assert resp.data['data']['user']['role'] == 'student'
 
 
 class TestRegister:
@@ -98,7 +96,8 @@ class TestRegister:
 
     def test_duplicate_phone_is_rejected(self, db, api_client):
         owner = User.objects.create_user('owner', password='test-password-123')
-        Student.objects.create(user=owner, phone='13800138000')
+        owner.student.phone = '13800138000'
+        owner.student.save(update_fields=['phone', 'updated_at'])
         response = api_client.post(reverse('auth-register'), {
             'username': 'duplicate-phone',
             'password': 'test-password-123',
@@ -122,15 +121,14 @@ class TestLoginErrors:
         assert resp.status_code == 400
         assert resp.data['code'] == 40001
 
-    def test_login_admin_refused(self, db, api_client):
-        """管理员账号：应拒绝"""
+    def test_superuser_can_use_student_app(self, db, api_client):
         User.objects.create_superuser('adminuser', 'admin@test.com', 'admin123')
         resp = api_client.post(reverse('auth-login'), {
             'username': 'adminuser',
             'password': 'admin123',
         }, format='json')
-        assert resp.status_code == 400
-        assert resp.data['code'] == 40003
+        assert resp.status_code == 200
+        assert resp.data['data']['user']['role'] == 'student'
 
     def test_login_missing_fields(self, api_client):
         """缺少字段：应返回 400"""

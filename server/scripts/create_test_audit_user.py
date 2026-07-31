@@ -23,7 +23,9 @@ else:
     u.first_name = '审计测试'
     u.save()
     if not Student.objects.filter(user=u).exists():
-        Student.objects.create(user=u, gaokao_year=2026)
+        student = u.student
+        student.gaokao_year = 2026
+        student.save(update_fields=['gaokao_year', 'updated_at'])
     print(f'Created user {username} (id={u.id})')
 
 student = Student.objects.get(user=u)
