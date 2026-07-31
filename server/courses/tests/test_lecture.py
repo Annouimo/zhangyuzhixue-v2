@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from accounts.models import Student
 from courses.models import (
     Course, Document, Video, VideoCategory, VideoDocumentLink,
 )
@@ -18,7 +17,7 @@ def api_client():
 @pytest.fixture
 def student_user(db):
     user = User.objects.create_user('lecturestudent', password='test123')
-    Student.objects.create(user=user)
+    user.student
     return user
 
 
@@ -49,13 +48,13 @@ def sample_documents(db, sample_course):
 class TestLectureCourses:
     """课程列表 API 测试"""
 
-    def test_plain_authenticated_user_is_denied(self, db, api_client):
+    def test_default_user_can_open_lecture_catalog(self, db, api_client):
         from rest_framework_simplejwt.tokens import RefreshToken
         user = User.objects.create_user('plainlecture', password='test123')
         token = RefreshToken.for_user(user).access_token
         api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
         response = api_client.get(reverse('lecture-courses'))
-        assert response.status_code == 403
+        assert response.status_code == 200
 
     def test_authenticated_user_sees_all_courses(self, auth_client, sample_course):
         """讲义不再按班级或角色限制。"""
@@ -198,3 +197,37 @@ class TestVideos:
         response = auth_client.get(reverse('video-detail', args=[video.id]))
 
         assert response.status_code == 404
+
+
+class TestPublicVideoLanding:
+    def test_published_video_renders_scheme_and_lecture(
+            self, client, sample_video):
+        video, document = sample_video
+
+        response = client.get(
+            reverse('public-video-landing', args=[video.id]),
+            {'from': 'bilibili'},
+        )
+
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert video.title in content
+        assert document.title in content
+        assert 'zhangyuzhixue://video/${videoId}' in content
+        assert '下载章鱼智学' in content
+
+    def test_draft_video_is_not_public(self, client, sample_video):
+        video, _ = sample_video
+        video.is_published = False
+        video.save(update_fields=['is_published'])
+
+        response = client.get(reverse('public-video-landing', args=[video.id]))
+
+        assert response.status_code == 404
+
+    def test_event_endpoint_validates_event(self, client, sample_video):
+        video, _ = sample_video
+        url = reverse('public-video-link-event', args=[video.id])
+
+        assert client.post(url, {'event': 'open_app'}).status_code == 204
+        assert client.post(url, {'event': 'unknown'}).status_code == 400

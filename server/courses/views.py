@@ -1,4 +1,11 @@
-"""讲义 API — 课程列表/章节目录/讲义内容"""
+"""讲义、视频 API 与公开视频落地页。"""
+import logging
+import re
+
+from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET, require_POST
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -8,8 +15,53 @@ from accounts.permissions import IsStudent
 from courses.models import Course, Document, Video, VideoCategory
 
 
+logger = logging.getLogger(__name__)
+_SOURCE_PATTERN = re.compile(r'^[a-zA-Z0-9_-]{1,32}$')
+_LINK_EVENTS = {'open_app', 'download'}
+
+
 def _ok(data=None, message='ok'):
     return Response({'code': 0, 'message': message, 'data': data})
+
+
+def _safe_source(request):
+    source = request.GET.get('from', '') or request.POST.get('source', '')
+    return source if _SOURCE_PATTERN.fullmatch(source) else 'direct'
+
+
+@require_GET
+def public_video_landing(request, video_id):
+    video = Video.objects.filter(
+        id=video_id, is_published=True,
+    ).select_related('category').first()
+    if video is None:
+        return HttpResponseNotFound('视频不存在或已下架')
+    links = video.videodocumentlink_set.select_related(
+        'document__course',
+    ).order_by('sort_order', 'id')
+    source = _safe_source(request)
+    logger.info('video_landing_view video_id=%s source=%s', video.id, source)
+    return render(request, 'courses/video_landing.html', {
+        'video': video,
+        'lecture_links': links,
+        'source': source,
+        'canonical_url': request.build_absolute_uri(request.path),
+    })
+
+
+@csrf_exempt
+@require_POST
+def public_video_link_event(request, video_id):
+    event = request.POST.get('event', '')
+    if event not in _LINK_EVENTS or not Video.objects.filter(
+        id=video_id, is_published=True,
+    ).exists():
+        return HttpResponse(status=400)
+    logger.info(
+        'video_link_event video_id=%s event=%s source=%s',
+        video_id, event, _safe_source(request),
+    )
+    return HttpResponse(status=204)
 
 
 @extend_schema(

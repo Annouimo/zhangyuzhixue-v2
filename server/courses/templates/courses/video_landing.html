@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ video.title }}｜章鱼智学</title>
+  <meta name="description" content="{{ video.description|default:'在章鱼智学中查看视频和配套讲义。'|truncatechars:120 }}">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <meta property="og:type" content="video.other">
+  <meta property="og:title" content="{{ video.title }}">
+  <meta property="og:description" content="{{ video.description|default:'在章鱼智学中查看视频和配套讲义。'|truncatechars:120 }}">
+  {% if video.cover_url %}<meta property="og:image" content="{{ video.cover_url }}">{% endif %}
+  <style>
+    :root{color-scheme:light dark;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;background:#f3f7fc;color:#172033}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(145deg,#eef7ff,#f8fbff 50%,#eef3ff)}
+    main{width:min(680px,calc(100% - 32px));margin:0 auto;padding:32px 0 56px}.brand{display:flex;align-items:center;gap:10px;color:#126fc4;font-weight:700}.mark{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#1488f7;color:white}
+    .card{margin-top:22px;background:#fff;border:1px solid #dce8f5;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(38,92,145,.12)}
+    .cover{aspect-ratio:16/9;width:100%;object-fit:cover;background:#dceeff}.placeholder{display:grid;place-items:center;aspect-ratio:16/9;background:linear-gradient(135deg,#167edb,#67b8ff);color:#fff;font-size:64px}
+    .content{padding:24px}.badge{display:inline-block;padding:5px 10px;border-radius:999px;background:#e9f4ff;color:#146bad;font-size:13px}h1{margin:14px 0 10px;font-size:clamp(24px,5vw,34px);line-height:1.25}p{line-height:1.75;color:#536176}.actions{display:grid;gap:12px;margin-top:24px}.button{display:flex;justify-content:center;align-items:center;min-height:50px;border-radius:14px;text-decoration:none;font-weight:700;border:0;cursor:pointer;font-size:16px}.primary{background:#1488f7;color:#fff}.secondary{background:#edf5fd;color:#1769aa}.note{font-size:13px;text-align:center}.lectures{margin-top:24px;padding-top:20px;border-top:1px solid #e3e9f1}.lectures h2{font-size:17px}.lectures li{margin:8px 0;color:#536176}
+    @media(prefers-color-scheme:dark){:root{background:#0b111a;color:#edf5ff}body{background:linear-gradient(145deg,#0c1824,#101722)}.card{background:#151e2b;border-color:#2b3b4f}.badge{background:#183653;color:#8dccff}p,.lectures li{color:#b6c2d1}.secondary{background:#203247;color:#9dd2ff}.lectures{border-color:#304052}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><span class="mark">章</span><span>章鱼智学</span></div>
+    <article class="card">
+      {% if video.cover_url %}<img class="cover" src="{{ video.cover_url }}" alt="{{ video.title }}封面">{% else %}<div class="placeholder" aria-hidden="true">▶</div>{% endif %}
+      <div class="content">
+        <span class="badge">{{ video.category.name }}</span>
+        <h1>{{ video.title }}</h1>
+        {% if video.description %}<p>{{ video.description }}</p>{% endif %}
+        {% if lecture_links %}<section class="lectures"><h2>配套讲义</h2><ul>{% for link in lecture_links %}<li>{{ link.document.course.name }} · {{ link.document.title }}{% if link.relation_label %}（{{ link.relation_label }}）{% endif %}</li>{% endfor %}</ul></section>{% endif %}
+        <div class="actions">
+          <button class="button primary" id="open-app" type="button">打开章鱼智学</button>
+          <a class="button secondary" id="download-app" href="https://zhangyuzhixue.top/software.html">下载章鱼智学</a>
+        </div>
+        <p class="note" id="open-note">如果没有安装 App，请使用下载入口。</p>
+      </div>
+    </article>
+  </main>
+  <script>
+    (() => {
+      const videoId = {{ video.id }};
+      const source = "{{ source|escapejs }}";
+      const endpoint = `/v/${videoId}/event`;
+      const report = event => navigator.sendBeacon(endpoint, new URLSearchParams({event, source}));
+      document.getElementById('open-app').addEventListener('click', () => {
+        report('open_app');
+        window.location.href = `zhangyuzhixue://video/${videoId}`;
+        window.setTimeout(() => {
+          if (!document.hidden) document.getElementById('open-note').textContent = '没有成功打开？请下载或安装后重试。';
+        }, 1500);
+      });
+      document.getElementById('download-app').addEventListener('click', () => report('download'));
+    })();
+  </script>
+</body>
+</html>

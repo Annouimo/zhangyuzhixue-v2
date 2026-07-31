@@ -8,6 +8,7 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from interactions.pdf_views import pdf_view
+from courses.views import public_video_landing, public_video_link_event
 
 api_v1 = [
     path('auth/', include('accounts.urls')),
@@ -24,6 +25,8 @@ api_v1 = [
 ]
 
 urlpatterns = [
+    path('v/<int:video_id>', public_video_landing, name='public-video-landing'),
+    path('v/<int:video_id>/event', public_video_link_event, name='public-video-link-event'),
     path('internal/', include('internal_portal.urls')),
     path('review/', include('interactions.review_urls')),
     path('manage/', include('system.management_urls')),
