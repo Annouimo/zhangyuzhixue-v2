@@ -16,7 +16,6 @@ import '../../domain/progress_repository.dart' as progress;
 import '../../domain/question_repository.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
-import '../exam/exam_session_timer.dart';
 import 'widgets/question_contribution_actions.dart';
 
 /// 解答题地图页 — 步骤概览（匹配 solve-map.html）
@@ -239,10 +238,7 @@ class _SolveMapPageState extends State<SolveMapPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('解题步骤'),
-        actions: [
-          ...questionContributionActions(context, widget.questionId),
-          const ExamTimerAction(),
-        ],
+        actions: [...questionContributionActions(context, widget.questionId)],
       ),
       body: body,
     );

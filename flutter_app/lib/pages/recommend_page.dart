@@ -171,7 +171,6 @@ class RecommendPageState extends State<RecommendPage> {
               onPressed: _skipCurrent,
               icon: const Icon(Icons.skip_next_rounded),
             ),
-          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: _buildBody(current),

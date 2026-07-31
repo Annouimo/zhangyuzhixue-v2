@@ -65,38 +65,25 @@ class _ContributionListPageState extends State<ContributionListPage>
     appBar: AppBar(
       title: const Text('创作者中心'),
       actions: [
+        if (MediaQuery.sizeOf(context).width < 600)
+          IconButton(
+            tooltip: '开始投稿',
+            onPressed: _openNew,
+            icon: const Icon(Icons.add_rounded),
+          )
+        else
+          TextButton.icon(
+            onPressed: _openNew,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('开始投稿'),
+          ),
         IconButton(
-          tooltip: '刷新贡献记录',
-          onPressed: _refreshing ? null : _load,
-          icon: _refreshing
-              ? const SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.refresh_rounded),
-        ),
-        PopupMenuButton<String>(
-          tooltip: '更多贡献操作',
-          icon: const Icon(Icons.more_horiz),
-          onSelected: (_) =>
+          tooltip: '编辑格式说明',
+          onPressed: () =>
               RouterUtils.push(context, AppRoutes.contributionHelp),
-          itemBuilder: (context) => const [
-            PopupMenuItem(
-              value: 'help',
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.help_outline_rounded),
-                title: Text('编辑格式说明'),
-              ),
-            ),
-          ],
+          icon: const Icon(Icons.help_outline_rounded),
         ),
       ],
-    ),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _openNew,
-      icon: const Icon(Icons.add_rounded),
-      label: const Text('开始投稿'),
     ),
     body: _error != null
         ? ErrorPlaceholder(message: _error!, onRetry: _load)

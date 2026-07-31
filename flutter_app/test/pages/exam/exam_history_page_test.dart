@@ -80,6 +80,10 @@ void main() {
       expect(find.text('打印试卷'), findsNothing);
       expect(find.text('快速对答案'), findsNothing);
       expect(find.text('删除'), findsNothing);
+      await tester.tap(find.byTooltip('选择试卷'));
+      await tester.pump();
+      expect(find.text('已选 1 份'), findsOneWidget);
+      expect(find.text('管理试卷'), findsOneWidget);
     });
 
     testWidgets('shows empty state', (tester) async {

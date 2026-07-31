@@ -3,6 +3,7 @@ import 'package:shared/theme/app_theme.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/theme/app_icons.dart';
 import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_status_badge.dart';
 import 'package:shared/widgets/md_latex_body.dart';
 
@@ -53,13 +54,15 @@ class SolveResultCard extends StatelessWidget {
                 const Spacer(),
                 Text(
                   isCorrect ? '做得很好' : '看看正确答案和解析',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: foreground,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: foreground),
                 ),
               ],
             ),
-            if (!isCorrect && correctAnswer != null && correctAnswer!.isNotEmpty) ...[
+            if (!isCorrect &&
+                correctAnswer != null &&
+                correctAnswer!.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.lg),
               _ContentSection(
                 title: '正确答案',
@@ -130,22 +133,17 @@ class SolveAnswerRevealCard extends StatelessWidget {
         ),
         if (explanation != null && explanation!.trim().isNotEmpty) ...[
           const SizedBox(height: AppSpacing.md),
-          AppCard(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+          AppSection(
+            title: '答案解析',
+            leading: Icon(
+              Icons.menu_book_rounded,
+              size: 20,
+              color: colors.primary,
+            ),
+            showDivider: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.menu_book_rounded,
-                        size: 20, color: colors.primary),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text('答案解析', style: Theme.of(context).textTheme.titleMedium),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.md),
-                MdLatexBody(explanation!, fontSize: 15),
-              ],
+              children: [MdLatexBody(explanation!, fontSize: 15)],
             ),
           ),
         ],
@@ -186,9 +184,9 @@ class _ContentSection extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: foreground,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(color: foreground),
               ),
             ],
           ),

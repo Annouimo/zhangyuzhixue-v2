@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_app/domain/exam_repository.dart';
 import 'package:flutter_app/pages/exam/exam_quicklook_page.dart';
-import 'package:flutter_app/pages/exam/exam_session_timer.dart';
 import '../../test_setup.dart';
 
 class _MockQuicklookRepo implements ExamRepository {
@@ -67,11 +66,7 @@ class _MockQuicklookRepo implements ExamRepository {
 }
 
 void main() {
-  setUp(() {
-    setupTestHooks();
-    ExamSessionTimer.instance.stop();
-  });
-  tearDown(ExamSessionTimer.instance.stop);
+  setUp(setupTestHooks);
   group('ExamQuicklookPage', () {
     testWidgets('shows loading then preview', (tester) async {
       final repo = _MockQuicklookRepo(
@@ -104,35 +99,13 @@ void main() {
       expect(find.text('已知函数，求其最值。'), findsOneWidget);
       expect(find.text('1. 2025 全国 高考'), findsOneWidget);
       expect(find.text('中难'), findsOneWidget);
-      expect(find.text('开始计时'), findsOneWidget);
+      expect(find.text('开始计时'), findsNothing);
       expect(find.text('快速对答案'), findsOneWidget);
       expect(find.text('打印试卷'), findsNothing);
       expect(find.byTooltip('更多试卷操作'), findsOneWidget);
       await tester.tap(find.byTooltip('更多试卷操作'));
       await tester.pumpAndSettle();
       expect(find.text('打印试卷'), findsOneWidget);
-    });
-
-    testWidgets('starts and stops a session timer without persistence', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ExamQuicklookPage(
-            examId: 7,
-            examRepository: _MockQuicklookRepo(),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('开始计时'));
-      await tester.pump();
-      expect(ExamSessionTimer.instance.examId, 7);
-      expect(find.textContaining('结束计时'), findsOneWidget);
-
-      await tester.tap(find.textContaining('结束计时'));
-      await tester.pump();
-      expect(ExamSessionTimer.instance.isRunning, isFalse);
     });
   });
 }

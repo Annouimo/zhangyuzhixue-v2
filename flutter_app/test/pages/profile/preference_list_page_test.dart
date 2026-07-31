@@ -52,13 +52,13 @@ void main() {
       expect(find.text('我的筛选方案'), findsOneWidget);
     });
 
-    testWidgets('renders FAB with correct label', (tester) async {
+    testWidgets('renders create action in the app bar', (tester) async {
       final repo = _MockPreferenceRepository();
       await tester.pumpWidget(
         MaterialApp(home: PreferenceListPage(preferenceRepository: repo)),
       );
       expect(find.text('新建方案'), findsOneWidget);
-      expect(find.byType(FloatingActionButton), findsOneWidget);
+      expect(find.byType(FloatingActionButton), findsNothing);
     });
 
     testWidgets('shows empty placeholder when no preferences', (tester) async {
@@ -85,6 +85,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('测试偏好'), findsOneWidget);
+      await tester.tap(find.byTooltip('选择筛选方案'));
+      await tester.pump();
+      expect(find.text('已选 1 个'), findsOneWidget);
+      expect(find.text('管理方案'), findsOneWidget);
     });
   });
 }

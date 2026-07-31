@@ -139,22 +139,11 @@ class _ExamExplorePageState extends State<ExamExplorePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '发现其他同学分享的内容，收藏后可以随时查看。',
-                              style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(ctx).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                          tooltip: '刷新',
-                          onPressed: () => _loadKey.currentState?.refresh(),
-                          icon: const Icon(AppIcons.refresh),
-                          ),
-                        ],
+                      Text(
+                        '发现其他同学分享的内容，收藏后可以随时查看。',
+                        style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       TextField(

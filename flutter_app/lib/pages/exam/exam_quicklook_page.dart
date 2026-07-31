@@ -13,7 +13,6 @@ import '../../domain/question_repository.dart';
 import '../../widgets/question_selection_workspace.dart';
 import '../router.dart';
 import 'widgets/paper_action_bar.dart';
-import 'exam_session_timer.dart';
 
 /// 预览自己创建的组卷。
 class ExamQuicklookPage extends StatefulWidget {
@@ -128,10 +127,7 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
               : [
                   SizedBox(
                     width: MediaQuery.sizeOf(context).width >= 800 ? 430 : 190,
-                    child: ListenableBuilder(
-                      listenable: ExamSessionTimer.instance,
-                      builder: (context, _) => _buildPaperActions(_paper!),
-                    ),
+                    child: _buildPaperActions(_paper!),
                   ),
                 ],
         ),
@@ -146,15 +142,6 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       AppToast.success(context, '公开状态已更新');
       _load();
     }
-  }
-
-  Future<void> _copyToFolder() async {
-    final folderId = await PaperFolderRepository.local().copyFromPaper(
-      widget.examId!,
-      name: '${_paper?.title ?? '试卷'}试题篮',
-    );
-    if (!mounted) return;
-    RouterUtils.push(context, '${AppRoutes.paperFolderDetail}?id=$folderId');
   }
 
   Future<void> _delete() async {
@@ -187,8 +174,6 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
       );
     } else if (value == 'visibility') {
       await _togglePublic();
-    } else if (value == 'copy_folder') {
-      await _copyToFolder();
     } else if (value == 'delete') {
       await _delete();
     }
@@ -209,29 +194,14 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
 
   Widget _buildPaperActions(PaperContent paper) => PaperActionBar(
     actions: [
-      PaperAction(
-        label: widget.examId == null
-            ? '开始练习'
-            : ExamSessionTimer.instance.isRunning
-            ? '结束计时 · ${ExamSessionTimer.instance.formatted}'
-            : '开始计时',
-        compactLabel: ExamSessionTimer.instance.isRunning ? '结束' : '开始',
-        icon: widget.examId == null
-            ? Icons.play_arrow_rounded
-            : ExamSessionTimer.instance.isRunning
-            ? Icons.timer_off_outlined
-            : Icons.timer_outlined,
-        variant: AppButtonVariant.primary,
-        onPressed: () {
-          if (widget.examId == null) {
-            _startVirtualPaper(paper);
-          } else if (ExamSessionTimer.instance.isRunning) {
-            ExamSessionTimer.instance.stop();
-          } else {
-            ExamSessionTimer.instance.start(widget.examId!);
-          }
-        },
-      ),
+      if (widget.examId == null)
+        PaperAction(
+          label: '开始练习',
+          compactLabel: '开始',
+          icon: Icons.play_arrow_rounded,
+          variant: AppButtonVariant.primary,
+          onPressed: () => _startVirtualPaper(paper),
+        ),
       PaperAction(
         label: '快速对答案',
         icon: Icons.fact_check_outlined,
@@ -255,11 +225,6 @@ class _ExamQuicklookPageState extends State<ExamQuicklookPage> {
           value: 'visibility',
           label: paper.isPublic ? '设为私密' : '公开分享',
           icon: paper.isPublic ? Icons.lock_outline : Icons.public,
-        ),
-        const PaperMenuAction(
-          value: 'copy_folder',
-          label: '基于此试卷新建试题篮',
-          icon: Icons.create_new_folder_outlined,
         ),
         const PaperMenuAction(
           value: 'delete',

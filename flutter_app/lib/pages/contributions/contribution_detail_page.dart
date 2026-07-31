@@ -51,16 +51,7 @@ class _ContributionDetailPageState extends State<ContributionDetailPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('贡献详情'),
-      actions: [
-        IconButton(
-          tooltip: '刷新',
-          onPressed: _loading ? null : _load,
-          icon: const Icon(Icons.refresh_rounded),
-        ),
-      ],
-    ),
+    appBar: AppBar(title: const Text('贡献详情')),
     body: _loading
         ? const LoadingIndicator(message: '正在加载贡献详情')
         : _error != null

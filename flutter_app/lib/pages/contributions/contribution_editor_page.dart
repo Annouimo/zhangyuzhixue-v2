@@ -1431,39 +1431,17 @@ class _ContributionEditorPageState extends State<ContributionEditorPage> {
             : '投稿新题',
       ),
       actions: [
-        TextButton.icon(
-          onPressed: _saveDraftNow,
-          icon: const Icon(Icons.save_outlined),
-          label: const Text('保存草稿'),
-        ),
-        PopupMenuButton<String>(
-          tooltip: '更多投稿操作',
-          icon: const Icon(Icons.more_horiz),
-          onSelected: (value) {
-            if (value == 'import') _showJsonImportDialog();
-            if (value == 'help') {
-              RouterUtils.push(context, AppRoutes.contributionHelp);
-            }
-          },
-          itemBuilder: (context) => [
-            if (!_isCorrection && !_isSolution && _currentStep == 0)
-              const PopupMenuItem(
-                value: 'import',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.auto_awesome_outlined),
-                  title: Text('从 AI 结果导入'),
-                ),
-              ),
-            const PopupMenuItem(
-              value: 'help',
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.help_outline_rounded),
-                title: Text('编辑格式说明'),
-              ),
-            ),
-          ],
+        if (!_isCorrection && !_isSolution && _currentStep == 0)
+          TextButton.icon(
+            onPressed: _showJsonImportDialog,
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: const Text('AI 结果导入'),
+          ),
+        IconButton(
+          tooltip: '编辑格式说明',
+          onPressed: () =>
+              RouterUtils.push(context, AppRoutes.contributionHelp),
+          icon: const Icon(Icons.help_outline_rounded),
         ),
       ],
       bottom: _loading

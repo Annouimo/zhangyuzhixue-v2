@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared/shared.dart';
 
 import '../domain/paper_folder_repository.dart';
-import '../pages/router.dart';
-import 'basket_selection_panel.dart';
+import 'selected_questions_panel.dart';
 
 class QuestionWorkspaceItem {
   const QuestionWorkspaceItem({
@@ -106,15 +105,15 @@ class _QuestionWorkspaceState extends State<QuestionWorkspace> {
     setState(() {});
   }
 
-  Future<void> _addToBasket() async {
+  Future<void> _manageSelected() async {
     final repository = widget.basketRepository;
     if (repository == null) return;
-    final added = await addQuestionsToBaskets(
+    final completed = await manageSelectedQuestions(
       context: context,
       repository: repository,
       questionIds: _controller.selectedIds,
     );
-    if (added) _controller.clear();
+    if (completed) _controller.clear();
   }
 
   @override
@@ -129,9 +128,9 @@ class _QuestionWorkspaceState extends State<QuestionWorkspace> {
             onSelectAll: () =>
                 _controller.selectAll(widget.items.map((item) => item.id)),
             onClear: _controller.clear,
-            actionLabel: '加入试题篮',
-            actionIcon: Icons.shopping_cart_checkout_outlined,
-            onAction: selectedIds.isEmpty ? null : _addToBasket,
+            actionLabel: '管理已选题目',
+            actionIcon: Icons.checklist_rounded,
+            onAction: selectedIds.isEmpty ? null : _manageSelected,
           )
         : null;
     return Column(
@@ -267,86 +266,4 @@ class _QuestionSelectionCard extends StatelessWidget {
       ),
     ),
   );
-}
-
-Future<bool> addQuestionsToBaskets({
-  required BuildContext context,
-  required PaperFolderRepository repository,
-  required Set<int> questionIds,
-}) async {
-  if (questionIds.isEmpty) return false;
-  var folders = await repository.list();
-  if (folders.isEmpty) {
-    await repository.defaultFolderId();
-    folders = await repository.list();
-  }
-  if (!context.mounted) return false;
-  final duplicateCounts = <int, int>{};
-  final items = await Future.wait(
-    folders.map((folder) async {
-      final detail = await repository.detail(folder.id);
-      final duplicateCount = detail.questions
-          .where((question) => questionIds.contains(question.id))
-          .length;
-      duplicateCounts[folder.id] = duplicateCount;
-      return BasketSelectionItem(
-        id: folder.id,
-        name: folder.name,
-        subtitle:
-            '${folder.questionCount} 道题 · 新增 ${questionIds.length - duplicateCount} 道 · 已有 $duplicateCount 道',
-      );
-    }),
-  );
-  if (!context.mounted) return false;
-  final selectedFolderIds = await showBasketSelectionPanel(
-    context: context,
-    title: '加入试题篮',
-    subtitle: '已选择 ${questionIds.length} 道题',
-    items: items,
-    initialSelectedIds: items.isEmpty ? const {} : {items.first.id},
-    multiple: true,
-    footerBuilder: (ids) {
-      final duplicateCount = ids.fold<int>(
-        0,
-        (sum, id) => sum + (duplicateCounts[id] ?? 0),
-      );
-      final addedCount = ids.length * questionIds.length - duplicateCount;
-      return BasketSelectionFooter(
-        summary: ids.isEmpty
-            ? '请选择至少一个试题篮'
-            : '将 ${questionIds.length} 道题加入 ${ids.length} 个试题篮，新增 $addedCount 道次，已有 $duplicateCount 道次',
-        confirmLabel: ids.isEmpty ? '请选择试题篮' : '加入所选试题篮',
-        confirmIcon: Icons.shopping_cart_checkout_outlined,
-      );
-    },
-    onCreate: () async {
-      final name = await showCreateBasketDialog(context);
-      if (name == null || name.isEmpty) return null;
-      final id = await repository.create(name);
-      duplicateCounts[id] = 0;
-      return BasketSelectionItem(
-        id: id,
-        name: name,
-        subtitle: '0 道题 · 新增 ${questionIds.length} 道 · 已有 0 道',
-      );
-    },
-  );
-  if (selectedFolderIds == null || selectedFolderIds.isEmpty) return false;
-  final result = await repository.prependQuestionsToFolders(
-    selectedFolderIds,
-    questionIds,
-  );
-  final folderId = selectedFolderIds.first;
-  await repository.setActiveFolder(folderId);
-  if (!context.mounted) return false;
-  AppToast.success(
-    context,
-    '已加入 ${selectedFolderIds.length} 个试题篮：新增 ${result.added} 道次，${result.existing} 道次已存在',
-    actionLabel: '查看试题篮',
-    onAction: () => RouterUtils.push(
-      context,
-      '${AppRoutes.paperFolderDetail}?id=$folderId',
-    ),
-  );
-  return true;
 }

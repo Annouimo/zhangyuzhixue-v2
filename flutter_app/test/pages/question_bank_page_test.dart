@@ -197,7 +197,7 @@ void main() {
     expect(find.text('平均难度 4.0'), findsOneWidget);
   });
 
-  testWidgets('checking a question exposes add-to-basket actions', (
+  testWidgets('checking a question exposes selected-question actions', (
     tester,
   ) async {
     await pumpQuestionBank(tester);
@@ -215,7 +215,7 @@ void main() {
     expect(find.byTooltip('取消选择'), findsOneWidget);
     expect(find.text('智能补全'), findsOneWidget);
     expect(find.text('已选 1 道题'), findsOneWidget);
-    expect(find.text('加入试题篮'), findsOneWidget);
+    expect(find.text('管理已选题目'), findsOneWidget);
     await tester.tap(find.byTooltip('更多选择操作'));
     await tester.pumpAndSettle();
     expect(find.text('清空已选题目'), findsOneWidget);

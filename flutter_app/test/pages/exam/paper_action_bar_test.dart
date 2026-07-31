@@ -19,7 +19,7 @@ void main() {
             child: PaperActionBar(
               actions: [
                 PaperAction(
-                  label: '开始计时',
+                  label: '开始练习',
                   compactLabel: '开始',
                   icon: Icons.timer_outlined,
                   variant: AppButtonVariant.primary,
@@ -50,7 +50,7 @@ void main() {
   ) async {
     await tester.pumpWidget(buildBar(width: 430));
 
-    expect(find.text('开始计时'), findsOneWidget);
+    expect(find.text('开始练习'), findsOneWidget);
     expect(find.text('快速对答案'), findsOneWidget);
     expect(find.byIcon(Icons.more_horiz), findsOneWidget);
   });

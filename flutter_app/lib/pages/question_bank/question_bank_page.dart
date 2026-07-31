@@ -966,7 +966,7 @@ class _StudentQuestionBankPageState extends State<StudentQuestionBankPage> {
     final options = _filterOptions;
     final isReviewList = widget.initialReviewScope != null;
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 64, title: const Text('题库'), actions: []),
+      appBar: AppBar(toolbarHeight: 64, title: const Text('题库')),
       body: options == null && _error == null
           ? const LoadingIndicator(message: '正在加载题库')
           : AppContentContainer(

@@ -255,6 +255,41 @@ class PaperFolderRepository {
     if (changedFolderIds.isNotEmpty) SyncManager().scheduleOutboxPush();
   }
 
+  /// 将一组题目批量设为加入或移出指定试题篮。
+  ///
+  /// [folderMembership] 只包含用户明确修改的试题篮；未出现的试题篮保持原状，
+  /// 因而可以安全保留批量选择时的半选状态。
+  Future<void> setQuestionsFolderMembership(
+    Set<int> questionIds,
+    Map<int, bool> folderMembership,
+  ) async {
+    if (questionIds.isEmpty || folderMembership.isEmpty) return;
+    final changedFolderIds = <int>[];
+    await _provider.appDb.transaction(() async {
+      for (final entry in folderMembership.entries) {
+        final rows = await _folderDao.getQuestions(entry.key);
+        final existingIds = rows.map((row) => row.questionId).toList();
+        final existingSet = existingIds.toSet();
+        if (entry.value) {
+          final additions = questionIds.difference(existingSet);
+          if (additions.isEmpty) continue;
+          await _folderDao.prependQuestions(entry.key, additions);
+        } else {
+          if (!existingSet.any(questionIds.contains)) continue;
+          await _folderDao.replaceQuestions(
+            entry.key,
+            existingIds.where((id) => !questionIds.contains(id)).toList(),
+          );
+        }
+        changedFolderIds.add(entry.key);
+      }
+      for (final folderId in changedFolderIds) {
+        await _enqueueSnapshot(folderId);
+      }
+    });
+    if (changedFolderIds.isNotEmpty) SyncManager().scheduleOutboxPush();
+  }
+
   Future<void> replaceQuestions(int folderId, List<int> ids) async {
     await _mutateAndSync(
       folderId,
@@ -279,23 +314,6 @@ class PaperFolderRepository {
     if (AppPrefs().activePaperFolderId == folderId) {
       await AppPrefs().clearActivePaperFolderId();
     }
-  }
-
-  Future<int> copyFromPaper(int paperId, {String? name}) async {
-    final paper = await _examDao.getById(paperId);
-    if (paper == null) throw StateError('试卷不存在');
-    final questions = await _examDao.getQuestions(paperId);
-    late int folderId;
-    await _provider.appDb.transaction(() async {
-      folderId = await _folderDao.createFolder(name ?? '${paper.title}副本');
-      await _folderDao.replaceQuestions(
-        folderId,
-        questions.map((item) => item.questionId).toList(growable: false),
-      );
-      await _enqueueSnapshot(folderId);
-    });
-    SyncManager().scheduleOutboxPush();
-    return folderId;
   }
 
   String fingerprint(List<int> questionIds) =>

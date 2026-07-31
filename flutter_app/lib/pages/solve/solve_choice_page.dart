@@ -18,7 +18,6 @@ import 'widgets/question_contribution_actions.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import '../../widgets/pop_back_guard.dart';
-import '../exam/exam_session_timer.dart';
 
 /// 选择题解题页
 class SolveChoicePage extends StatefulWidget {
@@ -234,10 +233,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
@@ -257,10 +253,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: error,
       );
@@ -275,10 +268,7 @@ class _SolveChoicePageState extends State<SolveChoicePage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('选择题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: body,
       ),

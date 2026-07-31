@@ -24,7 +24,6 @@ import 'profile/level_detail_page.dart';
 import 'profile/points_page.dart';
 import 'profile/about_page.dart';
 import 'sync_queue_page.dart';
-import 'preference_welcome_page.dart';
 import 'profile/question_history_page.dart';
 import 'profile/preference_list_page.dart';
 import 'profile/preference_edit_page.dart';
@@ -88,7 +87,6 @@ abstract final class AppRoutes {
   static const profileHistory = '/profile/history';
   static const profileAbout = '/profile/about';
   static const syncQueue = '/sync/queue';
-  static const preferenceWelcome = '/preference/welcome';
   static const profilePreferences = '/profile/preferences';
   static const preferenceEdit = '/profile/preferences/edit';
   static const studyArchive = '/profile/study-archive';
@@ -470,11 +468,6 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.contributionHelp,
       name: 'contribution-help',
       builder: (_, _) => const ContributionHelpPage(),
-    ),
-    GoRoute(
-      path: AppRoutes.preferenceWelcome,
-      name: 'preference-welcome',
-      builder: (_, _) => const PreferenceWelcomePage(),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(

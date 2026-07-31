@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared/theme/app_tokens.dart';
 import 'package:shared/widgets/error_placeholder.dart';
 import 'package:shared/widgets/app_page_layout.dart';
-import 'package:shared/widgets/app_card.dart';
+import 'package:shared/widgets/app_section.dart';
 import 'package:shared/widgets/app_button.dart';
 import 'package:shared/widgets/app_dialog.dart';
 import 'package:shared/widgets/app_toast.dart';
@@ -225,15 +225,12 @@ class _PreferenceEditPageState extends State<PreferenceEditPage> {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                 children: [
-                  AppCard(
+                  AppSection(
+                    title: '方案名称',
+                    description: '建议使用目标明确、容易识别的名称。',
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const AppSectionHeader(
-                          title: '方案名称',
-                          subtitle: '建议使用目标明确、容易识别的名称。',
-                        ),
-                        const SizedBox(height: AppSpacing.md),
                         TextField(
                           controller: _nameCtrl,
                           decoration: const InputDecoration(

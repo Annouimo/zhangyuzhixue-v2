@@ -20,7 +20,6 @@ import 'widgets/question_contribution_actions.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
 import '../../widgets/pop_back_guard.dart';
-import '../exam/exam_session_timer.dart';
 
 /// 填空题解题页 — 揭示答案模式
 ///
@@ -396,10 +395,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: const LoadingIndicator(message: '正在加载题目'),
       );
@@ -419,10 +415,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: error,
       );
@@ -437,10 +430,7 @@ class _SolveFillPageState extends State<SolveFillPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('填空题'),
-          actions: [
-            ...questionContributionActions(context, widget.questionId),
-            const ExamTimerAction(),
-          ],
+          actions: [...questionContributionActions(context, widget.questionId)],
         ),
         body: body,
       ),
