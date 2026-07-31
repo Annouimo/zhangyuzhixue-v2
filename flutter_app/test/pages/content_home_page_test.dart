@@ -7,13 +7,13 @@ import '../test_setup.dart';
 void main() {
   setUp(setupTestHooks);
 
-  testWidgets('separates lectures and the upcoming video business', (
+  testWidgets('shows lecture and video catalog entrances', (
     tester,
   ) async {
     await tester.pumpWidget(const MaterialApp(home: ContentHomePage()));
 
     expect(find.text('讲义'), findsOneWidget);
     expect(find.text('视频'), findsOneWidget);
-    expect(find.text('筹备中'), findsOneWidget);
+    expect(find.text('筹备中'), findsNothing);
   });
 }

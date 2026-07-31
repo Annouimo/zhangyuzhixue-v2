@@ -12,6 +12,8 @@ import 'solve/solve_rate_page.dart';
 import 'lecture/lecture_chapters_page.dart';
 import 'lecture/lecture_content_page.dart';
 import 'lecture/lecture_courses_page.dart';
+import 'video/video_catalog_page.dart';
+import 'video/video_detail_page.dart';
 import 'exam/exam_quicklook_page.dart';
 import 'exam/exam_quicklook_other_page.dart';
 import 'exam/answer_sheet_page.dart';
@@ -57,6 +59,8 @@ abstract final class AppRoutes {
   static const lectureChapters = '/lecture/chapters';
   static const lectureContent = '/lecture/content';
   static const lectureCourses = '/lecture/courses';
+  static const videoCatalog = '/videos';
+  static const videoDetail = '/videos/detail';
   static const examAuto = '/exam/auto';
   static const examPick = '/exam/pick';
   static const examQuicklook = '/exam/quicklook';
@@ -224,6 +228,18 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.lectureCourses,
       name: 'lecture-courses',
       builder: (_, _) => LectureCoursesPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.videoCatalog,
+      name: 'video-catalog',
+      builder: (_, _) => const VideoCatalogPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.videoDetail,
+      name: 'video-detail',
+      builder: (_, state) => VideoDetailPage(
+        videoId: _intParam(state.uri.queryParameters, 'videoId') ?? 0,
+      ),
     ),
     // 组卷路由
     GoRoute(

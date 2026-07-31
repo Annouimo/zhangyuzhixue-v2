@@ -306,6 +306,42 @@ def write_lecture_content(conn, schema, chapters):
     conn.commit()
 
 
+def write_video_document_links(conn, schema, chapters):
+    """把服务端 Document 外键映射为数据包内重新编号的 chapter_id。"""
+    from courses.models import VideoDocumentLink
+
+    chapter_map = {
+        (chapter['course_id'], chapter['index']): index + 1
+        for index, chapter in enumerate(chapters)
+    }
+    rows = []
+    links = VideoDocumentLink.objects.filter(
+        video__is_published=True,
+    ).select_related('document').order_by('video_id', 'sort_order', 'id')
+    for link in links.iterator():
+        try:
+            chapter_index = int(link.document.chapter)
+        except (TypeError, ValueError):
+            continue
+        chapter_id = chapter_map.get((link.document.course_id, chapter_index))
+        if chapter_id is None:
+            continue
+        rows.append((
+            link.video_id,
+            chapter_id,
+            link.relation_label,
+            link.sort_order,
+        ))
+
+    conn.executemany(
+        'INSERT INTO video_document_link '
+        '(video_id, chapter_id, relation_label, sort_order) '
+        'VALUES (?, ?, ?, ?)',
+        rows,
+    )
+    conn.commit()
+
+
 def _write_static(conn, table_name, table_def):
     """static 转换：插入预定义的行数据"""
     defaults = table_def.get('defaults', [])
@@ -337,7 +373,10 @@ def build_database(schema, db_type, version_info, test_mode=False):
             source = table_def.get('source')
 
             if tf == 'direct':
-                copy_direct(conn, schema, table_name, table_def['source_model'])
+                copy_direct(
+                    conn, schema, table_name, table_def['source_model'],
+                    table_def.get('filter'),
+                )
             elif source and source.startswith('m2m:'):
                 copy_m2m(conn, schema, table_name, source)
             elif source == 'relation':
@@ -348,6 +387,8 @@ def build_database(schema, db_type, version_info, test_mode=False):
                 _write_static(conn, table_name, table_def)
             elif tf == 'lecture_transform':
                 write_lecture_content(conn, schema, chapters or [])
+            elif source == 'video_document_relation':
+                write_video_document_links(conn, schema, chapters or [])
 
         # 计算 checksum + 写入 _meta
         conn.commit()

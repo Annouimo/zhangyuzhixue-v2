@@ -36,6 +36,42 @@ class LectureContents extends Table {
   TextColumn? get updatedAt => text().nullable()();
 }
 
+@DataClassName('VideoCategoryRow')
+class VideoCategories extends Table {
+  @override
+  String get tableName => 'video_category';
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get description => text()();
+  IntColumn get sortOrder => integer()();
+}
+
+@DataClassName('VideoRow')
+class Videos extends Table {
+  @override
+  String get tableName => 'video';
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get categoryId => integer()();
+  TextColumn get title => text()();
+  TextColumn get description => text()();
+  TextColumn get coverUrl => text()();
+  TextColumn get platformName => text()();
+  TextColumn get videoUrl => text()();
+  TextColumn? get publishedAt => text().nullable()();
+  IntColumn get sortOrder => integer()();
+}
+
+@DataClassName('VideoDocumentLinkRow')
+class VideoDocumentLinks extends Table {
+  @override
+  String get tableName => 'video_document_link';
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get videoId => integer()();
+  IntColumn get chapterId => integer()();
+  TextColumn get relationLabel => text()();
+  IntColumn get sortOrder => integer()();
+}
+
 /// 构建元数据（表名已是单数，与设计文档一致）
 @DataClassName('MetaRow')
 class Meta extends Table {
@@ -53,11 +89,14 @@ class Meta extends Table {
   Courses,
   Chapters,
   LectureContents,
+  VideoCategories,
+  Videos,
+  VideoDocumentLinks,
   Meta,
 ])
 class CoursesDatabase extends _$CoursesDatabase {
   CoursesDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 }

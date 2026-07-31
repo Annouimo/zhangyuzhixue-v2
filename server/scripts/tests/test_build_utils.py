@@ -17,6 +17,7 @@ from scripts.build_utils import (
     gzip_db,
     write_chapters,
     write_lecture_content,
+    write_video_document_links,
     write_meta,
 )
 
@@ -284,6 +285,43 @@ class TestWriteChapters:
             chapters = write_chapters(conn, COURSES_TABLES)
             with pytest.raises(ValueError, match='empty markdown'):
                 write_lecture_content(conn, COURSES_TABLES, chapters)
+        finally:
+            conn.close()
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_video_document_links_use_generated_chapter_ids(
+            self, db, course_with_docs):
+        from courses.models import Video, VideoCategory, VideoDocumentLink
+
+        category, _ = VideoCategory.objects.get_or_create(
+            name='专题深度解析', defaults={'sort_order': 20},
+        )
+        video = Video.objects.create(
+            category=category,
+            title='测试视频',
+            video_url='https://example.com/video',
+            is_published=True,
+        )
+        document = course_with_docs.documents.order_by('chapter').last()
+        VideoDocumentLink.objects.create(
+            video=video,
+            document=document,
+            relation_label='配套讲解',
+        )
+        schema = {
+            'chapter': COURSES_TABLES['chapter'],
+            'video_document_link': COURSES_TABLES['video_document_link'],
+        }
+        conn, path = create_db(schema)
+        try:
+            chapters = write_chapters(conn, COURSES_TABLES)
+            write_video_document_links(conn, COURSES_TABLES, chapters)
+            row = conn.execute(
+                'SELECT video_id, chapter_id, relation_label '
+                'FROM video_document_link',
+            ).fetchone()
+            assert row == (video.id, 3, '配套讲解')
         finally:
             conn.close()
             if os.path.exists(path):

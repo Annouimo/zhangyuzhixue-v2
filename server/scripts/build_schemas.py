@@ -197,6 +197,45 @@ COURSES_TABLES = {
         'transform': 'lecture_transform',
     },
 
+    'video_category': {
+        'columns': [
+            ('id', 'INTEGER PRIMARY KEY'),
+            ('name', 'TEXT NOT NULL'),
+            ('description', 'TEXT NOT NULL'),
+            ('sort_order', 'INTEGER NOT NULL'),
+        ],
+        'source_model': 'courses.VideoCategory',
+        'transform': 'direct',
+    },
+
+    'video': {
+        'columns': [
+            ('id', 'INTEGER PRIMARY KEY'),
+            ('category_id', 'INTEGER NOT NULL'),
+            ('title', 'TEXT NOT NULL'),
+            ('description', 'TEXT NOT NULL'),
+            ('cover_url', 'TEXT NOT NULL'),
+            ('platform_name', 'TEXT NOT NULL'),
+            ('video_url', 'TEXT NOT NULL'),
+            ('published_at', 'TEXT'),
+            ('sort_order', 'INTEGER NOT NULL'),
+        ],
+        'source_model': 'courses.Video',
+        'filter': {'is_published': True},
+        'transform': 'direct',
+    },
+
+    'video_document_link': {
+        'columns': [
+            ('id', 'INTEGER PRIMARY KEY AUTOINCREMENT'),
+            ('video_id', 'INTEGER NOT NULL'),
+            ('chapter_id', 'INTEGER NOT NULL'),
+            ('relation_label', 'TEXT NOT NULL'),
+            ('sort_order', 'INTEGER NOT NULL'),
+        ],
+        'source': 'video_document_relation',
+    },
+
 }
 
 # 所有 schema 定义的列名集合，供 copy_data_direct 过滤 Django 字段用

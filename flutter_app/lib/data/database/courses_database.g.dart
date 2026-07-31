@@ -901,6 +901,1235 @@ class LectureContentsCompanion extends UpdateCompanion<LectureContentRow> {
   }
 }
 
+class $VideoCategoriesTable extends VideoCategories
+    with TableInfo<$VideoCategoriesTable, VideoCategoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VideoCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, description, sortOrder];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'video_category';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VideoCategoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VideoCategoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VideoCategoryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $VideoCategoriesTable createAlias(String alias) {
+    return $VideoCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class VideoCategoryRow extends DataClass
+    implements Insertable<VideoCategoryRow> {
+  final int id;
+  final String name;
+  final String description;
+  final int sortOrder;
+  const VideoCategoryRow({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['description'] = Variable<String>(description);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  VideoCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return VideoCategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: Value(description),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory VideoCategoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VideoCategoryRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String>(json['description']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String>(description),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  VideoCategoryRow copyWith({
+    int? id,
+    String? name,
+    String? description,
+    int? sortOrder,
+  }) => VideoCategoryRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description ?? this.description,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  VideoCategoryRow copyWithCompanion(VideoCategoriesCompanion data) {
+    return VideoCategoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideoCategoryRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, description, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VideoCategoryRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.sortOrder == this.sortOrder);
+}
+
+class VideoCategoriesCompanion extends UpdateCompanion<VideoCategoryRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> description;
+  final Value<int> sortOrder;
+  const VideoCategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+  });
+  VideoCategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String description,
+    required int sortOrder,
+  }) : name = Value(name),
+       description = Value(description),
+       sortOrder = Value(sortOrder);
+  static Insertable<VideoCategoryRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<int>? sortOrder,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (sortOrder != null) 'sort_order': sortOrder,
+    });
+  }
+
+  VideoCategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? description,
+    Value<int>? sortOrder,
+  }) {
+    return VideoCategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideoCategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VideosTable extends Videos with TableInfo<$VideosTable, VideoRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VideosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _categoryIdMeta = const VerificationMeta(
+    'categoryId',
+  );
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+    'category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta(
+    'coverUrl',
+  );
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+    'cover_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _platformNameMeta = const VerificationMeta(
+    'platformName',
+  );
+  @override
+  late final GeneratedColumn<String> platformName = GeneratedColumn<String>(
+    'platform_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _videoUrlMeta = const VerificationMeta(
+    'videoUrl',
+  );
+  @override
+  late final GeneratedColumn<String> videoUrl = GeneratedColumn<String>(
+    'video_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _publishedAtMeta = const VerificationMeta(
+    'publishedAt',
+  );
+  @override
+  late final GeneratedColumn<String> publishedAt = GeneratedColumn<String>(
+    'published_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    categoryId,
+    title,
+    description,
+    coverUrl,
+    platformName,
+    videoUrl,
+    publishedAt,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'video';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VideoRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+        _categoryIdMeta,
+        categoryId.isAcceptableOrUnknown(data['category_id']!, _categoryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('cover_url')) {
+      context.handle(
+        _coverUrlMeta,
+        coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_coverUrlMeta);
+    }
+    if (data.containsKey('platform_name')) {
+      context.handle(
+        _platformNameMeta,
+        platformName.isAcceptableOrUnknown(
+          data['platform_name']!,
+          _platformNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_platformNameMeta);
+    }
+    if (data.containsKey('video_url')) {
+      context.handle(
+        _videoUrlMeta,
+        videoUrl.isAcceptableOrUnknown(data['video_url']!, _videoUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_videoUrlMeta);
+    }
+    if (data.containsKey('published_at')) {
+      context.handle(
+        _publishedAtMeta,
+        publishedAt.isAcceptableOrUnknown(
+          data['published_at']!,
+          _publishedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VideoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VideoRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      categoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}category_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      coverUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_url'],
+      )!,
+      platformName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}platform_name'],
+      )!,
+      videoUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}video_url'],
+      )!,
+      publishedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}published_at'],
+      ),
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $VideosTable createAlias(String alias) {
+    return $VideosTable(attachedDatabase, alias);
+  }
+}
+
+class VideoRow extends DataClass implements Insertable<VideoRow> {
+  final int id;
+  final int categoryId;
+  final String title;
+  final String description;
+  final String coverUrl;
+  final String platformName;
+  final String videoUrl;
+  final String? publishedAt;
+  final int sortOrder;
+  const VideoRow({
+    required this.id,
+    required this.categoryId,
+    required this.title,
+    required this.description,
+    required this.coverUrl,
+    required this.platformName,
+    required this.videoUrl,
+    this.publishedAt,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['category_id'] = Variable<int>(categoryId);
+    map['title'] = Variable<String>(title);
+    map['description'] = Variable<String>(description);
+    map['cover_url'] = Variable<String>(coverUrl);
+    map['platform_name'] = Variable<String>(platformName);
+    map['video_url'] = Variable<String>(videoUrl);
+    if (!nullToAbsent || publishedAt != null) {
+      map['published_at'] = Variable<String>(publishedAt);
+    }
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  VideosCompanion toCompanion(bool nullToAbsent) {
+    return VideosCompanion(
+      id: Value(id),
+      categoryId: Value(categoryId),
+      title: Value(title),
+      description: Value(description),
+      coverUrl: Value(coverUrl),
+      platformName: Value(platformName),
+      videoUrl: Value(videoUrl),
+      publishedAt: publishedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publishedAt),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory VideoRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VideoRow(
+      id: serializer.fromJson<int>(json['id']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String>(json['description']),
+      coverUrl: serializer.fromJson<String>(json['coverUrl']),
+      platformName: serializer.fromJson<String>(json['platformName']),
+      videoUrl: serializer.fromJson<String>(json['videoUrl']),
+      publishedAt: serializer.fromJson<String?>(json['publishedAt']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String>(description),
+      'coverUrl': serializer.toJson<String>(coverUrl),
+      'platformName': serializer.toJson<String>(platformName),
+      'videoUrl': serializer.toJson<String>(videoUrl),
+      'publishedAt': serializer.toJson<String?>(publishedAt),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  VideoRow copyWith({
+    int? id,
+    int? categoryId,
+    String? title,
+    String? description,
+    String? coverUrl,
+    String? platformName,
+    String? videoUrl,
+    Value<String?> publishedAt = const Value.absent(),
+    int? sortOrder,
+  }) => VideoRow(
+    id: id ?? this.id,
+    categoryId: categoryId ?? this.categoryId,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    coverUrl: coverUrl ?? this.coverUrl,
+    platformName: platformName ?? this.platformName,
+    videoUrl: videoUrl ?? this.videoUrl,
+    publishedAt: publishedAt.present ? publishedAt.value : this.publishedAt,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  VideoRow copyWithCompanion(VideosCompanion data) {
+    return VideoRow(
+      id: data.id.present ? data.id.value : this.id,
+      categoryId: data.categoryId.present
+          ? data.categoryId.value
+          : this.categoryId,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      coverUrl: data.coverUrl.present ? data.coverUrl.value : this.coverUrl,
+      platformName: data.platformName.present
+          ? data.platformName.value
+          : this.platformName,
+      videoUrl: data.videoUrl.present ? data.videoUrl.value : this.videoUrl,
+      publishedAt: data.publishedAt.present
+          ? data.publishedAt.value
+          : this.publishedAt,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideoRow(')
+          ..write('id: $id, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('platformName: $platformName, ')
+          ..write('videoUrl: $videoUrl, ')
+          ..write('publishedAt: $publishedAt, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    categoryId,
+    title,
+    description,
+    coverUrl,
+    platformName,
+    videoUrl,
+    publishedAt,
+    sortOrder,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VideoRow &&
+          other.id == this.id &&
+          other.categoryId == this.categoryId &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.coverUrl == this.coverUrl &&
+          other.platformName == this.platformName &&
+          other.videoUrl == this.videoUrl &&
+          other.publishedAt == this.publishedAt &&
+          other.sortOrder == this.sortOrder);
+}
+
+class VideosCompanion extends UpdateCompanion<VideoRow> {
+  final Value<int> id;
+  final Value<int> categoryId;
+  final Value<String> title;
+  final Value<String> description;
+  final Value<String> coverUrl;
+  final Value<String> platformName;
+  final Value<String> videoUrl;
+  final Value<String?> publishedAt;
+  final Value<int> sortOrder;
+  const VideosCompanion({
+    this.id = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.platformName = const Value.absent(),
+    this.videoUrl = const Value.absent(),
+    this.publishedAt = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+  });
+  VideosCompanion.insert({
+    this.id = const Value.absent(),
+    required int categoryId,
+    required String title,
+    required String description,
+    required String coverUrl,
+    required String platformName,
+    required String videoUrl,
+    this.publishedAt = const Value.absent(),
+    required int sortOrder,
+  }) : categoryId = Value(categoryId),
+       title = Value(title),
+       description = Value(description),
+       coverUrl = Value(coverUrl),
+       platformName = Value(platformName),
+       videoUrl = Value(videoUrl),
+       sortOrder = Value(sortOrder);
+  static Insertable<VideoRow> custom({
+    Expression<int>? id,
+    Expression<int>? categoryId,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? coverUrl,
+    Expression<String>? platformName,
+    Expression<String>? videoUrl,
+    Expression<String>? publishedAt,
+    Expression<int>? sortOrder,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (categoryId != null) 'category_id': categoryId,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (platformName != null) 'platform_name': platformName,
+      if (videoUrl != null) 'video_url': videoUrl,
+      if (publishedAt != null) 'published_at': publishedAt,
+      if (sortOrder != null) 'sort_order': sortOrder,
+    });
+  }
+
+  VideosCompanion copyWith({
+    Value<int>? id,
+    Value<int>? categoryId,
+    Value<String>? title,
+    Value<String>? description,
+    Value<String>? coverUrl,
+    Value<String>? platformName,
+    Value<String>? videoUrl,
+    Value<String?>? publishedAt,
+    Value<int>? sortOrder,
+  }) {
+    return VideosCompanion(
+      id: id ?? this.id,
+      categoryId: categoryId ?? this.categoryId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      coverUrl: coverUrl ?? this.coverUrl,
+      platformName: platformName ?? this.platformName,
+      videoUrl: videoUrl ?? this.videoUrl,
+      publishedAt: publishedAt ?? this.publishedAt,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (platformName.present) {
+      map['platform_name'] = Variable<String>(platformName.value);
+    }
+    if (videoUrl.present) {
+      map['video_url'] = Variable<String>(videoUrl.value);
+    }
+    if (publishedAt.present) {
+      map['published_at'] = Variable<String>(publishedAt.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideosCompanion(')
+          ..write('id: $id, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('platformName: $platformName, ')
+          ..write('videoUrl: $videoUrl, ')
+          ..write('publishedAt: $publishedAt, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VideoDocumentLinksTable extends VideoDocumentLinks
+    with TableInfo<$VideoDocumentLinksTable, VideoDocumentLinkRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VideoDocumentLinksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _videoIdMeta = const VerificationMeta(
+    'videoId',
+  );
+  @override
+  late final GeneratedColumn<int> videoId = GeneratedColumn<int>(
+    'video_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterIdMeta = const VerificationMeta(
+    'chapterId',
+  );
+  @override
+  late final GeneratedColumn<int> chapterId = GeneratedColumn<int>(
+    'chapter_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _relationLabelMeta = const VerificationMeta(
+    'relationLabel',
+  );
+  @override
+  late final GeneratedColumn<String> relationLabel = GeneratedColumn<String>(
+    'relation_label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    videoId,
+    chapterId,
+    relationLabel,
+    sortOrder,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'video_document_link';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VideoDocumentLinkRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('video_id')) {
+      context.handle(
+        _videoIdMeta,
+        videoId.isAcceptableOrUnknown(data['video_id']!, _videoIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_videoIdMeta);
+    }
+    if (data.containsKey('chapter_id')) {
+      context.handle(
+        _chapterIdMeta,
+        chapterId.isAcceptableOrUnknown(data['chapter_id']!, _chapterIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterIdMeta);
+    }
+    if (data.containsKey('relation_label')) {
+      context.handle(
+        _relationLabelMeta,
+        relationLabel.isAcceptableOrUnknown(
+          data['relation_label']!,
+          _relationLabelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relationLabelMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VideoDocumentLinkRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VideoDocumentLinkRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      videoId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}video_id'],
+      )!,
+      chapterId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter_id'],
+      )!,
+      relationLabel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relation_label'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $VideoDocumentLinksTable createAlias(String alias) {
+    return $VideoDocumentLinksTable(attachedDatabase, alias);
+  }
+}
+
+class VideoDocumentLinkRow extends DataClass
+    implements Insertable<VideoDocumentLinkRow> {
+  final int id;
+  final int videoId;
+  final int chapterId;
+  final String relationLabel;
+  final int sortOrder;
+  const VideoDocumentLinkRow({
+    required this.id,
+    required this.videoId,
+    required this.chapterId,
+    required this.relationLabel,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['video_id'] = Variable<int>(videoId);
+    map['chapter_id'] = Variable<int>(chapterId);
+    map['relation_label'] = Variable<String>(relationLabel);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  VideoDocumentLinksCompanion toCompanion(bool nullToAbsent) {
+    return VideoDocumentLinksCompanion(
+      id: Value(id),
+      videoId: Value(videoId),
+      chapterId: Value(chapterId),
+      relationLabel: Value(relationLabel),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory VideoDocumentLinkRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VideoDocumentLinkRow(
+      id: serializer.fromJson<int>(json['id']),
+      videoId: serializer.fromJson<int>(json['videoId']),
+      chapterId: serializer.fromJson<int>(json['chapterId']),
+      relationLabel: serializer.fromJson<String>(json['relationLabel']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'videoId': serializer.toJson<int>(videoId),
+      'chapterId': serializer.toJson<int>(chapterId),
+      'relationLabel': serializer.toJson<String>(relationLabel),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  VideoDocumentLinkRow copyWith({
+    int? id,
+    int? videoId,
+    int? chapterId,
+    String? relationLabel,
+    int? sortOrder,
+  }) => VideoDocumentLinkRow(
+    id: id ?? this.id,
+    videoId: videoId ?? this.videoId,
+    chapterId: chapterId ?? this.chapterId,
+    relationLabel: relationLabel ?? this.relationLabel,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  VideoDocumentLinkRow copyWithCompanion(VideoDocumentLinksCompanion data) {
+    return VideoDocumentLinkRow(
+      id: data.id.present ? data.id.value : this.id,
+      videoId: data.videoId.present ? data.videoId.value : this.videoId,
+      chapterId: data.chapterId.present ? data.chapterId.value : this.chapterId,
+      relationLabel: data.relationLabel.present
+          ? data.relationLabel.value
+          : this.relationLabel,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideoDocumentLinkRow(')
+          ..write('id: $id, ')
+          ..write('videoId: $videoId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('relationLabel: $relationLabel, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, videoId, chapterId, relationLabel, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VideoDocumentLinkRow &&
+          other.id == this.id &&
+          other.videoId == this.videoId &&
+          other.chapterId == this.chapterId &&
+          other.relationLabel == this.relationLabel &&
+          other.sortOrder == this.sortOrder);
+}
+
+class VideoDocumentLinksCompanion
+    extends UpdateCompanion<VideoDocumentLinkRow> {
+  final Value<int> id;
+  final Value<int> videoId;
+  final Value<int> chapterId;
+  final Value<String> relationLabel;
+  final Value<int> sortOrder;
+  const VideoDocumentLinksCompanion({
+    this.id = const Value.absent(),
+    this.videoId = const Value.absent(),
+    this.chapterId = const Value.absent(),
+    this.relationLabel = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+  });
+  VideoDocumentLinksCompanion.insert({
+    this.id = const Value.absent(),
+    required int videoId,
+    required int chapterId,
+    required String relationLabel,
+    required int sortOrder,
+  }) : videoId = Value(videoId),
+       chapterId = Value(chapterId),
+       relationLabel = Value(relationLabel),
+       sortOrder = Value(sortOrder);
+  static Insertable<VideoDocumentLinkRow> custom({
+    Expression<int>? id,
+    Expression<int>? videoId,
+    Expression<int>? chapterId,
+    Expression<String>? relationLabel,
+    Expression<int>? sortOrder,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (videoId != null) 'video_id': videoId,
+      if (chapterId != null) 'chapter_id': chapterId,
+      if (relationLabel != null) 'relation_label': relationLabel,
+      if (sortOrder != null) 'sort_order': sortOrder,
+    });
+  }
+
+  VideoDocumentLinksCompanion copyWith({
+    Value<int>? id,
+    Value<int>? videoId,
+    Value<int>? chapterId,
+    Value<String>? relationLabel,
+    Value<int>? sortOrder,
+  }) {
+    return VideoDocumentLinksCompanion(
+      id: id ?? this.id,
+      videoId: videoId ?? this.videoId,
+      chapterId: chapterId ?? this.chapterId,
+      relationLabel: relationLabel ?? this.relationLabel,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (videoId.present) {
+      map['video_id'] = Variable<int>(videoId.value);
+    }
+    if (chapterId.present) {
+      map['chapter_id'] = Variable<int>(chapterId.value);
+    }
+    if (relationLabel.present) {
+      map['relation_label'] = Variable<String>(relationLabel.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VideoDocumentLinksCompanion(')
+          ..write('id: $id, ')
+          ..write('videoId: $videoId, ')
+          ..write('chapterId: $chapterId, ')
+          ..write('relationLabel: $relationLabel, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MetaTable extends Meta with TableInfo<$MetaTable, MetaRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1239,6 +2468,12 @@ abstract class _$CoursesDatabase extends GeneratedDatabase {
   late final $LectureContentsTable lectureContents = $LectureContentsTable(
     this,
   );
+  late final $VideoCategoriesTable videoCategories = $VideoCategoriesTable(
+    this,
+  );
+  late final $VideosTable videos = $VideosTable(this);
+  late final $VideoDocumentLinksTable videoDocumentLinks =
+      $VideoDocumentLinksTable(this);
   late final $MetaTable meta = $MetaTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1248,6 +2483,9 @@ abstract class _$CoursesDatabase extends GeneratedDatabase {
     courses,
     chapters,
     lectureContents,
+    videoCategories,
+    videos,
+    videoDocumentLinks,
     meta,
   ];
 }
@@ -1786,6 +3024,674 @@ typedef $$LectureContentsTableProcessedTableManager =
       LectureContentRow,
       PrefetchHooks Function()
     >;
+typedef $$VideoCategoriesTableCreateCompanionBuilder =
+    VideoCategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      required String description,
+      required int sortOrder,
+    });
+typedef $$VideoCategoriesTableUpdateCompanionBuilder =
+    VideoCategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> description,
+      Value<int> sortOrder,
+    });
+
+class $$VideoCategoriesTableFilterComposer
+    extends Composer<_$CoursesDatabase, $VideoCategoriesTable> {
+  $$VideoCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VideoCategoriesTableOrderingComposer
+    extends Composer<_$CoursesDatabase, $VideoCategoriesTable> {
+  $$VideoCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VideoCategoriesTableAnnotationComposer
+    extends Composer<_$CoursesDatabase, $VideoCategoriesTable> {
+  $$VideoCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$VideoCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$CoursesDatabase,
+          $VideoCategoriesTable,
+          VideoCategoryRow,
+          $$VideoCategoriesTableFilterComposer,
+          $$VideoCategoriesTableOrderingComposer,
+          $$VideoCategoriesTableAnnotationComposer,
+          $$VideoCategoriesTableCreateCompanionBuilder,
+          $$VideoCategoriesTableUpdateCompanionBuilder,
+          (
+            VideoCategoryRow,
+            BaseReferences<
+              _$CoursesDatabase,
+              $VideoCategoriesTable,
+              VideoCategoryRow
+            >,
+          ),
+          VideoCategoryRow,
+          PrefetchHooks Function()
+        > {
+  $$VideoCategoriesTableTableManager(
+    _$CoursesDatabase db,
+    $VideoCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VideoCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VideoCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VideoCategoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+              }) => VideoCategoriesCompanion(
+                id: id,
+                name: name,
+                description: description,
+                sortOrder: sortOrder,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required String description,
+                required int sortOrder,
+              }) => VideoCategoriesCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                sortOrder: sortOrder,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VideoCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$CoursesDatabase,
+      $VideoCategoriesTable,
+      VideoCategoryRow,
+      $$VideoCategoriesTableFilterComposer,
+      $$VideoCategoriesTableOrderingComposer,
+      $$VideoCategoriesTableAnnotationComposer,
+      $$VideoCategoriesTableCreateCompanionBuilder,
+      $$VideoCategoriesTableUpdateCompanionBuilder,
+      (
+        VideoCategoryRow,
+        BaseReferences<
+          _$CoursesDatabase,
+          $VideoCategoriesTable,
+          VideoCategoryRow
+        >,
+      ),
+      VideoCategoryRow,
+      PrefetchHooks Function()
+    >;
+typedef $$VideosTableCreateCompanionBuilder =
+    VideosCompanion Function({
+      Value<int> id,
+      required int categoryId,
+      required String title,
+      required String description,
+      required String coverUrl,
+      required String platformName,
+      required String videoUrl,
+      Value<String?> publishedAt,
+      required int sortOrder,
+    });
+typedef $$VideosTableUpdateCompanionBuilder =
+    VideosCompanion Function({
+      Value<int> id,
+      Value<int> categoryId,
+      Value<String> title,
+      Value<String> description,
+      Value<String> coverUrl,
+      Value<String> platformName,
+      Value<String> videoUrl,
+      Value<String?> publishedAt,
+      Value<int> sortOrder,
+    });
+
+class $$VideosTableFilterComposer
+    extends Composer<_$CoursesDatabase, $VideosTable> {
+  $$VideosTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverUrl => $composableBuilder(
+    column: $table.coverUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get platformName => $composableBuilder(
+    column: $table.platformName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get videoUrl => $composableBuilder(
+    column: $table.videoUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VideosTableOrderingComposer
+    extends Composer<_$CoursesDatabase, $VideosTable> {
+  $$VideosTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get coverUrl => $composableBuilder(
+    column: $table.coverUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get platformName => $composableBuilder(
+    column: $table.platformName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get videoUrl => $composableBuilder(
+    column: $table.videoUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VideosTableAnnotationComposer
+    extends Composer<_$CoursesDatabase, $VideosTable> {
+  $$VideosTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get categoryId => $composableBuilder(
+    column: $table.categoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get coverUrl =>
+      $composableBuilder(column: $table.coverUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get platformName => $composableBuilder(
+    column: $table.platformName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get videoUrl =>
+      $composableBuilder(column: $table.videoUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get publishedAt => $composableBuilder(
+    column: $table.publishedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$VideosTableTableManager
+    extends
+        RootTableManager<
+          _$CoursesDatabase,
+          $VideosTable,
+          VideoRow,
+          $$VideosTableFilterComposer,
+          $$VideosTableOrderingComposer,
+          $$VideosTableAnnotationComposer,
+          $$VideosTableCreateCompanionBuilder,
+          $$VideosTableUpdateCompanionBuilder,
+          (VideoRow, BaseReferences<_$CoursesDatabase, $VideosTable, VideoRow>),
+          VideoRow,
+          PrefetchHooks Function()
+        > {
+  $$VideosTableTableManager(_$CoursesDatabase db, $VideosTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VideosTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VideosTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VideosTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> categoryId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> coverUrl = const Value.absent(),
+                Value<String> platformName = const Value.absent(),
+                Value<String> videoUrl = const Value.absent(),
+                Value<String?> publishedAt = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+              }) => VideosCompanion(
+                id: id,
+                categoryId: categoryId,
+                title: title,
+                description: description,
+                coverUrl: coverUrl,
+                platformName: platformName,
+                videoUrl: videoUrl,
+                publishedAt: publishedAt,
+                sortOrder: sortOrder,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int categoryId,
+                required String title,
+                required String description,
+                required String coverUrl,
+                required String platformName,
+                required String videoUrl,
+                Value<String?> publishedAt = const Value.absent(),
+                required int sortOrder,
+              }) => VideosCompanion.insert(
+                id: id,
+                categoryId: categoryId,
+                title: title,
+                description: description,
+                coverUrl: coverUrl,
+                platformName: platformName,
+                videoUrl: videoUrl,
+                publishedAt: publishedAt,
+                sortOrder: sortOrder,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VideosTableProcessedTableManager =
+    ProcessedTableManager<
+      _$CoursesDatabase,
+      $VideosTable,
+      VideoRow,
+      $$VideosTableFilterComposer,
+      $$VideosTableOrderingComposer,
+      $$VideosTableAnnotationComposer,
+      $$VideosTableCreateCompanionBuilder,
+      $$VideosTableUpdateCompanionBuilder,
+      (VideoRow, BaseReferences<_$CoursesDatabase, $VideosTable, VideoRow>),
+      VideoRow,
+      PrefetchHooks Function()
+    >;
+typedef $$VideoDocumentLinksTableCreateCompanionBuilder =
+    VideoDocumentLinksCompanion Function({
+      Value<int> id,
+      required int videoId,
+      required int chapterId,
+      required String relationLabel,
+      required int sortOrder,
+    });
+typedef $$VideoDocumentLinksTableUpdateCompanionBuilder =
+    VideoDocumentLinksCompanion Function({
+      Value<int> id,
+      Value<int> videoId,
+      Value<int> chapterId,
+      Value<String> relationLabel,
+      Value<int> sortOrder,
+    });
+
+class $$VideoDocumentLinksTableFilterComposer
+    extends Composer<_$CoursesDatabase, $VideoDocumentLinksTable> {
+  $$VideoDocumentLinksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get videoId => $composableBuilder(
+    column: $table.videoId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapterId => $composableBuilder(
+    column: $table.chapterId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationLabel => $composableBuilder(
+    column: $table.relationLabel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VideoDocumentLinksTableOrderingComposer
+    extends Composer<_$CoursesDatabase, $VideoDocumentLinksTable> {
+  $$VideoDocumentLinksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get videoId => $composableBuilder(
+    column: $table.videoId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapterId => $composableBuilder(
+    column: $table.chapterId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relationLabel => $composableBuilder(
+    column: $table.relationLabel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VideoDocumentLinksTableAnnotationComposer
+    extends Composer<_$CoursesDatabase, $VideoDocumentLinksTable> {
+  $$VideoDocumentLinksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get videoId =>
+      $composableBuilder(column: $table.videoId, builder: (column) => column);
+
+  GeneratedColumn<int> get chapterId =>
+      $composableBuilder(column: $table.chapterId, builder: (column) => column);
+
+  GeneratedColumn<String> get relationLabel => $composableBuilder(
+    column: $table.relationLabel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+}
+
+class $$VideoDocumentLinksTableTableManager
+    extends
+        RootTableManager<
+          _$CoursesDatabase,
+          $VideoDocumentLinksTable,
+          VideoDocumentLinkRow,
+          $$VideoDocumentLinksTableFilterComposer,
+          $$VideoDocumentLinksTableOrderingComposer,
+          $$VideoDocumentLinksTableAnnotationComposer,
+          $$VideoDocumentLinksTableCreateCompanionBuilder,
+          $$VideoDocumentLinksTableUpdateCompanionBuilder,
+          (
+            VideoDocumentLinkRow,
+            BaseReferences<
+              _$CoursesDatabase,
+              $VideoDocumentLinksTable,
+              VideoDocumentLinkRow
+            >,
+          ),
+          VideoDocumentLinkRow,
+          PrefetchHooks Function()
+        > {
+  $$VideoDocumentLinksTableTableManager(
+    _$CoursesDatabase db,
+    $VideoDocumentLinksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VideoDocumentLinksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VideoDocumentLinksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VideoDocumentLinksTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> videoId = const Value.absent(),
+                Value<int> chapterId = const Value.absent(),
+                Value<String> relationLabel = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+              }) => VideoDocumentLinksCompanion(
+                id: id,
+                videoId: videoId,
+                chapterId: chapterId,
+                relationLabel: relationLabel,
+                sortOrder: sortOrder,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int videoId,
+                required int chapterId,
+                required String relationLabel,
+                required int sortOrder,
+              }) => VideoDocumentLinksCompanion.insert(
+                id: id,
+                videoId: videoId,
+                chapterId: chapterId,
+                relationLabel: relationLabel,
+                sortOrder: sortOrder,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VideoDocumentLinksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$CoursesDatabase,
+      $VideoDocumentLinksTable,
+      VideoDocumentLinkRow,
+      $$VideoDocumentLinksTableFilterComposer,
+      $$VideoDocumentLinksTableOrderingComposer,
+      $$VideoDocumentLinksTableAnnotationComposer,
+      $$VideoDocumentLinksTableCreateCompanionBuilder,
+      $$VideoDocumentLinksTableUpdateCompanionBuilder,
+      (
+        VideoDocumentLinkRow,
+        BaseReferences<
+          _$CoursesDatabase,
+          $VideoDocumentLinksTable,
+          VideoDocumentLinkRow
+        >,
+      ),
+      VideoDocumentLinkRow,
+      PrefetchHooks Function()
+    >;
 typedef $$MetaTableCreateCompanionBuilder =
     MetaCompanion Function({
       required int schemaVersion,
@@ -1975,5 +3881,11 @@ class $CoursesDatabaseManager {
       $$ChaptersTableTableManager(_db, _db.chapters);
   $$LectureContentsTableTableManager get lectureContents =>
       $$LectureContentsTableTableManager(_db, _db.lectureContents);
+  $$VideoCategoriesTableTableManager get videoCategories =>
+      $$VideoCategoriesTableTableManager(_db, _db.videoCategories);
+  $$VideosTableTableManager get videos =>
+      $$VideosTableTableManager(_db, _db.videos);
+  $$VideoDocumentLinksTableTableManager get videoDocumentLinks =>
+      $$VideoDocumentLinksTableTableManager(_db, _db.videoDocumentLinks);
   $$MetaTableTableManager get meta => $$MetaTableTableManager(_db, _db.meta);
 }

@@ -23,11 +23,11 @@ def get_version_info():
     try:
         ver = DbVersion.objects.get(db_type='courses')
         return {
-            'schema_version': ver.schema_version,
+            'schema_version': max(ver.schema_version, 2),
             'data_version': ver.data_version,
         }
     except DbVersion.DoesNotExist:
-        return {'schema_version': 1, 'data_version': 1}
+        return {'schema_version': 2, 'data_version': 1}
 
 
 def bump_version(ver):

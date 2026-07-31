@@ -24,15 +24,12 @@ class ContentHomePage extends StatelessWidget {
                   onTap: () =>
                       RouterUtils.push(context, AppRoutes.lectureCourses),
                 ),
-                const AppNavigationCard(
+                AppNavigationCard(
                   icon: Icons.play_circle_outline_rounded,
                   title: '视频',
-                  subtitle: '系统课、可视化视频和学习经验',
-                  trailing: AppStatusBadge(
-                    label: '筹备中',
-                    tone: AppStatusTone.neutral,
-                    compact: true,
-                  ),
+                  subtitle: '分类浏览自媒体视频与配套讲义',
+                  onTap: () =>
+                      RouterUtils.push(context, AppRoutes.videoCatalog),
                 ),
               ],
             ),

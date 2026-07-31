@@ -4,6 +4,9 @@ import 'package:shared/shared.dart';
 import '../../data/daos/lecture_dao.dart';
 import '../../data/database/database_provider.dart';
 import '../../domain/lecture_repository.dart';
+import '../../data/daos/video_dao.dart';
+import '../../domain/video_repository.dart';
+import '../router.dart';
 import '../solve/widgets/knowledge_card_dialog.dart';
 import 'lecture_pager_widget.dart';
 import '../../debug/performance_trace.dart';
@@ -13,12 +16,14 @@ class LectureContentPage extends StatefulWidget {
   final int chapterId;
   final int initialPage;
   final LectureRepository? lectureRepository;
+  final VideoRepository? videoRepository;
 
   const LectureContentPage({
     super.key,
     required this.chapterId,
     this.initialPage = 1,
     this.lectureRepository,
+    this.videoRepository,
   });
 
   @override
@@ -27,6 +32,7 @@ class LectureContentPage extends StatefulWidget {
 
 class _LectureContentPageState extends State<LectureContentPage> {
   late final LectureRepository _repo;
+  VideoRepository? _videoRepository;
   final PopBackGuard _popGuard = PopBackGuard();
   LectureContent? _content;
   LectureContentParsed? _parsed;
@@ -34,6 +40,7 @@ class _LectureContentPageState extends State<LectureContentPage> {
   final Set<int> _revealedSet = {};
   bool _loading = true;
   String? _error;
+  List<RelatedVideo> _relatedVideos = const [];
 
   @override
   void initState() {
@@ -41,6 +48,14 @@ class _LectureContentPageState extends State<LectureContentPage> {
     _repo =
         widget.lectureRepository ??
         LectureRepository(LectureDao(DatabaseProvider()));
+    _videoRepository = widget.videoRepository;
+    if (_videoRepository == null && widget.lectureRepository == null) {
+      final provider = DatabaseProvider();
+      _videoRepository = VideoRepository(
+        VideoDao(provider),
+        LectureDao(provider),
+      );
+    }
     _pageIndex = widget.initialPage > 1
         ? widget.initialPage - 1
         : 0; // 1-based → 0-based
@@ -60,10 +75,15 @@ class _LectureContentPageState extends State<LectureContentPage> {
     try {
       final content = await _repo.getContent(widget.chapterId);
       final parsed = _repo.parseContent(content);
+      final relatedVideos = await _videoRepository?.getRelatedVideos(
+            widget.chapterId,
+          ) ??
+          const <RelatedVideo>[];
       if (!mounted) return;
       setState(() {
         _content = content;
         _parsed = parsed;
+        _relatedVideos = relatedVideos;
         // clamp pageIndex after knowing actual page count
         if (_pageIndex >= parsed.pages.length) {
           _pageIndex = parsed.pages.length - 1;
@@ -279,6 +299,33 @@ class _LectureContentPageState extends State<LectureContentPage> {
                           .map((ref) => _buildKnowledgeChip(ref))
                           .toList(),
                     ),
+                  ],
+                ),
+              ),
+            ],
+            if (_relatedVideos.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.lg),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const AppSectionHeader(title: '相关视频'),
+                    const SizedBox(height: AppSpacing.sm),
+                    for (final video in _relatedVideos)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.play_circle_outline_rounded),
+                        title: Text(video.title),
+                        subtitle: Text([
+                          video.categoryName,
+                          video.relationLabel,
+                        ].where((value) => value.isNotEmpty).join(' · ')),
+                        trailing: const Icon(Icons.arrow_forward_rounded),
+                        onTap: () => RouterUtils.push(
+                          context,
+                          '${AppRoutes.videoDetail}?videoId=${video.id}',
+                        ),
+                      ),
                   ],
                 ),
               ),

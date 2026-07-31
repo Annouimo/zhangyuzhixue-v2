@@ -73,14 +73,15 @@ class TestLectureTables:
     def test_has_required_tables(self):
         """必须包含讲义核心表"""
         required = [
-            'course', 'chapter', 'lecture_content',
+            'course', 'chapter', 'lecture_content', 'video_category',
+            'video', 'video_document_link',
         ]
         for name in required:
             assert name in COURSES_TABLES, f'缺少表: {name}'
 
-    def test_all_tables_3(self):
-        """lectures.db 应有 3 个表"""
-        assert len(COURSES_TABLES) == 3
+    def test_all_tables_6(self):
+        """courses.db 应有 6 个业务表。"""
+        assert len(COURSES_TABLES) == 6
 
     def test_chapter_is_generated(self):
         """chapter 表 source 应为 generate"""

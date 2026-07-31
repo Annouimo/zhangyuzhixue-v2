@@ -9,7 +9,7 @@ Django 数据模型分布在 `accounts`、`qbank`、`courses`、`interactions` �
 ## 客户端数据库
 
 - `assets.db`：题库、解析、知识卡片、概念标签、成就和等级定义。
-- `courses.db`：讲义系列、章节和讲义内容。
+- `courses.db`：讲义系列、章节、讲义内容，以及已发布的视频目录和视频—讲义关联。
 - `user.db`：学生资料缓存、作答、反馈、组卷、偏好、积分、成就和同步队列。
 
 本地表定义位于 `flutter_app/lib/data/database/`，生成结果为同目录的 `*.g.dart`。服务端数据包 schema 位于 `server/scripts/build_schemas.py`。

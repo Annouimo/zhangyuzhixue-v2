@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from accounts.permissions import IsStudent
 
-from courses.models import Course, Document
+from courses.models import Course, Document, Video, VideoCategory
 
 
 def _ok(data=None, message='ok'):
@@ -68,6 +68,9 @@ def chapter_content(request, chapter_id):
         return Response({'code': 40401, 'message': '讲义不存在', 'data': None},
                         status=404)
 
+    related_videos = doc.videos.filter(is_published=True).select_related(
+        'category',
+    ).order_by('videodocumentlink__sort_order', 'sort_order', 'id')
     return _ok(data={
         'chapter_id': doc.id,
         'title': doc.title,
@@ -75,4 +78,82 @@ def chapter_content(request, chapter_id):
         'course_id': doc.course_id,
         'chapter': doc.chapter,
         'updated_at': doc.updated_at,
+        'related_videos': [
+            {
+                'id': video.id,
+                'title': video.title,
+                'category_name': video.category.name,
+                'relation_label': video.videodocumentlink_set.get(
+                    document=doc,
+                ).relation_label,
+            }
+            for video in related_videos
+        ],
+    })
+
+
+@extend_schema(responses={200: OpenApiResponse(description='视频分类及目录')})
+@api_view(['GET'])
+@permission_classes([IsStudent])
+def video_list(request):
+    categories = VideoCategory.objects.prefetch_related('videos').order_by(
+        'sort_order', 'id',
+    )
+    data = []
+    for category in categories:
+        videos = category.videos.filter(is_published=True).order_by(
+            'sort_order', '-published_at', 'id',
+        )
+        data.append({
+            'id': category.id,
+            'name': category.name,
+            'description': category.description,
+            'videos': [
+                {
+                    'id': video.id,
+                    'title': video.title,
+                    'description': video.description,
+                    'cover_url': video.cover_url,
+                    'platform_name': video.platform_name,
+                    'published_at': video.published_at,
+                }
+                for video in videos
+            ],
+        })
+    return _ok(data=data)
+
+
+@extend_schema(responses={200: OpenApiResponse(description='视频详情及相关讲义')})
+@api_view(['GET'])
+@permission_classes([IsStudent])
+def video_detail(request, video_id):
+    video = Video.objects.filter(
+        id=video_id, is_published=True,
+    ).select_related('category').first()
+    if video is None:
+        return Response(
+            {'code': 40402, 'message': '视频不存在', 'data': None},
+            status=404,
+        )
+    links = video.videodocumentlink_set.select_related(
+        'document__course',
+    ).order_by('sort_order', 'id')
+    return _ok(data={
+        'id': video.id,
+        'title': video.title,
+        'description': video.description,
+        'cover_url': video.cover_url,
+        'platform_name': video.platform_name,
+        'video_url': video.video_url,
+        'published_at': video.published_at,
+        'category': {'id': video.category_id, 'name': video.category.name},
+        'related_lectures': [
+            {
+                'chapter_id': link.document_id,
+                'title': link.document.title,
+                'course_name': link.document.course.name,
+                'relation_label': link.relation_label,
+            }
+            for link in links
+        ],
     })
