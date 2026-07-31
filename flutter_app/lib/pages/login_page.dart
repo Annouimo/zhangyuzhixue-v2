@@ -17,6 +17,7 @@ import '../widgets/user_sync_progress.dart';
 import 'router.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import '../navigation/deep_link_coordinator.dart';
 
 /// 登录页
 class LoginPage extends StatefulWidget {
@@ -107,7 +108,8 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       // 筛选方案是可选快捷方式，不再阻断首次登录。
-      context.go(AppRoutes.mainShell);
+      final continued = await DeepLinkCoordinator.instance.consumePending();
+      if (!continued && mounted) context.go(AppRoutes.mainShell);
       OperationLog.instance.action('login', 'ok');
     } catch (e) {
       AuditLogger.instance.error('LoginPage._login', e);

@@ -20,6 +20,7 @@ abstract final class PrefKeys {
   static const lastKnownLevel = 'app_last_known_level';
   static const lastKnownUnlockCount = 'app_last_known_unlock_count';
   static const activePaperFolderId = 'app_active_paper_folder_id';
+  static const pendingDeepLink = 'app_pending_deep_link';
   static const paperFolderHelpSeen = 'app_paper_folder_help_seen';
 }
 
@@ -127,6 +128,11 @@ class AppPrefs {
       p.setInt(PrefKeys.activePaperFolderId, value);
   Future<bool> clearActivePaperFolderId() =>
       p.remove(PrefKeys.activePaperFolderId);
+
+  String? get pendingDeepLink => p.getString(PrefKeys.pendingDeepLink);
+  Future<bool> setPendingDeepLink(String value) =>
+      p.setString(PrefKeys.pendingDeepLink, value);
+  Future<bool> clearPendingDeepLink() => p.remove(PrefKeys.pendingDeepLink);
 
   bool get paperFolderHelpSeen =>
       p.getBool(PrefKeys.paperFolderHelpSeen) ?? false;

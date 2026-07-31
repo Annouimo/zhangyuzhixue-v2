@@ -21,6 +21,7 @@ import 'data/sync/update_manager.dart';
 import 'data/sync/foreground_sync_policy.dart';
 import 'package:shared/debug/audit_logger.dart';
 import 'package:shared/debug/operation_log.dart';
+import 'navigation/deep_link_coordinator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,6 +80,7 @@ void main() async {
   });
 
   await DatabaseProvider().init();
+  DeepLinkCoordinator.instance.start();
   if (!performanceTestMode) {
     ConnectivityMonitor().init();
   }
